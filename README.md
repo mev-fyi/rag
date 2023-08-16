@@ -1,112 +1,87 @@
-# Ray-QA: RAG-based LLM Application
+# LLM Applications
+
+A comprehensive guide to building RAG-based LLM applications for production.
+
+- **Blog post**: https://www.anyscale.com/blog/a-comprehensive-guide-for-building-rag-based-llm-applications-part-1
+- **GitHub repository**: https://github.com/ray-project/llm-applications
+- **Interactive notebook**: https://github.com/ray-project/llm-applications/blob/main/notebooks/rag.ipynb
+- **Anyscale Endpoints**: https://endpoints.anyscale.com/
+- **Ray documentation**: https://docs.ray.io/
+
+In this guide, we will learn how to:
+
+- 💻 Develop a retrieval augmented generation (RAG) based LLM application from scratch.
+- 🚀 Scale the major components (load, chunk, embed, index, serve, etc.) in our application.
+- ✅ Evaluate different configurations of our application to optimize for both per-component (ex. retrieval_score) and overall performance (quality_score).
+- 🔀 Implement LLM hybrid routing approach to bridge the gap b/w OSS and closed LLMs.
+- 📦 Serve the application in a highly scalable and available manner.
+- 💥 Share the 1st order and 2nd order impacts LLM applications have had on our products.
+
+<br>
+<img width="800" src="https://images.ctfassets.net/xjan103pcp94/7FWrvPPlIdz5fs8wQgxLFz/fdae368044275028f0544a3d252fcfe4/image15.png">
 
 ## Setup
 
+### API keys
+We'll be using [OpenAI](https://platform.openai.com/docs/models/) to access ChatGPT models like `gpt-3.5-turbo`, `gpt-4`, etc. and [Anyscale Endpoints](https://endpoints.anyscale.com/) to access OSS LLMs like `Llama-2-70b`. Be sure to create your accounts for both and have your credentials ready.
+
 ### Compute
-Start a new workspace using an `g3.8xlarge` head node
-(creating the index will be faster if you also use some GPU worker nodes) and use the [`default_cluster_env_2.6.2_py39`](https://docs.anyscale.com/reference/base-images/ray-262/py39#ray-2-6-2-py39) cluster environment.
+<details>
+  <summary>Local</summary>
+  You could run this on your local laptop but a we highly recommend using a setup with access to GPUs. You can set this up on your own or on [Anyscale](http://anyscale.com/).
+</details>
+
+<details open>
+  <summary>Anyscale</summary><br>
+<ul>
+<li>Start a new <a href="https://console.anyscale-staging.com/o/anyscale-internal/workspaces">Anyscale workspace on staging</a> using an <a href="https://instances.vantage.sh/aws/ec2/g3.8xlarge"><code>g3.8xlarge</code></a> head node, which has 2 GPUs and 32 CPUs. We can also add GPU worker nodes to run the workloads faster. If you&#39;re not on Anyscale, you can configure a similar instance on your cloud.</li>
+<li>Use the <a href="https://docs.anyscale.com/reference/base-images/ray-262/py39#ray-2-6-2-py39"><code>default_cluster_env_2.6.2_py39</code></a> cluster environment.</li>
+<li>Use the <code>us-west-2</code> if you&#39;d like to use the artifacts in our shared storage (source docs, vector DB dumps, etc.).</li>
+</ul>
+
+</details>
 
 ### Repository
 ```bash
-git clone https://github.com/anyscale/ray-qa.git .
-git config --global user.email "EMAIL"
-git config --global user.name "NAME"
+git clone https://github.com/ray-project/llm-applications.git .
+git config --global user.name <GITHUB-USERNAME>
+git config --global user.email <EMAIL-ADDRESS>
 ```
 
 ### Data
-Our data is already ready at `/efs/shared_storage/pcmoritz/docs.ray.io/en/master/` (on Staging) but if you wanted to load it yourself, run this bash command (change `/desired/output/directory`):
+Our data is already ready at `/efs/shared_storage/goku/docs.ray.io/en/master/` (on Staging, `us-east-1`) but if you wanted to load it yourself, run this bash command (change `/desired/output/directory`, but make sure it's on the shared storage,
+so that it's accessible to the workers)
 ```bash
-wget -e robots=off --recursive --no-clobber --page-requisites --html-extension --convert-links --restrict-file-names=windows --domains docs.ray.io --no-parent --accept=html -P /desired/output/directory https://docs.ray.io/en/master/
+git clone https://github.com/ray-project/llm-applications.git .
 ```
 
 ### Environment
+
+Then set up the environment correctly by specifying the values in your `.env` file,
+and installing the dependencies:
+
 ```bash
 pip install --user -r requirements.txt
 export PYTHONPATH=$PYTHONPATH:$PWD
-export OPENAI_API_KEY=""  # https://platform.openai.com/account/api-keys
-export DB_CONNECTION_STRING="dbname=postgres user=postgres host=localhost password=postgres"
+pre-commit install
+pre-commit autoupdate
 ```
 
-### Vector DB
+### Credentials
 ```bash
-bash setup-pgvector.sh
-sudo -u postgres psql -f migrations/initial.sql
-python app/index.py create-index \
-    --docs-path "/efs/shared_storage/pcmoritz/docs.ray.io/en/master/" \
-    --embedding-model "thenlper/gte-base"
+touch .env
+# Add environment variables to .env
+OPENAI_API_BASE="https://api.openai.com/v1"
+OPENAI_API_KEY=""  # https://platform.openai.com/account/api-keys
+ANYSCALE_API_BASE="https://api.endpoints.anyscale.com/v1"
+ANYSCALE_API_KEY=""  # https://app.endpoints.anyscale.com/credentials
+DB_CONNECTION_STRING="dbname=postgres user=postgres host=localhost password=postgres"
+source .env
 ```
 
-### Query
-Just a sample and uses the current index that's been created.
-```python
-import json
-from app.query import QueryAgent
-query = "What is the default batch size for map_batches?"
-system_content = "Your job is to answer a question using the additional context provided."
-agent = QueryAgent(
-    embedding_model="thenlper/gte-base",
-    llm="gpt-3.5-turbo-16k",
-    max_context_length=16000,
-    system_content=system_content,
-)
-result = agent.get_response(query=query)
-print(json.dumps(result, indent=2))
-```
+Now we're ready to go through the [rag.ipynb](notebooks/rag.ipynb) interactive notebook to develop and serve our LLM application!
 
-### Experiment
-
-1. Generate responses
-```bash
-python app/main.py generate-responses \
-    --experiment-name "gpt3.5-with-context" \
-    --docs-path "/efs/shared_storage/pcmoritz/docs.ray.io/en/master/" \
-    --data-path "/home/ray/ray-qa/datasets/eval-dataset-v1.jsonl" \
-    --embedding-model "thenlper/gte-base" \
-    --chunk-size 300 \
-    --chunk-overlap 50 \
-    --llm "gpt-3.5-turbo-16k" \
-    --max-context-length 16000 \
-    --system-content """
-        Your job is {answer} a {query} using the additional {context} provided.
-        Then, you must {score} your response between 1 and 5.
-        You must return your response in a line with only the score. Do not add any more deatils.
-        On a separate line provide your {reasoning} for the score as well.
-        Return your response following the exact format outlined below, do not add or remove anything.
-        And all of this must be in a valid JSON format.
-
-        {"answer": answer,
-        "score": score,
-        "reasoning": reasoning}
-        """
-```
-
-2. Evaluate responses
-```bash
-python app/main.py evaluate-responses \
-    --reference-loc "/home/ray/ray-qa/datasets/gpt4-with-context.json" \
-    --generated-loc "/home/ray/ray-qa/responses/gpt3.5-with-context.json" \
-    --llm "gpt-4" \
-    --max-context-length 8192 \
-    --system-content """
-    Your job is to rate the quality of our generated answer {generated_answer}
-    given a query {query} and a reference answer {reference_answer}.
-    Your score has to be between 1 and 5.
-    You must return your response in a line with only the score.
-    Do not return answers in any other format.
-    On a separate line provide your reasoning for the score as well.
-    """
-```
-
-
-### Dashboard
-```bash
-export APP_PORT=8501
-echo https://$APP_PORT-port-$ANYSCALE_SESSION_DOMAIN
-streamlit run dashboard/Home.py
-```
-
-
-### TODO
-- Experiments
-- Serving
-- CI/CD workflows
+### Learn more
+- If your team is investing heavily in developing LLM applications, [reach out](mailto:endpoints-help@anyscale.com) to us to learn more about how [Ray](https://github.com/ray-project/ray) and [Anyscale](http://anyscale.com/) can help you scale and productionize everything.
+- Start serving (+fine-tuning) OSS LLMs with [Anyscale Endpoints](https://endpoints.anyscale.com/) ($1/M tokens for `Llama-2-70b`) and private endpoints available upon request (1M free tokens trial).
+- Learn more about how companies like OpenAI, Netflix, Pinterest, Verizon, Instacart and others leverage Ray and Anyscale for their AI workloads at the [Ray Summit 2023](https://raysummit.anyscale.com/) this Sept 18-20 in San Francisco.
