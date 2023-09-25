@@ -309,9 +309,10 @@ len(embedding)
 # [many options](https://github.com/pgvector/pgvector#vector-operators) to choose from.
 # Once we retrieve the top `num_chunks`, we can collect the text for each chunk and use it as context to generate a response.
 
+# todo 2023-09-25: check https://www.timescale.com/blog/how-we-made-postgresql-the-best-vector-database/
 
 # Get context
-num_chunks = 5
+num_chunks = 5  # TODO 2023-09-25: optmiise for chunks
 with psycopg.connect(os.environ["DB_CONNECTION_STRING"]) as conn:
     register_vector(conn)
     with conn.cursor() as cur:
@@ -322,9 +323,8 @@ with psycopg.connect(os.environ["DB_CONNECTION_STRING"]) as conn:
 
 
 for i, item in enumerate(context):
-    print (sources[i])
-    print (item["text"])
-    print ()
+    print(sources[i])
+    print(item["text"],'\n')
 
 
 # Let's wrap this into a convenient function:
@@ -401,17 +401,18 @@ for content in response:
 
 
 # ### Agent
-
-
-# Let's combine the context retrieval and response generation together into a convenient query agent that we can use to easily generate our responses. This will take care of setting up our agent (embedding and LLM model), as well as the context retrieval, and pass it to our LLM for response generation.
-
-
+# Let's combine the context retrieval and response generation together into a convenient
+# query agent that we can use to easily generate our responses.
+# This will take care of setting up our agent (embedding and LLM model), as well as the context retrieval,
+# and pass it to our LLM for response generation.
 from rag.embed import get_embedding_model
 
 
 class QueryAgent:
-    def __init__(self, embedding_model_name="thenlper/gte-base",
-                 llm="meta-llama/Llama-2-70b-chat-hf", temperature=0.0, 
+    # TODO 2023-09-25: update with ChatBot agent
+    def __init__(self, embedding_model_name=os.environ.get('EMBEDDING_MODEL_NAME'),
+                 llm="meta-llama/Llama-2-70b-chat-hf", temperature=0.0,  # TODO 2023-09-25: update LLM if relevant
+                 # TODO 2023-09-25: update max_context_length if relevant
                  max_context_length=4096, system_content="", assistant_content=""):
         
         # Embedding model
@@ -428,6 +429,8 @@ class QueryAgent:
         self.assistant_content = assistant_content
 
     def __call__(self, query, num_chunks=5, stream=True):
+        # TODO 2023-09-25: evaluate optimal num_chunks, if top-k chunks
+        # TODO 2023-09-25: evaluate with other methods than top-k chunks
         # Get sources and context
         sources, context = get_sources_and_context(
             query=query,
@@ -455,11 +458,8 @@ class QueryAgent:
 
 
 # With this, we can use our RAG application in just a few lines:
-
-
-embedding_model_name="thenlper/gte-base"
-llm="meta-llama/Llama-2-7b-chat-hf"
-
+embedding_model_name = os.environ.get("EMBEDDING_MODEL_NAME", "BAAI/bge-large-en-v1.5")
+llm = os.environ.get("LLM", "meta-llama/Llama-2-70b-chat-hf")
 
 query = "What is the default batch size for map_batches?"
 system_content = "Answer the query using the context provided. Be succinct."
@@ -473,38 +473,50 @@ print("\n\n", json.dumps(result, indent=2))
 
 
 # # Evaluation
-
-
-# So far, we've chosen typical/arbitrary values for the various parts of our RAG application. But if we were to change something, such as our chunking logic, embedding model, LLM, etc. how can we know that we have a better configuration than before? A generative task like this is very difficult to quantitatively assess and so we need to develop reliable ways to do so.
+# So far, we've chosen typical/arbitrary values for the various parts of our RAG application.
+# But if we were to change something, such as our chunking logic, embedding model, LLM, etc.
+# how can we know that we have a better configuration than before? A generative task like this
+# is very difficult to quantitatively assess and so we need to develop reliable ways to do so.
+#
+# Because we have many moving parts in our application, we need to perform both unit/component
+# and end-to-end evaluation. Component-wise evaluation can involve evaluating our retrieval in isolation
+# (is the best source in our set of retrieved chunks) and evaluating our LLMs response
+# (given the best source, is the LLM able to produce a quality answer). And for end-to-end evaluation,
+# we can assess the quality of the entire system (given the data sources, what is the quality of the response).
+#
+# We'll be asking our evaluator LLM to score the quality of the response between 1-5 using the context, however,
+# we could also have it produce scores for other dimensions such as hallucination (is the generated answer using
+# information only from the provided context), toxicity, etc.
 # 
-# Because we have many moving parts in our application, we need to perform both unit/component and end-to-end evaluation. Component-wise evaluation can involve evaluating our retrieval in isolation (is the best source in our set of retrieved chunks) and evaluating our LLMs response (given the best source, is the LLM able to produce a quality answer). And for end-to-end evaluation, we can assess the quality of the entire system (given the data sources, what is the quality of the response).
-# We'll be asking our evaluator LLM to score the quality of the response between 1-5 using the context, however, we could also have it produce scores for other dimensions such as hallucination (is the generated answer using information only from the provided context), toxicity, etc.
-# 
-# **Note**: We could have constrained the score to be binary (0/1), which might be more interpretable (ex. the response was either correct or incorrect). However, we introduced a higher variance in our scores to develop a deeper, fine-grained, understanding of how LLMs score responses (ex. LLM bias towards responses).
-# 
-# 
+# **Note**: We could have constrained the score to be binary (0/1), which might be more interpretable
+# (ex. the response was either correct or incorrect). However, we introduced a higher variance in our scores to develop
+# a deeper, fine-grained, understanding of how LLMs score responses (ex. LLM bias towards responses).
 # 
 # <img width="1000" src="https://images.ctfassets.net/xjan103pcp94/17UQdsEImsXOOdDlT06bvi/4a9b9e46e157541a1178b6938624176a/llm_evaluations.png">
-
 
 # If running tests / small samples, set num_samples to <10
 EXPERIMENTS_DIR = Path(ROOT_DIR, "experiments")
 NUM_SAMPLES = None  # None = all samples
 
-
 # ## Evaluator
-
-
-# We're going to start by determining our evaluator. Given a response to a query and relevant context, our evaluator should be a trusted way to score/assess the quality of the response. But before we can determine our evaluator, we need a dataset of questions and the source where the answer comes from. We can use this dataset to ask our different evaluators to provide an answer and then rate their answer (ex. score between 1-5). We can then inspect this dataset to determine if our evaluator is unbiased and has sound reasoning for the scores that are assigned.
+# We're going to start by determining our evaluator. Given a response to a query and relevant
+# context, our evaluator should be a trusted way to score/assess the quality of the response.
+# But before we can determine our evaluator, we need a dataset of questions and the source where
+# the answer comes from. We can use this dataset to ask our different evaluators to provide an answer
+# and then rate their answer (ex. score between 1-5). We can then inspect this dataset to determine if
+# our evaluator is unbiased and has sound reasoning for the scores that are assigned.
 # 
-# **Note**: We’re evaluating the ability of our LLM to generate a response given the relevant context. This is a component-level evaluation (`quality_score (LLM)`) because we aren’t using retrieval to fetch the relevant context.
+# **Note**: We’re evaluating the ability of our LLM to generate a response given the relevant context.
+# This is a component-level evaluation (`quality_score (LLM)`) because we aren’t using retrieval to fetch the relevant context.
 
-
-# We'll start by manually creating our dataset (keep reading if you can’t manually create a dataset). We have a list of user queries and the ideal source to answer the query [datasets/eval-dataset-v1.jsonl](https://github.com/ray-project/llm-applications/blob/main/datasets/eval-dataset-v1.jsonl). We will our LLM app above to generate reference answer for each query/source pair using `gpt-4`.
+# We'll start by manually creating our dataset (keep reading if you can’t manually
+# create a dataset). We have a list of user queries and the ideal source to answer the query
+# [datasets/eval-dataset-v1.jsonl](https://github.com/ray-project/llm-applications/blob/main/datasets/eval-dataset-v1.jsonl).
+# We will our LLM app above to generate reference answer for each query/source pair using `gpt-4`.
 
 
 from bs4 import BeautifulSoup
-from IPython.display import JSON, clear_output, display
+# from IPython.display import JSON, clear_output, display
 from tqdm import tqdm
 import urllib.parse
 
@@ -517,9 +529,7 @@ from rag.data import fetch_text
 with open(Path(ROOT_DIR, "datasets/eval-dataset-v1.jsonl"), "r") as f:
     data = [json.loads(item) for item in list(f)]
 
-
-data[:5]
-
+print(data[:5])
 
 # Sample
 uri = "https://docs.ray.io/en/master/data/transforming-data.html#configuring-batch-format"
@@ -544,7 +554,10 @@ system_content = """
 assistant_content = ""
 
 
-# We can extract the text from this context and pass it to our LLM to generate a response to the question. We’re also going to ask it to score the quality of its response for the query. To do this, we’ve defined a `QueryAgentWithContext` that inherits from `QueryAgent`, with the change that we’re providing the context and it doesn’t need to retrieve it.
+# We can extract the text from this context and pass it to our LLM to generate a
+# response to the question. We’re also going to ask it to score the quality of
+# its response for the query. To do this, we’ve defined a `QueryAgentWithContext` that
+# inherits from `QueryAgent`, with the change that we’re providing the context and it doesn’t need to retrieve it.
 
 
 class QueryAgentWithContext(QueryAgent):
@@ -585,8 +598,8 @@ def get_references(data, llm, temperature, system_content, assistant_content, nu
                 "reasoning": reasoning,
             })
         results.append(result)
-        clear_output(wait=True)
-        display(JSON(json.dumps(result, indent=2)))
+        # clear_output(wait=True)
+        print(json.dumps(result, indent=2))
     return results
 
 
