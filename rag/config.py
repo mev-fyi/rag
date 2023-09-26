@@ -9,6 +9,7 @@ EMBEDDING_DIMENSIONS = {
     "thenlper/gte-base": 768,
     "thenlper/gte-large": 1024,
     "BAAI/bge-large-en": 1024,
+    "BAAI/bge-large-en-v1.5": 1024,
     "text-embedding-ada-002": 1536,
 }
 MAX_CONTEXT_LENGTHS = {

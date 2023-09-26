@@ -1,3 +1,5 @@
+# Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
+from datetime import datetime
 import os
 import time
 import random
@@ -5,23 +7,95 @@ from typing import Union, List
 
 import requests
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-from llama_index import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 import llama_index
+from llama_index import VectorStoreIndex, ServiceContext
+from llama_index.schema import MetadataMode, TextNode
+from llama_index.text_splitter import SentenceSplitter, TokenTextSplitter
 from llama_index.chat_engine.types import ChatMode
 from llama_index.llms import OpenAI
 import pandas as pd
 import concurrent.futures
-from functools import partial
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial, wraps
 from pathlib import Path
 import logging
 
-from llama_index.schema import MetadataMode
-
+import rag.config as config
 from rag.Llama_index_sandbox.utils import root_directory
 
-# https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
+
+def start_logging():
+    # Ensure that root_directory() is defined and returns the path to the root directory
+
+    # Create a 'logs' directory if it does not exist
+    if not os.path.exists(f'{root_directory()}/logs'):
+        os.makedirs(f'{root_directory()}/logs')
+
+    # Get the current date and time
+    now = datetime.now()
+    timestamp_str = now.strftime('%Y-%m-%d_%H-%M')
+
+    # Set up the logging level
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    # Add handler to log messages to a file
+    log_filename = f'{root_directory()}/logs/log_{timestamp_str}.txt'
+    file_handler = logging.FileHandler(log_filename)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    root_logger.addHandler(file_handler)
+
+    # Add handler to log messages to the standard output
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    root_logger.addHandler(console_handler)
+
+    # Now, any logging.info() call will append the log message to the specified file and the standard output.
+    logging.info('********* LOGGING STARTED *********')
 
 
+def timeit(func):
+    """
+    A decorator that logs the time a function takes to execute.
+
+    Args:
+        func (callable): The function being decorated.
+
+    Returns:
+        callable: The wrapped function.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        """
+        The wrapper function to execute the decorated function and log its execution time.
+
+        Args:
+            *args: Variable length argument list to pass to the decorated function.
+            **kwargs: Arbitrary keyword arguments to pass to the decorated function.
+
+        Returns:
+            The value returned by the decorated function.
+        """
+        logging.info(f"{func.__name__} started.")
+        start_time = time.time()
+
+        # Call the decorated function and store its result.
+        # *args and **kwargs are used to pass the arguments received by the wrapper
+        # to the decorated function.
+        result = func(*args, **kwargs)
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        minutes, seconds = divmod(elapsed_time, 60)
+        logging.info(f"{func.__name__} completed, took {int(minutes)} minutes and {seconds:.2f} seconds to run.")
+
+        return result  # Return the result of the decorated function
+
+    return wrapper
+
+
+@timeit
 def fetch_pdf_list():
     root_dir = root_directory()
     mev_fyi_dir = f"{root_dir}/../mev.fyi/"
@@ -33,7 +107,6 @@ def fetch_pdf_list():
     # Append '.pdf' to the links that contain 'arxiv' and subselect all the ones which contain '.pdf'
     df['pdf_link'] = df['pdf_link'].apply(lambda link: link + '.pdf' if 'arxiv' in link else link)
     pdf_links = df.loc[df['pdf_link'].str.contains('.pdf'), 'pdf_link'].tolist()
-    # logging.info(f"\nThis is pdf_links: {pdf_links}\n")
 
     # Directory to save the PDF files
     save_dir = "downloaded_papers"
@@ -57,7 +130,7 @@ def download_pdf(link, save_dir):
         try:
             logging.info(f"requesting pdf {link}")
             time.sleep(random.uniform(1, 5))
-            # Send a HTTP request to the server and save the PDF file
+            # Send an HTTP request to the server and save the PDF file
             response = requests.get(link)
             response.raise_for_status()
 
@@ -86,6 +159,7 @@ def load_single_pdf(file_path, loader=PyMuPDFReader()):
         return []
 
 
+@timeit
 def load_pdfs(directory_path: Union[str, Path]):
     # Convert directory_path to a Path object if it is not already
     logging.info("Loading PDFs")
@@ -109,14 +183,23 @@ def load_pdfs(directory_path: Union[str, Path]):
     return all_documents
 
 
-def split_text(documents, chunk_size, chunk_overlap=None, separator="\n"):
-    # TODO 2023-09-25: The chosen text splitter should be a hyperparameter we can tune
-    from llama_index.text_splitter import SentenceSplitter
+@timeit
+def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None):
+    # TODO 2023-09-26: We will determine if different content source better behaves with a specific text_splitter
+    #  e.g. SentenceSplitter could work better for diarized YouTube videos than 'TokenTextSplitter' for instance
 
-    # TODO 2023-09-25: Chunk overlap is one hyperparameter we can tune
+    if splitter_fn is None:
+        splitter_fn = SentenceSplitter  # TODO 2023-09-25: The chosen text splitter should be a hyperparameter we can tune.
     if chunk_overlap is None:
-        chunk_overlap = int(0.15 * chunk_size)
-    text_splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        chunk_overlap = int(0.15 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
+    text_chunks, doc_idxs = split_text(documents, chunk_size, splitter_fn=splitter_fn, chunk_overlap=chunk_overlap, separator="\n")
+    return text_chunks, doc_idxs
+
+
+@timeit
+def split_text(documents, chunk_size, splitter_fn, chunk_overlap, separator="\n"):
+    # TODO 2023-09-25: Chunk overlap is one hyperparameter we can tune
+    text_splitter = splitter_fn(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
     text_chunks = []
     doc_idxs = []
@@ -127,25 +210,38 @@ def split_text(documents, chunk_size, chunk_overlap=None, separator="\n"):
     return text_chunks, doc_idxs
 
 
-def construct_node(text_chunks, documents, doc_idxs) -> List[llama_index.schema.TextNode]:
-    """ 3. Manually Construct Nodes from Text Chunks """
-    from llama_index.schema import TextNode
+def construct_single_node(text_chunk, src_doc_metadata):
+    """Construct a single TextNode."""
+    node = TextNode(text=text_chunk)
+    node.metadata = src_doc_metadata
+    return node
 
-    nodes = []
-    for idx, text_chunk in enumerate(text_chunks):
-        node = TextNode(
-            text=text_chunk,
-        )
-        src_doc = documents[doc_idxs[idx]]
-        node.metadata = src_doc.metadata
-        nodes.append(node)
+
+@timeit
+def construct_node(text_chunks, documents, doc_idxs) -> List[TextNode]:
+    """ 3. Manually Construct Nodes from Text Chunks """
+    #  TODO 2023-09-26: should the LlamaIndex TextNode representation be scrutinized e.g. versus other implementations (e.g. Anyscale)?
+    with ProcessPoolExecutor() as executor:
+        future_to_idx = {
+            executor.submit(construct_single_node, text_chunks[idx], documents[doc_idxs[idx]].metadata): idx
+            for idx in range(len(text_chunks))
+        }
+
+        nodes = []
+        for future in concurrent.futures.as_completed(future_to_idx):
+            try:
+                node = future.result()
+                nodes.append(node)
+            except Exception as exc:
+                logging.error(f"Generated an exception: {exc}")
 
     # print a sample node
     logging.info(f"Sample node: {nodes[0].get_content(metadata_mode=MetadataMode.ALL)}")
     return nodes
 
 
-def add_metadata_to_node(nodes):
+@timeit
+def enrich_nodes_with_metadata_via_llm(nodes):
     """
       See part 4. Extract Metadata from each Node from https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html.
       Adds metadata to the given nodes using TitleExtractor and QuestionsAnsweredExtractor.
@@ -175,7 +271,7 @@ def add_metadata_to_node(nodes):
     metadata_extractor = MetadataExtractor(
         extractors=[
             TitleExtractor(nodes=5, llm=llm),
-            QuestionsAnsweredExtractor(questions=3, llm=llm),
+            QuestionsAnsweredExtractor(questions=3, llm=llm),  # TODO 2023-09-26: check what QuestionsAnsweredExtractor does under the hood
         ],
         in_place=False,
     )
@@ -184,7 +280,8 @@ def add_metadata_to_node(nodes):
     return nodes
 
 
-def generate_embeddings(nodes, embed_model=None) -> None:
+@timeit
+def generate_embeddings(nodes, embedding_model=None) -> None:
     """
     Generates and assigns embeddings to the provided nodes.
 
@@ -201,43 +298,59 @@ def generate_embeddings(nodes, embed_model=None) -> None:
     from llama_index.embeddings import OpenAIEmbedding
     # TODO 2023-09-25 use Anyscale upgrade to smoothly use other embedding models
 
-    if embed_model is None:
-        embed_model = OpenAIEmbedding()
+    if embedding_model is None:
+        embedding_model = OpenAIEmbedding()
 
     for node in nodes:
-        node_embedding = embed_model.get_text_embedding(
+        node_embedding = embedding_model.get_text_embedding(
             node.get_content(metadata_mode="all")
         )
         node.embedding = node_embedding
 
 
-def initialise_vector_store():
+@timeit
+def initialise_vector_store(dimension):
     # TODO 2023-09-25: upgrade for parametrisable vector_store
     import pinecone
     api_key = os.environ["PINECONE_API_KEY"]
-    pinecone.init(api_key=api_key, environment="us-west1-gcp")
+    pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
 
     # TODO 2023-09-25: optimise for distance metric here
-
-    # dimensions are for text-embedding-ada-002
-    pinecone.create_index("quickstart", dimension=1536, metric="euclidean", pod_type="p1")
-    pinecone_index = pinecone.Index("quickstart")
+    pinecone.create_index(name="quickstart", dimension=dimension, metric="cosine", pod_type="p1")
+    pinecone_index = pinecone.Index(index_name="quickstart")
     # [Optional] drop contents in index
-    pinecone_index.delete(deleteAll=True)
+    # pinecone_index.delete(deleteAll=True)
     return pinecone_index
 
 
-def load_nodes_into_vector_store(nodes, vector_store):
+@timeit
+def load_nodes_into_vector_store_create_index(nodes, vector_store):
     """
     We now insert these nodes into our PineconeVectorStore.
 
     NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level
-    abstraction that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
+    abstraction that handles ingestion as well. We use VectorStoreIndex in the next section to fast-track retrieval/querying.
     """
     vector_store.add(nodes)
+    index = VectorStoreIndex.from_vector_store(vector_store)
+    return index
+
+
+@timeit
+def retrieve_and_query_from_vector_store(index):
+    # service_context = ServiceContext.from_defaults(llm=OpenAI(model="gpt-3.5-turbo-0613"))
+    query_engine = index.as_query_engine()
+    query_str = "Can you tell me about the key concepts for safety finetuning"
+    response = query_engine.query(query_str)
+
+    logging.info(response)
+    # chat_engine = index.as_chat_engine(chat_mode=ChatMode.REACT, verbose=True)
+    # response = chat_engine.chat("Hi")
+    pass
 
 
 def run():
+    start_logging()
     # 1. Data loading
     pdf_links, save_dir = fetch_pdf_list()
 
@@ -245,16 +358,19 @@ def run():
         executor.map(partial(download_pdf, save_dir=save_dir), pdf_links)
     documents = load_pdfs(directory_path=Path(save_dir))
 
+    embedding_model = os.environ.get('EMBEDDING_MODEL_NAME')
+    embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model]
+
     # 2. Data chunking / text splitter
-    text_chunks, doc_idxs = split_text(documents, chunk_size=1024)
+    text_chunks, doc_idxs = chunk_documents(documents, chunk_size=embedding_model_chunk_size)
 
     # 3. Manually Construct Nodes from Text Chunks
     nodes = construct_node(text_chunks, documents, doc_idxs)
 
-    # 4. Extract Metadata from each Node
+    # [Optional] 4. Extract Metadata from each Node by performing LLM calls to fetch Title.
     #        We extract metadata from each Node using our Metadata extractors.
     #        This will add more metadata to each Node.
-    nodes = add_metadata_to_node(nodes)
+    # nodes = enrich_nodes_with_metadata_via_llm(nodes)
 
     # 5. Generate Embeddings for each Node
     generate_embeddings(nodes)
@@ -263,17 +379,18 @@ def run():
     # We now insert these nodes into our PineconeVectorStore.
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-    vector_store = initialise_vector_store()
-    load_nodes_into_vector_store(nodes, vector_store)
+    vector_store = initialise_vector_store(dimension=embedding_model_chunk_size)
+    index = load_nodes_into_vector_store_create_index(nodes, vector_store)
 
-    # Data indexing
-    service_context = ServiceContext.from_defaults(llm=OpenAI(model="gpt-3.5-turbo-0613"))
-    index = VectorStoreIndex.from_documents(data, service_context=service_context)
-    chat_engine = index.as_chat_engine(chat_mode=ChatMode.REACT, verbose=True)
-    response = chat_engine.chat("Hi")
-    logging.info(response)
+    # 7. Retrieve and Query from the Vector Store
+    # Now that our ingestion is complete, we can retrieve/query this vector store.
+    # NOTE: We can use our high-level VectorStoreIndex abstraction here. See the next section to see how to define retrieval at a lower-level!
+    retrieve_and_query_from_vector_store(index=index)
+
+    pass
+    # delete the index to save resources once we are done
+    vector_store.delete(deleteAll=True)
 
 
 if __name__ == "__main__":
-    logging.info("\nSCRIPT STARTING\n"*2)
     run()
