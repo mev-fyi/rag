@@ -24,12 +24,12 @@ def root_directory() -> str:
 
 class RateLimitController:
     def __init__(self):
-        self.backoff_time = multiprocessing.Value('d', 10.0)
+        self.backoff_time = multiprocessing.Value('d', 20.0)
         self.lock = multiprocessing.Lock()
 
     def register_rate_limit_exceeded(self):
         with self.lock:
-            jitter = self.backoff_time.value * 0.2 * random.uniform(0, 1)
+            jitter = self.backoff_time.value * 0.5 * random.uniform(0, 1)
             sleep_time = min(self.backoff_time.value + jitter, 300)
             logging.warning(f"Rate limit exceeded. Retrying in {sleep_time} seconds...")
             time.sleep(sleep_time)
