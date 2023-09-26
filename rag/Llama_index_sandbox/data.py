@@ -1,4 +1,5 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
+import multiprocessing
 from datetime import datetime
 import os
 import time
@@ -19,9 +20,12 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial, wraps
 from pathlib import Path
 import logging
+import math
+
+from llama_index.vector_stores import PineconeVectorStore
 
 import rag.config as config
-from rag.Llama_index_sandbox.utils import root_directory
+from rag.Llama_index_sandbox.utils import root_directory, RateLimitController
 
 
 def start_logging():
@@ -88,7 +92,7 @@ def timeit(func):
         end_time = time.time()
         elapsed_time = end_time - start_time
         minutes, seconds = divmod(elapsed_time, 60)
-        logging.info(f"{func.__name__} completed, took {int(minutes)} minutes and {seconds:.2f} seconds to run.")
+        logging.info(f"{func.__name__} completed, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
 
         return result  # Return the result of the decorated function
 
@@ -96,7 +100,7 @@ def timeit(func):
 
 
 @timeit
-def fetch_pdf_list():
+def fetch_pdf_list(num_papers=None):
     root_dir = root_directory()
     mev_fyi_dir = f"{root_dir}/../mev.fyi/"
     research_papers_path = f"{mev_fyi_dir}/data/paper_details.csv"
@@ -108,10 +112,20 @@ def fetch_pdf_list():
     df['pdf_link'] = df['pdf_link'].apply(lambda link: link + '.pdf' if 'arxiv' in link else link)
     pdf_links = df.loc[df['pdf_link'].str.contains('.pdf'), 'pdf_link'].tolist()
 
+    # If num_papers is specified, subset the list of pdf_links
+    if num_papers is not None:
+        pdf_links = pdf_links[:num_papers]
+
     # Directory to save the PDF files
     save_dir = "downloaded_papers"
     os.makedirs(save_dir, exist_ok=True)
     return pdf_links, save_dir
+
+
+@timeit
+def download_pdfs(pdf_links, save_dir):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(partial(download_pdf, save_dir=save_dir), pdf_links)
 
 
 def download_pdf(link, save_dir):
@@ -162,7 +176,7 @@ def load_single_pdf(file_path, loader=PyMuPDFReader()):
 @timeit
 def load_pdfs(directory_path: Union[str, Path]):
     # Convert directory_path to a Path object if it is not already
-    logging.info("Loading PDFs")
+    # logging.info("Loading PDFs")
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
@@ -236,7 +250,7 @@ def construct_node(text_chunks, documents, doc_idxs) -> List[TextNode]:
                 logging.error(f"Generated an exception: {exc}")
 
     # print a sample node
-    logging.info(f"Sample node: {nodes[0].get_content(metadata_mode=MetadataMode.ALL)}")
+    logging.info(f"Sample node: {nodes[0].get_content(metadata_mode=MetadataMode.ALL)}\n\n")
     return nodes
 
 
@@ -280,47 +294,72 @@ def enrich_nodes_with_metadata_via_llm(nodes):
     return nodes
 
 
-@timeit
-def generate_embeddings(nodes, embedding_model=None) -> None:
-    """
-    Generates and assigns embeddings to the provided nodes.
+def generate_node_embedding(node, embedding_model, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):
+    """Generate embedding for a single node."""
+    while True:
+        try:
+            node_embedding = embedding_model.get_text_embedding(
+                node.get_content(metadata_mode="all")
+            )
+            node.embedding = node_embedding
+            with progress_counter.get_lock():
+                progress_counter.value += 1
+                progress = (progress_counter.value / total_nodes) * 100
+                if progress_counter.value % math.ceil(total_nodes * progress_percentage) == 0 or progress_counter.value == total_nodes:
+                    logging.info(f"Progress: {progress:.2f}% - {progress_counter.value}/{total_nodes} nodes processed.")
+            rate_limit_controller.reset_backoff_time()
+            break
+        except Exception as e:
+            if 'rate_limit_exceeded' in str(e):
+                rate_limit_controller.register_rate_limit_exceeded()
+            else:
+                logging.error(f"Failed to generate embedding due to: {e}")
+                break
 
-    The function utilizes OpenAIEmbedding (or another Embedding model) to generate embeddings
-    for each node based on its content with metadata_mode set to "all". # TODO 2023-09-25 highlight what metadata_mode set to "all" means
-    The generated embedding is then assigned to the embedding attribute of the node.
 
-    Parameters:
-    nodes (list): A list of nodes for which embeddings are to be generated and assigned.
-
-    Returns:
-    None: The function modifies the input nodes in-place and does not return anything.
-    """
+def generate_embeddings(nodes, embedding_model=None):
     from llama_index.embeddings import OpenAIEmbedding
-    # TODO 2023-09-25 use Anyscale upgrade to smoothly use other embedding models
+    import concurrent.futures
 
     if embedding_model is None:
         embedding_model = OpenAIEmbedding()
 
-    for node in nodes:
-        node_embedding = embedding_model.get_text_embedding(
-            node.get_content(metadata_mode="all")
-        )
-        node.embedding = node_embedding
+    progress_counter = multiprocessing.Value('i', 0)
+    total_nodes = len(nodes)
+    rate_limit_controller = RateLimitController()
+
+    partial_generate_node_embedding = partial(generate_node_embedding,
+                                              embedding_model=embedding_model,
+                                              progress_counter=progress_counter,
+                                              total_nodes=total_nodes,
+                                              rate_limit_controller=rate_limit_controller)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        list(executor.map(partial_generate_node_embedding, nodes))
 
 
 @timeit
 def initialise_vector_store(dimension):
-    # TODO 2023-09-25: upgrade for parametrisable vector_store
     import pinecone
     api_key = os.environ["PINECONE_API_KEY"]
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
 
-    # TODO 2023-09-25: optimise for distance metric here
-    pinecone.create_index(name="quickstart", dimension=dimension, metric="cosine", pod_type="p1")
-    pinecone_index = pinecone.Index(index_name="quickstart")
-    # [Optional] drop contents in index
+    index_name = "quickstart"
+
+    # Check if the index already exists
+    existing_indexes = pinecone.list_indexes()
+    if index_name in existing_indexes:
+        # If the index exists, delete it
+        pinecone.delete_index(index_name)
+
+    # Create a new index
+    pinecone.create_index(name=index_name, dimension=dimension, metric="cosine", pod_type="p1")
+    pinecone_index = pinecone.Index(index_name=index_name)
+    vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
+
+    # Optionally, you might want to delete all contents in the index
     # pinecone_index.delete(deleteAll=True)
-    return pinecone_index
+    return vector_store
 
 
 @timeit
@@ -352,10 +391,8 @@ def retrieve_and_query_from_vector_store(index):
 def run():
     start_logging()
     # 1. Data loading
-    pdf_links, save_dir = fetch_pdf_list()
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(partial(download_pdf, save_dir=save_dir), pdf_links)
+    pdf_links, save_dir = fetch_pdf_list(num_papers=10)
+    download_pdfs(pdf_links, save_dir)
     documents = load_pdfs(directory_path=Path(save_dir))
 
     embedding_model = os.environ.get('EMBEDDING_MODEL_NAME')
