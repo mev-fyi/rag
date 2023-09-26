@@ -341,7 +341,9 @@ def get_sources_and_context(query, embedding_model, num_chunks):
     return sources, context
 
 # ## Generation
-# We can now use the context to generate a response from our LLM. Without this relevant context that we retrieved, the LLM may not have been able to accurately answer our question. And as our data grows, we can just as easily embed and index any new data and be able to retrieve it to answer questions.
+# We can now use the context to generate a response from our LLM. Without this relevant context that we retrieved,
+# the LLM may not have been able to accurately answer our question. And as our data grows, we can just as easily embed
+# and index any new data and be able to retrieve it to answer questions.
 # 
 # <img width="500" src="https://images.ctfassets.net/xjan103pcp94/38I8en8Tyf0cM4LUhjygoq/739d456c80841b4c28fe80f73ea5856b/image16.png">
 
@@ -390,7 +392,7 @@ def generate_response(
 # Generate response
 query = "What is the default batch size for map_batches?"
 response = generate_response(
-    llm="meta-llama/Llama-2-70b-chat-hf",
+    llm=os.environ.get('LLM'),
     temperature=0.0,
     stream=True,
     system_content="Answer the query using the context provided. Be succinct.",
@@ -409,9 +411,9 @@ from rag.embed import get_embedding_model
 
 
 class QueryAgent:
-    # TODO 2023-09-25: update with ChatBot agent
+    # TODO 2023-09-25: duplicate class with ChatBot agent
     def __init__(self, embedding_model_name=os.environ.get('EMBEDDING_MODEL_NAME'),
-                 llm="meta-llama/Llama-2-70b-chat-hf", temperature=0.0,  # TODO 2023-09-25: update LLM if relevant
+                 llm=os.environ.get('LLM'), temperature=0.0,  # TODO 2023-09-25: update LLM if relevant
                  # TODO 2023-09-25: update max_context_length if relevant
                  max_context_length=4096, system_content="", assistant_content=""):
         
@@ -445,7 +447,8 @@ class QueryAgent:
             stream=stream,
             system_content=self.system_content,
             assistant_content=self.assistant_content,
-            user_content=user_content[: self.context_length])
+            user_content=user_content[: self.context_length]  # truncate to context_length
+        )
 
         # Result
         result = {
@@ -569,7 +572,8 @@ class QueryAgentWithContext(QueryAgent):
             stream=False,
             system_content=self.system_content,
             assistant_content=self.assistant_content,
-            user_content=user_content[: self.context_length])
+            user_content=user_content[: self.context_length]
+        )
         return response
 
 
@@ -607,7 +611,7 @@ def get_references(data, llm, temperature, system_content, assistant_content, nu
 results = get_references(
     data=data, num_samples=NUM_SAMPLES, llm="gpt-4", temperature=0.0, 
     system_content=system_content, assistant_content=assistant_content)
-print (np.mean([float(result["score"]) for result in results if result["score"]]))
+print(np.mean([float(result["score"]) for result in results if result["score"]]))
 
 
 # Save to file
@@ -617,22 +621,29 @@ with open(REFERENCES_FILE_PATH, "w") as fp:
     json.dump(results, fp, indent=4)
 
 
-# We can now create a dataset with query, source, response, score and reasoning. We can inspect this to determine if our evaluator is of high quality. We found that `gpt-4` was a high quality evaluator based on the scores and reasonings it provided. We performed the same evaluation with other LLMs (ex. `Llama-2-70b`) and we found that they lacked the appropriate reasoning and were very generous with responses from themselves.
+# We can now create a dataset with query, source, response, score and reasoning.
+# We can inspect this to determine if our evaluator is of high quality.
+# We found that `gpt-4` was a high quality evaluator based on the scores and reasonings it provided.
+# We performed the same evaluation with other LLMs (ex. `Llama-2-70b`) and we found that they lacked
+# the appropriate reasoning and were very generous with responses from themselves.
 # 
 # **Note**: A more thorough evaluation would also test for the following by asking the evaluator to compare responses from different LLMs across the following:
 # - position (which responses we show first) 
 # - verbosity (longer responses are favored) 
 # - nepotism (ex. GPT4 prefers GPT 3.5, etc.)
-# 
-
 
 EVALUATOR = "gpt-4"
-
 
 # ## Cold start
 
 
-# We may not always have a prepared dataset of questions and the best source to answer that question readily available. To address this cold start problem, we could use an LLM to look at our text chunks and generate questions that the specific chunk would answer. This provides us with quality questions and the exact source the answer is in. However, this dataset generation method could be a bit noisy. The generated questions may not always have high alignment to what our users may ask. And the specific chunk we say is the best source may also have that exact information in other chunks. Nonetheless, this is a great way to start our development process while we collect + manually label a high quality dataset.
+# We may not always have a prepared dataset of questions and the best source to answer that
+# question readily available. To address this cold start problem, we could use an LLM to look at our
+# text chunks and generate questions that the specific chunk would answer. This provides us with quality
+# questions and the exact source the answer is in. However, this dataset generation method could be a bit noisy.
+# The generated questions may not always have high alignment to what our users may ask. And the specific chunk
+# we say is the best source may also have that exact information in other chunks. Nonetheless, this is a great
+# way to start our development process while we collect + manually label a high quality dataset.
 # 
 # <img width="800" src="https://images.ctfassets.net/xjan103pcp94/3QR9zkjtpgeqK8XKPteTav/76aa9e7743330e7fcf73b07332a7ddf2/image10.png">
 
@@ -667,9 +678,13 @@ synthetic_data[:3]
 # ## Experiments
 
 
-# With our evaluator set, we're ready to start experimenting with the various components in our LLM application. While we could perform this as a large [hyperparameter tuning experiment](https://docs.ray.io/en/latest/tune/index.html), where we can search across promising combinations of values/decisions, we're going to evaluate one decision at a time and set the best value for the next experiment.
+# With our evaluator set, we're ready to start experimenting with the various components in our LLM application.
+# While we could perform this as a large [hyperparameter tuning experiment](https://docs.ray.io/en/latest/tune/index.html),
+# where we can search across promising combinations of values/decisions, we're going to evaluate one decision at a time and set
+# the best value for the next experiment.
 # 
-# **Note**: this approach is slightly imperfect because many of our decisions are not indepedent (ex. `chunk_size` and `num_chunks` should ideally be evaluated across many combinations of values).
+# **Note**: this approach is slightly imperfect because many of our decisions are not indepedent
+# (ex. `chunk_size` and `num_chunks` should ideally be evaluated across many combinations of values).
 # 
 # <img width="700" src="https://images.ctfassets.net/xjan103pcp94/2LlTUhNFzfLM775IVSxjkX/af49d7b4e0fdd4a482d29cf6eab5067f/image13.png">
 
@@ -677,13 +692,20 @@ synthetic_data[:3]
 # ### Utilities
 
 
-# Before we start our experiments, we’re going to define a few more utility functions. Our evaluation workflow will use our evaluator to assess the end-to-end quality (`quality_score (overall)`) of our application since the response depends on the retrieved context and the LLM. But we’ll also include a `retrieval_score` to measure the quality of our retrieval process (chunking + embedding). Our logic for determining the `retrieval_score` registers a success if the best source is anywhere in our retrieved num_chunks sources. We don't account for order, exact page section, etc. but we could add those constraints to have a more conservative retrieval score.
+# Before we start our experiments, we’re going to define a few more utility functions.
+# Our evaluation workflow will use our evaluator to assess the end-to-end quality
+# (`quality_score (overall)`) of our application since the response depends on the retrieved
+# context and the LLM. But we’ll also include a `retrieval_score` to measure the quality of our
+# retrieval process (chunking + embedding). Our logic for determining the `retrieval_score`
+# registers a success if the best source is anywhere in our retrieved num_chunks sources.
+# We don't account for order, exact page section, etc. but we could add those constraints to have a more conservative retrieval score.
 # 
 # 
 # <img width="700" src="https://images.ctfassets.net/xjan103pcp94/2lhpSUNrMmi7WAHpd3wslR/15facf649e30571e8d806d354f475f0b/image6.png">
 
 
-# We'll set where our labeled data and reference reports are located. We'll be using the former to generate responses and the latter dataset to evaluate those responses.
+# We'll set where our labeled data and reference reports are located.
+# We'll be using the former to generate responses and the latter dataset to evaluate those responses.
 
 
 import matplotlib.pyplot as plt
