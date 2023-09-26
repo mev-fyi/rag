@@ -21,6 +21,7 @@ from functools import partial, wraps
 from pathlib import Path
 import logging
 import math
+from llama_index.embeddings import OpenAIEmbedding
 
 from llama_index.vector_stores import PineconeVectorStore
 
@@ -167,7 +168,14 @@ def download_pdf(link, save_dir):
 
 def load_single_pdf(file_path, loader=PyMuPDFReader()):
     try:
-        return loader.load(file_path=file_path)
+        documents = loader.load(file_path=file_path)
+        # Iterate over the loaded documents and update the 'file_path' metadata
+        # NOTE 2023-09-26: we set document.metadata.file_path back to str... To store it in the pinecone database which accepts (str, int, float, type(None)) types.
+        #    This is likely a pure artifact of the current loader=PyMuPDFReader(). For quick iteration we adopt a fix but will try with other loaders.
+        for document in documents:
+            if 'file_path' in document.metadata:
+                document.metadata['file_path'] = str(document.metadata['file_path'])
+        return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
         return []
@@ -317,12 +325,8 @@ def generate_node_embedding(node, embedding_model, progress_counter, total_nodes
                 break
 
 
-def generate_embeddings(nodes, embedding_model=None):
-    from llama_index.embeddings import OpenAIEmbedding
+def generate_embeddings(nodes, embedding_model):
     import concurrent.futures
-
-    if embedding_model is None:
-        embedding_model = OpenAIEmbedding()
 
     progress_counter = multiprocessing.Value('i', 0)
     total_nodes = len(nodes)
@@ -381,6 +385,17 @@ def retrieve_and_query_from_vector_store(index):
     query_engine = index.as_query_engine()
     query_str = "Can you tell me about the key concepts for safety finetuning"
     response = query_engine.query(query_str)
+    logging.info(response)
+
+    query_str = "Tell me about LVR"
+    response = query_engine.query(query_str)
+    logging.info(response)
+
+    query_str = "What plagues current AMM designs?"
+    response = query_engine.query(query_str)
+    logging.info(response)
+
+    # TODO 2023-09-27: improve the response engine with react agent chatbot.
 
     logging.info(response)
     # chat_engine = index.as_chat_engine(chat_mode=ChatMode.REACT, verbose=True)
@@ -391,12 +406,14 @@ def retrieve_and_query_from_vector_store(index):
 def run():
     start_logging()
     # 1. Data loading
-    pdf_links, save_dir = fetch_pdf_list(num_papers=10)
+    pdf_links, save_dir = fetch_pdf_list(num_papers=None)
     download_pdfs(pdf_links, save_dir)
     documents = load_pdfs(directory_path=Path(save_dir))
 
-    embedding_model = os.environ.get('EMBEDDING_MODEL_NAME')
-    embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model]
+    embedding_model_str = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
+    embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_str]
+    if embedding_model_str == os.environ.get('EMBEDDING_MODEL_NAME_OPENAI'):
+        embedding_model = OpenAIEmbedding()
 
     # 2. Data chunking / text splitter
     text_chunks, doc_idxs = chunk_documents(documents, chunk_size=embedding_model_chunk_size)
@@ -410,7 +427,7 @@ def run():
     # nodes = enrich_nodes_with_metadata_via_llm(nodes)
 
     # 5. Generate Embeddings for each Node
-    generate_embeddings(nodes)
+    generate_embeddings(nodes, embedding_model)
 
     # 6. Load Nodes into a Vector Store
     # We now insert these nodes into our PineconeVectorStore.
