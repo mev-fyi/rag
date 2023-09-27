@@ -1,113 +1,46 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 import multiprocessing
-from datetime import datetime
 import os
+import sys
+
+# Append the parent directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 import time
 import random
 from typing import Union, List
 
 import requests
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-import llama_index
-from llama_index import VectorStoreIndex, ServiceContext
+from llama_index import VectorStoreIndex
 from llama_index.schema import MetadataMode, TextNode
-from llama_index.text_splitter import SentenceSplitter, TokenTextSplitter
-from llama_index.chat_engine.types import ChatMode
-from llama_index.llms import OpenAI
+from llama_index.text_splitter import SentenceSplitter
 import pandas as pd
 import concurrent.futures
 from concurrent.futures import ProcessPoolExecutor
-from functools import partial, wraps
+from functools import partial
 from pathlib import Path
 import logging
 import math
 from llama_index.embeddings import OpenAIEmbedding
-
 from llama_index.vector_stores import PineconeVectorStore
+from dotenv import load_dotenv
+load_dotenv()
 
 import rag.config as config
-from rag.Llama_index_sandbox.utils import root_directory, RateLimitController
+from rag.Llama_index_sandbox.utils import root_directory, RateLimitController, start_logging, timeit
 
-
-def start_logging():
-    # Ensure that root_directory() is defined and returns the path to the root directory
-
-    # Create a 'logs' directory if it does not exist
-    if not os.path.exists(f'{root_directory()}/logs'):
-        os.makedirs(f'{root_directory()}/logs')
-
-    # Get the current date and time
-    now = datetime.now()
-    timestamp_str = now.strftime('%Y-%m-%d_%H-%M')
-
-    # Set up the logging level
-    root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
-
-    # Add handler to log messages to a file
-    log_filename = f'{root_directory()}/logs/log_{timestamp_str}.txt'
-    file_handler = logging.FileHandler(log_filename)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    root_logger.addHandler(file_handler)
-
-    # Add handler to log messages to the standard output
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    root_logger.addHandler(console_handler)
-
-    # Now, any logging.info() call will append the log message to the specified file and the standard output.
-    logging.info('********* LOGGING STARTED *********')
-
-
-def timeit(func):
-    """
-    A decorator that logs the time a function takes to execute.
-
-    Args:
-        func (callable): The function being decorated.
-
-    Returns:
-        callable: The wrapped function.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        """
-        The wrapper function to execute the decorated function and log its execution time.
-
-        Args:
-            *args: Variable length argument list to pass to the decorated function.
-            **kwargs: Arbitrary keyword arguments to pass to the decorated function.
-
-        Returns:
-            The value returned by the decorated function.
-        """
-        logging.info(f"{func.__name__} started.")
-        start_time = time.time()
-
-        # Call the decorated function and store its result.
-        # *args and **kwargs are used to pass the arguments received by the wrapper
-        # to the decorated function.
-        result = func(*args, **kwargs)
-
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        minutes, seconds = divmod(elapsed_time, 60)
-        logging.info(f"{func.__name__} completed, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
-
-        return result  # Return the result of the decorated function
-
-    return wrapper
+root_dir = root_directory()
+mev_fyi_dir = f"{root_dir}/../mev.fyi/"
+research_papers_dir = f"{mev_fyi_dir}/data/paper_details.csv"
+pdfs_dir = f"{mev_fyi_dir}/data/papers_pdf_downloads/"
 
 
 @timeit
 def fetch_pdf_list(num_papers=None):
-    root_dir = root_directory()
-    mev_fyi_dir = f"{root_dir}/../mev.fyi/"
-    research_papers_path = f"{mev_fyi_dir}/data/paper_details.csv"
 
     # Load the CSV file into a pandas DataFrame
-    df = pd.read_csv(research_papers_path)
+    df = pd.read_csv(research_papers_dir)
 
     # Append '.pdf' to the links that contain 'arxiv' and subselect all the ones which contain '.pdf'
     df['pdf_link'] = df['pdf_link'].apply(lambda link: link + '.pdf' if 'arxiv' in link else link)
@@ -118,9 +51,9 @@ def fetch_pdf_list(num_papers=None):
         pdf_links = pdf_links[:num_papers]
 
     # Directory to save the PDF files
-    save_dir = "downloaded_papers"
+    save_dir = f"{root_dir}/data/downloaded_papers"
     os.makedirs(save_dir, exist_ok=True)
-    return pdf_links, save_dir
+    return pdf_links, save_dir, df
 
 
 @timeit
@@ -166,15 +99,29 @@ def download_pdf(link, save_dir):
         logging.info(f"Failed to download {file_name} after {retries} retries.")
 
 
-def load_single_pdf(file_path, loader=PyMuPDFReader()):
+# Load PDFs and add metadata from the DataFrame
+def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
-        # Iterate over the loaded documents and update the 'file_path' metadata
-        # NOTE 2023-09-26: we set document.metadata.file_path back to str... To store it in the pinecone database which accepts (str, int, float, type(None)) types.
-        #    This is likely a pure artifact of the current loader=PyMuPDFReader(). For quick iteration we adopt a fix but will try with other loaders.
+
+        # Update 'file_path' metadata and add additional metadata
         for document in documents:
             if 'file_path' in document.metadata:
-                document.metadata['file_path'] = str(document.metadata['file_path'])
+                del document.metadata['file_path']
+
+            # Find the corresponding row in the DataFrame
+            title = os.path.basename(file_path).replace('.pdf', '')
+            paper_row = paper_details_df[paper_details_df['title'] == title]
+
+            if not paper_row.empty:
+                # Update metadata
+                document.metadata.update({
+                    'title': paper_row.iloc[0]['title'],
+                    'authors': paper_row.iloc[0]['authors'],
+                    'pdf_link': paper_row.iloc[0]['pdf_link'],
+                    'release_date': paper_row.iloc[0]['release_date']
+                })
+
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
@@ -189,19 +136,26 @@ def load_pdfs(directory_path: Union[str, Path]):
         directory_path = Path(directory_path)
 
     all_documents = []
+    research_papers_path = f"{mev_fyi_dir}/data/paper_details.csv"
+
+    paper_details_df = pd.read_csv(research_papers_path)
+    partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df)
+    pdf_loaded_count = 0
 
     # Using ThreadPoolExecutor to load PDFs in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Map over all PDF files in the directory
-        futures = {executor.submit(load_single_pdf, pdf_file): pdf_file for pdf_file in directory_path.glob("*.pdf")}
+        futures = {executor.submit(partial_load_single_pdf, file_path=pdf_file): pdf_file for pdf_file in directory_path.glob("*.pdf")}
 
         for future in concurrent.futures.as_completed(futures):
             pdf_file = futures[future]
             try:
                 documents = future.result()
                 all_documents.extend(documents)
+                pdf_loaded_count += 1
             except Exception as e:
                 logging.info(f"Failed to process {pdf_file}: {e}")
+    logging.info(f"Successfully loaded {pdf_loaded_count} documents.")
     return all_documents
 
 
@@ -382,7 +336,7 @@ def load_nodes_into_vector_store_create_index(nodes, vector_store):
 @timeit
 def retrieve_and_query_from_vector_store(index):
     # service_context = ServiceContext.from_defaults(llm=OpenAI(model="gpt-3.5-turbo-0613"))
-    query_engine = index.as_query_engine()
+    query_engine = index.as_query_engine(similarity_top_k=5)
     query_str = "Can you tell me about the key concepts for safety finetuning"
     response = query_engine.query(query_str)
     logging.info(response)
@@ -397,7 +351,6 @@ def retrieve_and_query_from_vector_store(index):
 
     # TODO 2023-09-27: improve the response engine with react agent chatbot.
 
-    logging.info(response)
     # chat_engine = index.as_chat_engine(chat_mode=ChatMode.REACT, verbose=True)
     # response = chat_engine.chat("Hi")
     pass
@@ -406,9 +359,9 @@ def retrieve_and_query_from_vector_store(index):
 def run():
     start_logging()
     # 1. Data loading
-    pdf_links, save_dir = fetch_pdf_list(num_papers=None)
-    download_pdfs(pdf_links, save_dir)
-    documents = load_pdfs(directory_path=Path(save_dir))
+    # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
+    # download_pdfs(pdf_links, save_dir)
+    documents = load_pdfs(directory_path=Path(pdfs_dir))
 
     embedding_model_str = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_str]
@@ -441,9 +394,10 @@ def run():
     # NOTE: We can use our high-level VectorStoreIndex abstraction here. See the next section to see how to define retrieval at a lower-level!
     retrieve_and_query_from_vector_store(index=index)
 
+    return index
     pass
     # delete the index to save resources once we are done
-    vector_store.delete(deleteAll=True)
+    # vector_store.delete(deleteAll=True)
 
 
 if __name__ == "__main__":
