@@ -2,14 +2,12 @@
 import multiprocessing
 import os
 import sys
-
 # Append the parent directory to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 import time
 import random
 from typing import Union, List
-
 import requests
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 from llama_index import VectorStoreIndex
@@ -23,10 +21,10 @@ from pathlib import Path
 import logging
 import math
 from llama_index.embeddings import OpenAIEmbedding
+from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from llama_index.vector_stores import PineconeVectorStore
 from dotenv import load_dotenv
 load_dotenv()
-
 import rag.config as config
 from rag.Llama_index_sandbox.utils import root_directory, RateLimitController, start_logging, timeit
 
@@ -121,7 +119,9 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                     'pdf_link': paper_row.iloc[0]['pdf_link'],
                     'release_date': paper_row.iloc[0]['release_date']
                 })
-
+            # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
+            #   It will be high (highest too? TBD.) for talks and conferences in YouTube video format
+            #   It will be relatively lower for podcasts, tweets, and less formal content.
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
@@ -263,6 +263,16 @@ def generate_node_embedding(node, embedding_model, progress_counter, total_nodes
             node_embedding = embedding_model.get_text_embedding(
                 node.get_content(metadata_mode="all")
             )
+            if isinstance(embedding_model, OpenAIEmbedding):
+                node_embedding = embedding_model.get_text_embedding(
+                    node.get_content(metadata_mode="all")
+                )
+            elif isinstance(embedding_model, HuggingFaceEmbeddings):
+                node_embedding = embedding_model.embed_documents(
+                    node.get_content(metadata_mode="all")
+                )
+            else:
+                assert False, "The embedding model is not supported."
             node.embedding = node_embedding
             with progress_counter.get_lock():
                 progress_counter.value += 1
@@ -337,6 +347,7 @@ def load_nodes_into_vector_store_create_index(nodes, vector_store):
 def retrieve_and_query_from_vector_store(index):
     # service_context = ServiceContext.from_defaults(llm=OpenAI(model="gpt-3.5-turbo-0613"))
     query_engine = index.as_query_engine(similarity_top_k=5)
+    # TODO 2023-09-27: if the question is totally unrelated, should the response be empty?
     query_str = "Can you tell me about the key concepts for safety finetuning"
     response = query_engine.query(query_str)
     logging.info(response)
@@ -356,6 +367,23 @@ def retrieve_and_query_from_vector_store(index):
     pass
 
 
+def get_embedding_model(embedding_model_name, model_kwargs=None, encode_kwargs=None):
+    if embedding_model_name == "text-embedding-ada-002":
+        embedding_model = OpenAIEmbedding(
+            model=embedding_model_name,
+            openai_api_base=os.environ["OPENAI_API_BASE"],
+            openai_api_key=os.environ["OPENAI_API_KEY"],
+        )
+    else:
+        embedding_model = HuggingFaceEmbeddings(
+            model_name=embedding_model_name,
+            model_kwargs={'device': 'cpu'},  # NOTE: using implementation default
+            encode_kwargs={'normalize_embeddings': False},  # NOTE: using implementation default
+            # encode_kwargs={"device": "cuda", "batch_size": 100},
+        )
+    return embedding_model
+
+
 def run():
     start_logging()
     # 1. Data loading
@@ -363,10 +391,9 @@ def run():
     # download_pdfs(pdf_links, save_dir)
     documents = load_pdfs(directory_path=Path(pdfs_dir))
 
-    embedding_model_str = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
+    embedding_model_str = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_str]
-    if embedding_model_str == os.environ.get('EMBEDDING_MODEL_NAME_OPENAI'):
-        embedding_model = OpenAIEmbedding()
+    embedding_model = get_embedding_model(embedding_model_name=embedding_model_str)
 
     # 2. Data chunking / text splitter
     text_chunks, doc_idxs = chunk_documents(documents, chunk_size=embedding_model_chunk_size)

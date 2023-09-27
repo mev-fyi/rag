@@ -95,7 +95,7 @@ def timeit(func):
         Returns:
             The value returned by the decorated function.
         """
-        logging.info(f"{func.__name__} started.")
+        logging.info(f"\n{func.__name__} STARTED.")
         start_time = time.time()
 
         # Call the decorated function and store its result.
@@ -106,7 +106,7 @@ def timeit(func):
         end_time = time.time()
         elapsed_time = end_time - start_time
         minutes, seconds = divmod(elapsed_time, 60)
-        logging.info(f"{func.__name__} completed, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
+        logging.info(f"{func.__name__} COMPLETED, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
 
         return result  # Return the result of the decorated function
 
