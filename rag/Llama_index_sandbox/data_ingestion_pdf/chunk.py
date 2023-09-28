@@ -13,7 +13,7 @@ def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None)
     if chunk_overlap is None:
         chunk_overlap = int(0.15 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
     text_chunks, doc_idxs = chunk_single_document(documents, chunk_size, splitter_fn=splitter_fn, chunk_overlap=chunk_overlap, separator="\n")
-    return text_chunks, doc_idxs
+    return text_chunks, doc_idxs, chunk_overlap
 
 
 @timeit
