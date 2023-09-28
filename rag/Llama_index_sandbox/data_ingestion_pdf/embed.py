@@ -7,7 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from typing import List
 
-from llama_index.embeddings import OpenAIEmbedding
+from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 
 from rag.Llama_index_sandbox.utils import RateLimitController, timeit
@@ -57,7 +57,11 @@ def get_embedding_model(embedding_model_name):
     if embedding_model_name == "text-embedding-ada-002":
         embedding_model = OpenAIEmbedding()
     else:
-        assert False, f"The embedding model is not supported: [{embedding_model_name}]"
+        embedding_model = HuggingFaceEmbedding(
+            tokenizer_name=embedding_model_name
+        )
+    # else:
+    #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"
     return embedding_model
 
 
