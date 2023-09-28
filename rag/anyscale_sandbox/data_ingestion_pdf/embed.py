@@ -7,11 +7,10 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from typing import List
 
-from llama_index.embeddings import OpenAIEmbedding
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from llama_index.schema import TextNode, MetadataMode
 
-from rag.Llama_index_sandbox.utils import RateLimitController, timeit
+from rag.anyscale_sandbox.utils import RateLimitController, timeit
 
 
 def generate_node_embedding(node: TextNode, embedding_model, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):
@@ -19,13 +18,9 @@ def generate_node_embedding(node: TextNode, embedding_model, progress_counter, t
     while True:
         try:
             if isinstance(embedding_model, OpenAIEmbeddings):
-                trial = embedding_model.embed_documents(
-                    node.get_content(metadata_mode="all")
-                )
                 node_embedding = embedding_model.get_text_embedding(
                     node.get_content(metadata_mode="all")
                 )
-                assert node_embedding == trial, "The two methods get_text_embedding and embed_documents do not return the same result."
             elif isinstance(embedding_model, HuggingFaceEmbeddings):
                 node_embedding = embedding_model.embed_documents(
                     node.get_content(metadata_mode="all")
@@ -67,7 +62,7 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
 
 def get_embedding_model(embedding_model_name, model_kwargs=None, encode_kwargs=None):
     if embedding_model_name == "text-embedding-ada-002":
-        embedding_model = OpenAIEmbedding(
+        embedding_model = OpenAIEmbeddings(
             model=embedding_model_name,
             openai_api_base=os.environ["OPENAI_API_BASE"],
             openai_api_key=os.environ["OPENAI_API_KEY"],
