@@ -13,16 +13,13 @@ from llama_index.schema import TextNode, MetadataMode
 from rag.Llama_index_sandbox.utils import RateLimitController, timeit
 
 
-def generate_node_embedding(node: TextNode, embedding_model, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):
+def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):
     """Generate embedding for a single node."""
     while True:
         try:
-            if isinstance(embedding_model, OpenAIEmbedding):
-                node_embedding = embedding_model.get_text_embedding(
-                    node.get_content(metadata_mode="all")
-                )
-            else:
-                assert False, f"The embedding model is not supported: [{type(embedding_model)}]"
+            node_embedding = embedding_model.get_text_embedding(
+                node.get_content(metadata_mode="all")
+            )
             node.embedding = node_embedding
             with progress_counter.get_lock():
                 progress_counter.value += 1
@@ -58,11 +55,7 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
 
 def get_embedding_model(embedding_model_name):
     if embedding_model_name == "text-embedding-ada-002":
-        embedding_model = OpenAIEmbedding(
-            model=embedding_model_name,
-            openai_api_base=os.environ["OPENAI_API_BASE"],
-            openai_api_key=os.environ["OPENAI_API_KEY"],
-        )
+        embedding_model = OpenAIEmbedding()
     else:
         assert False, f"The embedding model is not supported: [{embedding_model_name}]"
     return embedding_model
