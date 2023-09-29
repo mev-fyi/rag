@@ -3,6 +3,10 @@ from llama_index.text_splitter import SentenceSplitter
 from rag.Llama_index_sandbox.utils import timeit
 
 
+def get_chunk_overlap(chunk_size):
+    return int(0.15 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
+
+
 @timeit
 def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None):
     # TODO 2023-09-26: We will determine if different content source better behaves with a specific text_splitter
@@ -11,9 +15,9 @@ def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None)
     if splitter_fn is None:
         splitter_fn = SentenceSplitter  # TODO 2023-09-25: The chosen text splitter should be a hyperparameter we can tune.
     if chunk_overlap is None:
-        chunk_overlap = int(0.15 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
+        chunk_overlap = get_chunk_overlap(chunk_size)
     text_chunks, doc_idxs = chunk_single_document(documents, chunk_size, splitter_fn=splitter_fn, chunk_overlap=chunk_overlap, separator="\n")
-    return text_chunks, doc_idxs, chunk_overlap
+    return text_chunks, doc_idxs
 
 
 @timeit

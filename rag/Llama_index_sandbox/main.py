@@ -11,49 +11,39 @@ import rag.config as config
 from rag.Llama_index_sandbox.utils import start_logging, timeit
 from rag.Llama_index_sandbox import pdfs_dir
 from rag.Llama_index_sandbox.data_ingestion_pdf.load import load_pdfs, fetch_pdf_list, download_pdfs
-from rag.Llama_index_sandbox.data_ingestion_pdf.chunk import chunk_documents
+from rag.Llama_index_sandbox.data_ingestion_pdf.chunk import chunk_documents, get_chunk_overlap
 from rag.Llama_index_sandbox.data_ingestion_pdf.embed import generate_embeddings, get_embedding_model, construct_node
 from rag.Llama_index_sandbox.data_ingestion_pdf.index import initialise_vector_store, load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
 from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 from rag.Llama_index_sandbox.store_response import store_response
 from functools import partial
+from rag.Llama_index_sandbox.constants import SYSTEM_MESSAGE
 
 
 def log_and_store(store_response_fn, query_str, response):
     logging.info(response)
-    store_response_fn(query_str, response)
+    # store_response_fn(query_str, response)
 
 
 def get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5):
     from llama_index.prompts import PromptTemplate
     from llama_index.llms import ChatMessage, MessageRole
 
-    custom_prompt = PromptTemplate("""\
-    Given excerpts from research context documents, the following question was asked:
-    rewrite the message to be a standalone question that captures all relevant context \
-    from the conversation.
-
-    <Chat History> 
-    {chat_history}
-
-    <Follow Up Message>
-    {question}
-
-    <Standalone question>
-    """)
     # TODO 2023-09-29: make sure the temperature is set to zero for consistent results
     # TODO 2023-09-29: creating a (react) chat engine from an index transforms that
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
     #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
-    # TODO 2023-09-29: add system prompt to agent
     # TODO 2023-09-29: use lower-level construction than as_chat_engine()
+
+    # TODO 2023-09-29: add system prompt to agent. BUT it is an input to OpenAI agent but not React Agent!
+    #   OpenAI agent has prefix_messages in its constructor, but React Agent does not.
     chat_engine = index.as_chat_engine(chat_mode=chat_mode,
                                        verbose=verbose,
                                        similarity_top_k=similarity_top_k,
                                        service_context=service_context,
-                                       custom_prompt=custom_prompt)
+                                       system_prompt=SYSTEM_MESSAGE)
     return chat_engine
 
 
@@ -66,44 +56,53 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
     # create partial store_response with everything but the query_str and response
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
-    chat_engine = index.as_chat_engine(chat_mode="react", verbose=True, similarity_top_k=5, service_context=service_context)
-    # TODO 2023-09-27: if the question is totally unrelated, should the response be empty?
-    query_str = "Can you tell me about the key concepts for safety finetuning"
-    response = chat_engine.chat(query_str)
-    log_and_store(store_response_partial, query_str, response)
+    # chat_engine = index.as_chat_engine(chat_mode="react", verbose=True, similarity_top_k=5, service_context=service_context)
+    chat_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5)
 
-    query_str = "Tell me about LVR"
-    response = chat_engine.chat(query_str)
-    log_and_store(store_response_partial, query_str, response)
+    queries = [
+        "What is red teaming in AI",  # Should refuse to respond,
+        "Tell me about LVR",
+        "What plagues current AMM designs?",
+        "How do L2 sequencers work?",
+        "Do an exhaustive breakdown of the MEV supply chain",
+        "What is ePBS?",
+        "What is SUAVE?",
+        "What are intents?",
+        "What are the papers that deal with LVR?",
+        "What are solutions to mitigate front-running and sandwich attacks?",
+    ]
+    for query_str in queries:
+        query_input = SYSTEM_MESSAGE.format(question=query_str)
+        # TODO 2023-09-29: unsure if the system_message is passed as kwarg frankly.
+        #   Even if we format the input query, the ReAct system only logs the question as 'action input'
+        #   and seemingly even if the SYSTEM_MESSAGE is very small, the agent still responds to unrelated questions,
+        #   even if the sysmessage is a standalone chat message (to which ReAct agent acknowledges).
+        response = chat_engine.chat(SYSTEM_MESSAGE)
 
-    query_str = "What plagues current AMM designs?"
-    response = chat_engine.chat(query_str)
-    log_and_store(store_response_partial, query_str, response)
+        response = chat_engine.chat(query_str)
+        log_and_store(store_response_partial, query_str, response)
 
-    # TODO 2023-09-27: improve the response engine with react agent chatbot.
-
-    # chat_engine = index.as_chat_engine(chat_mode=ChatMode.REACT, verbose=True)
-    # response = chat_engine.chat("Hi")
+    logging.info("Test completed.")
     pass
 
 
 def run():
     start_logging()
-    index = None
-    recreate_index = True
+    recreate_index = False
+    # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
+    embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
+    embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
+    chunk_overlap = get_chunk_overlap(embedding_model_chunk_size)
+    embedding_model = get_embedding_model(embedding_model_name=embedding_model_name)
     if recreate_index:
+        logging.info("RECREATING INDEX")
         # 1. Data loading
         # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
         # download_pdfs(pdf_links, save_dir)
         documents = load_pdfs(directory_path=Path(pdfs_dir))
 
-        # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
-        embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
-        embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
-        embedding_model = get_embedding_model(embedding_model_name=embedding_model_name)
-
         # 2. Data chunking / text splitter
-        text_chunks, doc_idxs, chunk_overlap = chunk_documents(documents, chunk_size=embedding_model_chunk_size)
+        text_chunks, doc_idxs = chunk_documents(documents, chunk_size=embedding_model_chunk_size)
 
         # 3. Manually Construct Nodes from Text Chunks
         nodes = construct_node(text_chunks, documents, doc_idxs)
@@ -122,8 +121,9 @@ def run():
         # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
         vector_store = initialise_vector_store(dimension=embedding_model_chunk_size)
         index = load_nodes_into_vector_store_create_index(nodes, vector_store)
-        persist_index(index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
-    if index is None:
+        persist_index(vector_store, index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
+    else:
+        logging.info("LOADING INDEX FROM DISK")
         index = load_index_from_disk()
 
     # TODO 2023-09-29: when iterating on retrieval and LLM, retrieve index from disk instead of re-creating it
