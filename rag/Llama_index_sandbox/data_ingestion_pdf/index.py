@@ -1,8 +1,11 @@
+import logging
 import os
+from datetime import datetime
 
-from llama_index import VectorStoreIndex
+from llama_index import VectorStoreIndex, StorageContext, load_index_from_storage
 from llama_index.vector_stores import PineconeVectorStore
 
+from rag.Llama_index_sandbox import index_dir
 from rag.Llama_index_sandbox.utils import timeit
 
 
@@ -31,6 +34,25 @@ def initialise_vector_store(dimension):
 
 
 @timeit
+def persist_index(index, embedding_model_name, chunk_size, chunk_overlap):
+    """
+    Persist the index to disk.
+    """
+    try:
+        # Format the filename
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        name = f"{date_str}_{embedding_model_name}_{chunk_size}_{chunk_overlap}"
+        persist_dir = index_dir + name
+        # check if index_dir and if not create it
+        if not os.path.exists(index_dir):
+            os.makedirs(index_dir)
+        index.storage_context.persist(persist_dir=persist_dir)
+        logging.info("Successfully persisted index to disk.")
+    except Exception as e:
+        logging.error(f"Failed to persist index to disk. Error: {e}")
+
+
+@timeit
 def load_nodes_into_vector_store_create_index(nodes, vector_store):
     """
     We now insert these nodes into our PineconeVectorStore.
@@ -41,3 +63,15 @@ def load_nodes_into_vector_store_create_index(nodes, vector_store):
     vector_store.add(nodes)
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
+
+
+def load_index_from_disk():
+    try:
+        storage_context = StorageContext.from_defaults(persist_dir=index_dir)
+        return load_index_from_storage(storage_context)
+    except FileNotFoundError:
+        logging.error("No index found. Please run the index creation script first.")
+        exit(1)
+
+
+

@@ -91,7 +91,7 @@ def construct_node(text_chunks, documents, doc_idxs) -> List[TextNode]:
                 logging.error(f"Generated an exception: {exc}")
 
     # print a sample node
-    logging.info(f"Sample node: {nodes[0].get_content(metadata_mode=MetadataMode.ALL)}\n\n")
+    # logging.info(f"Sample node: {nodes[0].get_content(metadata_mode=MetadataMode.ALL)}\n\n")
     return nodes
 
 

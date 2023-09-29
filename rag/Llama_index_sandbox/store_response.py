@@ -45,12 +45,18 @@ def store_response(embedding_model_name: str, llm_model_name: str, chunksize: in
         "response": response_to_dict(response),
     }
 
-    # Check if the file already exists
     if os.path.exists(file_path):
-        # Load existing data and append the new response
+        # Load existing data
         with open(file_path, 'r') as f:
             existing_data = json.load(f)
-        existing_data.append(data)
+
+        # Check if the existing data is a list
+        if isinstance(existing_data, list):
+            # If it's a list, append the new response
+            existing_data.append(data)
+        else:
+            # If it's a dict, create a new list containing the existing data and the new response
+            existing_data = [existing_data, data]
     else:
         # If the file doesn't exist, initialize the list with the current response
         existing_data = [data]
