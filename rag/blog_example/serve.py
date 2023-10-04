@@ -8,7 +8,6 @@ import pickle
 from pathlib import Path
 from typing import Any, Dict, List
 
-import openai
 import ray
 import requests
 from fastapi import FastAPI
@@ -20,8 +19,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from starlette.responses import StreamingResponse
 import structlog
 
-from rag.config import MAX_CONTEXT_LENGTHS, ROOT_DIR
-from rag.generate import QueryAgent
+from rag.blog_example.config import MAX_CONTEXT_LENGTHS, ROOT_DIR
+from rag.blog_example.generate import QueryAgent
 
 app = FastAPI()
 

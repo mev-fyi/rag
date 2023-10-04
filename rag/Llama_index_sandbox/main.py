@@ -27,9 +27,6 @@ def log_and_store(store_response_fn, query_str, response):
 
 
 def get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5):
-    from llama_index.prompts import PromptTemplate
-    from llama_index.llms import ChatMessage, MessageRole
-
     # TODO 2023-09-29: make sure the temperature is set to zero for consistent results
     # TODO 2023-09-29: creating a (react) chat engine from an index transforms that
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.

@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -11,10 +10,10 @@ from IPython.display import JSON, clear_output, display
 from pgvector.psycopg import register_vector
 from tqdm import tqdm
 
-from rag.config import ROOT_DIR
-from rag.embed import get_embedding_model
-from rag.index import set_index
-from rag.utils import get_credentials
+from rag.blog_example.config import ROOT_DIR
+from rag.blog_example.embed import get_embedding_model
+from rag.blog_example.index import set_index
+from rag.blog_example.utils import get_credentials
 
 
 def response_stream(response):
