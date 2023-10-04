@@ -2,7 +2,7 @@ import json
 import os
 import concurrent.futures
 
-from rag.Llama_index_sandbox import root_directory
+from rag.Llama_index_sandbox.utils import root_directory
 
 
 def format_time(ms):
@@ -64,7 +64,7 @@ def process_transcript(file_path, sentence_count=3):
 
 
 if __name__ == "__main__":
-    data_directory = f"{root_directory()}/data/diarized_content"
+    data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-04/"
 
     files_to_process = []
     for root, _, files in os.walk(data_directory):
