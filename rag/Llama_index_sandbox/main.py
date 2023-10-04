@@ -4,16 +4,13 @@ import os
 from pathlib import Path
 import logging
 
-from llama_index.agent import ReActAgent
-from llama_index.chat_engine import CondenseQuestionChatEngine
-
-import rag.config as config
+import rag.Llama_index_sandbox.config as config
 from rag.Llama_index_sandbox.utils import start_logging, timeit
 from rag.Llama_index_sandbox import pdfs_dir
-from rag.Llama_index_sandbox.data_ingestion_pdf.load import load_pdfs, fetch_pdf_list, download_pdfs
+from rag.Llama_index_sandbox.data_ingestion_pdf.load import load_pdfs
 from rag.Llama_index_sandbox.data_ingestion_pdf.chunk import chunk_documents, get_chunk_overlap
 from rag.Llama_index_sandbox.data_ingestion_pdf.embed import generate_embeddings, get_embedding_model, construct_node
-from rag.Llama_index_sandbox.data_ingestion_pdf.index import initialise_vector_store, load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
+from rag.Llama_index_sandbox.index import initialise_vector_store, load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
 from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 from rag.Llama_index_sandbox.store_response import store_response
