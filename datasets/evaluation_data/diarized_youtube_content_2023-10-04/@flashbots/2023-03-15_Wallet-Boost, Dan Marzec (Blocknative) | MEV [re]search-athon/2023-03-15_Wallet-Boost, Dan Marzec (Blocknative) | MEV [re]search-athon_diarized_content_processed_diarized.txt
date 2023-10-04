@@ -1,0 +1,140 @@
+00:00:06.030 - 00:00:06.194, Speaker A: Yeah.
+00:00:06.232 - 00:00:21.140, Speaker B: So our design is called Wallet Boost. You can probably tell where the inspiration from the name came from. Our view of Block native is that wallets are kind of sleeping giants in supply chain here.
+00:00:21.140 - 00:00:34.106, Speaker B: After today, it's very clear that they're not sleeping giants here. Many angles that they're in getting in the game. We've sort of had relationships them for a couple of years now.
+00:00:34.106 - 00:00:59.470, Speaker B: Some of your favorite wallets like switch to our gas estimator time, congestion as well as use up simulation services. So yeah, so we just started exploring the design space with different wallets. Some of the motivations for our design were basically ease of integration, we think, well, this is more so from the wallets.
+00:00:59.470 - 00:01:09.474, Speaker B: They don't want to touch a single thing on their screen. They optimize that, although it doesn't seem like it pretty heavily. And so they don't want any difference to the user.
+00:01:09.474 - 00:01:20.778, Speaker B: Experience just should be seamless. And then the second thing is we wanted something that wallets could just plug and play. I think there's like a larger open question there of.
+00:01:20.778 - 00:01:42.510, Speaker B: There's going to be a lot of these wallet based of and so how can different groups like flashbots Block native, anyone else working on it maybe craft an interface such that if they decide to switch between one, it's super easy, just points at maybe a different URL, and next thing you know, you're kind of operating in the same regime.
+00:01:44.850 - 00:01:45.166, Speaker A: Yeah.
+00:01:45.188 - 00:01:59.880, Speaker B: And then also basically just like maximizing revenue for the users. But then on top of that, a lot of wallets are hurting. They don't really have great revenue streams and so we wanted to provide a way for them to have input into how much revenue they would make from this.
+00:01:59.880 - 00:02:36.194, Speaker B: I think it's sort of going to become like a death by a million cuts type of scenario where the wallet wants to take a fee. Users obviously need to, the relays want to, builders want to, so it's not clear how long wallets can take a fee out of this and then as well. So our design lets wallets set their percent that they would capture from this mev and we think that should compress to zero in the long run unless there's sort of you have like a MetaMask type scenario or maybe hardware wallets, very high switching cost.
+00:02:36.194 - 00:02:51.462, Speaker B: But some of the smaller ones we think if they're charging 10%, then another wallet will try to undercut them and go to a lower fee. So we think it'll hopefully balance out there but we're not sure. And yeah, largely we're just trying to experiment here.
+00:02:51.462 - 00:03:00.570, Speaker B: We sort of don't have a ton of research as Block Native and so we're very interested into the insight that everyone has here on LFAs.
+00:03:01.550 - 00:03:01.914, Speaker A: Yeah.
+00:03:01.952 - 00:03:33.730, Speaker B: So I'll get into the differences between MedShare and Wallet boost. It's a pretty similar thing except we are proposing some notion of larger wallet agency so they get more say and so the idea for that is the wallet can run a sidecar. And so that's like the big difference, I would say, between Med Share and Wallet Boost is in MedShare, if there's a trusted matchmaker or a couple or a few or whatever, we think wallets are very interested in running their own matchmaker.
+00:03:33.730 - 00:03:45.640, Speaker B: And then basically the next difference is we didn't have really a notion of differential privacy. It was sort of like hard coded subset of information for swaps. But we think that's really interesting advancement there.
+00:03:45.640 - 00:04:05.470, Speaker B: And then the last difference is that we don't like at the end of an auction period in Wallet Boost, wallet Boost, like this Wallet Boost node send the winning bid to a builder, whereas I think Med Share just continuously extremes a bunch of different ones. Yeah. So those are the main differences.
+00:04:05.470 - 00:04:37.866, Speaker B: And then also on top of that, we basically have a permissioned searcher set, is how we're imagining this, that wallets would basically have to curate, but maybe there's input from the community. We thought an initial sort of POC approach for this would be like only using searchers that send to over 20 builders as type of metric for increasing builder diversity. Yeah, we eventually would want that to be permissionless, but it's sort of unclear how we would do that.
+00:04:37.866 - 00:05:04.210, Speaker B: And sort of one of the big open questions we have is how do we avoid sort of this Arbitrum sequencer type of ordeal with these wallet nodes? If searchers can sort of get like ten milliseconds edge on unduest updates from this Wallet node, then they're probably going to colocate, they're probably also going to spam. So that's one thing we're actively considering.
+00:05:05.750 - 00:05:06.114, Speaker A: Yeah.
+00:05:06.152 - 00:05:36.378, Speaker B: And I think that's like, basically it cool. Yeah, I think there's like tons of in the questions in the last round. There are a lot of things that come up, like if wallets have more agency, even if they do use a permission searcher set, why wouldn't they just build their own in house searcher back run?
+00:05:36.464 - 00:05:38.246, Speaker A: I think we're seeing that online cosmos.
+00:05:38.278 - 00:05:50.880, Speaker B: A lot of validators are starting to build back running into their clients, so it cuts latency. So that seems like a natural step for wallets to take. That's something we're talking about.
+00:05:50.880 - 00:06:00.274, Speaker B: Yeah. Skip, I think specifically Osmosis, you went through the differences really fast.
+00:06:00.312 - 00:06:01.906, Speaker A: Can you just high level BP, what.
+00:06:01.928 - 00:06:03.486, Speaker B: You just said about the main differences?
+00:06:03.518 - 00:06:08.486, Speaker A: I got the wallets matchmaker here. Do you have differential privacy built in?
+00:06:08.668 - 00:06:17.522, Speaker B: No, we don't, but it's something we would definitely be interested in. Yes.
+00:06:17.596 - 00:06:18.490, Speaker C: Boxes.
+00:06:21.150 - 00:06:30.294, Speaker B: Yeah, sure. I have a hack MD, actually. We start the auction at the unsigned transaction.
+00:06:30.294 - 00:06:43.406, Speaker B: That's also a slight difference. And so once we get the unsigned transaction, we sort of start the auction as well as publish the auction. And so that's where we reveal a small subset of the swap that the user is going for.
+00:06:43.406 - 00:06:52.020, Speaker B: Initially we're focused on swaps that's sort of where the majority of this is and sort of interested in taking like a crawl offline approach here.
+00:06:52.390 - 00:06:52.754, Speaker A: Yeah.
+00:06:52.792 - 00:07:08.066, Speaker B: So we publish the auction with some subset of the unsigned transaction. From there we accept in new bids. After that auction period is over, we stop the auction, pick the highest bid and then we get the signed transaction for the second half of the bundle.
+00:07:08.066 - 00:07:14.330, Speaker B: And then from there the wallet, boots, nodes send that to the builder, a static builder.
+00:07:15.630 - 00:07:33.780, Speaker A: I think you guys said you give this up to the wallet. But just to clarify, how do you stop the winning bidder from mistake like not executing the transaction? The node operator requests assigned payload from.
+00:07:34.470 - 00:07:38.754, Speaker B: The winning bidder and the node will.
+00:07:38.792 - 00:07:41.646, Speaker A: Stimulate it to verify that it's legitimate.
+00:07:41.678 - 00:07:42.706, Speaker B: Before it sends it.
+00:07:42.808 - 00:08:05.706, Speaker A: Otherwise it'll just go through to the next. Even then, something that we thought about before, business bundles aren't actually all the same in that what happens during execution. Obviously different bundles react differently to different changes to state that precede them.
+00:08:05.706 - 00:08:24.494, Speaker A: And so you might have someone bidding very high, but because they're bidding so high they need the state to be very favorable for their bid to make sense and then the bundle reverse if there any changes in state that are unfavorable. That makes sense from the social perspective. But you might want to disincentivize something.
+00:08:24.494 - 00:08:26.162, Speaker A: Does that make this my question?
+00:08:26.296 - 00:08:31.940, Speaker B: Yeah, I think so. I think it's talking about how do you think you can disincentivize that?
+00:08:33.910 - 00:08:53.298, Speaker A: The current share approach is not have the execution be super selective. You could do it with maybe like reputation scores or something along those lines. Maybe you want to have some sort of like slashing mechanism.
+00:08:53.298 - 00:08:58.166, Speaker A: I think there's a bunch of ways of doing it. Each have their own drawbacks. I was just curious what your thoughts? Totally.
+00:08:58.198 - 00:09:10.462, Speaker B: Yeah, I mean I think at first we would probably just instead of taking one bundle we would take like the top and then send all of those instead. So most builders bundle merchant algorithm would just prioritize the top properly there.
+00:09:10.516 - 00:09:17.920, Speaker A: I think if you did that you might have some issue with one guy, right?
+00:09:21.010 - 00:09:27.778, Speaker B: Yeah, totally. Well, that's why we're also focused on like a permission set at first. There's probably lots of things we haven't.
+00:09:27.794 - 00:09:29.414, Speaker A: Thought about so this kind of gives.
+00:09:29.452 - 00:09:30.758, Speaker B: Us some type of control.
+00:09:30.924 - 00:09:34.920, Speaker A: Yeah, good question.
+00:09:35.290 - 00:09:37.110, Speaker B: We'll have better answers.
+00:09:40.350 - 00:09:47.510, Speaker A: Are there economics for a mobile wallet? How would the economic work for a mobile wallet?
+00:09:47.590 - 00:09:51.630, Speaker B: Yeah, that's a good versus like a desktop wallet.
+00:09:53.890 - 00:10:04.320, Speaker A: Or either that answer is fine too. I guess I feel like the economic might be slightly better for the mobile user versus the desktop user. Whatever the answer.
+00:10:04.850 - 00:10:13.806, Speaker B: Okay, that's interesting. I don't know, I haven't thought about mobile versus desktop. I think our thought was like the wallet sort of sets like a b it expects.
+00:10:13.806 - 00:10:21.080, Speaker B: And then so when we do the simulation guarantee that the wallet sort of gets that feedback. But we.
+00:10:31.070 - 00:10:44.202, Speaker A: I guess the way we're viewing it is that agnostic. It's just a transaction that searchers sees and they don't care where it came from, and they'll bid or not bid. Okay, that makes sense.
+00:10:44.336 - 00:10:47.150, Speaker C: You mean from a perspective.
+00:10:48.850 - 00:10:57.360, Speaker A: If I have a wallet, how much do I get paid? If I'm deploying a wallet and my user is going to be, how much do I get paid?
+00:10:57.750 - 00:11:09.140, Speaker B: Right. You would, like, get to pick the fee, but sort of the idea is like the fee is additive subtractive from the total amount.
+00:11:10.490 - 00:11:13.800, Speaker A: So it's like an add on. Yeah.
+00:11:16.250 - 00:11:21.450, Speaker B: I don't know the total abstracted, though. Value. They wouldn't get paid anything if there was no map.
+00:11:22.430 - 00:11:26.090, Speaker A: Yeah, no, I'm saying does the user wait who pays the fee?
+00:11:28.270 - 00:11:31.680, Speaker B: Yeah, I guess sort of the searchers, since they're extracting the value.
+00:11:33.650 - 00:11:34.206, Speaker A: What would.
+00:11:34.228 - 00:11:35.662, Speaker B: Be like an estimate for how much.
+00:11:35.716 - 00:11:37.600, Speaker A: Fee would be paid out.
+00:11:38.050 - 00:11:39.950, Speaker B: Right. Not sure.
+00:11:40.020 - 00:11:41.406, Speaker A: If I do this, what do I get?
+00:11:41.508 - 00:11:42.160, Speaker B: Right.
+00:11:43.430 - 00:11:55.250, Speaker C: You don't know until the auction goes through and then on your end that has that feature.
+00:11:56.550 - 00:12:05.080, Speaker A: Because if a wallet integrates this, they don't get money.
+00:12:05.930 - 00:12:13.980, Speaker C: So if a wallet integrates this, they can basically recuperate some of the money and then decide whether they want to share how they share.
+00:12:14.430 - 00:12:16.460, Speaker A: Let's pretend they want to share nothing.
+00:12:16.990 - 00:12:18.380, Speaker C: They want to share nothing.
+00:12:18.990 - 00:12:23.126, Speaker A: How much would they make? Yeah. Then it gets back. It depends on their order flow.
+00:12:23.126 - 00:12:28.240, Speaker A: Right. And how valuable. But if I haven't integrated I don't know exactly.
+00:12:28.240 - 00:12:43.300, Speaker A: You're saying from the decision of, like, do I choose to go up front before I right? Yeah.
+00:12:45.910 - 00:12:47.538, Speaker B: The swaps that would happen would be.
+00:12:47.544 - 00:13:03.740, Speaker A: Very similar to what happens today. So you should be able to look historically at the swaps that you're using to make on your platform and do some sort of analysis to figure out how much NV is captured and then you can figure out that we're deploying. Okay.
+00:13:03.740 - 00:13:13.760, Speaker A: I would guess that might be a detailed strategy, but I think I did sure. Yeah. Fair enough.
+00:13:23.110 - 00:13:37.058, Speaker B: Yeah. Like, it would be done on searches to have and so they would sort of get some settings from the wall starts the web socket connection in the.
+00:13:37.064 - 00:13:46.450, Speaker A: Solution, how big the data actually is. Righteous.
+00:13:47.950 - 00:13:52.150, Speaker C: Is our roast master asleep? Thought leader.
+00:13:52.230 - 00:13:54.380, Speaker A: That would be sad to be roasted if I was.
+00:13:56.830 - 00:14:01.838, Speaker C: Yeah. Okay, so now you've heard a few different designs. Okay.
+00:14:01.838 - 00:14:05.018, Speaker C: Can you be mean and roast the designs?
+00:14:05.114 - 00:14:17.646, Speaker A: Yeah. So I think my meanest thing is that it seems like and this is mostly mean to me at uniswap, all this should be happening. Right.
+00:14:17.646 - 00:14:28.020, Speaker A: Like the idea that users are creating transactions, that creates so much mev that it's worth creating a whole infrastructure in order to barter around how to get it back to them. Mostly just don't do that. Right.
+00:14:28.020 - 00:14:39.442, Speaker A: And so I think one question is, am I right. That most of this mev they were talking about just creating this deck trades.
+00:14:39.586 - 00:14:44.846, Speaker B: Yeah, I think it's talking like 80%. I think I saw in that Frontier top tech post on LFAs.
+00:14:44.898 - 00:14:49.242, Speaker A: Yeah, right. So I think just DEXes should be designed better probably so that this doesn't have to happen.
+00:14:49.376 - 00:14:51.100, Speaker B: That'd be cool if you could do that.
+00:14:52.670 - 00:14:55.660, Speaker A: We need a thought later to take this advantage. Right.
+00:14:57.490 - 00:15:07.010, Speaker C: Well Dan, before you design a better decks. Okay, now which one? What do you think of existing designs that has been proposed?
+00:15:07.670 - 00:15:27.960, Speaker A: Yeah, I think it's all very interesting. I don't understand well enough. How much are you leaking by just the fact of the trade as opposed to the ability to trade against it? When people are buying this horticulture, are they looking just to see the trades and know what they're happening or is it mostly about backgrounding or.
+00:15:29.950 - 00:15:32.746, Speaker B: I think background. Yeah, that was one of the things.
+00:15:32.768 - 00:15:52.640, Speaker A: We considered is like you could just watch the stream and not participate in the auction. That's definitely a consideration that we have and a challenge of this. But there's no guarantee since it's at the intent level, there's no guarantee that the transaction ever happens because they haven't signed it yet.
+00:15:52.640 - 00:16:04.242, Speaker A: Right. You can just prove probabilistic approach to this order flow. It'd be funny if apps and wallets start selling information before the user has clicked on it.
+00:16:04.242 - 00:16:14.198, Speaker A: Just like, oh, they're looking at this trade that we're trying to selling the same thing. Right. Sort of, yeah.
+00:16:14.198 - 00:16:32.218, Speaker A: And I guess what I mean by that is that you see the information and you go and take some action based off of it. Shouldn't you be able to internalize that through selling the right sort of background of trade? What are you going to do if there's like a very large trade anyway? You probably buy or sell a little bit more on chain anyway.
+00:16:32.304 - 00:16:32.940, Speaker B: Right.
+00:16:33.790 - 00:16:35.786, Speaker A: Well, if you have the actual trade.
+00:16:35.818 - 00:16:37.358, Speaker B: Then you can have like perfect, you.
+00:16:37.364 - 00:17:05.590, Speaker A: Know it's going to happen, but could you even front run it? If the person signs it, they create bundle, they send it to the builder and then you try and front run it. Wouldn't that make that bundle revert? So how would they both tackle? You have to take advantage of this information, not an ethereum. I think my point is that maybe there's some amount of information to be internalized just from the informational value that is being leaked that is separate than the atomic background.
+00:17:05.590 - 00:17:15.178, Speaker A: I think if you're leaking information, then I sort of worry about the trust assumptions and who's matchmaker. But if it's more about just the.
+00:17:15.184 - 00:17:18.540, Speaker B: Trade itself, then I think, hey, I think it makes sense.
+00:17:20.030 - 00:17:25.818, Speaker A: Yeah. I don't know, I think it's reasonable. My main roast would be that it's solving a problem that shouldn't exist that's.
+00:17:25.834 - 00:17:26.750, Speaker B: Not your fault.
+00:17:28.610 - 00:17:34.020, Speaker A: Dealing with the consequences of your actions. Yeah.
+00:17:34.550 - 00:17:42.500, Speaker C: Question for Dan and Robert. So is there a world of.
+00:17:44.470 - 00:17:44.974, Speaker A: Wallet.
+00:17:45.022 - 00:17:56.550, Speaker C: Boost and Wallet Share or Met Boost. And how does that work if compatibility?
+00:17:57.050 - 00:18:17.982, Speaker B: Yeah, I don't know. I think we have to move up an abstraction layer in the interface potentially and create some type of modularity that we could whoever's integrating this can sort of have the optionality of choosing between them or maybe future ones. I think is potential thing.
+00:18:17.982 - 00:18:32.210, Speaker B: Another thing is maybe we just help contribute to the matchmaker code base and sort of test out this other idea of get a couple of wallets to run a matchmaker that they run as opposed to using the flushbox matchmaker.
+00:18:32.710 - 00:18:54.154, Speaker A: Just two basic ideas I think in the answering sense both Wallet Boost and net Share are just who are you sharing information with, what information are you sharing and what's the rules of the auction? Like these three things. Maybe there's a fourth thing. I haven't thought about it too hard and I think then it's a choice of who is also running the software too.
+00:18:54.154 - 00:19:06.558, Speaker A: Maybe that's the fourth thing and having like a standardized set of APIs and way to think about this and sort of centralized research and an open collective. Makes sense. There's a world where they're the same thing.
+00:19:06.558 - 00:19:11.454, Speaker A: It's just a configurable software run by different parties, different brand ways. Totally. Yeah.
+00:19:11.492 - 00:19:33.990, Speaker B: And I think if we were to experiment with having Wallets running a matchmaker, it probably important to have some type of interface that they could set the privacy for the user because I think that could be a pain. Point is, it would be interesting seeing a user select how much information they want to reveal at the uniswap UI.
+00:19:34.410 - 00:20:05.650, Speaker A: Do you think Share will let the user set all those parameters on privacy or with the wallet or both? I think the answer is like whoever wants to so the end user is interested in setting I want to share this particular parameter if you're running on this contract then power to them and we'll open up that API. Otherwise we'll let the Oracle originator let the wallet do it. Otherwise we'll try to have sensible defaults anywhere within the supply chain.
+00:20:07.590 - 00:20:18.242, Speaker C: Shell of head self trolling. Anyone in this room actually would never run a matchmaker. Okay, researchers doesn't count.
+00:20:18.242 - 00:20:39.690, Speaker C: Okay, anyone NPM? Anyone actually think that what you do today may give you an edge running in matchmaker? That makes sense. Here we go. We see you Robert.
+00:20:40.450 - 00:20:42.206, Speaker B: I'm curious, like what edge would it.
+00:20:42.228 - 00:20:48.320, Speaker A: Give you building the software? What edge does it give us or what edge do I have?
+00:20:52.050 - 00:20:54.400, Speaker B: Well yeah, besides the obvious of like seeing the.
+00:20:57.010 - 00:21:03.442, Speaker C: Equipped equipped to run we're an infrastructure company.
+00:21:03.496 - 00:21:14.450, Speaker A: We can also manage running high trust from the ecosystem plus experience running infrastructure like this. Plus we're designing the software.
+00:21:14.530 - 00:21:32.000, Speaker B: Yeah, I definitely get it once it's pretty highway. Yeah, well, I mean I think there's going to be like a similar issue with the relay where it's a lot of infrastructure, and unless you are profiting from it, it's like, why run it?
+00:21:33.810 - 00:21:41.066, Speaker A: Yeah. So are you guys like what's the PNL split for the bits for the wallet block?
+00:21:41.098 - 00:21:44.338, Speaker B: Native. We weren't planning on thinking, like, anything.
+00:21:44.424 - 00:21:44.770, Speaker A: Okay.
+00:21:44.840 - 00:21:56.706, Speaker B: Yeah, they wanted to give us stuff that'd be cool. We more just see it as like it's a pain point. Wallets, particularly like, revenue.
+00:21:56.706 - 00:22:00.790, Speaker B: A lot of wallets are hurting, so cooler.
+00:22:01.530 - 00:22:18.140, Speaker A: I still want to question about relay. Why should I run a relay? Because I would like to help the network. Yeah, to find a role that actually makes people care will actually pay a chance while it's much better.
+00:22:22.910 - 00:22:29.230, Speaker B: Do you common commentarial stuff too? Yeah, just single transaction.
+00:22:32.630 - 00:22:33.934, Speaker C: Oh, I forgot.
+00:22:33.982 - 00:22:35.170, Speaker A: You're from Rook.
+00:22:35.830 - 00:22:44.770, Speaker C: I was looking for someone to do a quick TLDR. Five minutes of the rook. I forgot you were in the room.
+00:22:44.770 - 00:22:54.180, Speaker C: Sorry. Would you like to stand up?
+00:22:56.630 - 00:23:10.390, Speaker A: I can dump the box. It's whiteboard is lonely.

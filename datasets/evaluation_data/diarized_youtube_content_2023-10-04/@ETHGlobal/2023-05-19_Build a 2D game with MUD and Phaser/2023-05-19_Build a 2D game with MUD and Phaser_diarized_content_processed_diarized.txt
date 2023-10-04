@@ -1,0 +1,336 @@
+00:00:07.130 - 00:00:18.080, Speaker A: Hello, everyone, and welcome to the Lattice Workshop build a 2D Game with Mud and Phaser. Joining us today is Kushaba, who will be taking us through this session. And with that, I'll pass it over to Kushaba to get the session started.
+00:00:19.650 - 00:00:33.190, Speaker B: Hello, everyone. So I don't know if everyone here was at the React Starter kit, it or the React Workshop. Yeah, the React Workshop was just focused on productivity tips to get going quickly with React.
+00:00:33.190 - 00:00:51.900, Speaker B: This is going to be that, but focused more on 2D games in the browser with Phaser, which is a TypeScript based game engine. I'm not going to try and focus too much on writing actual game systems because they have a ton of edge cases. They get really hairy really fast.
+00:00:51.900 - 00:01:10.334, Speaker B: I want to dip into it a little bit if we have time, but I'm mainly going to just try and give you a bunch of tools. I have a very opinionated starter kit that I have put into Mud, which is like the Phaser template. If you use Create Mud, I suggest you use very specific tools.
+00:01:10.334 - 00:01:23.974, Speaker B: You lay out your sprites in a very specific way. It tells you how to make tile sets, but if you do all these things, it'll just let you prototype your app really quickly. It also looks like people are rolling in.
+00:01:23.974 - 00:01:36.602, Speaker B: So I'm just going to not super start this second. But again, just a disclaimer. If you have no experience with Phaser, it's totally fine.
+00:01:36.602 - 00:01:56.446, Speaker B: It's like a very lightweight engine. It's more of, I guess, just a bunch of tools slapped together and you can use as much or as little as you want. And then at Mud, we've created a layer on top of Phaser to help with making basically infinite Autonomous worlds.
+00:01:56.446 - 00:02:12.166, Speaker B: Because if any of you have tried to make, like, an MMO before with thousands of entities on screen, if you just blindly render them to the canvas, you will crash people's browsers. So our tools basically make it so you don't hit massive performance issues when.
+00:02:12.188 - 00:02:14.150, Speaker C: You'Re making autonomous worlds.
+00:02:15.210 - 00:02:23.690, Speaker B: So, yeah, I would suggest phaser. If you just want to get going as quickly as possible, just get something on screen and get it playable. It's like minimum viable.
+00:02:23.690 - 00:02:25.850, Speaker B: Looking good and playability.
+00:02:26.670 - 00:02:29.980, Speaker C: All right, I'm just going to get going. Hope everyone's here.
+00:02:31.390 - 00:02:38.190, Speaker B: I learned from my last one. I am super zoomed in. Is this good? Do you think this could go bigger?
+00:02:39.250 - 00:02:40.478, Speaker D: Yeah, that's good.
+00:02:40.644 - 00:02:52.450, Speaker B: That's good. Okay, so once again, I have this phaser starter kit. This Phaser Starter kit is just the Phaser template cloned from Create Mod, so you can use that yourselves.
+00:02:53.270 - 00:02:57.780, Speaker C: I am going to broaden mods dev.
+00:02:59.510 - 00:03:03.138, Speaker B: So I have nothing in here right now. I have no systems. I have no contracts.
+00:03:03.138 - 00:03:24.126, Speaker B: The only thing I do have is a pre built tile set. So you can see there's a bunch of grass on the screen here, or it's supposed to be grass doesn't look super great, but creating the tile set is outside of the scope of this workshop. I would say I use this tool called tiled T-I-L-E-D.
+00:03:24.126 - 00:03:36.302, Speaker B: We'll post a link later. I believe it's free, it's open source. And we've built some tools into Tiled to help with making tile sets and importing them into Phaser so that tile set is created.
+00:03:36.302 - 00:03:52.278, Speaker B: Let's just take that for granted here. And I've configured Phaser to use that grass tile as the default tile set. So if I go over to my trackpad here to scroll around, this is basically an infinite scrolling canvas at this point.
+00:03:52.278 - 00:04:22.000, Speaker B: And with the tooling that we've created means you could just scroll forever in any direction and it'll just keep going and it is like unrendering the tiles that are off screen. So you just have a viewport. And as long as you stick with using our tooling, only the things within your viewport will get rendered and you can technically have an infinite world, like an on contract infinite world where there's entities at like 30,000 30,000 and negative 30,000 30,000 and they can exist together and people's browsers won't freak out.
+00:04:24.130 - 00:04:24.880, Speaker C: Cool.
+00:04:25.250 - 00:04:42.066, Speaker B: So today we're just going to really great goal if we get it done very quickly, is like a player can spawn. We render a sprite for them. They have some attributes associated with that player.
+00:04:42.066 - 00:04:58.730, Speaker B: They can move around. Maybe movement is going to get tricky. And then also we paint a little more of an interesting map here and I'll go into some strategies on how you can make a map without massively blowing up your contract storage.
+00:04:58.730 - 00:05:14.670, Speaker B: Also quick plug if you want to see all these tips in action. We're running a Skystripe Play test tomorrow, which is the game we're developing internally at Latice. And it uses all the same tools that I'm presenting today.
+00:05:14.670 - 00:05:24.706, Speaker B: It's just been in development for I guess like eight months now and we're just really pushing the limits of what's possible in an on chain game. It's like an RTS game, if you.
+00:05:24.728 - 00:05:25.590, Speaker C: Know what that is.
+00:05:25.660 - 00:05:30.998, Speaker B: So check it out tomorrow at 1030 Eastern time. If not, whatever, it doesn't matter.
+00:05:31.084 - 00:05:34.246, Speaker C: Let's just make this okay.
+00:05:34.348 - 00:05:47.738, Speaker B: So first things first, let's add a position table. I'm going to assume you're familiar with the basics of Mud configuration at this point. I'm also going to be cheating a good amount during this.
+00:05:47.738 - 00:05:53.754, Speaker B: I can't be live coding all of this, especially with the game systems. So I have the completed project elsewhere.
+00:05:53.802 - 00:05:55.280, Speaker C: That I'll copy paste from.
+00:05:56.450 - 00:06:09.822, Speaker B: Okay, the shin is going to be X and Y. We're not doing a 3D game, so there's no Z. I generally use Int 32 because it just plays really well with our infinite canvas.
+00:06:09.822 - 00:06:21.014, Speaker B: You want to be able to go negative or positive in every direction. And I know it's not like infinite, it's like in 32 is pretty well bounded. But if you're going beyond the bounds of N 32.
+00:06:21.014 - 00:06:23.862, Speaker B: Chances are players aren't even going to be interacting with each other.
+00:06:23.916 - 00:06:28.474, Speaker C: So it'll be okay. Cool.
+00:06:28.592 - 00:06:36.794, Speaker B: So we have the position configured once again. This should auto generate the position table. Let's just check.
+00:06:36.912 - 00:06:37.482, Speaker C: Yes. Okay.
+00:06:37.536 - 00:06:56.210, Speaker B: Position table was generated. So let's make sure a player can spawn into the game. I'm not going to focus too much on this, but we're going to have the player give an X and Y position for spawning.
+00:06:56.210 - 00:07:11.430, Speaker B: Now first thing we got to do is we got to turn the player's address. So I'm going to assume that every single address that interacts with this contract is a player. And this could mean like a smart contract or like a traditional wallet.
+00:07:11.430 - 00:07:22.140, Speaker B: So anytime you call spawn whatever wallet you use to spawn, that's what's going to spawn. And your address is then forever going to be considered like a player entity in the world.
+00:07:24.990 - 00:07:27.290, Speaker C: Okay, so player.
+00:07:30.860 - 00:07:54.690, Speaker B: And I've gone through this before, but this is a silly thing we have to do in Mud. We have to use our internal message sender function because we use our own message sender internally within the Mud framework to track things. So you need to use our message sender which sets the sender that you are expecting basically.
+00:07:54.690 - 00:08:14.632, Speaker B: And then just for the sake of getting this working, we're not going to check anything. We're just going to set the position right here of the player. This does mean without any checks that one wallet could basically spawn multiple times.
+00:08:14.686 - 00:08:25.230, Speaker C: And teleport all over the map. We will fix that later and we just have to import the position table from the code gen.
+00:08:31.820 - 00:08:56.130, Speaker B: Okay, keeping this very simple so we can get straight into the 2D portion of phaser. So if we check over here, everything is running correctly in the mod dev tools. Okay, so first concept that I want to introduce to this phaser starter kit is we have client side systems that are running.
+00:08:56.130 - 00:09:12.736, Speaker B: They are sitting in the background always and listening for changes in client state. So this first system we're going to write is going to listen for new positions to come in. And in our world, the only thing that has a position is a player.
+00:09:12.736 - 00:09:23.636, Speaker B: So we're going to create a client side system. It's in this folder. There's two layers to the client.
+00:09:23.636 - 00:09:34.110, Speaker B: There's the network layer and the phaser layer. Network layer is anything to do with transactions, communicating with the contract. Phaser is everything that stays local.
+00:09:34.110 - 00:09:37.950, Speaker B: We have registered systems here. Let's create a new system.
+00:09:38.640 - 00:09:40.830, Speaker C: Create player system.
+00:09:44.860 - 00:09:57.676, Speaker B: Now there's no specific naming convention you need to use here. I just generally do this. This is the special thing that's going to get you what you need.
+00:09:57.676 - 00:10:15.436, Speaker B: You are importing the phaser layer and this is going to give you all of the information you would expect to have. So since we declared that position table on contract, we will have the position available here. First you have to go to the network layer.
+00:10:15.436 - 00:10:17.788, Speaker B: Then you have to go to components.
+00:10:17.964 - 00:10:19.890, Speaker C: And grab the position.
+00:10:22.040 - 00:10:35.480, Speaker B: Okay, so now let's define this client side only system. First, the thing I'm going to introduce you to is an ender system. Okay? We have to grab the world.
+00:10:35.480 - 00:10:43.720, Speaker B: The world is just the thing. It's a client side representation of your entire world. Then we give it a query.
+00:10:43.720 - 00:10:52.236, Speaker B: These queries can get pretty complex. There's three options. There's has not, has, and has value.
+00:10:52.236 - 00:11:18.626, Speaker B: In our case right now, all we're concerned with is grab me all the things that have position. So I'm just going to say has position. Now what gets returned here is so this function that we're putting here, this callback function will get executed for every single entity that matches this query.
+00:11:18.626 - 00:11:32.650, Speaker B: So in this case, we want to create sprites that represent every single player in our game. I think I'm going to cheat on this one because this code gets a little hairy.
+00:11:35.700 - 00:11:37.730, Speaker C: Cheating. Cheating. Okay.
+00:11:41.620 - 00:11:55.924, Speaker B: Second important feature that I need to introduce to you is the concept of our object pool. So phaser is split into do scenes. By default.
+00:11:55.924 - 00:12:10.190, Speaker B: We load a main scene for you. A scene is just a collection of objects all rendered together that all interact with each other. In most simple games, there will be one scene, and that is just this big plane of grass right here.
+00:12:10.190 - 00:12:22.972, Speaker B: If you have different rooms, possibly you could have different scenes for each room and travel between rooms. You can also even render phaser UI elements in a UI only scene.
+00:12:23.036 - 00:12:23.840, Speaker C: Possibly.
+00:12:24.420 - 00:12:37.600, Speaker B: For now, we're just going to use one scene. Just know that it's there and we're going to grab the object pool from that scene. So the object pool is our interface above phaser.
+00:12:37.600 - 00:13:03.150, Speaker B: If you interact with the object pool and you set sprites and you set attributes on those sprites purely through this object pool interface, you can be confident that you will not be rendering too many things and overload the browser. This is purely a performance saving thing. You could go into raw phaser and render sprites yourself, but it will get out of hand if your world becomes too big.
+00:13:03.150 - 00:13:19.244, Speaker B: So the first thing we do is we grab a sprite from the object pool. Now the object pool is set up in such a way that if this sprite does not exist yet, it will get created and it'll just be blank. So you just have an empty shell.
+00:13:19.244 - 00:13:35.816, Speaker B: You could put whatever you want on it. Then you take that object and then you call set component on it. And then this component is basically a collection of attributes that should all get run together whenever the thing is on screen.
+00:13:35.816 - 00:13:37.576, Speaker B: And this callback is going to get.
+00:13:37.598 - 00:13:39.530, Speaker C: Called every single time it comes on screen.
+00:13:39.980 - 00:13:47.820, Speaker B: So for now, we don't have any animation available. Let's just make a rectangle.
+00:13:49.600 - 00:13:50.076, Speaker C: And we.
+00:13:50.098 - 00:13:55.820, Speaker B: Can say rectangle set height.
+00:13:59.360 - 00:14:11.238, Speaker C: Gonna add. Why don't I set up set signs? Yeah, okay. 2020.
+00:14:11.238 - 00:14:21.870, Speaker C: Sure. Set your old style red. Okay.
+00:14:22.020 - 00:14:35.250, Speaker B: So whenever a player comes in, it is going to spawn a red rectangle. We haven't set a position here, so it's just going to show up at let's just get something on screen. Let's get the full flow going between the contract and the client.
+00:14:35.250 - 00:14:48.620, Speaker B: Once again, I'm going to cheat. Second thing is we provide input helpers for you. This is a wrapper around phaser input helpers.
+00:14:48.620 - 00:15:17.288, Speaker B: And we're going to grab the X and Y from the event that is happening. Important note, world X and world Y is what you want to grab because we're in an infinite canvas. You could be in the center of your screen, but you're actually in like a crazy negative coordinate at the edge of the universe.
+00:15:17.288 - 00:15:37.116, Speaker B: So you need to grab the world coordinate. If you just grab X and Y here, you're going to grab the screen coordinate and you're going to be wondering why you're spawning in vastly different locations than you're expecting. Then we're going to convert this pixel cord to a tile coordinate.
+00:15:37.116 - 00:15:42.036, Speaker B: And then we have the tile height and tile width as constants as part.
+00:15:42.058 - 00:15:43.008, Speaker C: Of the starter kit.
+00:15:43.104 - 00:15:49.556, Speaker B: These grass tiles are 32 x 32. And we are just limiting the player.
+00:15:49.588 - 00:15:52.970, Speaker C: To not spawn at I'll explain why later.
+00:15:57.340 - 00:16:23.200, Speaker B: And then we have to link up our contract call to our client system call. Okay, this is just a little wrapper function for calling our contract locally.
+00:16:25.860 - 00:16:29.570, Speaker C: Let's grab that.
+00:16:33.560 - 00:16:39.700, Speaker B: Okay, so now every single time the player clicks, it's going to spawn.
+00:16:41.560 - 00:16:49.974, Speaker C: Let's see what happened. Why is it not working right?
+00:16:50.012 - 00:17:05.472, Speaker B: I forgot to register this system locally. Okay, so now this system is listening in the background. We've registered that click handler.
+00:17:05.472 - 00:17:22.984, Speaker B: We've registered that system that's listening for positions. Okay, I've hit spawn at negative 40. Okay, this is not negative 40, this is but we have spawned something that represents our player.
+00:17:23.112 - 00:17:24.510, Speaker C: Cool, great.
+00:17:25.280 - 00:17:53.204, Speaker B: The next thing I'll go into is like, okay, how do we actually move this player to respond to their actual position? That's going to be a different type of system, which is we just call this a vanilla system. This will trigger every time something gains a value, every time something loses a value or the value gets updated. So you need to handle on your own all those different situations and know.
+00:17:53.242 - 00:17:54.804, Speaker C: What you want to do in this.
+00:17:54.842 - 00:18:02.970, Speaker B: Case, in all those situations. We want to set the position of the thing to that value so we can say has position again.
+00:18:05.740 - 00:18:07.960, Speaker C: Grab the entity out of that update.
+00:18:09.680 - 00:18:10.888, Speaker B: And I'm going to cheat.
+00:18:10.984 - 00:18:12.940, Speaker C: Cheating. I'm cheating. Cheating.
+00:18:12.940 - 00:18:19.500, Speaker C: Okay, what are we doing here?
+00:18:20.190 - 00:18:34.062, Speaker B: So we want to grab the on chain position of this thing. We want to take that on chain coordinate and convert it back into a pixel coordinate. So the thing that we did with the pointer event.
+00:18:34.062 - 00:18:55.314, Speaker B: We want to do that in reverse to get it back into the phaser world. And then we want to grab the object out of the object pool again. And so if you want these to act on the same entity, you just need to pass the same entity in the first argument here and like, okay, we have to change this to rectangle.
+00:18:55.362 - 00:19:04.220, Speaker C: Otherwise it was just going to grab a different thing. Do that we can do later.
+00:19:06.110 - 00:19:19.440, Speaker B: Okay, so now, since I didn't limit spawning to only happen once, I believe I should be able to just repeatedly spawn on this player and move around to the screen.
+00:19:22.410 - 00:19:23.798, Speaker C: Yeah. So there you go.
+00:19:23.884 - 00:19:34.090, Speaker B: So every time I click, it's sending a transaction, changing my position. This client side system is responding and moving this red rectangle.
+00:19:34.510 - 00:19:35.210, Speaker C: Great.
+00:19:35.360 - 00:19:53.646, Speaker B: I hope you can see how with these simple pieces together, you can start to create a world where thousands, millions of entities are constantly moving around and your client is just responding to them live. Okay, next thing is, let's make this not a rectangle. Let's make it something more interesting.
+00:19:53.646 - 00:20:03.182, Speaker B: Let's make it an actual animated sprite. So this assumes you have animated sprites laying around. I believe they said the ETH Global said you could just use sprite packs.
+00:20:03.246 - 00:20:04.466, Speaker C: That you buy online.
+00:20:04.648 - 00:20:10.866, Speaker B: I suggest the website. Itch IO. It is like very cheap sprite packs.
+00:20:10.866 - 00:20:14.022, Speaker B: You can get something for like $5. That is professional looking.
+00:20:14.076 - 00:20:15.400, Speaker C: I use it all the time.
+00:20:17.290 - 00:20:30.662, Speaker B: I have a sprite here that we made in house. It's a little Golem character guy. We are going to hop out of the actual phaser client and I made an entire art package.
+00:20:30.662 - 00:20:46.420, Speaker B: That is the only thing it is designed for is getting art into your game. So, okay, at the top level of our packages, we have art client contracts. We're going into art.
+00:20:46.420 - 00:20:59.826, Speaker B: We're going to go into Sprites. And in Sprites, the folder structure is totally up to you. In our case, we're just going to add a Golem folder and we are going to add in our Golem sprites.
+00:20:59.826 - 00:21:11.946, Speaker B: It assumes that they are numbered sequentially, and it's just a frame by frame sprite animation. We drop those in there.
+00:21:12.048 - 00:21:13.338, Speaker C: Good. Okay.
+00:21:13.424 - 00:21:27.422, Speaker B: Once those are in there, there's a special command you can run inside of the Arc folder export. So what this is going to do is it's going to take all these sprite animations. I mean, there's only one, but let's say there's hundreds of them.
+00:21:27.422 - 00:21:56.200, Speaker B: It's going to slam them all into one PNG and it's going to export an Atlas JSON it's called, which tells phaser where in that PNG to look for all of your animations. This is just, once again, a performance improvement over loading every image individually, which just takes up network resources. It is way faster to just grab one massive PNG, load it into browser memory that can get cached, and then you're just searching through that over and over again.
+00:21:56.200 - 00:22:02.860, Speaker B: So we run export. If everything looks good, it will get exported. Great.
+00:22:02.860 - 00:22:07.306, Speaker B: Then we can come over to our.
+00:22:07.488 - 00:22:08.940, Speaker C: Client once again.
+00:22:10.850 - 00:22:18.720, Speaker B: And okay, the first thing you'll see is it generated this atlas file. We can see our Golem in here.
+00:22:21.250 - 00:22:26.260, Speaker C: I mean, it's so tiny, but trust me, the Golem's in here. Yeah.
+00:22:26.630 - 00:22:31.746, Speaker B: And it's this massive JSON Blob that you'd never, ever, ever want to edit by hand. Don't do it.
+00:22:31.768 - 00:22:33.060, Speaker C: I don't suggest it.
+00:22:35.050 - 00:22:37.400, Speaker B: So what this gives you.
+00:22:40.250 - 00:22:41.000, Speaker C: Okay.
+00:22:42.730 - 00:22:55.740, Speaker B: Now this is getting into the weeds a bit, but this is necessary. You need to come into your constants here and just name this animation whatever you want. We're just hooking these things together now.
+00:22:55.740 - 00:22:58.038, Speaker B: So we have a Golem animation.
+00:22:58.134 - 00:22:58.826, Speaker C: Cool.
+00:22:59.008 - 00:23:07.630, Speaker B: And then there's this file configure phaser. This is the massive, massive file for all the things phaser related. I am cheating once again.
+00:23:07.630 - 00:23:23.490, Speaker B: Here is the Golem animation pre created slightly different key. So this matches what we were talking about before. It's like there are four animations, zero through three.
+00:23:23.490 - 00:23:26.614, Speaker B: That's the name of their frames. You choose a frame rate and you.
+00:23:26.652 - 00:23:43.850, Speaker C: Point it to the folder structure that it's in. Why is this complaining? I know we make them strings.
+00:23:45.170 - 00:24:05.236, Speaker B: Okay, so if you've done this correctly, that animation is now loaded internally into phaser. But we still have a red square on screen. How do we actually get that to white? Let's change this from rectangle to sprite.
+00:24:05.268 - 00:24:06.250, Speaker C: First of all.
+00:24:07.100 - 00:24:18.264, Speaker B: So now it's a spooky green box because we have no texture associated with it. This is your worst nightmare. If you forget to link things up, your game will be littered with these green boxes.
+00:24:18.312 - 00:24:19.470, Speaker C: Don't let it happen.
+00:24:23.200 - 00:24:30.080, Speaker B: Now. We can just go sprite play animations.
+00:24:32.900 - 00:24:33.436, Speaker C: Golem.
+00:24:33.468 - 00:24:35.020, Speaker B: There we go. We got a golem.
+00:24:35.180 - 00:24:35.888, Speaker C: Cool.
+00:24:36.054 - 00:24:45.204, Speaker B: And this didn't need to change because we're just changing the position. So man, I'm really running out of time. Yeah.
+00:24:45.204 - 00:24:49.828, Speaker B: Game dev is a little more complicated than making a to do list.
+00:24:49.914 - 00:24:51.880, Speaker C: So it's tough.
+00:24:53.580 - 00:25:05.260, Speaker B: I think another really important thing I could tell you all right now is how to render a more interesting map. Because we just have this boring ass green background here. Let's get some actual texture on the map.
+00:25:05.260 - 00:25:10.188, Speaker B: Let's create a new system.
+00:25:10.354 - 00:25:12.110, Speaker C: Create map system.
+00:25:30.130 - 00:25:47.974, Speaker B: Okay, so not only do we have an object pool for you, we also have a virtual tile map. The reason this is different is that the object pool is for dynamic objects that can move. We can do even more crazy optimizations with tile maps because they're not going to move.
+00:25:48.012 - 00:25:49.960, Speaker C: The map is not going to change.
+00:25:50.410 - 00:26:00.650, Speaker B: If you do want to change, it is possible. It's just a little harder. But this is very useful for backgrounds that are just going to exist and you want to infinitely scroll through them and be performing.
+00:26:00.650 - 00:26:05.500, Speaker B: Let's grab scenes. Main.
+00:26:08.290 - 00:26:22.980, Speaker C: Believe it is tile map I'm cheating? I don't remember. Okay, so what are we doing here?
+00:26:23.670 - 00:26:32.050, Speaker B: So we're going through going to the main scene. We're going through all the maps. We're grabbing the main map.
+00:26:32.050 - 00:26:40.966, Speaker B: Technically, you can have multiple maps per scene as well. Once again, probably not going to need it if it's a simple prototype project. But it is possible to have multiple.
+00:26:40.998 - 00:26:42.380, Speaker C: Maps loaded at once.
+00:26:43.150 - 00:27:00.720, Speaker B: The Put tile at function is just going to take a coordinate and the type of tile that you're putting in. I grabbed this simple noise package from NPM. I'm just going to create some natural looking variation of terrain for us.
+00:27:00.720 - 00:27:13.870, Speaker B: And this tile set here, this is auto generated by that art package I was talking about. If you want to see how that's generated, you can go into the art package. Check out the README.
+00:27:13.870 - 00:27:28.060, Speaker B: It goes into how to generate the tile set and tiled. But for us, it's just a simple tile set of three different textures grass, mountain, and forest. And it's just going to go through an arbitrary number of tiles and add tiles to them.
+00:27:28.060 - 00:27:39.850, Speaker B: And let's register this system locally reload. There we go.
+00:27:39.920 - 00:27:43.450, Speaker C: Oh, yeah, we got such an interesting map.
+00:27:44.590 - 00:27:48.320, Speaker B: And once again, we can click around and change the position of our guy.
+00:27:48.850 - 00:27:52.718, Speaker C: Because I did not limit spawning man.
+00:27:52.804 - 00:27:58.306, Speaker B: Okay, Kushaza, what do you think? We need three minutes. Should we just go to questions? I don't think we have time for.
+00:27:58.328 - 00:28:02.580, Speaker C: Another yeah, just go to questions. Yeah. Okay.
+00:28:03.990 - 00:28:07.442, Speaker B: I wish I could get more done. I'm down to stick around if people.
+00:28:07.496 - 00:28:08.100, Speaker C: Are.
+00:28:13.320 - 00:28:17.000, Speaker D: Also someone was asking for the repo. Do you have a link to the repo?
+00:28:17.660 - 00:28:33.404, Speaker B: Oh, I do, but it really ends just like the base phaser template that you get spit out from, create mud, and that even has the tile set in there. And it has example sprites. Yes, you get the golem sprite for free.
+00:28:33.404 - 00:28:41.740, Speaker B: Go crazy, make a golem world. We also have Sprites available for people if you're really starved for assets.
+00:28:52.920 - 00:29:03.324, Speaker A: If there are any questions, I'm not sure how long it would take you to do it, but maybe you have some time to go through what you're wanting to do.
+00:29:03.442 - 00:29:07.452, Speaker B: Yeah, I'm down to stick around. Let's just go for as long as we can.
+00:29:07.586 - 00:29:08.700, Speaker C: Bonus feature.
+00:29:09.600 - 00:29:16.608, Speaker B: Yeah, more bonus features. So let's make movement. That's the easiest thing to do right now.
+00:29:16.608 - 00:29:30.176, Speaker B: So the cool thing about adding movement to this game right now is we already have a client system that's listening for position. So if we just add the contract movement system, it's going to just get picked up by our normal the normal.
+00:29:30.208 - 00:29:31.990, Speaker C: Client side system that we have before.
+00:29:37.560 - 00:29:46.696, Speaker B: Let's go back into our contract player system. Also, I'm going to add some checks to players that you can't spawn more.
+00:29:46.718 - 00:29:49.020, Speaker C: Than once, or else it's just going to get confusing.
+00:29:50.800 - 00:29:56.110, Speaker D: Hey, Kushabo, we have a question from Francisco. Would you be able to generate the world based on an.
+00:29:58.800 - 00:30:08.764, Speaker B: I mean, so right now the world is purely client side. So yes, you could generate this client side world based on an input. If you're talking about contract side, that's a little more complicated.
+00:30:08.892 - 00:30:09.570, Speaker C: Right?
+00:30:11.540 - 00:30:29.784, Speaker B: There's two strategies we've gone with in the past, which is in Op craft, we have perlin noise running on chain, and every single time you go to a location and you want to act on it, it has to run the perlin function for those X, Y and Z coordinates. Determine what is at that point, and then grab it.
+00:30:29.822 - 00:30:29.976, Speaker C: Then.
+00:30:29.998 - 00:30:50.940, Speaker B: So it's like lazy evaluated maps. What I do in Skystripe, because it's a more complicated game, it's like a more strategic game, is we literally upload date for every single coordinate in the world that describes what is at that point. It's pretty bloated, it's very gas inefficient, but it allows you to make a very interesting world that is more handcrafted.
+00:30:50.940 - 00:31:07.732, Speaker B: If you want to generate worlds like that where it is like a handcrafted kind of feel. We have this concept of post deploy and this will just get run every single time you deploy your world right after world deployment. And you can just go crazy here.
+00:31:07.732 - 00:31:18.616, Speaker B: Create custom maps. If you're even further interested, I can show you the Wacky system I've developed with Skystripe where we actually have a visual map creator, but definitely don't have.
+00:31:18.638 - 00:31:24.328, Speaker C: Time to explain that now. I hope that answered your question.
+00:31:24.414 - 00:31:26.136, Speaker B: There's a lot maps on chain are.
+00:31:26.158 - 00:31:28.830, Speaker C: Like a loaded topic, I would say.
+00:31:35.170 - 00:31:39.440, Speaker B: So I'm going to steal some things from the spawn system I wrote before.
+00:31:41.730 - 00:31:42.430, Speaker C: Okay.
+00:31:42.580 - 00:32:03.350, Speaker B: Few key things. One, we want to make sure that the player cannot spawn at because in solidity land means you don't have a position. I'm avoiding adding an on chain index to figure out if you have the position table.
+00:32:03.350 - 00:32:11.466, Speaker B: So we're grabbing the player, we're grabbing the player's existing position. We are requiring that it's meaning you haven't spawned yet.
+00:32:11.568 - 00:32:12.220, Speaker C: Cool.
+00:32:13.550 - 00:32:42.130, Speaker B: Then we're going to check. Are there players at the position you're trying to spawn at? This requires a module, a built in mud module called Keys of Value. What this does is every single time you update the position table, it's going to store an onchain index of that value hashed to the entity that is at that value.
+00:32:42.130 - 00:32:52.678, Speaker B: So you could do things and ask like, hey, what is at eleven? Which is an incredibly helpful query to make on chain. Otherwise you can't prove or disprove that.
+00:32:52.764 - 00:32:55.190, Speaker C: Things are blocking each other geographically.
+00:32:56.890 - 00:33:07.370, Speaker B: So we have that installed. So we're just checking. Have you not spawned before and are there not players at the position you're trying to spawn? Otherwise go crazy spawn.
+00:33:07.370 - 00:33:10.310, Speaker B: I think our hot reload probably died.
+00:33:10.390 - 00:33:13.680, Speaker C: Let's start that over.
+00:33:16.130 - 00:33:18.906, Speaker B: Now. I'm going to stop live coding.
+00:33:18.938 - 00:33:21.280, Speaker C: I'm just going to start grabbing stuff.
+00:33:28.720 - 00:33:31.330, Speaker B: Okay, so here is.
+00:33:33.140 - 00:33:36.050, Speaker C: No, that's a portion of it.
+00:33:37.540 - 00:33:58.342, Speaker B: Oh, man, I went crazy before and I started implementing combat too. We're definitely not going to have time for that. Okay, so first thing let's do here is let's define a direction enum.
+00:33:58.342 - 00:34:10.990, Speaker B: Mud has the ability to define custom enums as well, which is very helpful. We're going to grab this enum. Let's make zero.
+00:34:10.990 - 00:34:29.640, Speaker B: I always make the first 10 unknown so we can test the error case where if someone passed in an invalid direction. So we are accepting the direction as an argument and we have to import that direction from code gen.
+00:34:39.210 - 00:34:44.920, Speaker C: That's a local. I always do that.
+00:34:47.530 - 00:34:56.314, Speaker B: Okay, so we have direction here. Let's make sure it's not an unknown direction. Once again, we're grabbing the player and we basically have to make this check all the time.
+00:34:56.314 - 00:35:03.326, Speaker B: Like has the player spawned yet? If not, you are not able to move. Eventually this could become a modifier in.
+00:35:03.348 - 00:35:06.110, Speaker C: This system and then be reused across functions.
+00:35:06.770 - 00:35:17.280, Speaker B: And then we're just going to simply based on the direction, modify your existing position by one in whatever direction and then set that new position here.
+00:35:18.050 - 00:35:18.800, Speaker C: Cool.
+00:35:20.470 - 00:35:35.334, Speaker B: Now we need to make sure the player can actually do that client side. This is going to require more input linking and we have to create a client side system to make this happen. Oh, man.
+00:35:35.334 - 00:35:51.550, Speaker B: We also need to make a client side constant that matches our enum when client side enum generation. I know. Wait, alvarius you're here.
+00:35:51.550 - 00:36:17.976, Speaker B: Do we have that? Am I just like am I forgetting because I do this all the time. World send move. Okay, we got moved.
+00:36:17.976 - 00:36:31.280, Speaker B: We got spawned dope. Now let's just make sure that the player can actually do that as part of our player system. Let's come in here and not only do we have we have the pointer controls here, but we can also link.
+00:36:31.350 - 00:36:33.856, Speaker C: To key binds as well.
+00:36:34.038 - 00:36:51.430, Speaker B: So we have on keypress. So the first thing we're supplying here is like a matcher on was this thing pressed that we expect. In this case we're going to have W which is going to go up.
+00:36:54.460 - 00:36:58.504, Speaker C: So if we go up, we are.
+00:36:58.542 - 00:37:05.370, Speaker B: Going to send the transaction move direction up.
+00:37:11.930 - 00:37:12.294, Speaker C: Great.
+00:37:12.332 - 00:37:13.446, Speaker B: I'm only going to do W for.
+00:37:13.468 - 00:37:15.802, Speaker C: Now because that's just annoying to do all that.
+00:37:15.936 - 00:37:20.966, Speaker B: So let's start this whole process again. Everything is hooked up correctly. We're going to spawn.
+00:37:20.966 - 00:37:22.218, Speaker B: We're going to hit W. We're going.
+00:37:22.224 - 00:37:28.142, Speaker C: To move up, pop open. Okay. Yes.
+00:37:28.196 - 00:37:44.850, Speaker B: Our transaction exceeded frame hitting W move. Transaction Blam moves up. Got picked up by that previous position system that we created.
+00:37:44.850 - 00:37:49.990, Speaker B: Now it is changing the position of the sprite.
+00:37:54.490 - 00:37:55.480, Speaker C: What else?
+00:37:56.170 - 00:37:57.586, Speaker B: Okay, let's add combat.
+00:37:57.698 - 00:38:03.434, Speaker C: Fuck it, we got time. Also.
+00:38:03.472 - 00:38:07.738, Speaker B: Okay, I'll add the rest of the I'm going to turn on Copilot for.
+00:38:07.744 - 00:38:17.758, Speaker C: This one because copilot loves doing this. Yes, you are correct. Thank you.
+00:38:17.758 - 00:38:18.880, Speaker C: Thank you.
+00:38:25.590 - 00:38:32.274, Speaker B: All right, so now we should have full directional. Movement. Okay.
+00:38:32.274 - 00:38:33.934, Speaker B: I just put way too many transactions.
+00:38:33.982 - 00:38:35.762, Speaker C: So it was jumping all over the place.
+00:38:35.816 - 00:38:38.950, Speaker B: But as you can see, we can move in any direction.
+00:38:39.610 - 00:38:40.726, Speaker C: Great. All right.
+00:38:40.748 - 00:38:53.500, Speaker B: So this is not a super fun autonomous world right now because you can't even interact with each other. Also, I can show this is like you basically get multiplayer for free is what I'm going to try and show here.
+00:38:53.870 - 00:38:56.538, Speaker C: I'm going to spawn right next to yes.
+00:38:56.704 - 00:39:06.798, Speaker B: Now we have two players, and then they can technically just walk next to each other. And if we wrote our move system correctly, I cannot move down into this person.
+00:39:06.884 - 00:39:09.594, Speaker C: Please work. No, I did not write it correctly.
+00:39:09.722 - 00:39:10.830, Speaker B: Fantastic.
+00:39:11.670 - 00:39:14.580, Speaker C: That's great demo. Gods. Thank you.
+00:39:14.580 - 00:39:17.540, Speaker C: Why?
+00:39:23.980 - 00:39:44.940, Speaker B: Oh, I just didn't do the check, that's why. Players at position. So this players at position Query is going to utilize that module I was talking about before, like the keys with a value module.
+00:39:55.160 - 00:40:05.470, Speaker D: We got a good question from Nuno Axe, by the way. Is it possible to inject state without checking tables on chain custom map where register ever X or Y coordinate, but have a client side?
+00:40:06.240 - 00:40:17.264, Speaker B: Yeah, you can have a purely client size map, no problem. Very easy to do in phaser. That's just like standard game dev.
+00:40:17.264 - 00:40:43.886, Speaker B: If you want a purely client side map that also influences chain state without living on chain, that's when you need to go into procedural generation and use something like perlin noise. Okay, so we're just going to check that there are no players at the.
+00:40:43.908 - 00:40:45.760, Speaker C: Position you're trying to move to.
+00:40:49.310 - 00:40:51.760, Speaker B: I just realized I wrote a bug there.
+00:40:52.130 - 00:41:00.000, Speaker C: That is not what we want. We want the new position, not the existing position. Okay.
+00:41:01.570 - 00:41:05.860, Speaker B: We are going to redeploy. Our players are going to disappear. We have to spawn again.
+00:41:11.180 - 00:41:17.480, Speaker C: Okay, I just want to make sure this is not broken.
+00:41:21.920 - 00:41:25.630, Speaker B: All right, we are next to them. Please do not move into the other person.
+00:41:28.320 - 00:41:29.836, Speaker C: Yes. And it's not working.
+00:41:29.938 - 00:41:32.892, Speaker D: You decide to be plate. You decide to say please that it works.
+00:41:33.026 - 00:41:38.644, Speaker C: Yes. Okay, sorry.
+00:41:38.782 - 00:41:52.844, Speaker B: Combat is going to be the last thing. It's probably going to take a little bit, but this is a good introduction to the idea of an entity component system. So if you watched our Mud talks a really long time ago, we were all in on entity component systems on chain.
+00:41:52.844 - 00:42:13.540, Speaker B: More recently, we haven't been talking about them because Mud Two is technically not an ECS framework, but you can implement an ECS framework on top of Mud Two. That's what we've been moving towards. So coming out soon ish no Promises is like a full featured opinionated ECS game engine on top of Mud.
+00:42:13.540 - 00:42:41.616, Speaker B: And that's basically the mental framework that I use when I'm making new games. So in a traditional smart contract struct way of storing things, we would just add this health field and strength field for combat onto the player and that would be fine and good. But then if we wanted to add something else that had health and strength, we would have to add it onto that struct as well.
+00:42:41.616 - 00:42:52.900, Speaker B: And we have to change all our client code and all of our systems to know about players and monsters if they both have health and strength. Let's not do that. Let's just create in our mud config.
+00:42:55.560 - 00:42:56.900, Speaker C: I'm going to cheat.
+00:43:01.400 - 00:43:09.128, Speaker B: Health and strength. So technically these health and strength tables could be applied to any entity. We're just going to apply them to.
+00:43:09.134 - 00:43:10.440, Speaker C: Our player in this case.
+00:43:10.590 - 00:43:33.280, Speaker B: But if you created other entities in your world that are just standing around waiting to get attacked like a breakable barricade or a monster, you could add these components and then our systems would know how to interact. So let me just modify the player system. So the first thing we need to do is like when you spawn, we need to give you these attributes.
+00:43:36.710 - 00:43:37.122, Speaker C: And.
+00:43:37.176 - 00:43:39.650, Speaker B: This is going to require some more inputs.
+00:43:45.300 - 00:43:48.610, Speaker C: Boom. Okay.
+00:43:54.350 - 00:44:01.998, Speaker B: Now I didn't test this at all when I wrote it before. That was the last thing I was.
+00:44:02.004 - 00:44:04.090, Speaker C: Able to do before I had to start preparing.
+00:44:04.250 - 00:44:13.934, Speaker B: So let's hope this works. Let's just run through what is ideally supposed to happen and if it doesn't.
+00:44:13.982 - 00:44:16.030, Speaker C: Happen, we can debug.
+00:44:16.190 - 00:44:35.734, Speaker B: But in this case we are checking if there's no we don't want to say you're blocked. In this case we want to say if there's no one there, yeah, you can move. But if there's someone there, then you initiate combat with them and you apply your strength to their health as damage.
+00:44:35.734 - 00:44:40.780, Speaker B: And then if their health goes below zero or hits zero, you are deleting them.
+00:44:41.870 - 00:44:45.850, Speaker C: Very simple combat system, but this will.
+00:44:45.920 - 00:44:56.030, Speaker B: Allow engagement between different players. And you can imagine if there's hundreds of players, factions will form, there will be rivalries, there'll be guilds, there'll be wars.
+00:44:57.970 - 00:45:09.060, Speaker C: Let's hope it works. Quick check? Yes, checks out.
+00:45:11.030 - 00:45:15.574, Speaker B: Mind you, there's not going to be any animations or anything to represent this.
+00:45:15.612 - 00:45:19.110, Speaker C: Combat, so it's probably going to be very boring.
+00:45:19.530 - 00:45:24.178, Speaker B: But if it is successful, one of us will disappear.
+00:45:24.354 - 00:45:27.100, Speaker C: That's how we know this combat system is working.
+00:45:30.000 - 00:45:43.198, Speaker B: Okay, so I move once to the left. I've appeared and I'm just going to start hitting left a bunch of times. AHA, okay.
+00:45:43.198 - 00:45:54.900, Speaker B: It is changing the health of the opposing entity and it removed the position. Okay, so it worked. The combat worked.
+00:45:54.900 - 00:46:06.854, Speaker B: I didn't write our client system to take into account things disappearing. Okay, this will be the last thing we do. This is actually a good full circle thing.
+00:46:06.854 - 00:46:20.716, Speaker B: We want to define an exit system so when something loses their position, we want to remove it from the world.
+00:46:20.898 - 00:46:22.860, Speaker C: That no one can see it anymore.
+00:46:29.750 - 00:46:34.740, Speaker B: Don't tell me, what is the method I'm looking for? Don't tell me.
+00:46:35.590 - 00:46:37.460, Speaker C: Remove. Okay, that's fair.
+00:46:40.740 - 00:46:55.260, Speaker B: And yeah, the character got removed. There you go. The first workings, very basic 2D game in a two dimensional world.
+00:46:55.260 - 00:47:08.150, Speaker B: I will commit this and post it somewhere and then everyone will have access to it after the call. We could keep going, but I'm very tired.
+00:47:08.310 - 00:47:13.678, Speaker C: I've been working very long. Fair.
+00:47:13.844 - 00:47:18.110, Speaker D: Looks like we have one last question maybe from Francisco. He has his hand raised here.
+00:47:18.260 - 00:47:22.590, Speaker C: Yep. What's up, Francisco?
+00:47:24.770 - 00:47:39.320, Speaker E: Oh, yes, sorry for the last question. Okay. You told that on client side you can implement maps only that run on client side.
+00:47:39.320 - 00:48:06.990, Speaker E: How would you implement that? I mean, you could make my idea about implementing a map based on an input from user, for example, and then maybe have some coordinates in the map that are points where the user can reach and make some challenges or obtain some items.
+00:48:09.170 - 00:48:18.210, Speaker B: Okay, so you want the maps to be purely client side, but you want the contracts to actually interact with those maps?
+00:48:19.590 - 00:48:20.434, Speaker E: Yes, that'll work.
+00:48:20.472 - 00:48:22.366, Speaker C: Me. Okay.
+00:48:22.488 - 00:48:46.458, Speaker B: That is the realm of procedural generation. You're basically lazy evaluating the map at every moment that you make a transaction on chain and you're going to call out to a perlin noise function or some noise function, some procedural generation function. In our case we've used perlin noise and we have utilities for this that we can give you later.
+00:48:46.458 - 00:49:20.422, Speaker B: And at the moment the transaction is executed, you're asking the noise function, hey, what is here? Now, this doesn't take into account like user input. That's the crappy part about this is like a user can't really influence this map other than changing the seed that goes into the noise function, but then that would change the entire map. So I guess you could have a mixture of generated map and also user created things.
+00:49:20.422 - 00:49:44.234, Speaker B: So maybe you could have a layer of the map that is purlin noise generated and then you could have one layer above that, which is like a user puts a treasure chest on the map. They know the terrain that is there because of the perlin noise function. But then the treasure chest actually exists as storage on chain and they're going to need to set the position of it and the contents of that treasure chest.
+00:49:44.234 - 00:49:50.670, Speaker B: It's going to have to live in storage. There's no way around it. But at least you won't have to store the entire map on chain.
+00:49:50.670 - 00:50:09.040, Speaker B: Like the noise function will take care of most of it and then just the user input would have to get stored in storage. Does that help at all? I'm going to take that as a yes.
+00:50:10.050 - 00:50:11.134, Speaker C: All right, we have another questions.
+00:50:11.172 - 00:50:13.886, Speaker B: Are these characters NFTs? How's the model?
+00:50:13.988 - 00:50:16.682, Speaker E: Yes, it's very helpful, thank you.
+00:50:16.836 - 00:50:19.620, Speaker C: Okay, great. No problem.
+00:50:21.910 - 00:50:39.410, Speaker B: I'm used to client server multiplayer game development for blockchain games. Yeah. Okay, so if you're used to client server multiplayer game development, we're literally doing client server game development, but the server is the blockchain.
+00:50:39.490 - 00:50:39.926, Speaker C: That's it.
+00:50:39.948 - 00:50:53.194, Speaker B: That's the only difference. And every single time you want to take a user action it is sending a transaction to the blockchain. Now is this going to run on main net tomorrow? No, it's not.
+00:50:53.194 - 00:50:57.582, Speaker B: It's not going to run on main net tomorrow. That's not really what we're concerned about here. We're building for the future.
+00:50:57.582 - 00:51:28.150, Speaker B: We're building in a world where gas is cheap, where chains are fast and storage is free, which we believe we'll be at very soon. So if you design your world in a way so that it is kind of infinite, it's expandable, it lives on chain and completely public. You can basically develop in the same way you're used to, except the packets that you're sending back and forth take a little longer to finalize.
+00:51:28.150 - 00:51:39.660, Speaker B: That's the main trade off. You're making it's like every single time you move, you have to wait at least a second for the block to finalize. Okay, we designed around that.
+00:51:39.660 - 00:52:17.310, Speaker B: And yeah, to go to your question, are these NFTs? They don't adhere to the NFT standard, but they could they could very easily adhere to the NFT standard and we have mud modules and plugins built for the NFT standard, for the ERC 20 standard. There's nothing stopping you from doing this. There's nothing stopping you from composing these characters with other existing contracts.
+00:52:17.310 - 00:52:25.360, Speaker B: This just needs to be built. Yeah. Any EVM compatible layer two.
+00:52:25.360 - 00:53:01.020, Speaker B: The layer twos have their quirks, but we for sure, for sure have deployed to optimism and arbitram. And correct me if I'm wrong, I believe polygon and things have just gone fine. I don't have like an out of the box example with the Op stack, but we have an Op stack example that you can deploy yourself and then you could take this and deploy it on that Op stack, but I don't have it all bind into one now, sorry.
+00:53:08.820 - 00:53:12.548, Speaker D: All right, you want to answer maybe one more question and we'll wrap it up?
+00:53:12.714 - 00:53:30.712, Speaker B: Okay, yeah, one more question. Cloning states can states be private based on permission? Okay, so it depends on what you mean. If you mean reading, no, that's the other big problem we have with building on public blockchains right now is that all state is public.
+00:53:30.712 - 00:53:48.076, Speaker B: It is not possible to do Fob of war unless you do some wacky ZK shenanigans like Dark Forest. If you want to talk about this, I can explain it later on. Discord it is difficult and it is possible, but it's like cutting edge basically of gaming.
+00:53:48.076 - 00:54:04.500, Speaker B: For now, assume that all component state is readable by anyone writing though writing. There's this concept of namespaces in mud. Every time you register a table, you are telling it specifically what namespace has access to it.
+00:54:04.500 - 00:54:27.610, Speaker B: By default they're all registered in the root namespace. So only the root like the deployer can access them. But users can create their own namespaces and deploy their own tables and then they would have access to those write access to those tables and they could give write access to other people however they want.
+00:54:34.600 - 00:54:35.416, Speaker C: Yeah. Okay.
+00:54:35.518 - 00:54:38.330, Speaker B: That is all we got time for.
+00:54:39.520 - 00:54:39.836, Speaker C: Yeah.
+00:54:39.858 - 00:54:50.284, Speaker B: I love it. Discord. Now I'll be at office hours too, and specifically, I mainly focus on the game development portion of this.
+00:54:50.284 - 00:54:57.070, Speaker B: So any game dev questions at me, I will answer it. I'm passionate about this stuff.
+00:54:58.480 - 00:54:58.988, Speaker A: Awesome.
+00:54:59.074 - 00:54:59.512, Speaker C: Cheers.
+00:54:59.576 - 00:55:08.772, Speaker A: Well, thank you all both for the lively session and for walking us through the demos. And thanks everybody else for attending. So, this is the last of our workshops for today.
+00:55:08.772 - 00:55:21.312, Speaker A: We just have our second team formation brainstorming session in about five minutes, so please join that if you weren't able to earlier. And yeah, this recording will be available shortly after shortly. So cheers.
+00:55:21.376 - 00:55:22.228, Speaker C: Thank you all.
+00:55:22.394 - 00:55:24.084, Speaker D: Thanks, everyone. See you later.
+00:55:24.202 - 00:55:25.760, Speaker C: Peace. Bye.

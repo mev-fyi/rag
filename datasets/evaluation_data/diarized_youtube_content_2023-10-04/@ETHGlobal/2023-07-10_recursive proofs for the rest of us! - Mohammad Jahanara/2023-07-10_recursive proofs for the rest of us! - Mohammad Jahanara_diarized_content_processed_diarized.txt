@@ -1,0 +1,269 @@
+00:00:07.210 - 00:00:08.720, Speaker A: Thank you for coming, everyone.
+00:00:09.250 - 00:00:11.866, Speaker B: So my presentation today is about Recursive.
+00:00:11.898 - 00:00:14.286, Speaker A: Proofs and it's titled Recursive Proofs for.
+00:00:14.308 - 00:00:17.902, Speaker B: The Rest of US by the intention that I'm going to give you an.
+00:00:17.956 - 00:00:22.286, Speaker A: Overview of what this technology do, what you can use it for.
+00:00:22.388 - 00:00:27.974, Speaker B: I mean, building your applications here at the hackathon and a little bit about.
+00:00:28.012 - 00:00:30.120, Speaker A: The different constructions that are out there.
+00:00:32.330 - 00:00:44.266, Speaker B: I'm going to be focusing more on familiarizing you with the ideas and the vocabulary. But if you have questions and anybody is curious about the details, we have time for questions at the end.
+00:00:44.288 - 00:00:53.086, Speaker A: So please do ask questions. Okay, let's get started. Let's start from reminding you, what is.
+00:00:53.108 - 00:00:55.120, Speaker B: This zero knowledge business about?
+00:00:55.490 - 00:01:04.970, Speaker A: So meet Alice and Bob. Alice and Bob are two nerds with trust issues. Alice wants to convince Bob that she.
+00:01:04.980 - 00:01:11.586, Speaker B: Knows some W. We call it witness most of the time, such that the function F of X of W is.
+00:01:11.608 - 00:01:13.026, Speaker A: Equal to some Y.
+00:01:13.128 - 00:01:17.486, Speaker B: Okay? So X-Y-F all of them are public, everybody knows them.
+00:01:17.528 - 00:01:26.470, Speaker A: But w is hidden? And we want to do two things. Alice wants to make sure W is kept secret. And Bob doesn't have much time.
+00:01:26.470 - 00:01:33.546, Speaker A: He's a bit dumb and slow. And we have to make the verification as easy as possible. So you already know a lot of.
+00:01:33.568 - 00:01:41.520, Speaker B: Applications that use this technology, like ZK, roll ups, all of the different games like Dark Forest that use this technology.
+00:01:43.250 - 00:01:52.122, Speaker A: I'm just setting the terminology for you here, okay? We want a few good properties out of these. And we actually can get these properties.
+00:01:52.186 - 00:01:54.462, Speaker B: With constructions that we know and love today.
+00:01:54.596 - 00:01:55.822, Speaker A: First one is privacy.
+00:01:55.886 - 00:01:56.162, Speaker B: Okay?
+00:01:56.216 - 00:02:01.038, Speaker A: Again, we call it Zero noise as well. W must kept private. Must be kept private.
+00:02:01.134 - 00:02:02.914, Speaker B: You can think about this as some.
+00:02:02.952 - 00:02:07.870, Speaker A: Part of the input or trace of the execution. Something like that is kept private sometimes.
+00:02:07.960 - 00:02:09.526, Speaker B: Because we really mean to keep it.
+00:02:09.548 - 00:02:16.450, Speaker A: Private, sometimes because there is no need to share it. The second part is integrity of the computation.
+00:02:16.610 - 00:02:18.854, Speaker B: We want to make sure that if.
+00:02:18.892 - 00:02:23.914, Speaker A: Alice is claiming I executed this function and this is the result, we can.
+00:02:23.952 - 00:02:26.294, Speaker B: Trust Alice's claim if we do the verification.
+00:02:26.422 - 00:02:39.182, Speaker A: And the last part is you want this proof to be quick to verify. Very short, because again, Bob is slow in our real world, most of the time, Bob is the ethereum mainnet and.
+00:02:39.236 - 00:02:43.466, Speaker B: Alice is some big supercomputer or sequencer.
+00:02:43.498 - 00:02:45.518, Speaker A: Or prober that generates probes.
+00:02:45.614 - 00:02:47.554, Speaker B: Sometimes situation is a little bit different.
+00:02:47.592 - 00:03:09.450, Speaker A: We get to that too. Okay, I'm going to be using these boxes to show the functions. Like there is a function F inside the purple box, which is the prover, and the inputs go into the function and Y is the output of the function, but we get the proof pi out of the prover.
+00:03:09.450 - 00:03:10.778, Speaker A: Okay?
+00:03:10.944 - 00:03:12.902, Speaker B: And this is the first component.
+00:03:12.966 - 00:03:18.380, Speaker A: This is what Alice executes. So the prover generates a proof, pi. Pi is very short.
+00:03:20.430 - 00:03:25.198, Speaker B: And we also have another component executed by Bob, the component that's supposed to.
+00:03:25.204 - 00:03:45.950, Speaker A: Be very cheap and easy to run. We call it the Verifier, and it gets the statement which is X and Y, and also the proof and spits out accept or reject, depending on if the proof is satisfying or not. Okay, two important points.
+00:03:45.950 - 00:03:55.792, Speaker A: The first one is the computation has to be expressed as some sort of circuit. For those of you who have seen it before.
+00:03:55.926 - 00:03:58.188, Speaker B: It has to be an arithmetic circuit.
+00:03:58.284 - 00:04:14.680, Speaker A: Defined over finite field. Basically, we cannot just write Python code or solidity code and expect it to be probed. There might be tools that do this for us, but at some level it has to be translated into something called an arithmetic circuit.
+00:04:14.680 - 00:04:22.520, Speaker A: And this arithmetic circuit can do only arithmetics over some finite field. And this is going to be important during the talk.
+00:04:22.590 - 00:04:24.410, Speaker B: So that's why I'm mentioning it now.
+00:04:25.180 - 00:04:28.476, Speaker A: In particular, that field is called the.
+00:04:28.498 - 00:04:32.332, Speaker B: Scalar field of some electric curve function. But if you don't know this stuff, this doesn't matter.
+00:04:32.466 - 00:04:34.510, Speaker A: You can follow the talk, that's fine.
+00:04:36.880 - 00:04:38.608, Speaker B: The second thing that I want to.
+00:04:38.614 - 00:04:50.588, Speaker A: Emphasize is most of the time the verification of the proofs has an expensive part. Like there is a part that's the bottleneck of verification, okay? And that part, especially on the proofs.
+00:04:50.604 - 00:04:52.764, Speaker B: That we deal with on ethereum magnet.
+00:04:52.892 - 00:05:06.516, Speaker A: Are something called padding check. Again, we are using this finite fields that are obtained from some elliptic curves. And some elliptic curves provide this nice thing called pairing.
+00:05:06.516 - 00:05:14.676, Speaker A: And most of the constructions that are efficient and have short proof size rely on pairings. And we have to do a pairing.
+00:05:14.708 - 00:05:18.552, Speaker B: Check to make sure the proofs are valid.
+00:05:18.616 - 00:05:36.544, Speaker A: So the Verifier does a pairing check. To think about it conceptually, if this stuff is new for you, the pairing check is just checking some element, A times some constant is equal to another element times another constant. And these elements A and B belong to some field.
+00:05:36.544 - 00:05:42.832, Speaker A: Okay, this is very simplified version of the bearing tape, but this is enough.
+00:05:42.886 - 00:05:45.200, Speaker B: If you want to follow the tag.
+00:05:45.960 - 00:05:55.556, Speaker A: Great. Now that we are all set, let's get to the recursion business. Okay, so the main topic is recursive proofs.
+00:05:55.556 - 00:06:08.556, Speaker A: And recursive proofs are basically proofs about other proofs. What does that mean? Imagine we have a computation. Part of this computation is verifying some other proof is correct.
+00:06:08.556 - 00:06:10.876, Speaker A: And then maybe we have other stuff.
+00:06:10.898 - 00:06:14.104, Speaker B: To do as well. Like maybe we were doing some competition.
+00:06:14.152 - 00:06:16.120, Speaker A: For a while now and we generated.
+00:06:16.200 - 00:06:18.864, Speaker B: For the proof for the competition so far.
+00:06:18.902 - 00:06:22.448, Speaker A: Like maybe it's a competition that takes ages to run.
+00:06:22.614 - 00:06:26.700, Speaker B: And I'm someone who were responsible for doing this competition.
+00:06:26.860 - 00:06:34.596, Speaker A: I worked on this competition for 30 years, and now I want to pass it along to the next person. I have a proof that, okay, this.
+00:06:34.618 - 00:06:36.804, Speaker B: Is the proof for the computation so far.
+00:06:36.842 - 00:06:46.024, Speaker A: This is the result. Now, you carry on and the new person is going to first verify what I have done so far and then keep doing other stuff, right?
+00:06:46.222 - 00:06:50.612, Speaker B: So in the picture here, I drew a green rectangle.
+00:06:50.676 - 00:06:56.236, Speaker A: This is supposed to be the verifier. Remember we had a verifier function that.
+00:06:56.258 - 00:07:01.528, Speaker B: Was used by Bob or maybe it's a smart contract ethereum mainnet.
+00:07:01.704 - 00:07:05.932, Speaker A: Usually that verifies, the proof is correct, right?
+00:07:06.066 - 00:07:08.320, Speaker B: So we have a component now that.
+00:07:08.470 - 00:07:28.176, Speaker A: Does the verification, but now it's done inside another circuit. Like maybe we executed some other circuit, there is a result and we created a proof for the execution of that circuit. Okay, but this is a bit tricky now because we want to do the verification inside the new circuit.
+00:07:28.176 - 00:07:50.616, Speaker A: Okay? And we do some other computation as well. So to summarize, what does this new proof pi prime says? It says two things. First it says, I know a proof pi for the competition that was done before, like some f and that proof is accepted by the verifier.
+00:07:50.616 - 00:07:53.464, Speaker A: Like this green box accepts the proof.
+00:07:53.512 - 00:07:55.150, Speaker B: For the computation so far.
+00:07:55.520 - 00:08:21.124, Speaker A: And also I've done some new stuff, let's call them f prime and this is the new result, y prime. Okay, so what is good about this thing? The good thing is you can fit more things like more computation, more data on the same proof. Like, imagine you have tons of data.
+00:08:21.124 - 00:08:31.496, Speaker A: You cannot process it all at once for reasons we are going to talk about. But intuitively you can think about it like if you have an ever growing data, like the ethereum chain itself, and.
+00:08:31.518 - 00:08:36.716, Speaker B: You want to do some computation about that and prove that that computation was.
+00:08:36.738 - 00:08:53.476, Speaker A: Correct, you cannot expect it to be practical as the chain grows and grows and grows. That's just one scenario. And what is the overhead like? Okay, we want to put more computation and data inside the proof.
+00:08:53.528 - 00:08:55.792, Speaker B: But what is the cost that we are paying?
+00:08:55.926 - 00:09:04.932, Speaker A: The cost is overhead of executing these verifiers. Each time we want to pass along a proof from someone to someone else.
+00:09:04.986 - 00:09:07.156, Speaker B: And add more stuff to it, we.
+00:09:07.178 - 00:09:09.808, Speaker A: Have to incur the overhead of verification.
+00:09:09.904 - 00:09:12.070, Speaker B: Of what has been done so far.
+00:09:14.670 - 00:09:16.538, Speaker A: Let's get a bit deeper into what.
+00:09:16.544 - 00:09:17.710, Speaker B: Is good about this stuff.
+00:09:17.780 - 00:09:33.570, Speaker A: So we can do two main things with this technology. First one is compression and the second one is composition. So what do I mean by compression? I mean taking large proofs and making it small.
+00:09:33.720 - 00:09:36.958, Speaker B: For instance, polygon ZK hermes.
+00:09:37.134 - 00:09:59.686, Speaker A: How does that work inside? They have an efficient proof system in the sense that the prover runs very fast, but it uses a component called Fry. It's a polynomial commitment scheme that's very fast to execute, but it generates humongous proofs. If you want to post that proof directly on mainnet, you have to pay a lot of money in gas.
+00:09:59.686 - 00:10:07.594, Speaker A: What they do is that they wrap their proof inside another proof and then it's short. But this is not specific to them.
+00:10:07.632 - 00:10:08.894, Speaker B: This is an idea that you can.
+00:10:08.932 - 00:10:19.754, Speaker A: Use in many different scenarios. Imagine you have a circuit if you know about Planck circuits, for instance, and your circuit has many columns each column.
+00:10:19.882 - 00:10:21.426, Speaker B: And the commitment to each column has.
+00:10:21.448 - 00:10:30.094, Speaker A: To be part of the final proof. So the more columns you have, the larger is your proof but it's easier to design circuits with more columns.
+00:10:30.222 - 00:10:34.486, Speaker B: So what you can do, you can use as many columns as you want.
+00:10:34.588 - 00:10:37.718, Speaker A: But then wrap your proof in another.
+00:10:37.804 - 00:10:39.938, Speaker B: Final proof that just does the verification.
+00:10:40.034 - 00:10:52.890, Speaker A: Of the first proof. And if the verifier circuit is small, meaning that it has few columns, then your final proof is small, which is nice. So this is the first thing we can do with compression.
+00:10:52.890 - 00:11:05.434, Speaker A: Another thing we can do with compression is more about the size of the computation or data we are handling. As I mentioned, we can have scenarios.
+00:11:05.482 - 00:11:06.526, Speaker B: In which we have a lot of.
+00:11:06.548 - 00:11:12.738, Speaker A: Data or a lot of computation and circuits are kind of limited in nature like they are limited by two things.
+00:11:12.824 - 00:11:22.966, Speaker B: Maybe you have a computer that has limited memory, which is always the case like you have a limited time and you can't do the proof all at once. Like maybe you want to generate a.
+00:11:22.988 - 00:11:25.910, Speaker A: Proof for terabytes of data.
+00:11:26.060 - 00:11:26.760, Speaker B: Okay?
+00:11:27.770 - 00:11:32.466, Speaker A: That's just not possible because the proof.
+00:11:32.498 - 00:11:36.422, Speaker B: Generation process consumes that much memory.
+00:11:36.486 - 00:11:38.394, Speaker A: You have to keep all those stuff.
+00:11:38.432 - 00:11:45.786, Speaker B: In memory because you have to generate commitments to this data and run FFDS and stuff with the same size.
+00:11:45.888 - 00:11:47.310, Speaker A: So that's not feasible.
+00:11:48.690 - 00:11:52.954, Speaker B: And maybe your data you're talking about is ever growing.
+00:11:53.002 - 00:12:04.942, Speaker A: It's growing and growing and growing like you want to claim something about ethereum's chain. So the idea here is we break the original computation into steps.
+00:12:05.086 - 00:12:10.382, Speaker B: One scenario you can think about we do this like you want to execute.
+00:12:10.446 - 00:12:18.454, Speaker A: A smart contract and generate a proof for it, a snark proof for it. One way to approach this is to.
+00:12:18.492 - 00:12:28.022, Speaker B: Break the execution of the smart contract into UpCodes and recursively execute each upcode and verify the proof for the execution.
+00:12:28.086 - 00:12:57.666, Speaker A: So far and go on like that versus looking at all the UpCodes all at once and generating a proof all at once. So what is the trade off here? The trade off here is basically we trade memory with compute like we spend less memory at each step but we get to spend more time on this and incur the overhead cost of verification at each step, right? But sometimes it's just not practical to.
+00:12:57.688 - 00:12:59.474, Speaker B: Do it at one go so we.
+00:12:59.512 - 00:13:16.842, Speaker A: Have to do this or sometimes maybe we are willing to pay more in compute. One example of this is maybe we want to make a Lite client a ZK enabled Lite client for ethereum or a fast sync for ethereum and one.
+00:13:16.896 - 00:13:21.274, Speaker B: Thing that we have to do when we sync with network or we create.
+00:13:21.312 - 00:13:24.310, Speaker A: A light client, we have to verify.
+00:13:24.390 - 00:13:26.982, Speaker B: That the blocks are valid.
+00:13:27.046 - 00:13:28.766, Speaker A: Like the content of the block is.
+00:13:28.788 - 00:13:30.666, Speaker B: Valid, like the signatures are valid, execution.
+00:13:30.698 - 00:13:32.126, Speaker A: Is valid and stuff like that.
+00:13:32.308 - 00:13:35.658, Speaker B: And one approach is for each block.
+00:13:35.754 - 00:13:37.354, Speaker A: We send a proof that the block.
+00:13:37.402 - 00:13:40.170, Speaker B: Was executed correctly and everything inside the block is valid.
+00:13:40.250 - 00:14:08.794, Speaker A: But we can go one step further and that's generating a proof for the whole chain up until some point that the whole chain is valid. Suppose we want to do this if we recreate the proof for the whole chain whenever we have a new block, it's going to be very painful and costly. But if you use this recursion technique, we just verify the proof up until the last block prove the new block and now we have a proof for the whole thing.
+00:14:08.794 - 00:14:15.298, Speaker A: Again, the second item is more fun.
+00:14:15.384 - 00:14:18.158, Speaker B: And more relevant to building DApps and.
+00:14:18.264 - 00:14:37.040, Speaker A: Games and stuff like that. So pay attention. So what does composition mean? It means that the prover is going to show knowledge of something that he doesn't really know.
+00:14:37.040 - 00:14:53.220, Speaker A: More precisely, instead of proving that, okay, there is some W that I know, but I'm not sharing with you that has this nice property claiming that somebody else knows a W that they didn't share with me.
+00:14:54.070 - 00:14:57.314, Speaker B: But it's correct, like it satisfies some.
+00:14:57.432 - 00:15:03.462, Speaker A: Stuff and I'm going to claim more things about that. I'm going to give you an example.
+00:15:03.516 - 00:15:05.478, Speaker B: And it's going to become clear.
+00:15:05.644 - 00:15:15.914, Speaker A: Think about the partial information games, like poker. When you're playing poker. Let me go one step back.
+00:15:16.032 - 00:15:21.082, Speaker B: Think about partial information games. And by partial information game, I mean.
+00:15:21.136 - 00:15:24.282, Speaker A: Any game that some player knows something.
+00:15:24.336 - 00:15:25.354, Speaker B: That others don't know.
+00:15:25.392 - 00:15:28.894, Speaker A: Like there is something about the state of the game that only I know.
+00:15:28.932 - 00:15:30.158, Speaker B: There is something about the state of.
+00:15:30.164 - 00:15:36.126, Speaker A: The game that only you know. Like many games, like poker, counterstrike, whatever, you don't know where I am in.
+00:15:36.148 - 00:15:37.886, Speaker B: The map when we are playing counterstrike.
+00:15:37.918 - 00:15:45.298, Speaker A: Or you are not supposed to know. At least when we are implementing these games in a decentralized fashion, it gets.
+00:15:45.384 - 00:15:47.906, Speaker B: Tricky really quick because we want to.
+00:15:47.928 - 00:15:57.606, Speaker A: Enforce that players change the state of the game correctly. Like if we are implementing counterstrike in a decentralized fashion, you don't want to.
+00:15:57.628 - 00:16:00.614, Speaker B: Let me jump from one place in the map to another place.
+00:16:00.652 - 00:16:06.198, Speaker A: You want to make sure I'm taking steps, right? But on the other hand, you don't.
+00:16:06.214 - 00:16:15.978, Speaker B: Want me revealing where I am at in the map. Okay? So there is a simple trick like I hash where I am in the map and each time I take a.
+00:16:15.984 - 00:16:32.082, Speaker A: Step, I open the hash as a witness, like in the circuit as this w, hidden w. And then take a step, update the pre image and take a new hash and give you the new hash. Something like that it's easy to do, but it entails recursive probes because each.
+00:16:32.136 - 00:16:34.046, Speaker B: Time you have to verify the proof.
+00:16:34.078 - 00:16:36.180, Speaker A: Of the previous hash I give you.
+00:16:36.710 - 00:16:39.746, Speaker B: And then I have to verify the proof of previous hash I give you.
+00:16:39.768 - 00:16:43.566, Speaker A: And then update it, something like that. This is the case when you're dealing.
+00:16:43.598 - 00:16:49.358, Speaker B: With any partial information game and many games, like many massive multiplayer online games.
+00:16:49.454 - 00:17:05.660, Speaker A: Like Dark Forest, a Poker Implementation, decentralized, Counterstrike Serverless Decentralized all these games involve this. So this is a very powerful tool. Another example which is very practical is.
+00:17:06.050 - 00:17:10.314, Speaker B: You know about Zcash. So Zcash enables people transacting without revealing.
+00:17:10.362 - 00:17:24.766, Speaker A: Who they are sending the money to and who they got the money from, stuff like that. So abstractly, think about that. If you want to enable that on a roll up, what should we do? So basically the goal is the roll.
+00:17:24.798 - 00:17:26.690, Speaker B: Up operator is not going to be.
+00:17:26.840 - 00:17:48.330, Speaker A: Able to tell who's sending money to whom, right? So it entails two steps. If you're doing a transaction, you have to create a proof for correctness of your transaction that you're changing the state of the chain correctly without revealing the addresses involved and you send that proof to the roll up operator. We still want to get the scalability stuff, right?
+00:17:48.400 - 00:17:49.946, Speaker B: So the roll up operator is going.
+00:17:49.968 - 00:18:07.378, Speaker A: To recursively verify all these proofs and create new proofs that okay, there is a block, there are these transactions that are proofs are not normal Ethereum transactions. I verified all of them and they are correct. And this is the newest state and.
+00:18:07.464 - 00:18:09.954, Speaker B: This is something that you might have.
+00:18:09.992 - 00:18:12.098, Speaker A: Heard about, it's called ZkZk roll up.
+00:18:12.184 - 00:18:14.206, Speaker B: Basically having a Zcash as a roll.
+00:18:14.238 - 00:18:19.890, Speaker A: Up in Ethereum and the applications are endless.
+00:18:20.050 - 00:18:22.770, Speaker B: If you start thinking about social applications.
+00:18:22.930 - 00:18:25.320, Speaker A: Like there is this one called it does.
+00:18:27.610 - 00:18:38.234, Speaker B: That gives you the distance you have from vitalik without revealing the social tree. Like if I'm five steps away from vitalik and I know you, I can.
+00:18:38.272 - 00:18:42.074, Speaker A: Give you a proof that you are six steps away from vitalik but you.
+00:18:42.112 - 00:18:45.610, Speaker B: Don'T get to know what is my path to vitalik or what's the social.
+00:18:45.680 - 00:19:00.290, Speaker A: Structure here and stuff like that and how we do that. We first verify that my proof is correct and then add a proof that okay, I attest that you are my friend, something like that. Again, it's a very powerful primitive.
+00:19:00.290 - 00:19:05.726, Speaker A: Okay, now we know about, we reviewed.
+00:19:05.758 - 00:19:19.106, Speaker B: What are snark proofs, we talked about what are recursive proofs and why we care about them. Now I want to talk about constructions.
+00:19:19.138 - 00:19:30.954, Speaker A: With you and this part is intended to be very newcomer friendly so I hope I can give you at least.
+00:19:30.992 - 00:19:32.346, Speaker B: A little bit of idea what's going.
+00:19:32.368 - 00:19:35.646, Speaker A: On behind the scene. So the most naive way to do.
+00:19:35.668 - 00:19:38.110, Speaker B: This stuff is the way I was.
+00:19:38.180 - 00:19:45.022, Speaker A: Describing so far and that's implementing a Verifier in circuit like we have a Verifier function.
+00:19:45.156 - 00:19:46.846, Speaker B: It was supposed to be implemented in.
+00:19:46.868 - 00:19:59.050, Speaker A: Solidity, maybe on mainnet or in code like Rust or Python or whatever. Let's implement that as a circuit. Let's arithmetize that and put it inside the circuit.
+00:19:59.150 - 00:20:00.678, Speaker B: Maybe we have other stuff in the.
+00:20:00.684 - 00:20:03.190, Speaker A: Circuit as well, but that's part of the circuit.
+00:20:03.610 - 00:20:10.818, Speaker B: And voila, we have enough technology to do recursive probes, because now verifier verifies.
+00:20:10.914 - 00:20:16.822, Speaker A: Whatever we have, and we can do more stuff. So this is very architecturally simple, clearly.
+00:20:16.886 - 00:20:20.060, Speaker B: Because it's easy to understand, easy to analyze in terms of security.
+00:20:20.430 - 00:20:27.406, Speaker A: The problem is, it's very costly. The overhead is a lot, especially if we do it naively, and I'm going.
+00:20:27.428 - 00:20:28.590, Speaker B: To tell you why is that.
+00:20:28.660 - 00:20:49.750, Speaker A: There are two reasons for this large overhead. The first one is we have to deal with something called non native arithmetics, non native field arithmetics. And the second one is often we have to do this pairing check I mentioned at the beginning in circuit, which is a very costly operation.
+00:20:49.750 - 00:21:08.262, Speaker A: So what is non native arithmetics in one slide? So, elliptic curves, they're defined over two finite fields. First one is Base Field, normally shown as FP, and the other one is Scalar Field, normally shown as FQ.
+00:21:08.326 - 00:21:10.726, Speaker B: You can think about this finite fields.
+00:21:10.758 - 00:21:21.520, Speaker A: As doing regular mass operations, modulo P and Q, like FP is Mud P-F-Q is Mud Q. Yeah, in the simple case.
+00:21:22.290 - 00:21:25.278, Speaker B: And the thing is, when we are.
+00:21:25.364 - 00:21:42.498, Speaker A: Doing the arithmetic operations inside the circuit, we're doing those operations over FQ. So everything is done mud Q. Okay? But the proofs are mud P, like they live in FP.
+00:21:42.674 - 00:21:44.342, Speaker B: And if we want to argue about.
+00:21:44.396 - 00:21:56.550, Speaker A: Proofs inside the circuit, then we have to do arithmetics over FQ. Sorry, FP, but using FQ elements. So, you see, you have to do some simulations.
+00:21:56.550 - 00:21:59.114, Speaker A: It's like when you implement Big NUM.
+00:21:59.232 - 00:22:06.702, Speaker B: In C plus plus or stuff like that, you have to do some things like breaking stuff into limbs and doing.
+00:22:06.756 - 00:22:10.174, Speaker A: The multiplications very carefully, doing the carrier, stuff like that.
+00:22:10.292 - 00:22:13.242, Speaker B: So even arithmetics becomes nontrivial.
+00:22:13.386 - 00:22:15.646, Speaker A: So for that reason, we call it.
+00:22:15.668 - 00:22:17.586, Speaker B: A non native arithmetics, because we have.
+00:22:17.608 - 00:22:19.746, Speaker A: To do arithmetic over certain field, but.
+00:22:19.768 - 00:22:22.802, Speaker B: We get to have access to another field.
+00:22:22.936 - 00:22:29.906, Speaker A: Okay? So that adds a little bit of overhead. But there are tools out there that help you to do it.
+00:22:29.928 - 00:22:40.802, Speaker B: You don't have to implement it. Like if you're using Circum, there is Circum Pairing library and Circum big int library. And if you're using halo two, there is Rung halo Two.
+00:22:40.876 - 00:22:45.100, Speaker A: So there are tools available for you to do it.
+00:22:49.310 - 00:22:54.942, Speaker B: An idea to get away from doing this non native stuff is using something.
+00:22:54.996 - 00:22:57.546, Speaker A: Called cycle of elliptic curves.
+00:22:57.738 - 00:23:03.258, Speaker B: So you don't have to use the same elliptic curve each time you're generating a proof.
+00:23:03.354 - 00:23:06.446, Speaker A: You can switch your elliptic curve from time to time.
+00:23:06.548 - 00:23:07.906, Speaker B: And the idea is, if you have.
+00:23:07.928 - 00:23:22.374, Speaker A: A curve with parameters P and Q, like the Base Field is P and the scalar field is Q. If you have another field with alternating parameters like Q and P, then each.
+00:23:22.412 - 00:23:23.942, Speaker B: Time you want to talk about something.
+00:23:23.996 - 00:23:30.774, Speaker A: In FP, you just alternate to that curve. And one of the main contributions of.
+00:23:30.812 - 00:23:34.482, Speaker B: Zcash people is creating a pairing friendly.
+00:23:34.546 - 00:23:53.210, Speaker A: Cycle of preptic curves called palace and Vista. The problem is we cannot use that on Ethereum because on Ethereum we only have this one curve called BN 254, and BN 254 is the only curve that's supported as a precompiled.
+00:23:53.290 - 00:23:56.494, Speaker B: Other curves, if you want to do them, we have to implement the solidity.
+00:23:56.542 - 00:24:06.530, Speaker A: Code and that's very costly, it's not worth it. But the problem is, people proven mathematically that there is no efficient pairing friendly.
+00:24:07.910 - 00:24:14.790, Speaker B: Cycle of electric curves for BN 254. So there is no hope. This approach is kind of that's going to work for us on Ethereum.
+00:24:16.490 - 00:24:34.874, Speaker A: I have two more ideas which are based off the works that came out in last two years. The first one is something called proof accumulation. So we want to do some recursion, maybe we want to do 100 steps of recursion, prove something, recurs on it.
+00:24:34.912 - 00:24:36.190, Speaker B: Recurs on it, recurs on it.
+00:24:36.260 - 00:24:39.562, Speaker A: And at the very end we want to post the final proof on mainnet.
+00:24:39.626 - 00:24:42.480, Speaker B: To be verified by some smart contract. Okay?
+00:24:43.730 - 00:24:48.018, Speaker A: The core idea is maybe we delay the hard work to the very end.
+00:24:48.104 - 00:24:49.794, Speaker B: And remember what was the hard work?
+00:24:49.832 - 00:24:52.340, Speaker A: It was this pairing checker stuff, right?
+00:24:53.110 - 00:24:55.074, Speaker B: And if we do that, and if.
+00:24:55.112 - 00:24:59.326, Speaker A: We do recursion for many steps, many iterations, we kind of get to amortize.
+00:24:59.358 - 00:25:02.290, Speaker B: The cost stuff that one time heavy.
+00:25:02.450 - 00:25:21.766, Speaker A: Cost over all the steps and kind of it makes sense now. So the idea is we accumulate proofs, which I'm going to hint at a little bit in the next slide. So we accumulate proofs somehow, somehow combine all the proofs and we verified that this accumulation is done correctly.
+00:25:21.766 - 00:25:23.942, Speaker A: So we have to do some verification in circuit.
+00:25:24.006 - 00:25:25.750, Speaker B: But it's not a full Snark verification.
+00:25:25.830 - 00:25:34.046, Speaker A: It'S just a verification that the accumulation is done correctly. So the verification is much smarter now, like maybe just 1020 percent of the.
+00:25:34.068 - 00:25:36.874, Speaker B: Original, the cost of verifying the whole Snark.
+00:25:36.922 - 00:25:42.318, Speaker A: Okay? And on top of that, we never do the hard work in circuit.
+00:25:42.414 - 00:25:43.714, Speaker B: Like I told you, at the very.
+00:25:43.752 - 00:26:00.834, Speaker A: End, we have to do this pairing check, but we do it in a smart contract on Elva. So the hard work never happens in circuit, which is very nice. So I'm going to quickly go over this slide because we don't have time.
+00:26:00.834 - 00:26:16.778, Speaker A: So the idea is we use this trick called random linear combinations. We combine all the pairing checks with random coefficients and then just do the pairing check for the combination of all of them. And you can prove that very high probability.
+00:26:16.778 - 00:26:18.606, Speaker A: If the final one checks out, all.
+00:26:18.628 - 00:26:20.080, Speaker B: Of them would have checked out.
+00:26:22.370 - 00:26:33.998, Speaker A: The other idea is statement folding. This one is a little bit different in the sense that it happens a little bit sooner in the lifecycle of the proofs. In accumulation, we have to generate proofs.
+00:26:34.014 - 00:26:35.902, Speaker B: For each step and then we accumulate.
+00:26:35.966 - 00:26:52.854, Speaker A: Right, but in statements folding, the idea is we don't even generate the proofs at the level of statements. We accumulate the statements and then we get to generate a full proof when we accumulated all the statements. Okay, so the core idea is very similar.
+00:26:52.854 - 00:27:09.502, Speaker A: We want to delay the hard work as much as possible, but because we do it a bit earlier in the lifecycle of the proofs, we get to do more saving. And this is very new. Like, these ideas came out maybe mid 2022.
+00:27:09.502 - 00:27:29.160, Speaker A: So this is very new. And yes, this is my final slide. So basically, Insircuid Verifiers proofs live their full lifecycle and we pay all the cost accumulation schemes, we get to avoid the verification until very end.
+00:27:29.930 - 00:27:35.186, Speaker B: And statement folding, we don't generate the proofs at all like we do generate.
+00:27:35.218 - 00:27:37.526, Speaker A: Some proofs, but generate full proofs at.
+00:27:37.548 - 00:27:40.710, Speaker B: All until we folded all the statements.
+00:27:43.550 - 00:27:47.674, Speaker A: So that's all what you can do now.
+00:27:47.872 - 00:27:59.118, Speaker B: So I want to encourage you to use these ideas of recursive proofs, think about them, come up with ideas how you can make partial information games, social.
+00:27:59.204 - 00:28:11.874, Speaker A: Applications that somehow exploit this power of recursive ropes. The other thing you can do, many of these ideas came out very recently and there are not good implementations or.
+00:28:11.912 - 00:28:17.394, Speaker B: Some of them don't have any implementation. So you can go out there and find which one you like more and.
+00:28:17.432 - 00:28:24.438, Speaker A: Start contributing to them. And the last item is there's a lot more to learn here. I'm happy to talk to any of.
+00:28:24.444 - 00:28:26.166, Speaker B: You if you want pointers to more.
+00:28:26.188 - 00:29:00.030, Speaker A: Resources and learn and just educate others. Thanks a lot. There's any closers to maybe libraries or things for Jennifer? Yeah, so there are certainly many tools.
+00:29:00.930 - 00:29:08.002, Speaker B: In particular, I mentioned Circum pairing and circum big end and wrong halo two.
+00:29:08.136 - 00:29:16.980, Speaker A: These are libraries that you can use to implement Insircuit Verifiers or Insircate accumulation Verifiers or Folding Verifiers, stuff like that.
+00:29:18.170 - 00:29:20.678, Speaker B: But there are tools that do the.
+00:29:20.684 - 00:29:21.846, Speaker A: Whole process for you.
+00:29:21.948 - 00:29:31.800, Speaker B: But on the top of my mind, I don't have them, but please talk to me later. Oh, yeah, I mean, absolutely.
+00:29:42.760 - 00:29:44.148, Speaker A: That's a very good question.
+00:29:44.314 - 00:29:54.890, Speaker B: So the way we generate the proofs is that we most of the time use KZG commitments. And KZG commitments works like this.
+00:29:55.340 - 00:29:57.576, Speaker A: We take something and put it in.
+00:29:57.598 - 00:30:10.670, Speaker B: Exponent, in the electric curves, and when we do that, we move from a group to another group, one field to another field. So the commitments are in this other field.
+00:30:11.360 - 00:30:16.636, Speaker A: And that's why the electrical points are.
+00:30:16.658 - 00:30:20.364, Speaker B: Pairs of points on base field, like.
+00:30:20.402 - 00:30:29.332, Speaker A: FP, and you have to deal with them when you're dealing with the proofs. So that's why you can't really get away from that.
+00:30:29.466 - 00:30:31.408, Speaker B: That's part of every construction.

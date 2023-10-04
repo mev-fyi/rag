@@ -1,0 +1,153 @@
+00:00:29.810 - 00:00:41.160, Speaker A: Hello everyone, and welcome to the Hack FS Workshop building applications with Filecoin and Fevm. Joining us today is Zach Ayesh, who will be taking us through the session. And with that, I'll pass it over to Zach to get the session started.
+00:00:41.610 - 00:00:43.974, Speaker B: Awesome. Thank you. Hey, everyone.
+00:00:44.092 - 00:00:51.370, Speaker C: If you don't know me, my name is Zach Ayesh. I'm a developer advocate with the Fem team and the Protocol Labs.
+00:00:51.530 - 00:00:52.654, Speaker B: And today I'm going to be talking.
+00:00:52.692 - 00:01:04.562, Speaker C: About building applications on the Filecoin virtual machine. Specifically, we're going to go over Data dows and back allow our compute over data, and we'll talk about what that.
+00:01:04.616 - 00:01:05.860, Speaker B: Means in a bit.
+00:01:08.560 - 00:01:29.110, Speaker C: So we'll go over like a quick intro. And while we're doing all know and quick intro to the Fem, if you missed some of the other talks, I'll keep it brief. We'll go over the FVM Data Dow kit and we'll introduce back allow and compute over data and maybe show some demo of Backalau working.
+00:01:29.110 - 00:02:11.180, Speaker C: So what is the Filecoin vision? Right, it's here as part of the Greater Web Three vision to decentralize the Internet. Specifically, Filecoin was created to decentralize data storage, right? So to store the web's data, here's a pretty inspirational quote from the CEO of Protocol Labs, Juan Benet. The properties of the Internet and its technologies define us and our human rights, which is why everyone in Web Three is really enthusiastic about how this technology can really move us forward.
+00:02:16.110 - 00:02:16.570, Speaker B: Right?
+00:02:16.640 - 00:02:29.710, Speaker C: So we're going to be talking a lot about data. You're going to hear this term computer over data, filecoin stores data, information. These are some of the most important things and assets in our era.
+00:02:29.710 - 00:02:58.522, Speaker C: Before Web Three, you might have heard of the rise of big data, right? And how data was like the oil of the future. And it's really coming to be true. We're seeing how data can be used for many positive things and developing our understanding of the human genome and health, but can be used for negative things, as in using our data against us to manipulate people and all kinds of other things.
+00:02:58.576 - 00:02:58.794, Speaker B: Right?
+00:02:58.832 - 00:03:44.368, Speaker C: So I think it's very important that we have a decentralized infrastructure for data in this new paradigm of the world. So Filecoin is trying to bring the foundations for the decentralized Internet with four key areas, right? So the first main one is verifiable storage. So Filecoin launched to mainnet in October 2020, and its original purpose was to create a provable storage market for storage providers to prove that they had data stored in their hard drives, right? So essentially, storage providers would take up deals, storage deals.
+00:03:44.368 - 00:03:54.248, Speaker C: They would take the data, they would convert it. And we'll talk a little bit about this process in a bit and provide proofs on the Filecoin blockchain that they are storing this data.
+00:03:54.414 - 00:03:55.080, Speaker B: Right?
+00:03:55.230 - 00:04:25.900, Speaker C: And this was an important piece of infrastructure that hadn't been created in Web Three yet. We had Bitcoin, which really kicked off this whole web three blockchain technology and it was decentralizing value transfer. Then Ethereum came through and said, hey, what if we take this property and generalize it and allow arbitrary code to be written on top of this blockchain? And decentralized logic, like generalized programming logic.
+00:04:25.900 - 00:05:05.360, Speaker C: And Falco came around and said, what if we could take that and also decentralize the storage of large data sets, right? Regular blockchains can't store large data sets efficiently. It costs a lot of money because you're replicating it across all these nodes, right? So we needed a new kind of infrastructure to handle that problem. And coming up next is retrievals, right, which has still been a work in progress but currently 1 billion weekly retrieval requests are passing through IPFS gateways.
+00:05:05.360 - 00:05:30.880, Speaker C: And the next phase of all of this is CDN quality retrieval. There's a project called Filecoin Saturn you may have heard of and that's kind of enabling that and also allowing retrievals on the Filecoin network on top of IPFS. And we have the Filecoin virtual machine now, right? So this is kind of where I come in and what I've been focused on.
+00:05:30.880 - 00:05:46.910, Speaker C: But this allows smart contracts on top of Filecoin. So what I mentioned earlier, with smart contracts on top of Ethereum, we can do that on top of Filecoin. And this allows us to do what we call computation over a state and we'll talk about that in a second.
+00:05:46.910 - 00:06:15.620, Speaker C: And finally we have computation over data our back allow and we'll talk about that in a SEC as well. So you heard me say computation overstate computation over data. What is computation over state? So, as you know, the Filecoin virtual machine delivers on chain programmability to the Filecoin network, much like Ethereum.
+00:06:15.620 - 00:07:21.984, Speaker C: But the way it was built is actually quite different, right? So the Fem Filecoin virtual machine was built using WASM WebAssembly and the Ethereum virtual machine is actually virtualized on top of that. Kind of like a hypervisor on your computer, right? So if you're running a Windows machine and you want to run Mac OS or Linux on top of Windows, you'll probably download a hypervisor, a virtual machine and run that on top, right? And so the Filecoin virtual machine is kind of built in that way, right? So theoretically, any kind of virtual machine could be virtualized on top of the Fem, right? And so the first thing that was built on top of it was the Fevm. And the reason for the EVM is because it is the most widely used blockchain and web three virtual machine environment.
+00:07:21.984 - 00:07:36.610, Speaker C: And so Filecoin could take advantage of Solidity foundry hard hat all the tools and ecosystem that has developed around the EVM. And Solidity, that's pretty robust today.
+00:07:40.740 - 00:07:41.152, Speaker B: Right?
+00:07:41.206 - 00:08:03.412, Speaker C: So you can think of it as kind of stack of layers, right? So at its base, Filecoin was and is still designed around storage, right? So storing large data sets. And on top of that, we have the FVM, which allows us to compute over the state of this filecoin blockchain.
+00:08:03.476 - 00:08:03.944, Speaker B: Right.
+00:08:04.062 - 00:08:15.524, Speaker C: And what is that state? Well, we'll go on that a bit, but essentially deals. And on top of that we have what we call computation over data, which is bacalau.
+00:08:15.652 - 00:08:16.052, Speaker B: Right.
+00:08:16.126 - 00:08:39.010, Speaker C: So you can think of computation over state as like, okay, this is the computation over the blockchain state or the storage deals. What are they, what are the information? We can retrieve that and we can compute over that. While computation over data is like computation over large data sets are what data the storage providers might be holding actually is.
+00:08:39.010 - 00:08:51.296, Speaker C: So yeah, again, computation over state, computation around the metadata of the data stored on filecoin.
+00:08:51.328 - 00:08:51.572, Speaker B: Right.
+00:08:51.626 - 00:09:20.800, Speaker C: So you have the storage providers, they've got their data, but the deals themselves, the ones that bind the storage providers, what they have to provide proofs for or else they get slashed, is the state that we're talking about. So essentially the storage deals and these storage deals can't be found on any other blockchain, which is what makes the fevm very unique compared to other EVM chains. I see a question here.
+00:09:20.800 - 00:09:27.412, Speaker C: Was wondering if we'll get some info over data dials and how we can do storage deals. Yes, I'm just about to talk about that actually.
+00:09:27.466 - 00:09:29.110, Speaker B: So great question.
+00:09:30.040 - 00:09:56.168, Speaker C: What are deals? Right, that's the next slide. So storage deals are the state on the filecoin blockchain that determine how your data is going to be stored with these storage providers, right. How long it's going to be stored, how long this will cost, how much will be paid in the upfront, collateral, all kinds of information.
+00:09:56.168 - 00:10:00.924, Speaker C: Well, let's just dive into it and we can look in and see what that looks like.
+00:10:00.962 - 00:10:13.372, Speaker B: Right, so we're going to go to Phil Fox here. This is actually pointing to hyperspace, which is now deprecated.
+00:10:13.436 - 00:10:49.980, Speaker C: So we are going to go to Phil Fox the manual way, right, and currently we're on main net, which we could go to, but we're going to go to Calibrationnet as Calibrationnet is the main supported testnet of the filecorn blockchain. Right now we just switched from hyperspace, so you may see some things still being switched in documentation and some of the kits, but most everything should be switched over by this point. And if we go here and just tab blockchain, you'll see an area called deal list.
+00:10:50.050 - 00:10:50.670, Speaker B: Right.
+00:10:52.480 - 00:10:56.572, Speaker C: And these are those active storage deals that I was talking about.
+00:10:56.626 - 00:10:57.132, Speaker B: Right.
+00:10:57.266 - 00:11:05.292, Speaker C: You can find this on mainnet as well. I'm just going to go over Calibrationet since that's what most developers in a sackathon are going to use before they go into mainnet.
+00:11:05.436 - 00:11:05.840, Speaker B: Right.
+00:11:05.910 - 00:11:14.644, Speaker C: So we can just click on any random deal ID right here and we'll get some of that metadata that we can compute over or do that computation over state over.
+00:11:14.762 - 00:11:15.188, Speaker B: Right.
+00:11:15.274 - 00:11:24.100, Speaker C: So you have the deal ID, just a basic ID to identify the deal, create time when the deal was created.
+00:11:24.600 - 00:11:27.304, Speaker B: At what block and you'll see these.
+00:11:27.342 - 00:11:34.952, Speaker C: Two important pieces of data. They might look like jargon the message and PCID. We'll go over those in a second.
+00:11:34.952 - 00:11:57.830, Speaker C: If the deal is verified, will Fill Plus. If you're not familiar with Fill Plus fill plus is a program that allows people to, if they have very important data that they want stored, give storage providers an incentive to store this very important data. I highly suggest checking it out and if we have some time at the end, I can go over it.
+00:11:57.830 - 00:12:15.704, Speaker C: But yeah, we have the PCID here, which is kind of like the root hash of the data. We'll talk about how that's computed here in a minute. And the client, the person requesting the data, the provider and how much collateral each person has set up.
+00:12:15.742 - 00:12:15.944, Speaker B: Right.
+00:12:15.982 - 00:12:28.110, Speaker C: So each person needs to put up some collateral on testnet. This isn't necessary. The client, the client provider in this image has zero collateral stored at the bottom here.
+00:12:28.110 - 00:12:44.284, Speaker C: But the client needs collateral in order to prove that they can pay continuously for that storage deal over time. And the provider needs to put up collateral because if they go offline or stop proving that they have the data stored, they get slashed for that collateral.
+00:12:44.332 - 00:12:44.592, Speaker B: Right?
+00:12:44.646 - 00:13:08.180, Speaker C: So this gives them an incentive to make sure they stay honest because they're not going to want to lose that money. So that's kind of what deals look like. We also have this idea of the comp P or PCID that I mentioned earlier, right? So I said you can think of it as like a root hash.
+00:13:08.180 - 00:13:27.290, Speaker C: It's a little bit more complex than that because it's not just like taking the data through a hashing algorithm. We first convert any data that we want stored on the file colon chain into what we call a car file. The car file is then padded to make it the proper size.
+00:13:27.290 - 00:13:51.968, Speaker C: And a Merkel dag is created, which is very similar to a merkel tree if you're familiar with Bitcoin or Ethereum. But instead it's a Dag, a directed acyclic graph. And essentially we create this tree and it hashes all the way up to this comp PCID, right? So it's a little bit more involved and it has a little bit more data in it than just a hash.
+00:13:51.968 - 00:13:58.180, Speaker C: But that's essentially what you can think of it as it's a representative of the data being stored.
+00:14:02.280 - 00:14:02.740, Speaker B: Right.
+00:14:02.810 - 00:14:20.056, Speaker C: And so into that deal making flow. Originally, deal making flow was a pretty manual process. A client would have to find what storage providers are wanting, like what their minimum asks are for deals.
+00:14:20.056 - 00:14:40.400, Speaker C: Like maybe it might be a certain size deal, a certain amount of price or length and some messages would be sent on chain to the on chain APIs. Eventually, let's say a deal is made, a storage provider would take up that deal proposal. What we call it, it would be signed by the client.
+00:14:40.400 - 00:14:51.540, Speaker C: The provider would download the data, make sure that everything matches, send a message on chain called Publish Storage Deal and that deal would be live.
+00:14:51.610 - 00:14:52.084, Speaker B: Right.
+00:14:52.202 - 00:15:18.270, Speaker C: And that was basically the deal making flow. And that was all fun and nice, but it was kind of limited. We just had those basic APIs and now we have the FVM, which allows a compute over state and allows us to build all these kind of awesome crazy applications on top of it.
+00:15:18.270 - 00:15:42.944, Speaker C: And so that's really allowed us to take deal making to another level. Right, so we'll go over it in a second. But there is a client contract that allows us to MIT an event through a smart contract on the filecorn blockchain and that allows storage providers to take up deals that are coming directly from smart contracts on chain.
+00:15:42.992 - 00:15:43.648, Speaker B: Right.
+00:15:43.834 - 00:16:26.390, Speaker C: And with this you can create all kinds of interesting applications like decentralized verifiable computation with Bacalau, which we'll talk about datadows, which is coming up next, sector auctions, quality of service improvements, storage insurance, perpetual storage contracts, all kinds of fun things on the Falcon blockchain that we are excited to see hackers build during this hackathon. So I'm going to go over this datadao kit real quick. I think we have a question.
+00:16:27.480 - 00:16:30.820, Speaker B: So is the proving tree the same.
+00:16:30.890 - 00:16:39.400, Speaker C: As the merkel tree? It's very similar. So I'll go back real quick to that image.
+00:16:41.340 - 00:16:42.376, Speaker B: Right here.
+00:16:42.558 - 00:16:55.500, Speaker C: Essentially, it's basically a merkel tree. If you go into the filecoin spec, you can learn a little bit more about it. It's a little bit more complicated than that because they consider it a dag instead.
+00:16:55.500 - 00:17:13.524, Speaker C: So it can go both ways. And this, I think, is part of IPLD in a planetary layered link data like format to make it a little bit more generalizable. But essentially, yeah, it's like you can think of it very similarly to that.
+00:17:13.524 - 00:17:15.492, Speaker C: And in most cases it may even be that.
+00:17:15.546 - 00:17:16.150, Speaker B: Right.
+00:17:16.680 - 00:17:39.886, Speaker C: So I hope that answered your question. All right, so just going to give you a brief look at the Fevm Data Dow kit. So we're talking about data dows, right? I've mentioned them as one of the possible use cases.
+00:17:39.886 - 00:17:41.234, Speaker C: We've got a question on it.
+00:17:41.272 - 00:17:41.860, Speaker B: Right?
+00:17:42.550 - 00:17:44.386, Speaker C: So what do we mean by a data Dow?
+00:17:44.418 - 00:17:44.566, Speaker B: Right?
+00:17:44.588 - 00:18:01.980, Speaker C: If you don't know what a Dow is, it's a decentralized autonomous organization, right? Essentially, we're taking voting structures and organization and putting them on chain and kind of organizing a decentralized group of people together that way.
+00:18:02.670 - 00:18:06.298, Speaker B: And kind of what we mean in.
+00:18:06.304 - 00:18:17.066, Speaker C: The file coin network when we say data Dows and data Dows are still kind of a term that's being defined industry wide, is DAOs based around data being stored in the storage provider.
+00:18:17.098 - 00:18:17.630, Speaker B: Right.
+00:18:17.780 - 00:18:30.594, Speaker C: And so in the Data Dow kit, what we have is a couple of example contracts. And these are based actually on an old colleague of mine, Patrick Collins. You may be familiar with him.
+00:18:30.594 - 00:18:53.062, Speaker C: He did a great Dow tutorial, which I actually linked to in the README here, that if you want to go more in depth on how Dows are built, I highly suggest you watch. But we have a couple of contracts in this kit a data governance token, a governor contract, a timeline contract, and what I call the Dow deal client.
+00:18:53.126 - 00:18:55.978, Speaker B: Right. So remember how I said earlier we.
+00:18:55.984 - 00:19:09.066, Speaker C: Had the old method and still viable method of creating storage deals and a newer method which is creating storage deals for storage deals via smart contracts?
+00:19:09.098 - 00:19:09.690, Speaker B: Right?
+00:19:09.860 - 00:19:33.682, Speaker C: And so this deal client is kind of a standardized way to do that. It has the struct for the deal request that we can put in and essentially emits an event deal proposal, create that storage providers can listen to and pick up the deal from the smart contract.
+00:19:33.746 - 00:19:34.418, Speaker B: Right?
+00:19:34.604 - 00:19:52.602, Speaker C: So essentially what this Dow kit allows you to do is deploy this Dow deal client with these governor contracts wrapped around it so a Dow can vote on what data they want to request to be stored on the filecoin blockchain.
+00:19:52.666 - 00:19:52.942, Speaker B: Right?
+00:19:52.996 - 00:20:14.326, Speaker C: And this is basically a very bare minimum Dow template. And I'd really like to see people over the hackathon build on top of this, maybe build some more complex functionality on top, build some more tools. We're hoping to see things like storage renewal, like automation tools to be built on top of.
+00:20:14.326 - 00:20:17.030, Speaker C: This would be great to see.
+00:20:17.180 - 00:20:20.418, Speaker B: Right, so that's kind of the data Dow kit.
+00:20:20.514 - 00:20:26.886, Speaker C: Quick overview. If you want to learn more, I suggest check it out. Please feel free to make some PRS.
+00:20:26.886 - 00:20:28.730, Speaker C: We just had someone make a PR.
+00:20:28.800 - 00:20:39.726, Speaker B: Here on a fix, right? So, yeah, so we have a question.
+00:20:39.908 - 00:20:42.510, Speaker C: On a specific contract.
+00:20:44.050 - 00:20:44.878, Speaker B: Let's see.
+00:20:44.964 - 00:20:46.080, Speaker C: On line 70.
+00:20:54.720 - 00:20:58.096, Speaker B: Yeah, this is very specific to the.
+00:20:58.118 - 00:21:01.570, Speaker C: Governor contract code on line 70 here.
+00:21:02.740 - 00:21:06.524, Speaker B: Line 75 writes, super proposed.
+00:21:06.572 - 00:21:28.340, Speaker C: All right, so this is calling so Solidity allows inheritance in it, right? So we're actually inheriting in this governor contract the Open Zeppelin contract standards. And this is calling that with some low level stuff. The call data is like the low level data that we're passing in the description is like the actual proposal.
+00:21:28.340 - 00:21:41.660, Speaker C: Again, if you want to learn more, I don't really have time to go too in depth into this in this talk, but I was just going through and going through those tutorials that I linked to in this README in here.
+00:21:41.730 - 00:21:46.316, Speaker B: So if we go here, you'll see.
+00:21:46.338 - 00:22:01.270, Speaker C: I have a video and the original repo made by Patrick Collins here that this is based off of, that we're building off of. And I highly suggest that you check these out and you can learn a little bit more about the specifics of how these contracts work.
+00:22:05.860 - 00:22:06.272, Speaker B: Right?
+00:22:06.326 - 00:22:16.124, Speaker C: And here is a link tree to some other FVM resources. A link tree. We have the starter kits.
+00:22:16.124 - 00:22:34.360, Speaker C: So the Fevm hardhat kit and the Fevm Foundry kit if you have a preference for either hard hat or Foundry and solidity development, and a Cod starter kit, which we're about to talk about what cod is compute over data. But that's kind of a wrap around what we'll talk about here lily Pad in a second.
+00:22:34.510 - 00:22:37.176, Speaker B: Right, so we've talked about compute over.
+00:22:37.198 - 00:22:41.790, Speaker C: State and we talked about FBM and we've gone a little bit over the.
+00:22:44.000 - 00:22:46.670, Speaker B: Data Dow kit, right.
+00:22:47.520 - 00:23:14.550, Speaker C: But I want to go over a little bit with some of the time we have left over to Back Allow and compute over data. So basically back Allow is a network of open compute resources open to solve any data processing workload, right. While blockchains are more resource constrained because of their architecture, backalau is more open while still trying to maintain a level of decentralization, right.
+00:23:14.550 - 00:23:33.630, Speaker C: And so together they kind of complement each other's weaknesses where Fem is maximally decentralized and allows computational overstate. Baccalau maybe not quite as decentralized, but allows a lot more heavy compute on top of it.
+00:23:34.800 - 00:23:35.788, Speaker B: By the way, if you don't know.
+00:23:35.794 - 00:23:46.844, Speaker C: What bacalau means, it's a salted cod dish in Lisbon, and I think that's a callback to all of the Web Three work that's been done in Lisbon, Portugal.
+00:23:46.892 - 00:23:47.490, Speaker B: Right.
+00:23:48.100 - 00:24:07.968, Speaker C: So again, as a recap at the base layer, we have storage providers storing data in their hard drives. And then we have the deals that live on the filecoin blockchain. And that's where we have the FBM and computation over state, which allows us to write logic over those deals.
+00:24:07.968 - 00:24:19.450, Speaker C: And now we have computation over data, which allows us to take heavier data, which may be that data is stored with the storage providers or really anything and do computation over that.
+00:24:22.140 - 00:24:22.984, Speaker B: Right.
+00:24:23.182 - 00:24:28.140, Speaker C: So we've kind of already talked about what this is. We have computation over state, computation over data.
+00:24:28.290 - 00:24:34.876, Speaker B: Not going to go over too much since we're short on time, but a.
+00:24:34.898 - 00:24:59.250, Speaker C: Cool Baccalau project is Project Lilypad, right, which is kind of like the bridge between FVM and baculau. And so we can check out their GitHub at Slash. Lilypad colleague Ali, she's mainly been working on this.
+00:24:59.250 - 00:25:24.490, Speaker C: And I highly suggest you check out developer Ali on Twitter or as you see here on GitHub. And everything you need to know is in the README of these. But essentially what's going on in Lilypad is that you have a user contract that inherits another contract called Lilypad Events Contract, which is all in that repo.
+00:25:24.490 - 00:25:31.758, Speaker C: And with that inheritance you can call a function that will emit an event.
+00:25:31.924 - 00:25:32.590, Speaker B: Right?
+00:25:32.740 - 00:26:04.598, Speaker C: And Bakulao over here on the right is always listening to this event via the Lily Pad bridge daemon, right? And once it hears that know, the event will hey, like in the example of Lily Pad, one of the main examples is you can the event that says hey, call stable diffusion with this prompt. Here's the payment for the event. And please do this computation and return the result CID.
+00:26:04.598 - 00:26:10.730, Speaker C: Like store this data on IPFS and return the result CID on chain in this contract.
+00:26:13.310 - 00:26:14.060, Speaker B: Right.
+00:26:15.010 - 00:26:29.630, Speaker C: So this is a demo of it working. Ali going through the contract. We don't have time to go through that, but essentially a simple call, an event is emitted.
+00:26:29.630 - 00:26:44.200, Speaker C: You can find this demo on their README. So back here, the Backal project, lilypad, it's all here. So I highly suggest checking out the README and going through this as well.
+00:26:48.000 - 00:26:48.412, Speaker B: Right.
+00:26:48.466 - 00:27:52.000, Speaker C: And there's also Waterlily, which is live on FVM, Mainet, which is trying to solve the kind of ethical concerns around AI generated art, which this kind of does it while attributing the original Artists and down the line can be used to actually pay them for the work they use to train the and, you know, there's all kinds of uses that you can find for Lilypad, including basically a generalized Oracle use case where Lilypad can be used to retrieve and do computational data that we need then to put on chain VRF via Drand. There's all kinds of AI. Like the default use case they have is again, stable diffusion, running on Baccalau and returning the CID of that generated image on chain and much, much more.
+00:27:52.000 - 00:28:17.686, Speaker C: A couple of questions here. Data dows, can you please send me your discord name? Yeah, you'll be able to find me after this. I'll try to head to the hack FS discord for filecoin, and maybe I can answer your specific question here.
+00:28:17.868 - 00:28:21.398, Speaker B: Matt have can we have the data.
+00:28:21.484 - 00:28:23.894, Speaker C: Stored in filecoin and use that data.
+00:28:24.092 - 00:28:28.920, Speaker B: To try some AI models through? Yes.
+00:28:34.080 - 00:28:52.288, Speaker C: If yes, what is the use of back allow in it as data would only be stored filecoin only. So Baccalau is actually generalizable compute. It doesn't actually have to be data stored on filecoin only, but that is one use case you can do with it is connected through to the filecoin storage providers.
+00:28:52.288 - 00:29:03.400, Speaker C: So I meant to train some AI model. Yeah, if you'd like. I think the backalau, it's very generalizable.
+00:29:03.400 - 00:29:20.476, Speaker C: If you check out the general backalau docs, I think they show more how to run it. I'm not with the backalau team, so I haven't actually run back allow, but I've called it from Smart Contracts. But yeah, they have a stable diffusion running in it.
+00:29:20.476 - 00:29:22.350, Speaker C: So I assume you could do that.
+00:29:22.800 - 00:29:25.280, Speaker B: Okay. Tense. Yep.
+00:29:33.040 - 00:30:06.996, Speaker C: Is there any YouTube video guide on how we can create customized data dow on top of Fevm data dow kit and store the data on the file clone storage? So, again, for that, for the data dow kit, I highly recommend you check know Patrick Collins video, which I link here. And in this video, he kind of goes over DAOs in general because most of the data dow problem is around the dow itself and how you're going to organize it and how you choose you want to do it. And DAOs can be very intricate.
+00:30:07.028 - 00:30:07.224, Speaker B: Right.
+00:30:07.262 - 00:30:26.780, Speaker C: Which is why I linked to this. I think it's a very good overview video. But there's also the client contract, which has its own kind of kit, which is the core unique thing that's on filecoin.
+00:30:26.780 - 00:30:46.950, Speaker C: So if you want to learn more about how deal making works on filecoin, you can check this out and I'll provide the link. It should be in that link tree that I provided earlier, but I'll provide the link here, and this is kind of how deal making works. And I think I'm on time.
+00:30:50.680 - 00:30:51.460, Speaker B: Yep.
+00:30:52.600 - 00:30:58.096, Speaker C: You know, thanks for the presentation. That's my Twitter handle. And that's ali.
+00:30:58.096 - 00:31:16.030, Speaker C: If you want to get in contact with more of the bacalau side of things, I hope y'all found this presentation helpful and it motivates you to build some cool applications using Datadao as our backalau on the Fevm. So thank you.
+00:31:16.960 - 00:31:17.432, Speaker B: Cheers.
+00:31:17.496 - 00:31:21.310, Speaker A: Thank you, Zach. Thank you for the great presentation. And thank you, everybody, for joining today.
+00:31:21.310 - 00:31:24.796, Speaker A: Yeah, that concludes this presentation. So, yeah, hope.

@@ -1,0 +1,396 @@
+00:00:06.170 - 00:00:24.106, Speaker A: This gets us right into our next talk, which is now you learned about the surface area, but let's go directly deep into what is the EVM compatibility piece means here. So to talk about that, I want to welcome Sarah here and I'll let her take over. Welcome, Sarah.
+00:00:24.298 - 00:00:24.750, Speaker B: Hey.
+00:00:24.820 - 00:00:29.366, Speaker C: How Karthik? Thanks for welcoming me. Thanks, Molly, for that great introduction to.
+00:00:29.388 - 00:00:33.974, Speaker D: The vision of Fem as a whole. I'm just going to start sharing my.
+00:00:34.012 - 00:00:37.080, Speaker B: Slides in a on.
+00:00:37.930 - 00:00:43.546, Speaker C: Cool. So, yeah, I think Molly has painted a really good vision of what we.
+00:00:43.568 - 00:00:49.274, Speaker D: Hope to achieve with Fem and where we're at right now on the Fevm. So what I'll do for my talk.
+00:00:49.312 - 00:00:53.486, Speaker C: Is kind of go a little bit deeper into the architecture of how the.
+00:00:53.508 - 00:00:56.442, Speaker D: Fem is set up and also specifically.
+00:00:56.586 - 00:00:59.114, Speaker C: The EVM compatibility piece of the Fem.
+00:00:59.162 - 00:01:04.286, Speaker D: Which then constitutes the word Fevm. And then for the rest of the.
+00:01:04.308 - 00:01:05.754, Speaker C: Day, we'll have all my other teammates.
+00:01:05.802 - 00:01:11.966, Speaker D: Coming on as well as some of our partners, to share a little bit about some tutorials on how you can build certain scenarios.
+00:01:12.078 - 00:01:15.906, Speaker C: These are just ideas that you can have. So Zach's going to come on and talk a little bit about that and.
+00:01:15.928 - 00:01:23.798, Speaker D: Then we're going to have Zondex Glyph come on to talk about the really important tooling that you can use to build in your project as well.
+00:01:23.884 - 00:01:27.666, Speaker C: So I hope my session kind of gives you a sense of the underlying.
+00:01:27.778 - 00:01:29.720, Speaker D: Concepts of what you'll be building.
+00:01:30.650 - 00:01:31.414, Speaker B: Okay, cool.
+00:01:31.452 - 00:01:34.998, Speaker C: So a little bit about myself. Nice to meet all of you. My name is Sarah.
+00:01:35.014 - 00:01:36.726, Speaker D: I'm an FVM dev advocate.
+00:01:36.838 - 00:01:38.666, Speaker C: I'm on the Developer Experience Team.
+00:01:38.768 - 00:01:41.642, Speaker D: I've been at Protocol Labs for a few months now.
+00:01:41.776 - 00:01:46.926, Speaker C: I am supported by a really amazing team. We have a few faces here that.
+00:01:46.948 - 00:01:48.606, Speaker D: Are not on the board, that are.
+00:01:48.628 - 00:01:58.046, Speaker C: Still joining our team and so on, but these are like product engineering, strategy, DX ecosystem. So we all work really well together.
+00:01:58.228 - 00:02:02.562, Speaker D: And a lot of the content I'm sharing today is just me sharing of what's been built.
+00:02:02.616 - 00:02:04.978, Speaker C: But it's really owing to a lot of the good work that has been.
+00:02:04.984 - 00:02:07.026, Speaker D: Done by my team before this.
+00:02:07.128 - 00:02:09.638, Speaker C: So, yeah, we'll all be on the chat answering questions.
+00:02:09.804 - 00:02:15.858, Speaker D: I think we're all kind of on standby ish through this weekend just to kind of be able to support your projects.
+00:02:15.954 - 00:02:17.446, Speaker C: So really looking forward to getting all.
+00:02:17.468 - 00:02:19.094, Speaker D: The questions from all of you.
+00:02:19.212 - 00:02:20.182, Speaker C: And that's already started.
+00:02:20.236 - 00:02:20.406, Speaker B: Right?
+00:02:20.428 - 00:02:21.238, Speaker C: I've seen some of you on the.
+00:02:21.244 - 00:02:23.660, Speaker D: Brainstorming on the Twitter spaces, so that's been great.
+00:02:24.030 - 00:02:31.706, Speaker C: Also, a few of our partners that we work really closely with, we operate in a very open source way and there's also no way that we could build to the point that we've built.
+00:02:31.808 - 00:02:34.458, Speaker D: At without the help of all these great partners.
+00:02:34.554 - 00:02:34.766, Speaker C: Yeah.
+00:02:34.788 - 00:02:36.880, Speaker D: And definitely more that are not featured here.
+00:02:39.090 - 00:02:47.186, Speaker C: So I'll get a little bit into I know you've seen the slide a little bit earlier on, but let me touch a little bit deeper on it. So this one talks a little bit.
+00:02:47.208 - 00:02:50.994, Speaker D: About how the FPM itself was inspired. This was, of course, started way before.
+00:02:51.032 - 00:02:56.978, Speaker C: I joined the team, the founding engineering team for the FPM. They were really inspired by Hypervisors, the.
+00:02:56.984 - 00:03:07.398, Speaker D: Actor model, and the Unix kernel. I think what we envisioned was a system that could host multiple runtimes and serve as a seamless connector between them. This was really important as well, because.
+00:03:07.564 - 00:03:10.166, Speaker C: Blockchain runtimes are developing really rapidly and.
+00:03:10.188 - 00:03:15.850, Speaker D: Harboring many different developer communities. And so we want to make sure that we're able to accommodate them as they come in.
+00:03:16.000 - 00:03:20.086, Speaker C: And I think it is the general ethos of the PL, the Protocol Labs.
+00:03:20.118 - 00:03:30.414, Speaker D: Network, to be able to build things that complement the ecosystem and allow people to build on top of that whichever tooling or systems or preference or languages that they have.
+00:03:30.532 - 00:03:31.598, Speaker C: And I'll talk a little bit more.
+00:03:31.604 - 00:03:34.594, Speaker D: About that, and you'll understand the features of that with the Fem and how.
+00:03:34.632 - 00:03:36.740, Speaker B: We'Ve really worked towards implementing that.
+00:03:38.150 - 00:03:47.138, Speaker D: So for the Hypervisors piece, it is the underlying machine that allows multiple machines to run on top of it. And so we're know today might be.
+00:03:47.144 - 00:03:48.338, Speaker C: EVM, but in the future it might.
+00:03:48.344 - 00:03:50.406, Speaker D: Be other user defined VMs as well.
+00:03:50.588 - 00:03:52.134, Speaker C: For the actor model, it acts very.
+00:03:52.172 - 00:03:56.920, Speaker D: Much as the interaction paradigm between runtimes and the contracts or the workloads that they interact with.
+00:03:57.290 - 00:04:00.166, Speaker B: So that's also why we call the.
+00:04:00.188 - 00:04:02.546, Speaker D: Smart contract equivalent, but not exactly an equivalent.
+00:04:02.578 - 00:04:04.010, Speaker C: I'll talk about that in a second.
+00:04:04.160 - 00:04:08.346, Speaker D: We refer to them as actors. So you'll see the word appear a lot in our documentation, and that's what.
+00:04:08.368 - 00:04:10.170, Speaker B: We'Re really referring to over here.
+00:04:10.320 - 00:04:12.446, Speaker C: The Unix kernel itself was a point.
+00:04:12.468 - 00:04:21.242, Speaker D: Of inspiration because of the isolation, memory, environment, storage, abstractions, and so on, all of which are really accessible through a system call or syscallf.
+00:04:21.386 - 00:04:23.134, Speaker C: So to kind of explain the difference.
+00:04:23.172 - 00:04:37.406, Speaker D: Between smart contracts and actors, the way you can think about it is that on the FalcoIn network, the FVM and Fevm functionality is carried out by actors. So when you deploy an EVM smart contract to the FalcoIn network, an actor is created that contains the ethereum bytecode.
+00:04:37.438 - 00:04:39.618, Speaker B: And executes that code on the EVM.
+00:04:39.794 - 00:04:42.406, Speaker C: Yeah, so right now it's more on.
+00:04:42.428 - 00:04:46.642, Speaker D: The EVM deploying to the Falcon network through the FBM.
+00:04:46.786 - 00:04:48.006, Speaker C: We hope that in the future we.
+00:04:48.028 - 00:04:49.478, Speaker D: Can think a little bit more about.
+00:04:49.644 - 00:04:55.082, Speaker C: Engineers right now are thinking about things like parallelism. How can we use I'll talk about.
+00:04:55.136 - 00:04:58.780, Speaker D: The architecture later on, but the way that we've built it allows us to.
+00:04:59.390 - 00:05:02.842, Speaker C: Maybe be able to build parallel ways.
+00:05:02.896 - 00:05:06.654, Speaker D: Of functioning across foreign runtime, as well as the FBM itself.
+00:05:06.692 - 00:05:09.774, Speaker C: So that leads to tighter coordination, things.
+00:05:09.812 - 00:05:11.402, Speaker D: Can move faster, it's more performant.
+00:05:11.466 - 00:05:13.680, Speaker B: So these are things that we're thinking about right now.
+00:05:16.450 - 00:05:17.930, Speaker D: You've also seen the slide, but let.
+00:05:17.940 - 00:05:21.854, Speaker C: Me go into each of the points because I know Molly was going through the paint division.
+00:05:21.902 - 00:05:23.106, Speaker D: And so let me explain a little.
+00:05:23.128 - 00:05:24.674, Speaker C: Bit about each of these points.
+00:05:24.872 - 00:05:29.214, Speaker D: So these are different features that we considered when we were building out the Fem.
+00:05:29.342 - 00:05:30.726, Speaker C: I'll talk about the architecture in a.
+00:05:30.748 - 00:05:39.206, Speaker D: Second, but let me also talk about some of the features here and what we've considered. So first of all, it's based off on WebAssembly using WASM time under the.
+00:05:39.228 - 00:05:43.638, Speaker C: Hood in its reference implementation you can think of WASM running at the hypervisor.
+00:05:43.654 - 00:05:55.686, Speaker D: Level, which we talked about hypervisor layer, which we talked a little bit about earlier on. As I mentioned, it can power multiple runtimes like EVM, Secure, ECMAScript and so on. And because it compiles the native bytecode.
+00:05:55.718 - 00:06:00.526, Speaker C: It really leads to great performance. So for those of you who have used WebAssembly, you know how efficient it.
+00:06:00.548 - 00:06:01.806, Speaker D: Is, maybe in a web browser, but.
+00:06:01.828 - 00:06:06.206, Speaker C: Here we're trying to use it within a VM instead. And as you can see, it has.
+00:06:06.228 - 00:06:09.220, Speaker B: Really led to the outcomes that we wanted.
+00:06:09.590 - 00:06:15.246, Speaker D: WASM gives high level languages a compilation target, so then Devs will be able to use their preferred language to write their actors.
+00:06:15.358 - 00:06:20.706, Speaker C: So you could use languages that you're comfortable with, such as like Python JavaScript assembly script.
+00:06:20.738 - 00:06:22.210, Speaker D: Well, we actually have a few SDKs.
+00:06:22.290 - 00:06:24.726, Speaker C: Out for native actors and I'll talk.
+00:06:24.748 - 00:06:27.954, Speaker D: About that a little bit later. But you can see on the architecture.
+00:06:28.002 - 00:06:38.630, Speaker C: Diagram over here you have native actors in your foreign runtimes. And so for native actors, we actually have developed SDKs such as Tiny Go, Assembly Script, High Level Rust, and these are developed by our partners.
+00:06:38.790 - 00:06:40.346, Speaker D: So yeah, we look forward to the.
+00:06:40.368 - 00:06:44.362, Speaker C: Community building out more SDKs for the languages that they prefer or the communities.
+00:06:44.426 - 00:06:59.694, Speaker D: That they are a part of. And so WASM also imports syscalls and declares them, which makes it easy to audit and static analyze in the FVM. So especially if it's the wrong syscall, that you are then able to identify and isolate it, whereas in other VMs.
+00:06:59.742 - 00:07:01.406, Speaker C: Typically you kind of have to scan.
+00:07:01.438 - 00:07:03.074, Speaker D: The code and identify that yourself.
+00:07:03.192 - 00:07:05.138, Speaker C: So we think that that allows a.
+00:07:05.144 - 00:07:06.500, Speaker B: Lot more control for us.
+00:07:07.350 - 00:07:10.758, Speaker D: WASM also provides a sandbox environment that assumes zero trust.
+00:07:10.924 - 00:07:13.266, Speaker C: That again makes it easy to analyze an instrument.
+00:07:13.378 - 00:07:14.886, Speaker D: So what that allows is that the.
+00:07:14.908 - 00:07:18.586, Speaker C: FBM will then we can then have things like built in resource metering for.
+00:07:18.608 - 00:07:28.140, Speaker D: Gas estimation and accounting. And each actor also runs in isolation and can escape its sandbox through syscalls, which is once again very much inspired by the Linux model.
+00:07:30.750 - 00:07:33.126, Speaker C: Around low level system calls.
+00:07:33.158 - 00:07:34.714, Speaker D: That's also a feature that we've considered.
+00:07:34.762 - 00:07:37.118, Speaker C: Again, that gives a lot more control around the sys calls that we want.
+00:07:37.124 - 00:07:40.574, Speaker D: To make IPLD native. So for those of you who are.
+00:07:40.612 - 00:07:47.106, Speaker C: New to IPLD, it stands for I think it's Interplanetary Link data, but might.
+00:07:47.128 - 00:07:47.874, Speaker D: Be wrong on that.
+00:07:47.912 - 00:07:50.814, Speaker C: But it basically links to content addressable.
+00:07:50.862 - 00:07:53.246, Speaker D: Data structures that are linked through hashing.
+00:07:53.438 - 00:07:57.346, Speaker C: So why we've chosen to make the.
+00:07:57.368 - 00:08:06.114, Speaker D: FBM IPLD native is because all data is managed and exchanged through IPLD, which means that all our content is addressed and linked through hashing.
+00:08:06.162 - 00:08:08.486, Speaker C: And that makes it really efficient in.
+00:08:08.508 - 00:08:13.226, Speaker D: Building the FVM or for devs like yourself to build on top of it.
+00:08:13.248 - 00:08:14.666, Speaker C: Because it makes it really easy to.
+00:08:14.688 - 00:08:17.094, Speaker D: Snap Mergo tree data structures for historical.
+00:08:17.142 - 00:08:21.750, Speaker C: State checks, for example. And so this allows you to build much more efficiently.
+00:08:21.910 - 00:08:26.894, Speaker D: You will also be able to account for state of not just the account itself, but also state of the actors within.
+00:08:26.932 - 00:08:29.674, Speaker C: It really getting to more atomic pieces.
+00:08:29.802 - 00:08:31.326, Speaker D: That you can then account for, which.
+00:08:31.348 - 00:08:33.566, Speaker C: Then makes it easier for you to have control over what you want to.
+00:08:33.588 - 00:08:37.040, Speaker D: Build and better coordination amongst actors, for example.
+00:08:37.490 - 00:08:41.106, Speaker C: And lastly, you also get to define your data layout. So if you want to choose having.
+00:08:41.128 - 00:08:42.306, Speaker D: This piece of data to sit next.
+00:08:42.328 - 00:08:44.066, Speaker C: To another piece of data, that's up.
+00:08:44.088 - 00:08:47.330, Speaker D: To you to choose if you think that's more efficient for what you're trying to build.
+00:08:47.480 - 00:08:48.886, Speaker C: So, yeah, we're trying to give as.
+00:08:48.908 - 00:08:50.754, Speaker D: Much control as possible to the developer.
+00:08:50.802 - 00:08:51.798, Speaker C: And so that's a lot of the.
+00:08:51.804 - 00:08:53.910, Speaker B: Thought that has gone into building the FVM.
+00:08:55.130 - 00:09:06.374, Speaker C: It also supports foreign addressing and foreign signature schemes. And we'll get to that a bit in the next section where I talk about how the EVM is made compatible for the FVM.
+00:09:06.502 - 00:09:08.570, Speaker D: This really very much ties into it.
+00:09:08.640 - 00:09:09.786, Speaker C: And so let me touch a little.
+00:09:09.808 - 00:09:11.610, Speaker D: Bit on the diagram over here.
+00:09:11.760 - 00:09:14.378, Speaker C: You can see as a whole, you.
+00:09:14.384 - 00:09:17.086, Speaker D: Can see that the FVM, to be clear, for those that are new to.
+00:09:17.108 - 00:09:19.166, Speaker C: The FVM, the Fem sits on top.
+00:09:19.188 - 00:09:20.570, Speaker D: Of a filecoin node.
+00:09:20.730 - 00:09:25.306, Speaker C: And so everything I just described sits within what the FVM is able to execute.
+00:09:25.498 - 00:09:26.926, Speaker B: And then on top of that, you.
+00:09:26.948 - 00:09:28.750, Speaker D: Have two categories of actors.
+00:09:28.830 - 00:09:30.018, Speaker C: So you have native actors and you.
+00:09:30.024 - 00:09:34.098, Speaker D: Have foreign runtime actors. I know Molly talked a little bit around the foreign runtimes there.
+00:09:34.184 - 00:09:35.826, Speaker C: Right now we're talking about EVM and.
+00:09:35.848 - 00:09:36.946, Speaker D: In the future we hope to build.
+00:09:36.968 - 00:09:44.338, Speaker C: For other VMs as well or have the community build that out for the native actors.
+00:09:44.434 - 00:09:46.198, Speaker D: Two subcategories in here, one is the.
+00:09:46.204 - 00:09:47.366, Speaker C: Built in system actors and one is.
+00:09:47.388 - 00:09:51.554, Speaker D: The user defined WASM actors. So for built in system actors, that's.
+00:09:51.602 - 00:09:53.258, Speaker C: Something that is hard coded into the.
+00:09:53.264 - 00:09:56.666, Speaker D: Network in the FVM and then onto the network itself.
+00:09:56.768 - 00:09:58.106, Speaker C: So these are actors that you will.
+00:09:58.128 - 00:10:05.470, Speaker D: Interact with, like a market actor or minor actor that then allows you to do all the storage and retrieval capabilities and primitives that you want to do.
+00:10:05.620 - 00:10:08.830, Speaker C: And on the other subcategory you have to use the defined WASM actors.
+00:10:09.250 - 00:10:11.294, Speaker B: I think if you were to write.
+00:10:11.412 - 00:10:13.694, Speaker C: Native actors within the FVM, it would.
+00:10:13.732 - 00:10:17.280, Speaker D: Usually be writing in Rust C C.
+00:10:17.750 - 00:10:20.014, Speaker C: And also we are developing other SDKs.
+00:10:20.062 - 00:10:22.494, Speaker D: As well but those three languages are the most recommended.
+00:10:22.622 - 00:10:25.778, Speaker C: But then that's for you to define. You can write your actors, and it.
+00:10:25.784 - 00:10:27.654, Speaker B: Should run within the FVM itself.
+00:10:27.852 - 00:10:29.286, Speaker C: So, as a whole, that is how.
+00:10:29.308 - 00:10:31.430, Speaker D: The Fem architecture works.
+00:10:31.500 - 00:10:33.830, Speaker B: And so right now, we'll jump into.
+00:10:33.900 - 00:10:38.422, Speaker D: The foreign actor piece, which is around the EVM phase that we're at right now.
+00:10:38.556 - 00:10:39.626, Speaker C: We talked a little bit about the.
+00:10:39.648 - 00:10:45.786, Speaker D: Roadmap earlier, earlier in July, this actually. So FVM is actually live on the.
+00:10:45.808 - 00:10:47.418, Speaker C: Filecoin network as of today.
+00:10:47.584 - 00:10:52.394, Speaker D: The portion here, the subcategory around built in system actors, is what's available on the main net.
+00:10:52.432 - 00:10:55.422, Speaker C: So you might not see it or experience it, and you also can't program.
+00:10:55.476 - 00:11:01.306, Speaker D: It as of today. But where we're at right now is around Fevm. And so when that launches in February.
+00:11:01.338 - 00:11:03.566, Speaker C: Next year, when it goes live to.
+00:11:03.588 - 00:11:08.098, Speaker D: The main filecoin network, you would then be able to program actors there.
+00:11:08.184 - 00:11:10.482, Speaker C: And then later on, probably mid year.
+00:11:10.536 - 00:11:13.794, Speaker D: 2023 is what we're looking at, always subject to change.
+00:11:13.832 - 00:11:15.202, Speaker C: But it's something that we're focusing on.
+00:11:15.256 - 00:11:16.974, Speaker D: Is to then allow for that subcategory.
+00:11:17.022 - 00:11:20.274, Speaker C: Of user defined native actors to be.
+00:11:20.312 - 00:11:21.246, Speaker D: Launched into main net.
+00:11:21.288 - 00:11:25.238, Speaker C: So for developers to use. And so I think that's the point where it will really unlock a lot.
+00:11:25.244 - 00:11:26.726, Speaker D: Of the capabilities, not just for the.
+00:11:26.748 - 00:11:29.094, Speaker C: Ethereum ecosystem, but for many developers out there.
+00:11:29.132 - 00:11:29.720, Speaker A: As.
+00:11:33.610 - 00:11:34.842, Speaker D: Yeah, so this is the question.
+00:11:34.896 - 00:11:37.898, Speaker C: Around how does the EVM deploy to.
+00:11:37.904 - 00:11:39.194, Speaker D: FPM out of the box?
+00:11:39.312 - 00:11:43.338, Speaker C: We talk a big game about making sure that it is seamless, and it's.
+00:11:43.354 - 00:11:50.906, Speaker D: A seamless deployment for EVM developers. Again, you all are like one of the early builders, first few early builders.
+00:11:50.938 - 00:11:52.480, Speaker C: To be touching this piece of technology.
+00:11:54.290 - 00:12:01.266, Speaker D: We have not launched yet. We are pre launched. So a lot of this, I think, as of probably two days ago, our.
+00:12:01.288 - 00:12:05.906, Speaker C: Ethereum JSON RPC API is now fully feature complete. So you have a lot of new.
+00:12:05.928 - 00:12:09.350, Speaker D: Capabilities, really hot, fresh out of the oven for you to use.
+00:12:09.500 - 00:12:11.346, Speaker C: So we really look forward to testing.
+00:12:11.378 - 00:12:13.014, Speaker D: And all the feedback that's going to come.
+00:12:13.132 - 00:12:14.246, Speaker C: But let me talk a little bit.
+00:12:14.268 - 00:12:16.710, Speaker B: About how that is achieved.
+00:12:23.130 - 00:12:35.906, Speaker D: I'll run through a few of these considerations. Not considerations, these are more like factors or ways in which the EVM can then seamlessly deploy to FVM. First up is around how EVM runtime.
+00:12:35.938 - 00:12:36.950, Speaker C: Is compiled to WASM.
+00:12:37.030 - 00:12:51.418, Speaker D: So the FVM supports EVM smart contracts out of the box. The EVM runtime is always compiled to WASM, as I mentioned earlier, with the FVM architecture. And so the FVM emulates EVM bytecode at a low level, supporting contracts written in solidity Viper.
+00:12:51.418 - 00:12:54.554, Speaker D: And Yule very much focused on solidity.
+00:12:54.602 - 00:12:57.950, Speaker B: Right now, there is no special EVM support per se.
+00:12:58.020 - 00:12:59.358, Speaker C: And this once again, plays to the.
+00:12:59.364 - 00:13:01.054, Speaker D: Ethos of how we hope that the.
+00:13:01.092 - 00:13:03.762, Speaker C: FVM is something that can support different.
+00:13:03.816 - 00:13:05.940, Speaker D: Blockchains and different VMs out there.
+00:13:07.910 - 00:13:09.246, Speaker C: EVM is the first one that we're.
+00:13:09.278 - 00:13:11.666, Speaker D: Building for, but we want to make sure that when we build for it.
+00:13:11.768 - 00:13:15.746, Speaker C: It'S not that we have to have a lot of bridging or special features.
+00:13:15.778 - 00:13:21.202, Speaker D: Or special support marked out just for the EVM so that it becomes a general purpose hypervisor.
+00:13:21.266 - 00:13:34.010, Speaker C: And when other VMs are coming on, it makes it much easier to accommodate and integrate them into the FBM ecosystem. We talk about familiar the.
+00:13:34.080 - 00:13:36.038, Speaker D: I think as of right now, you'll.
+00:13:36.054 - 00:13:37.546, Speaker C: See, when I share a little bit.
+00:13:37.568 - 00:13:47.274, Speaker D: About it later and in the tutorials that you'll see, you can use MetaMask, you can use Hard Hat. We're testing for a few other frameworks like Foundry and so on. The reason why this can happen is.
+00:13:47.332 - 00:13:59.058, Speaker C: That we actually point the EVM tooling to the Lotus node via the Ethereum JSON RPC API. So that allows you to use the.
+00:13:59.064 - 00:14:03.220, Speaker D: Tooling that you're familiar with and deploy pretty much seamlessly to the FPM itself.
+00:14:03.850 - 00:14:05.558, Speaker C: And then embedded addressing was something that.
+00:14:05.564 - 00:14:07.650, Speaker D: We talked a little bit about earlier.
+00:14:07.810 - 00:14:09.046, Speaker B: But let me get into it because.
+00:14:09.068 - 00:14:11.126, Speaker C: I think it's something that not sure.
+00:14:11.148 - 00:14:14.406, Speaker B: If other blockchains have this today, but.
+00:14:14.428 - 00:14:18.282, Speaker C: It'S something that was started, built by our engineering team.
+00:14:18.336 - 00:14:20.150, Speaker D: And it's a really interesting concept.
+00:14:20.230 - 00:14:21.386, Speaker C: It's a concept of a new class.
+00:14:21.408 - 00:14:27.846, Speaker D: Of F four addressing, basically taking the EVM addressing and embedding it within the FBM addressing.
+00:14:28.038 - 00:14:30.986, Speaker B: So right now there are existing prior.
+00:14:31.018 - 00:14:44.350, Speaker D: To this, there are existing F zero to F three address classes for built in actors, users, and miners. The F four address class is for foreign runtime addresses like EVM itself. It is intended to keep account addressing consistent, to have them all operate in the same network.
+00:14:44.350 - 00:14:47.726, Speaker D: And so F four addressing is enabled by an address management actor.
+00:14:47.758 - 00:14:49.106, Speaker C: So we've actually written one of the.
+00:14:49.128 - 00:14:51.490, Speaker D: Built in actors itself to deal with this.
+00:14:51.640 - 00:14:53.158, Speaker C: You can deploy your EVM with an.
+00:14:53.164 - 00:14:59.970, Speaker D: Ethereum address into FBM and then it gets encrypted and converted into a consistent address on the FalcoIn network.
+00:15:00.050 - 00:15:08.106, Speaker C: And so the FalcoIn network then be able to recognize it, and then it allows it to compute overstate and you on your side continue to access your.
+00:15:08.128 - 00:15:24.206, Speaker D: Account via the Ethereum address. We're also building out support for block explorers that will be able to parse this so that when you see, you technically wouldn't see all the translation of addresses and the multiple addresses that you would get, you would just focus on looking at your Ethereum address itself.
+00:15:24.388 - 00:15:31.726, Speaker C: So again, adding to that seamless experience, again, how it works is you can.
+00:15:31.748 - 00:15:35.854, Speaker D: Deploy your EVM with an Ethereum address into an FVM encrypted.
+00:15:35.902 - 00:15:46.806, Speaker C: It gets encrypted and converted into a consistent yeah, and I think the way that the equation looks, I didn't actually put it into this slide, but it's really interesting.
+00:15:46.988 - 00:15:49.654, Speaker D: We have a whole GitHub written about.
+00:15:49.692 - 00:15:53.846, Speaker C: It, a whole GitHub written about it. And I think it's really something that.
+00:15:53.868 - 00:15:54.838, Speaker D: You should look into.
+00:15:55.004 - 00:15:58.714, Speaker C: But basically it's a compilation of the.
+00:15:58.752 - 00:16:02.490, Speaker D: Transaction address and then the Ethereum address as well as the filecoin address.
+00:16:02.640 - 00:16:03.818, Speaker C: And then that makes up the F.
+00:16:03.824 - 00:16:06.214, Speaker D: Four address that is then recognized within the FalcoIn network.
+00:16:06.342 - 00:16:09.534, Speaker C: So yeah, when I learned about the concept I was like, that's really cool.
+00:16:09.572 - 00:16:11.200, Speaker D: So, something to look into.
+00:16:11.970 - 00:16:13.546, Speaker C: Okay. Account abstraction.
+00:16:13.578 - 00:16:29.314, Speaker D: So, account abstraction basically allows a user program actor to be at the top level entry point that initiates a transaction and pays fees. It allows the user to use smart contract wallets containing arbitrary verification logic instead of externally owned accounts as their primary account.
+00:16:29.432 - 00:16:30.754, Speaker C: And so what that means for you.
+00:16:30.792 - 00:16:37.218, Speaker D: Is that a transaction can start from a smart contract and not only an externally owned account which is much faster.
+00:16:37.234 - 00:16:39.400, Speaker C: And much easier from the user's point of view.
+00:16:40.010 - 00:16:49.580, Speaker D: Account abstraction itself decouples the ownership of assets, which is the wallet, from the authority to transfer them into via a wallet specific policy.
+00:16:50.110 - 00:16:53.142, Speaker C: You can then submit your ethereum transaction.
+00:16:53.286 - 00:17:00.426, Speaker D: Exposing the ethereum JSON RPC API on lotus. And then it makes a filecoin transaction. And then you have an Ethereum account on chain.
+00:17:00.426 - 00:17:07.882, Speaker D: It validates the signature and then your native Ethereum transaction works. So that's how there's all the thinking that has been built on the backend.
+00:17:08.026 - 00:17:10.226, Speaker B: But then what that means for you.
+00:17:10.248 - 00:17:13.746, Speaker C: Is that you're just working on your native Ethereum transaction and it works within.
+00:17:13.768 - 00:17:18.910, Speaker B: The FalcoIn network and then on custom account types.
+00:17:18.990 - 00:17:22.686, Speaker C: So this one will basically allow the Falcon chain to include your Ethereum transactions.
+00:17:22.718 - 00:17:23.926, Speaker D: We talked a little bit about that.
+00:17:23.948 - 00:17:44.010, Speaker C: As well and then I didn't add this in, but in just I think a day or two days ago we had Ethereum event system. Now we've created a new FVM event system to accommodate for Ethereum event systems. So events and locks now works within your Fevm deployment.
+00:17:45.230 - 00:17:47.770, Speaker D: This is pretty bare bones because we've just created it.
+00:17:47.840 - 00:17:49.822, Speaker C: A lot more optimization will happen and.
+00:17:49.876 - 00:17:50.906, Speaker D: More under the hood.
+00:17:50.938 - 00:17:54.478, Speaker C: So you won't really see it. It can write events, but it's not.
+00:17:54.484 - 00:17:55.790, Speaker D: So much indexed yet.
+00:17:55.940 - 00:17:58.226, Speaker C: And we're still working on tracking the.
+00:17:58.248 - 00:18:03.826, Speaker B: Active state and so on. Okay, so I'll talk a little bit.
+00:18:03.848 - 00:18:10.462, Speaker D: About tools that we have available. So this is wallaby you'll see in the quickstart resources.
+00:18:10.606 - 00:18:12.354, Speaker C: This is very much what you're all going to be building.
+00:18:12.392 - 00:18:16.758, Speaker D: Your projects on the wallabies are bleeding edge testnet. It will not be bleeding edge for.
+00:18:16.764 - 00:18:19.160, Speaker C: The period of this hackathon. So don't worry about it.
+00:18:19.690 - 00:18:22.462, Speaker D: It will stay consistent. Your code will not disappear.
+00:18:22.626 - 00:18:23.686, Speaker C: It is fully ethereum.
+00:18:23.718 - 00:18:28.182, Speaker D: JSON RPC compatible. Again, not reset on a weekly basis.
+00:18:28.326 - 00:18:31.562, Speaker B: And we have maintainers that will be around.
+00:18:31.696 - 00:18:45.134, Speaker D: So that is the wallaby bleeding edge testnet. We have quick start guides on how you can get your wallet connected. And I'll show you a quick demo or a short video GIF on how you can do that through chainlist just.
+00:18:45.172 - 00:18:46.800, Speaker B: In one click later on.
+00:18:49.990 - 00:18:53.574, Speaker C: So as you can see over here, you can just go to chainlist. It's really easy.
+00:18:53.612 - 00:18:58.466, Speaker D: It's one click. Make sure you turn on testnets. Look for the wallaby testnet add to MetaMask.
+00:18:58.466 - 00:19:00.920, Speaker D: It should pop up if you click.
+00:19:01.290 - 00:19:02.726, Speaker C: Yeah, you can see the steps here.
+00:19:02.748 - 00:19:04.070, Speaker D: But if you click Add Wallet and.
+00:19:04.140 - 00:19:06.246, Speaker C: Your main wallet is, for example, a.
+00:19:06.268 - 00:19:08.842, Speaker D: Coinbase wallet or something else, it should pop up as well.
+00:19:08.976 - 00:19:10.298, Speaker C: So once you've connected it, you can.
+00:19:10.304 - 00:19:12.422, Speaker D: Then go to the wallaby Faucet and get your funds.
+00:19:12.486 - 00:19:13.594, Speaker C: It should take a minute or two.
+00:19:13.632 - 00:19:15.034, Speaker D: For you to get some of the tfill.
+00:19:15.082 - 00:19:17.280, Speaker B: Then you can start building your project on it.
+00:19:20.370 - 00:19:24.766, Speaker D: Falcon MetaMask. This is to show you the capabilities that are now enabled today.
+00:19:24.948 - 00:19:27.614, Speaker C: So this is something that we've tested it multiple times.
+00:19:27.652 - 00:19:28.590, Speaker D: It works really well.
+00:19:28.660 - 00:19:36.098, Speaker C: We're still doing testing with various other wallets. If you have a wallet of your preference that you're using and you, let's say, hit a snag and you want.
+00:19:36.104 - 00:19:40.146, Speaker D: To let us know, definitely put it in the discord. We'll see how we can work on that.
+00:19:40.248 - 00:19:43.650, Speaker C: But, yeah, we've tested it with Wallet Connect ledger MetaMask.
+00:19:43.730 - 00:19:46.422, Speaker D: These are a few wallets that I think are good to go.
+00:19:46.556 - 00:19:49.302, Speaker B: So, yeah, open to any feedback there.
+00:19:49.436 - 00:19:53.666, Speaker C: But for MetaMask itself, you can already do value transfers, you can deploy ERC.
+00:19:53.698 - 00:20:01.594, Speaker D: 20 token, and you can do contract calls. And these are all the things, all the capabilities that are available today with MetaMask. So it's pretty much seamless at this.
+00:20:01.632 - 00:20:06.970, Speaker B: Point for Wallets and then Remix ID.
+00:20:07.040 - 00:20:09.902, Speaker D: I'm sure all of you are familiar with this. This works really well.
+00:20:10.036 - 00:20:12.058, Speaker C: As well as you can see, we've.
+00:20:12.074 - 00:20:19.666, Speaker D: Tried it out with a few template contracts. We have early builders also testing it out, and it seems to work so far. So, yeah, I think pretty good on Remix as well.
+00:20:19.666 - 00:20:25.474, Speaker D: So another tool that you should all really be familiar with to be able to build a project on really quickly.
+00:20:25.512 - 00:20:27.570, Speaker B: And deploy to the FPM.
+00:20:29.270 - 00:20:33.278, Speaker D: For the Hard Hat self. If Hard Hat is something that you.
+00:20:33.304 - 00:20:38.466, Speaker C: Use, this is a very popular tool for development. Again, we have Hard Hat starter kits.
+00:20:38.498 - 00:20:39.702, Speaker D: That are actually ready today.
+00:20:39.836 - 00:20:41.126, Speaker C: You can see the link below, but.
+00:20:41.148 - 00:20:44.806, Speaker D: It'S also included within your quickstart resources. So you should be able to go.
+00:20:44.828 - 00:20:46.634, Speaker C: In and build your project via Hard.
+00:20:46.672 - 00:20:50.902, Speaker D: Hat as well, if that's your preference. The other framework that we're trying right now is Foundry.
+00:20:50.966 - 00:20:53.046, Speaker C: So looking for feedback on that, it's.
+00:20:53.078 - 00:20:54.086, Speaker D: Worked for a few users.
+00:20:54.118 - 00:20:56.618, Speaker C: We haven't hit a snag, but that's.
+00:20:56.634 - 00:20:58.880, Speaker B: Something that we're looking on building out for as well.
+00:21:02.390 - 00:21:06.020, Speaker D: So FalcoIn Sol is a library that we're looking to build.
+00:21:06.790 - 00:21:08.514, Speaker C: Right now, we're still prototyping and building.
+00:21:08.552 - 00:21:14.886, Speaker D: Out the library, but for the hack itself, we've created a mock version. So let me talk a little bit about FalcoIn solve first.
+00:21:14.988 - 00:21:18.866, Speaker C: What we're trying to build here is really a library that makes it easier.
+00:21:18.898 - 00:21:23.542, Speaker D: For you to access all the primitives within the FalcoIn network via FBM and.
+00:21:23.596 - 00:21:26.906, Speaker C: We want to make it as easy as possible so it will look like.
+00:21:26.928 - 00:21:40.794, Speaker D: An open Zeppelin type kind of utilities that you can then access. So be something that you're familiar. So for the hack itself, what I mean by the Falcon Mock Sol, you will also get links to this within the Quickstart resource.
+00:21:40.794 - 00:21:43.662, Speaker D: We have built a few mock built.
+00:21:43.716 - 00:21:45.534, Speaker C: In Actor APIs for you to play.
+00:21:45.572 - 00:21:48.574, Speaker D: Around with, to build your project with. And these are the two main ones.
+00:21:48.612 - 00:21:50.894, Speaker C: Around the market, actor and the minor actor.
+00:21:51.022 - 00:21:56.498, Speaker D: You will see that within the Quickstart documentation, we have documentation on how you can access these and use it as.
+00:21:56.504 - 00:22:00.274, Speaker C: Well as the features that have been.
+00:22:00.392 - 00:22:08.054, Speaker D: Enabled and the features that have not yet, although those that have not yet are typically not so much used within the scenarios that most people will be building on.
+00:22:08.172 - 00:22:09.654, Speaker C: But if there's anything that you really.
+00:22:09.692 - 00:22:12.200, Speaker D: Really need, again reach on Discord and let us know.
+00:22:14.250 - 00:22:15.606, Speaker C: So, talking a little bit about block.
+00:22:15.638 - 00:22:18.618, Speaker B: Explorers, these are a few of the.
+00:22:18.624 - 00:22:22.102, Speaker D: Block explorers that have been built out. We're also working in partners to develop them further.
+00:22:22.246 - 00:22:24.566, Speaker C: So you have a filmine explorer.
+00:22:24.598 - 00:22:25.894, Speaker D: Glyph zondex.
+00:22:26.022 - 00:22:27.802, Speaker C: These are the different ways that you can use.
+00:22:27.856 - 00:22:29.626, Speaker D: Again, these are in the Quick start guides.
+00:22:29.738 - 00:22:34.286, Speaker C: But if you want to check out your transactions and all your storage deals that you have built out of your.
+00:22:34.308 - 00:22:41.346, Speaker D: Projects, you can always use these explorers. They're pretty actually really easy to use. Sondex also has a Berks API that.
+00:22:41.368 - 00:22:45.058, Speaker C: You can use to then query and.
+00:22:45.144 - 00:22:53.286, Speaker D: Find out information about your transactions. They'll be talking a little bit more about that tooling later on. And also all these different explorers have docs for them as well.
+00:22:53.308 - 00:22:54.486, Speaker C: So you can understand how to use.
+00:22:54.508 - 00:22:55.320, Speaker B: Them better.
+00:22:58.150 - 00:23:01.426, Speaker C: And talk a little bit about evolving wallabies or things they can.
+00:23:01.448 - 00:23:03.970, Speaker B: Look forward to really soon.
+00:23:04.040 - 00:23:07.238, Speaker C: Is that so? I say evolving Wallaby because Wallaby is.
+00:23:07.244 - 00:23:10.706, Speaker D: Like a young kangaroo. I think we've played around many names.
+00:23:10.738 - 00:23:11.682, Speaker C: The name is not decided.
+00:23:11.746 - 00:23:36.238, Speaker D: Obviously it's not going to be kangaroo, but we'll have a much more stable testnet around that is not dealing edge and reset every single week. I think what we're thinking of some activities to come on top of this, things like Buildathons hackathons, acceleration programs, things to support builders to actually build out a lot of these projects. It will roughly run between early December until main net launch in February 2023.
+00:23:36.238 - 00:23:37.738, Speaker D: So if you're starting on this hack.
+00:23:37.754 - 00:23:41.774, Speaker C: Today and you think that your project is something that can go further, look forward to this.
+00:23:41.812 - 00:23:42.798, Speaker D: We're going to have a lot of.
+00:23:42.804 - 00:23:44.786, Speaker C: Programs coming out here and a lot.
+00:23:44.808 - 00:23:46.418, Speaker D: More resources to support your project all.
+00:23:46.424 - 00:23:47.326, Speaker C: The way until main launch.
+00:23:47.358 - 00:23:48.754, Speaker D: So the moment it launches, you can.
+00:23:48.792 - 00:23:50.900, Speaker B: Immediately deploy your project onto it.
+00:23:52.630 - 00:23:55.958, Speaker C: And I wanted to do a quick shout out to other Quickstart resources that.
+00:23:55.964 - 00:24:01.606, Speaker D: You should not snooze on the team has prepared a few cookbooks and idea forums for you.
+00:24:01.708 - 00:24:03.014, Speaker C: So if you're looking for ideas around.
+00:24:03.052 - 00:24:06.038, Speaker D: Data dials, lending pools, what the specific.
+00:24:06.124 - 00:24:08.202, Speaker C: Bounties are for as well, you can.
+00:24:08.256 - 00:24:10.806, Speaker D: Check out these links on the quickstart.
+00:24:10.838 - 00:24:12.442, Speaker C: That will bring you to discussions around.
+00:24:12.496 - 00:24:14.694, Speaker D: How you can think about designing your projects.
+00:24:14.822 - 00:24:18.138, Speaker C: Build on top of it, adapt it, use it up to you.
+00:24:18.224 - 00:24:22.090, Speaker D: We also have two cookbooks that we built out, one for lending pools and one for datadals.
+00:24:22.530 - 00:24:24.046, Speaker C: It's not just a forum article, it.
+00:24:24.068 - 00:24:25.278, Speaker D: Actually links up to a GitHub and.
+00:24:25.284 - 00:24:26.958, Speaker C: Then you can use it as a.
+00:24:26.964 - 00:24:30.938, Speaker D: Guide to then build your project through the weekend. And of course, again, always looking for.
+00:24:30.964 - 00:24:32.690, Speaker B: Feedback on all these cookbooks.
+00:24:33.590 - 00:24:36.126, Speaker C: And yeah, lastly, again, sharing the Fem.
+00:24:36.158 - 00:24:37.986, Speaker D: Foundry early Builders program.
+00:24:38.088 - 00:24:39.186, Speaker C: I know some of you here might.
+00:24:39.208 - 00:24:40.802, Speaker D: Be in the Early Builders program itself.
+00:24:40.936 - 00:24:42.334, Speaker C: I run it on a weekly basis.
+00:24:42.382 - 00:24:44.760, Speaker D: So you'll see me every single week.
+00:24:45.210 - 00:24:52.274, Speaker C: I promise. It'll be fun. But, yeah, what we talk about mostly is, like, technical support for the projects you're building, resources updates.
+00:24:52.274 - 00:24:54.038, Speaker C: We do work really closely with our.
+00:24:54.044 - 00:25:04.214, Speaker D: Builders in a two way relationship, so they do a lot of testing as well for us and gives us feedback on what we should be focusing on and what we should be building the Fe VM out for.
+00:25:04.332 - 00:25:05.318, Speaker C: So if you want to have a.
+00:25:05.324 - 00:25:06.878, Speaker D: See in how it's built out, sign up.
+00:25:06.884 - 00:25:14.062, Speaker C: For the Early Builders, we're looking for developers who are solidity, devs, ready to build and being able to build together.
+00:25:14.116 - 00:25:15.726, Speaker D: With them, or to create content out.
+00:25:15.748 - 00:25:16.830, Speaker B: Of it as well.
+00:25:16.980 - 00:25:22.138, Speaker D: So, yeah, that's mostly it for me. I know it's a mouthful. I hope it was useful and we'll.
+00:25:22.154 - 00:25:24.170, Speaker B: See you on the discord. Bye.

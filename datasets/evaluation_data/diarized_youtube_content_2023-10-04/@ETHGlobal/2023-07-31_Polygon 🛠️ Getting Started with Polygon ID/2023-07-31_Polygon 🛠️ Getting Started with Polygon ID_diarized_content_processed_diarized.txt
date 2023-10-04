@@ -1,0 +1,85 @@
+00:00:07.130 - 00:00:36.002, Speaker A: Hi everyone, thank you for coming. We will do a presentation of Polygonid and my name is Dima, I'm developer of Polygonid of the Core protocol and Sasha is also developer and team lead of our protocol team. So Sasha will do the presentation and explanation of the core concept and after this I will do the presentation of the demo tooling and how you can build with Polygonid.
+00:00:36.146 - 00:00:36.870, Speaker B: Yep.
+00:00:39.070 - 00:00:58.670, Speaker C: Thank you. So what's Polygonid? Polygonid is a self sovereign identity solution. It's built with zero knowledge proofs technology and based on Verifiable Credential standards and sterilized Identifiers.
+00:00:58.670 - 00:01:16.334, Speaker C: So in this concept of identity we have three main parties. It's a user identity holder. We have also Verifier, the one who receives data and consumes it and also Issuer.
+00:01:16.334 - 00:01:33.014, Speaker C: It's a source of trust who is issuing credentials to the user. So let's say we have issuer that is KYC provider. It could be like we know Jumio or on Fido.
+00:01:33.014 - 00:02:10.246, Speaker C: Let's say that have done KYC verification of your identity and then issues to you Credential that has for example your passport data, country of residence, date of birth and so on. And then later you apply for a job and you need to prove that you are eligible. For example for this Dow grant or whatever and you need to prove that you're from non sanctioned country and that you are over 18 and so on.
+00:02:10.246 - 00:02:39.200, Speaker C: So based on this Verifier can ask you a question are you over 18? And so on. And you as a user can just prove that this is true, that you are eligible without revealing any of the data. It's just that yes, I have a Credential that states that satisfies the requirements that the Verifier have set.
+00:02:39.200 - 00:03:35.950, Speaker C: And for this to work, we have created a set of tools, a protocol and for each of these parties we have a number of tools to be used for the users and for the wallet providers. It's a mobile application and also SDKs to embed it into existing mobile wallets and also maybe web extensions and snaps. Then for the issuers we have Issuer node it's application that can be run on your server to issue Credential to the user and then user would be able to fetch it store on his own device and prove some statements.
+00:03:35.950 - 00:04:18.398, Speaker C: Also for the issuer we have schema builder because Verifiable credentials, they are built on top of the schemas and to facilitate this process, to make it easier for the issuers to create credentials, we have built a schema builder. It's just a very simple interface and Dima will be showing it today how to create your own schema, upload it store and then import later into the Issuer Node and actually use it to issue Credential. This is also used, the schema is also used on the Verifier site.
+00:04:18.398 - 00:05:00.650, Speaker C: Verifier needs to ask questions based on this schema like do you have Credential of passport type? And then based on this Credential and this schema would be asking additional questions like are you over 18, country of residence and so on. And for it to make this query easier, we have built another tool that is Query Builder. Just because it's pretty simple, but still you need to know how to use it, the key query language.
+00:05:00.650 - 00:05:44.090, Speaker C: And also it's still in development, but kind of available for early adopters and early testers. Just on a testnet we have on chain issuer, it's a decentralized issuer that could be trustless in the way that in usual models we have issuer that is working somehow off chain it does processing of data and then later issues Credential. But this process is not transparent to anyone.
+00:05:44.090 - 00:06:09.460, Speaker C: And on chain issuer is solving this in a way that all the rules, everything on how Credential is issued, what data was supplied, is it true or not, is done. Everything on chain. That's why it's fully transparent and auditable how it was created, to whom and so on.
+00:06:09.460 - 00:06:21.240, Speaker C: And here's QR code where you can get our tutorials, our documentation and read about everything. And now Dima will show how it works.
+00:06:23.450 - 00:06:36.326, Speaker A: Okay, show time. So we will start with a Schema Builder. So we'll build our schema, then we'll create a Credential, fetch it to our phone, enter from verification with zero knowledge.
+00:06:36.358 - 00:06:45.822, Speaker B: Proof verification on the back end because we have limited time, I will try to be super fast.
+00:06:45.956 - 00:06:49.390, Speaker A: Okay, so this is our schema builder.
+00:06:50.450 - 00:06:52.698, Speaker B: So we can try to build a schema.
+00:06:52.794 - 00:06:54.000, Speaker A: Let's call this.
+00:06:55.970 - 00:07:06.120, Speaker B: Global. Teach Lobal version zero one. Test it.
+00:07:06.120 - 00:07:07.240, Speaker B: Yeah.
+00:07:08.170 - 00:07:12.386, Speaker A: Then we need to define the attributes that will be stored in our schema.
+00:07:12.498 - 00:07:23.034, Speaker B: I will call this maybe Score score and select a type.
+00:07:23.152 - 00:07:36.350, Speaker A: So the data types, this is very important because this is types that you can then verify in zero knowledge pros. So here right now, this is supported types that we have. It's like integer, Boolean, numbers and strings.
+00:07:36.350 - 00:07:51.170, Speaker A: The most may be important. This is Integers because you can do some query operations inside zero knowledge with strings, but the rest is also possible. But Boolean, technically this is zero and one, which is obvious.
+00:07:51.170 - 00:08:18.314, Speaker A: But streams will be stored as a hash of your data inside the circuits and you can do selective disclosure. Maybe you will have a document and Verifier will ask you hey, can you disclose this value to me? Can you disclose this document for me? And you can show the whole document and prove that this document actually stored it in your Credential. It's not maybe useful for all of the cases, but for some KYC and very specific verifications it's very important case.
+00:08:18.432 - 00:08:30.218, Speaker B: So we will do something with integers this score. Okay, I need to connect my MetaMask to publish this on IPFS.
+00:08:30.394 - 00:08:41.262, Speaker A: So what is the changes for our schemas? Right now we're publishing them for Schema Builder on IPFS. So schemas can be stored on IPFS. This is not necessary.
+00:08:41.262 - 00:08:56.182, Speaker A: You still can store them on GitHub on your Http server. But for our schema builder we decided that they will be stored on the IPFS. So up to you where you will store it.
+00:08:56.182 - 00:09:07.370, Speaker A: But if you will create this in our schema builder they will publish it to IPFS. But you can download, there is a button to download and you will have the bundle with the schemas.
+00:09:07.710 - 00:09:16.574, Speaker B: So I will do the publishing. Okay, so this is a schema right.
+00:09:16.612 - 00:09:29.330, Speaker A: Now we can create a Credential with this schema. I will go to our UI. First thing that we need to do is just import the schemas that we created.
+00:09:33.670 - 00:09:36.934, Speaker B: Okay, I just import the schema I have.
+00:09:36.972 - 00:09:40.790, Speaker A: This is global and I can issue this to my wallet.
+00:09:42.490 - 00:09:45.142, Speaker B: So like a couple of words about.
+00:09:45.196 - 00:09:59.514, Speaker A: This Credential link and data directations. For directations you need to know in advance Identifier of your user. For example if you will build a platform or like some dao you will know because users will log in.
+00:09:59.514 - 00:10:10.986, Speaker A: So you will know the Identifier of the user. Then maybe you will pass some KYC, maybe like joining the groups and so on. And you can issue Credential and send push notification with this Credential.
+00:10:10.986 - 00:10:30.194, Speaker A: If you don't know the Identifier in advance and maybe want to just distribute these credentials to your group members maybe through the telegram channel or just put the QR code somewhere on is global. You can do this through Credential link. For example, I can put here like ten credentials.
+00:10:30.194 - 00:10:45.594, Speaker A: This is maximum number of credentials that can be issued. So first ten people will have this Credential. Maybe this is you can do some campaign, maybe some game or like I don't know, some event based on this and can just engage ten.
+00:10:45.594 - 00:10:53.710, Speaker A: First people who can get this Credential can go to my website, to my D app and will be rewarded for this interaction.
+00:10:54.770 - 00:10:57.962, Speaker B: Okay, so I will put here a score.
+00:10:58.026 - 00:10:59.278, Speaker A: I know 100.
+00:10:59.444 - 00:11:02.270, Speaker B: It's good, looks like a good score.
+00:11:03.510 - 00:11:10.254, Speaker A: Okay, proof types. We have a signature type. This is just proof types that issuer.
+00:11:10.254 - 00:11:15.038, Speaker A: Just sign your credential. He don't need to publish it in anywhere. Just signature.
+00:11:15.134 - 00:11:15.906, Speaker B: That's it.
+00:11:16.008 - 00:11:24.758, Speaker A: For mercury proof types. This is Credential that is anchored on chain. For this issuer, need to send transaction on chain and publish his state.
+00:11:24.758 - 00:11:39.846, Speaker A: So this will mean that your Credential was issued at some specific time like timestamp. So for some use cases it may be important or maybe some on chain use cases can be important. But it's up to you for signatures.
+00:11:39.846 - 00:11:45.440, Speaker A: This is just kind of free issuance. You don't need to spend like gas or anything.
+00:11:46.690 - 00:11:48.080, Speaker B: Okay, so.
+00:11:50.210 - 00:12:05.474, Speaker A: Expiration date you can embed in your not can, but you have to embed the expiration date in your credentials. Because during the zero launch proofs verification we're also checking the expiration date. So with this you can play with short living Credential.
+00:12:05.474 - 00:12:14.630, Speaker A: Maybe your Credential can leave for 1 second for 1 hour or like for a few years it depends on your business cases and business requirements.
+00:12:16.410 - 00:12:20.710, Speaker B: So I'm creating this link and now.
+00:12:20.860 - 00:12:23.260, Speaker A: I'll fetch a Credential to my phone.
+00:12:25.550 - 00:12:28.540, Speaker B: Let me just connect.
+00:12:32.510 - 00:12:35.500, Speaker A: Just a second. I'll try to share a screen.
+00:12:39.350 - 00:12:45.170, Speaker B: So connect with my wallet.
+00:12:54.100 - 00:12:58.850, Speaker A: Maybe internet is not the best here, so we need to wait a little bit.
+00:13:01.700 - 00:13:06.244, Speaker B: Yep. So the things that I have done.
+00:13:06.282 - 00:13:07.670, Speaker A: Right now I just did.
+00:13:13.560 - 00:13:18.356, Speaker B: I need to receive the Credential by push notifications.
+00:13:18.388 - 00:13:20.376, Speaker A: But maybe because of the lack of.
+00:13:20.398 - 00:13:35.040, Speaker B: The connection I just fetch it through this QR code. While I'm waiting, I will show you the next step.
+00:13:36.050 - 00:13:47.518, Speaker A: So right now your user has a Credential on his phone. Right now it's just a responsibility of the user to communicate with the Verifier. And for this Verifier need to build the request to the user.
+00:13:47.614 - 00:13:50.180, Speaker B: So as you have a schema and.
+00:13:53.670 - 00:13:56.690, Speaker A: Your Verifier can get the schema.
+00:13:57.610 - 00:14:09.980, Speaker B: Okay, not so fast. I can build query builder.
+00:14:14.440 - 00:14:23.440, Speaker A: I can build the query. So I put my URL, I select the type embedded in this schema.
+00:14:23.520 - 00:14:37.610, Speaker B: And now I can just ask some specific question. So this is a score and I can cast. Okay, put a condition, it should be less than 200.
+00:14:40.320 - 00:14:48.396, Speaker A: So you can copy and just pass in your JavaScript code. But I will show you on our.
+00:14:48.578 - 00:14:51.600, Speaker B: Demo application how to perform the verification.
+00:14:56.020 - 00:14:59.200, Speaker A: Here we just put the same URL.
+00:14:59.780 - 00:15:17.970, Speaker B: Select a type from your selection, select a field score. Ask that fields should be less than 100.
+00:15:19.960 - 00:15:49.280, Speaker A: So now I have a query from the Verifier and business must be embedded in your website and usually in majority of this verifications will be embedded in your Akidia platform or what you are building. Or this can be embedded in the Smart contract. So Smart contract also can ask you the same question is your score like less than 200? This will be questioned from the Smart contract and you can generate a zero knowledge proof and send directly to the smart contract.
+00:15:53.940 - 00:15:58.550, Speaker B: So here I scan this QR code and share my screen.
+00:16:04.770 - 00:16:16.754, Speaker A: Right now on the screen you see this is request that was embedded in this query. So if I have the Credential of this type and the value is less.
+00:16:16.792 - 00:16:23.798, Speaker B: Than 200, just approve this request. Right now zero knowledge proof is generated on my phone.
+00:16:23.884 - 00:16:33.560, Speaker A: So I'm not sharing the Credential itself, I'm just sharing the proof that I have this Credential and the requirement is fulfilled that field.
+00:16:34.350 - 00:16:58.816, Speaker B: Okay, something went wrong. Can you one more tile? Okay, since I don't have internet connection.
+00:16:58.848 - 00:17:23.528, Speaker A: On my phone sorry. So the zero output launch proof should be generated but as usually demo fail and we will send zero knowledge proof to the user sorry, to the Verifier back end. On the back end we're verifying the zero knowledge proof and that's it warriors.
+00:17:23.528 - 00:17:57.370, Speaker A: We send it to the Smart contract, then smart contract, perform the verification and just give you access to the website, to the Dao or to your specific webcase. So what you can potentially build you can build, like, decentralized dow, which will dow or like ICO, where you can ask user to fulfill some criteria that maybe you should be about 18 or you should be like from specific country or not from a specific country or you should have or be part of the specific group.
+00:17:58.220 - 00:18:05.370, Speaker B: And this is just up to you, I would say. What use cases you will cover with this.
+00:18:06.800 - 00:18:22.090, Speaker A: Okay, I think that's it. Any questions? Comments? Okay if you will build with a polygon ID, we will be here as well.
+00:18:27.840 - 00:18:38.588, Speaker B: This SDK is in swift as well or is react native only. I'm sorry the SDK is in swift or react native SDK right now on.
+00:18:38.594 - 00:19:05.680, Speaker A: The flutter flutter kotlin and JavaScript well working in on the swift as well and on react native. So I hope till the end of the year we will have mobile SDKs in all of the pro platforms. Also we have a JavaScript SDK so some companies just embed the JavaScript SDK in their mobile application for example you can generate approves.
+00:19:05.680 - 00:19:06.400, Speaker A: We have approver.

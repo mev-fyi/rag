@@ -1,0 +1,132 @@
+00:00:00.250 - 00:00:27.554, Speaker A: So this whole lecture is going to be about instance optimality, a concept we introduced at the end of last lecture. So I'm going to be covering one result, really just the easiest result from a really nice paper which came out about five years ago. So it was in the Fox Conference FOCs, that's sort of one of the two major annual conferences in theoretical computer science.
+00:00:27.554 - 00:00:44.554, Speaker A: And there's a bunch of results in here. I'm going to show you the easiest one, but that's already going to suffice to sort of prove the main point, which is that sort of amazingly, four fundamental problems, at least a few of them instance optimal algorithms actually exist, which is kind of amazing. And in this case, it's even an algorithm, which is from the mid 80s.
+00:00:44.554 - 00:01:02.910, Speaker A: So it's an algorithm everybody already knew and loved, and it turned out it satisfies this very strong instance optimality guarantee. Okay, so what's the problem that we're going to study? The problem is called the 2D maxima problem. So this is a classic problem in computational geometry.
+00:01:02.910 - 00:01:19.990, Speaker A: So we're given as input points in the plane. So N will always denote the number of points that were given as part of the input. It's not really important, but just for simplicity, assume that all of the coordinates are distinct, so we're never going to worry about ties.
+00:01:19.990 - 00:01:40.494, Speaker A: So that's the input, what's the output? So a quick definition. So one input point Y dominates another one, X. If both of Y's coordinates, the X coordinate and the Y coordinate, I apologize for the overloading of notation are strictly bigger than that of X.
+00:01:40.532 - 00:01:40.734, Speaker B: Okay?
+00:01:40.772 - 00:02:23.434, Speaker A: So both coordinates are strictly bigger. It's northeast of X. And the computational problem is, given the input points output, all of the undominated points, those are called the maxima it those of you who've taken a little economics may also think of this as the Pareto optimal points, if you like.
+00:02:23.434 - 00:02:45.090, Speaker A: Another way to just think about it geometrically is it's sort of the northeastern frontier of the point set. So you can imagine maybe these you have a big point set and only has, say, three maxima. These three points, their regions of domination, if you will, is everything strictly to the southwest.
+00:02:45.090 - 00:02:54.078, Speaker A: So if all the other points of the point set lie in these regions of domination, then these are the three maxima.
+00:02:54.174 - 00:02:54.878, Speaker B: Okay?
+00:02:55.064 - 00:03:01.362, Speaker A: So that's the goal. You're given all any of these points, identify the three or however many there are maximum.
+00:03:01.506 - 00:03:02.360, Speaker B: All right?
+00:03:03.930 - 00:03:15.900, Speaker A: So questions about that problem statement clear. So I'm going to show you a cool algorithm for this problem and then kind of an amazingly strong guarantee about that algorithm's running time.
+00:03:18.270 - 00:03:18.778, Speaker B: Okay?
+00:03:18.864 - 00:03:42.494, Speaker A: So we're just going to be focusing on the number of comparisons that the algorithm makes. So remember, we have from last time, we have the sort of generic notation about just the performance measure of an algorithm. So you want to think about it like when you study comparison based sorting, we're just going to be counting the number of comparisons that the algorithm makes, okay? So the only way it can access the coordinates of points is through comparison.
+00:03:42.494 - 00:04:09.660, Speaker A: So we're not allowed to do anything like say, a Radix sort or something like that. Okay, so a number of comparisons that algorithm A requires to correctly solve the problem specified by the input z. So we want to make this as small as possible, want algorithms for which this is low, and in fact, we want an algorithm which is really sort of uncontroversially as good as possible.
+00:04:09.660 - 00:04:24.420, Speaker A: So the goal is an instance optimal algorithm. And I'm going to remind you what this means. I'm going to remind you the version that includes the two relaxations that we concluded last class with.
+00:04:24.420 - 00:04:38.680, Speaker A: So we allow sort of a constant factor gap between our protagonist and some competitor algorithm. So there exists a constant C. So that but here's the really strong part.
+00:04:38.680 - 00:04:52.300, Speaker A: For every single input z and for all algorithms, or at least for all natural algorithms, recall that was one of the relaxations we discussed on Monday. So for all natural algorithms B.
+00:04:57.550 - 00:04:57.866, Speaker B: The.
+00:04:57.888 - 00:05:19.554, Speaker A: Algorithm A's cost, meaning its number of comparisons is no more than that of B, or at least no more up to a constant factor. Okay, so this is what we're looking for. So the constant here C is independent of both the algorithm B and the input z.
+00:05:19.554 - 00:05:33.010, Speaker A: You want to think of C as just something like two or four. And again, I want to emphasize and the homework will reinforce this point for lots of problems. There is no instance optimal algorithm.
+00:05:33.010 - 00:05:40.598, Speaker A: It's just too strong and nothing satisfies it. So it's kind of amazing it even exists, let alone that it's a nice algorithm that we can actually analyze in a lecture.
+00:05:40.694 - 00:05:41.340, Speaker B: Okay?
+00:05:42.910 - 00:06:06.498, Speaker A: All right, so proving instance optimality for an algorithm involves really two different tasks. So first of all, for your protagonist algorithm A, you need to prove an upper bound for every single input, okay? An input by input upper bound. Secondly, for every alternative algorithm B, you have to prove a lower bound, saying it's not too much better than this algorithm A.
+00:06:06.498 - 00:06:27.362, Speaker A: So a prerequisite is for the upper bound of your protagonist algorithm, you need a really tight analysis. You need to say something, a positive result, a guarantee which is much stronger than merely saying for some worst input z, the running time is a most blah. So we really need a much more fine grained analysis of the performance of the algorithm.
+00:06:27.362 - 00:06:41.834, Speaker A: And that's going to be really the meat of this lecture. I won't have time to say too much about the lower bound side, but I'll make a couple of comments. Okay, so a prerequisite to instance optimality is just a very tight upper bound on the performance of a single algorithm.
+00:06:41.834 - 00:06:54.740, Speaker A: And then the other part is a matching lower bound okay. All right, so any questions? Otherwise, I'm ready to tell you about the algorithm. Just clear what problem we're talking about and what we want.
+00:06:54.740 - 00:07:20.970, Speaker A: All right, so let me tell you about the algorithm that actually will achieve this guarantee. It's a divide and conquer algorithm, very elegant by Kirkpatrick and Seidel from 1985. It okay, so we'll just call this the KS algorithm.
+00:07:20.970 - 00:07:30.150, Speaker A: So we're given a point set. So again, it's divide and conquer recursive algorithm.
+00:07:30.230 - 00:07:30.618, Speaker B: Okay?
+00:07:30.704 - 00:07:46.590, Speaker A: So there's going to be a base case and there's going to be recursive calls. And our job is to identify every single maximum point, every single undominated point. So for the base case, if there's the most one input point, then clearly that point is undominated.
+00:07:46.670 - 00:07:47.300, Speaker B: Okay?
+00:07:50.550 - 00:07:58.598, Speaker A: So we're going to add the single point to the output. Okay, so one point data sets are easy, of course. Now.
+00:07:58.598 - 00:08:21.322, Speaker A: So how's the recursion work? How's the divide work? So let me illustrate this with a picture as we go along. So we're going to split the point set into two. And the way we're going to do it is natural enough.
+00:08:21.322 - 00:08:23.580, Speaker A: We're going to look at a median point.
+00:08:24.190 - 00:08:24.554, Speaker B: Okay?
+00:08:24.592 - 00:08:32.646, Speaker A: So that should be familiar from quicksort or what have you, but of course, median is only in a single dimension. And here we have two dimensions. So we're just going to pick one of the two dimensions.
+00:08:32.646 - 00:09:13.262, Speaker A: Let's say the X coordinate, and we're going to split the data set around the point with the median X coordinate. So now we have a left part of the data set and a right part of the data set. And you should know from your study and undergraduate algorithms what is required to compute the median of N things, what running time is sufficient for that? Linear time.
+00:09:13.262 - 00:09:23.386, Speaker A: Good. So for the terministic version, that's this famous algorithm with five authors, four of whom are touring award winners, right? You know that. So Blum, Floyd Pratt.
+00:09:23.386 - 00:09:30.500, Speaker A: Who's the exception? Revest. And yeah, so you can do that in linear number comparisons. So that's good.
+00:09:30.500 - 00:09:48.534, Speaker A: Now oops, I said no ties. So now we're going to do is on the right hand side. We're going to look at the point that has the biggest Y coordinate.
+00:09:48.662 - 00:09:49.340, Speaker B: Okay?
+00:09:53.630 - 00:10:01.040, Speaker A: So let Q have the max Y coordinate on the right hand side.
+00:10:04.130 - 00:10:04.446, Speaker B: And.
+00:10:04.468 - 00:10:08.190, Speaker A: We'Re going to add Q to the output.
+00:10:10.290 - 00:10:11.086, Speaker B: Okay?
+00:10:11.268 - 00:10:19.570, Speaker A: So I guess implicitly in there, then there's a claim, which is that Q, whatever it is, whatever the point set is, it has to be a maximum.
+00:10:20.070 - 00:10:20.820, Speaker B: Okay?
+00:10:21.270 - 00:10:35.010, Speaker A: So it better not be dominated by anything else, otherwise this algorithm is now incorrect. Okay, so why is it a maximum? Well, if it's not a maximum, it's dominated by something. Who's going to dominate it? Well, no one on the left side because their X coordinate is smaller.
+00:10:35.010 - 00:10:41.142, Speaker A: But then this guy is the highest Y coordinate on the right side. So no on the right side can dominate it either. Okay, so no worries.
+00:10:41.142 - 00:11:01.294, Speaker A: That's a rightfully declared maximum. And so you say, well, okay, if Q is a maximum, let's take a further linear amount of time, scan the point set and delete both Q, but also anything that it dominates. So we're just going to throw those out.
+00:11:01.294 - 00:11:19.030, Speaker A: We don't have to worry about them, right? So we know they're not going to be maximum. They're dominated in particular by Q. So delete Q and everything adminates and now recurse.
+00:11:23.850 - 00:11:24.358, Speaker B: Okay?
+00:11:24.444 - 00:11:38.458, Speaker A: Both on the left hand side and on the right hand side. So that's the algorithm. Any questions? Just about what it does? I certainly owe you a couple of things.
+00:11:38.458 - 00:11:46.720, Speaker A: I owe you a proof that it's correct and I owe you a detailed discussion about its running time. I'll tell you about both of those. Any questions before that?
+00:11:50.580 - 00:11:58.976, Speaker B: All right, just simply keep a sorted list of the points in x and y direction and then we will have.
+00:11:58.998 - 00:12:02.340, Speaker A: To use the median and the max in the middle.
+00:12:02.410 - 00:12:02.596, Speaker B: Okay?
+00:12:02.618 - 00:12:09.624, Speaker A: So this is a good question. I haven't really told you what we're shooting for as far as running time.
+00:12:09.742 - 00:12:10.410, Speaker B: Okay?
+00:12:13.740 - 00:12:30.332, Speaker A: What you just suggest is let's sort and not just keep doing repeated medians. So we're definitely going to be stuck with n log n time, right? If we do any sorting subroutines and we actually want to do better than n log n time, at least on some inputs. Okay, that's not something I gave you a heads up on.
+00:12:30.386 - 00:12:30.796, Speaker B: Okay?
+00:12:30.898 - 00:12:47.764, Speaker A: So I'm going to tell you that now ultimately, I mean, the exact running time guarantee is a little technical to state by the time we get there, you'll understand it, but I'm not going to just pull it out of a hat at the beginning of lecture. But it's going to be better than n log n. And so that's why just sorting something and losing n log n up front is not something we want to do.
+00:12:47.764 - 00:12:52.390, Speaker A: It's a good question. Other questions? Yes.
+00:12:52.760 - 00:12:54.150, Speaker B: Why do you need to.
+00:13:01.100 - 00:13:03.850, Speaker A: Yeah, okay, you can do that. And then what do you do?
+00:13:05.820 - 00:13:08.856, Speaker B: And then you put away on the.
+00:13:08.878 - 00:13:16.670, Speaker A: Point and recurse once or just like what you did.
+00:13:17.840 - 00:13:18.156, Speaker B: Right?
+00:13:18.178 - 00:13:34.512, Speaker A: So I mean if you just pick Q first, there's no guarantee you'll get a balanced split of the point set. So it's not even clear you'll get an n log n type running time without the median computation and that segues actually nicely into. Well, I guess I should tell you the correctness first.
+00:13:34.512 - 00:13:54.680, Speaker A: Actually, maybe you think correctness is obvious, but I don't think it's totally obvious. It's worth a couple of points of discussion. So first of all, one thing that's obvious is all deletions are justified.
+00:13:54.680 - 00:14:15.468, Speaker A: So at the end of the day, this algorithm is going to output some subset of the input point set, okay? And it's declaring that these are all maxima right now, anything which it doesn't output, which got deleted along the way. No worries. We explicitly had in our hand a point, q, which dominated any point that we deleted.
+00:14:15.468 - 00:14:28.272, Speaker A: So the only concern is that we output a point that we claim is a maximum when it's not. So that's what we have to prove. Well, it may seem like we've already proved this.
+00:14:28.272 - 00:14:42.692, Speaker A: We said, look, this q point was a maxima, right? It can't be dominated by anything on the left, and it can't be dominated by anything on the right because it had the highest Y coordinate. But remember, this is a recursive call, so we've already recursed a bunch of times. In a given recursive call, we have a subset of the point set.
+00:14:42.746 - 00:14:42.976, Speaker B: Okay?
+00:14:43.018 - 00:14:58.796, Speaker A: We started with a million points, now we have 10,000. And what I argued is among these 10,000 remaining points, q has to be maximal. It's not dominated by any of the 10,000 left, but what about all the other million points in the original point set? Okay, I need to argue that none of those dominate Q either.
+00:14:58.796 - 00:15:19.492, Speaker A: So that's why I need to argue something. All right, so what we've already argued is q maximal, um, with respect to q at time of removal. Okay, so that's what we argued along the way.
+00:15:19.492 - 00:15:39.064, Speaker A: But what about with respect to the original point set? Well, the claim is that this algorithm has the property that it will never, through deletions or through recursion, turn a point which is not maximal into one that is. Okay, so that never happens, and then we'll be done. All right, so why is that? So first, let's look at the right side.
+00:15:39.064 - 00:16:08.592, Speaker A: Claim is that maxima of the right hand side are also maxima of QL. And this is sort of the relatively trivial statement, right? So again, what does it mean that so if you're a maximum on the right hand side, what does that mean? It means you're not dominated by anybody on the right hand side. The only worry is that you're dominated by someone on the left hand side, but everyone on the left hand side has smaller X coordinates, so they can't dominate you.
+00:16:08.592 - 00:16:19.924, Speaker A: Okay, so that's just because we split it into two. Okay, the right hand side somehow automatically dominates the left and the X coordinate. But what about the opposite? That's where we should be worried, and here's where we use the fact that we do Pruning.
+00:16:20.052 - 00:16:20.730, Speaker B: Okay.
+00:16:23.740 - 00:16:50.370, Speaker A: So the claim is after Pruning, the maximum of the remaining points on the left side are also maximum of the original point set. Okay, so why is that true? Well, if you're a maximum on the left hand side, you're not dominated by anybody on the left. So the only worry is that you're dominated by somebody on the right.
+00:16:50.370 - 00:17:06.516, Speaker A: But if you have survived to this point, then it means you weren't deleted by q. Q had the highest coordinate on the right hand side. So by virtue of your survival, your Y coordinate is even higher than that of q, and q was the highest on the right hand side.
+00:17:06.618 - 00:17:07.028, Speaker B: Okay?
+00:17:07.114 - 00:17:12.372, Speaker A: So after pruning, everybody on the left has a y coordinate higher than everybody on the right, so they're all maxima.
+00:17:12.436 - 00:17:13.000, Speaker B: Okay?
+00:17:13.150 - 00:17:24.780, Speaker A: So you only delete non maxima. You never turn a non maximal point into a maximal point, and whatever you output is maximal at that time. So done, it outputs something if and only if it's maximal.
+00:17:24.780 - 00:17:27.020, Speaker A: Questions about correctness?
+00:17:27.440 - 00:17:28.044, Speaker B: Yes.
+00:17:28.162 - 00:17:43.520, Speaker A: Is there any issue? I assumed no ties for convenience, otherwise you sort of do some usual stuff. You have to define what you mean, dominate, and then you have to tweak the algorithm, et cetera. But just think no ties.
+00:17:44.580 - 00:17:45.330, Speaker B: Okay?
+00:17:50.980 - 00:17:51.970, Speaker A: Other questions.
+00:17:58.320 - 00:17:59.910, Speaker B: You it.
+00:18:00.440 - 00:18:25.948, Speaker A: So the runtime discussion will be longer. We will be able to very quickly understand that it's at least a pretty good algorithm. It'll take us longer to understand is it really an instance optimal algorithm? So, first of all, I hope it's straightforward for you all to see that the running time certainly isn't any worse than o of n log n.
+00:18:25.948 - 00:19:07.380, Speaker A: It's certainly not any slower than, say, a merge sort, okay? It's exact the same recurrence as merge sort. There's two recursive calls by virtue of the median computation, each recursive call is on a data set of at most half the size as the original one, maybe much less because of the pruning step, but certainly no more than half the size. And the work done outside of the recursive calls is linear.
+00:19:07.380 - 00:19:13.688, Speaker A: All you do is the median computation, which is linear number of comparisons, plus the pruning step, which is another linear number.
+00:19:13.774 - 00:19:14.360, Speaker B: Okay?
+00:19:14.510 - 00:19:44.432, Speaker A: Same recurrence, same result, n login. So on the homework, I ask you to show that if you don't try to do a refined running time analysis, you just try to think about the worst case. Then there are indeed inputs, there are indeed point sets for which this algorithm will use omega of n log n comparisons.
+00:19:44.576 - 00:19:45.172, Speaker B: Okay?
+00:19:45.306 - 00:20:22.048, Speaker A: So in that sense, this n log n bound is tight in the worst case, all right, so what we want but that's not good enough for an instance optimal bound because there are certainly other point sets that are much, much easier. Like consider a point set where there's only one maximum point, so there's a ton of points, but actually there's a single point that has both the highest x coordinate and the highest y coordinate. So think about what this algorithm will do if you feed at this point set.
+00:20:22.048 - 00:20:48.264, Speaker A: Well, in the very first recursive call, it'll identify the upper right corner as the q right, so that's on the right hand side of the data set that has the max y coordinate, that's its q, it prunes, boom, the whole data set is wiped out, exterminated, so it stops. So that's linear time, okay? So this algorithm does not run an n log n time on every single input. There are inputs where it runs an n log n, there are inputs where it runs an n.
+00:20:48.264 - 00:20:50.184, Speaker A: It can vary in between the two.
+00:20:50.302 - 00:20:51.064, Speaker B: Okay?
+00:20:51.262 - 00:21:15.484, Speaker A: Now keep in mind what we're trying to prove with an instance optimality result. We're trying to prove that this algorithm input by input is as fast as Frugal with comparisons as any other algorithm. So to prove it's as good as any other algorithm, input by input, at the very least, we need to have a tight up to constant factors upper bound on how well it does input by input.
+00:21:15.612 - 00:21:16.048, Speaker B: Okay?
+00:21:16.134 - 00:21:38.024, Speaker A: That's a prerequisite for having a matching lower bound for an arbitrary algorithm is at least we have to understand how well it's doing, and we don't yet. Input by input, okay? So what we understand is that there are easy point sets and that there are hard point sets, and we want to have a parameterized upper bound on the number of comparisons, which is large if it's a hard point set and small if it's an easy point set.
+00:21:38.142 - 00:21:38.810, Speaker B: Okay?
+00:21:39.260 - 00:21:49.150, Speaker A: So let me show you kind of the sort of relatively old idea for improving. We're going to need to do two steps. Let me tell you the first step first, which is pretty simple.
+00:21:49.150 - 00:22:12.470, Speaker A: So again, I'll leave this as an exercise that shows up on homework. One, you can improve the running time upper bound of n log n to n log h. You should be asking me what is h? So by the way, that's an n, that's an h.
+00:22:12.470 - 00:22:31.880, Speaker A: So where h equals the number of maxima I e, the size of the output. So n is the size of the input, h is the size of the output. So these are sometimes called output sensitive algorithms.
+00:22:31.880 - 00:22:47.968, Speaker A: On that particular point set, h is one. So the statement is something we already knew, that the algorithm runs in linear time on that particular point set. But more generally, whenever there's a constant size output, then the Kirkpatrick Seidel algorithm runs in linear time.
+00:22:47.968 - 00:23:06.944, Speaker A: Okay, so what's the intuition? So this is not a complete proof, but this is sort of a big hint of how you might do the exercise. So consider all the recursive calls at recursion level J. Okay? So I want you to have in mind the usual recursion tree.
+00:23:06.944 - 00:23:18.676, Speaker A: At the root is the outermost call, its two children or its two recursive calls, and then four at the next level, eight at the next level, and so on. So think about level J of this recursion tree with its most two to the J recursive calls. Notice.
+00:23:18.676 - 00:23:24.392, Speaker A: Recall the Kirkpatrick Seidel algorithm. It finds this point Q, and it adds it to the output before it does the recursion.
+00:23:24.456 - 00:23:24.732, Speaker B: Okay?
+00:23:24.786 - 00:23:32.536, Speaker A: So this is important. Every single recursive call of Kirkpatrick Seidel identifies a point to add to the output.
+00:23:32.648 - 00:23:33.310, Speaker B: Okay?
+00:23:34.080 - 00:23:52.668, Speaker A: So if at recursion level J, you have two to the J recursive calls, those are adding two to the J maxima to the output. And if there's only h maxima to be output, then this recursion level can't grow higher than log h because there aren't more than h maxima to contribute.
+00:23:52.764 - 00:23:53.360, Speaker B: Okay.
+00:23:53.510 - 00:23:58.564, Speaker A: And the recursion, the work per recursion level is linear, just like it is in, say, merge sort.
+00:23:58.682 - 00:23:59.350, Speaker B: Okay.
+00:24:05.020 - 00:24:16.264, Speaker A: So identify two to the J maxima. So the max recursion level at most log h. Okay.
+00:24:16.264 - 00:24:27.112, Speaker A: And linear work per level. The reason that isn't quite a proof is this is sort of assuming that the recursion tree is balanced. So really, actually, after the pruning, some of these recursive calls will just be empty.
+00:24:27.256 - 00:24:27.660, Speaker B: Okay.
+00:24:27.730 - 00:24:34.796, Speaker A: So it's actually kind of a potentially jagged recursion tree, but really, this is the worst case. And that's what I want you to think about as part of the exercise.
+00:24:34.908 - 00:24:36.976, Speaker B: Okay. All right.
+00:24:36.998 - 00:24:44.756, Speaker A: So that's the statement. So this notice. So what have we done? We took a coarse worst case bound of n log n, parameterized only by the input size.
+00:24:44.756 - 00:24:58.084, Speaker A: And now we have a refined upper bound, which is parameterized by both the input and the output size NNH. Sometimes these are the same. Sometimes this is much better depending on the input, depending on h.
+00:24:58.084 - 00:25:09.468, Speaker A: Now it turns out this so of course this is tight in the worst case, because this is tight in the worst case. Also, the homework you're going to learn that sometimes we can do even better.
+00:25:09.554 - 00:25:09.804, Speaker B: Okay.
+00:25:09.842 - 00:25:17.130, Speaker A: So there are instances where h is big, and yet Kirkpatrick Seidel still runs in linear time. So this n log.

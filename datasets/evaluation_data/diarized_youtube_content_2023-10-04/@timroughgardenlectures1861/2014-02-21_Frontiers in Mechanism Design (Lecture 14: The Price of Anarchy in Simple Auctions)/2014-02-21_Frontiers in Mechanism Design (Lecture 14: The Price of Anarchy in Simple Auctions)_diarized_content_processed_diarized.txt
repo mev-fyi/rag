@@ -1,0 +1,183 @@
+00:00:00.810 - 00:00:04.574, Speaker A: All right, so let's get started on.
+00:00:04.612 - 00:00:07.440, Speaker B: Part four out of five of the course.
+00:00:09.250 - 00:00:19.646, Speaker A: So this is going to be about the price of anarchy of simple auctions. And this has actually been probably one.
+00:00:19.668 - 00:00:23.278, Speaker B: Of the hottest areas in kind of.
+00:00:23.364 - 00:00:25.078, Speaker A: Mechanism design and the computer science side.
+00:00:25.124 - 00:00:32.680, Speaker B: At least for the past few years. Some of the results we cover even will just be from the past few months. There's sort of a lot of action in this part of the world these days.
+00:00:35.450 - 00:00:46.300, Speaker A: And this is motivated. Okay, so we've had this list of three criteria incentive guarantee, performance guarantee, tractability guarantee, and it's been a while since.
+00:00:46.830 - 00:00:58.106, Speaker B: We were meeting that third bullet with anything that could reasonably called simple. It's been maybe like three or four weeks. We've had a number of pretty proof of concept theoretical constructions in a row.
+00:00:58.218 - 00:00:59.166, Speaker A: And so in this part of the.
+00:00:59.188 - 00:01:05.218, Speaker B: Course, we really will insist on simplicity, whatever the costs may be.
+00:01:05.304 - 00:01:18.438, Speaker A: Okay, so pretty much everything in this part, there'll be no question that the auctions are simple. Now, to be clear, when I say an auction is simple in this part, I mean it's simple to describe, it.
+00:01:18.444 - 00:01:20.066, Speaker B: Would be simple to implement.
+00:01:20.258 - 00:01:22.134, Speaker A: I don't necessarily mean it's simple to.
+00:01:22.172 - 00:01:25.190, Speaker B: Play in like a DSIC mechanism, actually.
+00:01:25.260 - 00:01:30.966, Speaker A: Even the BIC mechanisms. While there is this informational assumption that, you know, this common Prior, at least.
+00:01:31.068 - 00:01:36.070, Speaker B: It'S clear what you're supposed to do. You're supposed to just do direct revelation. Okay, so that's easy for the bidder.
+00:01:36.070 - 00:01:37.946, Speaker B: If you believe in the Prior, these.
+00:01:37.968 - 00:01:39.866, Speaker A: Will be auctions where it will not.
+00:01:39.888 - 00:01:44.400, Speaker B: Be at all clear how you're supposed to play as a bidder. It will not be clear what the equilibria are.
+00:01:44.850 - 00:01:55.922, Speaker A: Despite being unable to solve for the equilibrium, figure out what they are in the same spirit as the price of anarchy results from last quarter, we'll be able to prove that whatever the equilibrium are, they're good.
+00:01:55.976 - 00:01:56.990, Speaker B: They're near optimal.
+00:01:57.070 - 00:02:09.926, Speaker A: Okay, so these are the two things we're looking for. We want simple auctions that have near optimal equilibrium. What kind of equilibrium? It'll depend.
+00:02:09.926 - 00:02:13.778, Speaker A: Today I'm going to keep things simple, just talk about pure Nash equilibria.
+00:02:13.874 - 00:02:18.140, Speaker B: But next week we'll move on to Bayes Nash equilibria, as you might expect.
+00:02:20.510 - 00:02:28.618, Speaker A: All right, so today I want to go back to a familiar scenario. It's also the same one we sort.
+00:02:28.624 - 00:02:30.498, Speaker B: Of had in mind last lecture.
+00:02:30.694 - 00:02:34.382, Speaker A: So I want to think about an allocation problem which we now know is.
+00:02:34.436 - 00:02:37.870, Speaker B: Reasonably complicated submodular valuations.
+00:02:39.170 - 00:02:55.990, Speaker A: Okay, so m nonidentical items and each bidder I has a submodular valuation VI. And don't forget what a submodular mean. That means diminishing returns.
+00:02:55.990 - 00:03:07.160, Speaker A: So if you add an item to a bigger set, the marginal value is less than if you add it to a smaller set.
+00:03:07.550 - 00:03:08.300, Speaker C: Okay.
+00:03:12.030 - 00:03:13.238, Speaker A: So this is a scenario we've.
+00:03:13.254 - 00:03:15.194, Speaker B: Seen many times before.
+00:03:15.232 - 00:03:17.398, Speaker A: We were thinking of somehow these valuations.
+00:03:17.414 - 00:03:19.190, Speaker B: As being provided as input.
+00:03:19.350 - 00:03:31.834, Speaker A: And as you'll see that's not really going to be how we think about it today, but roughly think of the valuations as being a black box supporting demand queries. But really we're more thinking that there are bidders out there that we're expecting to be able to ask demand queries.
+00:03:31.882 - 00:03:32.960, Speaker B: If they have to.
+00:03:33.650 - 00:03:42.830, Speaker A: So again, just to remind you about this setup, why is this such a good sort of challenge scenario? Without incentives, we know how to get a constant approximation, therefore, with a BIC mechanism.
+00:03:42.910 - 00:03:50.310, Speaker B: Now we know how to get a constant approximation, but we don't know good DSIC mechanisms for this setting, only for special cases like coverage.
+00:03:52.330 - 00:03:55.206, Speaker A: So what if we sort of abandon this exercise of trying to sort of.
+00:03:55.228 - 00:03:57.666, Speaker B: Come up with these complex and cynical.
+00:03:57.698 - 00:03:59.834, Speaker A: Battle mechanisms and we just sell these.
+00:03:59.872 - 00:04:01.660, Speaker B: Items on ebay instead?
+00:04:03.070 - 00:04:04.426, Speaker A: Is there any math we could do.
+00:04:04.448 - 00:04:11.510, Speaker B: That would sort of indicate whether it would be a disaster or whether it would actually be? Okay, so that's kind of the point of this lecture.
+00:04:11.590 - 00:04:13.982, Speaker A: What would happen if that's how you tackle this problem?
+00:04:14.036 - 00:04:15.550, Speaker B: Just sell them all on ebay?
+00:04:16.690 - 00:04:25.566, Speaker A: All right, so how are we going to model selling M items on ebay? We're going to model it as a simultaneous second price auction.
+00:04:25.758 - 00:04:26.500, Speaker C: Okay.
+00:04:35.450 - 00:04:53.514, Speaker A: So I'll call these S two A's for short, S for simultaneous, two for second price. So each bidder I so this is the action space or the bid space.
+00:04:53.552 - 00:04:54.618, Speaker B: It's very simple.
+00:04:54.784 - 00:05:03.034, Speaker A: Each bidder, I submits a bid bij for each J in U.
+00:05:03.232 - 00:05:03.980, Speaker C: Okay.
+00:05:06.210 - 00:05:11.326, Speaker A: So I want to emphasize how different this is than all of the.
+00:05:11.348 - 00:05:18.750, Speaker B: Auctions that we've seen, or almost all of the auctions that we've seen thus far. I guess with the exception of maybe Kelso Crawford.
+00:05:19.570 - 00:05:23.230, Speaker A: So a bidder has an arbitrary submodulular valuation.
+00:05:23.570 - 00:05:27.926, Speaker B: There's M items, there's two to the M possible bundles a bidder could get.
+00:05:28.028 - 00:05:29.462, Speaker A: It could have a different private value.
+00:05:29.516 - 00:05:33.974, Speaker B: For each one of those two to the M possible bundles. We have no idea what any of those two to the M numbers are.
+00:05:34.092 - 00:05:35.766, Speaker A: And we're not going to ask a.
+00:05:35.788 - 00:05:39.318, Speaker B: Bidder for anything but a vanishing only for a small fraction of it.
+00:05:39.404 - 00:05:43.530, Speaker A: Okay, so a bidder is only ever going to be able to express M.
+00:05:43.680 - 00:05:48.490, Speaker B: Numbers, one per item, even though it has two to the M things to say.
+00:05:48.640 - 00:05:56.358, Speaker A: All right, so in other words, I talked about how action and typespaces can be different. Direct revelation, they're the same back in indirect revelation mechanisms.
+00:05:56.374 - 00:06:02.126, Speaker B: We were thinking about cases where the action space could be way bigger than the typespace because you have history dependent strategies and consistent with any type.
+00:06:02.228 - 00:06:03.246, Speaker A: Here's a case where you have an.
+00:06:03.268 - 00:06:05.958, Speaker B: Action space way smaller than the typespace.
+00:06:06.074 - 00:06:11.762, Speaker A: Okay, all right, so it doesn't even make sense to talk about direct revelation, right?
+00:06:11.816 - 00:06:17.320, Speaker B: In this mechanism, there's no way to actually directly reveal your evaluation. So it's really very different.
+00:06:18.730 - 00:06:22.646, Speaker A: So what do we do with these beds. Well, for each item separately, we just.
+00:06:22.668 - 00:06:25.990, Speaker B: Run a Vic re auction simultaneously.
+00:06:28.030 - 00:06:36.970, Speaker A: So each item sold separately via a Vic re auction.
+00:06:38.750 - 00:06:39.500, Speaker C: Right?
+00:06:43.070 - 00:06:45.338, Speaker A: And so a well motivated goal.
+00:06:45.514 - 00:06:46.974, Speaker B: This may be good, this may be.
+00:06:47.012 - 00:06:48.078, Speaker A: Bad, but I would just want to.
+00:06:48.084 - 00:06:57.410, Speaker B: Understand which is which. Okay, try to understand the performance of this. So how good are the equilibria?
+00:06:58.230 - 00:07:02.594, Speaker A: And again, for today, I'll keep things simple. Just talk about pure Nash equilibria, but.
+00:07:02.632 - 00:07:14.440, Speaker B: We'Ll extend those in later lectures. All right? Any questions? Makes sense.
+00:07:16.330 - 00:07:25.366, Speaker A: All right, so there's an issue with second price auctions and trying to analyze their equal to RIA, even actually, in the basic case of a single item.
+00:07:25.398 - 00:07:28.940, Speaker B: Auction, even if you go all the way back to lecture one of 364 A.
+00:07:29.950 - 00:07:31.818, Speaker A: So there's an issue with second price.
+00:07:31.904 - 00:07:43.860, Speaker B: Auctions of overbidding an equilibria that exists only because of bluffing. So this is easily appreciated by example.
+00:07:47.910 - 00:07:50.942, Speaker A: So imagine we just have two bidders and one item.
+00:07:51.006 - 00:07:55.886, Speaker B: That is, we're just running a regular old Vic re auction, and bidder one.
+00:07:55.928 - 00:07:59.446, Speaker A: Wants the thing, and bidder two could care less.
+00:07:59.628 - 00:08:03.320, Speaker B: Bidder two has some small epsilon valuation for it.
+00:08:04.250 - 00:08:06.038, Speaker A: And let's suppose it's a full information.
+00:08:06.124 - 00:08:09.898, Speaker B: Game, which again is weird for auctions, but I'm just going to use it for an example to make a point.
+00:08:09.984 - 00:08:16.490, Speaker A: Okay, so now assume that for some reason they get stuck in the following equilibrium.
+00:08:18.830 - 00:08:19.530, Speaker C: Okay?
+00:08:19.680 - 00:08:26.782, Speaker A: The second bidder bids really high just cuz just as a bluff, and basically.
+00:08:26.836 - 00:08:29.582, Speaker B: The first bidder gets scared and walks away, bid zero.
+00:08:29.716 - 00:08:33.242, Speaker A: Okay, so this is a Nash equilibrium.
+00:08:33.306 - 00:08:42.322, Speaker B: Actually, if you think about it. So neither player can increase their utility via unilateral deviation. Okay, bidder two is obviously happy.
+00:08:42.322 - 00:08:43.938, Speaker B: It has no incentive to do anything.
+00:08:44.104 - 00:08:46.782, Speaker A: Bidder one, it could raise its bid.
+00:08:46.846 - 00:08:54.758, Speaker B: And outbid the second bidder, but then it would have to pay one for it because it's a second price auction, and that would cancel out its value. It would get utility zero, just like it has now.
+00:08:54.924 - 00:09:05.866, Speaker A: Okay, so this is a Nash equilibrium, a pure Nash equilibrium that obviously has terrible, terrible welfare, okay, yacht and welfare is one.
+00:09:05.888 - 00:09:09.594, Speaker B: This has welfare epsilon. Okay?
+00:09:09.712 - 00:09:14.858, Speaker A: But this is one of those examples that just kind of says, okay, it's not that it's a bad question, it's.
+00:09:14.874 - 00:09:20.590, Speaker B: Just that we don't have all the kind of definitions and conditions right yet to do the interesting theory in particular.
+00:09:20.660 - 00:09:21.646, Speaker A: You look at this and you're like.
+00:09:21.668 - 00:09:28.786, Speaker B: Well, this is pretty risky strategy for bidder one. What if a bidder three shows up that has value ten or something, right? Then it's going to go ahead and.
+00:09:28.808 - 00:09:31.602, Speaker A: Bid ten, and this bidder two, sorry.
+00:09:31.656 - 00:09:32.414, Speaker B: That'S not what I meant.
+00:09:32.462 - 00:09:33.746, Speaker A: So you can imagine that some other.
+00:09:33.768 - 00:09:45.750, Speaker B: Bidder bids something like one minus epsilon, and then bidder two is going to continue to win. Its value is only epsilon and it's stuck with a bill for one minus epsilon. Okay, it has super negative utility, right?
+00:09:45.820 - 00:09:52.006, Speaker A: And really, for all it knows, that could happen. So it's highly exposed. It's not really clear why bidder two would do this.
+00:09:52.006 - 00:09:55.226, Speaker A: So we're going to do is we're going to focus on Equilibria where there.
+00:09:55.248 - 00:09:57.020, Speaker B: Isn'T overbidding in this sense.
+00:10:01.010 - 00:10:13.838, Speaker A: So we're going to prove welfare bounds for no overbidding Equilibria. And for today we're going to talk.
+00:10:13.844 - 00:10:15.390, Speaker B: About pure Nash equilibrium.
+00:10:17.890 - 00:10:26.902, Speaker A: Now, there's different ways you can sort of talk about no overbidding that vary little bit, but they're not really relevant for today.
+00:10:26.956 - 00:10:30.150, Speaker B: So I'm not going to make a big deal of it. But let me just sort of briefly mention it.
+00:10:30.300 - 00:10:36.614, Speaker A: So when I say I focus on no overbidding scenarios here's two different things I could mean. The first thing I could mean is.
+00:10:36.652 - 00:10:44.710, Speaker B: I'm just going to define the strategy space of a bidder to only use bids where it doesn't overbid.
+00:10:44.790 - 00:10:45.978, Speaker A: Okay? So I could actually so in the.
+00:10:45.984 - 00:10:47.594, Speaker B: Vicary auction, I could just literally say.
+00:10:47.632 - 00:10:49.466, Speaker A: Hey, bidder number two, I'm going to.
+00:10:49.488 - 00:10:52.410, Speaker B: Define your strategy space to be between zero and epsilon.
+00:10:52.990 - 00:10:54.598, Speaker A: Then it's obvious that in any Nash.
+00:10:54.614 - 00:10:59.166, Speaker B: Equilibrium, there's not going to be overbidding in this sense. All right, that'd be kind of the Draconian way.
+00:10:59.268 - 00:11:02.560, Speaker A: A second way would be like, I let bidders, bid whatever they want.
+00:11:03.330 - 00:11:11.550, Speaker B: Some Equilibria will have overbidding and some will not have overbidding. Some will be good and some will be bad. And I'll just give you guarantees for the Equilibria that don't have any overbidding.
+00:11:11.550 - 00:11:14.018, Speaker B: Okay? Those are the sort of the two different approaches I could choose.
+00:11:14.104 - 00:11:24.006, Speaker A: They're almost the same. One difference is in the second setting sorry, in the second setting, where the bid space is everything, it's sort of.
+00:11:24.028 - 00:11:27.282, Speaker B: Harder to be in equilibrium because if you think about it, there's more deviations.
+00:11:27.426 - 00:11:28.626, Speaker A: So for something to be in equilibrium.
+00:11:28.658 - 00:11:30.694, Speaker B: It has to be that no deviation can make you better.
+00:11:30.812 - 00:11:32.614, Speaker A: And so if I simply disallow you.
+00:11:32.652 - 00:11:36.278, Speaker B: From doing a bunch of actions, you have fewer deviations. So it's easier to be in equilibrium.
+00:11:36.374 - 00:11:37.686, Speaker A: On the other hand, if you're allowed.
+00:11:37.718 - 00:11:42.320, Speaker B: To do crazy deviations, including overbidding, then it's harder to be in equilibrium and you might have less of them.
+00:11:42.930 - 00:11:44.894, Speaker A: Everything we say in today's lecture, it.
+00:11:44.932 - 00:11:47.726, Speaker B: Just won't matter which way you do it. Both of them work.
+00:11:47.828 - 00:11:59.506, Speaker A: All right, a couple of other things. So no overbidding, what does that mean exactly? So the no overbidding condition that we'll need today is that if we look.
+00:11:59.528 - 00:12:08.526, Speaker B: At the items that a bidder actually wins, then what? It bid for those items. And sum is no more than its value for those items.
+00:12:08.638 - 00:12:11.414, Speaker A: So it's not for every single set in the world. It's just for the set it happens.
+00:12:11.452 - 00:12:12.514, Speaker B: To win in the auction.
+00:12:12.642 - 00:12:18.306, Speaker A: And then the second thing is, and I'll leave this as an exercise, an optional exercise, is it's easy to parameterize.
+00:12:18.338 - 00:12:19.114, Speaker B: The bounds we'll give.
+00:12:19.152 - 00:12:20.666, Speaker A: So as a function of how much.
+00:12:20.688 - 00:12:24.650, Speaker B: People overbid you get graceful degradation in the price of anarchy bounds.
+00:12:25.950 - 00:12:31.166, Speaker A: All right, so now we're ready to go.
+00:12:31.188 - 00:12:33.870, Speaker B: So now we've got everything we need to prove some good bounce.
+00:12:34.770 - 00:12:46.546, Speaker A: So let me just tell you the notation I'll be using. So the bids now, first of all, they're indexed by the players. So you have an M vector for.
+00:12:46.568 - 00:12:47.630, Speaker B: Each of the N players.
+00:12:47.710 - 00:12:49.346, Speaker A: Each player gives you a bid for.
+00:12:49.368 - 00:12:53.940, Speaker B: Each of the M items. Okay, so we have.
+00:12:55.690 - 00:13:03.606, Speaker A: N bid vectors, each of which is itself an M vector. So Si of B is just the.
+00:13:03.628 - 00:13:15.334, Speaker B: Items that I wins, meaning the items on which I is the highest bidder. Remember, we're just selling each item with a separate single item auction. Highest bidder wins on each item items.
+00:13:15.382 - 00:13:23.230, Speaker A: I wins, and then PJ is the price that the winner of good J.
+00:13:23.300 - 00:13:27.200, Speaker B: Pays, which of course, is just the second highest bid on good J.
+00:13:27.890 - 00:13:28.640, Speaker C: Okay?
+00:13:37.350 - 00:13:39.810, Speaker A: All right, so now no overbidding.
+00:13:46.070 - 00:13:46.626, Speaker C: It.
+00:13:46.728 - 00:13:51.206, Speaker A: So again, this just means if you look at the bundle of goods that a bidder actually wins, the sum of.
+00:13:51.228 - 00:13:55.858, Speaker B: Its bids on that bundle is not in sum, more than its value for that bundle.
+00:13:55.954 - 00:13:56.600, Speaker C: Okay?
+00:13:56.970 - 00:14:01.274, Speaker B: And so again, this is going to be like a stark violation of no overbidding, right?
+00:14:01.312 - 00:14:04.646, Speaker A: Because in this case, the second bidder.
+00:14:04.678 - 00:14:08.874, Speaker B: Actually wins the item. Its value for what it got is epsilon. Its bid is one.
+00:14:08.992 - 00:14:10.654, Speaker A: And again, because in a second price.
+00:14:10.692 - 00:14:14.480, Speaker B: Auction, you can have such a big difference between what you pay and what you bid. That's why this can happen.
+00:14:15.010 - 00:14:33.426, Speaker A: So b satisfies no overbidding. Um, if for all I, if I look at what you bid on what.
+00:14:33.448 - 00:14:37.400, Speaker B: You win, that should be bounded above by your value for what you won.
+00:14:39.850 - 00:14:40.600, Speaker C: Okay.
+00:14:43.050 - 00:14:45.590, Speaker B: So that's what I formally mean by no overbidding.
+00:14:47.870 - 00:14:50.586, Speaker A: So restricted strategy spaces or whatever reason.
+00:14:50.688 - 00:14:53.260, Speaker B: As long as this is satisfied, we're going to be good to go.
+00:14:55.230 - 00:15:08.394, Speaker A: Okay? All right, so what might we hope to prove? What's the best can we prove? Maybe that every equilibrium with no overbidding is fully optimal.
+00:15:08.522 - 00:15:09.600, Speaker B: Maybe that's true.
+00:15:10.210 - 00:15:12.826, Speaker A: Well, so let me show you that there are limits, even under this condition.
+00:15:12.858 - 00:15:15.546, Speaker B: On what kind of welfare guarantee we might be able to prove.
+00:15:15.658 - 00:15:36.920, Speaker A: Okay, so here's an example showing that we're not going to do better than 50%. That's going to be the best case scenario. It's going to be a simple example that shows that two bidders, two items, let's say the items are called X and Y.
+00:15:36.920 - 00:15:42.154, Speaker A: Both bidders are going to be unit demand. Remember, unit demand is a special case.
+00:15:42.192 - 00:15:45.180, Speaker B: Of sub modular, special case of gross substitutes, even.
+00:15:46.590 - 00:15:57.934, Speaker A: And let's say that the first bidder really wants X, but if it can't get X, it's okay.
+00:15:57.972 - 00:16:00.000, Speaker B: If it gets Y half as happy.
+00:16:01.810 - 00:16:09.520, Speaker A: And bitter. Two is the opposite. It really wants Y, but better X than nothing.
+00:16:09.520 - 00:16:16.086, Speaker A: Okay, so so what will be the.
+00:16:16.108 - 00:16:17.330, Speaker B: Optimal welfare in this setup.

@@ -1,0 +1,155 @@
+00:00:07.050 - 00:00:16.410, Speaker A: Hello, everyone, and welcome to the Hackfs IPFS workshop. IPFS and JS helia ramp up. Joining us today is Russell Dempsey, who will be taking us through the session.
+00:00:16.410 - 00:00:19.440, Speaker A: And with that, I'll pass it over to Russell to get the session started.
+00:00:20.290 - 00:00:28.360, Speaker B: All right, thanks. Okay, so let me get my windows in the right order here.
+00:00:29.530 - 00:00:44.598, Speaker C: Okay, so, yeah, today we're going to be talking about IPFS and JS with Helia, the new implementation of JavaScript. Of IPFS and JavaScript. My name is Russell Dempsey.
+00:00:44.598 - 00:01:05.140, Speaker C: I go by Sergeant Pookie everywhere. I'm the maintainer of IPFS Web UI desktop companion with another teammate of mine, Nishant, who does most of the companion stuff. Yeah, I work on IP stewards team here at Protocol Labs, and I help maintain the JS tools and GUIs and things like that.
+00:01:05.140 - 00:01:18.786, Speaker C: Just quick the intro there in these slides. I assume we can get a link to all the viewers. There are two videos that I think are really good for getting an intro to IPFS.
+00:01:18.786 - 00:01:33.094, Speaker C: So if you're not familiar with IPFS and the basics and how the content is created and what CIDs are, things like that. These are two great talks. Even if you do have a basic understanding.
+00:01:33.094 - 00:01:41.142, Speaker C: I highly recommend watching these if you haven't. This first one is from IPFS Camp in 2019. It's excellent.
+00:01:41.142 - 00:01:49.274, Speaker C: It's really in depth. There's live questions and then discordian. Ryan shared this one with me, which is one he highly recommends.
+00:01:49.274 - 00:01:51.470, Speaker C: So check those out if you haven't.
+00:01:51.970 - 00:01:56.980, Speaker B: I'm not trying to start that right now. I'm trying to sorry about that.
+00:01:57.990 - 00:02:17.830, Speaker C: Go to the next okay, so we've got some Helio resources where you can check out migration guide and things like that. I'll link to some of those in the demo here. Upcoming in a few minutes, but the links are here in the slides.
+00:02:17.830 - 00:02:33.054, Speaker C: The wiki has a lot of things. The migrating from Jsipfs is probably going to be the most useful for users who are familiar with Jsipfs. And then there's a bunch of other links here.
+00:02:33.054 - 00:02:51.042, Speaker C: There are some recordings and presentations that have already been done by the maintainer Alex. And so, yeah, you can check those out here from those links. And the Helia examples are great.
+00:02:51.042 - 00:02:56.390, Speaker C: Sort of like starter kits for using your favorite.
+00:03:00.650 - 00:03:03.110, Speaker B: Yeah, I'm full screen here. I'll just do this.
+00:03:03.180 - 00:03:24.830, Speaker C: Yeah, they're great starter kits for using your favorite library. So we have like, Helia in Electron, helio using it in CJS if you're not updated to ESM and Helio 101, which kind of walks you through some of the basics, things like that. A few other examples here.
+00:03:24.830 - 00:03:49.800, Speaker C: Later for my demo, I'll be going through the Heliovite. I'll be using Heliovite to kind of walk you guys through and then mostly just walking through some of the other examples, what the examples repo is like, because that's where a lot of our learning is going to be. If you're more hands on learner and then yeah, in general, if you go to the Helia repo, you can find a lot of information there.
+00:03:49.800 - 00:04:22.506, Speaker C: Now, what are the benefits of Helia? Sorry, I haven't been looking at you guys the whole time. So the benefits of Helia are really they're multifold. Even in Web Two, there's lots of use case studies and benefits of IPFS and Web two, and a lot of those benefits are the same with Helia, but Helia over Jsipfs or some other implementations are kind of what I want to focus on here.
+00:04:22.506 - 00:04:46.658, Speaker C: So the P to P support via Lib P to P, that's going to be the same with most IPFS implementations, but a lot of our users are in the browser. And so if you're doing things in the browser or if your tech stack includes TypeScript or JavaScript, helia is the way forward. That's what we're going to be developing.
+00:04:46.658 - 00:05:00.550, Speaker C: We're in the process of deprecating JS IPFS. So this is where things are going to be. In the with IPFS, you get the negative bandwidth, scaling costs and resilience against centralized outages.
+00:05:00.550 - 00:05:15.470, Speaker C: And then primarily with Helio, the benefits are developer experience. It's much more modular. It's an ESM, and because it's modular, it's extensible.
+00:05:15.470 - 00:05:30.840, Speaker C: But yeah, a lot of the same benefits you get with using any IPFS implementation, really. So pretty basic there. So, yeah, the demo, I want to hop into the demo.
+00:05:30.840 - 00:05:37.750, Speaker C: That's kind of what this workshop is. So if you all are out there.
+00:05:37.820 - 00:05:41.514, Speaker B: I think we've got a few viewers here.
+00:05:41.552 - 00:06:00.606, Speaker C: Yeah. So you can go to this IPFS example helia examples repo. This kind of tells you all the things, but in short, if you just go to this examples folder in the repo in the code, then you can see all the examples we have available.
+00:06:00.606 - 00:06:20.822, Speaker C: We've got an issue open where we're going to be porting over all the old JS IPFS examples. But the basics are that each of these examples, we consolidate them inside of this examples repo. This is where the core source code is.
+00:06:20.822 - 00:06:56.180, Speaker C: But then anytime they're updated here, they're actually published to their own isolated repo that you can fork from and then sort of extend. Oh, thanks, Rory. If you're going to start a new project and you want to use Vite, or start a new project and you want to use Es Build or Next JS Parcel, if you're using View or want to use Webpack, you would go to Ipfsamples like Heliovyte or Helia, whatever the name is here.
+00:06:56.180 - 00:07:04.706, Speaker C: So pretty basic. So I started up some code and what I did was I copied the.
+00:07:04.728 - 00:07:16.760, Speaker B: GitHub CLI code for cloning a repo. And is this the right this is not the right one. 1 second here.
+00:07:16.760 - 00:07:28.990, Speaker B: This is the one I want and this is something else. Okay.
+00:07:31.940 - 00:07:33.970, Speaker C: I've modified this.
+00:07:36.420 - 00:07:39.170, Speaker B: Let me increase the sizes here.
+00:07:43.460 - 00:07:45.572, Speaker C: Is that too big or can everybody see?
+00:07:45.626 - 00:07:46.230, Speaker B: Okay.
+00:07:48.840 - 00:07:49.892, Speaker A: That looks good.
+00:07:50.026 - 00:07:51.716, Speaker B: Okay, cool.
+00:07:51.818 - 00:07:54.116, Speaker C: So, yeah, I've got a ton of.
+00:07:54.218 - 00:07:55.590, Speaker B: Set up stuff here.
+00:07:59.260 - 00:08:10.890, Speaker C: I cloned this repo and then made a few changes just to set the peer ID so we can see that on the screen.
+00:08:11.660 - 00:08:14.350, Speaker B: Just clean up some of the code there a little bit.
+00:08:15.120 - 00:08:27.376, Speaker C: And then I'll talk about debugging a little bit because that really helped when I first started using Helia. And then I expose it on the window or global this so that we can kind of toy around in the.
+00:08:27.398 - 00:08:33.584, Speaker B: Browser if we need to. So if we go here, it's been.
+00:08:33.622 - 00:08:51.800, Speaker C: Running here and it's emitting some errors for connections to peers that don't support certain transports or there's lots of dials with Lib PDP and IPFS when you're trying to connect to other peers. And so they're not all going to succeed. So those errors are normal.
+00:08:51.800 - 00:08:57.224, Speaker C: But yeah, I created a little text.
+00:08:57.422 - 00:08:59.050, Speaker B: I'm going to copy that. But.
+00:09:03.750 - 00:09:14.230, Speaker C: You can add text here and it will generate a CID, give you the CID.
+00:09:15.130 - 00:09:16.742, Speaker B: Let me just post that there.
+00:09:16.876 - 00:09:29.382, Speaker C: And then with the CID, ideally, what I see a lot of people do is they go to, you know, and they want to see that content. Now this one. It's FUBAR.
+00:09:29.382 - 00:09:56.210, Speaker C: So this CID probably exists on tens of thousands of developer nodes that they're running and testing. And somebody's probably pinned it, so it's obviously accessible. But the one thing that people run into is they're generating some new content, some new custom content that hasn't been created before or isn't.
+00:09:57.990 - 00:09:58.622, Speaker B: Pinned.
+00:09:58.686 - 00:10:16.354, Speaker C: Right. So like, some content that doesn't exist. And then they're hosting their nodes, running their IPFS node, whether it's Helia, JS, IPFS, whatnot is running, and they try to access it here and the gateway will time out.
+00:10:16.354 - 00:10:56.950, Speaker C: Because either the gateway that we've got configured isn't got a timeout too short to find your node in the hundreds of thousands of nodes in the IPFS ecosystem or whatever reason it's not there. And so there's a tool that I wanted to talk to for you guys while you're hacking that is really handy for trying to debug why your content may not be available. So I just generated this one here's, the CID.
+00:10:56.950 - 00:11:08.582, Speaker C: The gateway is going, it's trying to fetch. Also, you know, I can go up here. This is PL diagnose onfleet co.
+00:11:08.582 - 00:11:18.278, Speaker C: This is a tool that Laurent, one of my teammates, put together last year. I think it's really handy for debugging things. So you can put in your CID here.
+00:11:18.278 - 00:11:40.260, Speaker C: And then this is more of a tool. It's a debugging tool. So unlike the gateway, which is intended to support people's retrieving of images and things like that, this is going to give a little bit more time and search the DHT for certain content.
+00:11:42.150 - 00:11:45.940, Speaker B: So let me actually copy that.
+00:11:47.110 - 00:11:48.438, Speaker C: Just going to enter that so I.
+00:11:48.444 - 00:11:50.422, Speaker B: Can save that for later.
+00:11:50.476 - 00:11:54.390, Speaker C: I'm going to fully refresh. This is green. So it's saying that Helia is running.
+00:11:54.390 - 00:12:01.162, Speaker C: I have this PRID. I'm going to paste this again should give me the same CID, because that's how IPFS works.
+00:12:01.296 - 00:12:11.040, Speaker B: Right? And so Helia is like, that's the wrong CID. Something else. Maybe I didn't paste the right one.
+00:12:12.210 - 00:12:26.734, Speaker C: Yeah. So this tool will help you figure out is that CID actually available. And then if this fails, for some reason, your node isn't configured properly.
+00:12:26.734 - 00:12:46.550, Speaker C: So what we should be able to do is see now that our peer ID for this helia node was found as the provider of this content. And so there's some other addresses here and ways of connecting to that peer.
+00:12:46.990 - 00:12:50.860, Speaker B: So let's see, quick P to P.
+00:12:52.190 - 00:12:59.130, Speaker C: TCP won't work directly to the browser. So we don't want that browsers can't do TCP networking.
+00:13:00.770 - 00:13:09.550, Speaker B: So let's say do we have a there was a relay one, I saw. No, there wasn't.
+00:13:09.970 - 00:13:14.122, Speaker C: Well, yeah, so this isn't a valid.
+00:13:14.186 - 00:13:19.202, Speaker B: Peer to peer molt address for this.
+00:13:19.256 - 00:13:23.650, Speaker C: Form, but anyway, we can see that the content is being hosted.
+00:13:27.610 - 00:13:28.950, Speaker B: By our peer.
+00:13:30.010 - 00:13:37.674, Speaker C: So we know that the helio node kind of published that content to the DHT and it's providing it, we really.
+00:13:37.712 - 00:14:16.080, Speaker B: Just need the peer ID. So what we can do PTP circuit IP four, that one should P to P, and then we want copying that fully. Okay, so let's get this peer ID that one.
+00:14:16.080 - 00:14:24.366, Speaker B: So that's going to be some relay stuff. I believe that's providing that we don't.
+00:14:24.398 - 00:14:27.650, Speaker C: Want IP six, because that won't work on my machine.
+00:14:30.070 - 00:14:51.030, Speaker B: And see if we can do this one. Yeah, so that's not working. But what we can probably do.
+00:14:55.160 - 00:15:00.240, Speaker C: We should be able to get the peer, the multi address if we see Helio.
+00:15:00.320 - 00:15:04.628, Speaker B: P to P peer ID. Which time do I have? Ten minutes left.
+00:15:04.714 - 00:15:17.532, Speaker C: I want to leave some time for some questions. But you can access with Helia. There's the Lib P to P object exposed, which is how you would do a lot of the networking stuff.
+00:15:17.532 - 00:15:34.916, Speaker C: And you can dial the closest peer and do like, DHT stuff. Lib PDP, DHT, get closest peers for that. You're going to need an actual peer ID instance to get that.
+00:15:34.916 - 00:15:35.716, Speaker C: And I don't have that.
+00:15:35.738 - 00:15:45.430, Speaker B: This is from old code, but see if I don't think it works with strings. I think you need an actual yeah.
+00:15:48.060 - 00:15:52.810, Speaker C: But yeah, you can access so you can toy around here with the Lid P to P object.
+00:15:54.940 - 00:16:04.750, Speaker B: You can say get peers and see how many peers you are connected to if you type it correctly. Can you guys see that?
+00:16:05.920 - 00:16:07.550, Speaker C: So I'm connected to four.
+00:16:09.520 - 00:16:10.910, Speaker B: Peers right now.
+00:16:12.340 - 00:16:24.556, Speaker C: So yeah, it's doing stuff. It is available even though this particular CID is not accessible here. Right.
+00:16:24.556 - 00:16:36.764, Speaker C: So the content is in the DHT, just not necessarily accessible from the gateway. So just while you're testing and things, accessing from the gateway is not the most reliable.
+00:16:36.912 - 00:16:38.744, Speaker B: I did want to get that out there.
+00:16:38.942 - 00:16:46.696, Speaker C: And then for developing with Helia, just know that a lot of the I.
+00:16:46.718 - 00:16:51.660, Speaker B: Should share that link B to P configuration.
+00:16:53.920 - 00:17:20.644, Speaker C: If you're troubleshooting some networking stuff, this is a very valuable resource because that's how we do networking. Helia is sort of like a central place where we're connecting Lib PDP and then the blocks of the content for your CIDs and feel like I should move on.
+00:17:20.682 - 00:17:22.336, Speaker B: But yeah, that link is very useful.
+00:17:22.448 - 00:17:24.004, Speaker C: This link is very useful as well.
+00:17:24.042 - 00:17:29.370, Speaker B: PL diagnosed very handy. Let's see here.
+00:17:33.660 - 00:17:47.308, Speaker C: Yeah, I do want to go to I think I went over quite a bit actually. I do want to go to some project ideas, just things that I threw together. Could be dumb, could be not, whatever.
+00:17:47.308 - 00:18:01.312, Speaker C: So kind of just a brain dump of ideas. But we have IPFS Web UI, which is based on a UI representation of Kubo. And so building like a Helio web UI could be really cool.
+00:18:01.312 - 00:18:23.656, Speaker C: So we could get those multi addresses easily for PL diagnose and being able to instead of running to WebUI IPFS IO and seeing this screen where it needs to connect to some backend node which it will connect for.
+00:18:23.678 - 00:18:28.650, Speaker B: Me in a second. Probably because I have a node running. Might be on a different port right now.
+00:18:29.520 - 00:18:53.612, Speaker C: But instead of seeing this screen, it would just work, which would be really cool. True IPFS support and web apps. So I worked on something a few weeks ago for IPFS thing, and we essentially had Helia in a service worker kind of working as a gateway.
+00:18:53.612 - 00:19:30.236, Speaker C: So you could actually, on different web apps, have a service worker that automatically supports Ipfscid content. And then by having this service worker, it would enable all web apps to essentially have their own node running in the browser that can publish and retrieve content from the network. There's some gotchas around intercepting fetch calls with service workers and different things there that you could run into and then only one service worker per origin.
+00:19:30.236 - 00:19:53.664, Speaker C: So for web apps that already have a service worker, there's an issue for that, but could be really cool. Problem for moving Web Three forward conference Workshop Code Sharing there is this tool share IPFS IO this is using Jsipfs, but essentially you can add files.
+00:19:53.712 - 00:19:57.124, Speaker B: Let me see. Let's just do this.
+00:19:57.242 - 00:20:13.580, Speaker C: You can share these files and then people can scan this and ideally they'd be able to download that easily. But doing this in a way that is fully offline would be really cool. See, it's posted up above.
+00:20:14.160 - 00:20:18.670, Speaker B: There's a question in zoom, so I'll repost it. Here you go.
+00:20:23.300 - 00:20:49.960, Speaker C: Yeah, this could be really cool. The problem is if you can connect appears on a that's that's kind of a problem at a conference, just adding Helia support into web apps to download. Maybe you have a game and you want to use Helia to cache content and then have your peers help you serve that content to your other peers.
+00:20:49.960 - 00:20:52.136, Speaker C: Actually, one tool that I kind of.
+00:20:52.158 - 00:20:55.256, Speaker B: Talked about, or didn't really talk about.
+00:20:55.278 - 00:21:00.910, Speaker C: A ton, but is universal connectivity. This is an app put together by the Lib P to P team and a ton of others.
+00:21:01.280 - 00:21:05.228, Speaker B: I'll post this in the chat that.
+00:21:05.314 - 00:21:22.448, Speaker C: Kind of shows how browsers can connect to each other. So it's a really cool expression of technology. This is not using Helia, but Helia is just it wraps Lib PDP, so anything that Lib PDP can do, helia can do, and then do IPFS on.
+00:21:22.454 - 00:21:23.250, Speaker B: Top of.
+00:21:26.040 - 00:21:43.188, Speaker C: That could be really cool. Reduce your bandwidth waste, increase your resiliency the more users you have of your app. And then if you're paying attention to Reddit at all, there's issues with Reddit.
+00:21:43.188 - 00:22:02.690, Speaker C: So doing like, a Reddit replacement using Helia could be really cool. Or any IPFS implementation could be really yeah, that's a big undertaking. But doing, like, parts of Reddit using Helia could be really cool.
+00:22:02.690 - 00:22:08.880, Speaker C: I would love to see a Reddit replacement or social network on IPFS.
+00:22:11.300 - 00:22:12.850, Speaker B: I would love to see that.
+00:22:14.660 - 00:22:40.200, Speaker C: Other project Ideas improving existing JS IPFS projects by migrating to Helia, that could be a good avenue to go. If you've ever tried something with Jsipfs and it didn't quite work right, migrating that to Helia could be pretty cool. Or just getting ideas from existing things that use Jsipfs.
+00:22:40.200 - 00:22:49.820, Speaker C: And then yeah. Q and A is supposed to be ten minutes. I think we have four minutes, but yeah, you can at me.
+00:22:49.820 - 00:22:58.240, Speaker C: I think Discord just prompted me to create my new username. So there's no longer a Star 7787. It's just Sergeant Pookie on discord.
+00:22:58.240 - 00:23:09.670, Speaker C: Yeah, you can find me there or in the Partner IPFS channel in ETH Global Discord. So any questions?
+00:23:15.160 - 00:23:36.350, Speaker A: Yeah, if you have any questions, please feel free to take yourself off mute or to type them in the chat. And as Russell said, please definitely feel free to reach out in the Discord directly or in the Partner channels. It's one of the best ways you can get that sort of help and mentorship in case you get stuck on anything.
+00:23:41.840 - 00:23:46.930, Speaker C: Yeah, and if you have trouble using any of those examples, feel free.
+00:23:47.540 - 00:23:53.200, Speaker A: Teresa, the Discord, it's on the screen. It's Sergeant Pookie.
+00:23:54.660 - 00:23:55.410, Speaker B: Yeah.
+00:24:04.260 - 00:24:22.652, Speaker C: And if you do want to DM me, that's great. But also if you ask in the Partner IPFS channel, that gives an opportunity for others who might have the same question to benefit from your learning. So if we can keep the questions in the public, that's great.
+00:24:22.652 - 00:24:35.490, Speaker C: If you have something you might not want to necessarily make public, that's fine to DM me, but if it's something that I think others can benefit from, I'll point us back to the Partner IPFS channel.
+00:24:36.420 - 00:24:43.890, Speaker A: Yeah, that's a good point. And there was another question. Everything we can do with Kubo, we can with Ilya, right?
+00:24:44.440 - 00:24:59.530, Speaker C: That is a very good question, and I won't say everything, but I'll say you can do most things. The majority of things. Yes.
+00:24:59.530 - 00:25:26.130, Speaker C: And then if you're running helia on the back end, you can do TCP. Like, if you're running it as a backend process and node, then you do have access to that TCP transport, so it can do a lot more that way. And then there are some different codecs and things that aren't supported right now.
+00:25:26.500 - 00:25:30.450, Speaker B: Let me see Helia. Let me just do.
+00:25:32.660 - 00:25:35.040, Speaker C: So, like, there's Helia Unix FS.
+00:25:37.000 - 00:25:38.150, Speaker B: Excuse me.
+00:25:40.280 - 00:25:56.632, Speaker C: Which is a library that we publish. But if you look at the commands and different how things are extended or maybe I'll do Dag JSON. Yeah, I'll do Dag JSON because it's one file, it's super simple.
+00:25:56.632 - 00:26:10.540, Speaker C: Like, if you wanted to add support for a codec that's not supported, it's crazy easy to extend and add on. And it's in JavaScript, like one of the most popular languages in the world, or TypeScript. So we've got types.
+00:26:10.540 - 00:26:14.304, Speaker C: So really easy to modify if it.
+00:26:14.342 - 00:26:16.450, Speaker B: Doesn'T do something that you need to do.
+00:26:23.810 - 00:26:55.470, Speaker C: But yeah, there's examples out there. So, like, if you I had to do for I was migrating the Explorer tool just as my personal work got a PR out now, but I needed some additional codecs, so I was able to modify that very easy and add existing codecs that weren't ported for Helia syntax yet very easily. It should be much easier to navigate than Jsipfs.
+00:26:55.470 - 00:27:14.440, Speaker C: If you're used to Jsipfs, it might be just a little bit OD to get used to, but that migration. Migrating from Jsipfs should help. And if it doesn't cover a scenario or API that you think it should, please at me or open an issue.
+00:27:14.440 - 00:27:22.282, Speaker C: We definitely want this to help users start using Helia, but this should cover.
+00:27:22.336 - 00:27:23.260, Speaker B: A lot of them.
+00:27:28.290 - 00:27:36.660, Speaker A: Well, we're at the top of the hour now, so there was another question. How difficult would it be to add clustering? IPFS clusters only go right.
+00:27:37.190 - 00:27:48.760, Speaker C: So it depends. On what? The IPFS cluster. If you think of clustering as a group of nodes, that's extremely easy.
+00:27:48.760 - 00:28:12.990, Speaker C: With helia, with your lib p to p bootstrapping, with your lib p to p bootstrapping, you would have your list of nodes, your dialable addresses that you would boot up, like ten helia nodes on the back end and then connect them to each other.
+00:28:13.060 - 00:28:13.680, Speaker B: Or.
+00:28:15.490 - 00:28:35.202, Speaker C: You can do a cluster in the browser, I guess, but it wouldn't work that great because of browser's limitations of the number of active network connections. But yeah, you would just bootstrap to those other nodes. And there is like swarm support.
+00:28:35.202 - 00:28:55.990, Speaker C: I think there's an open issue on IPFS helio right now for how you would do swarm things. Yeah, it's just a cluster is really just a single node or a single endpoint that is fronting multiple different nodes. Right? So, yeah, you could do that fairly easily.
+00:28:55.990 - 00:29:07.822, Speaker C: You'd expose using NGINX or whatever, your front access to those singular nodes, and then have that single node at the front like bootstrap to your back end.
+00:29:07.876 - 00:29:10.160, Speaker B: Ones or something like that.
+00:29:15.140 - 00:29:27.360, Speaker C: I think IPFS cluster itself is a library that protocol labs put out that is just like, for kubo. So that terminology, like, in that way, that is only Kubo.
+00:29:31.580 - 00:29:32.330, Speaker B: Awesome.
+00:29:32.860 - 00:29:38.580, Speaker A: Well, cheers. I don't think we have any other questions. Thanks, Russell, for this great presentation.
+00:29:38.580 - 00:29:46.296, Speaker A: And thank you all for attending. We still have a few more workshops left for the day, but I hope everybody has a good rest of the day.
+00:29:46.478 - 00:29:47.608, Speaker C: All right, thanks.
+00:29:47.774 - 00:29:48.212, Speaker B: Cheers.
+00:29:48.276 - 00:29:49.460, Speaker A: Thank you. Bye.

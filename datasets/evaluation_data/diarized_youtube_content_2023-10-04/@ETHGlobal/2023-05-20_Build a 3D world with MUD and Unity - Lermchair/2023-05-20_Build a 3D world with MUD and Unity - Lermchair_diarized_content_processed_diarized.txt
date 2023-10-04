@@ -1,0 +1,233 @@
+00:00:25.050 - 00:00:25.600, Speaker A: You.
+00:00:27.570 - 00:00:38.560, Speaker B: Hello, everyone, and welcome to the Lattice Workshop build a 3D World with Mud and Unity. Joining us today is Learnchair, who will be taking us through this session. And with that, I will pass it over to Learnchair to get the session started.
+00:00:43.660 - 00:00:48.408, Speaker A: All right, everyone, I'm learnchair as far.
+00:00:48.414 - 00:01:00.236, Speaker C: As you know and what we're going to be building today is a multiplayer game in Unity and Mud. So basically in this game, you could drive around little tanks and drop bombs on top of each other. And this is going to happen on Chain.
+00:01:00.236 - 00:01:02.192, Speaker C: So first thing you're going to do.
+00:01:02.326 - 00:01:03.708, Speaker A: Is clone the repo.
+00:01:03.804 - 00:01:24.248, Speaker C: So the repo is named Tank Mud Tutorial, and you can find out this link. And we'll be working off the main branch, but there is a pull request open called Final, and that has all finished code for the tutorial. And you should also have all the prerequisites like Unity net SCK installed as well.
+00:01:24.248 - 00:01:34.652, Speaker C: So once you've cloned that, we're going to go ahead and open the scene in Unity. Go ahead and open the scene in Unity. And you should see something like this.
+00:01:34.652 - 00:01:48.590, Speaker C: If you don't see something like this, then you have to actually open the scene. So you go into scenes over here and click on Main. So this project uses a package called Unimud, which you can find in the package manager if you go here.
+00:01:48.590 - 00:01:55.632, Speaker C: And it's installed from Git. Note that this is pre alpha software. So it's not even part of the official Mud package yet.
+00:01:55.632 - 00:02:09.290, Speaker C: So you probably shouldn't use it for anything beyond this hackathon. So just to make sure we have something that works in the beginning, let's go into our Resources folder here. One SEC, someone wants a link.
+00:02:09.290 - 00:02:31.686, Speaker C: We're going to go into our Resource folder here and we're going to drag in our tank prefab it's anywhere in the scene. Now, if we just hit play in.
+00:02:31.708 - 00:02:35.654, Speaker A: The editor, you see, I can left.
+00:02:35.692 - 00:02:48.586, Speaker C: Click to move my tank around. And I can also hold down e and have like a little targeting thing I can use. Eventually, if I click on a tank, I can drop a bomb on top of it.
+00:02:48.608 - 00:02:54.574, Speaker A: But for now, this is what we have. None of this is on Chain, so we're actually going to delete this because.
+00:02:54.612 - 00:02:56.640, Speaker C: We don't really need it yet.
+00:02:57.650 - 00:02:59.950, Speaker A: So let's write some contracts.
+00:03:00.530 - 00:03:04.402, Speaker C: So if you haven't done so already, we're going to do first is open.
+00:03:04.456 - 00:03:16.386, Speaker A: The project in our terminal, and I'm going to run Pnpm install in the root. And once everything's installed, we're going to.
+00:03:16.408 - 00:03:31.606, Speaker C: Start modeling our data. My assumption is that you guys already have some understanding of Mud in Solidity, so we're not going to be spending too much time on this. But basically the smart contract code you write here is exactly the same as in any other non unique project.
+00:03:31.606 - 00:03:33.226, Speaker C: So we want tanks that can move.
+00:03:33.248 - 00:03:36.214, Speaker A: Around and attack each other in our mud config.
+00:03:36.262 - 00:03:37.930, Speaker C: We're going to have a position table.
+00:03:38.910 - 00:03:43.200, Speaker A: And this will have an X and a y that is an 32.
+00:03:46.580 - 00:03:59.312, Speaker C: We also have a health table. We actually don't need this schema thing as well. So for example we have a player table as well.
+00:03:59.312 - 00:04:09.510, Speaker C: You can also just write the type directly. If we only have one thing, you don't really need to specify the schema. And we also have a damage which is a UN 32.
+00:04:15.850 - 00:04:17.420, Speaker A: This is missing A.
+00:04:21.070 - 00:04:24.006, Speaker C: And finally we want to be able to perform reverse.
+00:04:24.038 - 00:04:26.186, Speaker A: Lookups on the position as well.
+00:04:26.208 - 00:04:29.020, Speaker C: So we're going to add the keys of value module for a position.
+00:04:57.380 - 00:05:00.944, Speaker A: This looks up like this anyway.
+00:05:01.142 - 00:05:26.298, Speaker C: So now if we go back to our terminal we can CD into packages contracts and I'm going to run pnpm run tablegen. So tablegen also runs when you do like pnpm run dev in the root but that also does a bunch of other stuff. And right now we just want to.
+00:05:26.304 - 00:05:35.350, Speaker A: Generate the tables facility. So now let's start on movement system. So open movement system in your editor.
+00:05:35.430 - 00:05:48.480, Speaker C: And we're going to implement this move function. So the move function takes in a destination x and Y and basically moves our player to that destination. We're going to be using the position table so we'll import that first.
+00:05:48.480 - 00:06:07.530, Speaker C: And we also need the keys of value module as well.
+00:06:09.580 - 00:06:11.156, Speaker A: So we'll start by getting the player's.
+00:06:11.188 - 00:06:15.004, Speaker C: Current position from the position table and then we'll use the keys of value.
+00:06:15.042 - 00:06:17.196, Speaker A: Module to check if there is a.
+00:06:17.298 - 00:06:18.316, Speaker C: Player at that position.
+00:06:18.418 - 00:06:30.102, Speaker A: So that is bytes. We want to get the position from.
+00:06:30.156 - 00:06:42.890, Speaker C: Position table and the value will be position encode x and Y and we will rename this to player position.
+00:06:44.940 - 00:06:46.596, Speaker A: So what this is doing is it's.
+00:06:46.628 - 00:06:58.444, Speaker C: Returning a list of all keys that have a value of X and Y in the position table. If that list has keys in it, that means there's something at position X and Y. So basically we have to check to make sure no one's at that position and we just check the length of that table.
+00:06:58.444 - 00:07:01.712, Speaker C: So it will be require player at.
+00:07:01.766 - 00:07:06.464, Speaker A: Position length to be zero and if.
+00:07:06.502 - 00:07:09.040, Speaker C: Not then we'll tell them that the position is occupied.
+00:07:12.480 - 00:07:13.664, Speaker A: And if everything goes.
+00:07:13.702 - 00:07:20.050, Speaker C: Well then we can set the position. So that would be position set player X and Y.
+00:07:25.800 - 00:07:31.336, Speaker A: Look at the chat. Next thing we want to do is.
+00:07:31.358 - 00:07:41.370, Speaker C: Spawn player pretty straightforward, get the player key. Again we have to check if the player has already been spawned. So this is require not player get.
+00:07:41.370 - 00:07:59.572, Speaker C: So we'll get the value the player key. This bytes 32 value over here from the player table. If it doesn't exist in the player table that means the player hasn't spawned yet.
+00:07:59.572 - 00:08:00.936, Speaker C: We also need to import the player.
+00:08:00.968 - 00:08:01.870, Speaker A: Table here.
+00:08:04.160 - 00:08:17.900, Speaker C: And finally we'll just set all the components and that's how we create our player. When they spawn in. So we'll set Health to 100 damage to ten just because last smart contract to write is attacking.
+00:08:17.900 - 00:08:35.540, Speaker C: So we have an attack system here as well. The player can attack at a certain X and Y location because our bombs, we want our bombs to do damage in the radius. We're also going to get all the surrounding tiles within a raise of one from the center of whatever X and Y you input here.
+00:08:35.540 - 00:08:41.210, Speaker C: So that's nine tiles we're checking in total. So you can just uncomment all this.
+00:08:46.170 - 00:08:47.462, Speaker A: And we have to make sure we.
+00:08:47.516 - 00:08:57.020, Speaker C: Import our tables as well. And basically all you have to do is uncomment everything.
+00:08:59.070 - 00:09:01.578, Speaker A: So for each tile we'll check if.
+00:09:01.584 - 00:09:07.146, Speaker C: There'S a player at that position and we'll use the keys of value module over here. Again, check if there's an entity at.
+00:09:07.168 - 00:09:09.050, Speaker A: The position we're interested in attacking.
+00:09:09.390 - 00:09:27.276, Speaker C: If there is, we'll perform the attack by subtracting the attacker's damage value from defender's health value. When Health reaches zero, we just delete everything and that's how we despawn or kill the player. Okay, contracts are done.
+00:09:27.378 - 00:09:37.072, Speaker A: So back to unity. So how do we connect Unity to the chain? First thing you have to do is in your hierarchy we're going to create.
+00:09:37.126 - 00:09:42.828, Speaker C: A new empty game object in our scene by right clicking and hitting Create empty.
+00:09:42.924 - 00:09:45.120, Speaker A: And we're going to name this network Manager.
+00:09:46.420 - 00:09:52.644, Speaker C: And in the inspector on the right we're going to attach the network manager component to it. And this is a component that comes.
+00:09:52.682 - 00:09:56.628, Speaker A: With the unimud package and make sure.
+00:09:56.634 - 00:10:08.090, Speaker C: You set the chain ID to 31337, which is the local chain. And you don't have to worry about contract address or private key because these will be auto populated for us later.
+00:10:09.420 - 00:10:16.360, Speaker A: Okay, so now let's test if this works just to make sure we can connect to chain.
+00:10:16.440 - 00:10:27.404, Speaker C: So we're going to open our project in our terminal again, back to the roots. And in one tab you have to open two tabs. Open your project in two tabs.
+00:10:27.404 - 00:10:54.870, Speaker C: In tab one you run PMPM, PMPM run Dev Node which runs the local chain. In your other tab you run PMP and run Dev. And this might take a while because it's generating a bunch of files and it's going to deploy it to the local chain as well.
+00:10:54.870 - 00:11:04.090, Speaker C: Assuming everything goes well and we hit play, we can see a bunch of logs in the console and then we'll be good to go. So we're going to wait until our contracts get deployed.
+00:11:04.590 - 00:11:08.106, Speaker A: And now if I hit play I.
+00:11:08.128 - 00:11:12.270, Speaker C: Should see a bunch of logs in my console?
+00:11:13.570 - 00:11:17.610, Speaker A: Yes, we have a bunch of logs in the console.
+00:11:17.690 - 00:11:26.960, Speaker C: WebSocket client created syncing and these are all component updates. Now we know this works.
+00:11:27.410 - 00:11:28.658, Speaker A: So the next thing I have to.
+00:11:28.664 - 00:11:42.722, Speaker C: Do is actually spawn a player into the game. To do that, first thing we have to do is associate Unity game objects with entity keys from Mud. So open your tank prefab just by clicking it in the resources folder.
+00:11:42.722 - 00:11:45.746, Speaker C: Double click on Tank and what you want to do is attach a player.
+00:11:45.778 - 00:11:47.320, Speaker A: Sync component to it.
+00:11:48.350 - 00:11:50.220, Speaker C: And what Player sync does.
+00:11:52.750 - 00:11:54.090, Speaker A: Is basically.
+00:11:54.160 - 00:11:57.066, Speaker C: Keep track of which key the game.
+00:11:57.088 - 00:12:00.890, Speaker A: Object has and whether or not it's a local player. It's pretty simple.
+00:12:01.040 - 00:12:03.182, Speaker C: So we'll make sure change those save.
+00:12:03.236 - 00:12:05.566, Speaker A: There and then we're going to create.
+00:12:05.588 - 00:12:08.826, Speaker C: Another empty game object in the hierarchy. We're going to call this the Player.
+00:12:08.858 - 00:12:14.956, Speaker A: Manager and we're going to go into.
+00:12:14.978 - 00:12:18.168, Speaker C: Our Scripts folder and drag the Player.
+00:12:18.184 - 00:12:22.300, Speaker A: Manager script into the spectrum on the right.
+00:12:22.370 - 00:12:23.736, Speaker C: Make sure it's attached to the player.
+00:12:23.768 - 00:12:27.260, Speaker A: Manager object and let's open that file.
+00:12:29.970 - 00:12:46.818, Speaker C: So the first thing you'll see is that on Start we get the instance of the network manager and when the network has been initialized we call this spawn function. So in our spawn function what we have to do is first we're going to get our Burn wallet address from.
+00:12:46.824 - 00:12:58.860, Speaker A: The network manager and the next thing we'll do is we'll get the value of the current player from the player table.
+00:13:07.710 - 00:13:46.434, Speaker C: So you might be wondering where does this player table actually come from? So when we run Pnpm, run dev in our project in the terminal, you're actually auto generating a bunch of these table definition files that give us really nice things like strong types and subscriptions and querying interfacing with all the low level UMD, networking stuff. And then we can just do a one line call like this. So we're going to say if the current player doesn't exist, in other words, if we don't have an entry in the player table for our address, we're going to spawn the player by calling a we're going to make a transaction to spawn the player.
+00:13:46.434 - 00:13:47.240, Speaker C: So.
+00:13:49.610 - 00:14:02.214, Speaker A: If current player doesn't exist, I'm going to call a function on the network manager called WorldSen and WorldsEnd exposes.
+00:14:02.262 - 00:14:21.090, Speaker C: Something called TX Execute which takes in a generic type that will set as spawn function. Spawn function comes from the auto generated C sharp bindings for our world contract. So this is like basically a C sharp version of whatever abi was generated from your world systems.
+00:14:21.090 - 00:14:24.258, Speaker C: And finally the last thing we want.
+00:14:24.264 - 00:14:28.290, Speaker A: To do is subscribe to further updates player table.
+00:14:41.230 - 00:14:42.090, Speaker C: Players.
+00:14:45.270 - 00:14:46.534, Speaker A: So what this is doing is saying.
+00:14:46.572 - 00:14:52.726, Speaker C: Every time someone inserts a new record into the player table, we're going to call this on update players function which.
+00:14:52.748 - 00:14:57.802, Speaker A: We have commented out here. Also good practice is you want to.
+00:14:57.856 - 00:15:10.800, Speaker C: Properly dispose of your subscriptions. So on update players takes a player table update parameter. This parameter is also auto generated.
+00:15:10.800 - 00:15:29.766, Speaker C: It gives you keys, table ID values and type tuples from whatever update happened. So in this case we're going to get the current value of the update. So update the update type returns has.
+00:15:29.788 - 00:15:32.242, Speaker A: A type value parameter which say tuple.
+00:15:32.306 - 00:15:37.962, Speaker C: First item for tuple is the current value. Second item of the Tuple is the previous value. We only care about the current value here.
+00:15:37.962 - 00:15:42.422, Speaker C: So we'll say if the current value doesn't exist we're just going to bail.
+00:15:42.486 - 00:15:44.602, Speaker A: Out early because there's really not much.
+00:15:44.656 - 00:15:49.670, Speaker C: For us to do there yet. And then we're going to get the.
+00:15:49.680 - 00:15:53.310, Speaker A: Player'S position from the position table.
+00:16:04.680 - 00:16:17.290, Speaker C: So remember that in the contracts we set the player's entry in the position table to whatever X and Y they spawn at. So we get that from the position table. Now we have to spawn spawn from that position.
+00:16:37.790 - 00:16:38.906, Speaker A: Now that we know where we want.
+00:16:38.928 - 00:16:42.298, Speaker C: To spawn we can actually spawn via player prefab.
+00:16:42.394 - 00:16:45.898, Speaker A: So I'm going to say player we're.
+00:16:45.914 - 00:16:47.454, Speaker C: Going to set it equal to the.
+00:16:47.492 - 00:16:53.618, Speaker A: Result of an instantiate call which is part of Unity and we're going to.
+00:16:53.624 - 00:16:55.410, Speaker C: Instantiate the player prefab.
+00:16:57.110 - 00:16:57.746, Speaker A: And we're going.
+00:16:57.768 - 00:16:59.694, Speaker C: To instantiate it at the player spawn.
+00:16:59.742 - 00:17:02.338, Speaker A: Point and we just want it to.
+00:17:02.344 - 00:17:18.498, Speaker C: Have the identity rotation. Next thing you want to do is just add this thing which basically helps with the camera and now we have to tell Unity which game module does this update key belong to?
+00:17:18.684 - 00:17:21.146, Speaker A: So we'll say this player that we.
+00:17:21.168 - 00:17:24.890, Speaker C: Newly instantiated their player sync component.
+00:17:26.590 - 00:17:36.670, Speaker A: Key is going to be equal to this key that we just received from from the update. And we're going to say if the.
+00:17:36.820 - 00:17:42.640, Speaker C: Updates key is the same as our Burner Wallet address.
+00:17:45.270 - 00:17:46.274, Speaker A: Then we will also.
+00:17:46.312 - 00:17:51.294, Speaker C: Say set the player sync local player.
+00:17:51.342 - 00:17:54.500, Speaker A: Key to this update key.
+00:17:59.010 - 00:17:59.760, Speaker C: Okay.
+00:18:03.420 - 00:18:04.696, Speaker A: Now we'll go back into our.
+00:18:04.718 - 00:18:08.360, Speaker C: Editor and we're going to wire up this script.
+00:18:11.100 - 00:18:12.756, Speaker A: So all you have to do is.
+00:18:12.798 - 00:18:15.656, Speaker C: Go into resources and drag your tank.
+00:18:15.688 - 00:18:20.668, Speaker A: Prefab into this slot over here.
+00:18:20.834 - 00:18:24.830, Speaker C: When we hit play we should see ourselves automatically spawn into the world.
+00:18:28.330 - 00:18:30.922, Speaker A: And there we are and I can move around.
+00:18:30.976 - 00:18:33.482, Speaker C: Movement is not still not on chain so let's fix that.
+00:18:33.616 - 00:18:35.930, Speaker A: So I'm going to open the player controller script.
+00:18:43.100 - 00:18:45.208, Speaker C: So first we want the player sync.
+00:18:45.224 - 00:18:45.980, Speaker A: Component.
+00:18:51.090 - 00:18:55.466, Speaker C: And on start we want to get the current game object's player sync.
+00:18:55.498 - 00:18:58.894, Speaker A: Component so player is equal to get.
+00:18:58.932 - 00:19:13.070, Speaker C: Component and this time we want to subscribe to both record insert and record update events in the position table.
+00:19:14.370 - 00:19:31.030, Speaker A: So our subscription will be this and then we'll say set our disposal to observe on main thread and our callback.
+00:19:31.110 - 00:19:34.960, Speaker C: Is going to be the on chain position update function.
+00:19:37.410 - 00:19:38.942, Speaker A: So what do we just do?
+00:19:39.076 - 00:19:43.386, Speaker C: Basically what we're saying is every time something in the position table gets updated.
+00:19:43.498 - 00:19:46.358, Speaker A: Whether it's just the field which calls.
+00:19:46.394 - 00:20:18.346, Speaker C: This or whether it's the whole row which calls this, every time either one of those two happens we're going to call this on chain position update function. And in here all we're doing is first check to make sure the player being updated is also the player in the current game object. If we don't do this then basically all game objects are going to change position every time, every time get a new update which we only care about the update for this specific game object and then we'll say if this is the local player we'll return early because.
+00:20:18.368 - 00:20:20.650, Speaker A: We want to handle that locally.
+00:20:22.830 - 00:20:30.890, Speaker C: If I don't do this then the player's position is going to update twice. Once locally when we move and again when the position in the smart contract updates.
+00:20:31.050 - 00:20:32.190, Speaker A: And then we're going to get the.
+00:20:32.260 - 00:20:40.340, Speaker C: Value of this update, which is like the new position they move to, and then we're going to set the destination to that new position that they move to.
+00:20:41.350 - 00:20:45.650, Speaker A: And in our update loop, we actually.
+00:20:45.800 - 00:20:48.226, Speaker C: Need to return early if it's not.
+00:20:48.248 - 00:20:49.880, Speaker A: The local player as well.
+00:20:55.910 - 00:21:08.818, Speaker C: Now let's write a small function to actually send the move transaction. It's going to be the same thing as like the spawn function before but we're going to use the move function type from our Abi bindings so it's.
+00:21:08.834 - 00:21:15.094, Speaker A: Going to be await NetworkManager instance we.
+00:21:15.132 - 00:21:19.514, Speaker C: Want WorldsEnd txq and this time instead of spawn function it's going to be.
+00:21:19.552 - 00:21:23.420, Speaker A: Move function and this takes an X and a Y.
+00:21:26.350 - 00:21:42.270, Speaker C: We see. We're actually wrapping this in a unitask return type just because I think it's a little bit nicer than doing inside a coroutine. Sending a transactions is an async function uni doesn't really have a good native way to do async await unless you do coroutines this is just a little bit cleaner.
+00:21:42.270 - 00:21:47.730, Speaker C: So here we'll say send move transaction async.
+00:21:49.750 - 00:21:50.994, Speaker A: And we want to make sure.
+00:21:51.032 - 00:21:53.700, Speaker C: Everything'S of our proper type.
+00:21:58.030 - 00:21:58.618, Speaker A: And you.
+00:21:58.624 - 00:22:04.794, Speaker C: Can see we have this yellow line that's warning us that it's not awaited and we don't really care so it's.
+00:22:04.842 - 00:22:07.530, Speaker A: Safe, forget and then no more error.
+00:22:07.610 - 00:22:10.302, Speaker C: This magically make that problem go away.
+00:22:10.436 - 00:22:12.686, Speaker A: Anyway if I hit play again in.
+00:22:12.708 - 00:22:14.130, Speaker C: The unity editor.
+00:22:19.490 - 00:22:20.398, Speaker A: You can see that.
+00:22:20.484 - 00:22:24.846, Speaker C: Next time I move around we have a transaction event in the log as.
+00:22:24.868 - 00:22:27.534, Speaker A: Well so that means you're basically making.
+00:22:27.572 - 00:22:29.860, Speaker C: The move transaction when you move.
+00:22:33.080 - 00:22:34.356, Speaker A: So we have two more things to.
+00:22:34.378 - 00:22:43.930, Speaker C: Implement that's attacking and health. So we're going to start with attacking which is only a couple of lines in tank shooting in the file called Tankshooting CS. So.
+00:22:53.160 - 00:22:54.244, Speaker A: First thing we're going to do.
+00:22:54.282 - 00:23:10.190, Speaker C: Is same thing as in the move function and call the attack function instead. And attack function takes an X and a Y location, so use that as well.
+00:23:10.340 - 00:23:12.654, Speaker A: And then when I left Click over.
+00:23:12.692 - 00:23:23.650, Speaker C: Here, I want to send our transaction pretty much the same thing as what we did before. Now we're going to update our health.
+00:23:23.720 - 00:23:26.786, Speaker A: When we get attacked so first thing.
+00:23:26.808 - 00:23:55.022, Speaker C: We need to do get the player sync component and this time we need two subscriptions. We need two subscriptions. We need a subscription for when the health changes and when the health gets deleted.
+00:23:55.022 - 00:24:11.586, Speaker C: In other words, when your player gets killed. So our health updated subscription will look like this. We're looking for the on record update observable in our health table which fires every time a row in the table updates.
+00:24:11.586 - 00:24:19.162, Speaker C: And we're going to use callback with the on health change function for deletion. It's the same thing. We're going to call this one health.
+00:24:19.216 - 00:24:20.090, Speaker A: Deleted.
+00:24:23.870 - 00:25:07.990, Speaker C: And this time we want the on record delete and this callback will be on player death. So for the first one on health change we're going to say if the health changes, first thing we're going to do is drop a shell or a bomb above the player and that way people can see what caused their health to go down. So first thing we're going to do is we only care about the current game objects key, and we want to initialize our shell position at current gay objects transform.
+00:25:10.490 - 00:25:15.178, Speaker A: And we're going to put it a little bit up so we can actually drop down.
+00:25:15.264 - 00:25:38.554, Speaker C: And then we'll instantiate our shell prefab. And we want this to point down. So we're actually going to do quaternion look rotation vector three down and we actually have to change how the health is played as well.
+00:25:38.554 - 00:25:40.202, Speaker C: So we're going to say the current.
+00:25:40.256 - 00:25:53.920, Speaker A: Value, current health value is the updates value, the first one and we're going to set our game objects health to that value.
+00:26:03.670 - 00:26:18.680, Speaker C: Next thing we have to do is handle when your health row gets deleted. In other words when someone erases your health. Again, we only care about our current key.
+00:26:25.260 - 00:26:33.740, Speaker A: Now let's just say if the updates value is null, then we play the depth animation.
+00:26:37.600 - 00:26:43.776, Speaker C: If the first item in the value tuple is null, the current value is null. Usually that means the key has been.
+00:26:43.798 - 00:26:46.304, Speaker A: Deleted in the table and in our.
+00:26:46.342 - 00:26:49.404, Speaker C: Case the player's row in the health table has been deleted.
+00:26:49.532 - 00:26:50.560, Speaker A: They're dead.
+00:26:53.220 - 00:27:18.964, Speaker C: So let's go back to unity again and this time I want to test out with multiple players. So the way you have to do this in Union Fortune is I have to create a local build. So I'm going to save this and create a local build and basically it's going to open up the game in a new window and then I to play the game again in my editor.
+00:27:19.012 - 00:27:20.090, Speaker A: At the same time.
+00:27:24.200 - 00:27:32.900, Speaker C: So here is our first game and here I will also play it in the editor.
+00:27:35.580 - 00:27:41.448, Speaker A: Hopefully you can see that kind of and when I move on one side.
+00:27:41.534 - 00:27:43.610, Speaker C: It updates on the other side as well.
+00:27:44.860 - 00:27:49.704, Speaker A: Same here. And now if I for example want.
+00:27:49.742 - 00:27:56.844, Speaker C: To attack, if I'm this guy, I want to attack this other guy, I'll hold down e and just click on, click on him and we'll have a.
+00:27:56.882 - 00:28:00.248, Speaker A: Shell drop and they'll be dead.
+00:28:00.344 - 00:28:02.752, Speaker C: They won't be dead but if we keep doing it they will be.
+00:28:02.886 - 00:28:18.736, Speaker A: So let's spend a couple of minutes doing that because we're running out of time soon. Almost done and they're gone.
+00:28:18.918 - 00:28:25.324, Speaker C: And now they no longer exist. And if I'm back here, I cannot control my player because my player doesn't exist anymore.
+00:28:25.372 - 00:28:29.010, Speaker A: I'm dead. So, yeah, that's it.
+00:28:31.380 - 00:28:38.150, Speaker C: I will be around for the rest of this week as well, so feel free to ask any questions in Discord as well.
+00:28:38.920 - 00:28:43.772, Speaker A: Yeah, thank you. Cheers.
+00:28:43.836 - 00:28:49.780, Speaker B: Thank you. Learn Share, there was a question from Marvin. Do you have to set the contract address in the network?
+00:28:51.640 - 00:28:52.710, Speaker A: You do not.
+00:28:53.240 - 00:28:54.756, Speaker C: If you're using the template in the.
+00:28:54.778 - 00:28:58.490, Speaker A: GitHub, you don't because it automatically sets it for you.
+00:29:00.780 - 00:29:09.720, Speaker B: Okay, and are there any known issues, limitations within the Unimod library? What kinds of community contributions would be most useful?
+00:29:10.300 - 00:29:17.932, Speaker A: So right now, the Unimod library does not integrate with Latice's Mode package, so.
+00:29:18.066 - 00:29:29.056, Speaker C: It'S just reading events from the RPC, so it might be a little bit slow. It's not going to have the nice indexing features that Mode has. So that is one future potential feature you can add to the library as.
+00:29:29.078 - 00:29:32.850, Speaker A: Well, and that's probably one of the most important things.
+00:29:36.780 - 00:29:42.680, Speaker B: And there's another question. Can this system be incorporated with the Unity game that is already in development?
+00:29:43.900 - 00:29:57.960, Speaker C: I guess it depends on how far along you are. So all you have to do is, if you have a game that already exists, if you only have the client.
+00:29:58.040 - 00:30:00.156, Speaker A: You'Re going to have to put that.
+00:30:00.178 - 00:30:11.170, Speaker C: Client into the template, into the package repository, so you have access to the contract as well, and then you just import the Unimud package from Unity. So yes.
+00:30:15.760 - 00:30:16.510, Speaker A: Awesome.
+00:30:17.040 - 00:30:28.512, Speaker B: Well, there are no other questions in the queue. We are at the top of the hour. So thank you again, Learncher, for the presentation and workshop, and thank you all for participating in the event as well.
+00:30:28.512 - 00:30:39.872, Speaker B: And this is our last workshop for Autonomous Worlds. And don't forget about the Project Flowback session tomorrow and good luck with the rest of Hacking. Have a great Friday and have a good weekend.
+00:30:39.872 - 00:30:47.640, Speaker B: Oh, wait, sorry, there was one other question. Does that already have support for something like an Ethereum or do we need to add this ourselves?
+00:30:47.980 - 00:30:53.336, Speaker A: So the Unimud package is already in GitHub, it's open source and it actually.
+00:30:53.358 - 00:30:58.504, Speaker C: Uses an Ethereum on the back end as well. So the answer is yes, it does.
+00:30:58.542 - 00:31:03.624, Speaker A: Have support for an Ethereum. Great.
+00:31:03.662 - 00:31:06.288, Speaker B: Well, cheers everybody. And yeah, have a good Friday and.
+00:31:06.374 - 00:31:08.780, Speaker C: Have a good weekend. Bye.
