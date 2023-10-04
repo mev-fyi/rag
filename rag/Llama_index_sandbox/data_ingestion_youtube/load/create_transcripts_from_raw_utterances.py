@@ -1,8 +1,12 @@
 import json
 import os
 import concurrent.futures
+import time
+import random
 
 from rag.Llama_index_sandbox.utils import root_directory
+
+SKIP_EXISTING = True  # Set to False if you want to re-process already processed files.
 
 
 def format_time(ms):
@@ -46,21 +50,46 @@ def process_utterance(utterance, sentence_count):
 
 
 def process_transcript(file_path, sentence_count=3):
-    print(f"Processing: {file_path.split('/')[-1]}")
-    with open(file_path, 'r') as f:
-        data = json.load(f)
+    try:
+        # Save the results locally
+        output_filename = os.path.splitext(os.path.basename(file_path))[0] + "_processed_diarized.txt"
+        output_path = os.path.join(os.path.dirname(file_path), output_filename)
+        # Check if the file already exists and SKIP_EXISTING is set to True
+        if SKIP_EXISTING and os.path.exists(output_path):
+            # print(f"Skipping {file_path.split('/')[-1]} as processed file already exists.")
+            return
 
-    all_segments = []
-    for utterance in data:
-        all_segments.extend(process_utterance(utterance, sentence_count))
+        print(f"Processing: {file_path.split('/')[-1]}")
 
-    # Save the results locally
-    output_filename = os.path.splitext(os.path.basename(file_path))[0] + "_processed_diarized.txt"
-    output_path = os.path.join(os.path.dirname(file_path), output_filename)
-    with open(output_path, 'w') as output_file:
-        for segment in all_segments:
-            output_file.write(segment + '\n')
-    print(f"Saved {output_filename}")
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+            if not file_content.strip():
+                print(f"Empty JSON at {output_filename}. Returning...")
+                # shutil.rmtree(os.path.dirname(file_path))
+                return
+            try:
+                data = json.loads(file_content)
+            except json.JSONDecodeError:
+                print(f"Invalid JSON content in {output_filename}. Returning...")
+                # shutil.rmtree(os.path.dirname(file_path))
+                return
+
+            if not data:
+                print("no data!")
+                return
+
+        all_segments = []
+        for utterance in data:
+            all_segments.extend(process_utterance(utterance, sentence_count))
+
+        # random time sleep
+        time.sleep(random.randint(0, 2))
+        with open(output_path, 'w') as output_file:
+            for segment in all_segments:
+                output_file.write(segment + '\n')
+        print(f"Saved {output_filename}")
+    except Exception as e:
+        print(f"Error processing {output_filename}: {e}")
 
 
 if __name__ == "__main__":
@@ -73,6 +102,6 @@ if __name__ == "__main__":
                 files_to_process.append(os.path.join(root, file))
 
     # Process the files in parallel
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(process_transcript, files_to_process)
 
