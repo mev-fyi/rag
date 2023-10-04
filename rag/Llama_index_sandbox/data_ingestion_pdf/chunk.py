@@ -9,9 +9,7 @@ def get_chunk_overlap(chunk_size):
 
 @timeit
 def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None):
-    # TODO 2023-09-26: We will determine if different content source better behaves with a specific text_splitter
-    #  e.g. SentenceSplitter could work better for diarized YouTube videos than 'TokenTextSplitter' for instance
-
+    # NOTE: we expect semantical splitter methods to perform best (e.g. sentence splitter)
     if splitter_fn is None:
         splitter_fn = SentenceSplitter  # TODO 2023-09-25: The chosen text splitter should be a hyperparameter we can tune.
     if chunk_overlap is None:

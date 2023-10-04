@@ -1,3 +1,4 @@
+import asyncio
 import multiprocessing
 import time
 import random
@@ -5,6 +6,9 @@ import logging
 import os
 from datetime import datetime
 from functools import wraps
+
+from google.oauth2.credentials import Credentials
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 
 
 def root_directory() -> str:
@@ -111,3 +115,40 @@ def timeit(func):
         return result  # Return the result of the decorated function
 
     return wrapper
+
+
+def background(f):
+    """
+    Decorator that turns a synchronous function into an asynchronous function by running it in an
+    executor using the default event loop.
+
+    Args:
+        f (Callable): The function to be turned into an asynchronous function.
+
+    Returns:
+        Callable: The wrapped function that can be called asynchronously.
+    """
+    def wrapped(*args, **kwargs):
+        """
+        Wrapper function that calls the original function 'f' in an executor using the default event loop.
+
+        Args:
+            *args: Positional arguments to pass to the original function 'f'.
+            **kwargs: Keyword arguments to pass to the original function 'f'.
+
+        Returns:
+            Any: The result of the original function 'f'.
+        """
+        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
+
+    return wrapped
+
+
+def authenticate_service_account(service_account_file: str) -> Credentials:
+    """Authenticates using service account and returns the session."""
+
+    credentials = ServiceAccountCredentials.from_service_account_file(
+        service_account_file,
+        scopes=["https://www.googleapis.com/auth/youtube.readonly"]
+    )
+    return credentials

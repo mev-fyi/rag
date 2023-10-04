@@ -77,10 +77,12 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         #   Even if we format the input query, the ReAct system only logs the question as 'action input'
         #   and seemingly even if the SYSTEM_MESSAGE is very small, the agent still responds to unrelated questions,
         #   even if the sysmessage is a standalone chat message (to which ReAct agent acknowledges).
-        response = chat_engine.chat(SYSTEM_MESSAGE)
+        # response = chat_engine.chat(SYSTEM_MESSAGE)
 
+        # TODO 2023-09-30: fix agent when it tries to reach search_engine_tool
         response = chat_engine.chat(query_str)
         log_and_store(store_response_partial, query_str, response)
+        chat_engine.reset()
 
     logging.info("Test completed.")
     pass
