@@ -5,11 +5,15 @@ from pathlib import Path
 import logging
 
 import rag.Llama_index_sandbox.config as config
+from rag.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
 from rag.Llama_index_sandbox.utils import start_logging, timeit
-from rag.Llama_index_sandbox import pdfs_dir
-from rag.Llama_index_sandbox.data_ingestion_pdf.load import load_pdfs
-from rag.Llama_index_sandbox.data_ingestion_pdf.chunk import chunk_documents, get_chunk_overlap
-from rag.Llama_index_sandbox.data_ingestion_pdf.embed import generate_embeddings, get_embedding_model, construct_node
+from rag.Llama_index_sandbox import pdfs_dir, video_transcripts_dir
+import rag.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
+import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
+import rag.Llama_index_sandbox.data_ingestion_pdf.embed as embed_pdf
+import rag.Llama_index_sandbox.data_ingestion_youtube.load as load_youtube
+import rag.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
+import rag.Llama_index_sandbox.data_ingestion_youtube.embed as embed_youtube
 from rag.Llama_index_sandbox.index import initialise_vector_store, load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
 from llama_index import ServiceContext
 from llama_index.llms import OpenAI
@@ -84,24 +88,27 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
 
 def run():
     start_logging()
-    recreate_index = False
+    recreate_index = True
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
-    chunk_overlap = get_chunk_overlap(embedding_model_chunk_size)
-    embedding_model = get_embedding_model(embedding_model_name=embedding_model_name)
+    chunk_overlap = chunk_pdf.get_chunk_overlap(embedding_model_chunk_size)
+    embedding_model = embed_pdf.get_embedding_model(embedding_model_name=embedding_model_name)
     if recreate_index:
         logging.info("RECREATING INDEX")
         # 1. Data loading
         # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
         # download_pdfs(pdf_links, save_dir)
-        documents = load_pdfs(directory_path=Path(pdfs_dir))
+        documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))
+        documents_youtube = load_video_transcripts(directory_path=Path(video_transcripts_dir))
 
         # 2. Data chunking / text splitter
-        text_chunks, doc_idxs = chunk_documents(documents, chunk_size=embedding_model_chunk_size)
+        text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, chunk_size=embedding_model_chunk_size)
+        text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, chunk_size=embedding_model_chunk_size)
 
         # 3. Manually Construct Nodes from Text Chunks
-        nodes = construct_node(text_chunks, documents, doc_idxs)
+        nodes_pdf = embed_pdf.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
+        nodes_youtube = embed_youtube.construct_node(text_chunks_youtube, documents_youtube, doc_idxs_youtube)
 
         # [Optional] 4. Extract Metadata from each Node by performing LLM calls to fetch Title.
         #        We extract metadata from each Node using our Metadata extractors.
@@ -109,13 +116,16 @@ def run():
         # nodes = enrich_nodes_with_metadata_via_llm(nodes)
 
         # 5. Generate Embeddings for each Node
-        generate_embeddings(nodes, embedding_model)
+        embed_pdf.generate_embeddings(nodes_pdf, embedding_model)
+        embed_youtube.generate_embeddings(nodes_youtube, embedding_model)
+        nodes = nodes_pdf + nodes_youtube
 
         # 6. Load Nodes into a Vector Store
         # We now insert these nodes into our PineconeVectorStore.
         # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
         # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-        vector_store = initialise_vector_store(dimension=embedding_model_chunk_size)
+        vector_store = initialise_vector_store(embedding_model_chunk_size=embedding_model_chunk_size)
+        # TODO 2023-10-05: debug "embedding not set" error.
         index = load_nodes_into_vector_store_create_index(nodes, vector_store)
         persist_index(vector_store, index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
     else:
