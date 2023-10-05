@@ -146,7 +146,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
 
 def run():
     start_logging()
-    recreate_index = False
+    recreate_index = True
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
@@ -157,7 +157,7 @@ def run():
         # 1. Data loading
         # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
         # download_pdfs(pdf_links, save_dir)
-        documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))  # [:5]
+        documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))  # [:1]
         documents_youtube = load_video_transcripts(directory_path=Path(video_transcripts_dir))  # [:5]
 
         # 2. Data chunking / text splitter

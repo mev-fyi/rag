@@ -6,18 +6,29 @@ from pathlib import Path
 from typing import Union
 import pandas as pd
 from llama_index import SimpleDirectoryReader
+import re
 
 from rag.Llama_index_sandbox import root_dir
 from rag.Llama_index_sandbox.utils import timeit
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
-    # Find the corresponding row in the DataFrame
-    title = os.path.basename(file_path).replace('_diarized_content.json', '')
+    # Process the title from the file path
+    title = str(os.path.basename(file_path).replace('_diarized_content_processed_diarized.txt', '')).split('_')[1].strip()
+
+    # Ensure any sequence of more than one space in title is replaced with a single space
+    title = re.sub(' +', ' ', title)
+
+    # Similarly, replace sequences of spaces in the DataFrame's 'title' column
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+
+    # Now look for a match
     video_row = youtube_videos_df[youtube_videos_df['title'] == title]
 
     if video_row.empty:
+        # logging.info(f"Could not find video transcript for {title}. Passing.")
         return []
+
     reader = SimpleDirectoryReader(
         input_files=[file_path]
     )
@@ -75,10 +86,13 @@ def load_video_transcripts(directory_path: Union[str, Path]):
             video_transcript = futures[future]
             try:
                 documents = future.result()
+                # if documents is an empty list then continue
+                if not documents:
+                    continue
                 all_documents.extend(documents)
                 video_transcripts_loaded_count += 1
             except Exception as e:
                 logging.info(f"Failed to process {video_transcript}, passing: {e}")
                 pass
-    logging.info(f"Successfully loaded {video_transcripts_loaded_count} documents.")
+    logging.info(f"Successfully loaded {video_transcripts_loaded_count} documents from video transcripts.")
     return all_documents

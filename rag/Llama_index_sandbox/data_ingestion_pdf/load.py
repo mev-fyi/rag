@@ -190,7 +190,6 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     return documents
 
 
-
 @timeit
 def load_pdfs(directory_path: Union[str, Path]):
     # Convert directory_path to a Path object if it is not already
@@ -219,5 +218,5 @@ def load_pdfs(directory_path: Union[str, Path]):
             except Exception as e:
                 logging.info(f"Failed to process {pdf_file}, removing file: {e}")
                 os.remove(pdf_file)
-    logging.info(f"Successfully loaded {pdf_loaded_count} documents.")
+    logging.info(f"Successfully loaded {pdf_loaded_count} documents from PDF files.")
     return all_documents
