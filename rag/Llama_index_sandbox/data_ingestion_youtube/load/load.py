@@ -41,26 +41,21 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         if 'file_path' in document.metadata.keys():
             del document.metadata['file_path']
 
-        # Find the corresponding row in the DataFrame
-        title = os.path.basename(file_path).replace('.pdf', '')
-        video_row = youtube_videos_df[youtube_videos_df['title'] == title]
-
-        if not video_row.empty:
-            # Update metadata
-            document.metadata.update({
-                # TODO 2023-10-04: is there an impact of different metadata keys across documents?
-                #  Necessarily, multi-document agents deal with several document types?
-                'title': video_row.iloc[0]['title'],
-                'channel_name': video_row.iloc[0]['channel_name'],
-                'video_link': video_row.iloc[0]['url'],
-                'published_date': video_row.iloc[0]['published_date']
-            })
-            # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
-            #       (1) i would want to avoid the case where the agent only looks as paper index
-            #       (2) on the other hand i want the agent to quickly reference video content if it is specifically asked for
-            # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
-            #   It will be high (highest too? TBD.) for talks and conferences in YouTube video_transcript format
-            #   It will be relatively lower for podcasts, tweets, and less formal content.
+        # Update metadata
+        document.metadata.update({
+            # TODO 2023-10-04: is there an impact of different metadata keys across documents?
+            #  Necessarily, multi-document agents deal with several document types?
+            'title': video_row.iloc[0]['title'],
+            'channel_name': video_row.iloc[0]['channel_name'],
+            'video_link': video_row.iloc[0]['url'],
+            'published_date': video_row.iloc[0]['published_date']
+        })
+        # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
+        #       (1) i would want to avoid the case where the agent only looks as paper index
+        #       (2) on the other hand i want the agent to quickly reference video content if it is specifically asked for
+        # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
+        #   It will be high (highest too? TBD.) for talks and conferences in YouTube video_transcript format
+        #   It will be relatively lower for podcasts, tweets, and less formal content.
     return documents
 
 
