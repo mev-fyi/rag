@@ -1,5 +1,4 @@
-00:00:06.250 - 00:00:12.638, Speaker A: Here we go. Okay, so we have Joshua Gutao giving us introduction to Architecture. Josh, welcome.
-00:00:12.638 - 00:00:15.040, Speaker A: Thank you so much for being here. I'll let you take it.
+00:00:06.250 - 00:00:15.040, Speaker A: Here we go. Okay, so we have Joshua Gutao giving us introduction to Architecture. Josh, welcome. Thank you so much for being here. I'll let you take it.
 00:00:17.570 - 00:00:24.480, Speaker B: Let's see, I got my slides up. Okay, slides up.
 00:00:26.570 - 00:00:27.320, Speaker C: Cool.
 00:00:27.930 - 00:00:29.960, Speaker D: Awesome. Hello everyone.
@@ -8,25 +7,20 @@
 00:00:53.172 - 00:00:59.470, Speaker C: More specifically bedrocks architecture.
 00:01:00.290 - 00:01:11.698, Speaker D: And as Carl is talking about the various components of the Op stack, this is going to really highlight how Bedrock, the system fits together and all of.
 00:01:11.704 - 00:01:14.914, Speaker B: The different pieces there. Cool.
-00:01:15.032 - 00:01:24.918, Speaker D: So the introduction. So today I'm going to be talking about what even is optimism, bedrock. Carl's talked on that, but I'll expand on that a little bit more.
-00:01:24.918 - 00:01:32.278, Speaker D: I'm going to give an overview of the system, both of kind of like the components and also the actors.
+00:01:15.032 - 00:01:32.278, Speaker D: So the introduction. So today I'm going to be talking about what even is optimism, bedrock. Carl's talked on that, but I'll expand on that a little bit more. I'm going to give an overview of the system, both of kind of like the components and also the actors.
 00:01:32.374 - 00:01:33.962, Speaker B: So we have a bunch of different.
-00:01:34.016 - 00:01:45.902, Speaker D: Pieces, but some of them do different things. Then we'll go through the roll up node, which is one of the components, the sequencer and the badger. Then the proposer faultproof challenge agent.
-00:01:45.902 - 00:01:57.074, Speaker D: So that's all of the stuff that enables withdrawals. We'll go through a couple data flows and then go through some kind of final implementation notes at the end.
+00:01:34.016 - 00:01:57.074, Speaker D: Pieces, but some of them do different things. Then we'll go through the roll up node, which is one of the components, the sequencer and the badger. Then the proposer faultproof challenge agent. So that's all of the stuff that enables withdrawals. We'll go through a couple data flows and then go through some kind of final implementation notes at the end.
 00:01:57.192 - 00:01:59.374, Speaker B: So what even is optimism?
-00:01:59.422 - 00:02:13.766, Speaker D: Bedrock. Bedrock is a network upgrade to reduce fees and increase implementation simplicity. So kind of go through a little bit word by word because it's a big complex sentence with a lot underneath of it.
-00:02:13.766 - 00:02:21.370, Speaker D: So network upgrade. So Bedrock is going to be kind of a point in time release.
+00:01:59.422 - 00:02:21.370, Speaker D: Bedrock. Bedrock is a network upgrade to reduce fees and increase implementation simplicity. So kind of go through a little bit word by word because it's a big complex sentence with a lot underneath of it. So network upgrade. So Bedrock is going to be kind of a point in time release.
 00:02:21.950 - 00:02:24.218, Speaker B: The thing will have like we have.
-00:02:24.224 - 00:02:34.634, Speaker D: Our current system, we'll have the bedrock release and then we'll have more releases in the future. So the network is still optimism. This is just the network upgrade.
-00:02:34.634 - 00:02:49.650, Speaker D: And as part of a network upgrade, we'll be keeping all of the history with optimism network. This is just one more step in improving the user experience. And specifically the biggest change to the user experience is going to be reduced fees.
-00:02:49.650 - 00:03:04.022, Speaker D: And then the non changes to the user experience are going to be increased implementation simplicity. This is something that most users won't see, but really improves the performance, proves the reliability, enables a lot of other.
+00:02:24.224 - 00:02:55.710, Speaker D: Our current system, we'll have the bedrock release and then we'll have more releases in the future. So the network is still optimism. This is just the network upgrade. And as part of a network upgrade, we'll be keeping all of the history with optimism network. This is just one more step in improving the user experience. And specifically the biggest change to the user experience is going to be reduced fees. And then the non changes to the user experience are going to be increased implementation simplicity.
+00:02:55.710 - 00:03:04.022, Speaker D: This is something that most users won't see, but really improves the performance, proves the reliability, enables a lot of other.
 00:03:04.076 - 00:03:05.320, Speaker B: Things down the line.
 00:03:06.010 - 00:03:39.746, Speaker D: How do we get there? Bedrock achieves this by redesigning the roll up architecture. So a lot of the things from the previous system kind of are getting modified. And then we're drawing a lot of new lines between different components inside the system and really making sure that everything fits together on a way we're happy with and also in a way that kind of enables different components to be swapped in, swapped out, how components can be tested by themselves and making sure.
 00:03:39.768 - 00:03:41.970, Speaker B: That everything fits together very neatly.
 00:03:42.950 - 00:03:45.314, Speaker D: So now we get into the fun.
 00:03:45.352 - 00:03:47.270, Speaker B: Part, which is the architecture.
-00:03:48.890 - 00:03:56.466, Speaker D: So we're going to go through the system overview. So here's kind of the discrete components. You have a role of node.
-00:03:56.466 - 00:04:05.706, Speaker D: This is Op node. And then there's the execution engine, Op Get. We put Op in front of everything because why not? The batcher is the Op batcher, the.
+00:03:48.890 - 00:04:05.706, Speaker D: So we're going to go through the system overview. So here's kind of the discrete components. You have a role of node. This is Op node. And then there's the execution engine, Op Get. We put Op in front of everything because why not? The batcher is the Op batcher, the.
 00:04:05.728 - 00:04:07.878, Speaker B: Proposer is Op proposer.
 00:04:07.974 - 00:04:10.378, Speaker D: And then we don't have a challenge agent.
 00:04:10.464 - 00:04:12.250, Speaker B: And the fault proof is Canon.
@@ -34,21 +28,16 @@
 00:04:28.990 - 00:04:31.506, Speaker B: And then we talked a little bit.
 00:04:31.528 - 00:04:43.240, Speaker D: About Canon and have talked more about Canon in the past. But that is the fault proof system. And the challenge agent is just a simple agent that interacts with the fault proof system.
 00:04:44.090 - 00:04:44.550, Speaker C: Cool.
-00:04:44.620 - 00:04:54.938, Speaker D: So those are different code bases and components. How do they translate to the actors? So the actor is someone running. So you can run a multiple code base lots of times.
-00:04:54.938 - 00:04:57.210, Speaker D: So Verifiers, that's a full node.
+00:04:44.620 - 00:04:57.210, Speaker D: So those are different code bases and components. How do they translate to the actors? So the actor is someone running. So you can run a multiple code base lots of times. So Verifiers, that's a full node.
 00:04:58.190 - 00:04:59.226, Speaker B: So there's going to be a lot.
-00:04:59.248 - 00:05:17.358, Speaker D: Of those that's just like running your full node on Ethereum. To do that, you need your Op node, which is like your consensus client, as well as your Op Get, which is your execution client. Then you have the sequencer, which is a full node that is mining.
-00:05:17.358 - 00:05:21.378, Speaker D: And so it produces blocks. And then it also gossips them out.
+00:04:59.248 - 00:05:21.378, Speaker D: Of those that's just like running your full node on Ethereum. To do that, you need your Op node, which is like your consensus client, as well as your Op Get, which is your execution client. Then you have the sequencer, which is a full node that is mining. And so it produces blocks. And then it also gossips them out.
 00:05:21.464 - 00:05:24.050, Speaker B: And does a couple of small things.
-00:05:24.120 - 00:05:37.030, Speaker D: But under the hood it's very similar to the Verifiers. And then you have your batcher, which is an actor that just maps straight back to the code base. Same with your proposer and then your challenge agents as well.
-00:05:37.030 - 00:05:40.470, Speaker D: The sequencer and Verifiers actually have to map to a couple of code bases.
+00:05:24.120 - 00:05:40.470, Speaker D: But under the hood it's very similar to the Verifiers. And then you have your batcher, which is an actor that just maps straight back to the code base. Same with your proposer and then your challenge agents as well. The sequencer and Verifiers actually have to map to a couple of code bases.
 00:05:40.550 - 00:05:42.620, Speaker B: Because there are more complex things.
 00:05:44.270 - 00:05:50.734, Speaker D: So giant diagram type. So this is going through how all.
 00:05:50.772 - 00:05:53.790, Speaker B: Of these actors interact.
-00:05:54.530 - 00:06:14.766, Speaker D: So if you want to kind of deposit into the system, we'll just follow that execution flow. So the user sends a deposit transaction to layer one and then the sequencer reads. The deposit sequencer also then gets transactions kind of separately.
-00:06:14.766 - 00:06:28.934, Speaker D: Then it creates the new blocks, sequences them, the batcher then picks, and that's kind of how you get deposits. Now, once you have your l two transactions included, a user sends them to the Verifier. They get to the sequencer.
-00:06:28.934 - 00:06:43.590, Speaker D: You create your blocks, the batcher submits the batches. Now then the Verifier reads both deposit and the batches, and then it derives a chain that matches the sequencer. And so that's kind of the transaction flow.
-00:06:43.590 - 00:06:45.614, Speaker D: There's a lot of moving parts here.
+00:05:54.530 - 00:06:32.230, Speaker D: So if you want to kind of deposit into the system, we'll just follow that execution flow. So the user sends a deposit transaction to layer one and then the sequencer reads. The deposit sequencer also then gets transactions kind of separately. Then it creates the new blocks, sequences them, the batcher then picks, and that's kind of how you get deposits. Now, once you have your l two transactions included, a user sends them to the Verifier. They get to the sequencer. You create your blocks, the batcher submits the batches.
+00:06:32.230 - 00:06:45.614, Speaker D: Now then the Verifier reads both deposit and the batches, and then it derives a chain that matches the sequencer. And so that's kind of the transaction flow. There's a lot of moving parts here.
 00:06:45.652 - 00:06:47.246, Speaker B: But that's kind of what it is.
 00:06:47.268 - 00:07:00.174, Speaker D: And we'll go through some of these flows in a little more depth later on. And then when you're doing output proposals, the output proposer reads the state route from the Verifier and then just submits.
 00:07:00.222 - 00:07:03.246, Speaker B: It to l One and that's the op proposer.
@@ -56,14 +45,11 @@
 00:07:14.220 - 00:07:17.000, Speaker B: And so it's reading between the Verifier and l One.
 00:07:17.790 - 00:07:30.970, Speaker D: Those are, again, all the system actors and how they interact. Cool. So time to dig deep into the roll up node.
 00:07:32.670 - 00:07:35.098, Speaker B: So it does several things.
-00:07:35.184 - 00:07:51.826, Speaker D: Reads out from l One, has both deposits and batches, as Kyle mentioned. It uses the Engine API to talk to kind of the execution client op geth. There's a P to P network, and I'll talk a bit more about that later.
-00:07:51.826 - 00:08:00.934, Speaker D: And then just as an implementation, it's way simpler than the current l Two geth implementation. It's a lot closer to upstream and.
+00:07:35.184 - 00:08:00.934, Speaker D: Reads out from l One, has both deposits and batches, as Kyle mentioned. It uses the Engine API to talk to kind of the execution client op geth. There's a P to P network, and I'll talk a bit more about that later. And then just as an implementation, it's way simpler than the current l Two geth implementation. It's a lot closer to upstream and.
 00:08:00.972 - 00:08:05.282, Speaker B: It'S a lot easier to work with the diagram.
-00:08:05.346 - 00:08:26.670, Speaker D: So this is basically all of the components that you need to run a replica or a sequencer, just a full node on optimism network. So on the Ethereum side, you have your consensus client and your execution client. They talk to each other using Engine API.
-00:08:26.670 - 00:08:41.026, Speaker D: And then your op node, which mirrors the consensus client, uses just your standard ETH JSON RPC. So it does stuff like gets blocks, gets transactions, gets transaction receipts, just kind.
+00:08:05.346 - 00:08:41.026, Speaker D: So this is basically all of the components that you need to run a replica or a sequencer, just a full node on optimism network. So on the Ethereum side, you have your consensus client and your execution client. They talk to each other using Engine API. And then your op node, which mirrors the consensus client, uses just your standard ETH JSON RPC. So it does stuff like gets blocks, gets transactions, gets transaction receipts, just kind.
 00:08:41.048 - 00:08:46.920, Speaker B: Of essentially reading in the chain data from l One.
-00:08:47.290 - 00:09:05.926, Speaker D: And then it talks to the l Two execution engine through a very slightly modified Engine API. It's very similar, but I'll talk through a couple of modifications there. And then the op geth, or l Two geth is a small diff on top of geth.
-00:09:05.926 - 00:09:20.782, Speaker D: It's actually a little larger than 500 lines right now, but not really that much more. And so that's a lot easier to work with and keep the op geth up to date with upstream. So we can bring in a lot of those improvements a lot faster than.
+00:08:47.290 - 00:09:20.782, Speaker D: And then it talks to the l Two execution engine through a very slightly modified Engine API. It's very similar, but I'll talk through a couple of modifications there. And then the op geth, or l Two geth is a small diff on top of geth. It's actually a little larger than 500 lines right now, but not really that much more. And so that's a lot easier to work with and keep the op geth up to date with upstream. So we can bring in a lot of those improvements a lot faster than.
 00:09:20.836 - 00:09:24.160, Speaker B: If we had done a lot more modifications to that.
 00:09:24.850 - 00:09:36.874, Speaker D: So this is a single node. So now what happens when you have multiple of these nodes? So this is where every node is talking to almost every other node. So the vertical lines there basically maps.
 00:09:36.942 - 00:09:40.040, Speaker B: Back to the previous diagram and the.
@@ -73,31 +59,24 @@
 00:10:03.250 - 00:10:05.920, Speaker B: And then on the l Two side.
 00:10:07.090 - 00:10:19.342, Speaker D: We gossip out L Two blocks for the opioid. And then we actually use a lot of the same sync mechanisms, transaction pools, all that, when l Two execution engines.
 00:10:19.406 - 00:10:21.060, Speaker B: Are talking to each other.
-00:10:23.270 - 00:10:44.410, Speaker D: So getting into the details of this Engine API, which is what connects the Op node to Op Geth. It has two extensions, and these extensions are to some of the payload attributes or like fields. So we have two more fields when we're calling Fork twist update, but the rest of it's basically the same.
-00:10:44.410 - 00:10:54.350, Speaker D: And then gen API is actually really simple. There's four calls, one of which we don't use at all because we don't have a transition. So it's just not relevant to the new payload.
-00:10:54.350 - 00:11:03.522, Speaker D: Call is just insert a new block into the execution layer. Simple fork choice. Update is a little more complex because it does two things at once.
-00:11:03.522 - 00:11:23.800, Speaker D: It sets a head block, including kind of safe and finalized blocks. And if you give it an optional parameter, it starts the block building process and it returns back kind of reference to that inflight block. And if you want to get that inflight block that it's building, you just call Get.
+00:10:23.270 - 00:10:58.970, Speaker D: So getting into the details of this Engine API, which is what connects the Op node to Op Geth. It has two extensions, and these extensions are to some of the payload attributes or like fields. So we have two more fields when we're calling Fork twist update, but the rest of it's basically the same. And then gen API is actually really simple. There's four calls, one of which we don't use at all because we don't have a transition. So it's just not relevant to the new payload. Call is just insert a new block into the execution layer.
+00:10:58.970 - 00:11:23.800, Speaker D: Simple fork choice. Update is a little more complex because it does two things at once. It sets a head block, including kind of safe and finalized blocks. And if you give it an optional parameter, it starts the block building process and it returns back kind of reference to that inflight block. And if you want to get that inflight block that it's building, you just call Get.
 00:11:24.890 - 00:11:27.394, Speaker B: So and that's basically it.
-00:11:27.532 - 00:11:43.600, Speaker D: This is pretty standard API. It's specified by Ethereum, and it makes it really easy to include new execution clients. Op Aragon, that's not that much work to pour it over 1000 line diff.
-00:11:43.600 - 00:12:00.850, Speaker D: And then eventually we only have one roll up node right now. But it wouldn't be that hard to create a new roll up node that spoke this API and worked with any execution engine. So deposits and batches.
-00:12:00.850 - 00:12:10.518, Speaker D: So we've briefly spoken about deposits as kind of a way to get money into L Two. These are going to be a lot faster now because we're reading them a.
+00:11:27.532 - 00:12:06.520, Speaker D: This is pretty standard API. It's specified by Ethereum, and it makes it really easy to include new execution clients. Op Aragon, that's not that much work to pour it over 1000 line diff. And then eventually we only have one roll up node right now. But it wouldn't be that hard to create a new roll up node that spoke this API and worked with any execution engine. So deposits and batches. So we've briefly spoken about deposits as kind of a way to get money into L Two.
+00:12:06.520 - 00:12:10.518, Speaker D: These are going to be a lot faster now because we're reading them a.
 00:12:10.524 - 00:12:13.862, Speaker B: Lot closer to the chain TIFF, but.
-00:12:13.916 - 00:12:39.600, Speaker D: They also serve another purpose. And the sequencer basically cannot delay deposits outside of a certain range and has to eventually include them. If you're interested in more details about the specifics of how this works, I gave a talk at ECC that does a really deep dive into bedrock and goes through all this and why this is true.
-00:12:39.600 - 00:12:43.202, Speaker D: But the net result of this is.
+00:12:13.916 - 00:12:43.202, Speaker D: They also serve another purpose. And the sequencer basically cannot delay deposits outside of a certain range and has to eventually include them. If you're interested in more details about the specifics of how this works, I gave a talk at ECC that does a really deep dive into bedrock and goes through all this and why this is true. But the net result of this is.
 00:12:43.256 - 00:12:48.626, Speaker B: That the chain advances even if the.
-00:12:48.648 - 00:13:04.998, Speaker D: Sequencer doesn't want it to. And then this enables censorship resistance, and then if you never had a sequencer again, you could still unwind the chain through deposits. So deposits also do a lot more than just mint money on L Two.
-00:13:04.998 - 00:13:29.994, Speaker D: They're fully featured transactions. So anything you can do with a normal transaction, you can do with a deposit. And so typically, you actually wouldn't use deposits that much to do this because deposits just get included on L One kind of one transaction at a time and actually have some state execution on L One versus kind of direct L Two transaction.
-00:13:29.994 - 00:13:42.626, Speaker D: When we batch those, we take a bunch of those, we compress them, and then we just shove it in Call data of L One. So direct L Two transactions tend to be cheaper, and that's kind of the typical flow. But if you need to, deposits are.
+00:12:48.648 - 00:13:35.634, Speaker D: Sequencer doesn't want it to. And then this enables censorship resistance, and then if you never had a sequencer again, you could still unwind the chain through deposits. So deposits also do a lot more than just mint money on L Two. They're fully featured transactions. So anything you can do with a normal transaction, you can do with a deposit. And so typically, you actually wouldn't use deposits that much to do this because deposits just get included on L One kind of one transaction at a time and actually have some state execution on L One versus kind of direct L Two transaction. When we batch those, we take a bunch of those, we compress them, and then we just shove it in Call data of L One.
+00:13:35.634 - 00:13:42.626, Speaker D: So direct L Two transactions tend to be cheaper, and that's kind of the typical flow. But if you need to, deposits are.
 00:13:42.648 - 00:13:50.422, Speaker B: Always there, P to P. So here.
 00:13:50.476 - 00:14:13.070, Speaker D: We kind of described how sequencers gossips out blocks. And so the feature that's enabled here is that if you're just a replica on the network and you're subscribing to these unsafe blocks or blocks that the sequencer has just created, your view of the network is incredibly up to date. And so you can opt to choose to insert these blocks.
 00:14:13.570 - 00:14:16.346, Speaker B: Now, as part of kind of inserting.
-00:14:16.378 - 00:14:44.310, Speaker D: These blocks, we don't actually mark these as fully safe because there's no guarantee that the block that you received will kind of get submitted to l One. So we prefer in the roll up node, whatever gets submitted to l One over what the sequencer says. And kind of as a result of this, it's a very minimal trust assumption to insert these blocks and stay up to sync with the tip of the chain.
-00:14:44.310 - 00:15:01.754, Speaker D: They have a really good user experience without actually sacrificing trust. And this is kind of a similar thing to the liveness in Ethereum where you have a head block which could reorg, but then you have your safe block, which is assumed not to reorg, and then you have your finalized block.
+00:14:16.378 - 00:15:01.754, Speaker D: These blocks, we don't actually mark these as fully safe because there's no guarantee that the block that you received will kind of get submitted to l One. So we prefer in the roll up node, whatever gets submitted to l One over what the sequencer says. And kind of as a result of this, it's a very minimal trust assumption to insert these blocks and stay up to sync with the tip of the chain. They have a really good user experience without actually sacrificing trust. And this is kind of a similar thing to the liveness in Ethereum where you have a head block which could reorg, but then you have your safe block, which is assumed not to reorg, and then you have your finalized block.
 00:15:01.802 - 00:15:03.242, Speaker B: Which will never reorg.
 00:15:03.386 - 00:15:06.302, Speaker D: And so we've brought over the same.
 00:15:06.356 - 00:15:10.654, Speaker B: Kind of terminology and same usage of.
-00:15:10.692 - 00:15:28.550, Speaker D: The engine API to mark blocks as safe, which are very likely to not reorg finalized, which will never reorg. And then your head block which you've got from the sequencer, which is likely to be included, but it could change. And that's kind of the whole P to P subsystem.
-00:15:28.550 - 00:15:42.406, Speaker D: And then as part of a result of getting these blocks as they're distributed, it's really easy to hook into a snapsey. It's not yet implemented because you can just re execute all the blocks.
+00:15:10.692 - 00:15:42.406, Speaker D: The engine API to mark blocks as safe, which are very likely to not reorg finalized, which will never reorg. And then your head block which you've got from the sequencer, which is likely to be included, but it could change. And that's kind of the whole P to P subsystem. And then as part of a result of getting these blocks as they're distributed, it's really easy to hook into a snapsey. It's not yet implemented because you can just re execute all the blocks.
 00:15:42.518 - 00:15:45.754, Speaker B: But that's something where this architecture of.
 00:15:45.792 - 00:15:53.726, Speaker D: Splitting out the execution engine from the consensus layer, that's something that's really easy to do and something we will be.
 00:15:53.748 - 00:15:54.800, Speaker B: Doing in the future.
@@ -106,19 +85,15 @@
 00:16:08.232 - 00:16:10.942, Speaker B: The sequencer and the batcher sequencer and the batch.
 00:16:11.006 - 00:16:14.766, Speaker D: So what's here is basically talking about the sequencer.
 00:16:14.798 - 00:16:16.738, Speaker B: It's a normal node, essentially.
-00:16:16.834 - 00:16:32.300, Speaker D: It runs a mining process. And just like Ethereum, how every full node has mining code in it, every roll up node will also have mining code in it. And there's just one specific one that can run.
-00:16:32.300 - 00:16:36.058, Speaker D: And then the batcher is a pretty simple code base.
+00:16:16.834 - 00:16:36.058, Speaker D: It runs a mining process. And just like Ethereum, how every full node has mining code in it, every roll up node will also have mining code in it. And there's just one specific one that can run. And then the batcher is a pretty simple code base.
 00:16:36.144 - 00:16:39.146, Speaker B: Just takes l Two blocks, transforms them.
 00:16:39.168 - 00:16:52.882, Speaker D: To the data that you expect, does compression, how you get low fees and then just submits them on Dell One. Easy peasy. And then having that be so easy.
 00:16:52.936 - 00:16:58.018, Speaker B: Is basically like small modular architecture. That's the theme here.
-00:16:58.184 - 00:17:15.430, Speaker D: So now the proposer fault proofs and challenge agents. So this is a group of kind of three, which will be at least three different code bases and a couple of different agents. But what's here is this is everything that's required to enable withdrawals.
-00:17:15.430 - 00:17:22.218, Speaker D: So the proposer is kind of the entry point into withdrawals. So it reads State from L two.
+00:16:58.184 - 00:17:22.218, Speaker D: So now the proposer fault proofs and challenge agents. So this is a group of kind of three, which will be at least three different code bases and a couple of different agents. But what's here is this is everything that's required to enable withdrawals. So the proposer is kind of the entry point into withdrawals. So it reads State from L two.
 00:17:22.304 - 00:17:24.490, Speaker B: And then puts it onto L one.
-00:17:24.640 - 00:17:41.230, Speaker D: And then after, if you put it onto L One and no one says, this is invalid, it's then assumed to be valid. That's the optimistic part of our roll up. And that kind of validity then enables withdrawals.
-00:17:41.230 - 00:17:49.666, Speaker D: And if it's not valid, then you.
+00:17:24.640 - 00:17:49.666, Speaker D: And then after, if you put it onto L One and no one says, this is invalid, it's then assumed to be valid. That's the optimistic part of our roll up. And that kind of validity then enables withdrawals. And if it's not valid, then you.
 00:17:49.688 - 00:17:52.846, Speaker B: Go through the challenge game and the fault proof.
-00:17:52.958 - 00:18:03.506, Speaker D: So it's not yet live. See some Canon talks that norswap's given for more information about this. But the fault proof is what secures the bridge.
-00:18:03.506 - 00:18:09.590, Speaker D: This is how you say someone submits something that's invalid as a proposal.
+00:17:52.958 - 00:18:09.590, Speaker D: So it's not yet live. See some Canon talks that norswap's given for more information about this. But the fault proof is what secures the bridge. This is how you say someone submits something that's invalid as a proposal.
 00:18:10.350 - 00:18:13.610, Speaker B: The fault proof is what marks it as invalid.
 00:18:14.750 - 00:18:36.274, Speaker D: And we time bound. How long you have to say, hey, this is invalid, so you can actually eventually withdraw, actually eventually withdraw, but it still needs some amount of time for the finalization period to basically have enough time that no one can censor the.
 00:18:36.312 - 00:18:41.246, Speaker B: Chain for long enough with this withdrawal period.
@@ -128,27 +103,22 @@
 00:18:51.868 - 00:18:58.650, Speaker B: Week, and then if there's ever an invalid output proposal, it will be caught.
 00:19:01.230 - 00:19:06.666, Speaker D: And then so the actual fault proof game is super fun and exciting, and.
 00:19:06.688 - 00:19:11.930, Speaker B: I'll nerd out a little bit over it. So the entire thing is called Canon.
-00:19:12.090 - 00:19:27.330, Speaker D: And it has its whole own sub architecture. It's like a lot of interesting things in there, but it's an interactive proof game over our MIF's execution chase. So, like everything here, it's a lot summarized into a short sentence.
-00:19:27.330 - 00:19:33.540, Speaker D: So the interactive proof game is kind of this binary search like thing.
+00:19:12.090 - 00:19:33.540, Speaker D: And it has its whole own sub architecture. It's like a lot of interesting things in there, but it's an interactive proof game over our MIF's execution chase. So, like everything here, it's a lot summarized into a short sentence. So the interactive proof game is kind of this binary search like thing.
 00:19:34.070 - 00:19:36.374, Speaker B: So you start out with some code.
-00:19:36.492 - 00:20:03.722, Speaker D: You execute the code, and you can imagine the code is like executing an instruction, like an add a subtraction a load from memory. And so what we do is we have kind of an on chain version of this. And then your two off chain components, the two off chain people, both run their execution chase execution, your challenger and your defender.
-00:20:03.722 - 00:20:15.094, Speaker D: So the defender is the person that submitted the output proposal, and your challenger is the person that says, no, this is invalid, and you run the execution.
+00:19:36.492 - 00:20:15.094, Speaker D: You execute the code, and you can imagine the code is like executing an instruction, like an add a subtraction a load from memory. And so what we do is we have kind of an on chain version of this. And then your two off chain components, the two off chain people, both run their execution chase execution, your challenger and your defender. So the defender is the person that submitted the output proposal, and your challenger is the person that says, no, this is invalid, and you run the execution.
 00:20:15.162 - 00:20:17.474, Speaker B: Trace and you agree on the start.
-00:20:17.512 - 00:20:38.142, Speaker D: And disagree on the end. And then you can kind of mercalize the state, do some funky things in there, and then basically run a binary search over, like, okay, we agree at this step, we disagree at this step. And then you can finally narrow it down to single instruction execution and then execute that single instruction on chain.
-00:20:38.142 - 00:20:52.378, Speaker D: It's super fun, super interesting, and then actually enables you to kind of fault proof really complex things really easily. So anything that's deterministic and compiles to MIPS can be fault proven.
+00:20:17.512 - 00:20:52.378, Speaker D: And disagree on the end. And then you can kind of mercalize the state, do some funky things in there, and then basically run a binary search over, like, okay, we agree at this step, we disagree at this step. And then you can finally narrow it down to single instruction execution and then execute that single instruction on chain. It's super fun, super interesting, and then actually enables you to kind of fault proof really complex things really easily. So anything that's deterministic and compiles to MIPS can be fault proven.
 00:20:52.474 - 00:20:55.646, Speaker B: So the whole derivation process is going.
 00:20:55.668 - 00:20:59.918, Speaker D: To get imported to Canon. All of the EVM is going to.
 00:20:59.924 - 00:21:01.674, Speaker B: Get imported to Canon.
-00:21:01.722 - 00:21:19.442, Speaker D: And we'll kind of go through the fault proof. Any compression, we do again, just straight through so we don't have to deal with loading up data. We can load in the raw data that the roll up node uses, which is, again, just transactions and blocks.
-00:21:19.442 - 00:21:23.542, Speaker D: And so those are really easy to kind of load up on chain and.
+00:21:01.722 - 00:21:23.542, Speaker D: And we'll kind of go through the fault proof. Any compression, we do again, just straight through so we don't have to deal with loading up data. We can load in the raw data that the roll up node uses, which is, again, just transactions and blocks. And so those are really easy to kind of load up on chain and.
 00:21:23.596 - 00:21:28.070, Speaker B: Prove that, hey, this is actually the block hash on chain.
 00:21:29.630 - 00:21:39.660, Speaker D: And so that's basically all of that. Super fun, super interesting. Not yet live, but we're working a bunch on that.
 00:21:40.290 - 00:21:45.598, Speaker B: Okay, getting back here.
 00:21:45.684 - 00:21:57.466, Speaker D: Okay, so that's how we secure the system. So I'm going to go through some data flows in the system. You'll see how kind of different things interact.
 00:21:57.578 - 00:22:00.130, Speaker B: And maybe I'll make it a little more concrete.
-00:22:01.030 - 00:22:21.946, Speaker D: So we'll talk through the deposit, l Two transactions, and we'll also go through withdrawals in a little more detail. So the deposit, you send a transaction to a contract. The key thing is that the contract does some computation, make sure you pay your fees, make sure you lock up your ETH, and then it emits the event.
-00:22:21.946 - 00:22:30.662, Speaker D: And that event is what we're looking for on the l Two node. That's the authorization that, yes, you locked up your ETH. Yes, all of this is valid.
-00:22:30.662 - 00:22:50.626, Speaker D: Then the world node reads the event, creates a special transaction type on l Two, and then we insert these transactions at the start of the block, and then eventually that deposit gets executed on l Two. There's a couple more details in there around, like gas accounting, but not quite.
+00:22:01.030 - 00:22:45.060, Speaker D: So we'll talk through the deposit, l Two transactions, and we'll also go through withdrawals in a little more detail. So the deposit, you send a transaction to a contract. The key thing is that the contract does some computation, make sure you pay your fees, make sure you lock up your ETH, and then it emits the event. And that event is what we're looking for on the l Two node. That's the authorization that, yes, you locked up your ETH. Yes, all of this is valid. Then the world node reads the event, creates a special transaction type on l Two, and then we insert these transactions at the start of the block, and then eventually that deposit gets executed on l Two.
+00:22:45.060 - 00:22:50.626, Speaker D: There's a couple more details in there around, like gas accounting, but not quite.
 00:22:50.648 - 00:22:52.020, Speaker B: Relevant for this talk.
 00:22:52.790 - 00:22:56.054, Speaker D: So then if you're submitting direct to.
 00:22:56.092 - 00:23:00.166, Speaker B: L Two transaction, you send out your.
@@ -161,8 +131,7 @@
 00:23:35.976 - 00:23:48.790, Speaker D: All the call data, look for transactions to a specific address, check the authorization on those transactions, and then reassemble the blocks from that submitted data.
 00:23:48.940 - 00:23:52.120, Speaker B: And then you have voila your transaction on l Two.
 00:23:54.170 - 00:23:54.582, Speaker C: Cool.
-00:23:54.636 - 00:24:17.920, Speaker D: So withdrawals so withdrawals are a little more complex because you have to manually kind of do the communication across the layers. So to initiate your withdrawal, you send a transaction to l Two to the withdrawal contract. And so the withdrawal contract does several things.
-00:24:17.920 - 00:24:20.846, Speaker D: It basically creates a commitment to how.
+00:23:54.636 - 00:24:20.846, Speaker D: So withdrawals so withdrawals are a little more complex because you have to manually kind of do the communication across the layers. So to initiate your withdrawal, you send a transaction to l Two to the withdrawal contract. And so the withdrawal contract does several things. It basically creates a commitment to how.
 00:24:20.868 - 00:24:26.334, Speaker B: Much you're withdrawing, then burns how much.
 00:24:26.372 - 00:24:38.054, Speaker D: ETH you said you withdraw emits event to make it easy to index and track it. And then it also touches some l Two state based on kind of the.
 00:24:38.092 - 00:24:40.050, Speaker B: Commitment to the withdrawal.
@@ -180,15 +149,12 @@
 00:25:46.800 - 00:25:53.962, Speaker B: That's like the proof system there. That's basically the overview.
 00:25:54.026 - 00:26:03.540, Speaker D: There's a couple more details about assembling all of the proofs, but that's kind of highly mid level overview, not fully high level.
 00:26:03.990 - 00:26:10.450, Speaker B: So we have a couple data flows. Let's talk about how it's all assembled.
-00:26:11.590 - 00:26:26.946, Speaker D: So we've been talking about a bunch of different components, and these are a lot of small modular code bases. The op node is about 15,000 lines of code. The op geth, it's about an extra 1000 lines of code on top of normal geth.
-00:26:26.946 - 00:26:49.070, Speaker D: And we find that's kind of what it takes to get another execution engine onto optimism. The op batcher and the proposer around 2000 lines of code as we kind of get those more production ready, grow a little bit, but it's likely to remain under 5000. The contracts around the portal, l Two contracts, all that's around 10,000 lines of code.
-00:26:49.070 - 00:27:00.322, Speaker D: But that's with all of our tests and supporting code. So none of these are giant hairy code bases that are all intertangled. They're all kind of off in their own little world.
-00:27:00.322 - 00:27:03.186, Speaker D: They have clean API boundaries between them.
+00:26:11.590 - 00:26:52.240, Speaker D: So we've been talking about a bunch of different components, and these are a lot of small modular code bases. The op node is about 15,000 lines of code. The op geth, it's about an extra 1000 lines of code on top of normal geth. And we find that's kind of what it takes to get another execution engine onto optimism. The op batcher and the proposer around 2000 lines of code as we kind of get those more production ready, grow a little bit, but it's likely to remain under 5000. The contracts around the portal, l Two contracts, all that's around 10,000 lines of code. But that's with all of our tests and supporting code.
+00:26:52.240 - 00:27:03.186, Speaker D: So none of these are giant hairy code bases that are all intertangled. They're all kind of off in their own little world. They have clean API boundaries between them.
 00:27:03.368 - 00:27:06.626, Speaker B: And they're a lot easy to work with, easy to upgrade.
 00:27:06.738 - 00:27:11.830, Speaker D: And so that's been one of the big pushes with this new architecture.
 00:27:12.330 - 00:27:15.174, Speaker B: So if you're interested in kind of.
-00:27:15.212 - 00:27:33.306, Speaker D: Looking at the code, learning more about it, all of our code is in the optimism monorepo. We have the op node code base, the op basher codebase, the op proposer, those are just top level folders. If you want to look at the bedrock contracts, it's in packages contracts, bedrock, self explanatory.
-00:27:33.306 - 00:27:35.486, Speaker D: And then we have specifications for how.
+00:27:15.212 - 00:27:35.486, Speaker D: Looking at the code, learning more about it, all of our code is in the optimism monorepo. We have the op node code base, the op basher codebase, the op proposer, those are just top level folders. If you want to look at the bedrock contracts, it's in packages contracts, bedrock, self explanatory. And then we have specifications for how.
 00:27:35.508 - 00:27:38.670, Speaker B: The entire system should work inside the specs folder.
 00:27:39.890 - 00:27:40.494, Speaker C: Cool.
 00:27:40.612 - 00:27:44.074, Speaker B: So, in summary, bedrock is a network.
