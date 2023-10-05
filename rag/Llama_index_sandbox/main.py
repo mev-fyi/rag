@@ -1,3 +1,4 @@
+# https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 
 import os
@@ -20,10 +21,41 @@ from llama_index.llms import OpenAI
 from rag.Llama_index_sandbox.store_response import store_response
 from functools import partial
 from rag.Llama_index_sandbox.constants import SYSTEM_MESSAGE
+from llama_index.chat_engine.types import BaseChatEngine
+from llama_index.indices.query.base import BaseQueryEngine
+
+
+def format_metadata(response):
+    title_to_metadata = {}
+    for key, meta_info in response.metadata.items():
+        title = meta_info.get('title', 'N/A')
+        authors_list = meta_info.get('authors', 'N/A').split(', ')
+        formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
+
+        if title not in title_to_metadata:
+            title_to_metadata[title] = {
+                'formatted_authors': formatted_authors,
+                'pdf_link': meta_info.get('pdf_link', 'N/A'),
+                'release_date': meta_info.get('release_date', 'N/A'),
+                'chunks': []
+            }
+
+        title_to_metadata[title]['chunks'].append(key)
+
+    formatted_metadata_list = []
+    for title, meta in title_to_metadata.items():
+        chunks_str = ', '.join(meta['chunks'])
+        formatted_metadata = f"title: {title}, authors: {meta['formatted_authors']}, pdf_link: {meta['pdf_link']}, release_date: {meta['release_date']}, chunks: {chunks_str}"
+        formatted_metadata_list.append(formatted_metadata)
+
+    # Joining all formatted metadata strings with a newline
+    all_formatted_metadata = '\n'.join(formatted_metadata_list)
+    return all_formatted_metadata
 
 
 def log_and_store(store_response_fn, query_str, response):
-    logging.info(response)
+    all_formatted_metadata = format_metadata(response)
+    logging.info(f"[Shown to client] The answer to [{query_str}] is: \n\n```\n{response}\n```\n\nWith sources: \n{all_formatted_metadata}")
     # store_response_fn(query_str, response)
 
 
@@ -45,8 +77,12 @@ def get_chat_engine(index, service_context, chat_mode="react", verbose=True, sim
     return chat_engine
 
 
+def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
+    return index.as_query_engine(similarity_top_k=similarity_top_k, service_context=service_context, verbose=verbose)
+
+
 @timeit
-def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, chunksize, chunkoverlap, index):
+def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, chunksize, chunkoverlap, index, engine='chat'):
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
     #   To achieve this we need to save intermediary Response objects to make sure we can distill results and have access to nodes and chunks used for the reasoning
     # TODO 2023-09-29: determine how we should structure our indexes per document type
@@ -55,10 +91,17 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
     # chat_engine = index.as_chat_engine(chat_mode="react", verbose=True, similarity_top_k=5, service_context=service_context)
-    chat_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5)
+    if engine == 'chat':
+        # create an LLM response based on chain of thoughts to return the final result
+        # TODO 2023-10-05: tune timeout and max_tokens
+        retrieval_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5)
+    elif engine == 'query':
+        retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=5)
+    else:
+        assert False, f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}"
 
     queries = [
-        "What is red teaming in AI",  # Should refuse to respond,
+        # "What is red teaming in AI",  # Should refuse to respond,
         "Tell me about LVR",
         "What plagues current AMM designs?",
         "How do L2 sequencers work?",
@@ -68,6 +111,8 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         "What are intents?",
         "What are the papers that deal with LVR?",
         "What are solutions to mitigate front-running and sandwich attacks?",
+        "What content discusses L2 sequencers?",
+        "What content discusses SUAVE?",
     ]
     for query_str in queries:
         query_input = SYSTEM_MESSAGE.format(question=query_str)
@@ -78,9 +123,23 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         # response = chat_engine.chat(SYSTEM_MESSAGE)
 
         # TODO 2023-09-30: fix agent when it tries to reach search_engine_tool
-        response = chat_engine.chat(query_str)
+        if isinstance(retrieval_engine, BaseChatEngine):
+            response = retrieval_engine.chat(query_str)
+            retrieval_engine.reset()
+        elif isinstance(retrieval_engine, BaseQueryEngine):
+            # TODO 2023-10-05: fix the retrieval of the index. Currently if we load it back i.e. use the ID to fetch the index, it does not work?
+            #  and only re-running the whole pipeline works. perhaps a question of upgrading to paying. TBD. if cost is $0.7 an hour versus ~$0.50 for each embed run (OpenAI).
+            logging.info(f"\nQuerying index with query:    [{query_str}]")
+            response = retrieval_engine.query(query_str)
+        else:
+            logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
+            assert False
+
         log_and_store(store_response_partial, query_str, response)
-        chat_engine.reset()
+
+        # TODO 2023-10-05: send the resulting chain of though to gpt3.5 turbo
+        # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
+        # TODO 2023-10-05: return the metadata of each file and chunk used for the reasoning for referencing
 
     logging.info("Test completed.")
     pass
@@ -88,7 +147,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
 
 def run():
     start_logging()
-    recreate_index = True
+    recreate_index = False
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
@@ -125,11 +184,9 @@ def run():
         # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
         # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
         vector_store = initialise_vector_store(embedding_model_chunk_size=embedding_model_chunk_size)
-        # TODO 2023-10-05: debug "embedding not set" error.
         index = load_nodes_into_vector_store_create_index(nodes, vector_store)
         persist_index(vector_store, index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
     else:
-        logging.info("LOADING INDEX FROM DISK")
         index = load_index_from_disk()
 
     # TODO 2023-09-29: when iterating on retrieval and LLM, retrieve index from disk instead of re-creating it
@@ -141,7 +198,8 @@ def run():
                                          llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
                                          chunksize=embedding_model_chunk_size,
                                          chunkoverlap=chunk_overlap,
-                                         index=index)
+                                         index=index,
+                                         engine='query')
 
     return index
     pass

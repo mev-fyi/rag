@@ -21,8 +21,8 @@ def load_single_video_transcript(youtube_videos_df, file_path):
     reader = SimpleDirectoryReader(
         input_files=[file_path]
     )
-    # TODO 2023-10-04: .pdf reader creates many documents while .txt from SimpleDirectoryReader
-    #  expectedly creates a single document. which one has the correct behavior?
+    # NOTE 2023-10-04: .pdf reader creates many documents while .txt from SimpleDirectoryReader
+    #  expectedly creates a single document. which one has the correct behavior? do we care?
     documents = reader.load_data()
 
     # Update 'file_path' metadata and add additional metadata
@@ -44,6 +44,9 @@ def load_single_video_transcript(youtube_videos_df, file_path):
                 'video_link': video_row.iloc[0]['url'],
                 'published_date': video_row.iloc[0]['published_date']
             })
+            # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
+            #       (1) i would want to avoid the case where the agent only looks as paper index
+            #       (2) on the other hand i want the agent to quickly reference video content if it is specifically asked for
             # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
             #   It will be high (highest too? TBD.) for talks and conferences in YouTube video_transcript format
             #   It will be relatively lower for podcasts, tweets, and less formal content.
