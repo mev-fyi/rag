@@ -1,5 +1,8 @@
 import concurrent.futures
 import logging
+import random
+import time
+
 import math
 import multiprocessing
 import os
@@ -17,6 +20,8 @@ def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, pr
     """Generate embedding for a single node."""
     while True:
         try:
+            # random sleep from 0 to 3 seconds
+            time.sleep(random.uniform(0, 2))
             node_embedding = embedding_model.get_text_embedding(
                 node.get_content(metadata_mode="all")
             )
@@ -29,7 +34,8 @@ def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, pr
             rate_limit_controller.reset_backoff_time()
             break
         except Exception as e:
-            if 'rate_limit_exceeded' in str(e):
+            if 'Rate limit reached' in str(e) or 'rate_limit_exceeded' in str(e):
+                logging.warning("Rate limit error detected.")
                 rate_limit_controller.register_rate_limit_exceeded()
             else:
                 logging.error(f"Failed to generate embedding due to: {e}")
@@ -49,7 +55,9 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
                                               total_nodes=total_nodes,
                                               rate_limit_controller=rate_limit_controller)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    num_threads = multiprocessing.cpu_count()  # half the number of CPUs
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
         list(executor.map(partial_generate_node_embedding, nodes))
 
 

@@ -29,11 +29,29 @@ def root_directory() -> str:
 
 
 class RateLimitController:
+    """
+    A controller to handle rate limiting by implementing a backoff mechanism.
+
+    Attributes:
+    - backoff_time (multiprocessing.Value): Shared value to store the current backoff time.
+    - lock (multiprocessing.Lock): Lock to ensure thread-safety when updating the backoff time.
+
+    Methods:
+    - register_rate_limit_exceeded: Increases the backoff time and sleeps the process for that duration.
+    - reset_backoff_time: Resets the backoff time to the default value.
+    """
+
     def __init__(self):
-        self.backoff_time = multiprocessing.Value('d', 20.0)
+        # Doubling the default backoff time to 40.0 seconds
+        self.backoff_time = multiprocessing.Value('d', 40.0)
         self.lock = multiprocessing.Lock()
 
     def register_rate_limit_exceeded(self):
+        """
+        Registers that a rate limit has been exceeded. This method will add a jitter (random fraction)
+        to the current backoff time and sleep for that duration. Subsequently, the backoff time will be doubled,
+        but capped at 300 seconds (5 minutes).
+        """
         with self.lock:
             jitter = self.backoff_time.value * 0.5 * random.uniform(0, 1)
             sleep_time = min(self.backoff_time.value + jitter, 300)
@@ -42,8 +60,11 @@ class RateLimitController:
             self.backoff_time.value = min(self.backoff_time.value * 2, 300)
 
     def reset_backoff_time(self):
+        """
+        Resets the backoff time to the default value of 40.0 seconds.
+        """
         with self.lock:
-            self.backoff_time.value = 5.0
+            self.backoff_time.value = 40.0
 
 
 def start_logging():

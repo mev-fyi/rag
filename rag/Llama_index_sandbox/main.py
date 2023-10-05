@@ -11,11 +11,9 @@ from rag.Llama_index_sandbox.utils import start_logging, timeit
 from rag.Llama_index_sandbox import pdfs_dir, video_transcripts_dir
 import rag.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
 import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
-import rag.Llama_index_sandbox.data_ingestion_pdf.embed as embed_pdf
-import rag.Llama_index_sandbox.data_ingestion_youtube.load as load_youtube
 import rag.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
-import rag.Llama_index_sandbox.data_ingestion_youtube.embed as embed_youtube
-from rag.Llama_index_sandbox.index import initialise_vector_store, load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
+import rag.Llama_index_sandbox.embed as embed
+from rag.Llama_index_sandbox.index import load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
 from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 from rag.Llama_index_sandbox.store_response import store_response
@@ -146,6 +144,9 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
             assert False
 
         log_and_store(store_response_partial, query_str, response)
+        # TODO 2023-10-05 [RETRIEVAL]: in particular for chunks from youtube videos, we might want to expand the window from which it retrieved the chunk
+        # TODO 2023-10-05 [RETRIEVAL]: since many chunks can be retrieved from a single youtube video, what should be the returned timestamp to these references? should we return them all?
+
 
         # TODO 2023-10-05: send the resulting chain of though to gpt3.5 turbo
         # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
@@ -163,7 +164,7 @@ def run():
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
     chunk_overlap = chunk_pdf.get_chunk_overlap(embedding_model_chunk_size)
-    embedding_model = embed_pdf.get_embedding_model(embedding_model_name=embedding_model_name)
+    embedding_model = embed.get_embedding_model(embedding_model_name=embedding_model_name)
     if recreate_index:
         logging.info("RECREATING INDEX")
         # 1. Data loading
@@ -177,8 +178,8 @@ def run():
         text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, chunk_size=embedding_model_chunk_size)
 
         # 3. Manually Construct Nodes from Text Chunks
-        nodes_pdf = embed_pdf.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
-        nodes_youtube = embed_youtube.construct_node(text_chunks_youtube, documents_youtube, doc_idxs_youtube)
+        nodes_pdf = embed.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
+        nodes_youtube = embed.construct_node(text_chunks_youtube, documents_youtube, doc_idxs_youtube)
 
         # [Optional] 4. Extract Metadata from each Node by performing LLM calls to fetch Title.
         #        We extract metadata from each Node using our Metadata extractors.
@@ -186,8 +187,8 @@ def run():
         # nodes = enrich_nodes_with_metadata_via_llm(nodes)
 
         # 5. Generate Embeddings for each Node
-        embed_pdf.generate_embeddings(nodes_pdf, embedding_model)
-        embed_youtube.generate_embeddings(nodes_youtube, embedding_model)
+        embed.generate_embeddings(nodes_pdf, embedding_model)
+        embed.generate_embeddings(nodes_youtube, embedding_model)
         nodes = nodes_pdf + nodes_youtube
 
         # 6. Load Nodes into a Vector Store
