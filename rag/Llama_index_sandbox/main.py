@@ -37,15 +37,14 @@ def format_metadata(response):
                 'formatted_authors': formatted_authors,
                 'pdf_link': meta_info.get('pdf_link', 'N/A'),
                 'release_date': meta_info.get('release_date', 'N/A'),
-                'chunks': []
+                'chunks_count': 0
             }
 
-        title_to_metadata[title]['chunks'].append(key)
+        title_to_metadata[title]['chunks_count'] += 1
 
     formatted_metadata_list = []
     for title, meta in title_to_metadata.items():
-        chunks_str = ', '.join(meta['chunks'])
-        formatted_metadata = f"title: {title}, authors: {meta['formatted_authors']}, pdf_link: {meta['pdf_link']}, release_date: {meta['release_date']}, chunks: {chunks_str}"
+        formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
         formatted_metadata_list.append(formatted_metadata)
 
     # Joining all formatted metadata strings with a newline
@@ -113,6 +112,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         "What are solutions to mitigate front-running and sandwich attacks?",
         "What content discusses L2 sequencers?",
         "What content discusses SUAVE?",
+        "Tell me about transaction ordering on L two s"
     ]
     for query_str in queries:
         query_input = SYSTEM_MESSAGE.format(question=query_str)
@@ -122,7 +122,6 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         #   even if the sysmessage is a standalone chat message (to which ReAct agent acknowledges).
         # response = chat_engine.chat(SYSTEM_MESSAGE)
 
-        # TODO 2023-09-30: fix agent when it tries to reach search_engine_tool
         if isinstance(retrieval_engine, BaseChatEngine):
             response = retrieval_engine.chat(query_str)
             retrieval_engine.reset()
@@ -183,9 +182,8 @@ def run():
         # We now insert these nodes into our PineconeVectorStore.
         # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
         # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-        vector_store = initialise_vector_store(embedding_model_chunk_size=embedding_model_chunk_size)
-        index = load_nodes_into_vector_store_create_index(nodes, vector_store)
-        persist_index(vector_store, index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
+        index = load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
+        persist_index(index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
     else:
         index = load_index_from_disk()
 

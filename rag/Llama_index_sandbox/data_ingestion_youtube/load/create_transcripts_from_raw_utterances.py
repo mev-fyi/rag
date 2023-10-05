@@ -6,8 +6,6 @@ import random
 
 from rag.Llama_index_sandbox.utils import root_directory
 
-SKIP_EXISTING = True  # Set to False if you want to re-process already processed files.
-
 
 def format_time(ms):
     seconds, milliseconds = divmod(ms, 1000)
@@ -49,7 +47,7 @@ def process_utterance(utterance, sentence_count):
     return output
 
 
-def process_transcript(file_path, sentence_count=3):
+def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sentence count is a parameter to evauluate/optimise for
     try:
         # Save the results locally
         output_filename = os.path.splitext(os.path.basename(file_path))[0] + "_processed_diarized.txt"
@@ -93,6 +91,8 @@ def process_transcript(file_path, sentence_count=3):
 
 
 if __name__ == "__main__":
+    SKIP_EXISTING = False  # Set to False if you want to re-process already processed files.
+
     data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-04/"
 
     files_to_process = []

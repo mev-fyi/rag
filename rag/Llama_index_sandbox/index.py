@@ -33,7 +33,7 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
 
 
 @timeit
-def persist_index(vector_store, index, embedding_model_name, chunk_size, chunk_overlap):
+def persist_index(index, embedding_model_name, chunk_size, chunk_overlap):
     """
     Persist the index to disk.
     NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
@@ -60,13 +60,14 @@ def persist_index(vector_store, index, embedding_model_name, chunk_size, chunk_o
 
 
 @timeit
-def load_nodes_into_vector_store_create_index(nodes, vector_store):
+def load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size):
     """
     We now insert these nodes into our PineconeVectorStore.
 
     NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level
     abstraction that handles ingestion as well. We use VectorStoreIndex in the next section to fast-track retrieval/querying.
     """
+    vector_store = initialise_vector_store(embedding_model_chunk_size=embedding_model_chunk_size)
     vector_store.add(nodes)
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
