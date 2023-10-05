@@ -27,16 +27,24 @@ from llama_index.indices.query.base import BaseQueryEngine
 
 def format_metadata(response):
     title_to_metadata = {}
+
     for key, meta_info in response.metadata.items():
         title = meta_info.get('title', 'N/A')
-        authors_list = meta_info.get('authors', 'N/A').split(', ')
-        formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
+
+        if 'authors' in meta_info:
+            authors_list = meta_info.get('authors', 'N/A').split(', ')
+            formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
+        else:
+            formatted_authors = None
 
         if title not in title_to_metadata:
             title_to_metadata[title] = {
                 'formatted_authors': formatted_authors,
                 'pdf_link': meta_info.get('pdf_link', 'N/A'),
                 'release_date': meta_info.get('release_date', 'N/A'),
+                'channel_name': meta_info.get('channel_name', 'N/A'),
+                'video_link': meta_info.get('video_link', 'N/A'),
+                'published_date': meta_info.get('published_date', 'N/A'),
                 'chunks_count': 0
             }
 
@@ -44,7 +52,11 @@ def format_metadata(response):
 
     formatted_metadata_list = []
     for title, meta in title_to_metadata.items():
-        formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
+        if meta['formatted_authors']:
+            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
+        else:
+            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}, [# chunks retrieved]: {meta['chunks_count']}"
+
         formatted_metadata_list.append(formatted_metadata)
 
     # Joining all formatted metadata strings with a newline
@@ -64,7 +76,6 @@ def get_chat_engine(index, service_context, chat_mode="react", verbose=True, sim
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
     #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
-    # TODO 2023-09-29: use lower-level construction than as_chat_engine()
 
     # TODO 2023-09-29: add system prompt to agent. BUT it is an input to OpenAI agent but not React Agent!
     #   OpenAI agent has prefix_messages in its constructor, but React Agent does not.
@@ -81,7 +92,7 @@ def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
 
 
 @timeit
-def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, chunksize, chunkoverlap, index, engine='chat'):
+def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, chunksize, chunkoverlap, index, engine='chat', similarity_top_k=10):
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
     #   To achieve this we need to save intermediary Response objects to make sure we can distill results and have access to nodes and chunks used for the reasoning
     # TODO 2023-09-29: determine how we should structure our indexes per document type
@@ -93,9 +104,9 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
     if engine == 'chat':
         # create an LLM response based on chain of thoughts to return the final result
         # TODO 2023-10-05: tune timeout and max_tokens
-        retrieval_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5)
+        retrieval_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
-        retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=5)
+        retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     else:
         assert False, f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}"
 
@@ -121,10 +132,10 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         #   and seemingly even if the SYSTEM_MESSAGE is very small, the agent still responds to unrelated questions,
         #   even if the sysmessage is a standalone chat message (to which ReAct agent acknowledges).
         # response = chat_engine.chat(SYSTEM_MESSAGE)
-
+        # TODO 2023-10-05: understand why metadata of videos is not written at all
         if isinstance(retrieval_engine, BaseChatEngine):
             response = retrieval_engine.chat(query_str)
-            retrieval_engine.reset()
+            # retrieval_engine.reset()
         elif isinstance(retrieval_engine, BaseQueryEngine):
             # TODO 2023-10-05: fix the retrieval of the index. Currently if we load it back i.e. use the ID to fetch the index, it does not work?
             #  and only re-running the whole pipeline works. perhaps a question of upgrading to paying. TBD. if cost is $0.7 an hour versus ~$0.50 for each embed run (OpenAI).
@@ -141,7 +152,8 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         # TODO 2023-10-05: return the metadata of each file and chunk used for the reasoning for referencing
 
     logging.info("Test completed.")
-    pass
+    return retrieval_engine
+    # pass
 
 
 def run():
@@ -192,14 +204,14 @@ def run():
     # 7. Retrieve and Query from the Vector Store
     # Now that our ingestion is complete, we can retrieve/query this vector store.
     # NOTE: We can use our high-level VectorStoreIndex abstraction here. See the next section to see how to define retrieval at a lower-level!
-    retrieve_and_query_from_vector_store(embedding_model_name=embedding_model_name,
-                                         llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
-                                         chunksize=embedding_model_chunk_size,
-                                         chunkoverlap=chunk_overlap,
-                                         index=index,
-                                         engine='query')
+    retrieval_engine = retrieve_and_query_from_vector_store(embedding_model_name=embedding_model_name,
+                                                            llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
+                                                            chunksize=embedding_model_chunk_size,
+                                                            chunkoverlap=chunk_overlap,
+                                                            index=index,
+                                                            engine='query')
 
-    return index
+    return retrieval_engine
     pass
     # delete the index to save resources once we are done
     # vector_store.delete(deleteAll=True)
