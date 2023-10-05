@@ -99,8 +99,8 @@ def run():
         # 1. Data loading
         # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
         # download_pdfs(pdf_links, save_dir)
-        documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))
-        documents_youtube = load_video_transcripts(directory_path=Path(video_transcripts_dir))
+        documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))  # [:5]
+        documents_youtube = load_video_transcripts(directory_path=Path(video_transcripts_dir))  # [:5]
 
         # 2. Data chunking / text splitter
         text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, chunk_size=embedding_model_chunk_size)
