@@ -7,14 +7,13 @@ from llama_index.vector_stores import PineconeVectorStore
 
 from rag.Llama_index_sandbox import index_dir
 from rag.Llama_index_sandbox.utils import timeit
+import pinecone
 
+api_key = os.environ["PINECONE_API_KEY"]
 
 @timeit
 def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
-    import pinecone
-    api_key = os.environ["PINECONE_API_KEY"]
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-
     index_name = "quickstart"
 
     # Check if the index already exists
@@ -37,10 +36,11 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
 def persist_index(vector_store, index, embedding_model_name, chunk_size, chunk_overlap):
     """
     Persist the index to disk.
+    NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
     """
     try:
         # Format the filename
-        date_str = datetime.now().strftime("%Y-%m-%d")
+        date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
         name = f"{date_str}_{embedding_model_name}_{chunk_size}_{chunk_overlap}"
         persist_dir = index_dir + name
         # check if index_dir and if not create it
@@ -54,7 +54,7 @@ def persist_index(vector_store, index, embedding_model_name, chunk_size, chunk_o
         with open(f"{persist_dir}/vector_store.json", "w") as f:
             f.write("{}")
 
-        logging.info("Successfully persisted index to disk.")
+        logging.info(f"Successfully persisted index {persist_dir} to disk.")
     except Exception as e:
         logging.error(f"Failed to persist index to disk. Error: {e}")
 
@@ -72,12 +72,17 @@ def load_nodes_into_vector_store_create_index(nodes, vector_store):
     return index
 
 
+@timeit
 def load_index_from_disk():
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
-    storage_context = StorageContext.from_defaults(persist_dir=persist_dir)
+    logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
     try:
-        return load_index_from_storage(storage_context)
+        pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
+        index_name = "quickstart"
+        vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
+        index = VectorStoreIndex.from_vector_store(vector_store)
+        return index
     except Exception as e:
         logging.error(f"Error: {e}")
         # To accommodate for the case where the vector_store.json file is not persisted https://stackoverflow.com/questions/76837143/llamaindex-index-storage-context-persist-not-storing-vector-store
@@ -86,7 +91,11 @@ def load_index_from_disk():
             with open(f"{persist_dir}/vector_store.json", "w") as f:
                 f.write("{}")
             try:
-                return load_index_from_storage(storage_context)
+                pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
+                index_name = "quickstart"
+                vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
+                index = VectorStoreIndex.from_vector_store(vector_store)
+                return index
             except Exception as e:
                 logging.error(f"Error: {e}")
                 exit(1)
