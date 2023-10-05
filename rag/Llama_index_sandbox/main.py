@@ -48,8 +48,11 @@ def format_metadata(response):
 
         title_to_metadata[title]['chunks_count'] += 1
 
+    # Sorting metadata based on dates (from most recent to oldest)
+    sorted_metadata = sorted(title_to_metadata.items(), key=lambda x: (x[1]['release_date'] if x[1]['release_date'] != 'N/A' else x[1]['published_date']), reverse=True)
+
     formatted_metadata_list = []
-    for title, meta in title_to_metadata.items():
+    for title, meta in sorted_metadata:
         if meta['formatted_authors']:
             formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
         else:
@@ -60,6 +63,7 @@ def format_metadata(response):
     # Joining all formatted metadata strings with a newline
     all_formatted_metadata = '\n'.join(formatted_metadata_list)
     return all_formatted_metadata
+
 
 
 def log_and_store(store_response_fn, query_str, response):
@@ -120,8 +124,12 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         "What are the papers that deal with LVR?",
         "What are solutions to mitigate front-running and sandwich attacks?",
         "What content discusses L2 sequencers?",
+        "What content discusses L two s sequencers?",
         "What content discusses SUAVE?",
-        "Tell me about transaction ordering on L two s"
+        "Tell me about transaction ordering on L two s",
+        "Can you tell me how the definition of MEV evolved over the years?",
+        "What are videos that discuss OFAs?",
+        "Cite all the sources you have about Tim Roughgarden"
     ]
     for query_str in queries:
         query_input = SYSTEM_MESSAGE.format(question=query_str)
@@ -146,6 +154,8 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         log_and_store(store_response_partial, query_str, response)
         # TODO 2023-10-05 [RETRIEVAL]: in particular for chunks from youtube videos, we might want to expand the window from which it retrieved the chunk
         # TODO 2023-10-05 [RETRIEVAL]: since many chunks can be retrieved from a single youtube video, what should be the returned timestamp to these references? should we return them all?
+        # TODO 2023-10-05 [RETRIEVAL]: add weights such that responses from older sources have less importance in the answer
+        # TODO 2023-10-05 [RETRIEVAL]: should we weight more a person which is an author and has a paper?
 
 
         # TODO 2023-10-05: send the resulting chain of though to gpt3.5 turbo
@@ -159,7 +169,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
 
 def run():
     start_logging()
-    recreate_index = True
+    recreate_index = False
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
