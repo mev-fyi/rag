@@ -60,7 +60,7 @@ def persist_index(index, embedding_model_name, chunk_size, chunk_overlap):
 
 
 @timeit
-def load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size):
+def load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size) -> VectorStoreIndex:
     """
     We now insert these nodes into our PineconeVectorStore.
 
@@ -74,7 +74,7 @@ def load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
 
 
 @timeit
-def load_index_from_disk():
+def load_index_from_disk() -> VectorStoreIndex:
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")

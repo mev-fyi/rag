@@ -4,6 +4,14 @@
 import os
 from pathlib import Path
 import logging
+from typing import cast, Optional, Type
+
+from llama_index.agent import ReActAgent
+from llama_index.agent.react.formatter import ReActChatFormatter
+from llama_index.agent.react.output_parser import ReActOutputParser
+from llama_index.callbacks import CallbackManager
+from llama_index.memory import BaseMemory, ChatMemoryBuffer
+from llama_index.tools import QueryEngineTool
 
 import rag.Llama_index_sandbox.config as config
 from rag.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
@@ -14,11 +22,11 @@ import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import rag.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
 import rag.Llama_index_sandbox.embed as embed
 from rag.Llama_index_sandbox.index import load_nodes_into_vector_store_create_index, load_index_from_disk, persist_index
-from llama_index import ServiceContext
+from llama_index import ServiceContext, VectorStoreIndex
 from llama_index.llms import OpenAI
 from rag.Llama_index_sandbox.store_response import store_response
 from functools import partial
-from rag.Llama_index_sandbox.constants import SYSTEM_MESSAGE
+from rag.Llama_index_sandbox.constants import SYSTEM_MESSAGE, OPENAI_MODEL_NAME, LLM_TEMPERATURE
 from llama_index.chat_engine.types import BaseChatEngine
 from llama_index.indices.query.base import BaseQueryEngine
 
@@ -65,47 +73,82 @@ def format_metadata(response):
     return all_formatted_metadata
 
 
-
 def log_and_store(store_response_fn, query_str, response):
     all_formatted_metadata = format_metadata(response)
     logging.info(f"[Shown to client] The answer to [{query_str}] is: \n\n```\n{response}\n```\n\nWith sources: \n{all_formatted_metadata}")
     # store_response_fn(query_str, response)
 
 
-def get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=5):
-    # TODO 2023-09-29: make sure the temperature is set to zero for consistent results
-    # TODO 2023-09-29: creating a (react) chat engine from an index transforms that
-    #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
-    #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
-    #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
-
-    # TODO 2023-09-29: add system prompt to agent. BUT it is an input to OpenAI agent but not React Agent!
-    #   OpenAI agent has prefix_messages in its constructor, but React Agent does not.
-    chat_engine = index.as_chat_engine(chat_mode=chat_mode,
-                                       verbose=verbose,
-                                       similarity_top_k=similarity_top_k,
-                                       service_context=service_context,
-                                       system_prompt=SYSTEM_MESSAGE)
-    return chat_engine
-
-
 def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
     return index.as_query_engine(similarity_top_k=similarity_top_k, service_context=service_context, verbose=verbose)
 
 
+def get_inference_llm(temperature,
+                      callback_manager: Optional[CallbackManager] = None,
+                      max_tokens: Optional[int] = None,
+                      llm: Optional[OpenAI] = None,
+                      ):
+    if callback_manager is not None:
+        llm.callback_manager = callback_manager
+    return llm or OpenAI(model=OPENAI_MODEL_NAME, temperature=temperature, max_tokens=max_tokens, callback_manager=callback_manager)
+
+
+def get_chat_engine(index: VectorStoreIndex,
+                    service_context: ServiceContext,
+                    chat_mode: str = "react",
+                    verbose: bool = True,
+                    similarity_top_k: int = 5,
+                    max_iterations: int = 10,
+                    memory: Optional[BaseMemory] = None,
+                    memory_cls: Type[BaseMemory] = ChatMemoryBuffer,
+                    temperature=LLM_TEMPERATURE):
+    # NOTE 2023-09-29: creating a (react) chat engine from an index transforms that
+    #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
+    #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
+    #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
+
+    # NOTE: 2023-09-29: add system prompt to agent. BUT it is an input to OpenAI agent but not React Agent!
+    #   OpenAI agent has prefix_messages in its constructor, but React Agent does not. Is adding System prompt to chat history good enough?
+
+    query_engine = get_query_engine(index=index, service_context=service_context, verbose=verbose, similarity_top_k=similarity_top_k)
+    query_engine_tool = QueryEngineTool.from_defaults(query_engine=query_engine)
+    react_chat_formatter: Optional[ReActChatFormatter] = None  # NOTE 2023-10-06: to configure
+    output_parser: Optional[ReActOutputParser] = None  # NOTE 2023-10-06: to configure
+    callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
+    chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure
+
+    llm = service_context.llm
+    max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
+    llm = get_inference_llm(temperature=temperature, callback_manager=callback_manager, max_tokens=max_tokens, llm=llm)
+    memory = memory or memory_cls.from_defaults(chat_history=chat_history, llm=llm)
+
+    return ReActAgent.from_tools(
+        tools=[query_engine_tool],
+        llm=llm,
+        max_iterations=max_iterations,
+        memory=memory,
+        verbose=verbose,
+    )
+
+
 @timeit
-def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, chunksize, chunkoverlap, index, engine='chat', similarity_top_k=10):
+def retrieve_and_query_from_vector_store(embedding_model_name: str,
+                                         llm_model_name: str,
+                                         chunksize: int,
+                                         chunkoverlap: int,
+                                         index: VectorStoreIndex,
+                                         engine='chat',
+                                         similarity_top_k=10):
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
     #   To achieve this we need to save intermediary Response objects to make sure we can distill results and have access to nodes and chunks used for the reasoning
     # TODO 2023-09-29: determine how we should structure our indexes per document type
-    service_context = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
+    service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
     # create partial store_response with everything but the query_str and response
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
-    # chat_engine = index.as_chat_engine(chat_mode="react", verbose=True, similarity_top_k=5, service_context=service_context)
     if engine == 'chat':
         # create an LLM response based on chain of thoughts to return the final result
-        # TODO 2023-10-05: tune timeout and max_tokens
+
         retrieval_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
         retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
@@ -128,7 +171,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name, llm_model_name, c
         "What content discusses SUAVE?",
         "Tell me about transaction ordering on L two s",
         "Can you tell me how the definition of MEV evolved over the years?",
-        "What are videos that discuss OFAs?",
+        "What are videos that discuss order flow auctions?",
         "Cite all the sources you have about Tim Roughgarden"
     ]
     for query_str in queries:

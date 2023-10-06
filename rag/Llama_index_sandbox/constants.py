@@ -16,6 +16,9 @@ For any user message that is not related to MEV, blockchain, or mechanism design
 """.strip()
 
 
+LLM_TEMPERATURE = 0.0  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
+OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
+
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
 # * You may assume that the users financial questions are related to the documents they've selected.
 
