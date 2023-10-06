@@ -1,15 +1,22 @@
+from llama_index import VectorStoreIndex
+from llama_index.vector_stores import PineconeVectorStore
 import logging
 import os
 from datetime import datetime
+import pinecone
+from pathlib import Path
 
-from llama_index import VectorStoreIndex, StorageContext, load_index_from_storage
-from llama_index.vector_stores import PineconeVectorStore
-
+from rag.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
+from rag.Llama_index_sandbox import pdfs_dir, video_transcripts_dir
+import rag.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
+import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
+import rag.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
+import rag.Llama_index_sandbox.embed as embed
 from rag.Llama_index_sandbox import index_dir
 from rag.Llama_index_sandbox.utils import timeit
-import pinecone
 
 api_key = os.environ["PINECONE_API_KEY"]
+
 
 @timeit
 def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
@@ -102,4 +109,36 @@ def load_index_from_disk() -> VectorStoreIndex:
                 exit(1)
 
 
+@timeit
+def create_index(embedding_model_name, embedding_model, embedding_model_chunk_size, chunk_overlap):
+    logging.info("RECREATING INDEX")
+    # 1. Data loading
+    # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
+    # download_pdfs(pdf_links, save_dir)
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(pdfs_dir))  # [:1]
+    documents_youtube = load_video_transcripts(directory_path=Path(video_transcripts_dir))  # [:5]
 
+    # 2. Data chunking / text splitter
+    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, chunk_size=embedding_model_chunk_size)
+    text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, chunk_size=embedding_model_chunk_size)
+
+    # 3. Manually Construct Nodes from Text Chunks
+    nodes_pdf = embed.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
+    nodes_youtube = embed.construct_node(text_chunks_youtube, documents_youtube, doc_idxs_youtube)
+
+    # [Optional] 4. Extract Metadata from each Node by performing LLM calls to fetch Title.
+    #        We extract metadata from each Node using our Metadata extractors.
+    #        This will add more metadata to each Node.
+    # nodes = enrich_nodes_with_metadata_via_llm(nodes)
+
+    # 5. Generate Embeddings for each Node
+    embed.generate_embeddings(nodes_pdf, embedding_model)
+    embed.generate_embeddings(nodes_youtube, embedding_model)
+    nodes = nodes_pdf + nodes_youtube
+
+    # 6. Load Nodes into a Vector Store
+    # We now insert these nodes into our PineconeVectorStore.
+    # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
+    # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
+    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
+    persist_index(index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)

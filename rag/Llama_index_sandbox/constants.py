@@ -18,6 +18,25 @@ For any user message that is not related to MEV, blockchain, or mechanism design
 
 LLM_TEMPERATURE = 0.0  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
+INPUT_QUERIES = [
+        # "What is red teaming in AI",  # Should refuse to respond,
+        "Tell me about LVR",
+        "What plagues current AMM designs?",
+        "How do L2 sequencers work?",
+        "Do an exhaustive breakdown of the MEV supply chain",
+        "What is ePBS?",
+        "What is SUAVE?",
+        "What are intents?",
+        "What are the papers that deal with LVR?",
+        "What are solutions to mitigate front-running and sandwich attacks?",
+        "What content discusses L2 sequencers?",
+        "What content discusses L two s sequencers?",
+        "What content discusses SUAVE?",
+        "Tell me about transaction ordering on L two s",
+        "Can you tell me how the definition of MEV evolved over the years?",
+        "What are videos that discuss order flow auctions?",
+        "Cite all the sources you have about Tim Roughgarden"
+    ]
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
 # * You may assume that the users financial questions are related to the documents they've selected.
