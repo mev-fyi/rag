@@ -9,6 +9,7 @@ from llama_index import SimpleDirectoryReader
 import re
 
 from rag.Llama_index_sandbox import root_dir
+from rag.Llama_index_sandbox.constants import *
 from rag.Llama_index_sandbox.utils import timeit
 
 
@@ -45,10 +46,12 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         document.metadata.update({
             # TODO 2023-10-04: is there an impact of different metadata keys across documents?
             #  Necessarily, multi-document agents deal with several document types?
+            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO,
             'title': video_row.iloc[0]['title'],
             'channel_name': video_row.iloc[0]['channel_name'],
             'video_link': video_row.iloc[0]['url'],
-            'published_date': video_row.iloc[0]['published_date']
+            # TODO 2023-10-08: we might want to limit date to yyyy-mm only  https://docs.pinecone.io/docs/metadata-filtering
+            'release_date': video_row.iloc[0]['published_date']
         })
         # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
         #       (1) i would want to avoid the case where the agent only looks as paper index
@@ -90,4 +93,5 @@ def load_video_transcripts(directory_path: Union[str, Path]):
                 logging.info(f"Failed to process {video_transcript}, passing: {e}")
                 pass
     logging.info(f"Successfully loaded {video_transcripts_loaded_count} documents from video transcripts.")
+    assert len(all_documents) > 50, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents

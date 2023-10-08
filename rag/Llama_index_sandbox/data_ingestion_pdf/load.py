@@ -18,6 +18,7 @@ from pdfminer.pdfparser import PDFParser
 from pypdf import PdfReader
 
 from rag.Llama_index_sandbox import root_dir, mev_fyi_dir, research_papers_dir
+from rag.Llama_index_sandbox.constants import *
 from rag.Llama_index_sandbox.utils import timeit
 
 
@@ -179,14 +180,17 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
         if not paper_row.empty:
             # Update metadata
             document.metadata.update({
+                'document_type': DOCUMENT_TYPES.RESEARCH_PAPER,
                 'title': paper_row.iloc[0]['title'],
                 'authors': paper_row.iloc[0]['authors'],
                 'pdf_link': paper_row.iloc[0]['pdf_link'],
+                # TODO 2023-10-08: we might want to limit date to yyyy-mm only  https://docs.pinecone.io/docs/metadata-filtering
                 'release_date': paper_row.iloc[0]['release_date']
             })
             # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
             #   It will be high (highest too? TBD.) for talks and conferences in YouTube video format
             #   It will be relatively lower for podcasts, tweets, and less formal content.
+
     return documents
 
 

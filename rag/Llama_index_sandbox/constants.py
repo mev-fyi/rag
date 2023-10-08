@@ -1,3 +1,4 @@
+from enum import Enum
 
 
 # SYSTEM_MESSAGE = """
@@ -16,7 +17,7 @@ For any user message that is not related to MEV, blockchain, or mechanism design
 """.strip()
 
 
-LLM_TEMPERATURE = 0.0  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
+LLM_TEMPERATURE = 0.1  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
         # "What is red teaming in AI",  # Should refuse to respond,
@@ -29,9 +30,9 @@ INPUT_QUERIES = [
         "What are intents?",
         "What are the papers that deal with LVR?",
         "What are solutions to mitigate front-running and sandwich attacks?",
-        "What content discusses L2 sequencers?",
-        "What content discusses L two s sequencers?",
-        "What content discusses SUAVE?",
+        "Give me several sources about L2 sequencers?",
+        "Give me several sources about  L two s sequencers?",
+        "Give me several sources about  SUAVE?",
         "Tell me about transaction ordering on L two s",
         "Can you tell me how the definition of MEV evolved over the years?",
         "What are videos that discuss order flow auctions?",
@@ -44,3 +45,9 @@ INPUT_QUERIES = [
 # The tools at your disposal have access to the following SEC documents that the user has selected to discuss with you:
 #     {doc_titles}
 # The current date is: {curr_date}
+
+
+class DOCUMENT_TYPES(Enum):
+    YOUTUBE_VIDEO = "youtube_video"
+    RESEARCH_PAPER = "research_paper"
+

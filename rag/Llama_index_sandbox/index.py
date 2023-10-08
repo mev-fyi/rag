@@ -29,8 +29,22 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
         # If the index exists, delete it
         pinecone.delete_index(index_name)
 
-    # Create a new index
-    pinecone.create_index(name=index_name, dimension=embedding_model_chunk_size, metric="cosine", pod_type="p1")
+    # NOTE: We do not index the metadata fields by video/paper link.
+    #  https://docs.pinecone.io/docs/manage-indexes#selective-metadata-indexing
+    #  https://docs.pinecone.io/docs/metadata-filtering
+    # High cardinality consumes more memory: Pinecone indexes metadata to allow
+    # for filtering. If the metadata contains many unique values — such as a unique
+    # identifier for each vector — the index will consume significantly more
+    # memory. Consider using selective metadata indexing to avoid indexing
+    # high-cardinality metadata that is not needed for filtering.
+    metadata_config = {
+        "indexed": ["document_type", "title", "authors", "release_date"]
+    }
+    pinecone.create_index(name=index_name,
+                          metadata_config=metadata_config,
+                          dimension=embedding_model_chunk_size,
+                          metric="cosine",
+                          pod_type="p1")
     pinecone_index = pinecone.Index(index_name=index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
 

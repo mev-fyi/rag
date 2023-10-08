@@ -93,7 +93,7 @@ def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sen
 if __name__ == "__main__":
     SKIP_EXISTING = False  # Set to False if you want to re-process already processed files.
 
-    data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-04/"
+    data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
 
     files_to_process = []
     for root, _, files in os.walk(data_directory):

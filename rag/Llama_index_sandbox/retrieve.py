@@ -138,20 +138,20 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
     if engine == 'chat':
-        retrieval_engine = get_chat_engine(index, service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
+        retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
         retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     else:
         assert False, f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}"
 
     for query_str in INPUT_QUERIES:
+        # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
             response = retrieval_engine.chat(query_str)
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
-            query_input = SYSTEM_MESSAGE.format(question=query_str)
-            logging.info(f"\nQuerying index with query:    [{query_str}]")
+            logging.info(f"Querying index with query:    [{query_str}]")
             response = retrieval_engine.query(query_str)
         else:
             logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
@@ -164,6 +164,12 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         #   what should be the returned timestamp to these references? should we return them all? return the one with highest score?
         # TODO 2023-10-05 [RETRIEVAL]: add weights such that responses from older sources have less importance in the answer
         # TODO 2023-10-05 [RETRIEVAL]: should we weight more a person which is an author and has a paper?
+        # TODO 2023-10-07 [RETRIEVAL]: ADD metadata filtering e.g. "only video" or "only papers", or "from this author", or "from this channel", or "from 2022 and 2023" etc
+        # TODO 2023-10-07 [RETRIEVAL]: in the chat format, is the rag system keeping in memory the previous retrieved chunks? e.g. if an answer is too short can it develop it further?
+        # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune himself the top-k retrieved chunks? the temperature?
+        # TODO 2023-10-07 [RETRIEVAL]: usually when asked for resources its not that performant and might at best return a single resource.
+
+        #  should we return all fetched resources from response object? or rather make another API call to return response + sources
 
         # TODO 2023-10-05: send the resulting chain of thoughts to gpt3.5 turbo
         # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
