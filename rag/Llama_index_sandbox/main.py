@@ -33,7 +33,7 @@ def run():
                                                             chunksize=embedding_model_chunk_size,
                                                             chunkoverlap=chunk_overlap,
                                                             index=index,
-                                                            engine='query')
+                                                            engine='chat')
 
     # If paid: delete the index to save resources once we are done ($0.70 per hr versus ~$0.50 to create it)
     # vector_store.delete(deleteAll=True)

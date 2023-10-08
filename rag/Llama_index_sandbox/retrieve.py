@@ -103,7 +103,8 @@ def get_chat_engine(index: VectorStoreIndex,
     react_chat_formatter: Optional[ReActChatFormatter] = None  # NOTE 2023-10-06: to configure
     output_parser: Optional[ReActOutputParser] = None  # NOTE 2023-10-06: to configure
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
-    chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
+    # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
+    chat_history = []  # TODO 2023-10-06: to configure and make sure its the good practice
 
     llm = service_context.llm
     max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
@@ -139,6 +140,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
 
     if engine == 'chat':
         retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
+        retrieval_engine.chat(SYSTEM_MESSAGE)
     elif engine == 'query':
         retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     else:
@@ -147,17 +149,18 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
     for query_str in INPUT_QUERIES:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
+            # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
             response = retrieval_engine.chat(query_str)
-            # retrieval_engine.reset()
+            retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")
             response = retrieval_engine.query(query_str)
+            log_and_store(store_response_partial, query_str, response)
         else:
             logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
             assert False
 
-        log_and_store(store_response_partial, query_str, response)
         # TODO 2023-10-05 [RETRIEVAL]: in particular for chunks from youtube videos, we might want
         #   to expand the window from which it retrieved the chunk
         # TODO 2023-10-05 [RETRIEVAL]: since many chunks can be retrieved from a single youtube video,
@@ -166,7 +169,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-05 [RETRIEVAL]: should we weight more a person which is an author and has a paper?
         # TODO 2023-10-07 [RETRIEVAL]: ADD metadata filtering e.g. "only video" or "only papers", or "from this author", or "from this channel", or "from 2022 and 2023" etc
         # TODO 2023-10-07 [RETRIEVAL]: in the chat format, is the rag system keeping in memory the previous retrieved chunks? e.g. if an answer is too short can it develop it further?
-        # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune himself the top-k retrieved chunks? the temperature?
+        # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune the top-k retrieved chunks? the temperature?
         # TODO 2023-10-07 [RETRIEVAL]: usually when asked for resources its not that performant and might at best return a single resource.
 
         #  should we return all fetched resources from response object? or rather make another API call to return response + sources
