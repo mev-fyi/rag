@@ -180,7 +180,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
         if not paper_row.empty:
             # Update metadata
             document.metadata.update({
-                'document_type': DOCUMENT_TYPES.RESEARCH_PAPER,
+                'document_type': DOCUMENT_TYPES.RESEARCH_PAPER.value,
                 'title': paper_row.iloc[0]['title'],
                 'authors': paper_row.iloc[0]['authors'],
                 'pdf_link': paper_row.iloc[0]['pdf_link'],

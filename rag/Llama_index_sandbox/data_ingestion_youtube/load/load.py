@@ -10,6 +10,8 @@ import re
 
 from rag.Llama_index_sandbox import root_dir
 from rag.Llama_index_sandbox.constants import *
+from rag.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
+from rag.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
 from rag.Llama_index_sandbox.utils import timeit
 
 
@@ -46,7 +48,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         document.metadata.update({
             # TODO 2023-10-04: is there an impact of different metadata keys across documents?
             #  Necessarily, multi-document agents deal with several document types?
-            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO,
+            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
             'title': video_row.iloc[0]['title'],
             'channel_name': video_row.iloc[0]['channel_name'],
             'video_link': video_row.iloc[0]['url'],
@@ -67,6 +69,9 @@ def load_video_transcripts(directory_path: Union[str, Path]):
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
+
+    create_transcripts_from_raw_json_utterances.run()
+    correct_typos_in_files()
 
     all_documents = []
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"

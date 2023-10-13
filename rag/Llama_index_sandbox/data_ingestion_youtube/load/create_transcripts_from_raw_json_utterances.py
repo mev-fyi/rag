@@ -48,6 +48,7 @@ def process_utterance(utterance, sentence_count):
 
 
 def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sentence count is a parameter to evauluate/optimise for
+    SKIP_EXISTING = False  # Set to False if you want to re-process already processed files.
     try:
         # Save the results locally
         output_filename = os.path.splitext(os.path.basename(file_path))[0] + "_processed_diarized.txt"
@@ -90,9 +91,7 @@ def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sen
         print(f"Error processing {output_filename}: {e}")
 
 
-if __name__ == "__main__":
-    SKIP_EXISTING = False  # Set to False if you want to re-process already processed files.
-
+def run():
     data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
 
     files_to_process = []
@@ -105,3 +104,6 @@ if __name__ == "__main__":
     with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(process_transcript, files_to_process)
 
+
+if __name__ == "__main__":
+    run()
