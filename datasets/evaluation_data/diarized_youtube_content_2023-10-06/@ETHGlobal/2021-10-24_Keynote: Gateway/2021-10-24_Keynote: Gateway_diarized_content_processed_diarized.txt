@@ -1,0 +1,236 @@
+00:00:05.210 - 00:00:16.640, Speaker A: To our next talk. And our next speaker is Jared. And Jared's going to be talking about gateway. So I'm super excited about this thing, but I'll let him tell us everything about gateway. Welcome.
+00:00:17.570 - 00:00:33.206, Speaker B: Thank you. Thanks for having me. Let me just share my screen here, let me know everything. Hopefully you can see it, but yeah. Hi everyone. Thank you. Thanks for having me.
+00:00:33.206 - 00:00:38.138, Speaker B: It's great to be here. My name is Jared and just a.
+00:00:38.144 - 00:00:39.370, Speaker C: Little bit about myself.
+00:00:39.440 - 00:01:10.478, Speaker B: So I've been at Compound for about two and a half years, pretty much joined, starting, designing and working on the V Two protocol, which is we now know as the compound protocol. And today I want to talk about gateway. So gateway is compound's blockchain project that we started last year. And yeah, I just hoping to sort of explain what it is, why we're.
+00:01:10.574 - 00:01:14.786, Speaker C: Building it and give you a little.
+00:01:14.808 - 00:01:28.230, Speaker B: Bit deeper understanding maybe how it works and sort of what the current status is and things like that. So, yeah, jumping right in, I guess. Why are we building gateway?
+00:01:28.310 - 00:01:36.346, Speaker C: What's the motivation for gateway? In my mind, there's always been a.
+00:01:36.368 - 00:01:46.110, Speaker B: Confluence of two reasons that we're sort of building gateway. One is sort of like the V Three version of the compound protocol.
+00:01:48.290 - 00:01:56.654, Speaker C: And going back a little bit to sort of last summer.
+00:01:56.782 - 00:01:58.290, Speaker B: At the end of last summer.
+00:02:00.230 - 00:02:00.546, Speaker C: At.
+00:02:00.568 - 00:02:12.662, Speaker B: The beginning of last summer, we sort of began distributing our governance token on Ethereum and we experienced the summer of DeFi and what that explosion was like.
+00:02:12.796 - 00:02:19.000, Speaker C: And there was a real feeling of product market fit.
+00:02:19.530 - 00:02:43.380, Speaker B: The protocol went from growing ten x per year to growing like 100 x per year. So basically from moving from 20 million in assets to 200 million in assets in year one of its life, the protocol, and then from 200 to 20 billion, sort of beginning with last summer. And.
+00:02:45.430 - 00:02:48.994, Speaker C: I think what became pretty clear.
+00:02:49.112 - 00:02:51.042, Speaker B: At least, but if it wasn't already.
+00:02:51.096 - 00:02:53.938, Speaker C: Clear, was that Ethereum was kind of.
+00:02:53.944 - 00:02:56.246, Speaker B: Like unusable for the average person at that time.
+00:02:56.268 - 00:02:59.618, Speaker C: Like gas costs were getting extremely volatile.
+00:02:59.794 - 00:03:03.366, Speaker B: And mostly just expensive and still are.
+00:03:03.468 - 00:03:07.046, Speaker C: The network was congested and we had.
+00:03:07.068 - 00:03:40.882, Speaker B: Started to think about scaling how to scale compound beyond the boundaries of ethereum and sort of reach a broader set of users. Part of gateway is certainly thinking about how to scale compound and not be constrained by the underlying network at that time. We sort of took a look around at the next generation of blockchains L ones, L2, S side chains, roll ups, all things.
+00:03:41.016 - 00:03:46.354, Speaker C: And what became clear and was that.
+00:03:46.472 - 00:03:52.646, Speaker B: It was still going to take some time to see how things would actually play out. But we knew that we wanted to.
+00:03:52.668 - 00:03:55.478, Speaker C: Build a V Three that sort of.
+00:03:55.484 - 00:04:10.146, Speaker B: Would work for users no matter which technologies that they were experimenting with. And we sort of concluded that having a chain would ultimately let the compound.
+00:04:10.198 - 00:04:14.746, Speaker C: Governance have more control over the economics.
+00:04:14.778 - 00:04:22.320, Speaker B: Of the protocol and also would be a way to keep fees low in the long term. And.
+00:04:24.790 - 00:04:27.326, Speaker C: There was this promise of Polkadot.
+00:04:27.358 - 00:04:39.906, Speaker B: Which was that with substrate you could build a chain which was targeted to either run as a standalone chain or as a parachain. And the idea with the constrained parachain.
+00:04:39.938 - 00:04:43.766, Speaker C: Is that it's more constrained, but you.
+00:04:43.788 - 00:04:49.978, Speaker B: Don'T have to worry about the security of the validators. You're sharing the securities with the other parachain, you're sharing the security of the.
+00:04:49.984 - 00:04:53.242, Speaker C: Relay chain with the other parachain, and.
+00:04:53.296 - 00:05:29.800, Speaker B: The validators and the consensus player are shared. And so you really need to only worry about the availability of being able to process transactions and having servers available to process transactions and not whether they're executing things faithfully or reliably. The problem was that I guess Polkadot has still yet to launch parachains on Mainet. And this whole time we've been working on Gateway has been in active development itself.
+00:05:30.730 - 00:05:31.480, Speaker C: But.
+00:05:34.730 - 00:05:56.560, Speaker B: The idea was to sort of take the lessons from the past two and a half years, get rid of the constraint coming from the underlying network, and build a protocol that was sort of streamlined to focus on our specific application or what we consider it to be.
+00:05:57.170 - 00:06:01.214, Speaker C: And I guess before continuing on that.
+00:06:01.332 - 00:06:03.586, Speaker B: The other part of why we're building.
+00:06:03.768 - 00:06:06.514, Speaker C: Gateway is in my mind is this.
+00:06:06.552 - 00:06:15.670, Speaker B: Cash token, which I think these adjectives are pretty descriptive, so I'll just unpack them so portable.
+00:06:18.330 - 00:06:21.094, Speaker C: It exists on many.
+00:06:21.132 - 00:06:35.478, Speaker B: Different chains and can be transferred between them. It's a little bit special as far as assets on Gateway is concerned. I'll talk a little bit more about that later. But one, one way in which it's.
+00:06:35.494 - 00:06:38.966, Speaker C: Special is it's interest bearing and it's.
+00:06:38.998 - 00:06:41.134, Speaker B: Also a unit of account.
+00:06:41.332 - 00:06:44.686, Speaker C: And so combining these things, the V.
+00:06:44.708 - 00:06:51.406, Speaker B: Three protocol, cash token, the hope was.
+00:06:51.428 - 00:06:55.380, Speaker C: Really to just focus on building out.
+00:06:56.630 - 00:07:00.094, Speaker B: Certain application layer and leverage a blockchain.
+00:07:00.142 - 00:07:04.260, Speaker C: Framework to help us deliver that.
+00:07:04.970 - 00:07:06.358, Speaker B: In reality, I think we spent a.
+00:07:06.364 - 00:07:10.406, Speaker C: Lot of time dealing with idiosyncrasies of.
+00:07:10.428 - 00:07:19.074, Speaker B: The framework that we're using and sort of rearchitecting things a bit. But this is kind of the original.
+00:07:19.202 - 00:07:23.530, Speaker C: Thinking behind things and yeah, I guess.
+00:07:23.600 - 00:07:32.350, Speaker B: Moving ahead, get back into some of that discussion later. So what does the architecture for Gateway actually look like?
+00:07:32.500 - 00:07:35.230, Speaker C: Starting with maybe more of like an.
+00:07:35.300 - 00:08:16.010, Speaker B: End user point of view. So the vision for Gateway is actually pretty fairly simple. In this simple diagram, you can see the stars on these representations of connected chains to Gateway. So you have a chain for Gateway and then you have other chains which are connected through their star ports. So in this example, like Ethereum and Tezos, and the idea is that the star ports are the main point of contact between Gateway and these other chains. There's something like a smart contract on each chain. And whatever the analogous concept is of a smart contract on that chain.
+00:08:16.010 - 00:08:23.546, Speaker B: And Gateway has like a superset of all the addresses which exist on all the connected chains.
+00:08:23.658 - 00:08:27.886, Speaker C: And so you could transfer between an.
+00:08:27.908 - 00:08:38.366, Speaker B: Ethereum user and a Tezos user by maybe, for example, you could upload ETH on Ethereum. So you lock Ethereum in the Ethereum.
+00:08:38.398 - 00:08:45.906, Speaker C: Star port that emits an event and becomes part of Gateway.
+00:08:46.098 - 00:08:49.794, Speaker B: And now that the user on Ethereum.
+00:08:49.842 - 00:08:58.710, Speaker C: Can borrow, well, they could send the ETH to the Tezos address but then.
+00:08:58.780 - 00:09:00.982, Speaker B: They wouldn't be able to extract ETH.
+00:09:01.126 - 00:09:03.334, Speaker C: To a Tezos address because the ETH.
+00:09:03.382 - 00:09:26.178, Speaker B: Asset itself wouldn't exist on Tezos. And we don't have any kind of wrapping of assets at this. You know, the easiest thing to do is you can borrow cash against the ETH on Tezos. So from the user point of view, all they have to do is lock the ETH and then they can transfer.
+00:09:26.264 - 00:09:31.598, Speaker C: Cash which automatically borrows against their ETH.
+00:09:31.614 - 00:09:37.480, Speaker B: Which I'll talk a little bit more about in a second too. But from the Tezos point of view.
+00:09:38.170 - 00:09:41.414, Speaker C: You basically talk to Gateway and say.
+00:09:41.452 - 00:09:46.034, Speaker B: I want to extract this cache that I've received and you get a notice.
+00:09:46.082 - 00:09:52.138, Speaker C: That you take to Tezos that lets you actually pull the cache out of.
+00:09:52.144 - 00:09:54.460, Speaker B: The starboard on the Tezos side.
+00:09:57.310 - 00:10:01.598, Speaker C: And I guess from the architecture point.
+00:10:01.604 - 00:10:12.526, Speaker B: Of view, there's maybe a few things to note here. So first of all, there's a few protocol actions. It's pretty small surface area as far.
+00:10:12.548 - 00:10:13.970, Speaker C: As the protocol is concerned.
+00:10:15.190 - 00:10:24.930, Speaker B: What's not shown here maybe is there's also a mechanism to synchronize the so because this cash token exists on these different chains and because it's interest bearing.
+00:10:25.430 - 00:10:27.686, Speaker C: There'S an interest rate and there is.
+00:10:27.708 - 00:10:30.914, Speaker B: A mechanism to synchronize the rates between the chains.
+00:10:30.962 - 00:10:36.210, Speaker C: But overall, pretty simple mechanisms.
+00:10:36.290 - 00:10:43.754, Speaker B: And then once assets are inside Gateway or uploaded to the star ports it.
+00:10:43.792 - 00:10:48.326, Speaker C: Becomes a lot like a typical smart.
+00:10:48.358 - 00:10:55.040, Speaker B: Contract on another chain where things become a lot easier. You're sort of working with assets that are all in one place.
+00:10:57.650 - 00:11:00.926, Speaker C: Maybe the harder part not shown here.
+00:11:00.948 - 00:11:13.682, Speaker B: Is how we ingest this data and emit these notices. Get a little bit more into that as well. Yeah, so talking a little bit about.
+00:11:13.736 - 00:11:17.206, Speaker C: What the surface area of the protocol looks like.
+00:11:17.228 - 00:11:34.874, Speaker B: So I mentioned there's only a few functions. The functions which exist are basically lock, so upload lock, which is basically lock, transfer, extract, which is basically download and liquidate. If you're familiar with the V Two.
+00:11:34.912 - 00:11:37.722, Speaker C: Protocol, these are very similar.
+00:11:37.776 - 00:11:39.526, Speaker B: What you'll notice though is that there's.
+00:11:39.558 - 00:11:44.670, Speaker C: No barring and repaying or supplying and withdrawing.
+00:11:45.090 - 00:11:52.826, Speaker B: Barring is actually now a state and not an action. And this is because of another improvement.
+00:11:53.018 - 00:11:56.126, Speaker C: We made, which is to instead of.
+00:11:56.148 - 00:12:01.186, Speaker B: Having two signed balances or two unsigned balances, which are the supply and borrow for a user like in the V.
+00:12:01.208 - 00:12:04.114, Speaker C: Two protocol, we don't even have the.
+00:12:04.152 - 00:12:39.246, Speaker B: Ability to represent sort of undesirable states anymore where you're borrowing the same asset and resupplying it, which was never really something that people do, but doesn't necessarily make sense for the protocol. So basically make those states now unrepresentable and borrowing becomes a state where you have a negative balance instead of being a separate action with a separate balance associated with it. It's kind of cool because you can.
+00:12:39.268 - 00:12:44.046, Speaker C: Do things just like upload ETH and then transfer.
+00:12:44.228 - 00:12:49.854, Speaker B: And when you try to transfer your balance so you could upload ETH and then transfer cash, like in the previous.
+00:12:49.902 - 00:12:52.722, Speaker C: Example, and if your cash balance happens.
+00:12:52.776 - 00:13:21.822, Speaker B: To go negative, that's fine, as long as you have enough collateral to cover it. It's just automatically borrowing cash from the protocol. And by the way, cash is created by borrowing it from the protocol. I guess the other things to note here are that as compared to the V two protocol, sort of upgraded the risk engine. In the V two protocol, there's collateral factors which apply to one side of.
+00:13:21.876 - 00:13:30.634, Speaker C: A balance equation on the collateral side, we're currently using now factors on both sides.
+00:13:30.682 - 00:13:34.834, Speaker B: So adjusting borrow balances by these, calling.
+00:13:34.872 - 00:13:39.166, Speaker C: Them volatility factors now and using them on both sides.
+00:13:39.198 - 00:13:44.842, Speaker B: But it's something to help with, the idea is to help with the capital.
+00:13:44.926 - 00:13:51.570, Speaker C: Efficiency of the system and representing risks.
+00:13:51.650 - 00:13:58.998, Speaker B: More in a little bit finer grained way. But yeah, I guess the larger idea is with the Gateway is also to be able to do things like upgrade.
+00:13:59.014 - 00:14:02.426, Speaker C: The risk engine now completely and do.
+00:14:02.448 - 00:14:18.590, Speaker B: More sophisticated things that we weren't necessarily able to do inside the controller contract on ethereum. But yeah, I guess the last thing to notice is that there's like a change to liquidation as compared to the V two protocol.
+00:14:19.090 - 00:14:22.486, Speaker C: So in the V two protocol, liquidators.
+00:14:22.538 - 00:14:28.050, Speaker B: Always repay debt and then they basically repay borrow and then seize some collateral.
+00:14:29.670 - 00:14:37.702, Speaker C: In Gateway, liquidators can basically transfer debt so they can assume the debt of.
+00:14:37.756 - 00:14:40.950, Speaker B: The borrower without having to necessarily repay it.
+00:14:41.100 - 00:14:45.186, Speaker C: And this is kind of an improvement.
+00:14:45.218 - 00:14:48.098, Speaker B: And we introduced it because Gateway is.
+00:14:48.204 - 00:14:51.226, Speaker C: A separate chain now and having to.
+00:14:51.248 - 00:15:14.594, Speaker B: Repay or supply an asset before liquidating would be an extra step. And in general, we've always tried to keep the liquidation system in compound with pretty quick turnaround. We think that speed is sort of a big advantage when it comes to liquidations. And so removing the requirement to upload collateral first in order to be able.
+00:15:14.632 - 00:15:15.220, Speaker C: To.
+00:15:17.590 - 00:15:19.890, Speaker B: Liquidate somebody sort of opens up.
+00:15:20.040 - 00:15:22.786, Speaker C: The set of possible liquidators that can.
+00:15:22.808 - 00:15:31.906, Speaker B: Perform the liquidation and doesn't really hurt the protocol. So it's kind of a nice feature, I think, of Gateway that we've changed.
+00:15:31.938 - 00:15:37.442, Speaker C: Liquidations in this way, talking about cash.
+00:15:37.516 - 00:15:38.074, Speaker B: A little bit more.
+00:15:38.112 - 00:15:43.050, Speaker C: So I mentioned that it was portable and interest bearing.
+00:15:44.830 - 00:15:53.200, Speaker B: Portability, as I said, comes from the fact that it really exists on every chain that Gateway is connected to.
+00:15:56.210 - 00:15:57.402, Speaker C: It is interest bearing.
+00:15:57.466 - 00:16:03.330, Speaker B: So all cash in Gateway, sorry, all interest in Gateway.
+00:16:05.750 - 00:16:06.754, Speaker C: Is paid in cash.
+00:16:06.792 - 00:16:08.740, Speaker B: Or is earned in cash.
+00:16:09.350 - 00:16:21.398, Speaker C: And actually it's done getting a little into the weeds. But unlike V Two, cash is sort of accumulated linearly by the markets in.
+00:16:21.404 - 00:16:38.394, Speaker B: The asset markets and then all compounding kind of happens in cash itself. Also compounding now happens over time instead of over blocks, which is a slight difference from V Two. But just to think about what that.
+00:16:38.432 - 00:16:44.190, Speaker C: Means a little bit, it's kind of nice for something like an NFT market.
+00:16:44.260 - 00:16:57.746, Speaker B: Or something where you can't necessarily pay interest in the underlying because maybe there's only one token which constitutes the underlying. But you always have an asset which.
+00:16:57.768 - 00:17:03.346, Speaker C: You can pay and earn interest in just a little.
+00:17:03.368 - 00:17:03.890, Speaker B: About cash.
+00:17:03.960 - 00:17:11.638, Speaker C: And then starting to get into more of zooming in on the architecture and.
+00:17:11.724 - 00:17:21.626, Speaker B: Some of the different components in the system and how they start to fit together. And we'll sort of zoom in on how these fit together more as we go here.
+00:17:21.648 - 00:17:29.082, Speaker C: But from the high level 10,000ft there's really just a few entities, so maybe.
+00:17:29.136 - 00:17:32.926, Speaker B: Like three layers and four entities, like.
+00:17:32.948 - 00:17:37.070, Speaker C: The Runtime layer which is the state.
+00:17:37.140 - 00:17:40.560, Speaker B: Of Gateway, which is basically the state.
+00:17:41.570 - 00:17:44.494, Speaker C: Of the chain and it's what gets.
+00:17:44.532 - 00:17:51.650, Speaker B: Executed in Substrate, which is the framework we're using for building the blockchain.
+00:17:52.550 - 00:18:01.302, Speaker C: So it's really the authoritative state of the chain. And then we have the Oracle layer, which you can think is composed of.
+00:18:01.356 - 00:18:14.486, Speaker B: Both these Oracles and Archivists, which the Archivists just make. Archivists has an untrusted role starting with the Oracles. The Oracles are really the trusted role.
+00:18:14.518 - 00:18:21.834, Speaker C: They have keys which in aggregate can be used to sign data going either.
+00:18:21.872 - 00:18:32.174, Speaker B: To the runtime or to the star ports. So either events coming from the star ports to the runtime, they can sign the block metadata and the events and those are persisted by the Archivist and.
+00:18:32.292 - 00:18:50.374, Speaker C: Made available to the Runtime and vice versa for signing notices coming from the Runtime which are then posted to the star ports. So like very high level view of what the information flow between these high.
+00:18:50.412 - 00:18:52.454, Speaker B: Level components and Gateway looks like.
+00:18:52.652 - 00:18:58.070, Speaker C: Zooming in a little bit, you start to see more exactly what the interfaces.
+00:18:58.150 - 00:19:02.540, Speaker B: Between some of these components are.
+00:19:03.870 - 00:19:14.142, Speaker C: I think this is actually a pretty fairly precise diagram, so you can get a pretty good idea of really how.
+00:19:14.276 - 00:19:25.570, Speaker B: Information moves in Gateway looking at it. The Runtime has all size things like prices and can accept requests coming from.
+00:19:25.720 - 00:19:38.006, Speaker C: End users and the Oracles fetch notices from the Runtime by a mean.
+00:19:38.108 - 00:19:39.446, Speaker B: There's a lot more details to get.
+00:19:39.468 - 00:19:44.566, Speaker C: Into here, but essentially this is the.
+00:19:44.588 - 00:19:49.514, Speaker B: Things that can be done in Gateway and then zooming in even more to.
+00:19:49.552 - 00:19:50.300, Speaker C: Sort of.
+00:19:55.470 - 00:20:08.110, Speaker B: The implementation in Substrate. So Substrate is organized around these modules called Pallets. Pallets are sort of individual modules within.
+00:20:08.180 - 00:20:11.722, Speaker C: A substrate blockchain which can have associated.
+00:20:11.866 - 00:20:19.682, Speaker B: State and events and errors and extrinsics which they call them, which are basically.
+00:20:19.736 - 00:20:20.980, Speaker C: Functions you can call.
+00:20:23.190 - 00:20:36.102, Speaker B: What this first column is showing, which functions are in which palette. And so there's like a gov palette which has a pseudo function which people.
+00:20:36.156 - 00:20:38.534, Speaker C: Can propose and vote to call other.
+00:20:38.572 - 00:20:41.290, Speaker B: Functions in the chain, basically through the Gov palette.
+00:20:41.950 - 00:20:45.926, Speaker C: Then most of the functionality is in the Cache palette. Actually, in the first version of Gateway.
+00:20:45.958 - 00:20:48.086, Speaker B: All functionality was in the Cache palette.
+00:20:48.198 - 00:20:52.334, Speaker C: And then over the summer we started.
+00:20:52.372 - 00:20:55.550, Speaker B: To rearchitect things mainly.
+00:20:57.330 - 00:20:57.918, Speaker C: To deal with.
+00:20:57.924 - 00:21:04.740, Speaker B: Some security concerns we had and separating the functionality of the Oracles and really isolating them and also being able to.
+00:21:06.150 - 00:21:10.420, Speaker C: More well, define these boundaries between pieces of the system.
+00:21:11.590 - 00:21:12.754, Speaker B: As I was saying, we had everything.
+00:21:12.792 - 00:21:16.326, Speaker C: In the cache pellet and things were.
+00:21:16.348 - 00:21:26.230, Speaker B: Pretty tightly coupled and it was getting already pretty hard to make changes. So another goal besides the security of separating Oracles of the refactoring.
+00:21:28.190 - 00:21:28.666, Speaker C: Was to.
+00:21:28.688 - 00:21:37.340, Speaker B: Make the dependency graph clear and not have things depending back into substrate and have these clean boundaries between things.
+00:21:38.510 - 00:21:43.866, Speaker C: But yeah, I think also what you can see from this diagram is what.
+00:21:43.888 - 00:21:50.986, Speaker B: You can do in Cache has the ability to ingest blocks and execute requests coming from the users.
+00:21:51.018 - 00:21:56.354, Speaker C: The users can do things like extract, liquidate and transfer to get a sense.
+00:21:56.392 - 00:22:07.394, Speaker B: Of what the notices are. The extract notices are what's brought to the Starport. In order to actually extract assets from Gateway, we export the ability to change.
+00:22:07.432 - 00:22:11.554, Speaker C: Supply caps on the starports because Gateway.
+00:22:11.602 - 00:22:19.174, Speaker B: Has supply caps which are implemented both at the start port and in the Gateway runtime and then change future yield.
+00:22:19.222 - 00:22:21.766, Speaker C: As part of that interest rate syncing.
+00:22:21.798 - 00:22:26.906, Speaker B: Mechanism I was talking about. Also the ability to change Oracles. The set of Oracles happens through the.
+00:22:26.928 - 00:22:32.858, Speaker C: Runtime and finally the ability to add.
+00:22:32.944 - 00:22:34.380, Speaker B: And upgrade a star port.
+00:22:36.110 - 00:22:37.418, Speaker C: So there's a function to add a.
+00:22:37.424 - 00:22:45.922, Speaker B: Star port and then there's also a notice to support upgrading them once they're added. And then finally, I guess there's another.
+00:22:45.976 - 00:22:59.346, Speaker C: Palette, which is the prices palette, which supports posting prices using the open Oracle format that Compound had previously defined.
+00:22:59.538 - 00:23:18.086, Speaker B: The VP protocol was previously using, but not exactly using. Yeah, hopefully that gives you a better idea of maybe the implementation of things. There's obviously a lot more that could be said about that too, but it's.
+00:23:18.198 - 00:23:19.340, Speaker C: Moving ahead quickly.
+00:23:23.730 - 00:23:43.474, Speaker B: The roadmap as far as the timeline are concerned. Obviously the Gateway is an ambitious and challenging project, we knew that much coming into it. I think we still believe it's like what we believe in the future of DeFi, for sure.
+00:23:43.512 - 00:23:50.246, Speaker C: And I think most of the innovation that is going to happen in this.
+00:23:50.268 - 00:24:07.402, Speaker B: Space is still yet to come. And the goal is really to build a robust platform, a long term foundation that's economically reliable and which Compound and.
+00:24:07.536 - 00:24:17.374, Speaker C: Governance of the community can build upon as a real engine of growth for.
+00:24:17.412 - 00:24:18.750, Speaker B: Innovation to happen on.
+00:24:18.900 - 00:24:22.538, Speaker C: And so what I can say about.
+00:24:22.564 - 00:24:27.682, Speaker B: The Roadmap is we're basically safety first. We're not rushing the QA process.
+00:24:27.736 - 00:24:36.280, Speaker C: We've already, as I was saying over the summer, took a few steps back to rearchitect some things and.
+00:24:38.570 - 00:24:42.710, Speaker B: Get more comfortable with security profile.
+00:24:44.410 - 00:24:51.338, Speaker C: And we'll continue doing that. Obviously, I think the products and the.
+00:24:51.344 - 00:24:54.678, Speaker B: Features are quite well defined, but we're.
+00:24:54.694 - 00:24:58.314, Speaker C: In this process now of implementing things.
+00:24:58.352 - 00:25:10.894, Speaker B: Really carefully and not prepared to put a date on when we'll be done with that process, but we'll continue making steady progress on it. I guess the other thing to mention.
+00:25:10.932 - 00:25:13.346, Speaker C: Is that Gateway is not the only.
+00:25:13.368 - 00:25:20.578, Speaker B: Thing that we're working on at Compound. So we do have a lot of other exciting projects. I guess it's a good problem to.
+00:25:20.584 - 00:25:23.170, Speaker C: Have, but fortunately.
+00:25:25.290 - 00:25:29.346, Speaker B: Some of those projects are growing more rapidly than we anticipated.
+00:25:29.458 - 00:25:32.582, Speaker C: And we're still a small team.
+00:25:32.636 - 00:25:41.226, Speaker B: So if Gateway is interesting to you or other things that Compound works on, it are interesting to you, especially, we're.
+00:25:41.248 - 00:25:47.706, Speaker C: Hiring engineers, we're also hiring in other parts of the company, so please get.
+00:25:47.728 - 00:25:54.094, Speaker B: In touch if you're interested in learning more about that. And yeah, I guess the other thing.
+00:25:54.132 - 00:25:56.222, Speaker C: To maybe mention and keep in mind.
+00:25:56.276 - 00:26:04.370, Speaker B: About the Roadmap is hopsider's law has certainly come into play and probably continue.
+00:26:04.440 - 00:26:05.074, Speaker C: To come into play.
+00:26:05.112 - 00:26:25.240, Speaker B: And I guess if you're not familiar with that, it's basically recursive law that says that things always take longer than you think they're going to take, especially when you take into account house debtors law. Finally, I'm sure I think a lot of information moved pretty quickly.
+00:26:26.410 - 00:26:28.594, Speaker C: If you have any questions about Gateway.
+00:26:28.642 - 00:26:30.766, Speaker B: Or about anything else related to Compound.
+00:26:30.898 - 00:26:36.486, Speaker C: Can always find me and others in the discord and also on the forum.
+00:26:36.518 - 00:26:46.240, Speaker B: On Comp XYZ or also I'm on Twitter. If that can be helpful for anything, feel free to reach out.
+00:26:46.850 - 00:26:49.150, Speaker C: But yeah, happy to answer any questions.
+00:26:49.220 - 00:26:50.574, Speaker B: I think we're about out of time.
+00:26:50.612 - 00:26:54.640, Speaker C: So I'll wrap up here. Thanks everyone.
+00:26:55.010 - 00:27:14.280, Speaker A: Thank you so much, Jared, and that was a really good and deep overview of how everything is structured and is working on Gateway. We are out of time, but I'll ask one question just before we move on to our last talk. How does Composability work in this world and what does that look like and how should people think about that?
+00:27:15.530 - 00:27:16.840, Speaker C: Yeah, great question.
+00:27:19.230 - 00:27:25.882, Speaker B: A lot of it is still unknown, a lot of it remains to be seen. But one of the ideas with cash.
+00:27:25.936 - 00:27:29.802, Speaker C: Token as well was for that to.
+00:27:29.856 - 00:27:33.642, Speaker B: Be one of the composable pieces. And we can think about cash token.
+00:27:33.706 - 00:27:39.280, Speaker C: As like maybe the tip of V Three.
+00:27:40.290 - 00:28:07.442, Speaker B: Cash token itself can be embedded inside part of V Three, but it can be embedded, for instance, inside of V Two as like a C token or there could be a market. So there's lots of interesting things you can do with the cash token. There is the ability also to initiate what we call TRX requests, which are the requests that users can initiate. They can send them either directly to Gateway or they can submit them through.
+00:28:07.516 - 00:28:10.506, Speaker C: The star port and have them through.
+00:28:10.528 - 00:28:21.774, Speaker B: A contract or something and have them executed on Gateway chain. So we think there's a lot of interesting things to do, unlike the V.
+00:28:21.812 - 00:28:24.506, Speaker C: Two protocol and everything happening on Ethereum.
+00:28:24.538 - 00:28:38.130, Speaker B: It is a little bit trickier, right? Some certain things are asynchronous. It's not totally clear how it might affect certain design patterns for composability that.
+00:28:38.200 - 00:28:46.310, Speaker C: Exist today, but we've tried to create opportunities for composability.
+00:28:46.970 - 00:29:07.670, Speaker A: Absolutely. I think it's a very giant experiment to some sense because you have to sort of test it out and see how to evolve. So it's very exciting. Everybody who found this interesting, obviously you can check out the links Jared posted on how to see more about what's happening with Gateway. And thanks again for the presentation.
+00:29:09.050 - 00:29:09.826, Speaker C: Thanks, Karthik.
+00:29:09.858 - 00:29:13.370, Speaker B: Great to be here. Look forward to the rest of the conference.

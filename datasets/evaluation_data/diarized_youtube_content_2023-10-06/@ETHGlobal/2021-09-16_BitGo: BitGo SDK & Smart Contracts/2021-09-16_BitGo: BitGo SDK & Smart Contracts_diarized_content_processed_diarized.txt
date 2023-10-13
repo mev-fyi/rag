@@ -1,0 +1,228 @@
+00:00:11.130 - 00:00:24.720, Speaker A: Great. Hi and welcome everyone, to the BitCo sponsor workshop. Joining us today is Thomas, who is going to take us through his session. And with that, I will hand it over to him to introduce himself. Thanks.
+00:00:26.170 - 00:00:28.994, Speaker B: Thanks, Emily. Yeah. My name is Thomas Taylor.
+00:00:29.042 - 00:00:31.970, Speaker C: I'm the engineering manager here at DeFi.
+00:00:32.130 - 00:00:50.330, Speaker B: We call it the wrapped assets capability, but you probably know it as the wrapped bitcoin capability. Yeah, I'll start know what is BitGo and then we'll get into that here just very quickly. For those that don't know, and I'm just going to go to the website.
+00:00:50.400 - 00:00:54.460, Speaker C: Here real quick, or marketing site, I should say.
+00:00:55.630 - 00:01:05.666, Speaker B: BitCo is an institutional digital asset, to say trading, finance. We encompass a lot of things in the sort of blockchain hemisphere. We don't just support ethereum, but we.
+00:01:05.688 - 00:01:08.610, Speaker C: Support, I think it's now up to.
+00:01:08.680 - 00:01:11.730, Speaker B: 20 blockchains 400 tokens.
+00:01:13.030 - 00:01:19.030, Speaker C: We look to be a multi asset sort of full suite for our customers who are typically.
+00:01:21.610 - 00:01:25.586, Speaker B: They could be like mom and pop shops, institutional investors, hedge.
+00:01:25.618 - 00:01:28.280, Speaker C: Funds, stocking out funds, those sort of things.
+00:01:29.130 - 00:01:35.866, Speaker B: The thing I'm going to talk about today is sort of our wallet SDK and then how to interact with that. One of the stuff we built on.
+00:01:35.888 - 00:01:38.940, Speaker C: Top of it to talk about that very quickly.
+00:01:41.410 - 00:01:57.614, Speaker B: Yeah, here's some sort of marketing detail. Power 20% of all on chain bitcoin transactions. $40 billion in assets under custody, 25 billion transactions a month, sort of gross across all coins.
+00:01:57.662 - 00:02:00.100, Speaker C: It's not clearing everything.
+00:02:01.270 - 00:02:03.026, Speaker B: And some of the other things I.
+00:02:03.048 - 00:02:06.198, Speaker C: Mentioned, like tokens trust chart, but we.
+00:02:06.204 - 00:02:07.702, Speaker B: Have insurance in our bonds as well.
+00:02:07.756 - 00:02:12.310, Speaker C: So if there's an incident, your couple of cases are reality.
+00:02:14.250 - 00:02:52.178, Speaker B: Okay, so let's get into the technology behind it. Basically the way to start thinking about BitCo is probably our BitCo API. We have a platform that basically is a central entry point into all our services. And in terms of a tech stack, this is just an app on the internet for those that are interested. I'll dig in this in a second. I'm just going to drop the SDK is primarily we'll talk about today. The SDK is an interaction tool.
+00:02:52.178 - 00:03:01.846, Speaker B: It's actually just sort of a blanket term. We have many software development kits for interacting with our API, and I'll talk.
+00:03:01.868 - 00:03:03.320, Speaker C: About them shortly as well.
+00:03:04.170 - 00:03:09.466, Speaker B: So if you could think about it this way, the UI SDKs sort of.
+00:03:09.488 - 00:03:12.806, Speaker C: Sit on top of a platform API.
+00:03:12.998 - 00:03:17.962, Speaker B: So when you're interacting with bitcoin or UI or an SDK level, you really.
+00:03:18.096 - 00:03:21.470, Speaker C: Just sort of surface end those calls API.
+00:03:22.850 - 00:03:34.882, Speaker B: I won't go too much into wrapped bitcoin today, although that is probably what we're most known for in the ecosystem. For those that don't know, wrapped bitcoin is show.
+00:03:34.936 - 00:03:35.860, Speaker C: Real quick.
+00:03:38.150 - 00:03:53.254, Speaker B: Slide here. It's a real quick slide of this website. This is one of our products here. Repbitcoin is basically a one to one.
+00:03:53.292 - 00:03:55.030, Speaker C: Pegged UC 20 token.
+00:03:56.090 - 00:04:00.714, Speaker B: So for instance, we have approximately $9.7.
+00:04:00.752 - 00:04:03.370, Speaker C: Billion in Bitcoin under custody. It's.
+00:04:03.950 - 00:04:06.506, Speaker B: Bitcoin held at BitCo. And then what we do is we.
+00:04:06.528 - 00:04:11.178, Speaker C: Issue ERC 20 token to our merchant partners. Right.
+00:04:11.344 - 00:04:14.474, Speaker B: So generally there's a layer of abstraction.
+00:04:14.522 - 00:04:18.142, Speaker C: Between us and direct holders of the ERC 20.
+00:04:18.196 - 00:04:21.326, Speaker B: And this product has been around since it got really big.
+00:04:21.348 - 00:04:26.846, Speaker C: Bring it D five somewhere, it's grown really large. Okay.
+00:04:26.948 - 00:05:29.990, Speaker B: And then yeah, in addition to other service, these are things that like, if Bitcoin goes down, how do I get my funds out of my wallet? Where two or three multi state provider, fundamentally. Okay, so let's talk about our platform a little bit. I'm not going to get too deep into this because this rabbit hole could go very deep. But the basic way to think about is if you're a customer of Vicos or if you're just a user here, you would come here, you require an enterprise, and then you would use that to transact with whatever you're trying to do. Ethereum sends data, calls, there's 20 transfers, anything on chain. For our system, we use two of three wallet signing. So what happens is when you create a wallet as an enterprise user, you are issued basically three keys.
+00:05:29.990 - 00:05:35.894, Speaker B: You give us two keys, which is the user and the backup key.
+00:05:36.012 - 00:05:38.374, Speaker C: These are the pubs to these things.
+00:05:38.572 - 00:05:47.706, Speaker B: The backup key is intended to be a cold storage key. So you really do not touch it on a daily basis. The user key is meant to be sort of a hot key in that.
+00:05:47.728 - 00:05:50.390, Speaker C: You use it to transaction on a daily basis.
+00:05:50.550 - 00:05:58.990, Speaker B: The BitGo key is our third key. That's what we use to countersign transactions that you initiate. What this does, it allows you to.
+00:05:59.060 - 00:06:01.838, Speaker C: Basically, if it's a two or three.
+00:06:02.004 - 00:06:05.226, Speaker B: Signing threshold, you can take the user.
+00:06:05.258 - 00:06:09.010, Speaker C: In the back of key, you have full custody of your funds.
+00:06:09.750 - 00:06:14.210, Speaker B: We also include like, fully cold wallets here in Custodial. I won't really talk about these things.
+00:06:14.280 - 00:06:19.960, Speaker C: Because this is a broader suite, but if you're interested, you can definitely reach out.
+00:06:21.770 - 00:06:32.826, Speaker B: So over this BitGo key as well. We implement these things called enterprise policies. Again, I'm not going to dig too deep into that, but basically this is a set of things that allow you.
+00:06:32.848 - 00:06:33.420, Speaker C: To.
+00:06:35.230 - 00:06:50.206, Speaker B: Say in our platform, hey, do not sign things of this value. Hey, do not allow this person to sign. Hey, do not allow this amount of value to go out in this amount of time. There's a whole set of these things. I could give a 30 minutes talk.
+00:06:50.228 - 00:06:51.600, Speaker C: On that in my point of view.
+00:06:53.830 - 00:06:56.750, Speaker B: And in general, I'm going to talk about sort of our API.
+00:06:56.910 - 00:06:58.222, Speaker C: It's a restful API.
+00:06:58.286 - 00:07:00.066, Speaker B: And then the UI will not really.
+00:07:00.088 - 00:07:01.620, Speaker C: Talk about, I'll show real quick.
+00:07:04.470 - 00:07:09.080, Speaker B: Okay, so, yeah, again, API documentation we found at API Biggo.com.
+00:07:10.170 - 00:07:13.270, Speaker C: This is our suite of docs.
+00:07:14.010 - 00:07:22.874, Speaker B: If you have any questions, I would go to these first. Generally, they're sort know purpose built to.
+00:07:22.912 - 00:07:27.450, Speaker C: Allow to answer all the general questions.
+00:07:27.600 - 00:07:57.718, Speaker B: This is not really a very deep section. I just kick out to say the Ethereum section here. And I want to know the thing about Ethereum. So this will cut right to Ethereum examples how to interact wallet construction, generating sub addresses which we'll talk about in.
+00:07:57.724 - 00:08:02.920, Speaker C: A second, and balances and so forth. Okay.
+00:08:08.250 - 00:08:26.202, Speaker B: Yeah, I've talked about the SDK as a sort of a general blanket. This is our SDK repo. You can go to this repo. You'll find it's modular. There's about eight modules in it. Some are relevant to our talk today. But the things I would like to highlight are the Core and the statics libraries.
+00:08:26.202 - 00:08:30.586, Speaker B: Here again, Core is our main interaction.
+00:08:30.698 - 00:08:34.720, Speaker C: Tool for running these things.
+00:08:37.910 - 00:08:42.274, Speaker B: We use the SDK primarily, or I should say our clients use SDK to.
+00:08:42.312 - 00:08:44.238, Speaker C: Interact with Vico primarily.
+00:08:44.414 - 00:08:50.386, Speaker B: UI customers also use this by proxy. But really at the end of the day, most of your entry into the.
+00:08:50.408 - 00:08:52.914, Speaker C: Bico ecosystem is through the SDK.
+00:08:53.042 - 00:08:55.078, Speaker B: You also have statics, which we'll talk about today.
+00:08:55.164 - 00:09:01.000, Speaker C: I'll get into that the second configuration tool for what you're doing here. Okay.
+00:09:04.030 - 00:09:13.702, Speaker B: I'm going to talk about sort of two or three wallet as distraction here for all wallets. But more specifically, the Ethereum wallet is an onchain contract.
+00:09:13.846 - 00:09:17.840, Speaker C: Ethereum does not have native MultiScape of any type yet.
+00:09:18.690 - 00:09:58.054, Speaker B: And so if we just talk about that for a second, we have features like Safe mode and secret safe for transaction user protection. I will not go through that stuff in this demo. But the idea here is to keep the protect against free play attacks or if you get hacked. And then we also allow this abstraction where if you have a core wallet and say you want to surface subwallets or build out subwallets in Bitcoin land, this be driving along a path. But in Ethereum land you kind of have to point to the contracts.
+00:09:58.102 - 00:09:59.178, Speaker C: That's what we have here.
+00:09:59.264 - 00:10:04.746, Speaker B: We have the ability to deploy contracts that are basically sub wallets that would.
+00:10:04.768 - 00:10:07.520, Speaker C: Only send to the main wallet here.
+00:10:08.450 - 00:10:10.142, Speaker B: And again, this is our central point.
+00:10:10.196 - 00:10:13.150, Speaker C: For handling Ethan ERC 20 transactions.
+00:10:14.770 - 00:10:26.754, Speaker B: Okay, I won't talk about statics too much just because I do want to get into the demos here a little bit. But just understand that is the configuration area for all of us. So if you're looking for any information.
+00:10:26.872 - 00:10:28.534, Speaker C: About what we do and do not.
+00:10:28.572 - 00:10:34.486, Speaker B: Support in terms of contracts for say, UC 20 Tokens or say networks that.
+00:10:34.508 - 00:10:40.586, Speaker C: We support, both COVID currently this is the source of truth here.
+00:10:40.768 - 00:10:45.418, Speaker B: This changes a lot. So generally we are trying to add.
+00:10:45.584 - 00:10:47.690, Speaker C: The most current features, the most current.
+00:10:47.760 - 00:10:50.554, Speaker B: Contracts in the apparent network, both main.
+00:10:50.592 - 00:10:53.760, Speaker C: Net and all the testnet networks as well.
+00:10:56.210 - 00:11:27.046, Speaker B: And this is sort of the point of this presentation. This all leads up to we've created this smart contracts library. The idea here is we're trying to abstract sort of general calls here. So say if I want to call compound fairly regularly and I want to mint die right, unless you know, the compound sort of abis, you're pretty certain of where that lives. Maybe it's been upgraded since then.
+00:11:27.148 - 00:11:27.800, Speaker C: Maybe.
+00:11:30.170 - 00:11:35.018, Speaker B: It'S got a contract under the hood that's approximate gradable or uses crate two or something.
+00:11:35.104 - 00:11:35.786, Speaker C: Right.
+00:11:35.968 - 00:11:48.510, Speaker B: We want to be able to surface abstraction to our user that says, okay, well, I don't really care about any of this stuff under the hood. How do I get these things? And so we can do that via this library I'm going to show today.
+00:11:48.660 - 00:11:49.920, Speaker C: In terms of talking.
+00:11:51.970 - 00:12:04.130, Speaker B: And similarly, when you want to take a transaction payload where you know the destination Txaw, you really don't know anything else about it and sort of decode it.
+00:12:04.200 - 00:12:06.580, Speaker C: That's kind of what we're looking for here as well.
+00:12:07.030 - 00:12:08.978, Speaker B: This is a very generic example, but.
+00:12:08.984 - 00:12:10.646, Speaker C: The idea here is to like, what.
+00:12:10.668 - 00:12:12.086, Speaker B: If I want to work my way.
+00:12:12.108 - 00:12:18.298, Speaker C: Backwards from that guide, I could do something like this. Okay.
+00:12:18.384 - 00:12:23.660, Speaker B: And WTI won't really talk about too much again. Yes, draft bitcoin and.
+00:12:25.870 - 00:12:28.410, Speaker C: Bitcoin smart Contracts.
+00:12:29.230 - 00:12:50.402, Speaker B: Okay. So I will get into a quick demo real quick here and then try to sort of figure out here. We're going to run through three demos here. So basically one is sending each from our platform. The other will be sending an ERC 20 token what does look like the UI and API level, and then using.
+00:12:50.536 - 00:12:56.610, Speaker C: Smart contracts to mint die that same action I was talking about.
+00:12:56.680 - 00:13:00.310, Speaker B: So I'm just going to create a new file.
+00:13:03.530 - 00:13:03.846, Speaker C: Here.
+00:13:03.868 - 00:13:11.834, Speaker B: So we'll call this demo one GS and then I've already done the work of installing our SDK here.
+00:13:11.872 - 00:13:14.906, Speaker C: Otherwise this would be five minutes longer.
+00:13:15.088 - 00:13:23.098, Speaker B: So you will have to set up a local repository and I'll be working with yours. It is not a UI thing, it's.
+00:13:23.114 - 00:13:23.680, Speaker C: More.
+00:13:25.970 - 00:13:50.280, Speaker B: Start by putting our header in here. This is our require statement here. And then whenever we start BitCo interacting, we have to declare this SDK. And then point to an environment right here. And then so I'm going to put a quick main function here.
+00:13:51.210 - 00:13:53.094, Speaker C: Make it asynchronous just to set this.
+00:13:53.132 - 00:13:59.158, Speaker B: Up a little bit here. And then the idea here is to.
+00:13:59.244 - 00:14:02.940, Speaker C: Actually add a little error handling here.
+00:14:04.110 - 00:14:31.614, Speaker B: The idea here is to send each. So say I want to send each from my platform. I'll have my wallet ID. Let's maybe go check out wallet real quick in our UI here. This will be probably your first point of interaction with your system. And if I go here, I have our test environment. And this is a live test environment.
+00:14:31.662 - 00:14:32.980, Speaker C: This is wired up to.
+00:14:35.190 - 00:14:36.082, Speaker B: Log in here.
+00:14:36.136 - 00:14:37.080, Speaker C: OK. Because.
+00:14:42.410 - 00:14:53.594, Speaker B: Okay, so if I go to my girly wallets here, I've got two wallets here sort of front loaded with some money here. And this is your standard sort of.
+00:14:53.632 - 00:14:58.038, Speaker C: Look for an enterprise. This, Enterprise, is Thomas Testnet.org.
+00:14:58.214 - 00:15:04.606, Speaker B: If I step in the wallet here just real quick, we can sort of see a listing of transactions here as.
+00:15:04.628 - 00:15:06.766, Speaker C: Well as those policy things I was.
+00:15:06.788 - 00:15:17.954, Speaker B: Talking about earlier and user settings, et cetera. Okay, so now we've got our wallet. We want to programmatically send crypto or.
+00:15:17.992 - 00:15:20.260, Speaker C: ETH I should say to somebody else.
+00:15:21.350 - 00:15:42.486, Speaker B: Let's try to do that. So I'm just going to set some of these things. We're going to have to specify coin first, specify girly real quick. So girly is platform. I'm going to add this real quick too. What we want to do is we want to target that coin. We're targeting XP.
+00:15:42.486 - 00:15:42.966, Speaker B: Three levels.
+00:15:42.998 - 00:15:46.346, Speaker C: We're using a wrapped constructor here to.
+00:15:46.368 - 00:16:01.486, Speaker B: Bring it in and then at this point I want to run some sort of authentication, right? So given this object here, there's a couple of ways to authenticate a BitCo. I could put in my credentials here.
+00:16:01.508 - 00:16:02.542, Speaker C: That'D be kind of cool.
+00:16:02.676 - 00:16:20.098, Speaker B: But we also have these things called access tokens. So an access token and I'm not too worried about exposing this because the idea here is to have a central it's like a walk to access token.
+00:16:20.194 - 00:16:23.746, Speaker C: For those that are familiar with that. It's just a string that would lock.
+00:16:23.778 - 00:16:26.230, Speaker B: Your IP and then provides.
+00:16:28.190 - 00:16:35.180, Speaker C: A session credentials that you have there. So again, this is.
+00:16:39.390 - 00:16:50.110, Speaker B: Also need to pull in that wallet ID I was talking about earlier. So we've got this header if we go up here to the second part of this very log string Uri.
+00:16:53.010 - 00:16:53.374, Speaker C: We.
+00:16:53.412 - 00:16:56.386, Speaker B: Want to talk about this wallet ID. This first thing is the enterprise actually.
+00:16:56.408 - 00:16:57.826, Speaker C: We don't really want to talk about that right now.
+00:16:57.848 - 00:16:59.074, Speaker B: We do want to target this wall ID.
+00:16:59.112 - 00:17:00.740, Speaker C: So we'll bring that in real quick.
+00:17:04.870 - 00:17:23.382, Speaker B: And then so let's just set that. So we've got a wall ID, we've authenticated. What else do we do now? Okay, well let's go grab our wallet.
+00:17:23.446 - 00:17:23.818, Speaker C: Right?
+00:17:23.904 - 00:17:38.590, Speaker B: We want to grab our wallet and I will use again this base coin sort of getter earlier to pull down all my wallets as a wallet service.
+00:17:38.660 - 00:17:43.440, Speaker C: Provider and get this wallet ID here.
+00:17:45.730 - 00:17:47.746, Speaker B: Okay, so let's go to this sort.
+00:17:47.768 - 00:17:51.746, Speaker C: Of so if I just do an.
+00:17:51.768 - 00:17:53.810, Speaker B: LS here, I'm in my zoom directory.
+00:17:55.750 - 00:17:56.500, Speaker C: Work.
+00:18:01.690 - 00:18:03.480, Speaker B: Okay, we didn't log anything.
+00:18:07.610 - 00:18:13.130, Speaker C: So you know, previous.
+00:18:16.270 - 00:18:18.538, Speaker B: Okay, great. So we got some stuff here.
+00:18:18.704 - 00:18:24.400, Speaker C: Again, this is just raw features in this wallet addresses, small balance, chain code.
+00:18:26.530 - 00:18:35.042, Speaker B: Okay, so now we actually want to go send this directly, right? So again, the point is we want to send this to another wallet instance here.
+00:18:35.096 - 00:18:36.740, Speaker C: So take this.
+00:18:38.870 - 00:19:07.882, Speaker B: We'Re going to do what's called a transaction here. We're going to have to use that wallet instance again to do this like send many and this is a weightable function. We're going to have to specify some params. This is basically our K line recipients. We can have only one recipient in ETH should be extended, single out.
+00:19:07.936 - 00:19:15.920, Speaker C: For most generally, we're just only allowing one destination in our call here.
+00:19:16.850 - 00:19:22.254, Speaker B: So we want to send some amount. We'll describe this amount in a way.
+00:19:22.452 - 00:19:27.280, Speaker C: So we'll say earn 20,000 away, which is a whole lot of girl.
+00:19:27.910 - 00:19:30.500, Speaker B: And then we'll specify an address here.
+00:19:32.790 - 00:19:33.940, Speaker C: It's going to be anyway.
+00:19:41.770 - 00:20:05.978, Speaker B: In addition, we need some sort of Walt passphrase to run this demo. The wall passphrase. What it does is it decrypts your user key, right? So again, this big address, what it does is it pulls down. We don't actually know your user key, right. You've given us a pub at best. Maybe you gave us the encrypted print. When you encrypted that print, you encrypt.
+00:20:05.994 - 00:20:10.638, Speaker C: It with a small password. So you have to decrypt it locally to do it.
+00:20:10.724 - 00:20:13.786, Speaker B: I've conveniently named my password, probably terribly.
+00:20:13.818 - 00:20:18.160, Speaker C: Named, really, to say we found ways I know here. So see if this works.
+00:20:18.930 - 00:20:21.120, Speaker B: We should emit some sort of output here.
+00:20:21.490 - 00:20:24.720, Speaker C: Let's just say this.
+00:20:38.030 - 00:20:43.420, Speaker B: Okay, great. Looks like we have a raw TX on the network. We can go pick up txid here.
+00:20:44.190 - 00:20:46.534, Speaker C: And we'll just go to girlies.
+00:20:46.582 - 00:20:50.560, Speaker B: Easter scan tools here.
+00:20:52.850 - 00:20:53.966, Speaker C: Provides us the.
+00:20:53.988 - 00:20:58.190, Speaker B: Transactions being mempable and socialized.
+00:21:14.890 - 00:21:15.640, Speaker C: It.
+00:21:27.370 - 00:21:31.660, Speaker B: While this is running, let's just talk about the ERC 20 side of it real quick.
+00:21:34.110 - 00:21:34.954, Speaker C: Okay, there we go.
+00:21:34.992 - 00:21:38.042, Speaker B: So we've got this mined, and if we go back to our UI now.
+00:21:38.096 - 00:21:48.910, Speaker C: We'Ll see it's in a sign state. It's going to refresh on a timeline.
+00:21:50.930 - 00:21:53.982, Speaker B: So typically we'll index behind train heads.
+00:21:54.126 - 00:22:01.540, Speaker C: To allow for things like forks to not cause too big of an issue.
+00:22:02.550 - 00:22:23.670, Speaker B: So it looks like this is cool sign we can see. Okay, just send our ETH. So now one of the things you want to do, let's switch over to COVID real quick. Let's talk about sort of coven ethereum. Say I want to send some we call it test ERC token. But say I want to send this ERC 20 token.
+00:22:23.830 - 00:22:30.540, Speaker C: Let's retool our demo here to allow for that. Okay.
+00:22:32.690 - 00:22:48.210, Speaker B: Go back to our editor here. So right now we're going to have to change our coin here. So we're going to change this to tap access. Token still remains the same. The wallet ID will change because remember, again, that comes out of our UI.
+00:22:48.950 - 00:22:56.900, Speaker C: We'll copy and paste this here, put it in our screen.
+00:22:59.510 - 00:23:11.830, Speaker B: And actually we set this deep earlier, but that's actually wrong. We actually need to send this to the token that's being sent. The way that we abstract the same, we say not what chain are you talking about?
+00:23:11.980 - 00:23:14.120, Speaker C: What kind of asset are you talking about?
+00:23:15.130 - 00:23:17.154, Speaker B: In our case, we do want to send one turf.
+00:23:17.202 - 00:23:21.918, Speaker C: So set that there and we're going.
+00:23:21.924 - 00:23:24.234, Speaker B: To send absolutely one character.
+00:23:24.362 - 00:23:25.040, Speaker C: So.
+00:23:27.250 - 00:23:31.678, Speaker B: Again, we've changed our wallet, we change your coin, and now we're going.
+00:23:31.684 - 00:23:50.630, Speaker C: To bump that transaction on the network, actually, since we're not on goal anymore. Okay, so I will spot another transaction.
+00:23:56.730 - 00:24:10.960, Speaker B: Okay, great. So this just gave us another transaction with the Txid. We should be able to go over to our UI. So we see it sign there, go to the Covenant Explorer here.
+00:24:11.490 - 00:24:17.438, Speaker C: And just real quick, I'm not going.
+00:24:17.444 - 00:24:32.418, Speaker B: To wait for this thing to conclude. And then just very quickly, if we want to talk about sort of our actual smart contracts library, which is sort.
+00:24:32.424 - 00:24:33.940, Speaker C: Of the whole purpose of this thing.
+00:24:34.630 - 00:24:39.222, Speaker B: We own Mint Die. Again, we can drag in that library here.
+00:24:39.276 - 00:24:40.390, Speaker C: So you can do like a const.
+00:24:40.460 - 00:24:43.926, Speaker B: Factory, smart contracts here.
+00:24:44.028 - 00:24:46.326, Speaker C: And then what we do is we.
+00:24:46.348 - 00:25:01.302, Speaker B: Pull in that factory. So I'm just going to put it in the code here. But the reality is this would probably be better constructed. Again, we're pulling in that example. Like I said earlier, we look at the E contracts factory, go to compound.
+00:25:01.446 - 00:25:02.800, Speaker C: We say, okay, well.
+00:25:05.090 - 00:25:17.300, Speaker B: Target address so it understands what it's sending to. And then again, yeah, we want to set an action limit amount.
+00:25:17.750 - 00:25:21.490, Speaker C: So we say, okay, this amount of die.
+00:25:24.630 - 00:25:31.138, Speaker B: And then we have to change our constructor a little bit here because this is a little bit different. A transaction.
+00:25:31.234 - 00:25:34.520, Speaker C: I'm going to cut and paste this just for everybody.
+00:25:34.970 - 00:25:41.946, Speaker B: But again, we're not going to do.
+00:25:41.968 - 00:25:49.900, Speaker C: What'S called a send many transactions here.
+00:25:57.570 - 00:26:06.698, Speaker B: And then so what this should do is this generally says, okay, I'm going to send an ETH amount, or in this case covan E amount zero to this address with this data payload.
+00:26:06.794 - 00:26:41.120, Speaker C: The data payload being constructed from this contract factory should be misinsured without what we're trying to perform here. So let's see if this works is okay, great. Okay, problem here? Positive. Oh, I think it probably didn't yeah, it.
+00:26:52.880 - 00:27:05.490, Speaker B: Okay. This looks good. So basically this comes back as a half signed transaction with the signature. We'll go look at this transaction. Again, we should have covered transaction now.
+00:27:06.760 - 00:27:07.510, Speaker C: Great.
+00:27:09.800 - 00:27:15.716, Speaker B: So what we should see here is what's called a pending approval because we.
+00:27:15.738 - 00:27:19.316, Speaker C: Don'T allow for data contract transactions in.
+00:27:19.338 - 00:27:23.380, Speaker B: The ecosystem unless another user tacitly gives an approval.
+00:27:23.540 - 00:27:29.050, Speaker C: As you'll see here, you'll see in the UI, the data payload local note we're trying to send to this address.
+00:27:30.780 - 00:27:36.956, Speaker B: Okay, great. So let me just talk real quick about sort of our prizes and sort.
+00:27:36.978 - 00:27:40.110, Speaker C: Of what we're trying to general here.
+00:27:40.480 - 00:27:44.104, Speaker B: We have the first, second and third prize will be awarded to any participants.
+00:27:44.152 - 00:27:45.916, Speaker C: Like some sort of sort of thing.
+00:27:45.938 - 00:27:50.544, Speaker B: In our Rubric here. So it'll be the first prize is $2,000, 2nd prize is 1500.
+00:27:50.582 - 00:27:51.920, Speaker C: The third prize is 1000.
+00:27:52.070 - 00:27:53.484, Speaker B: And then there'll be a pool prize.
+00:27:53.532 - 00:27:57.410, Speaker C: Where we'll take eligible contestants and give you.
+00:27:59.640 - 00:28:14.436, Speaker B: I talked about smart contracts earlier. I talked about WC, I talked about the SDK and I talked about statics, but just some very basic ideas. These are just touch points on ideas.
+00:28:14.628 - 00:28:15.736, Speaker C: Some of these things can be like.
+00:28:15.758 - 00:28:46.060, Speaker B: Extending based contracts of other ecosystems to interact with SDK. Changing C smart contract use modern tools like Carhat. You want to test it on some other chain SDK features. I didn't talk about this earlier, but too much. But accelerations are these things in Ethereum where if you want to take a transaction and bump the fee on it, you can do that if you rebuild it with the same non. That is something that we do not have a clear abstraction for in the SDK.
+00:28:46.220 - 00:28:54.036, Speaker C: And why would invite people to submit the most off the wall thing for how to interact with that?
+00:28:54.138 - 00:29:07.332, Speaker B: We have that in the API docs happening pretty thoroughly and then I won't talk about these other ideas. But, yeah, again, we really love this community and really trying to support it.
+00:29:07.466 - 00:29:09.270, Speaker C: Thanks, everybody, for your time.
+00:29:10.680 - 00:29:31.160, Speaker A: All thanks so much. Thomas, you managed to squeeze quite a lot into and that was a great session. There are two questions in the chat, but I'm going to transfer these over to Discord where Thomas can answer them there. Yeah, perfect. Thank you so much for your time and thanks, everyone, for joining.

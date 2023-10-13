@@ -1,0 +1,334 @@
+00:00:00.250 - 00:00:32.566, Speaker A: The attendees. For the moment, we're waiting just a couple minutes for people to come in and then we'll get started. We have Brendan and Leighton from pool together. Brendan's going to be leading the workshop and Leighton's going to be hanging out in the chat. So if you have questions, drop them in the Zoom chat. So without further ado, I think we've got the stream ready. So, Brendan, if you want to take it away, great.
+00:00:32.668 - 00:01:00.110, Speaker B: Okay, well, hello, everybody. My name is Brendan. I'm from pool together. I lead the technical side of things and I'm really stoked to be here today because this effort, this version three, has been the culmination of the last six months of just design and development and hammering away on this idea. And I also just want to start by thanking ETH Global for putting on such a good event. Like their transition to online events has been seamless. So that's been really impressive.
+00:01:00.110 - 00:01:21.110, Speaker B: So I'm going to switch over to the well, first of all, I'm going to fire off a link, and this is the workshop link. You can follow along and follow the commands that I run. So I'm just going to paste it into the Zoom chat.
+00:01:22.490 - 00:01:24.290, Speaker C: I can't seem to paste the Zoom chat.
+00:01:24.370 - 00:01:27.778, Speaker B: Layton, I'm going to fire this off to you if you want to proxy this to people.
+00:01:27.964 - 00:01:28.954, Speaker D: I got it.
+00:01:29.072 - 00:01:30.220, Speaker E: Yeah, hit me.
+00:01:33.950 - 00:01:35.020, Speaker C: There you go.
+00:01:35.470 - 00:01:37.500, Speaker B: So let's get started.
+00:01:41.490 - 00:01:42.640, Speaker C: There we go.
+00:01:43.010 - 00:02:24.454, Speaker B: Okay, so just for the uninitiated, what is Pool Together? Pool Together is a project that enables prize savings accounts. So prize savings account is one in which you deposit funds and then at the end of a prize period, the interest accrued on those funds is awarded as a prize to a randomly selected winner. It's a very simple idea, very old concept. And so what we've done is made this really optimized because it's running on the blockchain, so we can escrow people's funds quite easily and return it to them when they want to. So let me just open up the navigator.
+00:02:24.502 - 00:02:27.980, Speaker C: This thing doesn't seem to be happy. Okay.
+00:02:29.790 - 00:03:02.262, Speaker B: So it's a protocol for no loss prize games for Ethereum. In this workshop, we're going to cover what is pooled Together. We're going to cover a bit of the protocol design because V Three introduces a new design. And then we're going to dive into the workshop. And the workshop is going to be particularly interesting because we're going to get everyone set up on their local machines with the contracts with the builder UIs, the actual prize pool builder UI, as well as the reference app UI, so the actual interface to the prize pool. And then we're going to create a custom strategy. So I'll dig into that a bit later.
+00:03:02.262 - 00:03:46.870, Speaker B: So let's start with the protocol design. Pool Together v Two had an interesting mechanism where we tried to prevent people from gaming the system, so we would actually delay mint tokens so when somebody made a deposit, we would actually mint them when the prize was awarded. And so this prevented people from jumping in right before the prize and getting out. But it led to a very complex token model that was challenging to work with. So V Three introduces a new protocol design, which we're really excited about. It addresses a lot of the concerns that people had around custody of funds, and we've really improved the gas usage as well. So it's also fairly optimized.
+00:03:46.870 - 00:04:26.034, Speaker B: So, from the top, where does pool together sit in the stack? Well, we develop prize pools. And prize pools are bound to specific yield protocols. So that includes protocols like compound ave, wyron yVaults potentially protocols like Balancer as well. Our focus is in the short term, but on stablecoins. But the new system allows you to build whatever the heck you want, so you could use any kind of volatile asset if you want to. And so pool together, you wrap these protocols with pool together, and then you're able to expose that interest and divert it to different people in prize games. So it exposes that.
+00:04:26.034 - 00:04:32.686, Speaker B: So it's no loss in the sense that people deposit into the pool together protocol, and then the prizes are awarded.
+00:04:32.718 - 00:04:34.260, Speaker C: From the interest earned on that.
+00:04:35.030 - 00:05:08.186, Speaker B: In terms of individual prize pool architecture, this is where we're really excited to present to what we're really excited to present to you. So what we've done is we've created two separate contracts. Very, very simple system. We have a prize pool, which is a non upgradable escrow for users deposits. And the prize pool will then take a deposit and then place it into, say, compound or whatever the actual yield source is. But then it'll manage the interest itself. And the prize pool is bound to a specific prize strategy.
+00:05:08.186 - 00:05:57.438, Speaker B: And this strategy is what's able to take that interest and award it as tickets or sponsorship or what have you, to different users or even to say, philanthropic organizations or anybody. And so we think this is a really powerful mechanism because now we have A, a non upgradable, noncustodial contract that people feel more secure in, but B, the interface can be interacted with by anybody. So anybody can spin up a price pool and they can see that it's a pool together prize pool. So it's been audited, it's very safe to use. And worst case, even if the price strategy is malicious, only the interest will be lost. So it's always no loss that's really important to us. And so the prize strategy, it could do anything.
+00:05:57.438 - 00:06:44.000, Speaker B: It could, let's say, award the interest every 100 dies that accrue, or it could award the interest, say, once a week, as our typical pools do. Our current prize strategy is a periodic prize strategy. So it's one that allows you to set an interval at which prizes are awarded and it'll simply award whatever the balance is, whatever the additional balance is. So there are a few protocol invariants that are really important to us. One is no loss and the other is full liquidity, although full liquidity, there's a caveat there and I'll get to that. Once we dig into the code a little bit more, I'll actually demonstrate it to you. But essentially what we do is we ensure that the funds have been in for a minimum length of time.
+00:06:44.000 - 00:07:22.406, Speaker B: Because yield is generally generated over time, we make sure that the user participates for a certain amount of time, but once they've been in for long enough, they can withdraw instantly, no problems. And so the different things you can customize. I mean, the list is a lot longer than this, to be honest. There's a lot of things you can change, but we've made it really easy to add new yield sources. So what we've built so far for V Three is a Y vault connector and a compound connector. But you'll be able to essentially use anything that bears interest. You'll be able to build a prize.
+00:07:22.438 - 00:07:23.466, Speaker C: Pool on top of.
+00:07:23.568 - 00:08:04.230, Speaker B: So we're really excited to see what people come up there and then the prize distribution is totally customizable. So the prize strategy itself is a very simple interface and you can customize that to, say, have multiple winners. You could award NFTs that are held by the prize pool. There's so many different ways that you can slice the price strategy. Asset types are another thing. So, like I mentioned before, we've been focusing on stablecoins because we really want to adhere to the no loss sort of tenant as closely as possible. However, the new system does support any asset, any tokenized asset, ERC 20.
+00:08:04.230 - 00:08:37.358, Speaker B: So compound already supports wrap bitcoin, so you can do wrap bitcoin if you want. It supports the zero X protocol token. So there are many different assets that you can use and that all generate yield that you can then award as prizes. Then finally, the rewards. The rewards so built into the prize pool. So essentially, the prize pool always escrows everything. If you want to award some arbitrary, ERC, 20 tokens, you fire them over to the prize pool and then the prize strategy is able to award them.
+00:08:37.358 - 00:08:41.658, Speaker B: Same thing with NFTs, ERC, seven, two ones, you can fire them over to the prize pool and then the prize.
+00:08:41.674 - 00:08:42.654, Speaker C: Strategy can award them.
+00:08:42.692 - 00:09:05.606, Speaker B: So the strategy has this privilege of awarding, basically transferring tokens out of the prize pool as awards to people. The yield also is included among them. Of course, there are a few blacklisted tokens. Like, for example, with compound, the prize strategy can't award C tokens because naturally that is the means by which interest accrues. And that's also what upholds the no loss invariant.
+00:09:05.638 - 00:09:08.220, Speaker C: So it's really important to mention that.
+00:09:09.310 - 00:09:42.210, Speaker B: So let's dig into the workshop. This is an ambitious workshop, but you know what, I included a full set of instructions, so if you do want to follow along. It should be fairly easy too. That was a link that was shot out at the beginning. If you go to GitHub.com PoolTogether Ethanlineworkshop, it's essentially the full list of commands that I'm going to use to deploy the contracts locally. Then we're going to create a prize pool using the builder UI that we deploy locally.
+00:09:42.210 - 00:09:54.474, Speaker B: Then we're going to interact with the prize pool using the reference app. And at this point, that's where I'm going to demonstrate the new protocol design of how we use credit, this kind of in system, non transferable credit to.
+00:09:54.512 - 00:09:56.940, Speaker C: Manage people's, manage fairness within the system.
+00:09:57.310 - 00:10:13.858, Speaker B: And then finally, and this part isn't entirely done yet, but we're going to create a custom prize strategy. I have most of the pieces in place. There's some fine tuning that I haven't been able to get working yet, but no worries, we'll hand wave, we'll gloss over that. Let's just get started.
+00:10:13.944 - 00:10:21.262, Speaker C: So I'm going to pop out of the slides and let's head over to the terminal.
+00:10:21.406 - 00:10:45.434, Speaker B: So what I've done is I've checked out a number of different projects. We have the main pool together, pool contracts here. So this is on the version three branch. And so if you go to GitHub, this is the latest, latest this is the newest version of contracts. It has all our special sauce. It's great. If you want to incorporate it as an NPM package, you can.
+00:10:45.434 - 00:11:17.218, Speaker B: What I've done instead, though, is I've just cloned it. So I've done a Git clone from the Git URL up above. What we've also done is cloned the pool builder UI. Pool builder is the static front end that allows you to interact with the on chain factories. So the contracts include not only the prize pool contracts, but also factories, these builders that allow you to create prize pools very cheaply because they use a minimal proxy pattern. So they're incredibly convenient. So you can spin up as many pools as you want.
+00:11:17.218 - 00:11:30.006, Speaker B: Say, for example, Tom Pound has eight different c tokens. You can spin up a price pool for each C token very cheaply. Granted, these days a gas is not cheap. So, I mean, it's still going to cost. It's not going to be like it.
+00:11:30.028 - 00:11:31.500, Speaker C: Was a year or two ago.
+00:11:32.670 - 00:11:49.166, Speaker B: The other project we have here is the reference front end. And so the reference front end is once you create a pool using the builder, then you can interact with it. And so this is a front end meant to interface with our default prize pool and our default prize strategy, which.
+00:11:49.188 - 00:11:51.866, Speaker C: Is a single random winner periodic prize.
+00:11:51.898 - 00:12:15.814, Speaker B: Strategy, which, as you can guess, periodically awards the prize to one person or one address. And then finally we have the custom prize strategy project, which is going to demonstrate how you can build your own prize strategy. And so all of these are wrapped up and discussed in the pool together workshop instructions. So if you do want to find further details, you can bring that up.
+00:12:15.932 - 00:12:17.240, Speaker C: And read through it.
+00:12:18.250 - 00:12:40.814, Speaker B: There's a few things I'm going to skip out here. I want to leave out the cloning of the projects and the kind of the setting up and the kind of boring boilerplate. I don't think that's really necessary. So we'll just get to good stuff. I've also set up a private key in one spot so that can easily switch between MetaMask and the command line just for ease of demonstration. But I'm sure if you get started.
+00:12:40.852 - 00:12:43.860, Speaker C: With the README that you can get up to speed with that no problem.
+00:12:44.470 - 00:13:17.434, Speaker B: So first things first, let's go to the pool together. Contracts we'll go yarn, we'll install all the packages and now let's deploy it locally. So what does that look like? Well, it's as simple as yarn start. So we use a tool called Biddler, which is one of the best tools we've used yet. It actually allows you to easily spin up a local node. It has console built into it and it also has a really fancy deployment scheme, so I can't vouch for it enough. We're really pleased with it.
+00:13:17.434 - 00:13:37.618, Speaker B: So you can see that the server started up. Now it's running at 8545 standard port and you can't see it, but all the contracts have been deployed. So if you open up a new console and let's load up the Biddler console. So we're going to go build Biddler console. The network is going to be the.
+00:13:37.624 - 00:13:38.530, Speaker C: Local host.
+00:13:40.390 - 00:13:43.410, Speaker B: And let's see what contracts have deployed.
+00:13:45.850 - 00:13:53.750, Speaker C: So if we go object keys, let's first go the deployed contracts.
+00:13:54.730 - 00:14:05.818, Speaker B: And this is a Biddler deploy command. So now we have the deployed contracts all wrapped up here. And let's have a look at all.
+00:14:05.824 - 00:14:06.730, Speaker C: Their names.
+00:14:08.430 - 00:14:33.406, Speaker B: So we can see that we have got a compound price pool builder. We've got the yVault price pool builder down here. We also have a fake CDI. So as part of the test environment, we set up compound, basically fake compound contracts so that we can easily build against it. So this is all set up now. It's all well and good. Let us go now to the builder UI.
+00:14:33.406 - 00:14:45.634, Speaker B: So switching gears now. Let's set this up. This is the next JS project. So it's a static front end that's very easy to spin up. So let's load it up now. Go yarn dev that'll.
+00:14:45.682 - 00:14:48.778, Speaker C: Spin it up so we can see.
+00:14:48.784 - 00:14:50.314, Speaker B: It start on Localhost 3000.
+00:14:50.432 - 00:15:10.550, Speaker C: So let's switch over to our browser and punch in localhost 3000. Might be taking a second compiling here. All right.
+00:15:15.400 - 00:15:23.736, Speaker B: What I need to do first of all though is so the builder is built against certain contracts. So what we'll have to do before we get started is to make sure.
+00:15:23.758 - 00:15:26.900, Speaker C: That we have all of the correct addresses.
+00:15:27.060 - 00:15:30.168, Speaker B: So if we look at compound prize.
+00:15:30.184 - 00:15:36.396, Speaker C: Pool builder, there's its address.
+00:15:36.498 - 00:15:39.084, Speaker B: And so let's quickly jump over to.
+00:15:39.202 - 00:15:45.200, Speaker C: The builder UIs constants because we just have to update them. So bear with me.
+00:15:45.270 - 00:15:51.724, Speaker B: They do change every time. That's the only problem with the builder, is that typically they change pretty frequently.
+00:15:51.772 - 00:15:52.880, Speaker C: But let's see here.
+00:15:53.030 - 00:15:56.212, Speaker B: So here we go. Compound price pool builder xeroxd Eight.
+00:15:56.346 - 00:15:57.990, Speaker C: And what do we have here?
+00:15:59.080 - 00:16:19.928, Speaker B: Xeroxd Eight. Okay, well, good, because we started from scratch, all the addresses match that's. The other advantage is that you have pretty deterministic addresses. Fortunately, I haven't run anything since then. So let's create a new prize pool. So there's a few things missing from this UI that we have yet to add. One of them is a drop down to be able to select the yield source.
+00:16:19.928 - 00:16:57.536, Speaker B: So in the future you'll be able to select compound yVault. We even have like just a raw staking pool, and there'll be an Ave, and basically any yield source you can imagine will be set up here. So we've deployed it with a number of different tokens here. These actually all refer to the same CDOC in our local testnet. So we'll just select doc here. The RNG service is an abstraction we created to make it easy to swap out random number generators because there's a lot coming on the horizon. For example, Chainlink has deployed a VRF, which is a really good tool, superior.
+00:16:57.568 - 00:16:58.444, Speaker C: To the block hash.
+00:16:58.512 - 00:17:27.968, Speaker B: But they're also working their way towards using a BLS signature system to be able to have more deterministic sort of entropy that is not biasable by people. And then as well, Starquare is coming out with their BDF, which I'm really excited about as well, although it has different constraints than chain link, chain link Fiara. And so here we're just going to select the block hash because it's stupid simple. Let's set a prize period that's really short.
+00:17:28.054 - 00:17:29.728, Speaker C: So let's say 60 seconds so that.
+00:17:29.734 - 00:17:32.236, Speaker B: We can easily see this thing tick.
+00:17:32.268 - 00:17:34.080, Speaker C: Over, and then we can complete the award.
+00:17:34.900 - 00:18:07.304, Speaker B: So we've got some default here in terms of tokens that are set up. We've got a sponsorship token. So sponsorship means that you deposit into the pool, but you don't have any chance of winning, you're purely just contributing yield. This is what Pool together uses to boost the prize pools when they're low. As you all know, yield changes pretty rapidly. And so we want to make sure that the prize is always pretty decent. But with a new V Three, you can also just do direct prize injection and just transfer tokens directly to the prize pool contract.
+00:18:07.304 - 00:18:18.816, Speaker B: But let's just set some defaults here. So this full name will be sponsorship. Let's just set it to Spawn and then tickets here. So tickets, as you might expect, give you a chance to win.
+00:18:18.918 - 00:18:21.056, Speaker C: So each ticket you have is a chance to win.
+00:18:21.158 - 00:18:25.492, Speaker B: So this is when people go to pooltogether.com. This is what they buy.
+00:18:25.546 - 00:18:27.456, Speaker C: They get these tickets in exchange.
+00:18:27.648 - 00:18:29.072, Speaker B: So let's call this a ticket.
+00:18:29.136 - 00:18:30.500, Speaker C: Go to the tick symbol.
+00:18:31.960 - 00:19:11.712, Speaker B: And so here are some parameters. I'm not going to cover these in too great. In depth, if you'd like. If you go to Docs Pooltogether.com, there is a discussion on fairness and you can dig into what these maximums are and what the exit fees are. But essentially at a very high level, you can imagine that when you deposit into pool together, you immediately start accruing credit at the credit rate and that credit will rise until it reaches the credit limit, which is a percentage of the balance you hold. And when you withdraw, as long as you've reached the credit limit, you don't have to pay anything.
+00:19:11.712 - 00:19:12.592, Speaker B: You don't have to wait.
+00:19:12.646 - 00:19:14.964, Speaker C: You can just get out right away.
+00:19:15.162 - 00:19:38.408, Speaker B: And this is configurable by the pool owner, but it can never exceed these maximums that are hard coded into the core prize pool contract. So these kind of act as backstops to make sure that these credit rates and limits can't be manipulated. But essentially this prevents people from depositing them and withdrawing right away because they'll be a slightly punitive amount when they.
+00:19:38.414 - 00:19:39.480, Speaker C: Try to withdraw right away.
+00:19:39.550 - 00:19:40.952, Speaker B: This credit limit is super high.
+00:19:41.006 - 00:19:41.844, Speaker C: This is just for testing.
+00:19:41.892 - 00:19:50.336, Speaker B: It's not going to be 10%. That's pretty absurd. It's probably going to be more like 0.1% or something. But we'll have it 10% here because it's easy for us to just see.
+00:19:50.358 - 00:19:51.650, Speaker C: What'S going on there.
+00:19:52.020 - 00:19:57.200, Speaker B: So let's use our MetaMask up here.
+00:19:57.350 - 00:20:00.256, Speaker C: Let's double check. Zoom out of the way.
+00:20:00.438 - 00:20:03.948, Speaker B: So this one, let's just reset our knots.
+00:20:04.044 - 00:20:08.172, Speaker C: Sometimes the MetaMask isn't unhappy about that. So let's reset our cat.
+00:20:08.326 - 00:20:10.276, Speaker B: I did turn the node on and.
+00:20:10.298 - 00:20:12.340, Speaker C: Off and so the knots is probably reset.
+00:20:13.160 - 00:20:19.348, Speaker B: So now let's create a price pool. Good to go here.
+00:20:19.434 - 00:20:22.424, Speaker C: Everything's happy? Confirmed. Great.
+00:20:22.542 - 00:20:50.444, Speaker B: Wow, that was fast. Yeah. Don't you love testnets? So much faster. So we can see now we've got a prize pool contract address here, as well as a prize strategy contract address. So, like I mentioned into the design, these are the two key pieces. And I just want to reiterate that this particular builder by default builds well, the compound prize pool because that's what's currently configured, but it also uses single random winner strategy. This is the first and the default.
+00:20:50.492 - 00:20:52.336, Speaker C: Strategy that we're using right now.
+00:20:52.518 - 00:21:04.884, Speaker B: And this is what we're going to swap out later for our own custom prize strategy. But what we'll do at this point is so this is great. This is the builder UI. This is one half of our front end. But now we want to spin up.
+00:21:04.922 - 00:21:06.992, Speaker C: The reference app UI.
+00:21:07.056 - 00:21:18.168, Speaker B: And so this is the actual means with which you interact with the prize pool. So now let's jump back. We're going to go to I've already cloned the reference UI here.
+00:21:18.334 - 00:21:21.790, Speaker C: And so I've got a close zoom. Just give me a second.
+00:21:24.160 - 00:21:36.828, Speaker B: So now let's make sure Yarn is all set up. It's all good to go with the reference UI. We don't have to worry about setting up any contract addresses because we're literally just going to punch in the prize pool address. So again, we're going to spin it up here, but let's make sure we're.
+00:21:36.844 - 00:21:37.920, Speaker C: On a different port.
+00:21:38.070 - 00:21:42.224, Speaker B: This is also using Next JS. So it's a very simple build that.
+00:21:42.262 - 00:21:44.852, Speaker C: Has a lot of optimizations for us.
+00:21:44.986 - 00:21:49.060, Speaker B: So spinning up, let's head back to our browser.
+00:21:49.560 - 00:21:52.870, Speaker C: Load up the reference front end here.
+00:21:59.810 - 00:22:00.762, Speaker B: Let it compile.
+00:22:00.826 - 00:22:02.946, Speaker C: It's doing its thing. There we go.
+00:22:03.128 - 00:22:10.034, Speaker B: Okay, so let's select local because it's on the local network. And if we switch back to our.
+00:22:10.072 - 00:22:16.280, Speaker C: Other tab, let's copy that price pool address and paste it into here.
+00:22:22.300 - 00:22:48.248, Speaker B: Great. Here we go. Okay, so this is demonstrating or showing all the sort of pertinent details we can see. The credit limit down here is 10%. The credit rate is over here. The builder automatically tunes this value so that it is in accordance with a prize period. So if you recall, we created this prize pool with a 62nd prize period.
+00:22:48.248 - 00:22:54.524, Speaker B: So I mean, that time has already passed. So now it's ticking down to zero. And at that point, we'll be able.
+00:22:54.582 - 00:22:56.500, Speaker C: To start the award.
+00:22:58.840 - 00:23:13.290, Speaker B: But we noticed there's no tickets, there's no prize. So let's put something in it. We have zero die. We need die. Let's do it. So as part of our deployment, we did deploy the fake die. So let's have a look at that.
+00:23:13.290 - 00:23:15.316, Speaker B: I have some commands.
+00:23:15.348 - 00:23:31.416, Speaker C: I can cut and paste in our instructions here. So we set up the contracts. There's the die, we set up the builder. But now here is a helpful way for us to mint ourselves to die.
+00:23:31.528 - 00:23:36.640, Speaker B: Because the Dai token that we deployed is the open Zeppelin ERC 20 mintable.
+00:23:37.140 - 00:23:40.370, Speaker C: So let's give ourselves some.
+00:23:43.140 - 00:23:44.144, Speaker B: Your address.
+00:23:44.262 - 00:23:46.996, Speaker C: Let's copy our let's first copy this.
+00:23:47.178 - 00:23:49.460, Speaker B: We're going to give ourselves 1000 die.
+00:23:51.240 - 00:24:06.552, Speaker C: So let's delete your address and I'm going to copy my MetaMask address here. There we go. Balance. Balance should increase. There we go.
+00:24:06.606 - 00:24:08.552, Speaker B: Okay, balance 1009.
+00:24:08.606 - 00:24:09.016, Speaker C: Great.
+00:24:09.118 - 00:24:12.164, Speaker B: Now let's depop it. So this would be a good demonstration.
+00:24:12.212 - 00:24:13.850, Speaker C: Of how the credit system works.
+00:24:14.620 - 00:24:16.590, Speaker B: So we're going to do our approval process.
+00:24:18.000 - 00:24:21.390, Speaker C: We are looking at permit, which is not quite there yet.
+00:24:23.840 - 00:24:46.466, Speaker B: What I want to first demonstrate is this kind of deposit withdrawal, this kind of really rapid. Like if I'm trying to game the system, if I want to get in a block before the prize pool and then bounce right after, let's drop in 500 die. We're going to deposit. We'll see our ticket balance go up.
+00:24:46.648 - 00:24:52.094, Speaker C: We'll see the total ticket supply up here. Go up. There we go.
+00:24:52.232 - 00:25:12.102, Speaker B: So now let's withdraw instantly. Let's withdraw everything. You see a warning here. Because we have not waited a full price period of 60 seconds, this is going to complain to us that, hey, you're going to incur a small fee.
+00:25:12.166 - 00:25:14.438, Speaker C: That is going to go towards the prize.
+00:25:14.614 - 00:25:17.660, Speaker B: So let's just ignore that we're going to withdraw anyway.
+00:25:18.510 - 00:25:22.126, Speaker C: And now let's watch what happens here.
+00:25:22.308 - 00:25:28.506, Speaker B: So you see, our balance is slightly lower now, of course, because the credit limit is really high, it wouldn't ding.
+00:25:28.538 - 00:25:29.594, Speaker C: Us that much normally.
+00:25:29.722 - 00:25:40.926, Speaker B: And we've contributed to the prize because we got out right away. And so in this way, even if you try to get in and out very quickly, you're going to be incurring.
+00:25:41.038 - 00:25:42.366, Speaker C: You'Re going to get dinged.
+00:25:42.558 - 00:25:47.030, Speaker B: But keep in mind that the credit rate builds and so eventually you won't have to.
+00:25:47.100 - 00:25:49.080, Speaker C: You can just withdraw for free right away.
+00:25:52.570 - 00:25:53.698, Speaker B: Actually, let me demonstrate.
+00:25:53.714 - 00:25:54.646, Speaker C: The other thing, which is kind of.
+00:25:54.668 - 00:25:58.970, Speaker B: Cool, is if we now deposit, say deposit, 100 die.
+00:26:06.110 - 00:26:06.522, Speaker A: Cool.
+00:26:06.576 - 00:26:08.038, Speaker C: Okay, so we're in the pool, got.
+00:26:08.064 - 00:26:17.470, Speaker B: 100 tickets and the seconds until rewardable. Well, it's been zero for a while. We've just let that languish, but that's fine. So let's start the award.
+00:26:21.870 - 00:26:23.020, Speaker C: There we go.
+00:26:23.790 - 00:26:41.754, Speaker B: Award started. And I just want to reiterate that this front end is only communicating with the builder EVM node, nothing else. So it's very easy to fork, it's very easy to customize. We've made it just open source so that you can pull it down and.
+00:26:41.792 - 00:26:43.500, Speaker C: Customize it as much as you want.
+00:26:44.350 - 00:26:51.886, Speaker B: Now, we can see here the next prize is zero and ticket balance is up 22 50. Hey, we won.
+00:26:51.988 - 00:26:52.640, Speaker C: Awesome.
+00:26:54.050 - 00:26:59.454, Speaker B: Something I do want to demonstrate, though, and I don't think we have sufficient credit yet.
+00:26:59.492 - 00:27:00.618, Speaker C: I don't think it's been a minute.
+00:27:00.714 - 00:27:38.810, Speaker B: Is a scheduled withdrawal. And so no matter what, you can always do a scheduled withdrawal. And what it does is it sort of queues up your deposit sorry, queues up your withdrawal so that you can just sweep it later. So no matter what your credit limit limit is, it'll make sure that it waits long enough. So if we do withdrawal time lock, then we'll see at the bottom the sweep time lock funds will pop up. And I mean, the credit rate is so high and short that it actually might not even give us a timer.
+00:27:39.470 - 00:27:41.920, Speaker C: Let's have a look here and see what pops up.
+00:27:45.810 - 00:27:55.306, Speaker B: Oh, no. So you see, excuse me, I didn't even notice, but our balance is back up because clearly we had enough credit and so we didn't have to wait at all. So let's just do this again.
+00:27:55.348 - 00:27:58.254, Speaker C: I just want to demonstrate this. Let's do it properly.
+00:27:58.382 - 00:28:00.334, Speaker B: Deposit. So we'll have a fresh deposit.
+00:28:00.382 - 00:28:04.900, Speaker C: This is no credit. And then we'll try to withdraw it right away.
+00:28:05.930 - 00:28:07.494, Speaker B: So we'll do a scheduled draw.
+00:28:07.532 - 00:28:21.520, Speaker C: We'll do the max. Now we should be able to see a sweep because we have zero credit. Okay?
+00:28:21.590 - 00:28:24.032, Speaker B: So funds will be available in 58 seconds.
+00:28:24.096 - 00:28:24.644, Speaker C: Okay, cool.
+00:28:24.682 - 00:28:26.004, Speaker B: So we can just let that sit.
+00:28:26.042 - 00:28:27.030, Speaker C: There for a second.
+00:28:28.440 - 00:29:08.528, Speaker B: So as you can see, it's a pretty straightforward system. You can always withdraw without losing anything. You just might have to wait a little while. But what we've done is we've tuned or our plan is to tune the credit limit and rate such that 99% of people won't even notice. Because we did some analysis on pull together V two, we found that the median time that people were in the pool was about two weeks. And so that's two prize periods. So if the credit rate increases such that people's deposits mature after one prize period, then no one's even going to.
+00:29:08.534 - 00:29:09.712, Speaker C: Notice, which is great.
+00:29:09.846 - 00:29:11.216, Speaker B: And yet at the same time the.
+00:29:11.238 - 00:29:13.332, Speaker C: System won't be gameable, which is really important.
+00:29:13.466 - 00:29:16.756, Speaker B: So we get almost full liquidity and.
+00:29:16.778 - 00:29:26.196, Speaker C: People can't game the system. So we're pretty happy with this design. So what else can we do with this stuff?
+00:29:26.378 - 00:29:31.064, Speaker B: We have the ability to deposit, withdraw. We've got these prizes being forked out.
+00:29:31.102 - 00:29:31.784, Speaker C: This is really cool.
+00:29:31.822 - 00:29:47.630, Speaker B: But what if we want to have more than one winner? What if we want some of the prizes to go to some hard coded address? Well, that's why we make the prize strategy totally configurable. So let's do that. Let's load up the.
+00:29:49.540 - 00:29:56.604, Speaker C: Custom where did I put it? Strategy.
+00:29:56.652 - 00:29:58.016, Speaker B: So I created a project which is.
+00:29:58.038 - 00:29:59.308, Speaker C: A custom prize strategy.
+00:29:59.404 - 00:30:00.496, Speaker B: Let's have a quick look at this.
+00:30:00.518 - 00:30:03.590, Speaker C: Code because it's just really simple. I really like it.
+00:30:05.400 - 00:30:39.948, Speaker B: So like I mentioned before, we have the default prize pool which is a single random winner. Now, that pool inherits from a periodic prize pool which has a bunch of important bits and pieces like you're able to register, quote unquote, external awards which are non yield awards that can get awarded along with the prize, the yield prize. You can define the prize period in seconds. You can define when the prize period starts. And so what we do is the multiple winners, like when we do want.
+00:30:39.954 - 00:30:42.284, Speaker C: To create a custom prize strategy, since.
+00:30:42.322 - 00:30:58.112, Speaker B: It'S a periodic one as well, we just inherit. We just inherit from periodic prize strategy. Keep it simple. We want to add a number of winners so there'll be more than one this time. So what we do, we do have to initialize it along with all the same parameters as the periodic prize pool.
+00:30:58.176 - 00:30:59.590, Speaker C: But that's easy enough.
+00:31:00.120 - 00:31:01.716, Speaker B: And then finally, what we need to.
+00:31:01.738 - 00:31:04.704, Speaker C: Do is create a custom distribute function.
+00:31:04.842 - 00:31:22.136, Speaker B: So this function is just an internal function that the prize strategy runs when it's time to award the tokens and actually distribute them. It does all the RNG management, which is great, keeps it nice and simple. And so it gives us the random.
+00:31:22.168 - 00:31:23.900, Speaker C: Numbers, the first parameter.
+00:31:24.240 - 00:31:50.432, Speaker B: So the first thing we do is we want to capture the award balance and so this actually allocates the prize. So it'll kind of lock in the current amount of yield. And then of course, there's some console logs here. I've been kind of working on this on the fly. Now, what we do is, as part of the periodic prize pool. It already has the ticket bound to it. So we can just call draw on the ticket and that'll use a pretty fancy data structure that was created by Claros.
+00:31:50.432 - 00:32:03.208, Speaker B: Actually, we have an article about that and that remains unchanged from Pull Together V Two. So if you want to dig up that old medium article, you can research how that's done. But so we'll select the main winner and then to keep it simple, we're.
+00:32:03.214 - 00:32:04.136, Speaker C: Just going to award them all the.
+00:32:04.158 - 00:32:10.828, Speaker B: External tokens because NFTs can be awarded. I didn't want to mess around with that for this. Just want to keep it simple. And then the yield itself is going.
+00:32:10.834 - 00:32:11.950, Speaker C: To get split up.
+00:32:12.320 - 00:32:15.996, Speaker B: So here we calculate the share of the prize. So we have the prize divided by.
+00:32:16.018 - 00:32:17.260, Speaker C: The number of winners.
+00:32:17.760 - 00:32:25.772, Speaker B: We then calculate the total supply of tickets and then the ticket split so that we can iterate through the tickets.
+00:32:25.836 - 00:32:28.000, Speaker C: And select alternate winners.
+00:32:29.460 - 00:32:34.784, Speaker B: And so here's the main loop right here is we want to loop winner.
+00:32:34.832 - 00:32:38.180, Speaker C: Number of times to draw a winner.
+00:32:40.200 - 00:32:49.624, Speaker B: And essentially award the tickets. And so this is their share. And so what we're doing here is we're awarding the yield as tickets. So the periodic prize pool could also.
+00:32:49.662 - 00:32:51.736, Speaker C: Award as sponsorship if it wanted to.
+00:32:51.838 - 00:33:24.976, Speaker B: But that's only for if it wants to award the prize to people who shouldn't become eligible to win. For example, let's say it's a philanthropic organization, then you just award them sponsorship so that the other people can still have a chance to win. So let's put this in action. What I've done is set up a builder for it. That just vampires. The other prize strategy. So we'll deploy this contract and when we want to create a new one, we just pass in the old prize.
+00:33:25.008 - 00:33:27.744, Speaker C: Strategy along with the number of winners.
+00:33:27.872 - 00:34:09.520, Speaker B: And it'll basically copy the configuration and also include the number of winners. So let's go do that now. So we're also for this project using Bidler. And what's great about that is that we're also using the same deploy system. So to spin this up locally, let's just clear out the deployments directory. We just go Biddler network is going to be PT because we have to tell Biddler, hey, we're actually connecting to a different node, not the kind of internal one that Biddler spins up. We're actually connecting to the node that's running in our other terminal under the Pull Together contracts directory.
+00:34:09.520 - 00:34:11.676, Speaker B: And then we're going to deploy.
+00:34:11.788 - 00:34:27.730, Speaker C: Let's deploy now. Great.
+00:34:27.800 - 00:34:31.586, Speaker B: All set up. And now let's launch a console so.
+00:34:31.608 - 00:34:33.650, Speaker C: That we can interact with these contracts.
+00:34:35.770 - 00:35:06.218, Speaker B: Once again. These commands are all in the workshop instructions, so if you're not following along, don't worry about it. You'll have plenty of time to look at it later. Now we want to, like we did before, pull in all the deployed contracts, all the fiddler command deployments all. And let's have a look and see what we have. So we've got our Multiple winners builder and then the Multiple winners proxy factory. Oh yeah, a little bit on the proxy factory.
+00:35:06.218 - 00:35:28.374, Speaker B: So this is a factory that allows us to create minimal proxies. So it's a very cheap way to instantiate new contracts because the periodic fry strategy does have some weight to it. It's nice to be able to just create a proxy that's not upgradable, but it's a proxy so that it's a very easy on gas. So what we'll do now is let's pull out our signers so we actually.
+00:35:28.412 - 00:35:44.138, Speaker C: Have some signatories that we can interact with it. So we'll do signers. Great. Okay, now let's pull out our builder. Actually, I might have a command kicking around. Yes, I do.
+00:35:44.304 - 00:35:54.206, Speaker B: So we're going to use the Biddler deploy helper to get the contract multiple winners builder. We're going to use the multiple winners builder address and just pass it the.
+00:35:54.228 - 00:36:03.074, Speaker C: First signer signers is not defined. Did I not just plural? There we go.
+00:36:03.192 - 00:36:10.138, Speaker B: Okay, so now we have the builder. So what we want to do now is we want to vampire the old price strategy.
+00:36:10.254 - 00:36:12.710, Speaker C: So if we pop over to our.
+00:36:12.780 - 00:36:17.026, Speaker B: Console so this is our console for the pool together contracts.
+00:36:17.058 - 00:36:19.570, Speaker C: This is the main contracts.
+00:36:19.650 - 00:36:22.962, Speaker B: Let's create a new pool and we're.
+00:36:23.026 - 00:36:26.818, Speaker C: Going to just use an old command.
+00:36:26.914 - 00:36:34.380, Speaker B: So using the same kind of command, we're going to do the Get contract app. We're going to tell if we want a prize pool and let's pass it the address.
+00:36:37.790 - 00:36:40.422, Speaker C: Back to builder.
+00:36:40.486 - 00:36:53.294, Speaker B: So we're going to copy prize pool here. And now let's have a look and see what that price strategy is. Xurx. Five, four c. There it is.
+00:36:53.332 - 00:36:55.646, Speaker C: Xurx five four C. Okay, so let's.
+00:36:55.678 - 00:36:56.978, Speaker B: Copy that address and we're going to.
+00:36:56.984 - 00:37:00.290, Speaker C: Vampire this with our other console.
+00:37:00.710 - 00:37:07.930, Speaker B: So here if you refer back to our interface, we're going create multiple winners and it's going to receive a prize.
+00:37:07.950 - 00:37:09.426, Speaker C: Strategy and the number of winners.
+00:37:09.458 - 00:37:10.562, Speaker B: This is what it's going to vampire.
+00:37:10.626 - 00:37:25.130, Speaker C: And then we're going to see the number of winners. So let's go back here. We're going to go builder, create multiple winners, pass it the price strategy address. And let's say we want there to be two winners.
+00:37:26.590 - 00:37:40.980, Speaker B: I'm going to use a little trick here because this actually returns the address, but we're not going to get that because it's going to run as a transaction. So I'm just going to use the old Ethers V five call static here.
+00:37:41.830 - 00:37:43.906, Speaker C: Just cheat a little bit. Okay, cool.
+00:37:44.008 - 00:38:10.140, Speaker B: So Call static will actually execute the transaction without actually changing state of the EVM. But what that means is that, hey, we know what the address is going to be. I mean, you can use a crate too as well. We're not quite there yet. So let's now call it for real. Great transaction ran. Now let's copy that price strategy and swap it out.
+00:38:10.830 - 00:38:18.640, Speaker C: So here, let's go await pool set price strategy. I'm just going to swap it out.
+00:38:19.010 - 00:38:37.682, Speaker B: Great, all done. Now this is a little bit of magic fairy dust I want to talk about. So I did actually configure the node here to have the same MetaMask account unlocked. Only the owner can do this. So only the person who creates the pool can swap out the prize strategy. I just want to make that clear. This is not a public function.
+00:38:37.682 - 00:38:43.366, Speaker B: I can only do this because I've configured the console to use the same account.
+00:38:43.468 - 00:38:45.400, Speaker C: So just a little caveat there.
+00:38:46.410 - 00:38:52.726, Speaker B: So let's have a look now. So our prime strategy is now zero x six f which should match our.
+00:38:52.748 - 00:39:01.260, Speaker C: Other one over here, zero x six f. Okay, great. So if we go back to our reference, front end here.
+00:39:03.070 - 00:39:06.720, Speaker B: Just have to refresh it so that the front end would pull in the new prize strategy address.
+00:39:08.050 - 00:39:09.738, Speaker C: Oh yeah, we need a new prize.
+00:39:09.754 - 00:39:24.142, Speaker B: So let's quickly deposit, withdraw. So we'll just pump the pool. We don't actually have an interface yet for a compound yield source like our mock yield source. So this is just an easy way to boost the prize using the fairness.
+00:39:24.206 - 00:39:26.530, Speaker C: Fee it contributes to the prize.
+00:39:31.920 - 00:39:34.930, Speaker B: So we do instant max draw.
+00:39:38.420 - 00:39:46.736, Speaker C: Looking good. And there we go.
+00:39:46.758 - 00:39:48.844, Speaker B: So we got prize of 30 die.
+00:39:48.892 - 00:39:49.488, Speaker C: Good stuff.
+00:39:49.574 - 00:40:10.006, Speaker B: Okay, so now let's deposit for real. Okay, now this is where I have to reveal something and said I couldn't actually get this working before this started. So what we'll do is we'll just.
+00:40:10.028 - 00:40:11.194, Speaker C: Go through it and see if it works.
+00:40:11.232 - 00:40:12.058, Speaker B: Now, I did add a lot of.
+00:40:12.064 - 00:40:13.900, Speaker C: Console logs, maybe that'll help.
+00:40:15.470 - 00:40:16.746, Speaker B: But what we'll do is we'll use.
+00:40:16.768 - 00:40:49.260, Speaker C: My other account and work account and it doesn't have any ETH, so let's send it to E. Actually, I can send it from the other MetaMask. So let's copy here instance. So we got to find these now, but let's also clear the nons because sometimes okay, cool.
+00:40:49.630 - 00:40:53.414, Speaker B: Because our node restarted, what else we need is die.
+00:40:53.462 - 00:41:01.486, Speaker C: So let's go back to our console. Here our original pool together console. And here's our die mint function. So we're just going to call this.
+00:41:01.508 - 00:41:03.118, Speaker B: Again but with our other address so.
+00:41:03.124 - 00:41:07.582, Speaker C: That we have some die here.
+00:41:07.636 - 00:41:08.800, Speaker B: Bounce is zero.
+00:41:09.410 - 00:41:17.738, Speaker C: Let's see it. Pop thousand. There we go.
+00:41:17.924 - 00:41:19.586, Speaker B: Okay, so let's do the same old.
+00:41:19.608 - 00:41:50.472, Speaker C: Same old lock and let's deposit back. Oh, wait, no, the other one was 100. Right? So we should do 100 to match. Same chance of playing. Great. Okay, that was quick. Guess we landed the right time.
+00:41:50.526 - 00:42:17.644, Speaker B: Okay, so ticket balance is 100. Ticket balance of the other person is 100. Prize is 29 33. So this should split the prize, split the yield between these two accounts because what it does is it picks a random number, but then the next random number it adds. If you can imagine it takes the total and divides it by the number of winners.
+00:42:17.692 - 00:42:21.968, Speaker C: And so it adds that next index. So it shifts the index, but we'll.
+00:42:21.974 - 00:42:25.684, Speaker B: See if it works. It wasn't working last time. I also want to demonstrate that anyone.
+00:42:25.722 - 00:42:43.130, Speaker C: Can push the start award. So we are the other account now, but anyone can start it. I guess we can complete right away. So see the next prize pop down.
+00:42:47.130 - 00:42:49.366, Speaker B: Down to zero and okay, well, it.
+00:42:49.388 - 00:42:51.062, Speaker C: Looks like this person won everything, so.
+00:42:51.196 - 00:42:52.198, Speaker B: There'S a bug in there somewhere I.
+00:42:52.204 - 00:42:52.818, Speaker C: Have to figure out.
+00:42:52.844 - 00:43:06.622, Speaker B: But needless to say, this shows you I can swap out the price strategy, which we think is one of the most powerful ways that you can extend pool together. We're really excited to see what people contribute there. So coming back to the screen, you can see total ticket supply is now.
+00:43:06.676 - 00:43:10.590, Speaker C: 229, so it includes the deposits plus the prizes.
+00:43:11.490 - 00:43:42.874, Speaker B: So that pretty much wraps up the tools available to you for this hackathon. Of course, we're still evolving this project and so if there's anything you need, please let us know. Please join our discord. Join the developer discord. We're really excited to be able to start working with people to improve the core system, the core contracts. So, yeah, we're happy to receive any feedback, good or bad. We want to hear about everything.
+00:43:42.874 - 00:43:55.966, Speaker B: And I don't know if anybody recalls, but we had a system for V two called Pods where people could actually join their tickets together that isn't built yet for V three, no problem. Also be a really good opportunity for.
+00:43:55.988 - 00:43:57.280, Speaker C: Someone to put together.
+00:44:00.450 - 00:44:20.006, Speaker B: Like to thank everybody for watching the presentation. I hope that was enlightening. I hacked this together pretty last minute, but I think the multiple winners strategy blockchain serve as a good template if you do want to build your own prize strategy. So, yeah, really have to have demonstrated. So does anyone have any questions, like.
+00:44:20.028 - 00:44:22.630, Speaker C: To open the floor or any comments?
+00:44:24.250 - 00:44:30.330, Speaker F: And you can feel free to unmute yourselves if you do want to make a comment.
+00:44:34.280 - 00:44:36.644, Speaker E: Great job, Brendan. That's all I have to say.
+00:44:36.842 - 00:44:44.512, Speaker B: Thanks. Yeah, there's a bug in the multiple winner strategy though, I've got to figure that, but no worries.
+00:44:44.656 - 00:44:55.156, Speaker E: Yeah, I would be curious, is there anyone on this call who is planning to hack on pool together stuff? This ETH global. I'd be curious if there's anyone who has specific ideas.
+00:44:55.348 - 00:45:05.772, Speaker D: Yeah. Hey guys, I'm from the Flavor finance team. I think that pool together is actually going to work for us. So, yeah, we're going to plan to move ahead with building on it.
+00:45:05.906 - 00:45:12.008, Speaker B: Nice. Right on. Well, if you need any support, feel free to join our Discord channel. We're always on, obviously.
+00:45:12.194 - 00:45:19.728, Speaker D: Yeah, I think this video is recorded. I'm probably going to have to go back and watch it in like 50% speed, but yeah, we'll definitely be doing that.
+00:45:19.814 - 00:45:24.404, Speaker F: Yeah, it's on the ETH Global YouTube, probably in about a half hour.
+00:45:24.442 - 00:45:25.700, Speaker C: You'll have the recording.
+00:45:26.040 - 00:45:29.540, Speaker D: Okay, sounds good. I definitely might ping you guys if we have any questions.
+00:45:29.690 - 00:45:30.724, Speaker B: Yeah, sounds good.
+00:45:30.762 - 00:45:36.680, Speaker E: Yeah, I know. I have a DM with you, I think. Yeah, it sounds like you have guys have a cool idea you're working on. Sweet.
+00:45:39.020 - 00:45:39.770, Speaker D: Thanks.
+00:45:40.460 - 00:45:54.910, Speaker E: So someone asked, is there a lottery, DAP example, that uses pool together? Do you mean by that like a lottery where you would lose your money? Like we want to get all your money back? I'm not sure. Might need some more clarification on that question.
+00:45:57.120 - 00:46:23.620, Speaker B: Yeah, because the way it's designed is it takes a token, and that token is never given away as the prize. It's sort of like imagine you're kind of putting up a stake, as it were, and the stake can then generate yield, and that yield is awarded as a prize. We do have like a raw staking pool, but it's more of a kind of primitive right now. We're not really working with it, but you can explore that. It's not documented yet, but you can have a look in the contract repository.
+00:46:24.440 - 00:46:36.670, Speaker E: Yeah, but overall we definitely want everything built on the protocol will still be no loss. And so that's like a super important there's only a couple of invariants we have and no losses is one of them.
+00:46:41.040 - 00:47:13.044, Speaker B: And perhaps I should also add that we do have all these tools hosted. So if you go to Builder pull together, I'll add an Http to that, then you'll be able to see the builder. And that builder is active on Renkoby. That's kind of our there you go. The main one as well is we have the reference app and so that's also hosted. But as it stands, those are currently fairly active. So they may go down here and there, but generally they're pretty solid.
+00:47:13.092 - 00:47:15.130, Speaker C: So feel free to check those out.
+00:47:17.660 - 00:47:32.844, Speaker B: That's a really good question. That's a good question. So what our plan is, is we want to create kind of a cyclical system. I don't know if anyone recalls V Two with what we did is part of the original plan was to take a fraction of the prize and put.
+00:47:32.882 - 00:47:34.748, Speaker C: It back in as sponsorship into the.
+00:47:34.754 - 00:47:43.904, Speaker B: Prize so that it increases perpetually. So, yes, a reserve fee is captured in order to sponsor the pools and.
+00:47:44.102 - 00:47:45.856, Speaker C: Sort of boost the prize as much.
+00:47:45.878 - 00:47:57.270, Speaker B: As possible because then people can't necessarily withdraw the full prize amount. And so we haven't really discussed the specifics of that, but the mechanism is.
+00:47:59.160 - 00:48:43.750, Speaker E: So one thing too, Brendan, I don't think you touched on too much, but is like the rewards. So the protocol can allocate rewards to prize pools that basically give people rewards based on referring volume in or just having deposits in. And so the idea is that that will create, like a self perpetual mechanism where if, say, 5% of every prize goes back to the reserve and then the reserve funds the rewards, then essentially that is a way for the prize pool to bootstrap itself and ensure that everyone who's in the prize pool gets something because they're earning these reward tokens, which are essentially bonus tickets. So it's built in a really flexible way, but it'll be pretty awesome.
+00:48:44.200 - 00:49:21.810, Speaker B: Yeah, that's a good point. I forgot to mention that we do have referral awards now and that's built into the core protocol. It's a pretty cool system where people can attach a referral address as part of their deposits and they're able to accrue referral awards as a result. Right now it's based on volume because that's most practical thing for referrals. It's not like refers actually hold tokens or they may not. So the idea would be that you could build your own front ends, let's say, if you're in Spain or something, and if you've got your own Fiat onboarding process, you can create a kind of localized version and then you can capture some referral awards as well.
+00:49:28.750 - 00:49:36.830, Speaker F: There are a couple of questions from YouTube. I don't know if we got these earlier, but I'll just post them in the chat.
+00:49:40.530 - 00:50:29.066, Speaker E: So the one question is, does the contract take custody of the assets during the allocation of the time? I guess to say it, maybe. Precisely. And what are the security measures you take to secure the wallet? So the contract takes custody is what you could say. Obviously the funds are in the contract, but the key thing is that the contract is not custodied by anyone. So that's kind of maybe a confusing way to say it, but it's similar to uniswap, right? If you deposit into a uniswap as an LP to market make, there is no upgradability to that contract where someone who's a privileged owner could come and upgrade it and take your funds maliciously. And this is the same. So the prize pool is not upgradable.
+00:50:29.066 - 00:51:09.740, Speaker E: So when you deposit, yes, your funds are technically in the contract, but you're not trusting pool together or anyone, you're just simply trusting the code that's there. And so that's why we are paying for these third party professional audits to make sure that because those are contracts are not upgradable, you want to be really sure they're secure because if there was a vulnerability, we couldn't fix it, it would just be there. And so that's why we're doing multiple audits with multiple professional third party auditors, zeppelin as well as ditcraft. And so, yeah, that's what we're doing to ensure security. But you should still be cautious even with that.
+00:51:11.630 - 00:51:11.946, Speaker C: Yeah.
+00:51:11.968 - 00:51:55.822, Speaker B: So there's a question from YouTube if you want to create a custom strategy, is the easiest way to duplicate and modify the multiple winners builder? Yes, that's the easiest way because we haven't yet integrated like a create two opcode so you can't predict where the address is. So there's a little bit of a chicken the egg problem. So the easiest way, I think, is to vampire off the old prize strategy. So I would say definitely fork that, repo and customize it and do what you will. And you could basically just follow the same steps from the ETH Online Workshop. The ETH Global workshop that was posted as well. It's another question from irrelevant.
+00:51:55.822 - 00:51:56.870, Speaker B: Oops, Irrelevant.
+00:51:56.950 - 00:51:57.770, Speaker C: Great name.
+00:51:57.920 - 00:51:59.466, Speaker B: What if, in theory, the prize was.
+00:51:59.488 - 00:52:01.222, Speaker C: A repeating percentage of the pool?
+00:52:01.286 - 00:52:02.746, Speaker B: Like, if a prize was 2% of.
+00:52:02.768 - 00:52:08.320, Speaker C: The accrued interest every hour, 2% of the accrued interest.
+00:52:10.690 - 00:52:33.362, Speaker B: So you would be awarding a little bit of the interest more frequently. It sounds like 2% of the accrued interest. You can do whatever you want, to be honest. So just a little bit of background behind the multiple winners. That is simply subclassing the periodic prize pool. If you wanted to build a raw prize strategy, you could do anything. You could do absolutely anything you want.
+00:52:33.362 - 00:52:43.894, Speaker B: There would be no concept of time if you wanted to. It could be completely arbitrary. You could do it randomly, you could be like, yeah, the next prize period of time will be random each time.
+00:52:43.932 - 00:52:45.080, Speaker C: You click the button.
+00:52:46.090 - 00:53:27.622, Speaker B: So we're really excited to see what people build with that. The reason why I made a subclass was because it's easy, because there's just like a distribute function and you can do whatever the heck you want, but ultimately you can build you can completely customize it, but that's a lot more in depth. So, yeah, I want to take some time with that. It's possible to mix this with auger or Gnosis for a prediction market bet. Well, yes, I think you would need to build a custom price strategy that then basically takes the yield and pops it into some bet. And then what it could do is the prize would then get fed back to the prize pool. So you'd basically have like a safe no loss bet.
+00:53:27.622 - 00:53:49.120, Speaker B: It'd be a small amount, but if you're super long something, you can actually take the winnings and put it into the prize pool as the prize. Because the prize pool, you can award external tokens. It could be yield, it could be anything. So that would definitely be possible. You'd have to do a little bit of contract gymnastics, but I think it would definitely work.
+00:53:51.890 - 00:53:56.510, Speaker E: Yeah, no loss prediction markets are kind of cool.
+00:53:56.660 - 00:54:03.970, Speaker B: Yeah. I'd always want to take the losing side, though, because you'd want that ten X if possible. Give me the worst odds.
+00:54:08.620 - 00:54:10.084, Speaker F: There's one more from YouTube.
+00:54:10.132 - 00:54:17.310, Speaker C: I'm just about to post it. Here we go.
+00:54:20.000 - 00:54:54.890, Speaker B: Yes, good question. So our focus right now is on the core protocol. So we haven't built a lot of tooling to be able to listen to events, but Hal has an integration for V Two that allows you to listen to the winners. You can get notified that way. They have a Twitter bot set up to broadcast the winner. And as far as I recall in the pipeline, they were thinking about building bots where you basically go to a channel and say, like, hey, my address is this. Let me know if I won, and it'll let you know if you won.
+00:54:54.890 - 00:55:23.810, Speaker B: There's also a solution from ENS. So ENS uses a system that allows you to be notified when your ENS domain is up, so that's another possibility. But a lot of these things so we're focusing right now on our core value add, which is the protocol. So a lot of these things could be built by third parties if they want to. And eventually, for our flagship app, we probably will integrate some tool, but we're going slow and making sure that we build is very polished as well.
+00:55:29.020 - 00:55:36.940, Speaker C: Okay, well.
+00:55:39.150 - 00:55:40.202, Speaker B: I guess that's it.
+00:55:40.256 - 00:55:40.860, Speaker F: Great.
+00:55:42.350 - 00:55:44.490, Speaker B: Four minutes left. Perfect timing.
+00:55:45.890 - 00:55:46.302, Speaker C: Perfect.
+00:55:46.356 - 00:56:02.114, Speaker B: Well, thanks, everybody. This is a lot of fun. Really stoked to be able to demonstrate the new V Three, but until next time yes. Join our discord channel. Paste the link really quickly so that.
+00:56:02.152 - 00:56:03.938, Speaker C: Everyone can get involved if they want to.
+00:56:04.024 - 00:56:13.186, Speaker E: Oh, yeah, that's a good idea. Paste the link. Discord is where we hang out the most, so come there, and if you.
+00:56:13.208 - 00:56:28.520, Speaker B: Have anything controversial, feel free to fire it into the discord. If you don't worry about it being in public. We're happy to hear about all ideas, but if you're a bot, we're going to delete you. We've seen so many units. Let us know if you have any questions.
+00:56:29.850 - 00:56:49.470, Speaker F: All right, thanks, everyone. See you guys during the hackathon. And keep check checking out your invites for future events. There's another one at 06:00 Eastern Time in about an hour. Thanks, Brendan. Thanks, Leyton. And see you guys down the line.
+00:56:49.620 - 00:56:51.338, Speaker B: Yeah, see ya, everyone. Bye.

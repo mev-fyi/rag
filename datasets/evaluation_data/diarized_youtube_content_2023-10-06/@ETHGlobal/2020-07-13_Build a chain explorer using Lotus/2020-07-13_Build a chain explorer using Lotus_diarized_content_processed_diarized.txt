@@ -1,0 +1,307 @@
+00:00:12.650 - 00:00:42.406, Speaker A: Good. Welcome everybody. From Hackafs and anybody watching online to this week two workshop. We have Vasa here with us. He's going to be talking about how to build applications with Lotus. And if you haven't been around to many of the sessions, all of these are being recorded and are on the E Global YouTube channel. So make sure to check them out if you missed anything.
+00:00:42.406 - 00:01:27.270, Speaker A: Week zero, which was before everything started, and then week one, which was the first week of all the events and all the content that we've been making. So this is all cataloged and recorded for later consumption if you happen to miss something or want to go back and go through a workshop on your own time. So, not a huge intro this time. I'll let Basa start sharing his screen and walk us through the presentation he has today. And again he will be taking questions at breaks throughout the presentation. So if you see something you don't understand or want clarification, just write it in the chat and then we'll get to it at specific points. Go ahead, Vasa.
+00:01:36.670 - 00:01:38.460, Speaker B: Are you able to see my screen?
+00:01:38.830 - 00:01:39.580, Speaker A: Yes.
+00:01:41.170 - 00:02:26.902, Speaker B: Cool. So hi everyone. I'm Baba, also known as wasa on many communication channels. I'm founder of Dapkit IO Simple as Water and I've been contributing to IPFS Ethereum filecoin for about like two, three years. And you can find me on Twitter, on Discord. So this is a basic overview of what all resources we will use in this whole tutorial. So you can go to this bit lead link hack of S workshop.
+00:02:26.902 - 00:03:22.400, Speaker B: So this will give the link to this documentation and you can just see all the links. And we will be following this filecoin docs tutorial that goes through all the setup and the react application that we will build. And the two GitHub repositories that we will be using is firstly the Lotus application setup repository. So basically it has some docker compose scripts that spins up your Lotus node and an IPFS node. And you have a react application repository in which you have all the code directed to react and redux that we'll see in this demo. And you have some API endpoints that are curated by Jim. And.
+00:03:25.650 - 00:03:30.446, Speaker C: These points basically are what we.
+00:03:30.468 - 00:04:18.586, Speaker B: Are going to use in the react application to communicate with the rotor setup. And this is basically temporary documentation which will be shifted to filecoin docs. So keep an eye on the filecoin docs so you don't end up with the stale documentation. These are some notes throughout the tutorial that we are going to discuss. Is still in work in progress, so you may find some bugs. So you can just go to the repository for the GitHub repository here and just file an issue. And if you find something that you don't understand, you can just drop your questions in the Zoom chat.
+00:04:18.586 - 00:04:36.162, Speaker B: And after the workshop, if you have any doubts, you can just find me on the Slack channel. And before starting with the code, I'll be going through some basics of the application works and the Lotus setup.
+00:04:36.306 - 00:04:39.190, Speaker C: While that I'm going through all that.
+00:04:39.260 - 00:04:42.706, Speaker B: You can just go through the docker.
+00:04:42.738 - 00:04:47.058, Speaker C: Desktop, docker compose and node JS installations.
+00:04:47.154 - 00:04:53.420, Speaker B: So it will be easier for all of us to stay in same line.
+00:04:53.870 - 00:04:58.086, Speaker C: And this is sort of the workshop.
+00:04:58.118 - 00:05:08.798, Speaker B: Agenda overview of what we are going to build with a quick demo. And then we will move to the infrastructure setup for our app.
+00:05:08.884 - 00:05:11.790, Speaker C: And then we will clone and run.
+00:05:11.860 - 00:05:55.342, Speaker B: Our React Redux app. So here you can follow the workshop in two ways. Either you can actually clone the app and just skim through the files as I explain them or you can actually build the app from scratch as I explained the app. But in order to do that, you have to get some boilerplate code. So in order to get that boilerplate code, you can use Create React app to get some boilerplate code for React. And you can copy the redux folder that I'll be showing from the official repository that we are using. So that you have all the redux functions that we are going to use.
+00:05:55.342 - 00:06:19.702, Speaker B: And the basic aim here is to that explaining all the components of the app so that you can build it on your own. So let's jump directly to the documentation. So as I said, you can just go to this filecoin link so that.
+00:06:19.756 - 00:06:31.390, Speaker C: Will land you here's.
+00:06:32.870 - 00:07:29.034, Speaker B: Let me just actually show you how it actually works. The whole application has four pages. So the first page is the Chain Explorer. So the Chain Explorer is basically Explorer that you see in different blockchains. So you have block numbers block hash. This timestamp for the block and the parent block hash. So basically this should match with the.
+00:07:29.072 - 00:07:31.402, Speaker C: Preceding block, which is this.
+00:07:31.536 - 00:08:00.420, Speaker B: And you have the parent weight and the minor who mined it. So this is basically what you have. So this is only a part of information that you can fetch from the Lotus API. So if you just expand this JSON object. So basically this JSON object is all the information about the from the Lotus node. So as you can just see.
+00:08:02.170 - 00:08:02.534, Speaker C: Lot.
+00:08:02.572 - 00:08:18.214, Speaker B: Of information from here. So what we are just seeing here, it's just a small part of all this big JSON object. And second page is minus when I'll.
+00:08:18.262 - 00:08:20.380, Speaker C: Show you how.
+00:08:22.190 - 00:08:50.286, Speaker B: Setup works. So basically setup is a local DevNet. That DevNet only has a single Minor for relatively faster development. So you have the minor details like Minor name and the minor power. So Minor power is basically the storage capacity of the Lotus Node that the Miner is connected to. So the more storage capacity the Lotus.
+00:08:50.318 - 00:08:54.806, Speaker C: Node has, the more power the Miner has.
+00:08:54.908 - 00:09:19.342, Speaker B: And then we move to the Marketplace page. So this is basically the biggest part of the application. So this has three parts. First of all you have the wallet details, wallet address and the balance. So in our local testnet that we will deploy it's basically it and it.
+00:09:19.396 - 00:09:25.326, Speaker C: Feeds it with 5000 file point that.
+00:09:25.348 - 00:09:33.742, Speaker B: You can use to create storage and retrieval leads and then you can just choose file.
+00:09:33.806 - 00:09:37.890, Speaker C: Like suppose we just upload this license.
+00:09:38.230 - 00:09:41.110, Speaker B: And what is underhood.
+00:09:43.370 - 00:09:44.614, Speaker C: A lot of things happening.
+00:09:44.732 - 00:09:49.714, Speaker B: First of all you can see the balance is reduced from 500 lower balance.
+00:09:49.842 - 00:09:55.002, Speaker C: This balance is cut off due to two things.
+00:09:55.136 - 00:10:17.310, Speaker B: First of all is the gas that is used in the transaction and second is the storage fees that you give to the Miner to actually store your files. While we will go through the code, I'll just explain what all things go under the hood. But there are different states.
+00:10:17.460 - 00:10:18.900, Speaker C: Like right now it.
+00:10:23.910 - 00:10:37.858, Speaker B: In a minute it will change to active. So basically when it goes to active, that means that your deal is active and the minus Miner has successfully stored your files. And here you can see the CID.
+00:10:37.954 - 00:10:41.734, Speaker C: And if you the CID you can.
+00:10:41.772 - 00:10:44.646, Speaker B: See the actual file that we have uploaded.
+00:10:44.758 - 00:10:49.286, Speaker C: So this actually points to the official.
+00:10:49.398 - 00:10:56.474, Speaker B: IPFS I o http gateway but you can also use the local host, the.
+00:10:56.512 - 00:11:05.230, Speaker C: Local IPFS node that we are running that also gives you the same file.
+00:11:08.450 - 00:11:21.304, Speaker B: You can see that similarly you have lot of information related to the show to as we can see the deal.
+00:11:21.342 - 00:11:26.996, Speaker C: Is active so we can just move to the Deals page and the Deals.
+00:11:27.028 - 00:11:34.340, Speaker B: Page you can see another deal, you can just see two or more deals here.
+00:11:34.430 - 00:11:39.052, Speaker C: So that's a basic intro to what.
+00:11:39.106 - 00:12:16.132, Speaker B: All we are going to build right now. After completing this tutorial you will be able to set up your own file point development network and connect to the running file point network using different JavaScript libraries. And using those script libraries you can create the endpoints on the Lotus node to get the endpoints for chain and minor data as we saw in this and this page. And then you can use the JavaScript.
+00:12:16.196 - 00:12:17.690, Speaker C: Libraries to create.
+00:12:21.340 - 00:12:38.530, Speaker B: Storage and retrieve deals as we saw in the marketplace page. And in the last we can also all the deals that we have. So till now, do we have any questions?
+00:12:47.150 - 00:12:57.658, Speaker A: Just a quick note basa it sounds like you might have a little bit of a bandwidth issue. So if you're going through an example.
+00:12:57.744 - 00:12:59.200, Speaker B: Or clicking something.
+00:13:01.330 - 00:13:18.690, Speaker A: Maybe just do that and then talk over it while it loads because I think I turned up your video and it might just be having a little bit of trouble handling both you doing the interactive parts and talking, but it does a little bit of a lag. So just try and do one or the other and we'll see if that helps. Hopefully.
+00:13:21.190 - 00:13:21.940, Speaker C: Now.
+00:13:24.570 - 00:13:28.040, Speaker B: So right now can I start my video?
+00:13:32.930 - 00:13:37.440, Speaker A: Yeah, if you'd like to. But it will probably yeah, because like.
+00:13:39.010 - 00:13:41.120, Speaker B: Yeah, because without.
+00:13:44.450 - 00:13:46.600, Speaker A: You sorry, go ahead.
+00:14:04.350 - 00:14:06.460, Speaker C: So basically this.
+00:14:09.630 - 00:14:42.690, Speaker B: Architecture that we'll be using, the browser that we also have an IPFS node that we will be running with the browser app to actually store data and see multi addresses for the data. So Lotus implementation, do we have any doubts.
+00:14:50.520 - 00:14:51.270, Speaker A: Again?
+00:14:55.800 - 00:14:58.230, Speaker B: Yeah, do we have any doubts right now?
+00:14:59.960 - 00:15:06.168, Speaker A: I think maybe we should just stick to questions at the end and you can just go through the whole thing and people can ask it okay.
+00:15:06.254 - 00:15:07.032, Speaker B: Got it.
+00:15:07.166 - 00:15:07.850, Speaker A: Yeah.
+00:15:18.200 - 00:15:19.510, Speaker C: It okay.
+00:15:21.720 - 00:16:17.620, Speaker B: So basically the notice node that we will be using is one of the implementations of file protocol and you can find many more file point protocols, protocol implementations in Rust and C plus plus. So the Lotus node has basically two parts. First of all is the Lotus node that runs the blockchain system and executes the storage retrieval leads and performs all the data transfers and all that stuff. And the second part is the Miner that basically runs your storage commitments and generates a proof for proof of spacetime. And if you want to know more about how Lotus works, you can just go to this link on storage managers and storage clients.
+00:16:17.780 - 00:16:22.064, Speaker C: And we will be using the Goipfs.
+00:16:22.132 - 00:17:15.516, Speaker B: Implementation for IPFS protocol. And there are many more implementations for JavaScript and Path in all that stuff. And this is a high level overview of how a file coin client communicates with the IPFS client. So basically you can see the Lotus node here and the Goips node here. So they communicate using IPLD and Lip PTP two p is basically their networking protocol and IPLD is basically their data transfer protocol. So there are some benefits of using filecoin client with the IPFS client. So if you want, let's suppose you.
+00:17:15.538 - 00:17:18.312, Speaker C: Have some data on the public IPFS.
+00:17:18.376 - 00:17:24.124, Speaker B: Network and you want to create a storage deal using that specific data on.
+00:17:24.162 - 00:17:27.292, Speaker C: The public IPFS network.
+00:17:27.356 - 00:17:35.932, Speaker B: What you can do is that link your file point client and then it can transfer the data with IPLD protocol.
+00:17:35.996 - 00:17:39.440, Speaker C: To the Lotus node.
+00:17:39.520 - 00:17:47.540, Speaker B: And in that way you can create storage deals from public data on the public IPFS network.
+00:17:48.460 - 00:17:52.232, Speaker C: So if you want to know more.
+00:17:52.286 - 00:18:33.684, Speaker B: About the Lotus node, you can just go to here. And if you want to go know more about Goipfs, you can go here. So basically now it's time to start all the setup. So assuming that you are using either Linux or Mac, so you can also use Windows, but you have to set up docker desktop and docker compose for that. So assuming that you have set up.
+00:18:33.722 - 00:18:38.340, Speaker C: This, you can just clone this repository.
+00:18:38.920 - 00:19:15.120, Speaker B: For Lotus DevNet and I've actually cloned this repository beforehand. So it looks like something like this. So there are two main files that we will look at. First of all is the make file. Make. Let's go first into the docker compose file. So what we are doing here is creating Lotus container using the Lotus DevNet.
+00:19:15.460 - 00:19:20.324, Speaker C: Image that is built by textile, right?
+00:19:20.442 - 00:20:04.352, Speaker B: And we will expose the port seven seven. This is basically your APIs. The endpoint that we will be using in our react app to communicate with the Lotus load. And these are some environment variables that are used in our setup. So the first environment variable which is text Lotus use DevNet speed. Basically it represents your block period in milliseconds. So every 1.5
+00:20:04.352 - 00:20:32.040, Speaker B: seconds you will have a new block and in second you have a big setters environment that we will pass using our make command that we will see in a while. And this is the IPFS multi address link that we will be using to connect the Lotus node with the IPFS client.
+00:20:32.700 - 00:20:35.276, Speaker C: So like you can see in the.
+00:20:35.298 - 00:21:47.552, Speaker B: Make file when we will start this setup, what will happen is we'll just run the that we saw and then it will also create an IPFS image. Create an IPFS container using the IPFS image and build that code. So let's just skim the basically this is our command to actually start this docker compose scripts. So as we saw in the docker compose setup, this big sectors variable will be passed from here. So what it basically does is it is practically related to the file sets that you can store.
+00:21:47.686 - 00:21:56.148, Speaker C: So in this DevNet setup we want it to be fast.
+00:21:56.234 - 00:22:32.668, Speaker B: So what we will do is we will keep the big sector size. If you keep the big sectors is equal to true. The file says that you can upload varies from one MB to 400 MB. That is much more practical when we build apps. And if you want something much more faster, you can set it to false. But the file size that we will be able to add that will be limited to 500 KB. So you can just start it with using this.
+00:22:32.668 - 00:22:36.950, Speaker B: So this basically prints out what.
+00:22:40.440 - 00:22:41.184, Speaker C: Command.
+00:22:41.312 - 00:23:31.892, Speaker B: Are you running and you can see that we have some Lotus node running and you also have the IPFS node running. Okay. And you can see some wall and info. But this is supposed to be running like this. So after doing this, we'll move to the setup for Goipfs DB. So one question that you may ask is that we just created a Goips container using this image. But we are also going to install a Vipfs demon here.
+00:23:31.892 - 00:23:36.432, Speaker B: So the thing is that the Vipfs.
+00:23:36.576 - 00:23:39.350, Speaker C: Image that we have here.
+00:23:41.100 - 00:24:14.524, Speaker B: The core is for this is not enabled. So when we try to actually add data to this container, it will not go successful. So what we do here is to create a new IPFS node and enable chorus for that and then we can just run another IPFS node to upload the data on IPFS. So if you don't have IPFS installed.
+00:24:14.572 - 00:24:16.996, Speaker C: On your system, you can just go.
+00:24:17.018 - 00:24:18.740, Speaker B: To the IPFS docs.
+00:24:20.920 - 00:24:23.444, Speaker C: And according to.
+00:24:23.482 - 00:24:27.844, Speaker B: Your operating system, you can either use.
+00:24:27.882 - 00:24:30.788, Speaker C: Linux, Mac OS or Windows.
+00:24:30.884 - 00:24:57.180, Speaker B: So I'm using Linux, so I'll just download this and I've already downloaded this, so I'll just unzip. The thing is that this version may vary, so you have to see which version you have downloaded.
+00:24:57.260 - 00:25:00.624, Speaker C: So according to that, you have to.
+00:25:00.742 - 00:25:29.656, Speaker B: Use this unzipping command. As you can see, we have unzipped this and then we'll just go into the go IPFS folder and use install sh to actually install the IPF onto our system. Okay, so it's installed and just we.
+00:25:29.678 - 00:25:35.950, Speaker C: Can check the version number which is 0.6.0.
+00:25:38.800 - 00:26:41.600, Speaker B: So after installing IPFS, you can just come back to this tutorial and you can initialize the IPFS repository. Basically what this does that I actually have initialized the repository once. So what I'll do is just remove my existing repository so that you can see what actually it looks like. On post installation we have deleted our IPFS post tree that was initialized before. So now when we run the command, this creates a new IPFS repository like you can see there. And it generates a new 200:48 bit RNC key pair. So basically it serves as your identity on the net IPFS.
+00:26:41.600 - 00:27:04.936, Speaker B: And this is your peer ID. This peer ID is basically the hash of the public key of the RSA key pair that we generated. And you can just go through the IPFS README documentation if you want. After that we'll just enable chorus here.
+00:27:05.038 - 00:27:09.352, Speaker C: So before that I'll just show you.
+00:27:09.486 - 00:28:12.792, Speaker B: How it actually looks right now. So if you go to open a file in your home directory and in the home directory you should go to IPFS folder config when you open this. So you can see that there's no code is enabled right now. Here's Http header. Right now you can see there is no correlation enabled for the Ipface API. What we'll do this is that run all these commands. So what it does is that it changes the config to add all the correlates variables.
+00:28:12.936 - 00:28:16.750, Speaker C: So if you open the file again.
+00:28:17.360 - 00:28:23.020, Speaker B: You will see all the corus config enabled.
+00:28:24.800 - 00:28:27.908, Speaker C: After doing that we can just start.
+00:28:27.994 - 00:29:29.344, Speaker B: The IP procedure in this page. Basically what we have done is that we started Lotus DevNet. That creates a lotus node and goips node within a container and basically that is used by the lotus node to create deals using the IPFS. Here the IPFS node which you have built, we will be using to upload the data and getting the CIDs create the deals. Now we will run the react app.
+00:29:29.482 - 00:29:33.876, Speaker C: First of all the requirements is node.
+00:29:33.908 - 00:29:43.260, Speaker B: JS and if you are on Mac you will need SX. So you can just load the whole repository.
+00:29:46.640 - 00:29:47.870, Speaker C: Just second.
+00:29:52.640 - 00:29:55.860, Speaker B: Okay, so after cloning.
+00:29:55.880 - 00:30:00.208, Speaker C: The repository, it will look like something like this.
+00:30:00.294 - 00:30:21.384, Speaker B: So let's go through the repository and see what are some basic parts of the process. So first of all we have some basic bootstrap here, nothing fancy in terms of the UI and then we move.
+00:30:21.422 - 00:30:22.840, Speaker C: To the source folder.
+00:30:23.420 - 00:30:59.824, Speaker B: So if you are following by creating the app from scratch, you can just use Create React app to get this boiler code. And after creating this boiler code, you have to copy paste a few pages. First of all, you have to use the app JS. So basically it gives you the whole structure of the app. So you have the chain page, minus page, market page and the deeds page. So after that you have to copy this redux folder because this redux folder.
+00:30:59.872 - 00:31:05.220, Speaker C: Basically has all the functions that we will use.
+00:31:05.290 - 00:31:15.450, Speaker B: So you write it on the way but it will get a bit harder to write while listening to it.
+00:31:20.060 - 00:31:20.810, Speaker C: So.
+00:31:25.520 - 00:31:37.970, Speaker B: Moving back to the tutorial, after you have cloned the repository, just move into the folder and just remind to.
+00:31:38.660 - 00:31:43.264, Speaker C: Use the local branch rather than using.
+00:31:43.302 - 00:33:13.352, Speaker B: The master because the master branch is broken right now. And after that you can just use NPM install to install all the repositories and use NPM start to start your application. After starting open your browser on Localhost 3000 and you will see this Team Explorer page. So basically the thing is that this app is built using React and redux. But in case you're using anything other than that like angular view or maybe basically basic stable, you can also users, you need to use the dowse deployment that we are using to connect Lotus and IPFS nodes. Next we will go through all different parts of the application to see how we integrate this UI with the infrastructure that we built in the first step. First of all, before actually building the pages, we will have to connect the React UI with the IPFS and the Lotus node.
+00:33:13.352 - 00:34:10.668, Speaker B: So if you go into the source folder and then the Utils folder, you will find two files. First is lotus. JS and second is IPS JS. So Lotus JS is responsible for connecting the application with the Lotus node. We are using three NPM modules here, so we'll go one by one on describing each of them. So first of all we have the file to in shiftyard Lotus client RPC repost NPM module. Basically what it does that it connects your application to your Lotus node and basically it communicates with the Lotus node using the RPC protocol.
+00:34:10.668 - 00:34:25.856, Speaker B: And second you have the Lotus client provider browser. Basically it helps your application to connect either using the Http protocol or with the WebSocket.
+00:34:26.048 - 00:34:30.104, Speaker C: Right now we are using WebSocket as.
+00:34:30.142 - 00:34:58.732, Speaker B: You can see here, because if you use Http will be going into some corus errors. So if you don't have some corus configuration set up so in that case you should use the WebSocket endpoint and then you have this file, this Lotus node schema.
+00:34:58.796 - 00:35:01.760, Speaker C: So this is basically a set of.
+00:35:01.830 - 00:35:18.608, Speaker B: JavaScript files that actually defines what endpoints are available for different kinds of nodes. So as I mentioned in starting of the tutorial, while explaining the Lotus nodes there are two kinds of node which.
+00:35:18.634 - 00:35:22.344, Speaker C: Is here the pole node and second.
+00:35:22.382 - 00:35:23.640, Speaker B: Is the minor node.
+00:35:24.380 - 00:35:25.370, Speaker C: These are.
+00:35:27.180 - 00:35:29.396, Speaker B: Two different kinds of Lotus.
+00:35:29.428 - 00:35:34.204, Speaker C: Nodes that we have which endpoints that.
+00:35:34.242 - 00:36:27.804, Speaker B: We want to use using this configuration. So here we can see that the API endpoint as you remember from this docker compose exposed endpoint that we are using here to connect to the Lotus node and here we have the WebSocket URL here you can actually configure it according to the number the index of the node. But right now as we saw that we only have one node in the minor so we will be using only zero here we don't have more than.
+00:36:27.842 - 00:36:30.696, Speaker C: One node but in case on testnet.
+00:36:30.728 - 00:37:55.348, Speaker B: Or main net you will have much more like hundreds of thousands of nodes. So in that case you will need to configure it. So in that case parameters in the get client function pass it here and at last you basically create a provider using the browser provider from this Lotus client provider browser and pass the WebSocket URL. And finally you just export the Lotus RPC client object. So this file basically exports the client that we use all over our application to connect with the Lotus node. And now moving to the IPFS JS file and here we are using the IPFS Http client so it connects to the API endpoint that is exposed by the demon that is running here. So as you can see the IPF is that demon that we ran.
+00:37:55.524 - 00:37:58.836, Speaker C: You can just see here the API.
+00:37:58.868 - 00:38:54.924, Speaker B: Servers running in 5001. This is basically the multi adder and if you can just in case you are writing it in location addressing system you will just write it like this. And basically how it works is that it is basically a JavaScript library that connects to the endpoints that are provided with provided by the and you can just get files and do all kinds of stuff using normal JavaScript codes rather than actually hitting the endpoints for the table for the IPFS client. And we will use this IPFS client in our application. Moving back to our tutorial you can.
+00:38:55.122 - 00:39:00.104, Speaker C: Install these libraries if you are following.
+00:39:00.152 - 00:39:21.510, Speaker B: Through by building, by craft you can just install these libraries like this. And here's basically what we went through in the Lotus JS file and all this explanation that we went through and similarly we have the.
+00:39:23.320 - 00:39:24.628, Speaker C: HTP client, we.
+00:39:24.634 - 00:39:38.090, Speaker B: Can just install it like this and this is what we have in the IPFS JS file. Now next we will move to the.
+00:39:39.900 - 00:39:49.820, Speaker C: Explore every page of the application. So saw in the demo we have four pages.
+00:39:52.480 - 00:39:58.796, Speaker B: First is the chain page and second is the minus, third is the markets and fourth is the deals.
+00:39:58.908 - 00:40:03.264, Speaker C: So first of all we'll just move.
+00:40:03.302 - 00:40:53.708, Speaker B: To the redux in case people who are not familiar with the redux. Basically what it does is that here in the actions folder, under the redux folder we have a file name lotus JS. So in the Actions folder, what we have is that we have all the functions that we will use in this application and the pages that we have here in the pages folder, all the chain deals, all these pages actually use this Lotus JS file to communicate with the Lotus node. So if we go into the chain folder, we have a file called index JS.
+00:40:53.804 - 00:40:57.236, Speaker C: Now, if you can see here is.
+00:40:57.258 - 00:41:38.544, Speaker B: That we are using the change that function from the redux folder that we just saw and let's just first see how it works there. So here you can see that in this function we are using client object and this object is actually exported from this Lotus file in the utils folder that we just saw. So when we just like we are actually not putting any parameters, it does.
+00:41:38.582 - 00:41:39.330, Speaker C: Is that.
+00:41:41.860 - 00:42:20.350, Speaker B: It just takes the default values which is node and zero. So it just takes the node lotus node that has index for zero. The client client object has a function named chain. Chain notify chainnotify is basically a callback function that gives you all the blocks as they arrive. So this.
+00:42:22.480 - 00:42:26.050, Speaker C: Changes object is basically each.
+00:42:26.500 - 00:43:58.138, Speaker B: Block that you get. So if you just go to the application that we have here and open the developer tools you can just type store, get state. So basically what it does that it outputs all the state that it has broke just a second, I think I have to restart. Just open your developer tools. You can just see all the app state that we have here. So as we can see when we get any change, this is actually published to your reducers. So you have this object that is passed to the reducers file that we will see.
+00:43:58.224 - 00:44:02.694, Speaker C: So you have this type called Getchain.
+00:44:02.742 - 00:44:17.022, Speaker B: Stats and we have the payload of the block that we got. So we'll just go to the reducers file and search for this type. So as you can see, the payload.
+00:44:17.086 - 00:44:26.146, Speaker C: That we get, it is pushed to the chain object and basically what we.
+00:44:26.248 - 00:44:41.798, Speaker B: Have here is the same chain object that we see here. So these indexes that we see are basically each change object that we have.
+00:44:41.964 - 00:44:43.560, Speaker C: So as you can.
+00:44:45.770 - 00:45:31.340, Speaker B: If you expand this and if you expand this, this is basically the same thing that we have here. So each of this change object is basically a block. So on each block that arrives we can just push it into our state and keep all the blocks on our UI. And in case you just need to get the latest block and you don't want to get all the blocks that we have here because it sometimes freezes your browser, you can just use another function that we have here.
+00:45:33.390 - 00:45:38.582, Speaker C: This is what we just discussed and.
+00:45:38.736 - 00:45:45.694, Speaker B: This is getchain head method. So basically when we use this in.
+00:45:45.732 - 00:45:50.590, Speaker C: Case we just want the late head of the chain.
+00:45:50.950 - 00:45:54.094, Speaker B: So if you search for this method.
+00:45:54.142 - 00:45:54.740, Speaker C: Here.
+00:45:57.510 - 00:46:38.254, Speaker B: You can just use the same client that we have here using the get client and we will use the chain head method and this chain head will actually give you the latest block JSON object. So after you have this in your redux state you can actually populate your UI. So if you can just go to our chain page you can just see.
+00:46:38.292 - 00:46:41.710, Speaker C: That we are importing.
+00:46:58.450 - 00:48:07.990, Speaker B: This represent a singular card. So the single card that you see is basically a single iteration of this chain array. So iterates basically on this division and creates all these blocks. Moving on from this chain page now we have the minus page. So let's see in the minus page in the minus page basically what we have to do is get the details of the minus. So basically we have to get the name and the power of the NUM minus. So if you go to the minus folder, in the pages folder you will find the index JS file and here you can see that we are using two functions.
+00:48:07.990 - 00:48:36.346, Speaker B: First is stateless minus and second is get minus address. So first let's go to the copy this method name and go to the actions folder and just find this. And here you can see that we.
+00:48:36.388 - 00:48:41.698, Speaker C: Have two parts in this whole function.
+00:48:41.864 - 00:48:49.398, Speaker B: First of all we are using this function named stateless. What it basically does is that it.
+00:48:49.484 - 00:48:52.680, Speaker C: Lists the names of all the so.
+00:48:53.930 - 00:49:03.322, Speaker B: If you console log this result object you will see this single minor name. But if you are connected to some.
+00:49:03.376 - 00:49:04.330, Speaker C: Testnet.
+00:49:06.990 - 00:49:41.478, Speaker B: You will see many more names. So after we have the minor name, what we will have to do is that we will get the power of each and every minor. So what we'll do is that supposing that we will have much more minors here we can just map through this array create a promise here using the state mounted power. Basically what it does that it takes.
+00:49:41.564 - 00:49:42.550, Speaker C: The minor.
+00:49:44.330 - 00:49:52.906, Speaker B: The minor name that we have here uses this minor name to get the power of them that we.
+00:49:52.928 - 00:49:54.570, Speaker C: Have many more miners.
+00:49:56.670 - 00:50:23.614, Speaker B: What we are doing is here is that creating number of promises using this map and then pushing all these promises to promises on. So when you have the resolved values you will have the mine name the minor power. So if you just copy this a plus minus and go to the reducers.
+00:50:23.662 - 00:50:28.486, Speaker C: You will see that we are taking.
+00:50:28.668 - 00:50:44.106, Speaker B: The payload that we have here. The payload was the values that was resolved from this promise all and all.
+00:50:44.128 - 00:50:48.060, Speaker C: That is pushed to this miners list.
+00:50:48.670 - 00:51:00.890, Speaker B: So if you options here and get the application state so in the minor.
+00:51:00.970 - 00:51:06.510, Speaker C: You have the name of the minor and the power. Of the minor.
+00:51:07.090 - 00:52:04.580, Speaker B: That is basically the same object that we are displaying here. So after we have this minor object, we can actually display it in our application here. So what we see is that here we have the minor object and the minor object has the minor list which has all the minors. And we just map through all the miles. I think we are in the wrong folder. We just loop through all the milers, create different cards for each minor. So as we have a single mile here, we just have.
+00:52:06.470 - 00:52:10.114, Speaker C: We also have a minor page.
+00:52:10.232 - 00:53:05.030, Speaker B: So basically what this does that the functionality of the page is similar with the miners page. The only difference is that we just take the minor name from the URL and just check it with the minor name that we have. So in that case, if you do something like this, the minor name, you will get the details for the specific minor. Like this. If you have multiple minors, you can just change the URL from here. You can get the details for the specific minor. Okay, so moving back to the tutorial, we have completed this minus part.
+00:53:05.180 - 00:53:07.254, Speaker C: You can just go through all this.
+00:53:07.292 - 00:53:28.046, Speaker B: Tutorial if you want. And next we move to the market space. The market space is basically the biggest part of the application. It is divided into multiple parts. As we saw that, we first get the details of the wallet and in.
+00:53:28.068 - 00:53:31.840, Speaker C: The wallet details, the wallet address.
+00:53:32.530 - 00:53:33.840, Speaker B: Let's see here.
+00:53:38.370 - 00:53:40.058, Speaker C: Wallet address.
+00:53:40.164 - 00:54:24.058, Speaker B: We have the balance and we can just store the file on the file coin network and then we can see the deal status of our deal. So let's go to the market page. So in the market page you can see that we are using a lot of functions. So let's see one. First of all, we will be getting let us divide it into two parts. First of all we will get the node client.
+00:54:24.154 - 00:54:30.030, Speaker C: So you can also use the client.
+00:54:30.110 - 00:54:37.814, Speaker B: Object here because the default values also are also the same.
+00:54:37.932 - 00:54:42.630, Speaker C: So if you use it like this.
+00:54:42.700 - 00:54:49.126, Speaker B: Or maybe just create this plan, if.
+00:54:49.148 - 00:54:53.080, Speaker C: You do like this, it will be.
+00:54:55.070 - 00:54:57.370, Speaker B: There'S no difference here.
+00:54:57.520 - 00:55:00.730, Speaker C: So first of all, we will get.
+00:55:00.800 - 00:55:18.020, Speaker B: The wallet address here. We can use the node client wallet, default wallet address. As we discussed before, the configuration of our Lotus node that we are using, that gives us a default address.
+00:55:18.470 - 00:55:22.594, Speaker C: And with the default address there's an.
+00:55:22.632 - 00:55:32.150, Speaker B: Associated file coin balance. So to get the file coin balance so just pass the wallet address and.
+00:55:32.220 - 00:55:36.790, Speaker C: You can get the balance of the wallet.
+00:55:37.290 - 00:55:39.694, Speaker B: And the thing is that the balance.
+00:55:39.762 - 00:55:46.410, Speaker C: That you get is usually in the autofill.
+00:55:48.350 - 00:56:30.538, Speaker B: Type. So if you just see in the tutorial, you can see the conversion between the autofill and actual fill. So one file coin is equal to ten to the power 18 autofill. So basically what we see here is five into ten to the power six. So if you multiply it by ten to the power 18, that's basically the balance in Autofill. So we don't want to show the balance in Autofill because the number of zeros is too high. So what we'll do is use a new library called File Point Number.
+00:56:30.538 - 00:57:27.446, Speaker B: So basically this is a utility library that creates basically a wrapper on big number class of JavaScript. So it just converts the balance from auto fill to normal file coin using the two fill method. So after using the two fill method, you will get this balance. Similarly, we can just copy this type and go to the resources. And here we have the payload for Address and balance. If you just search it here in the Wallet property, you will just store the wallet details.
+00:57:27.638 - 00:57:29.180, Speaker C: In case you just.
+00:57:32.190 - 00:58:03.240, Speaker B: Fetch the RPT in the Wallet object, you can see the wallet address and the balance. It's easy to actually show it in after you have added it to your state. You can just fetch it from the state like this and use it in your.
+00:58:06.090 - 00:58:07.640, Speaker C: UI like this.
+00:58:08.090 - 00:59:23.200, Speaker B: You can just show it like that. Now, after showing the balance, we will move to actually adding the file coin, the file to Filecoin network. So for adding File to Filecoin network, we have this upload to filecoin function. So first of all, let's see what things are actually happening in the UI for. So basically what happens is that it's a two step process. First of all, what we do is after selecting the file, when we select a file, we first upload this file to IPFS to get the content address of this data and this then use that content address to actually create the deal for the filecoin network. So first of all, when we upload this file to file here, we will actually create it.
+00:59:23.200 - 01:00:30.946, Speaker B: We change it to the array buffer. So things that we are passing to the upload to file points, the file buffer, the default wallet address that we have and the target minor. So the target minor can be retrieved from your minor list that is already stored in the state or if it's not stored in the state, we will use this default value because in this application we only have a single minor and this is an epoch price. We will get what it actually means later in the tutorial. So as we know what is happening in the UI, let's move to the Actions folder to see what is actually happening. So here we have the upload to 5.4 method.
+01:00:30.946 - 01:01:10.962, Speaker B: So like all the functions, we just get RPC client from here. And the first order of business is to add the file to the IPFS network. So to add the file to the IPFS network, we use the IPFS object which is exported from the Utils folder that we saw early in the tutorial and we just use this and use the add function of the IQs object.
+01:01:11.096 - 01:01:13.710, Speaker C: And pass the file buffer.
+01:01:13.790 - 01:02:18.326, Speaker B: So you can actually pass multiple file buffers here. So this will give you an async entryable object which can be recreated using Far away. So the result object is basically it contains the information about the data that we uploaded. So the specific information that we wanted is the CID of the file which basically looks something like this. So it's a multi address that you can check out in the multi addresses website what actually means. And after you have uploaded the file to IPFS network we actually create a storage deal with the minor. So as we only have a single minor here, so we don't actually give the option to the user what minor he has to use.
+01:02:18.326 - 01:02:56.290, Speaker B: So we fix the minor to whatever minor that we have which is the target minor. So this is these all objects that we see here from using object basically what we actually passed here in the markets page. So you can see the target minor that we have asked the epoch price, the default wallet address. So let's see what is this data ref object.
+01:02:56.360 - 01:03:00.470, Speaker C: So basically this data of ref object.
+01:03:00.540 - 01:03:35.394, Speaker B: Is an object that we need to pass to actually start storage g. So first of all we have the transfer type. So transfer type gives you the protocol that we will use to actually pass the data to the miner that will be storing it. So that Lotus node that we are running here that will be using the graph sync protocol to actually get this data from us. And then you have to pass the.
+01:03:35.592 - 01:03:39.202, Speaker C: Root of the CID that we are.
+01:03:39.256 - 01:04:27.140, Speaker B: Trying to upload which is basically the CID of the file that we have here. And these two are optional parameters that are very specific to how a Lotus node works. So we can leave it here. And this is the wallet object here we have to pass the address of the wallet that will be used in this deal. So after the deal has happened, the balance will be detected from this wallet address. And this is the target miner. It's basically the miner that we are using to create the storage D.
+01:04:27.140 - 01:04:45.240, Speaker B: And this is the epoch price. So if we just see in the documentation, I don't actually remember what specifically epoch price means. Okay, so the epoch price is basically.
+01:04:45.610 - 01:04:50.746, Speaker C: The price per block per epoch that.
+01:04:50.768 - 01:05:41.818, Speaker B: You are willing to pay to store the data. So EGOC is currently around 25 seconds. So basically this epoch price is what you will be willing to pay to the minor to store your data. And finally we have the minimum min blocks duration. This is basically the minimum time in I think seconds until which your deal will be sustained. After that the deal will be closed. After we have this data object ready, we can just pass it to the function called client start deal.
+01:05:41.818 - 01:06:44.584, Speaker B: So what client start deal does is that it starts the storage deal and after that it starts you can start to monitor your deals. So in this function, what we have covered is that after you just add this file, this needs to start. First of all when we just upload it to filecoin adapt first this file is sent to the IPFS node and after uploaded it is uploaded to the IPFS node. We get back the CID. After we get back the CID, we.
+01:06:44.622 - 01:06:48.284, Speaker C: Use the CID to actually we have.
+01:06:48.402 - 01:07:36.828, Speaker B: Done the tutorial till this part and now we can move to the dean status part. To get the status of the deal, we will use this get stored deal status function. So basically what this does that we have a lot of statuses between the deal as you can see here. So there are a lot of possible status of the deal that we can have.
+01:07:36.914 - 01:07:39.944, Speaker C: So in order to show the user.
+01:07:39.992 - 01:07:50.400, Speaker B: What is the specific status of the deal at the specific point of time, we can use this to actually display it in the UI.
+01:08:02.760 - 01:08:06.596, Speaker C: So using this function, what we do.
+01:08:06.618 - 01:09:22.204, Speaker B: Is that we use this, the ID of the file that we uploaded and use the client get deal info function and this basically returns the deal info. I think this is exactly not the function that we are using. Let me check actually using a different function for that. Okay, so to get the status of the deal, we use the get function in which we just call the no get list deal. So what it actually does is it gets the status, the list of all the deals with their status. And right now as we are the storing one deal, we have the status of only single deal. So right now what you can see.
+01:09:22.242 - 01:09:26.856, Speaker C: That the object that we have returned.
+01:09:26.888 - 01:09:49.216, Speaker B: Is the client deal and the client deals is basically an array and the array is basically all the deals that you have done. So right now we have a single deed. So the area has a single object, and the object that is paused here is the deep.
+01:09:49.328 - 01:09:49.990, Speaker C: And.
+01:09:53.260 - 01:10:41.830, Speaker B: We have a switch case here in which we can determine the state of we can get the state of the function sorry, state of the D. And let's suppose that state of the DB is six here, corresponding to the six status. We have the active status. So right now the status code is six so we have the active status. Similarly, if you have state number state 422. So in that case you have an error. So if you have an error, you can see the error part written here.
+01:10:44.780 - 01:10:49.192, Speaker C: And finally, for any default case that.
+01:10:49.246 - 01:10:58.990, Speaker B: We have here, we will have any gray color that's there. So this basically returns all the.
+01:11:00.960 - 01:11:01.576, Speaker C: Details.
+01:11:01.608 - 01:11:08.530, Speaker B: For the deal that can be shown on the UI. So.
+01:11:11.620 - 01:11:14.716, Speaker C: We move back to the markets.
+01:11:14.748 - 01:11:31.156, Speaker B: Place here we can see that we are iterating through the deals object and the Deals object has multiple deals and.
+01:11:31.338 - 01:11:35.864, Speaker C: We can just see that this basically.
+01:11:35.982 - 01:11:44.264, Speaker B: Whole division represents a card. So this card is basically what we have here.
+01:11:44.382 - 01:11:48.204, Speaker C: And you can see that we have.
+01:11:48.242 - 01:12:28.344, Speaker B: A CID that we actually uploaded. As you saw in the demo, you can just get the actual data back from IPFS, and you have the duration and price for reform that we actually added. And the provider is basically the minor that is used in the deal. And the file size is the size of the file that we uploaded. And you have here all the details of the deal that you can actually get from the Lotus client. So this part basically explains how you.
+01:12:28.382 - 01:12:32.904, Speaker C: Can get the data from IPFS but.
+01:12:32.942 - 01:13:32.444, Speaker B: We didn't go into how to get the data from the file point client so getting data from file point client is demands a bit more complex configuration that we have right now. So we don't have that functionality in the UI but we have the functions to actually execute that right now. What we had previously what we had is that we had a button using which you can get the file back from the filecoin network so even if we don't have that in the UI, you can just see the function that we can use to get back the data from Python. This is the function that we can.
+01:13:32.482 - 01:13:34.764, Speaker C: Use to get back the data.
+01:13:34.882 - 01:13:57.156, Speaker B: So what we need is that we need payload that we need to pass from this function like we are passing the CID and wallet address in the comment section. And first of all, what we do.
+01:13:57.178 - 01:14:00.324, Speaker C: Is the same thing we have been.
+01:14:00.362 - 01:14:23.832, Speaker B: Doing guilty client RPC client and then what we can check is that if the client has the file locally or not. So it is much more preferable if we have a client that has the file locally because if the client has the file locally you can get the data much more quicker than a client.
+01:14:23.896 - 01:14:26.968, Speaker C: Who doesn't have locally.
+01:14:27.064 - 01:14:34.252, Speaker B: Right now as we are using a single as we use the same minor.
+01:14:34.316 - 01:14:38.444, Speaker C: To actually upload that data, that minor.
+01:14:38.492 - 01:15:34.196, Speaker B: Should have the file locally. So if you just console log this has local object that you can get using the client has local function, this will result into true and in case you have chosen this client then what we can do is find that data. So before actually creating a retrieval deal, what we can do is that we can actually fetch offers from different node clients. So let's suppose we are using this application on testnet or mainnet so you have multiple clients that can actually offer you the data. So what you can use that you can actually get the offers from these different clients and compare these offers in.
+01:15:34.218 - 01:15:39.268, Speaker C: Terms of the payment that they are asking for.
+01:15:39.354 - 01:16:38.212, Speaker B: And then you can just compare the payments and then use the cheapest client that is offering you in the data. So right now, as we have only one row, what we can do is that just get the offers using the client find data and the offers object has. Many parameters that can see here that we can get. It's basically an array. If you console log right now, we can't actually execute the function because it's not connected to the UI. But if you connect it to UI you can just actually use console log to see the actual offers object. But after getting the offers, let's suppose we have 100 offers and we select one of the offers.
+01:16:38.212 - 01:17:01.904, Speaker B: And what we can do is that we can just start to create a retrieval offer. So the retrieval offer will have all the details of detail, including which minor we want to use, plus, what data would we want to get and what payment are we willing to get.
+01:17:02.102 - 01:17:02.850, Speaker C: So.
+01:17:04.580 - 01:17:06.210, Speaker B: We have all these.
+01:17:08.340 - 01:17:09.024, Speaker C: Root is.
+01:17:09.062 - 01:17:55.136, Speaker B: Basically the root CID of the data that we want to get and the size is the size of the file. Total is basically the minimum price that you are willing to give payment interval and payment increase. I have to actually check the meanings of these variables, which are not actually uploaded into the official documentation, but that will be uploaded within this week. So after creating this retrieval offer what? We can do is that we have.
+01:17:55.158 - 01:18:01.236, Speaker C: To specify the file location where the.
+01:18:01.258 - 01:18:22.520, Speaker B: Lotus node will actually save it after retrieving it. So let's suppose you create this retrieval d, and after retrieving the file the lotus node has to store this file somewhere so you can actually do some path.
+01:18:23.100 - 01:18:27.612, Speaker C: This path will actually live under the.
+01:18:27.666 - 01:20:14.140, Speaker B: Lotus Node that we are running here. So this folder path that we are giving that will be actually created into this contrast that we are actually retrieving will be stored here and this is car variable basically gives you up the value this is a sector true then we will use the car data format to actually store the data if it's false, we will not use the Car data format. And finally we have this nodeclient client. So basically what it is that it creates the retrieval d, you have to pass the retrieval offer object and the file. Reference object so after this is resolved, you will have the file stored in this path so right now what we have to do is if you want to get the file back from this Lotus load, you can do two things. Either you can add on this lotus load so that you can actually serve files from this container so that you can actually get back the files from there. So something like if you have web server on the Lotus mode, you can just use URL like this to actually get the file from the endpoint.
+01:20:14.140 - 01:21:02.556, Speaker B: That is seven seven, seven. So this is one way to actually retrieve the file. You can also use a file point IPFS integration with the file point to actually get the retrieved data. The link for this is here. This is a bit complex, I haven't actually tried it, but if you can just go through it, you can find what specific environment that you have to set up to actually use IPS with.
+01:21:02.578 - 01:21:09.920, Speaker C: Lotus node to actually retrieve the data from Lotus retrieval.
+01:21:12.100 - 01:22:36.012, Speaker B: So after that, what we have is here is that we are able to get the space, we were able to get the wallet address, able to upload the file to IPF and then use the CID that we uploaded to create a storage deal. And then we can actually monitor the storage deal here like this and we can just display the status for the storage deal. And after doing all that, we can use the IPFS URL to actually fetch the data back on the IPFS node. And as we saw, we can actually also get back the data from the Lotus nodes using some specific configuration on Lotus DevNet using the web server or an IP address integration that you can check here. I'll just add the link to this pull request in the group chat and.
+01:22:36.066 - 01:22:42.252, Speaker C: After this what we have is the deals page.
+01:22:42.386 - 01:22:44.844, Speaker B: So the deal space is basically what.
+01:22:44.882 - 01:22:47.752, Speaker C: We exactly have here.
+01:22:47.906 - 01:23:14.212, Speaker B: So there's no difference here. The only difference here is that in this deal thing we are actually filtering the specific deal that we are concerned here. But in the deals page we will list all the deals that we have executed before this. So if you actually stop this Lotus.
+01:23:14.356 - 01:23:19.060, Speaker C: Network you will lose all your FMR.
+01:23:19.140 - 01:23:52.912, Speaker B: Data and you'll lose your deal. But if you just add another deal here, you can just see another deal. As you can see we have added another deal and this in the deal.
+01:23:52.966 - 01:23:58.292, Speaker C: Space you previous deal and the new.
+01:23:58.346 - 01:24:13.016, Speaker B: Deal that we have here. So basically to get the deals is basically the same in the market page. What we were doing is that we.
+01:24:13.038 - 01:24:18.940, Speaker C: Were filtering the specific deal that we.
+01:24:19.010 - 01:24:21.148, Speaker B: Are concerned with right now.
+01:24:21.234 - 01:24:26.430, Speaker C: But we just iterate over all the deals that we have.
+01:24:29.460 - 01:24:32.684, Speaker B: You can see here, we just iterate.
+01:24:32.732 - 01:24:38.370, Speaker C: Over all the deals object and for each.
+01:24:40.600 - 01:24:43.252, Speaker B: Basically called card and all these.
+01:24:43.306 - 01:24:45.110, Speaker C: Pieces are represented here.
+01:24:47.960 - 01:24:50.710, Speaker B: Moving back to the tutorial page.
+01:24:56.680 - 01:24:57.430, Speaker C: It.
+01:24:59.020 - 01:25:19.710, Speaker B: Covered all of the stuff that we have in the tutorial. Just add the pull request link here. We can just go through the questions now.
+01:25:23.700 - 01:25:28.050, Speaker A: Great. Yeah, it looks like there's one or two questions in the chat if you want to cover them.
+01:25:30.820 - 01:25:37.796, Speaker B: Sure. Okay, so our first question is how.
+01:25:37.818 - 01:25:41.590, Speaker C: Does the Lotus client take to account?
+01:25:52.380 - 01:26:04.424, Speaker B: Okay, so for the first question, what I actually know about is this that if you have the file stored locally.
+01:26:04.552 - 01:26:07.310, Speaker C: That I know about.
+01:26:10.180 - 01:26:14.704, Speaker B: Affect the speed of the retrieval, but other than that.
+01:26:14.742 - 01:26:22.064, Speaker C: I don't know, actually change the speed of the retrieval.
+01:26:22.192 - 01:27:02.592, Speaker B: Maybe you can just ask the Lotus dev guys on this. So basically, I think the whole question was on the same thing. I'm interested to find out about how the work people will want some files close to the edge. In these cases, I think in practical applications you use something like so the powergate has intelligent caching mechanisms. That actually works as a CDN, I think. But I'm not actually sure.
+01:27:02.646 - 01:27:08.304, Speaker C: But it usually popular data that you have.
+01:27:08.422 - 01:27:26.970, Speaker B: So usually the popular data is cast much more frequently. So in that case, I think that can help you as a CDN. But I think if you want something, like, in terms of.
+01:27:30.300 - 01:27:34.216, Speaker C: Data redundant, you.
+01:27:34.238 - 01:27:42.780, Speaker B: Can use, actually the replication factor. But other than that, I don't know, actually about how you can actually speed up the retrieval.
+01:27:52.880 - 01:27:54.110, Speaker A: Any other questions?
+01:28:01.960 - 01:28:02.548, Speaker C: All right.
+01:28:02.634 - 01:28:04.852, Speaker A: Vasa, do you want to hit on.
+01:28:04.906 - 01:28:16.404, Speaker B: Jim is still here. Maybe he can tell us. I think that's it from my side, but if you guys have any other.
+01:28:16.442 - 01:28:19.140, Speaker C: Questions, you can just find me on the slack.
+01:28:22.840 - 01:28:37.870, Speaker A: Okay, great. Thank you for that really detailed walkthrough of the tutorial and for anybody who couldn't stick around the whole time again or you want to go back through it afterwards. This is recorded and will be on the ETH Global YouTube channel.
+01:28:41.200 - 01:28:42.540, Speaker B: Okay, bye.
+01:28:43.120 - 01:28:44.460, Speaker A: Thank you, Vaso.
+01:28:48.400 - 01:28:48.970, Speaker B: Thank you.
