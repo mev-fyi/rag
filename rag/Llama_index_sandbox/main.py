@@ -3,7 +3,8 @@
 import os
 
 import rag.Llama_index_sandbox.config as config
-from rag.Llama_index_sandbox.retrieve import retrieve_and_query_from_vector_store
+from rag.Llama_index_sandbox.constants import INPUT_QUERIES
+from rag.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions
 from rag.Llama_index_sandbox.utils import start_logging
 import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import rag.Llama_index_sandbox.embed as embed
@@ -28,13 +29,16 @@ def run():
 
     # 7. Retrieve and Query from the Vector Store
     # Now that our ingestion is complete, we can retrieve/query this vector store.
-    retrieval_engine = retrieve_and_query_from_vector_store(embedding_model_name=embedding_model_name,
-                                                            llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
-                                                            chunksize=embedding_model_chunk_size,
-                                                            chunkoverlap=chunk_overlap,
-                                                            index=index,
-                                                            engine='chat')
+    engine = 'chat'
+    retrieval_engine, query_engine, store_response_partial = get_engine_from_vector_store(embedding_model_name=embedding_model_name,
+                                                                                          llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
+                                                                                          chunksize=embedding_model_chunk_size,
+                                                                                          chunkoverlap=chunk_overlap,
+                                                                                          index=index,
+                                                                                          engine=engine)
 
+    ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
+                  store_response_partial=store_response_partial, engine=engine)
     # If paid: delete the index to save resources once we are done ($0.70 per hr versus ~$0.50 to create it)
     # vector_store.delete(deleteAll=True)
     return retrieval_engine

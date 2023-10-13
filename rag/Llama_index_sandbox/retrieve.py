@@ -27,7 +27,8 @@ def format_metadata(response):
 
         if 'authors' in meta_info:
             authors_list = meta_info.get('authors', 'N/A').split(', ')
-            formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
+            # formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
+            formatted_authors = authors_list[0] + ', ' + ', '.join(authors_list[1:])
         else:
             formatted_authors = None
 
@@ -38,7 +39,7 @@ def format_metadata(response):
                 'release_date': meta_info.get('release_date', 'N/A'),
                 'channel_name': meta_info.get('channel_name', 'N/A'),
                 'video_link': meta_info.get('video_link', 'N/A'),
-                'published_date': meta_info.get('published_date', 'N/A'),
+                'published_date': meta_info.get('release_date', 'N/A'),
                 'chunks_count': 0
             }
 
@@ -61,10 +62,14 @@ def format_metadata(response):
     return all_formatted_metadata
 
 
-def log_and_store(store_response_fn, query_str, response):
+def log_and_store(store_response_fn, query_str, response, chatbot: bool):
     all_formatted_metadata = format_metadata(response)
-    msg = f"The answer to [{query_str}] is: \n\n```\n{response}\n\n\nFetched based on the following sources/content: \n{all_formatted_metadata}\n```"
-    logging.info(f"[Shown to client] {msg}")
+
+    if chatbot:
+        msg = f"The answer to the question {query_str} is: \n{response}\nFetched based on the following sources/content: \n{all_formatted_metadata}\n"
+    else:
+        msg = f"The answer to [{query_str}] is: \n\n```\n{response}\n\n\nFetched based on the following sources/content: \n{all_formatted_metadata}\n```"
+        logging.info(f"[Shown to client] {msg}")
     return msg
     # store_response_fn(query_str, response)
 
@@ -127,14 +132,37 @@ def get_chat_engine(index: VectorStoreIndex,
     )
 
 
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine):
+    for query_str in input_queries:
+        # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
+        if isinstance(retrieval_engine, BaseChatEngine):
+            # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
+            response = query_engine.query(query_str)
+            str_response = log_and_store(store_response_partial, query_str, response, chatbot=True)
+
+            str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
+            logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
+            response = retrieval_engine.chat(str_response)
+            logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
+            # retrieval_engine.reset()
+
+        elif isinstance(retrieval_engine, BaseQueryEngine):
+            logging.info(f"Querying index with query:    [{query_str}]")
+            response = retrieval_engine.query(query_str)
+            log_and_store(store_response_partial, query_str, response, chatbot=False)
+        else:
+            logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
+            assert False
+
+
 @timeit
-def retrieve_and_query_from_vector_store(embedding_model_name: str,
-                                         llm_model_name: str,
-                                         chunksize: int,
-                                         chunkoverlap: int,
-                                         index: VectorStoreIndex,
-                                         engine='chat',
-                                         similarity_top_k=10):
+def get_engine_from_vector_store(embedding_model_name: str,
+                                 llm_model_name: str,
+                                 chunksize: int,
+                                 chunkoverlap: int,
+                                 index: VectorStoreIndex,
+                                 engine='chat',
+                                 similarity_top_k=10):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
     service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
@@ -146,30 +174,10 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         retrieval_engine.chat(SYSTEM_MESSAGE)
         query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
+        query_engine = None
         retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     else:
         assert False, f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}"
-
-    for query_str in INPUT_QUERIES:
-        # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
-        if isinstance(retrieval_engine, BaseChatEngine):
-            # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
-            response = query_engine.query(query_str)
-            str_response = log_and_store(store_response_partial, query_str, response)
-
-            str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
-            logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
-            response = retrieval_engine.chat(str_response)
-            logging.info("Chatting with response:    [{response}]".format(response=response))
-            # retrieval_engine.reset()
-
-        elif isinstance(retrieval_engine, BaseQueryEngine):
-            logging.info(f"Querying index with query:    [{query_str}]")
-            response = retrieval_engine.query(query_str)
-            log_and_store(store_response_partial, query_str, response)
-        else:
-            logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
-            assert False
 
         # TODO 2023-10-05 [RETRIEVAL]: in particular for chunks from youtube videos, we might want
         #   to expand the window from which it retrieved the chunk
@@ -192,6 +200,4 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
         # TODO 2023-10-05: return the metadata of each file and chunk used for the reasoning for referencing
 
-    logging.info("Test completed.")
-    return retrieval_engine
-    # pass
+    return retrieval_engine, query_engine, store_response_partial

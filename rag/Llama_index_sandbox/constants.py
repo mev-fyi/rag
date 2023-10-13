@@ -20,11 +20,13 @@ Do not answer based on your prior knowledge. Be exhaustive in your responses and
 """.strip()
 
 QUERY_TOOL_RESPONSE = """  
-The response by the query tool to the question {question} is delimited in the following dash --- delimited block:
----
+The response by the query tool to the question {question} is delimited by three backticks ```:
+```
 {response}
----
-Based on the question and on the response of the query tool, format a response to the user. If the user requested for sources or content, return the sources provided by the query tool regardless of the query tool response, return these sources. 
+```
+If the response answers exactly the question, return the entire content of the response. 
+If the user requested sources or content, return the sources regardless of response worded by the query tool.
+Do not ever rely on your prior knowledge obtained from your training data.  
 """.strip()
 
 LLM_TEMPERATURE = 0.1  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
