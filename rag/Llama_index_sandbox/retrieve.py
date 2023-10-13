@@ -153,6 +153,8 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
         else:
             logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
             assert False
+    if len(input_queries) == 1:
+        return response
 
 
 @timeit

@@ -26,7 +26,8 @@ The response by the query tool to the question {question} is delimited by three 
 ```
 If the response answers exactly the question, return the entire content of the response. 
 If the user requested sources or content, return the sources regardless of response worded by the query tool.
-Do not ever rely on your prior knowledge obtained from your training data.  
+Do not ever rely on your prior knowledge obtained from your training data.
+Do not mention that you have a query tool at your disposal, simply mention the answer to the question using the query tool results.
 """.strip()
 
 LLM_TEMPERATURE = 0.1  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
