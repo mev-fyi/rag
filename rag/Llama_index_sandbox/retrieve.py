@@ -14,7 +14,7 @@ from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 from llama_index.tools import QueryEngineTool
 
-from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, INPUT_QUERIES
+from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, INPUT_QUERIES, QUERY_TOOL_RESPONSE
 from rag.Llama_index_sandbox.store_response import store_response
 from rag.Llama_index_sandbox.utils import timeit
 
@@ -63,7 +63,9 @@ def format_metadata(response):
 
 def log_and_store(store_response_fn, query_str, response):
     all_formatted_metadata = format_metadata(response)
-    logging.info(f"[Shown to client] The answer to [{query_str}] is: \n\n```\n{response}\n```\n\nWith sources: \n{all_formatted_metadata}")
+    msg = f"The answer to [{query_str}] is: \n\n```\n{response}\n\n\nFetched based on the following sources/content: \n{all_formatted_metadata}\n```"
+    logging.info(f"[Shown to client] {msg}")
+    return msg
     # store_response_fn(query_str, response)
 
 
@@ -116,7 +118,8 @@ def get_chat_engine(index: VectorStoreIndex,
     #   results and have access to nodes and chunks used for the reasoning
 
     return ReActAgent.from_tools(
-        tools=[query_engine_tool],
+        # tools=[query_engine_tool],
+        tools=[],
         llm=llm,
         max_iterations=max_iterations,
         memory=memory,
@@ -141,6 +144,7 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
     if engine == 'chat':
         retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
         retrieval_engine.chat(SYSTEM_MESSAGE)
+        query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
         retrieval_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     else:
@@ -150,8 +154,14 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
             # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
-            response = retrieval_engine.chat(query_str)
-            retrieval_engine.reset()
+            response = query_engine.query(query_str)
+            str_response = log_and_store(store_response_partial, query_str, response)
+
+            str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
+            logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
+            response = retrieval_engine.chat(str_response)
+            logging.info("Chatting with response:    [{response}]".format(response=response))
+            # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")
@@ -171,6 +181,10 @@ def retrieve_and_query_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-07 [RETRIEVAL]: in the chat format, is the rag system keeping in memory the previous retrieved chunks? e.g. if an answer is too short can it develop it further?
         # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune the top-k retrieved chunks? the temperature?
         # TODO 2023-10-07 [RETRIEVAL]: usually when asked for resources its not that performant and might at best return a single resource.
+
+        # TODO 2023-10-09 [RETRIEVAL]: use metadata tags for users to choose amongst LVR, Intents, MEV, etc such that it can increase the result speed (and likely accuracy)
+        #  and this upfront work is likely a low hanging fruit relative to payoff.
+        # TODO 2023-10-09 [RETRIEVAL]: try non-ReAct chat agent to see the performance
 
         #  should we return all fetched resources from response object? or rather make another API call to return response + sources
 

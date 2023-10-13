@@ -8,4 +8,5 @@ items to clean:
 - L Three -> L 3s
 - Arbitram -> Arbitrum
 - web three -> web3
+- SWAV -> SUAVE
 """
