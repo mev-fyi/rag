@@ -70,7 +70,7 @@ def log_and_store(store_response_fn, query_str, response, chatbot: bool):
     else:
         msg = f"The answer to [{query_str}] is: \n\n```\n{response}\n\n\nFetched based on the following sources/content: \n{all_formatted_metadata}\n```"
         logging.info(f"[Shown to client] {msg}")
-    return msg
+    return msg, all_formatted_metadata
     # store_response_fn(query_str, response)
 
 
@@ -90,14 +90,14 @@ def get_inference_llm(temperature,
 
 def get_chat_engine(index: VectorStoreIndex,
                     service_context: ServiceContext,
+                    query_engine_as_tool: bool,
                     chat_mode: str = "react",
                     verbose: bool = True,
                     similarity_top_k: int = 5,
                     max_iterations: int = 10,
                     memory: Optional[BaseMemory] = None,
                     memory_cls: Type[BaseMemory] = ChatMemoryBuffer,
-                    temperature=LLM_TEMPERATURE,
-                    query_engine_as_tool: bool = False):
+                    temperature=LLM_TEMPERATURE):
     # NOTE 2023-09-29: creating a (react) chat engine from an index transforms that
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
@@ -148,7 +148,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
             # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
             if not query_engine_as_tool:
                 response = query_engine.query(query_str)
-                str_response = log_and_store(store_response_partial, query_str, response, chatbot=True)
+                str_response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=True)
                 str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
                 logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
                 response = retrieval_engine.chat(str_response)
@@ -160,12 +160,12 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")
             response = retrieval_engine.query(query_str)
-            log_and_store(store_response_partial, query_str, response, chatbot=False)
+            response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=False)
         else:
             logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
             assert False
     if len(input_queries) == 1:
-        return response
+        return response, all_formatted_metadata
 
 
 @timeit
@@ -174,9 +174,10 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  chunksize: int,
                                  chunkoverlap: int,
                                  index: VectorStoreIndex,
+                                 query_engine_as_tool: bool,
                                  engine='chat',
                                  similarity_top_k=10,
-                                 query_engine_as_tool=False):
+                                 ):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
     service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))

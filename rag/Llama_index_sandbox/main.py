@@ -11,7 +11,7 @@ import rag.Llama_index_sandbox.embed as embed
 from rag.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 
-def initialise_chatbot(engine, query_engine_as_tool=False):
+def initialise_chatbot(engine, query_engine_as_tool):
     start_logging()
     recreate_index = False
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
@@ -42,8 +42,8 @@ def initialise_chatbot(engine, query_engine_as_tool=False):
 
 def run():
     engine = 'chat'
-    query_engine_as_tool = False
-    retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine)
+    query_engine_as_tool = True
+    retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool)
     # TODO 2023-10-13: if we solely ask a question about a previous answer, but that we pass this question to the query engine,
     #   then any successive result would not be relevant. perhaps we need a classifier to determine whether to pass the question to the query engine or not.
     ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
