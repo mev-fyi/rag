@@ -12,67 +12,14 @@ from llama_index.chat_engine.types import BaseChatEngine
 from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
-from llama_index.tools import QueryEngineTool
 
-from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, INPUT_QUERIES, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION, REACT_CHAT_SYSTEM_HEADER
-from rag.Llama_index_sandbox.react_agent.formatter import CustomReActChatFormatter
+from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
+from rag.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
+
+from rag.Llama_index_sandbox.custom_react_agent.tools.query_engine import CustomQueryEngineTool
+from rag.Llama_index_sandbox.custom_react_agent.tools.tool_output import log_and_store
 from rag.Llama_index_sandbox.store_response import store_response
 from rag.Llama_index_sandbox.utils import timeit
-
-
-def format_metadata(response):
-    title_to_metadata = {}
-
-    for key, meta_info in response.metadata.items():
-        title = meta_info.get('title', 'N/A')
-
-        if 'authors' in meta_info:
-            authors_list = meta_info.get('authors', 'N/A').split(', ')
-            # formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
-            formatted_authors = authors_list[0] + ', ' + ', '.join(authors_list[1:])
-        else:
-            formatted_authors = None
-
-        if title not in title_to_metadata:
-            title_to_metadata[title] = {
-                'formatted_authors': formatted_authors,
-                'pdf_link': meta_info.get('pdf_link', 'N/A'),
-                'release_date': meta_info.get('release_date', 'N/A'),
-                'channel_name': meta_info.get('channel_name', 'N/A'),
-                'video_link': meta_info.get('video_link', 'N/A'),
-                'published_date': meta_info.get('release_date', 'N/A'),
-                'chunks_count': 0
-            }
-
-        title_to_metadata[title]['chunks_count'] += 1
-
-    # Sorting metadata based on dates (from most recent to oldest)
-    sorted_metadata = sorted(title_to_metadata.items(), key=lambda x: (x[1]['release_date'] if x[1]['release_date'] != 'N/A' else x[1]['published_date']), reverse=True)
-
-    formatted_metadata_list = []
-    for title, meta in sorted_metadata:
-        if meta['formatted_authors']:
-            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
-        else:
-            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}, [# chunks retrieved]: {meta['chunks_count']}"
-
-        formatted_metadata_list.append(formatted_metadata)
-
-    # Joining all formatted metadata strings with a newline
-    all_formatted_metadata = '\n'.join(formatted_metadata_list)
-    return all_formatted_metadata
-
-
-def log_and_store(store_response_fn, query_str, response, chatbot: bool):
-    all_formatted_metadata = format_metadata(response)
-
-    if chatbot:
-        msg = f"The answer to the question {query_str} is: \n{response}\nFetched based on the following sources/content: \n{all_formatted_metadata}\n"
-    else:
-        msg = f"The answer to [{query_str}] is: \n\n```\n{response}\n\n\nFetched based on the following sources/content: \n{all_formatted_metadata}\n```"
-        logging.info(f"[Shown to client] {msg}")
-    return msg, all_formatted_metadata
-    # store_response_fn(query_str, response)
 
 
 def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
@@ -111,11 +58,11 @@ def get_chat_engine(index: VectorStoreIndex,
     # NOTE 2023-10-14: the description assigned to query_engine_tool should have extra scrutiny as it is passed as is to the agent
     #  and the agent formats it into the react_chat_formatter to determine whether to perform an action with the tool or respond as is.
     # TODO 2023-10-14: determine if/how metadata fn_schema matters
-    query_engine_tool = QueryEngineTool.from_defaults(query_engine=query_engine)
+    query_engine_tool = CustomQueryEngineTool.from_defaults(query_engine=query_engine)
     query_engine_tool.metadata.description = QUERY_ENGINE_TOOL_DESCRIPTION
     react_chat_formatter: Optional[ReActChatFormatter] = CustomReActChatFormatter(tools=[query_engine_tool])
 
-    # TODO 2023-10-14: if the agent keeps failing to recognize it needs to use the query tool when asked for resources, maybe force it its use in the output_parser
+    # TODO 2023-10-14: output_parser: if the agent keeps failing to recognize it needs to use the query tool when asked for resources, maybe force it its use in the output_parser
     output_parser: Optional[ReActOutputParser] = None  # NOTE 2023-10-06: to configure
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
     # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
