@@ -96,7 +96,8 @@ def get_chat_engine(index: VectorStoreIndex,
                     max_iterations: int = 10,
                     memory: Optional[BaseMemory] = None,
                     memory_cls: Type[BaseMemory] = ChatMemoryBuffer,
-                    temperature=LLM_TEMPERATURE):
+                    temperature=LLM_TEMPERATURE,
+                    query_engine_as_tool: bool = False):
     # NOTE 2023-09-29: creating a (react) chat engine from an index transforms that
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
@@ -121,28 +122,38 @@ def get_chat_engine(index: VectorStoreIndex,
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
     #   To achieve this we need to save intermediary Response objects to make sure we can distill
     #   results and have access to nodes and chunks used for the reasoning
+    if query_engine_as_tool:
+        return ReActAgent.from_tools(
+            tools=[query_engine_tool],
+            llm=llm,
+            max_iterations=max_iterations,
+            memory=memory,
+            verbose=verbose,
+        )
+    else:
+        return ReActAgent.from_tools(
+            # tools=[query_engine_tool],
+            tools=[],
+            llm=llm,
+            max_iterations=max_iterations,
+            memory=memory,
+            verbose=verbose,
+        )
 
-    return ReActAgent.from_tools(
-        # tools=[query_engine_tool],
-        tools=[],
-        llm=llm,
-        max_iterations=max_iterations,
-        memory=memory,
-        verbose=verbose,
-    )
 
-
-def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine):
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool):
     for query_str in input_queries:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
             # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
-            response = query_engine.query(query_str)
-            str_response = log_and_store(store_response_partial, query_str, response, chatbot=True)
-
-            str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
-            logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
-            response = retrieval_engine.chat(str_response)
+            if not query_engine_as_tool:
+                response = query_engine.query(query_str)
+                str_response = log_and_store(store_response_partial, query_str, response, chatbot=True)
+                str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
+                logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
+                response = retrieval_engine.chat(str_response)
+            else:
+                response = retrieval_engine.chat(query_str)
             logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
             # retrieval_engine.reset()
 
@@ -164,7 +175,8 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  chunkoverlap: int,
                                  index: VectorStoreIndex,
                                  engine='chat',
-                                 similarity_top_k=10):
+                                 similarity_top_k=10,
+                                 query_engine_as_tool=False):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
     service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
@@ -172,7 +184,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
     if engine == 'chat':
-        retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k)
+        retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)
         retrieval_engine.chat(SYSTEM_MESSAGE)
         query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':

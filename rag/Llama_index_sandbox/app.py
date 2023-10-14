@@ -8,6 +8,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 engine = 'chat'
+query_engine_as_tool=False
 retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine)
 
 
@@ -24,7 +25,7 @@ def chat_endpoint():
     # Call the ask_questions function with the message to get chatbot's response
     # Since input_queries expects a list, wrap the message in a list
     response = ask_questions(input_queries=[message], retrieval_engine=retrieval_engine,
-                             query_engine=query_engine, store_response_partial=store_response_partial, engine=engine)
+                             query_engine=query_engine, store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool)
 
     return jsonify({"response": response})
 

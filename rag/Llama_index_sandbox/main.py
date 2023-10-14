@@ -11,7 +11,7 @@ import rag.Llama_index_sandbox.embed as embed
 from rag.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 
-def initialise_chatbot(engine):
+def initialise_chatbot(engine, query_engine_as_tool=False):
     start_logging()
     recreate_index = False
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
@@ -35,17 +35,19 @@ def initialise_chatbot(engine):
                                                                                           chunksize=embedding_model_chunk_size,
                                                                                           chunkoverlap=chunk_overlap,
                                                                                           index=index,
-                                                                                          engine=engine)
+                                                                                          engine=engine,
+                                                                                          query_engine_as_tool=query_engine_as_tool)
     return retrieval_engine, query_engine, store_response_partial
 
 
 def run():
     engine = 'chat'
+    query_engine_as_tool = False
     retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine)
     # TODO 2023-10-13: if we solely ask a question about a previous answer, but that we pass this question to the query engine,
     #   then any successive result would not be relevant. perhaps we need a classifier to determine whether to pass the question to the query engine or not.
     ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
-                  store_response_partial=store_response_partial, engine=engine)
+                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool)
     # If paid: delete the index to save resources once we are done ($0.70 per hr versus ~$0.50 to create it)
     # vector_store.delete(deleteAll=True)
     return retrieval_engine
