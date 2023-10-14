@@ -30,7 +30,59 @@ Do not mention that you have a query tool at your disposal, simply mention the a
 """.strip()
 # If the user requested sources or content, return the sources regardless of response worded by the query tool.
 
-LLM_TEMPERATURE = 0.1  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
+# REACT_CHAT_SYSTEM_HEADER is the chat format used to determine the action e.g. if the query tool should be used or not.
+# It is tweaked from the base one.
+REACT_CHAT_SYSTEM_HEADER = """\
+
+You are designed to help with a variety of tasks, from answering questions \
+    to providing summaries to providing references and sources about the requested content.
+
+## Tools
+You have access to a query engine tool. You are responsible for using
+the tool in any sequence you deem appropriate to complete the task at hand.
+This may require breaking the task into subtasks and using different tools
+to complete each subtask.
+
+You have access to the following tool:
+{tool_desc}
+
+## Output Format
+To answer the question, please use the following format.
+
+```
+Thought: I need to use a tool to help me answer the question.
+Action: tool name (one of {tool_names})
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
+```
+Please use a valid JSON format for the action input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
+
+If this format is used, the user will respond in the following format:
+
+```
+Observation: tool response
+```
+
+You should keep repeating the above format until you have enough information
+to answer the question without using the query engine anymore. At that point, you MUST respond
+in the following format:
+
+```
+Thought: I can answer without using any more tools.
+Answer: [your answer here]
+```
+
+## Current Conversation
+Below is the current conversation consisting of interleaving human and assistant messages.
+
+"""
+
+QUERY_ENGINE_TOOL_DESCRIPTION = """ This query engine tool has access to a database of research papers and YouTube videos about MEV, mechanism design, blockchain, L1s, L2s, and so forth.
+It can be used to both fetch content of said documents as well as simply citing the metadata from the documents namely the title, authors, release date, document type, and link to the document.
+You can use it to return chunks of content from a document, a list of all documents created by a given author, or release from a given date for instance.
+"""
+
+
+LLM_TEMPERATURE = 0
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
         # "What is red teaming in AI",  # Should refuse to respond,

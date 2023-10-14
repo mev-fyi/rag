@@ -14,7 +14,8 @@ from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 from llama_index.tools import QueryEngineTool
 
-from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, INPUT_QUERIES, QUERY_TOOL_RESPONSE
+from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, INPUT_QUERIES, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION, REACT_CHAT_SYSTEM_HEADER
+from rag.Llama_index_sandbox.react_agent.formatter import CustomReActChatFormatter
 from rag.Llama_index_sandbox.store_response import store_response
 from rag.Llama_index_sandbox.utils import timeit
 
@@ -107,8 +108,14 @@ def get_chat_engine(index: VectorStoreIndex,
     #   OpenAI agent has prefix_messages in its constructor, but React Agent does not. Is adding System prompt to chat history good enough?
 
     query_engine = get_query_engine(index=index, service_context=service_context, verbose=verbose, similarity_top_k=similarity_top_k)
+    # NOTE 2023-10-14: the description assigned to query_engine_tool should have extra scrutiny as it is passed as is to the agent
+    #  and the agent formats it into the react_chat_formatter to determine whether to perform an action with the tool or respond as is.
+    # TODO 2023-10-14: determine if/how metadata fn_schema matters
     query_engine_tool = QueryEngineTool.from_defaults(query_engine=query_engine)
-    react_chat_formatter: Optional[ReActChatFormatter] = None  # NOTE 2023-10-06: to configure
+    query_engine_tool.metadata.description = QUERY_ENGINE_TOOL_DESCRIPTION
+    react_chat_formatter: Optional[ReActChatFormatter] = CustomReActChatFormatter(tools=[query_engine_tool])
+
+    # TODO 2023-10-14: if the agent keeps failing to recognize it needs to use the query tool when asked for resources, maybe force it its use in the output_parser
     output_parser: Optional[ReActOutputParser] = None  # NOTE 2023-10-06: to configure
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
     # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
@@ -125,6 +132,7 @@ def get_chat_engine(index: VectorStoreIndex,
     if query_engine_as_tool:
         return ReActAgent.from_tools(
             tools=[query_engine_tool],
+            react_chat_formatter=react_chat_formatter,
             llm=llm,
             max_iterations=max_iterations,
             memory=memory,
@@ -142,6 +150,7 @@ def get_chat_engine(index: VectorStoreIndex,
 
 
 def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False):
+    all_formatted_metadata = None
     for query_str in input_queries:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
@@ -153,6 +162,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
                 response = retrieval_engine.chat(str_response)
             else:
+                logging.info(f"The question asked is: [{query_str}]")
                 response = retrieval_engine.chat(query_str)
             if not run_application:
                 logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
