@@ -24,11 +24,11 @@ The response by the query tool to the question {question} is delimited by three 
 ```
 {response}
 ```
-If the response answers exactly the question, return the entire content of the response. 
-If the user requested sources or content, return the sources regardless of response worded by the query tool.
-Do not ever rely on your prior knowledge obtained from your training data.
+If the response provided by the query tool answers exactly the question, return the entire content of the response. 
+Do not ever rely on your prior knowledge obtained from your training data, only use what the query tool sent to you and your previous responses.
 Do not mention that you have a query tool at your disposal, simply mention the answer to the question using the query tool results.
 """.strip()
+# If the user requested sources or content, return the sources regardless of response worded by the query tool.
 
 LLM_TEMPERATURE = 0.1  # *https://www.youtube.com/watch?v=dW2MmuA1nI4 plays in the background*
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"

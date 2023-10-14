@@ -141,7 +141,7 @@ def get_chat_engine(index: VectorStoreIndex,
         )
 
 
-def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool):
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False):
     for query_str in input_queries:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
         if isinstance(retrieval_engine, BaseChatEngine):
@@ -154,7 +154,8 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 response = retrieval_engine.chat(str_response)
             else:
                 response = retrieval_engine.chat(query_str)
-            logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
+            if not run_application:
+                logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):

@@ -33,7 +33,8 @@ def correct_typos_in_files():
         "L Three": "L3s",
         "Arbitram": "Arbitrum",
         "web three": "web3",
-        "SWAV": "SUAVE"
+        "SWAV": "SUAVE",
+        "One Inc": "1inch",
     }
 
     # Walk through root_dir

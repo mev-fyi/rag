@@ -25,9 +25,11 @@ def chat_endpoint():
     # Call the ask_questions function with the message to get chatbot's response
     # Since input_queries expects a list, wrap the message in a list
     response, formatted_metadata = ask_questions(input_queries=[message], retrieval_engine=retrieval_engine,
-                                                 query_engine=query_engine, store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool)
+                                                 query_engine=query_engine, store_response_partial=store_response_partial,
+                                                 engine=engine, query_engine_as_tool=query_engine_as_tool, run_application=True)
 
-    response = f"""{response} + \n{formatted_metadata}"""
+    response = f"""{response} \n\n{formatted_metadata}"""
+    logging.info(f"Sending response with sources: \n```\n{response}\n```\n")
     return jsonify({"response": response})
 
 
