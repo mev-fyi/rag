@@ -156,3 +156,4 @@ def create_index(embedding_model_name, embedding_model, embedding_model_chunk_si
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
     index = load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
     persist_index(index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
+    return index
