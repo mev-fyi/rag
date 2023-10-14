@@ -14,7 +14,10 @@ from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 
 from rag.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
+from rag.Llama_index_sandbox.custom_react_agent.ReActAgent import CustomReActAgent
 from rag.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
+from rag.Llama_index_sandbox.custom_react_agent.output_parser import CustomReActOutputParser
+from rag.Llama_index_sandbox.custom_react_agent.tools.fn_schema import ToolFnSchema
 
 from rag.Llama_index_sandbox.custom_react_agent.tools.query_engine import CustomQueryEngineTool
 from rag.Llama_index_sandbox.custom_react_agent.tools.tool_output import log_and_store
@@ -60,10 +63,13 @@ def get_chat_engine(index: VectorStoreIndex,
     # TODO 2023-10-14: determine if/how metadata fn_schema matters
     query_engine_tool = CustomQueryEngineTool.from_defaults(query_engine=query_engine)
     query_engine_tool.metadata.description = QUERY_ENGINE_TOOL_DESCRIPTION
+    query_engine_tool.metadata.fn_schema = ToolFnSchema
     react_chat_formatter: Optional[ReActChatFormatter] = CustomReActChatFormatter(tools=[query_engine_tool])
 
     # TODO 2023-10-14: output_parser: if the agent keeps failing to recognize it needs to use the query tool when asked for resources, maybe force it its use in the output_parser
-    output_parser: Optional[ReActOutputParser] = None  # NOTE 2023-10-06: to configure
+    # NOTE 2023-10-14: the amount of assumptions baked into the output_parser and how it passes (1) the query to the tool and
+    # (2) the final response to be returned to the client, is totally mind blowing. The simplistic default extract_final_response essentially destroys all content
+    output_parser: Optional[ReActOutputParser] = CustomReActOutputParser()
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
     # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
     chat_history = []  # TODO 2023-10-06: to configure and make sure its the good practice
@@ -77,21 +83,23 @@ def get_chat_engine(index: VectorStoreIndex,
     #   To achieve this we need to save intermediary Response objects to make sure we can distill
     #   results and have access to nodes and chunks used for the reasoning
     if query_engine_as_tool:
-        return ReActAgent.from_tools(
+        return CustomReActAgent.from_tools(
             tools=[query_engine_tool],
             react_chat_formatter=react_chat_formatter,
             llm=llm,
             max_iterations=max_iterations,
             memory=memory,
+            output_parser=output_parser,
             verbose=verbose,
         )
-    else:
-        return ReActAgent.from_tools(
-            # tools=[query_engine_tool],
+    else:  # without having query engine as tool (but external to agent)
+        return CustomReActAgent.from_tools(
             tools=[],
+            react_chat_formatter=react_chat_formatter,
             llm=llm,
             max_iterations=max_iterations,
             memory=memory,
+            output_parser=output_parser,
             verbose=verbose,
         )
 
