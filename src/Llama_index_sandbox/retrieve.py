@@ -30,18 +30,20 @@ def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
 
 
 def get_inference_llm(temperature,
+                      stream=False,
                       callback_manager: Optional[CallbackManager] = None,
                       max_tokens: Optional[int] = None,
                       llm: Optional[OpenAI] = None,
                       ):
     if callback_manager is not None:
         llm.callback_manager = callback_manager
-    return llm or OpenAI(model=OPENAI_MODEL_NAME, temperature=temperature, max_tokens=max_tokens, callback_manager=callback_manager)
+    return llm or OpenAI(model=OPENAI_MODEL_NAME, temperature=temperature, max_tokens=max_tokens, callback_manager=callback_manager, stream=stream)
 
 
 def get_chat_engine(index: VectorStoreIndex,
                     service_context: ServiceContext,
                     query_engine_as_tool: bool,
+                    stream: bool,
                     chat_mode: str = "react",
                     verbose: bool = True,
                     similarity_top_k: int = 5,
@@ -76,7 +78,8 @@ def get_chat_engine(index: VectorStoreIndex,
 
     llm = service_context.llm
     max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
-    llm = get_inference_llm(temperature=temperature, callback_manager=callback_manager, max_tokens=max_tokens, llm=llm)
+    # TODO 2023-10-15: determine where to set stream bool
+    llm = get_inference_llm(temperature=temperature, stream=stream, callback_manager=callback_manager, max_tokens=max_tokens, llm=llm)
     memory = memory or memory_cls.from_defaults(chat_history=chat_history, llm=llm)
 
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
@@ -122,7 +125,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"The question asked is: [{query_str}]")
                 response = retrieval_engine.chat(query_str)
             if not run_application:
-                logging.info(f"[End output shown to client]:    \n```\n{response}\n```")
+                logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
@@ -143,6 +146,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  chunkoverlap: int,
                                  index: VectorStoreIndex,
                                  query_engine_as_tool: bool,
+                                 stream: bool,
                                  engine='chat',
                                  similarity_top_k=10,
                                  ):
@@ -153,7 +157,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
 
     if engine == 'chat':
-        retrieval_engine = get_chat_engine(index=index, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)
+        retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)
         retrieval_engine.chat(SYSTEM_MESSAGE)
         query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':

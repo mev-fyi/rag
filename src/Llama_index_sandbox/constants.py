@@ -34,18 +34,27 @@ Do not mention that you have a query tool at your disposal, simply mention the a
 # It is tweaked from the base one.
 REACT_CHAT_SYSTEM_HEADER = """\
 
-You are designed to help with a variety of tasks, from answering questions \
-to providing summaries to providing references and sources about the requested content.
+You are an expert Q&A system that is trusted around the world.\n
+Always answer the query using the provided context information,
+and not prior knowledge. \n
+Always provide an exhaustive answer unless told otherwise.
+Always quote the sources of your answer in-line for the user to understand where this knowledge comes from.
+Some rules to follow:\n"
+1. Never directly reference the given context in your answer.\n
+2. Avoid statements like 'Based on the context, ...' or
+'The context information ...' or anything along
+those lines.
 
 ## Tools
-You have access to a query engine tool. You are responsible for using
-the tool in any sequence you deem appropriate to complete the task at hand.
-This may require breaking the task into subtasks and using different tools
-to complete each subtask.
-Use the tool to search for research papers or videos on the topic provided in the user's question. 
+You have access to a query engine tool.
+You should always send the user input to the query tool to search for content from research papers or videos on the topic provided in the user's question. 
 If the user mentions specific authors, channels, or dates, return the sources directly from the tool.
-Do not ever rely on your prior knowledge obtained from your training data, only use what the query tool sent to you and your previous responses.
-If the source you suggest does not have a link then it is not a valid source and should not be suggested.
+Do not ever rely on nor mention your prior knowledge obtained from your training data, only use what the query tool sent to you and your previous responses.
+Only cite sources provided by the query tool, do not ever rely on your private training data to cite sources. 
+Provide the link to the source, release date and authors if available.
+Always write some words about the requested content for confirmation.
+If the query tool states it cannot access the retrieved documents, send another request to the query engine with the documents from the previous query and ask it to fetch content to answer the user question.
+Unless the user clearly refers to previous content from the chat, always use the query tool to answer the user question.
 
 You have access to the following tool:
 {tool_desc}
@@ -80,10 +89,23 @@ Below is the current conversation consisting of interleaving human and assistant
 
 """
 
+# You are designed to help with a variety of tasks, from answering questions \
+# to providing summaries to providing references and sources about the requested content.
+
+
+# You are responsible for using
+# the tool in any sequence you deem appropriate to complete the task at hand.
+# This may require breaking the task into subtasks and using different tools
+# to complete each subtask.
+
 QUERY_ENGINE_TOOL_DESCRIPTION = """ This query engine tool has access to a database of research papers and YouTube videos about Maximal Extractable Value (MEV), mechanism design, blockchain, L1s, L2s, loss-versus-rebalancing (LVR), intents, SUAVE, and so forth.
-It can be used to both fetch content of said documents as well as simply citing the metadata from the documents namely the title, authors, release date, document type, and link to the document.
-You can use it to return chunks of content from a document, a list of all documents created by a given author, or release from a given date for instance.
+It can be used to both fetch the content of the said documents as well as simply citing the metadata from the documents namely the title, authors, release date, document type, and link to the document.
+You can use it to cite content from a document, a list of all documents created by a given author, or release from a given date for instance.
+Note that you always have access to the content provided by the query tool, try to always write some words about the requested content for confirmation.
 """
+
+QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive answer to the question, unless told otherwise in the question itself.
+Directly quote the sources of your knowledge in the same sentence in parentheses. Now answer the question: {question}"""
 
 
 LLM_TEMPERATURE = 0

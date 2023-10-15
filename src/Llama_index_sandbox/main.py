@@ -13,7 +13,10 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 def initialise_chatbot(engine, query_engine_as_tool):
     start_logging()
+
     recreate_index = False
+    stream = True
+
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
@@ -29,13 +32,13 @@ def initialise_chatbot(engine, query_engine_as_tool):
 
     # 7. Retrieve and Query from the Vector Store
     # Now that our ingestion is complete, we can retrieve/query this vector store.
-
     retrieval_engine, query_engine, store_response_partial = get_engine_from_vector_store(embedding_model_name=embedding_model_name,
                                                                                           llm_model_name=os.environ.get('LLM_MODEL_NAME_OPENAI'),
                                                                                           chunksize=embedding_model_chunk_size,
                                                                                           chunkoverlap=chunk_overlap,
                                                                                           index=index,
                                                                                           engine=engine,
+                                                                                          stream=stream,
                                                                                           query_engine_as_tool=query_engine_as_tool)
     return retrieval_engine, query_engine, store_response_partial
 

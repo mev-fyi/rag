@@ -9,6 +9,8 @@ from llama_index.callbacks import trace_method
 from llama_index.chat_engine.types import AgentChatResponse
 from llama_index.llms import ChatMessage, MessageRole
 
+from src.Llama_index_sandbox.constants import QUERY_ENGINE_PROMPT_FORMATTER
+
 
 class CustomReActAgent(ReActAgent):
     from typing import List
@@ -32,6 +34,8 @@ class CustomReActAgent(ReActAgent):
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
 
+            # NOTE 2023-10-15: the observation from the query tool is passed to the LLM which then answers with Thought or Answer,
+            # hence the parser does not have an Observation case
             # send prompt
             chat_response = self._llm.chat(input_chat)
 
@@ -44,12 +48,15 @@ class CustomReActAgent(ReActAgent):
             #  Otherwise, GPT greatly simplifies the question, and the query engine does very poorly.
             if 'Action Input:' in response_content:
                 # Extract the part after 'Action Input:'
+                # TODO NOTE 2023-10-15: lets engineer and scrutinise further this part. Beyond passing the question as-is, we can wrap it further e.g.
+                #  add "always make a thorough answer", "directly quote the sources of your knowledge in the same sentence in parentheses".
                 action_input_part = response_content.split('Action Input:')[1].strip()
 
                 # Modify its "input" value to be the user question
                 try:
                     action_input_json = json.loads(action_input_part)
-                    action_input_json['input'] = message
+                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(question=message)
+                    action_input_json['input'] = augmented_message
 
                     # Replace the old part with the modified one
                     response_content = response_content.replace(action_input_part, json.dumps(action_input_json))
