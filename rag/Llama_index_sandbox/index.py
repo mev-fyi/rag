@@ -119,7 +119,7 @@ def load_index_from_disk() -> VectorStoreIndex:
                 index = VectorStoreIndex.from_vector_store(vector_store)
                 return index
             except Exception as e:
-                logging.error(f"Error: {e}")
+                logging.error(f"load_index_from_disk ERROR: {e}")
                 exit(1)
 
 

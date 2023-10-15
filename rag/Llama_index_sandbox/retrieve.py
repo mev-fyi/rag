@@ -60,15 +60,15 @@ def get_chat_engine(index: VectorStoreIndex,
     query_engine = get_query_engine(index=index, service_context=service_context, verbose=verbose, similarity_top_k=similarity_top_k)
     # NOTE 2023-10-14: the description assigned to query_engine_tool should have extra scrutiny as it is passed as is to the agent
     #  and the agent formats it into the react_chat_formatter to determine whether to perform an action with the tool or respond as is.
-    # TODO 2023-10-14: determine if/how metadata fn_schema matters
+    # NOTE 2023-10-15: It is unclear how GPT exactly interprets the fn_schema, it is difficult to have a consistent result. Usually GPT greatly
+    #  simplifies the query sent to the query engine tool, and the query engine does very poorly. We force the input to the query engine to be the user question.
     query_engine_tool = CustomQueryEngineTool.from_defaults(query_engine=query_engine)
     query_engine_tool.metadata.description = QUERY_ENGINE_TOOL_DESCRIPTION
     query_engine_tool.metadata.fn_schema = ToolFnSchema
     react_chat_formatter: Optional[ReActChatFormatter] = CustomReActChatFormatter(tools=[query_engine_tool])
 
-    # TODO 2023-10-14: output_parser: if the agent keeps failing to recognize it needs to use the query tool when asked for resources, maybe force it its use in the output_parser
     # NOTE 2023-10-14: the amount of assumptions baked into the output_parser and how it passes (1) the query to the tool and
-    # (2) the final response to be returned to the client, is totally mind blowing. The simplistic default extract_final_response essentially destroys all content
+    # (2) the final response to be returned to the client, is totally mind-blowing. The simplistic default extract_final_response essentially destroys all content
     output_parser: Optional[ReActOutputParser] = CustomReActOutputParser()
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
     # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
@@ -171,17 +171,13 @@ def get_engine_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-07 [RETRIEVAL]: ADD metadata filtering e.g. "only video" or "only papers", or "from this author", or "from this channel", or "from 2022 and 2023" etc
         # TODO 2023-10-07 [RETRIEVAL]: in the chat format, is the rag system keeping in memory the previous retrieved chunks? e.g. if an answer is too short can it develop it further?
         # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune the top-k retrieved chunks? the temperature?
-        # TODO 2023-10-07 [RETRIEVAL]: usually when asked for resources its not that performant and might at best return a single resource.
 
         # TODO 2023-10-09 [RETRIEVAL]: use metadata tags for users to choose amongst LVR, Intents, MEV, etc such that it can increase the result speed (and likely accuracy)
         #  and this upfront work is likely a low hanging fruit relative to payoff.
-        # TODO 2023-10-09 [RETRIEVAL]: try non-ReAct chat agent to see the performance
 
         #  should we return all fetched resources from response object? or rather make another API call to return response + sources
 
-        # TODO 2023-10-05: send the resulting chain of thoughts to gpt3.5 turbo
-        # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
-        # TODO 2023-10-05: return the metadata of each file and chunk used for the reasoning for referencing
+        # NOTE: 2023-10-05: we can update the chain of thought to display each chunk used for the reasoning
 
         # TODO 2023-10-15: tweak the Q&A prompt sent to the query engine tool
 

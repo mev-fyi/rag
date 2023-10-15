@@ -45,9 +45,9 @@ def format_metadata(response):
     formatted_metadata_list = []
     for title, meta in sorted_metadata:
         if meta['formatted_authors']:
-            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [# chunks retrieved]: {meta['chunks_count']}"
+            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}"  # , [# chunks retrieved]: {meta['chunks_count']}"
         else:
-            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}, [# chunks retrieved]: {meta['chunks_count']}"
+            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}"  # , [# chunks retrieved]: {meta['chunks_count']}"
 
         formatted_metadata_list.append(formatted_metadata)
 

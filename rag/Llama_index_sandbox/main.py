@@ -45,8 +45,6 @@ def run():
     query_engine_as_tool = True
 
     retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool)
-    # TODO 2023-10-13: if we solely ask a question about a previous answer, but that we pass this question to the query engine,
-    #   then any successive result would not be relevant. perhaps we need a classifier to determine whether to pass the question to the query engine or not.
     ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
                   store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool)
     # If paid: delete the index to save resources once we are done ($0.70 per hr versus ~$0.50 to create it)
