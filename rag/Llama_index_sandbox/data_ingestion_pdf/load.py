@@ -17,7 +17,7 @@ from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pypdf import PdfReader
 
-from rag.Llama_index_sandbox import root_dir, mev_fyi_dir, research_papers_dir
+from rag.Llama_index_sandbox import root_dir, mev_fyi_dir, RESEARCH_PAPER_CSV
 from rag.Llama_index_sandbox.constants import *
 from rag.Llama_index_sandbox.utils import timeit
 
@@ -85,7 +85,7 @@ def get_pdf_details(response: requests.Response) -> dict:
 def fetch_pdf_list(num_papers=None):
 
     # Load the CSV file into a pandas DataFrame
-    df = pd.read_csv(research_papers_dir)
+    df = pd.read_csv(RESEARCH_PAPER_CSV)
 
     # Append '.pdf' to the links that contain 'arxiv' and subselect all the ones which contain '.pdf'
     df['pdf_link'] = df['pdf_link'].apply(lambda link: link + '.pdf' if 'arxiv' in link else link)

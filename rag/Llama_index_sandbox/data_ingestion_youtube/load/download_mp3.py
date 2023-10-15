@@ -8,9 +8,10 @@ from googleapiclient.discovery import build
 from dotenv import load_dotenv
 # To download videos and transcripts from private Channels or Playlists
 from google.oauth2.credentials import Credentials
+import pandas as pd
 import yt_dlp as ydlp
 
-from rag.Llama_index_sandbox import root_directory
+from rag.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from rag.Llama_index_sandbox.utils import background, authenticate_service_account
 
 # Load environment variables from the .env file
@@ -97,7 +98,7 @@ def get_video_info(credentials: Credentials, api_key: str, channel_id: str, max_
 
 
 @background
-def parse_video(video_info: Dict[str, str], dir_path: str) -> None:
+def parse_video(video_info: Dict[str, str], dir_path: str, youtube_videos_df) -> None:
     """
     Fetch and save the transcript of a YouTube video as a .txt file.
 
@@ -114,6 +115,28 @@ def parse_video(video_info: Dict[str, str], dir_path: str) -> None:
 
     # Format video title and published date for file naming
     video_title = video_info['title'].replace('/', '_')
+
+    # Define the paths of the files to check
+    mp3_file_path = os.path.join(dir_path, f"{video_title}.mp3")
+    json_file_path = os.path.join(dir_path, f"{video_title}_diarized_content.json")
+    txt_file_path = os.path.join(dir_path, f"{video_title}_diarized_content_processed_diarzed.txt")
+
+    # Check if any of the files already exist. If they do, return immediately.
+    if os.path.exists(mp3_file_path) or os.path.exists(json_file_path) or os.path.exists(txt_file_path):
+        print(f"Files for '{video_title}' already exist. Skipping download.")
+        return
+
+    # Similarly, replace sequences of spaces in the DataFrame's 'title' column
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+
+    # Now look for a match
+    video_row = youtube_videos_df[youtube_videos_df['title'] == video_title]
+
+    if video_row.empty:
+        print(f"Video '{video_title}' not in shortlist of youtube videos. Skipping download.")
+        # if the video title is not already in our list of videos, then do not download
+        return
+
     strlen = len("yyyy-mm-dd")
     published_at = video_info['publishedAt'].replace(':', '-').replace('.', '-')[:strlen]
     video_title = f"{published_at}_{video_title}"
@@ -297,6 +320,11 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
     # Create a dictionary with channel IDs as keys and channel names as values
     yt_id_name = {get_channel_id(credentials=credentials, api_key=api_key, channel_name=name): name for name in yt_channels}
 
+    videos_path = f"{root_directory()}/datasets/evaluation_data/youtube_videos.csv"
+    youtube_videos_df = pd.read_csv(videos_path)
+
+    dir_path = YOUTUBE_VIDEO_DIRECTORY
+
     # Iterate through the dictionary of channel IDs and channel names
     for channel_id, channel_name in yt_id_name.items():
 
@@ -304,7 +332,6 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
         video_info_list = get_video_info(credentials, api_key, channel_id)
 
         # Create a 'data' directory if it does not exist
-        dir_path = f'{root_directory()}/data/youtube_videos'
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
 
@@ -315,7 +342,7 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
 
         # Iterate through video information, fetch transcripts, and save them as .txt files
         loop = asyncio.get_event_loop()
-        args = [(video_info, dir_path) for video_info in video_info_list]
+        args = [(video_info, dir_path, youtube_videos_df) for video_info in video_info_list]
 
         tasks = itertools.starmap(parse_video, args)
         loop.run_until_complete(asyncio.gather(*tasks))
@@ -328,7 +355,6 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
 
             video_info_list = get_videos_from_playlist(credentials, api_key, playlist_id)
 
-            dir_path = f'{root_directory()}/data/youtube_videos'
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
@@ -337,7 +363,7 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
                 os.makedirs(dir_path)
 
             loop = asyncio.get_event_loop()
-            args = [(video_info, dir_path) for video_info in video_info_list]
+            args = [(video_info, dir_path, youtube_videos_df) for video_info in video_info_list]
 
             tasks = itertools.starmap(parse_video, args)
             loop.run_until_complete(asyncio.gather(*tasks))
