@@ -3,7 +3,7 @@ import os
 from llama_index import VectorStoreIndex
 from llama_index.vector_stores import PineconeVectorStore
 
-from rag.anyscale_sandbox.utils import timeit
+from src.anyscale_sandbox.utils import timeit
 
 
 @timeit

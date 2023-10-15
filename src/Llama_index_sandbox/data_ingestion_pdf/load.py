@@ -17,9 +17,9 @@ from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pypdf import PdfReader
 
-from rag.Llama_index_sandbox import root_dir, RESEARCH_PAPER_CSV
-from rag.Llama_index_sandbox.constants import *
-from rag.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox import root_dir, RESEARCH_PAPER_CSV
+from src.Llama_index_sandbox.constants import *
+from src.Llama_index_sandbox.utils import timeit
 
 
 def get_pdf_details(response: requests.Response) -> dict:

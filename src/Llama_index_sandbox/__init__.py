@@ -1,7 +1,7 @@
 import os
 import sys
 
-from rag.Llama_index_sandbox.utils import root_directory
+from src.Llama_index_sandbox.utils import root_directory
 # Append the parent directory to sys.path
 
 from dotenv import load_dotenv

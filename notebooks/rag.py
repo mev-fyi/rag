@@ -41,7 +41,7 @@ import ray
 import sys; sys.path.append("..")
 import warnings; warnings.filterwarnings("ignore")
 from dotenv import load_dotenv; load_dotenv()
-from rag.blog_example.config import ROOT_DIR
+from src.blog_example.config import ROOT_DIR
 
 
 # Credentials
@@ -58,7 +58,7 @@ ray.init(runtime_env={
 
 # We've also created some mappings for the different embedding and language models we'll be developing with in our application:
 
-from rag.blog_example.config import EMBEDDING_DIMENSIONS, MAX_CONTEXT_LENGTHS
+from src.blog_example.config import EMBEDDING_DIMENSIONS, MAX_CONTEXT_LENGTHS
 
 # Embedding dimensions
 print(f"EMBEDDING_DIMENSIONS: {EMBEDDING_DIMENSIONS}")
@@ -73,7 +73,7 @@ print(f"MAX_CONTEXT_LENGTHS: {MAX_CONTEXT_LENGTHS}")
 
 # ### Load data
 from pathlib import Path
-from rag.blog_example.config import EFS_DIR
+from src.blog_example.config import EFS_DIR
 
 # We need to first download the [Ray documentation](https://docs.ray.io/) to a directory:
 # ```bash
@@ -101,7 +101,7 @@ print(f"{ray_dataset.count()} documents")
 # 
 # <img width="800" src="https://images.ctfassets.net/xjan103pcp94/1eFnKmG5xqPIFtPupZ327X/f6152723e18322b90aaa8be5d2d5a6e4/image5.png">
 
-from rag.blog_example.data import extract_sections
+from src.blog_example.data import extract_sections
 
 # Load data example
 # sample_html_fp = Path(EFS_DIR, "docs.ray.io/en/master/rllib/rllib-env.html")
@@ -348,8 +348,8 @@ def get_sources_and_context(query, embedding_model, num_chunks):
 import openai
 import time
 
-from rag.blog_example.generate import prepare_response
-from rag.blog_example.utils import get_credentials
+from src.blog_example.generate import prepare_response
+from src.blog_example.utils import get_credentials
 
 
 def generate_response(
@@ -405,7 +405,7 @@ for content in response:
 # query agent that we can use to easily generate our responses.
 # This will take care of setting up our agent (embedding and LLM model), as well as the context retrieval,
 # and pass it to our LLM for response generation.
-from rag.blog_example.embed import get_embedding_model
+from src.blog_example.embed import get_embedding_model
 
 
 class QueryAgent:
@@ -519,8 +519,8 @@ NUM_SAMPLES = None  # None = all samples
 # from IPython.display import JSON, clear_output, display
 from tqdm import tqdm
 
-from rag.blog_example.evaluate import extract_from_response
-from rag.blog_example.data import fetch_text
+from src.blog_example.evaluate import extract_from_response
+from src.blog_example.data import fetch_text
 
 
 # Load dataset
@@ -704,8 +704,8 @@ synthetic_data[:3]
 
 
 import matplotlib.pyplot as plt
-from rag.blog_example.generate import generate_responses
-from rag.blog_example.evaluate import evaluate_responses
+from src.blog_example.generate import generate_responses
+from src.blog_example.evaluate import evaluate_responses
 
 
 # Let's define a function to determine our retrieval score, which registers a success if the best source is anywhere in our retrieval `num_chunks` sources. We don't account for order, exact page section, etc. but we could add those constraints to have a more conservative retreival score.
@@ -1233,7 +1233,7 @@ from typing import List
 from fastapi import FastAPI
 from pydantic import BaseModel
 from ray import serve
-from rag.blog_example.index import load_index
+from src.blog_example.index import load_index
 
 
 # Initialize application

@@ -2,13 +2,13 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 import os
 
-import rag.Llama_index_sandbox.config as config
-from rag.Llama_index_sandbox.constants import INPUT_QUERIES
-from rag.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions
-from rag.Llama_index_sandbox.utils import start_logging
-import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
-import rag.Llama_index_sandbox.embed as embed
-from rag.Llama_index_sandbox.index import load_index_from_disk, create_index
+import src.Llama_index_sandbox.config as config
+from src.Llama_index_sandbox.constants import INPUT_QUERIES
+from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions
+from src.Llama_index_sandbox.utils import start_logging
+import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
+import src.Llama_index_sandbox.embed as embed
+from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 
 def initialise_chatbot(engine, query_engine_as_tool):

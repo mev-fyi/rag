@@ -1,13 +1,13 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 
 import os
-from rag.anyscale_sandbox.data_ingestion_pdf.chunk import chunk_documents
-from rag.anyscale_sandbox.data_ingestion_pdf.embed import generate_embeddings, get_embedding_model, construct_node
-from rag.anyscale_sandbox.data_ingestion_pdf.index import initialise_vector_store, load_nodes_into_vector_store_create_index
-from rag.anyscale_sandbox import pdfs_dir
-from rag.anyscale_sandbox.data_ingestion_pdf.load import load_pdfs
-import rag.config as config
-from rag.anyscale_sandbox.utils import start_logging, timeit
+from src.anyscale_sandbox.data_ingestion_pdf.chunk import chunk_documents
+from src.anyscale_sandbox.data_ingestion_pdf.embed import generate_embeddings, get_embedding_model, construct_node
+from src.anyscale_sandbox.data_ingestion_pdf.index import initialise_vector_store, load_nodes_into_vector_store_create_index
+from src.anyscale_sandbox import pdfs_dir
+from src.anyscale_sandbox.data_ingestion_pdf.load import load_pdfs
+import src.config as config
+from src.anyscale_sandbox.utils import start_logging, timeit
 
 from pathlib import Path
 import logging

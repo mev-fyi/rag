@@ -6,7 +6,7 @@ import numpy as np
 from IPython.display import JSON, clear_output, display
 from tqdm import tqdm
 
-from rag.blog_example.generate import generate_response
+from src.blog_example.generate import generate_response
 
 
 def get_retrieval_score(references, generated):

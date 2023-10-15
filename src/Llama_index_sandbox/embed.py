@@ -13,7 +13,7 @@ from typing import List
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 
-from rag.Llama_index_sandbox.utils import RateLimitController, timeit
+from src.Llama_index_sandbox.utils import RateLimitController, timeit
 
 
 def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):

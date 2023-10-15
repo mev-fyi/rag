@@ -1,7 +1,7 @@
 import logging
 
-from rag.Llama_index_sandbox.main import initialise_chatbot
-from rag.Llama_index_sandbox.retrieve import ask_questions
+from src.Llama_index_sandbox.main import initialise_chatbot
+from src.Llama_index_sandbox.retrieve import ask_questions
 
 from flask import Flask, request, jsonify
 

@@ -1,6 +1,6 @@
 from llama_index.text_splitter import SentenceSplitter
 
-from rag.anyscale_sandbox.utils import timeit
+from src.anyscale_sandbox.utils import timeit
 
 
 @timeit

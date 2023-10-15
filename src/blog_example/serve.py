@@ -19,8 +19,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from starlette.responses import StreamingResponse
 import structlog
 
-from rag.blog_example.config import MAX_CONTEXT_LENGTHS, ROOT_DIR
-from rag.blog_example.generate import QueryAgent
+from src.blog_example.config import MAX_CONTEXT_LENGTHS, ROOT_DIR
+from src.blog_example.generate import QueryAgent
 
 app = FastAPI()
 

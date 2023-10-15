@@ -1,6 +1,6 @@
 from llama_index.text_splitter import SentenceSplitter
 
-from rag.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils import timeit
 
 
 def get_chunk_overlap(chunk_size):

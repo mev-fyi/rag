@@ -10,10 +10,10 @@ from IPython.display import JSON, clear_output, display
 from pgvector.psycopg import register_vector
 from tqdm import tqdm
 
-from rag.blog_example.config import ROOT_DIR
-from rag.blog_example.embed import get_embedding_model
-from rag.blog_example.index import set_index
-from rag.blog_example.utils import get_credentials
+from src.blog_example.config import ROOT_DIR
+from src.blog_example.embed import get_embedding_model
+from src.blog_example.index import set_index
+from src.blog_example.utils import get_credentials
 
 
 def response_stream(response):

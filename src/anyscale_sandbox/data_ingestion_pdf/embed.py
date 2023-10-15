@@ -10,7 +10,7 @@ from typing import List
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from llama_index.schema import TextNode, MetadataMode
 
-from rag.anyscale_sandbox.utils import RateLimitController, timeit
+from src.anyscale_sandbox.utils import RateLimitController, timeit
 
 
 def generate_node_embedding(node: TextNode, embedding_model, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):

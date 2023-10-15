@@ -13,7 +13,7 @@ items to clean:
 
 import os
 
-from rag.Llama_index_sandbox import root_directory
+from src.Llama_index_sandbox import root_directory
 
 
 def correct_typos_in_files():

@@ -8,10 +8,10 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pgvector.psycopg import register_vector
 from ray.data import ActorPoolStrategy
 
-from rag.blog_example.config import EFS_DIR, EMBEDDING_DIMENSIONS
-from rag.blog_example.data import extract_sections
-from rag.blog_example.embed import EmbedChunks
-from rag.blog_example.utils import execute_bash
+from src.blog_example.config import EFS_DIR, EMBEDDING_DIMENSIONS
+from src.blog_example.data import extract_sections
+from src.blog_example.embed import EmbedChunks
+from src.blog_example.utils import execute_bash
 
 
 class StoreResults:

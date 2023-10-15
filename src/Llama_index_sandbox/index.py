@@ -6,14 +6,14 @@ from datetime import datetime
 import pinecone
 from pathlib import Path
 
-from rag.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
-from rag.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY
-import rag.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
-import rag.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
-import rag.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
-import rag.Llama_index_sandbox.embed as embed
-from rag.Llama_index_sandbox import index_dir
-from rag.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
+from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY
+import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
+import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
+import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
+import src.Llama_index_sandbox.embed as embed
+from src.Llama_index_sandbox import index_dir
+from src.Llama_index_sandbox.utils import timeit
 
 api_key = os.environ["PINECONE_API_KEY"]
 

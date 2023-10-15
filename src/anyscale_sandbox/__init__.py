@@ -1,4 +1,4 @@
-from rag.Llama_index_sandbox import root_directory
+from src.Llama_index_sandbox import root_directory
 
 root_dir = root_directory()
 mev_fyi_dir = f"{root_dir}/../mev.fyi/"

@@ -11,8 +11,8 @@ import pandas as pd
 import requests
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
-from rag.Llama_index_sandbox.utils import timeit
-from rag.anyscale_sandbox import root_dir, mev_fyi_dir, research_papers_dir
+from src.Llama_index_sandbox.utils import timeit
+from src.anyscale_sandbox import root_dir, mev_fyi_dir, research_papers_dir
 
 
 @timeit

@@ -1,6 +1,6 @@
 from llama_index.agent.react.formatter import ReActChatFormatter
 
-from rag.Llama_index_sandbox.constants import REACT_CHAT_SYSTEM_HEADER
+from src.Llama_index_sandbox.constants import REACT_CHAT_SYSTEM_HEADER
 
 
 class CustomReActChatFormatter(ReActChatFormatter):

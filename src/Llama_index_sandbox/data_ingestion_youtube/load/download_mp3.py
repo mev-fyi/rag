@@ -11,8 +11,8 @@ from google.oauth2.credentials import Credentials
 import pandas as pd
 import yt_dlp as ydlp
 
-from rag.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
-from rag.Llama_index_sandbox.utils import background, authenticate_service_account
+from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
+from src.Llama_index_sandbox.utils import background, authenticate_service_account
 
 # Load environment variables from the .env file
 load_dotenv()
