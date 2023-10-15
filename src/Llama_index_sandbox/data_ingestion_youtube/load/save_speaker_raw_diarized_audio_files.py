@@ -4,6 +4,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
+from src.Llama_index_sandbox import YOUTUBE_VIDEO_DIRECTORY
+
 load_dotenv()
 aai.settings.api_key = os.environ.get('ASSEMBLY_AI_API_KEY')
 
@@ -69,7 +71,7 @@ def transcribe_and_save(file_path):
 
 
 def main():
-    data_path = f"{root_directory()}/data/"
+    data_path = YOUTUBE_VIDEO_DIRECTORY
     mp3_files = []
 
     for root, dirs, files in os.walk(data_path):
