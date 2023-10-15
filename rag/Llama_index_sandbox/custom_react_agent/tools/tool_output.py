@@ -4,7 +4,7 @@ from llama_index.tools import ToolOutput
 
 
 class CustomToolOutput(ToolOutput):
-
+    # TODO 2023-10-15: we can use the Tool Output as needed to send back the sources to embed to the front-end
     """Custom tool output."""
     def __str__(self) -> str:
         """String."""

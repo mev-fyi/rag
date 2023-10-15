@@ -42,7 +42,10 @@ You have access to a query engine tool. You are responsible for using
 the tool in any sequence you deem appropriate to complete the task at hand.
 This may require breaking the task into subtasks and using different tools
 to complete each subtask.
-Use the tool to search for research papers or videos on the topic provided in the user's question. If the user mentions specific authors, channels, or dates, use the corresponding fields in the tool's input.
+Use the tool to search for research papers or videos on the topic provided in the user's question. 
+If the user mentions specific authors, channels, or dates, return the sources directly from the tool.
+Do not ever rely on your prior knowledge obtained from your training data, only use what the query tool sent to you and your previous responses.
+If the source you suggest does not have a link then it is not a valid source and should not be suggested.
 
 You have access to the following tool:
 {tool_desc}
@@ -77,7 +80,7 @@ Below is the current conversation consisting of interleaving human and assistant
 
 """
 
-QUERY_ENGINE_TOOL_DESCRIPTION = """ This query engine tool has access to a database of research papers and YouTube videos about MEV, mechanism design, blockchain, L1s, L2s, loss-versus-rebalancing (LVR), intents, SUAVE, and so forth.
+QUERY_ENGINE_TOOL_DESCRIPTION = """ This query engine tool has access to a database of research papers and YouTube videos about Maximal Extractable Value (MEV), mechanism design, blockchain, L1s, L2s, loss-versus-rebalancing (LVR), intents, SUAVE, and so forth.
 It can be used to both fetch content of said documents as well as simply citing the metadata from the documents namely the title, authors, release date, document type, and link to the document.
 You can use it to return chunks of content from a document, a list of all documents created by a given author, or release from a given date for instance.
 """

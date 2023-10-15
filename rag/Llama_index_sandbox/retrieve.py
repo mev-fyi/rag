@@ -105,6 +105,8 @@ def get_chat_engine(index: VectorStoreIndex,
 
 
 def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False):
+    # TODO 2023-10-15: We need metadata filtering at database level else for the query to look over Documents metadata else it fails e.g. when asked to
+    #  retrieve content from authors. It would search in paper content but not necessarily correctly fetch all documents, and might return documents that cited the author but which can be irrelevant.
     all_formatted_metadata = None
     for query_str in input_queries:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
@@ -180,5 +182,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-05: send the resulting chain of thoughts to gpt3.5 turbo
         # TODO 2023-10-05: update the chain of thought to display each file and chunk used for the reasoning
         # TODO 2023-10-05: return the metadata of each file and chunk used for the reasoning for referencing
+
+        # TODO 2023-10-15: tweak the Q&A prompt sent to the query engine tool
 
     return retrieval_engine, query_engine, store_response_partial
