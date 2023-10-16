@@ -13,7 +13,8 @@ from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 
-from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
+from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE
+from src.Llama_index_sandbox.prompts import SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
 from src.Llama_index_sandbox.custom_react_agent.ReActAgent import CustomReActAgent
 from src.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
 from src.Llama_index_sandbox.custom_react_agent.output_parser import CustomReActOutputParser

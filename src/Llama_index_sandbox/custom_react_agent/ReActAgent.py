@@ -9,7 +9,7 @@ from llama_index.callbacks import trace_method
 from llama_index.chat_engine.types import AgentChatResponse
 from llama_index.llms import ChatMessage, MessageRole
 
-from src.Llama_index_sandbox.constants import QUERY_ENGINE_PROMPT_FORMATTER
+from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER
 
 
 class CustomReActAgent(ReActAgent):
@@ -33,10 +33,10 @@ class CustomReActAgent(ReActAgent):
             input_chat = self._react_chat_formatter.format(
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
-
             # NOTE 2023-10-15: the observation from the query tool is passed to the LLM which then answers with Thought or Answer,
             # hence the parser does not have an Observation case
             # send prompt
+            # TODO 2023-10-15: do we need to add a reminder about the query tool at the end of the chat history for memory purposes?
             chat_response = self._llm.chat(input_chat)
 
             # Create a deep copy of chat_response for modification
