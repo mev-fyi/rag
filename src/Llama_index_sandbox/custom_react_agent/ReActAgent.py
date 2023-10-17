@@ -25,8 +25,8 @@ class CustomReActAgent(ReActAgent):
 
         # TODO 2023-10-17: it feels to be like running in circles in somewhat biasing the agent to not rely on its prior knowledge and have it use the query engine.
         #  Perhaps this will go away once the LLM is trained on local data.
-        # message_with_tool_description = f"{message}\n{QUERY_ENGINE_TOOL_ROUTER}"
-        self._memory.put(ChatMessage(content=message, role="user"))
+        message_with_tool_description = f"{message}\n{QUERY_ENGINE_TOOL_ROUTER}"
+        self._memory.put(ChatMessage(content=message_with_tool_description, role="user"))
 
         current_reasoning: List[BaseReasoningStep] = []
 
