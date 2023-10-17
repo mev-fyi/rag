@@ -13,7 +13,8 @@ from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 
-from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE
+from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE
+from src.Llama_index_sandbox.custom_react_agent.logging_handler import JSONLoggingHandler
 from src.Llama_index_sandbox.prompts import SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
 from src.Llama_index_sandbox.custom_react_agent.ReActAgent import CustomReActAgent
 from src.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
@@ -74,8 +75,12 @@ def get_chat_engine(index: VectorStoreIndex,
     # (2) the final response to be returned to the client, is totally mind-blowing. The simplistic default extract_final_response essentially destroys all content
     output_parser: Optional[ReActOutputParser] = CustomReActOutputParser()
     callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
-    # chat_history = [SYSTEM_MESSAGE]  # TODO 2023-10-06: to configure and make sure its the good practice
-    chat_history = []  # TODO 2023-10-06: to configure and make sure its the good practice
+
+    # json_logging_handler = JSONLoggingHandler()
+    # Instantiate the CallbackManager and add the handlers
+    # callback_manager = CallbackManager(handlers=[json_logging_handler])
+
+    chat_history = []
 
     llm = service_context.llm
     max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
@@ -149,7 +154,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  query_engine_as_tool: bool,
                                  stream: bool,
                                  engine='chat',
-                                 similarity_top_k=10,
+                                 similarity_top_k=NUMBER_OF_CHUNKS_TO_RETRIEVE,
                                  ):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
@@ -159,7 +164,6 @@ def get_engine_from_vector_store(embedding_model_name: str,
 
     if engine == 'chat':
         retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)
-        retrieval_engine.chat(SYSTEM_MESSAGE)
         query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
         query_engine = None

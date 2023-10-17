@@ -30,15 +30,18 @@ from enum import Enum
 
 
 LLM_TEMPERATURE = 0
+NUMBER_OF_CHUNKS_TO_RETRIEVE = 10
+
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
         # "What is red teaming in AI",  # Should refuse to respond,
         # "Tell me about LVR",
         # "What plagues current AMM designs?",
         # "How do L2 sequencers work?",
-        "Do an exhaustive breakdown of the MEV supply chain",
-        "What is ePBS?",
-        "What is SUAVE?",
+        # "Do an exhaustive breakdown of the MEV supply chain",
+        # "What is ePBS?",
+        # "What is SUAVE?",
+        # "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
         "What are intents?",
         "What are the papers that deal with LVR?",
         "What are solutions to mitigate front-running and sandwich attacks?",

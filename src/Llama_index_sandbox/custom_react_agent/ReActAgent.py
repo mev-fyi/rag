@@ -9,7 +9,7 @@ from llama_index.callbacks import trace_method
 from llama_index.chat_engine.types import AgentChatResponse
 from llama_index.llms import ChatMessage, MessageRole
 
-from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER
+from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER
 
 
 class CustomReActAgent(ReActAgent):
@@ -23,6 +23,9 @@ class CustomReActAgent(ReActAgent):
         if chat_history is not None:
             self._memory.set(chat_history)
 
+        # TODO 2023-10-17: it feels to be like running in circles in somewhat biasing the agent to not rely on its prior knowledge and have it use the query engine.
+        #  Perhaps this will go away once the LLM is trained on local data.
+        # message_with_tool_description = f"{message}\n{QUERY_ENGINE_TOOL_ROUTER}"
         self._memory.put(ChatMessage(content=message, role="user"))
 
         current_reasoning: List[BaseReasoningStep] = []
@@ -36,7 +39,6 @@ class CustomReActAgent(ReActAgent):
             # NOTE 2023-10-15: the observation from the query tool is passed to the LLM which then answers with Thought or Answer,
             # hence the parser does not have an Observation case
             # send prompt
-            # TODO 2023-10-15: do we need to add a reminder about the query tool at the end of the chat history for memory purposes?
             chat_response = self._llm.chat(input_chat)
 
             # Create a deep copy of chat_response for modification
