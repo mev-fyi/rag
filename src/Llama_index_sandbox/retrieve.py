@@ -10,6 +10,7 @@ from llama_index.agent.react.output_parser import ReActOutputParser
 from llama_index.callbacks import CallbackManager
 from llama_index.chat_engine.types import BaseChatEngine
 from llama_index.indices.query.base import BaseQueryEngine
+from llama_index.llm_predictor.base import BaseLLMPredictor
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 
@@ -32,14 +33,20 @@ def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
 
 
 def get_inference_llm(temperature,
+                      llm,
                       stream=False,
                       callback_manager: Optional[CallbackManager] = None,
                       max_tokens: Optional[int] = None,
-                      llm: Optional[OpenAI] = None,
                       ):
-    if callback_manager is not None:
-        llm.callback_manager = callback_manager
-    return llm or OpenAI(model=OPENAI_MODEL_NAME, temperature=temperature, max_tokens=max_tokens, callback_manager=callback_manager, stream=stream)
+    llm.temperature = temperature
+    llm.max_tokens = max_tokens
+    # llm.callback_manager = callback_manager
+    llm.model = OPENAI_MODEL_NAME
+    llm.max_tokens = max_tokens
+    # llm.stream = stream TODO 2023-10-17: determine where to set stream bool
+    # if callback_manager is not None:
+    #     llm.callback_manager = callback_manager
+    return llm
 
 
 def get_chat_engine(index: VectorStoreIndex,
@@ -71,21 +78,21 @@ def get_chat_engine(index: VectorStoreIndex,
     query_engine_tool.metadata.fn_schema = ToolFnSchema
     react_chat_formatter: Optional[ReActChatFormatter] = CustomReActChatFormatter(tools=[query_engine_tool])
 
-    # NOTE 2023-10-14: the amount of assumptions baked into the output_parser and how it passes (1) the query to the tool and
-    # (2) the final response to be returned to the client, is totally mind-blowing. The simplistic default extract_final_response essentially destroys all content
     output_parser: Optional[ReActOutputParser] = CustomReActOutputParser()
-    callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
+    # callback_manager: Optional[CallbackManager] = None  # NOTE 2023-10-06: to configure
 
-    # json_logging_handler = JSONLoggingHandler()
+    logging_event_ends_to_ignore = []
+    logging_event_starts_to_ignore = []
+    json_logging_handler = JSONLoggingHandler(event_ends_to_ignore=logging_event_ends_to_ignore,event_starts_to_ignore=logging_event_starts_to_ignore)
     # Instantiate the CallbackManager and add the handlers
-    # callback_manager = CallbackManager(handlers=[json_logging_handler])
+    callback_manager = CallbackManager(handlers=[json_logging_handler])
 
     chat_history = []
 
-    llm = service_context.llm
     max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
     # TODO 2023-10-15: determine where to set stream bool
-    llm = get_inference_llm(temperature=temperature, stream=stream, callback_manager=callback_manager, max_tokens=max_tokens, llm=llm)
+    llm = get_inference_llm(temperature=temperature, stream=stream, callback_manager=callback_manager, max_tokens=max_tokens, llm=service_context.llm)
+    # service_context.llm_predictor.llm = llm
     memory = memory or memory_cls.from_defaults(chat_history=chat_history, llm=llm)
 
     # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
