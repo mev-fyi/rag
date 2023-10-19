@@ -53,6 +53,17 @@ class JSONLoggingHandler(BaseCallbackHandler):
                         "event_type": event_type,
                         "tool_output": tool_output,
                     }
+                else:
+                    retrieved_context, previous_answer = self.parse_message_content(message_content)
+
+                    entry = {
+                        "event_type": event_type,
+                        "retrieved_context": retrieved_context,
+                        "previous_answer": previous_answer,
+                    }
+            else:
+                # expectedly messages is length four (system (prompt) -> user (user input) -> assistant (tool action from LLM) -> user (observation from tool))
+                pass
 
         elif event_type == CBEventType.FUNCTION_CALL:
             function_call = {"function_call": []}
@@ -71,8 +82,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
         #         template = payload.get(EventPayload.TEMPLATE, "")
         #         entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
         else:
-            # log the event that went through and was not caught
-            entry = {event_type.name: payload}
             logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
 
         self.log_entry(entry=entry)
@@ -148,18 +157,55 @@ class JSONLoggingHandler(BaseCallbackHandler):
                 # self.append_to_last_log_entry({"LLM_response": LLM_response})
                 entry = {"event_type": event_type, "LLM_response": LLM_response}
 
+            elif len(messages) == 1 and response.message.role == MessageRole.ASSISTANT:
+                entry = {"event_type": event_type, "LLM_response": response.message.content}
+            else:
+                logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
+
         elif event_type == CBEventType.FUNCTION_CALL:
             self.current_section = None
+            entry = {"event_type": event_type, "tool_output": payload.get(EventPayload.FUNCTION_OUTPUT, "")}
 
-        elif event_type.name == CBEventType.SYNTHESIZE:
-            pass  # TBD if it is ever hit
+        elif event_type == CBEventType.TEMPLATING:
+            pass
 
         else:
-            # log the event that went through and was not caught
-            entry = {event_type.name: payload}
-            logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n"*2)
+            logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
         self.log_entry(entry=entry)
+
+    def parse_message_content(self, message_content):
+        """
+        Parse the message content to retrieve 'retrieved_context' and 'previous_answer'.
+        This function assumes 'message_content' is a string where the context and answer are
+        separated by known delimiter strings.
+        """
+
+        # Define your delimiters
+        context_start_delim = "New Context:"
+        context_end_delim = "Query:"
+        answer_start_delim = "Original Answer:"
+        answer_end_delim = "New Answer:"
+
+        # Find the indices of your delimiters
+        try:
+            context_start = message_content.index(context_start_delim) + len(context_start_delim)
+            context_end = message_content.index(context_end_delim)
+
+            answer_start = message_content.index(answer_start_delim) + len(answer_start_delim)
+            answer_end = message_content.index(answer_end_delim)
+
+            # Extract the content based on the indices of the delimiters
+            retrieved_context = message_content[context_start:context_end].strip()
+            previous_answer = message_content[answer_start:answer_end].strip()
+
+            # Return the extracted information
+            return retrieved_context, previous_answer
+
+        except ValueError as e:
+            # Handle the case where the delimiters aren't found in the message content
+            print(f"Error parsing message content: {e}")
+            return None, None  # or handle this in a way appropriate for your application
 
     def rewrite_log_file(self):
         # A helper method to handle writing the logs to the file.

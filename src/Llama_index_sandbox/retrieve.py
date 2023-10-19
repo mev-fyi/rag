@@ -13,6 +13,7 @@ from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llm_predictor.base import BaseLLMPredictor
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
+from llama_index.utils import print_text
 
 from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.custom_react_agent.logging_handler import JSONLoggingHandler
@@ -64,9 +65,6 @@ def get_chat_engine(index: VectorStoreIndex,
     #  query as a tool and passes it to the agent under the hood. That query tool can receive a description.
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
     #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
-
-    # NOTE: 2023-09-29: add system prompt to agent. BUT it is an input to OpenAI agent but not React Agent!
-    #   OpenAI agent has prefix_messages in its constructor, but React Agent does not. Is adding System prompt to chat history good enough?
 
     query_engine = get_query_engine(index=index, service_context=service_context, verbose=verbose, similarity_top_k=similarity_top_k)
     # NOTE 2023-10-14: the description assigned to query_engine_tool should have extra scrutiny as it is passed as is to the agent
@@ -138,7 +136,8 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"The question asked is: [{query_str}]")
                 response = retrieval_engine.chat(query_str)
             if not run_application:
-                logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
+                # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
+                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```", color='green')
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
