@@ -30,13 +30,12 @@ class JSONLoggingHandler(BaseCallbackHandler):
             json.dump(self.current_logs, log)  # Initialize file with an empty list.
 
     def on_event_start(self, event_type: CBEventType, payload: Optional[Dict[str, Any]] = None, event_id: str = "", parent_id: str = "", **kwargs: Any):
-        # Initial log entry structure
         entry = {}
         if event_type == CBEventType.LLM:
             messages = payload.get(EventPayload.MESSAGES, []) if payload else []
             serialized = payload.get(EventPayload.SERIALIZED, {}) if payload else {}
 
-            if messages[-1].role == MessageRole.USER:  #  len(messages) == 2 and m
+            if messages[-1].role == MessageRole.USER:
                 message_content = messages[-1].content
                 if QUERY_ENGINE_TOOL_ROUTER in message_content:
                     user_raw_input = message_content.replace(f"\n{QUERY_ENGINE_TOOL_ROUTER}", "")
@@ -64,20 +63,17 @@ class JSONLoggingHandler(BaseCallbackHandler):
             if payload:
                 template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
                 template = payload.get(EventPayload.TEMPLATE, "")
-                # self.append_to_last_log_entry({"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars})
                 entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
 
-        elif event_type == CBEventType.SYNTHESIZE:
-            if payload:
-                template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
-                template = payload.get(EventPayload.TEMPLATE, "")
-                # entry = ({"instructions": template, "retrieved_chunk": template_vars})
-                entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
-                # self.append_to_last_log_entry({"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars})
+        # elif event_type == CBEventType.SYNTHESIZE:
+        #     if payload:
+        #         template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
+        #         template = payload.get(EventPayload.TEMPLATE, "")
+        #         entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
         else:
             # log the event that went through and was not caught
             entry = {event_type.name: payload}
-            logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n"*2)
+            logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
 
         self.log_entry(entry=entry)
         # Other event types can be added with elif clauses here...
@@ -87,17 +83,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
         Add a new log entry in the current section. If we are within a function call, the entry is nested appropriately.
         """
         if entry.keys():
-            # if self.current_section:
-            #     # We're inside a nested section, so the last entry should be here.
-            #     last_log_entry = self.current_section[-1]  # No need to check self.current_section again
-            # else:
-            #     # We're not inside a nested section, so the last entry should be in the main log.
-            #     last_log_entry = self.current_logs[-1] if self.current_logs else None
-            #
-            # # Update the log entry with the LLM response.
-            # if last_log_entry is not None:
-            #     last_log_entry[entry.keys()[0]] = entry.values()[0]
-
             if self.current_section is not None:
                 # We are inside a nested section, so we should add the log entry here.
                 self.current_section.append(entry)
