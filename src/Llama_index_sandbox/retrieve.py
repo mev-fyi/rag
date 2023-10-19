@@ -40,7 +40,7 @@ def get_inference_llm(temperature,
                       ):
     llm.temperature = temperature
     llm.max_tokens = max_tokens
-    # llm.callback_manager = callback_manager
+    llm.callback_manager = callback_manager
     llm.model = OPENAI_MODEL_NAME
     llm.max_tokens = max_tokens
     # llm.stream = stream TODO 2023-10-17: determine where to set stream bool
