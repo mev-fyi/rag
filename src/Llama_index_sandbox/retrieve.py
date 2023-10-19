@@ -137,7 +137,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 response = retrieval_engine.chat(query_str)
             if not run_application:
                 # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
-                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```", color='green')
+                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```\n", color='green')
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):

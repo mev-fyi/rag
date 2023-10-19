@@ -159,6 +159,8 @@ class JSONLoggingHandler(BaseCallbackHandler):
 
             elif len(messages) == 1 and response.message.role == MessageRole.ASSISTANT:
                 entry = {"event_type": event_type, "LLM_response": response.message.content}
+            elif response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I can answer without using any more tools."):
+                entry = {"event_type": event_type, "LLM_response": response.message.content}
             else:
                 logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
@@ -198,7 +200,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             # Extract the content based on the indices of the delimiters
             retrieved_context = message_content[context_start:context_end].strip()
             previous_answer = message_content[answer_start:answer_end].strip()
-
+            # TODO 2023-10-20: investigate why we cant always parse the above successfully
             # Return the extracted information
             return retrieved_context, previous_answer
 
