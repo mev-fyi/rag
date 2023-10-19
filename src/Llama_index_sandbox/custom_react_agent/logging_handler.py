@@ -1,7 +1,16 @@
 import json
+import logging
+from datetime import datetime
+
 from llama_index.callbacks.base_handler import BaseCallbackHandler
 from llama_index.callbacks.schema import CBEventType, EventPayload
 from typing import Any, Optional, Dict, List
+import os
+from llama_index.llms import MessageRole
+from llama_index.prompts.chat_prompts import TEXT_QA_SYSTEM_PROMPT
+
+from src.Llama_index_sandbox import root_dir
+from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
 
 
 class JSONLoggingHandler(BaseCallbackHandler):
@@ -9,129 +18,168 @@ class JSONLoggingHandler(BaseCallbackHandler):
     logs = []
 
     def __init__(self, event_starts_to_ignore: List[CBEventType], event_ends_to_ignore: List[CBEventType]):
-
         super().__init__(event_starts_to_ignore, event_ends_to_ignore)
-        self.log_file = "path_to_your_log_file.log"  # specify your log file path
-        self.indentation_level = 0
 
+        if not os.path.exists(f"{root_dir}/logs/json"):
+            os.makedirs(f"{root_dir}/logs/json")
+        self.log_file = f"{root_dir}/logs/json/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.log"
 
+        self.current_section = None  # This will point to the part of the log we are currently writing to.
+        self.current_logs = []  # Keep all current logs in memory for rewriting.
+        with open(self.log_file, 'w') as log:
+            json.dump(self.current_logs, log)  # Initialize file with an empty list.
 
-    def on_event_start(self,
-                       event_type: CBEventType,
-                       payload: Optional[Dict[str, Any]] = None,
-                       event_id: str = "",
-                       parent_id: str = "",
-                       **kwargs: Any):
-        log_entry = {
-            'event_id': event_id,
-            'parent_id': parent_id,
-            'event_type': event_type.name,  # assuming event_type is an Enum
-            'status': 'started',
-            'payload': payload,
-        }
-        # TODO 2023-10-17: impl for each event_type
-        # LLM is level 1
-        # Successive Function Calls are nested under LLM. It seems at the first glance that these successive calls (get_responsive_refine)do not trigger events of their own
-        # Then un-indented
-        # if the length last message in EventPayload.MESSAGES (which is a list of CHatMessage objects) starts with "user:" then start a new json array and write that message to the first index
-        # then write as a single entry the EventPayload.SERIALIZED which is a dict. It contains model, temperature, max_retries etc.
+    def on_event_start(self, event_type: CBEventType, payload: Optional[Dict[str, Any]] = None, event_id: str = "", parent_id: str = "", **kwargs: Any):
+        # Initial log entry structure
+        entry = {}
+        if event_type == CBEventType.LLM:
+            messages = payload.get(EventPayload.MESSAGES, []) if payload else []
+            serialized = payload.get(EventPayload.SERIALIZED, {}) if payload else {}
 
-        if event_type.name == CBEventType.LLM:
-            messages = payload.get(EventPayload.MESSAGES, [])
-            serialized = payload.get(EventPayload.SERIALIZED, {})
-            # if the length of EventPayload.MESSAGES is two, and that the last message starts with "user: Context information is below" then it is a function call from the query tool
-            # and any log entry should be nested under the topmost LLM event / at the same level of the CBEventType.FUNCTION_CALL call
-            if len(messages) == 2 and messages[-1].startswith("user:"):
-                # Here you'd implement whatever specific logic you need for this condition.
-                # For example, starting a new JSON array in the log or handling the message differently.
-                self.start_new_log_section(messages[-1])
-                self.log_entry(serialized)  # This is assumed to be a method that handles logging of entries
-            if len(messages) == 2 and messages[-1].startswith("user: Context information is below"):
-                # log as usual
-                pass
-        elif event_type.name == CBEventType.FUNCTION_CALL:
-            # when this event hit, you will need to indent every coming json file until the CBEventType.FUNCTION_CALL ends
-            # Specific logic for function call events, such as nesting logs, can be implemented here.
-            # If you need to indent JSON, you might adjust how you're serializing the log entries.
-            self.indent_logs()
-            pass
-        elif event_type.name == CBEventType.TEMPLATING:
-            # when this is hit, then the EventPayload.TEMPLATE_VARS  contains a dict of the retrieved chunk, "context_msg" which maps to the retrieved chunk.
-            # I need you to save that chunk in a variable and then write it to the json file, still at the same indentation level of the function_call.
-            # also write the EventPayload.TEMPLATE (str) which contains the instructions, right above the retrieved chunk
-            pass
-        elif event_type.name == CBEventType.SYNTHESIZE:
-            template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
-            template = payload.get(EventPayload.TEMPLATE, "")
+            if messages[-1].role == MessageRole.USER:  #  len(messages) == 2 and m
+                message_content = messages[-1].content
+                if QUERY_ENGINE_TOOL_ROUTER in message_content:
+                    user_raw_input = message_content.replace(f"\n{QUERY_ENGINE_TOOL_ROUTER}", "")
+                    entry = {
+                        "event_type": event_type,
+                        "model_params": serialized,
+                        "user_raw_input": user_raw_input,
+                        "LLM_input": message_content,
+                    }
+                elif "Context information is below." in message_content:
+                    # TODO 2023-10-19: make sure this in the array of the function_tool call
+                    assert TEXT_QA_SYSTEM_PROMPT.content in messages[0].content, "The first message should be the system prompt."
+                    tool_output = message_content
+                    entry = {
+                        "event_type": event_type,
+                        "tool_output": tool_output,
+                    }
 
-            # Write specific parts of the payload to the log, as per the comments.
-            self.log_entry({"instructions": template, "retrieved_chunk": template_vars})
-            pass  # TBD if it is ever hit
-        self.logs.append(log_entry)  # or write to a file or logging framework
-        # Additional logging logic for the start of the event...
+        elif event_type == CBEventType.FUNCTION_CALL:
+            function_call = {"function_call": []}
+            self.append_to_last_log_entry(function_call)
+            self.current_section = function_call["function_call"]
 
-    def on_event_end(self,
-                     event_type: CBEventType,
-                     payload: Optional[Dict[str, Any]] = None,
-                     event_id: str = "",
-                     parent_id: str = "",
-                     **kwargs: Any):
-        log_entry = {
-            'event_id': event_id,
-            'event_type': event_type.name,  # assuming event_type is an Enum
-            'status': 'ended',
-            'payload': payload,
-        }
-        if event_type.name == CBEventType.LLM and payload:
-            # if the length of EventPayload.MESSAGES is two, and that the last message starts with "assistant:", and that the last log then it is a function call from the query tool
-            messages = payload.get(EventPayload.MESSAGES, [])
+        elif event_type == CBEventType.TEMPLATING:
+            if payload:
+                template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
+                template = payload.get(EventPayload.TEMPLATE, "")
+                # self.append_to_last_log_entry({"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars})
+                entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
 
-            # Condition check for specific scenario in LLM event end
-            if len(messages) == 2 and messages[-1].startswith("assistant:"):
-                # Specific logic for this condition
-                pass  # Your implementation here
-            pass
-        elif event_type.name == CBEventType.FUNCTION_CALL:
-            # If there was some sort of nesting or structuring started in on_event_start, we'd close or resolve it here.
-            self.outdent_logs()
-            pass
-        elif event_type.name == CBEventType.SYNTHESIZE:
-            pass  # TBD if it is ever hit
-        self.logs.append(log_entry)  # or write to a file or logging framework
-        # Additional logging logic for the end of the event...
+        elif event_type == CBEventType.SYNTHESIZE:
+            if payload:
+                template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
+                template = payload.get(EventPayload.TEMPLATE, "")
+                # entry = ({"instructions": template, "retrieved_chunk": template_vars})
+                entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
+                # self.append_to_last_log_entry({"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars})
+        else:
+            # log the event that went through and was not caught
+            entry = {event_type.name: payload}
+            logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n"*2)
 
-    def write_to_log(self, data):
-        with open(self.log_file, 'a') as log:
-            # We're writing JSON strings for readability and structure
-            log.write(json.dumps(data, indent=4) + "\n")  # json.dumps serializes the data to a formatted string
-
-    def start_new_log_section(self, message):
-        # This method will write a new section header in the log file
-        section_header = {
-            "section_start": message,
-            "content": []
-        }
-        self.write_to_log(section_header)
+        self.log_entry(entry=entry)
+        # Other event types can be added with elif clauses here...
 
     def log_entry(self, entry):
-        # Here, we're adding a standard log entry
-        structured_entry = {
-            "log_entry": entry,
-            "indentation": self.indentation_level
-        }
-        self.write_to_log(structured_entry)
+        """
+        Add a new log entry in the current section. If we are within a function call, the entry is nested appropriately.
+        """
+        if entry.keys():
+            # if self.current_section:
+            #     # We're inside a nested section, so the last entry should be here.
+            #     last_log_entry = self.current_section[-1]  # No need to check self.current_section again
+            # else:
+            #     # We're not inside a nested section, so the last entry should be in the main log.
+            #     last_log_entry = self.current_logs[-1] if self.current_logs else None
+            #
+            # # Update the log entry with the LLM response.
+            # if last_log_entry is not None:
+            #     last_log_entry[entry.keys()[0]] = entry.values()[0]
 
-    def indent_logs(self):
-        # Increase the indentation level for nested structures
-        self.indentation_level += 1
+            if self.current_section is not None:
+                # We are inside a nested section, so we should add the log entry here.
+                self.current_section.append(entry)
+            else:
+                # We are not in a nested section, so this entry goes directly under the main log list.
+                self.current_logs.append(entry)
 
-    def outdent_logs(self):
-        # Decrease the indentation level after ending a nested structure
-        if self.indentation_level > 0:
-            self.indentation_level -= 1
+        self.rewrite_log_file()  # Update the log file with the new entry.
 
-    def get_logs(self):
-        return json.dumps(self.logs, indent=4)  # For pretty printing
+    def append_to_last_log_entry(self, additional_content):
+        """
+        Append new content to the last log entry without overwriting existing information.
+        This handles both the main log and nested sections.
+        """
+        if self.current_section is not None:
+            # We're inside a nested section, so the last entry should be here.
+            target_section = self.current_section
+        else:
+            # We're not inside a nested section, so the last entry should be in the main log.
+            target_section = self.current_logs
+
+        if target_section:
+            # Ensure the last log entry is a list where we can append new dictionaries.
+            last_log_entry = target_section[-1]
+
+            if isinstance(last_log_entry, list):
+                # Append the new content as a separate dictionary within the list.
+                last_log_entry.append(additional_content)
+            elif isinstance(last_log_entry, dict):
+                # If the last entry is a dictionary, we need to decide how to handle it.
+                # For example, you could add a new key-value pair where the value is your new content.
+                # Here, we're assuming there's a specific key under which content should be added.
+                content_key = "additional_content"  # Replace with your actual key.
+
+                # Check if this key already exists and whether its value is a list.
+                if content_key in last_log_entry:
+                    if isinstance(last_log_entry[content_key], list):
+                        # Append the new content to the existing list.
+                        last_log_entry[content_key].append(additional_content)
+                    else:
+                        # If it's not a list, you need to decide how you want to handle it.
+                        # You could raise an error, convert it into a list, etc.
+                        raise TypeError(f"Expected a list for '{content_key}' but got {type(last_log_entry[content_key])}.")
+                else:
+                    # If the key doesn't exist, create it and set its value to a list containing your new content.
+                    last_log_entry[content_key] = [additional_content]
+            else:
+                raise TypeError("The last log entry is neither a list nor a dictionary and cannot be appended to.")
+
+            self.rewrite_log_file()  # Update the log file with the new content.
+        else:
+            # Handle the case where there's no suitable target section to append to.
+            raise ValueError("No target section available to append new content.")
+
+    def on_event_end(self, event_type: CBEventType, payload: Optional[Dict[str, Any]] = None, event_id: str = "", parent_id: str = "", **kwargs: Any):
+        entry = {}
+
+        if event_type == CBEventType.LLM and payload:
+            messages = payload.get(EventPayload.MESSAGES, [])
+            response = payload.get(EventPayload.RESPONSE, {})
+            if len(messages) == 2 and response.message.role == MessageRole.ASSISTANT:
+                LLM_response = response.message.content
+                # self.append_to_last_log_entry({"LLM_response": LLM_response})
+                entry = {"event_type": event_type, "LLM_response": LLM_response}
+
+        elif event_type == CBEventType.FUNCTION_CALL:
+            self.current_section = None
+
+        elif event_type.name == CBEventType.SYNTHESIZE:
+            pass  # TBD if it is ever hit
+
+        else:
+            # log the event that went through and was not caught
+            entry = {event_type.name: payload}
+            logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n"*2)
+
+        self.log_entry(entry=entry)
+
+    def rewrite_log_file(self):
+        # A helper method to handle writing the logs to the file.
+        with open(self.log_file, 'w') as log:  # Note the 'w' here; we're overwriting the file.
+            json.dump(self.current_logs, log, indent=4)  # Pretty-print for readability.
 
     def start_trace(self, trace_id: Optional[str] = None) -> None:
         """Not implemented."""
@@ -142,23 +190,3 @@ class JSONLoggingHandler(BaseCallbackHandler):
         trace_map: Optional[Dict[str, List[str]]] = None,
     ) -> None:
         """Not implemented."""
-
-
-# Simulating chat object handling
-def handle_chat_object(chat_object):
-    # Assuming 'chat_object' contains the data you want to log
-
-    metadata = extract_metadata(chat_object)  # Your method to extract metadata
-    response = extract_response(chat_object)  # Your method to extract response
-
-    # Create a context for the chat event
-    with callback_manager.event(CBEventType.CHAT_OBJECT) as event:
-        # You can include more detailed payloads as needed
-        event.on_start(payload={"metadata": metadata})
-
-        # ... (process the chat object) ...
-
-        event.on_end(payload={"response": response})
-
-
-# After processing you can get the logs
