@@ -155,7 +155,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             elif response.message.role == MessageRole.ASSISTANT:
                 entry = {"event_type": event_type, "LLM_response": response.message.content}
             elif response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I can answer without using any more tools."):
-                entry = {"event_type": event_type, "LLM_response": response.message.content}
+                entry = {"event_type": event_type, "LLM_response": response.message.content, "subjective grade from 1 to 10": ""}
             else:
                 logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
