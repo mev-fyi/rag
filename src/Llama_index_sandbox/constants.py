@@ -61,18 +61,18 @@ INPUT_QUERIES = [
 
 
 EVALUATION_INPUT_QUERIES = [
-        "Tell me about LVR",
-        "How do L2 sequencers work?",
-        "Do an exhaustive breakdown of the MEV supply chain",
-        "What is ePBS?",
-        "What is SUAVE?",
-        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
-        "What are intents?",
-        "What are the papers that deal with LVR?",
-        "What are solutions to mitigate front-running and sandwich attacks?",
-        "Give me several sources about L2 sequencing?",
-        "Give me several sources about SUAVE?",
-        "Tell me about transaction ordering on L2s",
+        "Tell me about LVR",  #1
+        "How do L2 sequencers work?",  #2
+        "Do an exhaustive breakdown of the MEV supply chain",  #3
+        "What is ePBS?",  #4
+        "What is SUAVE?",  #5
+        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  #6
+        "What are intents?",  #7
+        "What are the papers that deal with LVR?",  #8
+        "What are solutions to mitigate front-running and sandwich attacks?",  #9
+        "Give me several sources about L2 sequencing?",  #10
+        "Give me several sources about SUAVE?",  #11
+        "Tell me about transaction ordering on L2s",  #12
     ]
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
