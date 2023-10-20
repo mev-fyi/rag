@@ -32,25 +32,47 @@ from enum import Enum
 LLM_TEMPERATURE = 0
 NUMBER_OF_CHUNKS_TO_RETRIEVE = 10
 
-OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"
+'''
+valid OpenAI model name in: gpt-4, gpt-4-32k, gpt-4-0613, gpt-4-32k-0613, gpt-4-0314, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-3.5-turbo-0613, 
+gpt-3.5-turbo-16k-0613, gpt-3.5-turbo-0301, text-davinci-003, text-davinci-002, gpt-3.5-turbo-instruct, 
+text-ada-001, text-babbage-001, text-curie-001, ada, babbage, curie, davinci, gpt-35-turbo-16k, gpt-35-turbo
+'''
+
+OPENAI_MODEL_NAME = "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
         # "What is red teaming in AI",  # Should refuse to respond,
-        # "Tell me about LVR",
+        "Tell me about LVR",
         # "What plagues current AMM designs?",
-        # "How do L2 sequencers work?",
-        # "Do an exhaustive breakdown of the MEV supply chain",
-        # "What is ePBS?",
-        # "What is SUAVE?",
-        # "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
+        "How do L2 sequencers work?",
+        "Do an exhaustive breakdown of the MEV supply chain",
+        "What is ePBS?",
+        "What is SUAVE?",
+        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
         "What are intents?",
         "What are the papers that deal with LVR?",
         "What are solutions to mitigate front-running and sandwich attacks?",
-        "Give me several sources about L2 sequencers?",
+        "Give me several sources about L2 sequencing?",
         "Give me several sources about SUAVE?",
         "Tell me about transaction ordering on L2s",
-        "Can you tell me how the definition of MEV evolved over the years?",
-        "What are videos that discuss order flow auctions?",
-        "Cite all the sources you have about Tim Roughgarden"
+        # "Can you tell me how the definition of MEV evolved over the years?",
+        # "What are videos that discuss order flow auctions?",
+        # "Cite all the sources you have about Tim Roughgarden"
+    ]
+
+
+EVALUATION_INPUT_QUERIES = [
+        "Tell me about LVR",
+        "How do L2 sequencers work?",
+        "Do an exhaustive breakdown of the MEV supply chain",
+        "What is ePBS?",
+        "What is SUAVE?",
+        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
+        "What are intents?",
+        "What are the papers that deal with LVR?",
+        "What are solutions to mitigate front-running and sandwich attacks?",
+        "Give me several sources about L2 sequencing?",
+        "Give me several sources about SUAVE?",
+        "Tell me about transaction ordering on L2s",
     ]
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
