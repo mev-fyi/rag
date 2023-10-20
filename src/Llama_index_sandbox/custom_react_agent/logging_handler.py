@@ -46,7 +46,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
                         "LLM_input": message_content,
                     }
                 elif "Context information is below." in message_content:
-                    # TODO 2023-10-19: make sure this in the array of the function_tool call
                     assert TEXT_QA_SYSTEM_PROMPT.content in messages[0].content, "The first message should be the system prompt."
                     tool_output = message_content
                     entry = {
@@ -62,8 +61,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
                         "previous_answer": previous_answer,
                     }
             else:
-                # expectedly messages is length four (system (prompt) -> user (user input) -> assistant (tool action from LLM) -> user (observation from tool))
-                pass
+                logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
 
         elif event_type == CBEventType.FUNCTION_CALL:
             function_call = {"function_call": []}
@@ -75,14 +73,11 @@ class JSONLoggingHandler(BaseCallbackHandler):
                 template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
                 template = payload.get(EventPayload.TEMPLATE, "")
                 entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
-
-        # elif event_type == CBEventType.SYNTHESIZE:
-        #     if payload:
-        #         template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
-        #         template = payload.get(EventPayload.TEMPLATE, "")
-        #         entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
         else:
             logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
+
+        if entry.keys():
+            entry["event_type"] = entry["event_type"] + " start"
 
         self.log_entry(entry=entry)
         # Other event types can be added with elif clauses here...
@@ -152,12 +147,12 @@ class JSONLoggingHandler(BaseCallbackHandler):
         if event_type == CBEventType.LLM and payload:
             messages = payload.get(EventPayload.MESSAGES, [])
             response = payload.get(EventPayload.RESPONSE, {})
-            if len(messages) == 2 and response.message.role == MessageRole.ASSISTANT:
+            if response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I need to use a tool to help me answer the question."):
                 LLM_response = response.message.content
                 # self.append_to_last_log_entry({"LLM_response": LLM_response})
                 entry = {"event_type": event_type, "LLM_response": LLM_response}
 
-            elif len(messages) == 1 and response.message.role == MessageRole.ASSISTANT:
+            elif response.message.role == MessageRole.ASSISTANT:
                 entry = {"event_type": event_type, "LLM_response": response.message.content}
             elif response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I can answer without using any more tools."):
                 entry = {"event_type": event_type, "LLM_response": response.message.content}
@@ -174,6 +169,8 @@ class JSONLoggingHandler(BaseCallbackHandler):
         else:
             logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
+        if entry.keys():
+            entry["event_type"] = entry["event_type"] + " end"
         self.log_entry(entry=entry)
 
     def parse_message_content(self, message_content):
@@ -188,7 +185,8 @@ class JSONLoggingHandler(BaseCallbackHandler):
         context_end_delim = "Query:"
         answer_start_delim = "Original Answer:"
         answer_end_delim = "New Answer:"
-
+        if "Observation:" in message_content:
+            return None, None
         # Find the indices of your delimiters
         try:
             context_start = message_content.index(context_start_delim) + len(context_start_delim)
@@ -206,7 +204,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
 
         except ValueError as e:
             # Handle the case where the delimiters aren't found in the message content
-            print(f"Error parsing message content: {e}")
+            logging.warning(f"parse_message_content: Error parsing message content: {e}")
             return None, None  # or handle this in a way appropriate for your application
 
     def rewrite_log_file(self):
