@@ -10,6 +10,7 @@ from llama_index.llms import MessageRole
 from llama_index.prompts.chat_prompts import TEXT_QA_SYSTEM_PROMPT
 
 from src.Llama_index_sandbox import root_dir
+from src.Llama_index_sandbox.constants import NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
 
 """
@@ -82,6 +83,13 @@ Developers using or extending this class should be aware of these assumptions an
 They may need to implement additional safeguards, optimizations, or features, depending on the specific requirements of their system and operational environment.
 """
 
+index_dir = f"{root_dir}/.storage/research_pdf/"
+index = sorted(os.listdir(index_dir))[-1].split('_')
+index_date = index[0]
+embedding_model_name = index[1]
+embedding_model_chunk_size = int(index[2])
+chunk_overlap = int(index[3])
+
 
 class JSONLoggingHandler(BaseCallbackHandler):
 
@@ -112,6 +120,12 @@ class JSONLoggingHandler(BaseCallbackHandler):
                     entry = {
                         "event_type": f"{event_type.name} start",
                         "model_params": serialized,
+                        "embedding_model_parameters": {
+                            "index": index,
+                            "embedding_model_name": embedding_model_name,
+                            "embedding_model_chunk_size": embedding_model_chunk_size,
+                            "chunk_overlap": chunk_overlap,
+                            "number of chunks to retrieve": NUMBER_OF_CHUNKS_TO_RETRIEVE},
                         "user_raw_input": user_raw_input,
                         "LLM_input": message_content,
                     }
