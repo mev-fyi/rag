@@ -121,7 +121,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
                         "event_type": f"{event_type.name} start",
                         "model_params": serialized,
                         "embedding_model_parameters": {
-                            "index": index,
                             "embedding_model_name": embedding_model_name,
                             "embedding_model_chunk_size": embedding_model_chunk_size,
                             "chunk_overlap": chunk_overlap,

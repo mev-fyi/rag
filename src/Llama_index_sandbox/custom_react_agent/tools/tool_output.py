@@ -4,13 +4,18 @@ from llama_index.tools import ToolOutput
 
 
 class CustomToolOutput(ToolOutput):
-    # TODO 2023-10-15: we can use the Tool Output as needed to send back the sources to embed to the front-end
-    """Custom tool output."""
+    def __init__(self, content, raw_output):
+        super().__init__(content, raw_output)
+        self.all_formatted_metadata = format_metadata(self.raw_output)  # Store formatted metadata.
+
     def __str__(self) -> str:
-        """String."""
-        all_formatted_metadata = format_metadata(self.raw_output)
-        msg = f"\n{self.content}\n\nFetched based on the following sources: \n{all_formatted_metadata}\n"
+        """Provide a basic string representation."""
+        msg = f"{self.content}\n\nFetched based on the following sources: \n{self.all_formatted_metadata}\n"
         return msg
+
+    def get_formatted_metadata(self) -> str:
+        """A method specifically for retrieving formatted metadata."""
+        return self.all_formatted_metadata
 
 
 def format_metadata(response):

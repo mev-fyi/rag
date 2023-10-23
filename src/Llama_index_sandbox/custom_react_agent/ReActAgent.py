@@ -1,13 +1,14 @@
 import copy
 import json
 import logging
-from typing import Optional, List
+from typing import Optional, List, Tuple, cast
 
 from llama_index.agent import ReActAgent
-from llama_index.agent.react.types import BaseReasoningStep
-from llama_index.callbacks import trace_method
+from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep
+from llama_index.callbacks import trace_method, CBEventType, EventPayload
 from llama_index.chat_engine.types import AgentChatResponse
-from llama_index.llms import ChatMessage, MessageRole
+from llama_index.llms import ChatMessage, MessageRole, ChatResponse
+from llama_index.utils import print_text
 
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER
 
@@ -81,3 +82,30 @@ class CustomReActAgent(ReActAgent):
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
         return response
+
+    def _process_actions(
+            self, output: ChatResponse
+    ) -> Tuple[List[BaseReasoningStep], bool]:
+        _, current_reasoning, is_done = self._extract_reasoning_step(output)
+
+        if is_done:
+            return current_reasoning, True
+
+        # call tool with input
+        reasoning_step = cast(ActionReasoningStep, current_reasoning[-1])
+        tool = self._tools_dict[reasoning_step.action]
+        with self.callback_manager.event(
+                CBEventType.FUNCTION_CALL,
+                payload={
+                    EventPayload.FUNCTION_CALL: reasoning_step.action_input,
+                    EventPayload.TOOL: tool.metadata,
+                },
+        ) as event:
+            tool_output = tool.call(**reasoning_step.action_input)
+            event.on_end(payload={EventPayload.FUNCTION_OUTPUT: str(tool_output)})
+
+        observation_step = ObservationReasoningStep(observation=str(tool_output))
+        current_reasoning.append(observation_step)
+        if self._verbose:
+            print_text(f"{observation_step.get_content()}\n", color="blue")
+        return current_reasoning, False
