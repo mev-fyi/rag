@@ -83,7 +83,6 @@ They may need to implement additional safeguards, optimizations, or features, de
 """
 
 
-
 class JSONLoggingHandler(BaseCallbackHandler):
 
     logs = []
@@ -111,7 +110,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
                 if QUERY_ENGINE_TOOL_ROUTER in message_content:
                     user_raw_input = message_content.replace(f"\n{QUERY_ENGINE_TOOL_ROUTER}", "")
                     entry = {
-                        "event_type": event_type,
+                        "event_type": f"{event_type.name} start",
                         "model_params": serialized,
                         "user_raw_input": user_raw_input,
                         "LLM_input": message_content,
@@ -120,14 +119,14 @@ class JSONLoggingHandler(BaseCallbackHandler):
                     assert TEXT_QA_SYSTEM_PROMPT.content in messages[0].content, "The first message should be the system prompt."
                     tool_output = message_content
                     entry = {
-                        "event_type": event_type,
+                        "event_type": f"{event_type.name} start",
                         "tool_output": tool_output,
                     }
                 else:
                     retrieved_context, previous_answer = self.parse_message_content(message_content)
 
                     entry = {
-                        "event_type": event_type,
+                        "event_type": f"{event_type.name} start",
                         "retrieved_context": retrieved_context,
                         "previous_answer": previous_answer,
                     }
@@ -135,20 +134,20 @@ class JSONLoggingHandler(BaseCallbackHandler):
                 logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
 
         elif event_type == CBEventType.FUNCTION_CALL:
-            function_call = {"function_call": []}
-            self.append_to_last_log_entry(function_call)
-            self.current_section = function_call["function_call"]
+            entry = {"event_type": f"{event_type.name} start", "function_call": []}
+            # self.append_to_last_log_entry(function_call)
+            self.current_logs.append(entry)
+            self.rewrite_log_file()  # Update the log file with the new entry.
+            self.current_section = entry["function_call"]
+            return
 
         elif event_type == CBEventType.TEMPLATING:
             if payload:
                 template_vars = payload.get(EventPayload.TEMPLATE_VARS, {})
                 template = payload.get(EventPayload.TEMPLATE, "")
-                entry = {"event_type": event_type, "instructions": template, "retrieved_chunk": template_vars}
+                entry = {"event_type": f"{event_type.name} start", "instructions": template, "retrieved_chunk": template_vars}
         else:
             logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
-
-        if entry.keys():
-            entry["event_type"] = entry["event_type"] + " start"
 
         self.log_entry(entry=entry)
 
@@ -166,51 +165,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
 
         self.rewrite_log_file()  # Update the log file with the new entry.
 
-    def append_to_last_log_entry(self, additional_content):
-        """
-        Append new content to the last log entry without overwriting existing information.
-        This handles both the main log and nested sections.
-        """
-        if self.current_section is not None:
-            # We're inside a nested section, so the last entry should be here.
-            target_section = self.current_section
-        else:
-            # We're not inside a nested section, so the last entry should be in the main log.
-            target_section = self.current_logs
-
-        if target_section:
-            # Ensure the last log entry is a list where we can append new dictionaries.
-            last_log_entry = target_section[-1]
-
-            if isinstance(last_log_entry, list):
-                # Append the new content as a separate dictionary within the list.
-                last_log_entry.append(additional_content)
-            elif isinstance(last_log_entry, dict):
-                # If the last entry is a dictionary, we need to decide how to handle it.
-                # For example, you could add a new key-value pair where the value is your new content.
-                # Here, we're assuming there's a specific key under which content should be added.
-                content_key = "additional_content"  # Replace with your actual key.
-
-                # Check if this key already exists and whether its value is a list.
-                if content_key in last_log_entry:
-                    if isinstance(last_log_entry[content_key], list):
-                        # Append the new content to the existing list.
-                        last_log_entry[content_key].append(additional_content)
-                    else:
-                        # If it's not a list, you need to decide how you want to handle it.
-                        # You could raise an error, convert it into a list, etc.
-                        raise TypeError(f"Expected a list for '{content_key}' but got {type(last_log_entry[content_key])}.")
-                else:
-                    # If the key doesn't exist, create it and set its value to a list containing your new content.
-                    last_log_entry[content_key] = [additional_content]
-            else:
-                raise TypeError("The last log entry is neither a list nor a dictionary and cannot be appended to.")
-
-            self.rewrite_log_file()  # Update the log file with the new content.
-        else:
-            # Handle the case where there's no suitable target section to append to.
-            raise ValueError("No target section available to append new content.")
-
     def on_event_end(self, event_type: CBEventType, payload: Optional[Dict[str, Any]] = None, event_id: str = "", parent_id: str = "", **kwargs: Any):
         entry = {}
 
@@ -220,19 +174,19 @@ class JSONLoggingHandler(BaseCallbackHandler):
             if response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I need to use a tool to help me answer the question."):
                 LLM_response = response.message.content
                 # self.append_to_last_log_entry({"LLM_response": LLM_response})
-                entry = {"event_type": event_type, "LLM_response": LLM_response}
+                entry = {"event_type": f"{event_type.name} end", "LLM_response": LLM_response}
 
             elif response.message.role == MessageRole.ASSISTANT and response.message.content.startswith("Thought: I can answer without using any more tools."):
-                entry = {"event_type": event_type, "LLM_response": response.message.content, "subjective grade from 1 to 10": ""}
+                entry = {"event_type": f"{event_type.name} end", "LLM_response": response.message.content, "subjective grade from 1 to 10": ""}
 
             elif response.message.role == MessageRole.ASSISTANT:  # catch-all
-                entry = {"event_type": event_type, "LLM_response": response.message.content, "subjective grade from 1 to 10": ""}
+                entry = {"event_type": f"{event_type.name} end", "LLM_response": response.message.content, "subjective grade from 1 to 10": ""}
             else:
                 logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
         elif event_type == CBEventType.FUNCTION_CALL:
+            entry = {"event_type": f"{event_type.name} end", "tool_output": payload.get(EventPayload.FUNCTION_OUTPUT, "")}
             self.current_section = None
-            entry = {"event_type": event_type, "tool_output": payload.get(EventPayload.FUNCTION_OUTPUT, "")}
 
         elif event_type == CBEventType.TEMPLATING:
             pass
@@ -240,8 +194,6 @@ class JSONLoggingHandler(BaseCallbackHandler):
         else:
             logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
-        if entry.keys():
-            entry["event_type"] = entry["event_type"] + " end"
         self.log_entry(entry=entry)
 
     def parse_message_content(self, message_content):
