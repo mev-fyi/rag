@@ -10,6 +10,8 @@ from llama_index.chat_engine.types import AgentChatResponse
 from llama_index.llms import ChatMessage, MessageRole, ChatResponse
 from llama_index.utils import print_text
 
+from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
+from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER
 
 
@@ -101,11 +103,28 @@ class CustomReActAgent(ReActAgent):
                     EventPayload.TOOL: tool.metadata,
                 },
         ) as event:
-            tool_output = tool.call(**reasoning_step.action_input)
-            event.on_end(payload={EventPayload.FUNCTION_OUTPUT: str(tool_output)})
+            tool_output = tool.call(**reasoning_step.action_input)  # This returns a CustomToolOutput.
+            # Ensure the type of tool_output is CustomToolOutput to access all_formatted_metadata.
+            if isinstance(tool_output, CustomToolOutput):
+                formatted_metadata = tool_output.get_formatted_metadata()  # Directly access the formatted metadata.
+            else:
+                formatted_metadata = "Metadata not available."  # Or handle this case as appropriate for your application.
 
-        observation_step = ObservationReasoningStep(observation=str(tool_output))
+            # You can now use formatted_metadata as needed in your function.
+            # If you need to send it as part of the event, you can do so:
+            event.on_end(payload={
+                EventPayload.FUNCTION_OUTPUT: str(tool_output),
+                ExtendedEventPayload.FORMATTED_METADATA: formatted_metadata  # sending the metadata as part of the event.
+            })
+
+        # Create an observation step with the tool_output content, not the metadata.
+        observation_content = str(tool_output)  # or tool_output.content, if .content is the attribute holding the main content.
+        observation_step = ObservationReasoningStep(observation=observation_content)
         current_reasoning.append(observation_step)
+
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
+
+        # If you need to use the formatted_metadata later in the method, it's available in the 'formatted_metadata' variable.
+
         return current_reasoning, False
