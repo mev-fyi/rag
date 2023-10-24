@@ -26,8 +26,6 @@ class CustomReActAgent(ReActAgent):
         if chat_history is not None:
             self._memory.set(chat_history)
 
-        # TODO 2023-10-17: it feels to be like running in circles in somewhat biasing the agent to not rely on its prior knowledge and have it use the query engine.
-        #  Perhaps this will go away once the LLM is trained on local data.
         message_with_tool_description = f"{message}\n{QUERY_ENGINE_TOOL_ROUTER}"
         self._memory.put(ChatMessage(content=message_with_tool_description, role="user"))
 
@@ -41,8 +39,6 @@ class CustomReActAgent(ReActAgent):
             input_chat = self._react_chat_formatter.format(
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
-            # NOTE 2023-10-15: the observation from the query tool is passed to the LLM which then answers with Thought or Answer,
-            # hence the parser does not have an Observation case
             # send prompt
             chat_response = self._llm.chat(input_chat)
 
@@ -88,11 +84,7 @@ class CustomReActAgent(ReActAgent):
         self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
-        if last_metadata is not None:
-            return response, last_metadata
-            # return response, last_metadata
-        else:
-            return response
+        return response, last_metadata
 
     def _process_actions(
             self, output: ChatResponse, last_metadata: Optional[str] = None
@@ -112,7 +104,7 @@ class CustomReActAgent(ReActAgent):
                     EventPayload.TOOL: tool.metadata,
                 },
         ) as event:
-            tool_output = tool.call(**reasoning_step.action_input)  # This returns a CustomToolOutput.
+            tool_output = tool.call(**reasoning_step.action_input)
             # Ensure the type of tool_output is CustomToolOutput to access all_formatted_metadata.
             if isinstance(tool_output, CustomToolOutput):
                 formatted_metadata = tool_output.get_formatted_metadata()  # Directly access the formatted metadata.
@@ -133,6 +125,6 @@ class CustomReActAgent(ReActAgent):
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
 
-        # Note  2023-10-24: current hack: we return  last_metadata manually here,
+        # Note 2023-10-24: current hack: we return last_metadata manually here,
         # alternatively we can overload the ObservationReasoningStep object to have metadata
         return current_reasoning, False, last_metadata

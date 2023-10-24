@@ -94,9 +94,6 @@ def get_chat_engine(index: VectorStoreIndex,
     # service_context.llm_predictor.llm = llm
     memory = memory or memory_cls.from_defaults(chat_history=chat_history, llm=llm)
 
-    # TODO 2023-09-29: we need to set in stone an accurate baseline evaluation using ReAct agent.
-    #   To achieve this we need to save intermediary Response objects to make sure we can distill
-    #   results and have access to nodes and chunks used for the reasoning
     if query_engine_as_tool:
         return CustomReActAgent.from_tools(
             tools=[query_engine_tool],
@@ -129,7 +126,6 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
             logging.info("Sleeping 20 seconds to avoid hitting rate limit for GPT-4-0613 which is 10k/min")
             time.sleep(20)
         if isinstance(retrieval_engine, BaseChatEngine):
-            # TODO 2023-10-07 [RETRIEVAL]: prioritise fetching chunks and metadata from CoT agent
             if not query_engine_as_tool:
                 response = query_engine.query(query_str)
                 str_response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=True)
@@ -141,7 +137,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 response, all_formatted_metadata = retrieval_engine.chat(query_str)
             if not run_application:
                 # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
-                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{last_metadata}\n```\n", color='green')
+                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{all_formatted_metadata}\n```\n", color='green')
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
@@ -189,15 +185,9 @@ def get_engine_from_vector_store(embedding_model_name: str,
         # TODO 2023-10-05 [RETRIEVAL]: should we weight more a person which is an author and has a paper?
         # TODO 2023-10-07 [RETRIEVAL]: ADD metadata filtering e.g. "only video" or "only papers", or "from this author", or "from this channel", or "from 2022 and 2023" etc
         # TODO 2023-10-07 [RETRIEVAL]: in the chat format, is the rag system keeping in memory the previous retrieved chunks? e.g. if an answer is too short can it develop it further?
-        # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune the top-k retrieved chunks? the temperature?
+        # TODO 2023-10-07 [RETRIEVAL]: should we allow the external user to tune the top-k retrieved chunks?
 
         # TODO 2023-10-09 [RETRIEVAL]: use metadata tags for users to choose amongst LVR, Intents, MEV, etc such that it can increase the result speed (and likely accuracy)
         #  and this upfront work is likely a low hanging fruit relative to payoff.
-
-        #  should we return all fetched resources from response object? or rather make another API call to return response + sources
-
-        # NOTE: 2023-10-05: we can update the chain of thought to display each chunk used for the reasoning
-
-        # TODO 2023-10-15: tweak the Q&A prompt sent to the query engine tool
 
     return retrieval_engine, query_engine, store_response_partial
