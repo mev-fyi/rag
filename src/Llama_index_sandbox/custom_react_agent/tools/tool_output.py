@@ -22,7 +22,7 @@ class CustomToolOutput(ToolOutput):
 
     def __str__(self) -> str:
         """Provide a basic string representation."""
-        msg = f"{self.content}\n\nFetched based on the following sources: \n{self.all_formatted_metadata}\n"
+        msg = f"{self.content}"  # \n\nFetched based on the following sources: \n{self.all_formatted_metadata}\n"
         return msg
 
     def get_formatted_metadata(self) -> str:

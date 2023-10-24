@@ -1,7 +1,7 @@
 import copy
 import json
 import logging
-from typing import Optional, List, Tuple, cast
+from typing import Optional, List, Tuple, cast, Union
 
 from llama_index.agent import ReActAgent
 from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep
@@ -21,7 +21,7 @@ class CustomReActAgent(ReActAgent):
     @trace_method("chat")
     def chat(
             self, message: str, chat_history: Optional[List[ChatMessage]] = None
-    ) -> AgentChatResponse:
+    ) -> Union[AgentChatResponse, Tuple[AgentChatResponse, str]]:
         """Chat."""
         if chat_history is not None:
             self._memory.set(chat_history)
@@ -32,6 +32,8 @@ class CustomReActAgent(ReActAgent):
         self._memory.put(ChatMessage(content=message_with_tool_description, role="user"))
 
         current_reasoning: List[BaseReasoningStep] = []
+
+        last_metadata = None
 
         # start loop
         for _ in range(self._max_iterations):
@@ -73,7 +75,10 @@ class CustomReActAgent(ReActAgent):
                     logging.error(f'Error in modifying the Action Input part of the response_content: [{e}]')
 
             # given react prompt outputs, call tools or return response
-            reasoning_steps, is_done = self._process_actions(output=chat_response_copy)
+            if last_metadata is not None:
+                reasoning_steps, is_done, last_metadata = self._process_actions(output=chat_response_copy, last_metadata=last_metadata)
+            else:
+                reasoning_steps, is_done, last_metadata = self._process_actions(output=chat_response_copy)
             current_reasoning.extend(reasoning_steps)
 
             if is_done:
@@ -83,15 +88,19 @@ class CustomReActAgent(ReActAgent):
         self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
-        return response
+        if last_metadata is not None:
+            return response, last_metadata
+            # return response, last_metadata
+        else:
+            return response
 
     def _process_actions(
-            self, output: ChatResponse
-    ) -> Tuple[List[BaseReasoningStep], bool]:
+            self, output: ChatResponse, last_metadata: Optional[str] = None
+    ) -> Tuple[List[BaseReasoningStep], bool, str]:
         _, current_reasoning, is_done = self._extract_reasoning_step(output)
 
         if is_done:
-            return current_reasoning, True
+            return current_reasoning, True, last_metadata
 
         # call tool with input
         reasoning_step = cast(ActionReasoningStep, current_reasoning[-1])
@@ -118,9 +127,12 @@ class CustomReActAgent(ReActAgent):
         # Create an observation step with the tool_output content, not the metadata.
         observation_content = str(tool_output)  # or tool_output.content, if .content is the attribute holding the main content.
         observation_step = ObservationReasoningStep(observation=observation_content)
+        last_metadata = tool_output.get_formatted_metadata()  # Directly access the formatted metadata.
         current_reasoning.append(observation_step)
 
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
 
-        return current_reasoning, False
+        # Note  2023-10-24: current hack: we return  last_metadata manually here,
+        # alternatively we can overload the ObservationReasoningStep object to have metadata
+        return current_reasoning, False, last_metadata

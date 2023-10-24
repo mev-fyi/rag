@@ -135,13 +135,13 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 str_response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=True)
                 str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
                 logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
-                response = retrieval_engine.chat(str_response)
+                response, all_formatted_metadata = retrieval_engine.chat(str_response)
             else:
                 logging.info(f"The question asked is: [{query_str}]")
-                response = retrieval_engine.chat(query_str)
+                response, all_formatted_metadata = retrieval_engine.chat(query_str)
             if not run_application:
                 # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
-                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```\n", color='green')
+                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{last_metadata}\n```\n", color='green')
             # retrieval_engine.reset()
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
@@ -151,7 +151,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
         else:
             logging.error(f"Please specify a retrieval engine amongst ['chat', 'query'], current input: {engine}")
             assert False
-    if len(input_queries) == 1:
+    if (len(input_queries) == 1) or (all_formatted_metadata is not None):
         return response, all_formatted_metadata
 
 
