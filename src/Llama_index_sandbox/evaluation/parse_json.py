@@ -1,7 +1,7 @@
 import json
 import os
 
-from src.Llama_index_sandbox import root_directory
+from src.Llama_index_sandbox import root_directory, root_dir
 
 
 def parse_old_json_format():
@@ -83,10 +83,42 @@ def parse_old_json_format():
         print(f"An unexpected error occurred: {e}")
 
 
+def get_latest_file():
+    """
+    Fetch the most recent file from a specific directory.
+
+    :param directory: str, The directory path where the files are stored.
+    :return: str, The file name of the most recent file.
+    """
+    directory = f"{root_dir}/logs/json"
+    # Check if the directory exists.
+    if not os.path.exists(directory):
+        print(f"Directory: {directory} does not exist.")
+        return None
+
+    # Get all the files in the directory.
+    full_file_paths = [os.path.join(directory, file) for file in os.listdir(directory) if os.path.isfile(os.path.join(directory, file))]
+
+    # Check if the directory is empty.
+    if not full_file_paths:
+        print(f"No files found in the directory: {directory}")
+        return None
+
+    # Get the latest file.
+    latest_file = max(full_file_paths, key=os.path.getctime)  # Change to os.path.getmtime if considering the last modification time.
+
+    return latest_file
+
+
 def parse_2023_10_24_json_format():
     # Define the path to your original file. Please make sure this path is correct.
-    file_name = "2023-10-24_16:58:15.log.json"
-    original_file_path = f'{root_directory()}/datasets/golden_source_logs/{file_name}'
+    original_file_path = get_latest_file()
+    file_name = original_file_path.split('/')[-1]
+    if file_name:
+        print(f"The most recent file is: {file_name}")
+    else:
+        print("Could not retrieve the file.")
+
     # Define the path for your new subdirectory.
     subdirectory_path = f'{root_directory()}/datasets/golden_source_logs/parsed_jsons'
 
@@ -126,6 +158,7 @@ def parse_2023_10_24_json_format():
                 condition_1 = event.get("LLM_response", "").startswith("Thought: I can answer without using any more tools.\nAnswer:")
                 condition_2 = False  # Initializing the variable
 
+                # NOTE 2023-10-24: this is hacky but it works for now as opposed to writing the metadata in the LLM end payload.
                 prev_two_event = json_list[idx - 2] if idx > 2 else None
                 prev_two_event_type = prev_two_event["event_type"].lower() if prev_two_event else None
                 metadata = None
@@ -143,7 +176,6 @@ def parse_2023_10_24_json_format():
                     # If condition_1 is met, we need to split the response to extract the final answer.
                     # If condition_2 is met, it implies the answer didn't start with the specific string, so we take the entire response.
                     final_answer = event.get("LLM_response", "").split("Answer: ")[1].strip() if condition_1 else event.get("LLM_response", "")
-
 
                     # Save the gathered information.
                     results.append({
