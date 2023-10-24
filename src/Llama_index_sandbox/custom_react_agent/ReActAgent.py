@@ -110,8 +110,6 @@ class CustomReActAgent(ReActAgent):
             else:
                 formatted_metadata = "Metadata not available."  # Or handle this case as appropriate for your application.
 
-            # You can now use formatted_metadata as needed in your function.
-            # If you need to send it as part of the event, you can do so:
             event.on_end(payload={
                 EventPayload.FUNCTION_OUTPUT: str(tool_output),
                 ExtendedEventPayload.FORMATTED_METADATA: formatted_metadata  # sending the metadata as part of the event.
@@ -124,7 +122,5 @@ class CustomReActAgent(ReActAgent):
 
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
-
-        # If you need to use the formatted_metadata later in the method, it's available in the 'formatted_metadata' variable.
 
         return current_reasoning, False

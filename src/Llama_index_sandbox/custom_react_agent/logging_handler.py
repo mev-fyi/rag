@@ -11,6 +11,7 @@ from llama_index.prompts.chat_prompts import TEXT_QA_SYSTEM_PROMPT
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import NUMBER_OF_CHUNKS_TO_RETRIEVE
+from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
 
 """
@@ -198,7 +199,9 @@ class JSONLoggingHandler(BaseCallbackHandler):
                 logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
         elif event_type == CBEventType.FUNCTION_CALL:
-            entry = {"event_type": f"{event_type.name} end", "tool_output": payload.get(EventPayload.FUNCTION_OUTPUT, "")}
+            entry = {"event_type": f"{event_type.name} end",
+                     "tool_output": payload.get(EventPayload.FUNCTION_OUTPUT),
+                     "metadata": payload.get(ExtendedEventPayload.FORMATTED_METADATA)}
             self.current_section = None
 
         elif event_type == CBEventType.TEMPLATING:

@@ -1,12 +1,24 @@
 import logging
 
 from llama_index.tools import ToolOutput
+from pydantic import Field
 
 
 class CustomToolOutput(ToolOutput):
-    def __init__(self, content, raw_output):
-        super().__init__(content, raw_output)
-        self.all_formatted_metadata = format_metadata(self.raw_output)  # Store formatted metadata.
+    all_formatted_metadata: str = Field(default="")  # Declare the new field with a default value
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+        # Note: Be cautious about changing attributes directly, Pydantic models are not designed for that.
+        # We might want to use `self.copy(update={"field": new_value})` instead.
+
+        # Ensure that raw_output has the structure we expect.
+        if self.raw_output and hasattr(self.raw_output, 'metadata'):
+            self.all_formatted_metadata = format_metadata(self.raw_output)  # Store formatted metadata.
+        else:
+            self.all_formatted_metadata = "No metadata available"
+            print("Warning: raw_output may not contain metadata as expected.")
 
     def __str__(self) -> str:
         """Provide a basic string representation."""
