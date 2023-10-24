@@ -3,17 +3,17 @@ from llama_index.text_splitter import SentenceSplitter
 from src.Llama_index_sandbox.utils import timeit
 
 
-def get_chunk_overlap(chunk_size):
-    return int(0.15 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
+def get_chunk_overlap(CHUNK_OVERLAP_PERCENTAGE, chunk_size):
+    return int(CHUNK_OVERLAP_PERCENTAGE/100 * chunk_size)  # TODO 2023-09-26: tune the chunk_size
 
 
 @timeit
-def chunk_documents(documents, chunk_size, splitter_fn=None, chunk_overlap=None):
+def chunk_documents(documents, CHUNK_OVERLAP_PERCENTAGE, chunk_size, splitter_fn=None, chunk_overlap=None):
     # NOTE: we expect semantical splitter methods to perform best (e.g. sentence splitter)
     if splitter_fn is None:
         splitter_fn = SentenceSplitter  # TODO 2023-09-25: The chosen text splitter should be a hyperparameter we can tune.
     if chunk_overlap is None:
-        chunk_overlap = get_chunk_overlap(chunk_size)
+        chunk_overlap = get_chunk_overlap(CHUNK_OVERLAP_PERCENTAGE, chunk_size)
     text_chunks, doc_idxs = chunk_single_document(documents, chunk_size, splitter_fn=splitter_fn, chunk_overlap=chunk_overlap, separator="\n")
     return text_chunks, doc_idxs
 

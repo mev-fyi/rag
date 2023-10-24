@@ -31,6 +31,8 @@ from enum import Enum
 
 LLM_TEMPERATURE = 0
 NUMBER_OF_CHUNKS_TO_RETRIEVE = 10
+CHUNK_SIZE_PERCENTAGE = 100
+CHUNK_OVERLAP_PERCENTAGE = 15
 
 '''
 valid OpenAI model name in: gpt-4, gpt-4-32k, gpt-4-0613, gpt-4-32k-0613, gpt-4-0314, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-3.5-turbo-0613, 

@@ -101,7 +101,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
 
         if not os.path.exists(f"{root_dir}/logs/json"):
             os.makedirs(f"{root_dir}/logs/json")
-        self.log_file = f"{root_dir}/logs/json/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.log"
+        self.log_file = f"{root_dir}/logs/json/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.json"
 
         self.current_section = None  # This will point to the part of the log we are currently writing to.
         self.current_logs = []  # Keep all current logs in memory for rewriting.

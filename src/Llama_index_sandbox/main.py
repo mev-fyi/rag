@@ -3,7 +3,7 @@
 import os
 
 import src.Llama_index_sandbox.config as config
-from src.Llama_index_sandbox.constants import INPUT_QUERIES
+from src.Llama_index_sandbox.constants import INPUT_QUERIES, CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions
 from src.Llama_index_sandbox.utils import start_logging
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
@@ -19,13 +19,14 @@ def initialise_chatbot(engine, query_engine_as_tool):
 
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
-    embedding_model_chunk_size = config.EMBEDDING_DIMENSIONS[embedding_model_name]
-    chunk_overlap = chunk_pdf.get_chunk_overlap(embedding_model_chunk_size)
+    embedding_model_chunk_size = int(config.EMBEDDING_DIMENSIONS[embedding_model_name] * CHUNK_SIZE_PERCENTAGE/100)
+    chunk_overlap = chunk_pdf.get_chunk_overlap(CHUNK_OVERLAP_PERCENTAGE, embedding_model_chunk_size)
     embedding_model = embed.get_embedding_model(embedding_model_name=embedding_model_name)
     if recreate_index:
         index = create_index(embedding_model_name=embedding_model_name,
+                             CHUNK_SIZE_PERCENTAGE=CHUNK_SIZE_PERCENTAGE,
                              embedding_model_chunk_size=embedding_model_chunk_size,
-                             chunk_overlap=chunk_overlap,
+                             CHUNK_OVERLAP_PERCENTAGE=CHUNK_OVERLAP_PERCENTAGE,
                              embedding_model=embedding_model)
     else:
         index = load_index_from_disk()

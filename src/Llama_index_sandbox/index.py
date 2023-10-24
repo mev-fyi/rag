@@ -54,7 +54,7 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
 
 
 @timeit
-def persist_index(index, embedding_model_name, chunk_size, chunk_overlap):
+def persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE):
     """
     Persist the index to disk.
     NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
@@ -62,7 +62,7 @@ def persist_index(index, embedding_model_name, chunk_size, chunk_overlap):
     try:
         # Format the filename
         date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        name = f"{date_str}_{embedding_model_name}_{chunk_size}_{chunk_overlap}"
+        name = f"{date_str}_{embedding_model_name}_{CHUNK_SIZE_PERCENTAGE}_{CHUNK_OVERLAP_PERCENTAGE}"
         persist_dir = index_dir + name
         # check if index_dir and if not create it
         if not os.path.exists(index_dir):
@@ -124,7 +124,7 @@ def load_index_from_disk() -> VectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, embedding_model_chunk_size, chunk_overlap):
+def create_index(embedding_model_name, embedding_model, CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE, embedding_model_chunk_size):
     logging.info("RECREATING INDEX")
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
@@ -133,7 +133,7 @@ def create_index(embedding_model_name, embedding_model, embedding_model_chunk_si
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY))  # [:5]
 
     # 2. Data chunking / text splitter
-    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, chunk_size=embedding_model_chunk_size)
+    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs,  CHUNK_OVERLAP_PERCENTAGE=CHUNK_OVERLAP_PERCENTAGE, chunk_size=embedding_model_chunk_size)
     text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, chunk_size=embedding_model_chunk_size)
 
     # 3. Manually Construct Nodes from Text Chunks
@@ -155,5 +155,5 @@ def create_index(embedding_model_name, embedding_model, embedding_model_chunk_si
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
     index = load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
-    persist_index(index, embedding_model_name, embedding_model_chunk_size, chunk_overlap)
+    persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE=CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE=CHUNK_OVERLAP_PERCENTAGE)
     return index
