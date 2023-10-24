@@ -112,6 +112,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
         entry = {}
         if event_type == CBEventType.LLM:
             messages = payload.get(EventPayload.MESSAGES, []) if payload else []
+            # TODO 2023-10-24: understand if these payload keys are pertaining to OpenAI or if they will be consistent across LLMs.
             serialized = payload.get(EventPayload.SERIALIZED, {}) if payload else {}
 
             if messages[-1].role == MessageRole.USER:

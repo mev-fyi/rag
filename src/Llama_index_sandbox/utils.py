@@ -71,8 +71,8 @@ def start_logging():
     # Ensure that root_directory() is defined and returns the path to the root directory
 
     # Create a 'logs' directory if it does not exist
-    if not os.path.exists(f'{root_directory()}/logs'):
-        os.makedirs(f'{root_directory()}/logs')
+    if not os.path.exists(f'{root_directory()}/logs/txt'):
+        os.makedirs(f'{root_directory()}/logs/txt')
 
     # Get the current date and time
     now = datetime.now()
@@ -83,7 +83,7 @@ def start_logging():
     root_logger.setLevel(logging.INFO)
 
     # Add handler to log messages to a file
-    log_filename = f'{root_directory()}/logs/log_{timestamp_str}.txt'
+    log_filename = f'{root_directory()}/logs/txt/log_{timestamp_str}.txt'
     file_handler = logging.FileHandler(log_filename)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     root_logger.addHandler(file_handler)
