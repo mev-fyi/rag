@@ -126,6 +126,12 @@ def parse_2023_10_24_json_format():
                 condition_1 = event.get("LLM_response", "").startswith("Thought: I can answer without using any more tools.\nAnswer:")
                 condition_2 = False  # Initializing the variable
 
+                prev_two_event = json_list[idx - 2] if idx > 2 else None
+                prev_two_event_type = prev_two_event["event_type"].lower() if prev_two_event else None
+                metadata = None
+                if prev_two_event_type == 'FUNCTION_CALL end'.lower():
+                    metadata = prev_two_event.get("metadata", None)
+
                 # Check that we're not at the last index to avoid 'index out of range' errors.
                 if idx < len(json_list) - 1:
                     next_event = json_list[idx + 1]
@@ -138,12 +144,14 @@ def parse_2023_10_24_json_format():
                     # If condition_2 is met, it implies the answer didn't start with the specific string, so we take the entire response.
                     final_answer = event.get("LLM_response", "").split("Answer: ")[1].strip() if condition_1 else event.get("LLM_response", "")
 
+
                     # Save the gathered information.
                     results.append({
                         "model_params": model_params,
                         "embedding_model_parameters": embedding_model_parameters,
                         "user_raw_input": user_raw_input,
-                        "LLM_response": final_answer
+                        "LLM_response": final_answer,
+                        "metadata": metadata if metadata is not None else ""
                     })
 
                     # Reset for the next pair.
