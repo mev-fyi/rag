@@ -3,12 +3,14 @@
 TODO we need to clean the generated transcripts. we can either do it at transcript generation time or afterwards.
 
 items to clean:
-- L Two -> L2
-- L Two s -> L2s
-- L Three -> L 3s
-- Arbitram -> Arbitrum
-- web three -> web3
-- SWAV -> SUAVE
+"L Two": "L2",
+"L Two s": "L2s",
+"L Three": "L3s",
+"Arbitram": "Arbitrum",
+"web three": "web3",
+"SWAV": "SUAVE",
+"One Inc": "1inch",
+"Pepsi": "PEPC",
 """
 
 import os
@@ -35,6 +37,7 @@ def correct_typos_in_files():
         "web three": "web3",
         "SWAV": "SUAVE",
         "One Inc": "1inch",
+        "Pepsi": "PEPC",
     }
 
     # Walk through root_dir
