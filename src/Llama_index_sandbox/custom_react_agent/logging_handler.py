@@ -13,6 +13,7 @@ from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
+from src.Llama_index_sandbox.utils import get_last_index_embedding_params
 
 """
 This module contains the JSONLoggingHandler class, a comprehensive logging handler designed for monitoring and recording 
@@ -84,12 +85,7 @@ Developers using or extending this class should be aware of these assumptions an
 They may need to implement additional safeguards, optimizations, or features, depending on the specific requirements of their system and operational environment.
 """
 
-index_dir = f"{root_dir}/.storage/research_pdf/"
-index = sorted(os.listdir(index_dir))[-1].split('_')
-index_date = index[0]
-embedding_model_name = index[1]
-embedding_model_chunk_size = int(index[2])
-chunk_overlap = int(index[3])
+embedding_model_name, embedding_model_chunk_size, chunk_overlap = get_last_index_embedding_params()
 
 
 class JSONLoggingHandler(BaseCallbackHandler):

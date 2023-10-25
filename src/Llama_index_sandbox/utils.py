@@ -173,3 +173,13 @@ def authenticate_service_account(service_account_file: str) -> Credentials:
         scopes=["https://www.googleapis.com/auth/youtube.readonly"]
     )
     return credentials
+
+
+def get_last_index_embedding_params():
+    index_dir = f"{root_directory()}/.storage/research_pdf/"
+    index = sorted(os.listdir(index_dir))[-1].split('_')
+    index_date = index[0]
+    embedding_model_name = index[1]
+    embedding_model_chunk_size = int(index[2])
+    chunk_overlap = int(index[3])
+    return embedding_model_name, embedding_model_chunk_size, chunk_overlap

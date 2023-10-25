@@ -31,8 +31,8 @@ from enum import Enum
 
 LLM_TEMPERATURE = 0
 NUMBER_OF_CHUNKS_TO_RETRIEVE = 10
-CHUNK_SIZE_PERCENTAGE = 100
-CHUNK_OVERLAP_PERCENTAGE = 15
+CHUNK_SIZE_PERCENTAGE = 50  # 100
+CHUNK_OVERLAP_PERCENTAGE = 10
 
 '''
 valid OpenAI model name in: gpt-4, gpt-4-32k, gpt-4-0613, gpt-4-32k-0613, gpt-4-0314, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-16k, gpt-3.5-turbo-0613, 
@@ -40,7 +40,7 @@ gpt-3.5-turbo-16k-0613, gpt-3.5-turbo-0301, text-davinci-003, text-davinci-002, 
 text-ada-001, text-babbage-001, text-curie-001, ada, babbage, curie, davinci, gpt-35-turbo-16k, gpt-35-turbo
 '''
 
-OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
+OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"  #"gpt-3.5-turbo-16k-0613"  # "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
         # "What is red teaming in AI",  # Should refuse to respond,
         "Tell me about LVR",
