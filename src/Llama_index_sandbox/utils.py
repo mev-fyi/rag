@@ -1,7 +1,4 @@
-import asyncio
-import multiprocessing
 import time
-import random
 import logging
 import os
 from datetime import datetime
@@ -26,45 +23,6 @@ def root_directory() -> str:
         else:
             # Go up one level
             current_dir = os.path.dirname(current_dir)
-
-
-class RateLimitController:
-    """
-    A controller to handle rate limiting by implementing a backoff mechanism.
-
-    Attributes:
-    - backoff_time (multiprocessing.Value): Shared value to store the current backoff time.
-    - lock (multiprocessing.Lock): Lock to ensure thread-safety when updating the backoff time.
-
-    Methods:
-    - register_rate_limit_exceeded: Increases the backoff time and sleeps the process for that duration.
-    - reset_backoff_time: Resets the backoff time to the default value.
-    """
-
-    def __init__(self):
-        # Doubling the default backoff time to 40.0 seconds
-        self.backoff_time = multiprocessing.Value('d', 40.0)
-        self.lock = multiprocessing.Lock()
-
-    def register_rate_limit_exceeded(self):
-        """
-        Registers that a rate limit has been exceeded. This method will add a jitter (random fraction)
-        to the current backoff time and sleep for that duration. Subsequently, the backoff time will be doubled,
-        but capped at 300 seconds (5 minutes).
-        """
-        with self.lock:
-            jitter = self.backoff_time.value * 0.5 * random.uniform(0, 1)
-            sleep_time = min(self.backoff_time.value + jitter, 300)
-            logging.warning(f"Rate limit exceeded. Retrying in {sleep_time} seconds...")
-            time.sleep(sleep_time)
-            self.backoff_time.value = min(self.backoff_time.value * 2, 300)
-
-    def reset_backoff_time(self):
-        """
-        Resets the backoff time to the default value of 40.0 seconds.
-        """
-        with self.lock:
-            self.backoff_time.value = 40.0
 
 
 def start_logging():
@@ -120,7 +78,7 @@ def timeit(func):
         Returns:
             The value returned by the decorated function.
         """
-        logging.info(f"\n{func.__name__} STARTED.")
+        logging.info(f"{func.__name__} STARTED.")
         start_time = time.time()
 
         # Call the decorated function and store its result.
@@ -136,33 +94,6 @@ def timeit(func):
         return result  # Return the result of the decorated function
 
     return wrapper
-
-
-def background(f):
-    """
-    Decorator that turns a synchronous function into an asynchronous function by running it in an
-    executor using the default event loop.
-
-    Args:
-        f (Callable): The function to be turned into an asynchronous function.
-
-    Returns:
-        Callable: The wrapped function that can be called asynchronously.
-    """
-    def wrapped(*args, **kwargs):
-        """
-        Wrapper function that calls the original function 'f' in an executor using the default event loop.
-
-        Args:
-            *args: Positional arguments to pass to the original function 'f'.
-            **kwargs: Keyword arguments to pass to the original function 'f'.
-
-        Returns:
-            Any: The result of the original function 'f'.
-        """
-        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
-
-    return wrapped
 
 
 def authenticate_service_account(service_account_file: str) -> Credentials:

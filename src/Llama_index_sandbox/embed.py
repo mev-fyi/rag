@@ -13,33 +13,24 @@ from typing import List
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 
-from src.Llama_index_sandbox.utils import RateLimitController, timeit
+from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.rate_limit_controller import RateLimitController, rate_limit_controller, handle_rate_limit
 
 
-def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, rate_limit_controller, progress_percentage=0.05):
+@handle_rate_limit
+def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, progress_percentage=0.01):
     """Generate embedding for a single node."""
-    while True:
-        try:
-            # random sleep from 0 to 3 seconds
-            time.sleep(random.uniform(0, 2))
-            node_embedding = embedding_model.get_text_embedding(
-                node.get_content(metadata_mode="all")
-            )
-            node.embedding = node_embedding
-            with progress_counter.get_lock():
-                progress_counter.value += 1
-                progress = (progress_counter.value / total_nodes) * 100
-                if progress_counter.value % math.ceil(total_nodes * progress_percentage) == 0 or progress_counter.value == total_nodes:
-                    logging.info(f"Progress: {progress:.2f}% - {progress_counter.value}/{total_nodes} nodes processed.")
-            rate_limit_controller.reset_backoff_time()
-            break
-        except Exception as e:
-            if 'Rate limit reached' in str(e) or 'rate_limit_exceeded' in str(e):
-                logging.warning("Rate limit error detected.")
-                rate_limit_controller.register_rate_limit_exceeded()
-            else:
-                logging.error(f"Failed to generate embedding due to: {e}")
-                break
+    try:
+        node_embedding = embedding_model.get_text_embedding(node.get_content(metadata_mode="all"))
+        node.embedding = node_embedding
+
+        with progress_counter.get_lock():
+            progress_counter.value += 1
+            progress = (progress_counter.value / total_nodes) * 100
+            if progress_counter.value % math.ceil(total_nodes * progress_percentage) == 0 or progress_counter.value == total_nodes:
+                logging.info(f"Progress: {progress:.2f}% - {progress_counter.value}/{total_nodes} nodes processed.")
+    except Exception as e:
+        logging.exception("An error occurred in generate_node_embedding: %s", e)
 
 
 def generate_embeddings(nodes: List[TextNode], embedding_model):
@@ -47,15 +38,13 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
 
     progress_counter = multiprocessing.Value('i', 0)
     total_nodes = len(nodes)
-    rate_limit_controller = RateLimitController()
 
     partial_generate_node_embedding = partial(generate_node_embedding,
                                               embedding_model=embedding_model,
                                               progress_counter=progress_counter,
-                                              total_nodes=total_nodes,
-                                              rate_limit_controller=rate_limit_controller)
+                                              total_nodes=total_nodes)
 
-    num_threads = multiprocessing.cpu_count()  # half the number of CPUs
+    num_threads = multiprocessing.cpu_count()  # Number of threads based on the system's available CPUs
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
         list(executor.map(partial_generate_node_embedding, nodes))
