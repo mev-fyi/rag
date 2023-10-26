@@ -65,7 +65,7 @@ Below is the current conversation consisting of interleaving human and assistant
 
 QUERY_ENGINE_TOOL_DESCRIPTION = """The query engine tool has access to research papers and 
 YouTube videos about the following content: Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents; 
-the Single Unifying Auction for Value Expression (SUAVE); sequencers; transaction ordering, L1s, L2s, transaction ordering, order flow auctions, auction theory, mechanism design.
+the Single Unifying Auction for Value Expression (SUAVE); sequencers; transaction ordering, L1s, L2s, transaction ordering, order flow auctions, auction theory, mechanism design, enshrined Proposer Builder Separation (ePBS).
 """
 # Always write some words about the requested content to state to the user that you understood the request.
 
