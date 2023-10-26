@@ -65,13 +65,17 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
 
 @timeit
-def load_video_transcripts(directory_path: Union[str, Path]):
+def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True):
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
-    create_transcripts_from_raw_json_utterances.run()
-    correct_typos_in_files()
+    if add_new_transcripts:
+        logging.info("Creating transcripts from raw json utterances")
+        create_transcripts_from_raw_json_utterances.run()
+        correct_typos_in_files()
+    else:
+        logging.info("Skipping transcript creation from raw json utterances")
 
     all_documents = []
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"

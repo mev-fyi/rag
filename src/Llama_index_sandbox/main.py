@@ -16,6 +16,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
     start_logging()
 
     recreate_index = True
+    add_new_transcripts = False
     stream = True
 
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
