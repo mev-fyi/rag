@@ -129,8 +129,8 @@ def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
     # download_pdfs(pdf_links, save_dir)
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY))  # [:5]
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts)  # [:5]
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY))#[:5]
+    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts)#[:5]
 
     # 2. Data chunking / text splitter
     text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE)

@@ -12,16 +12,36 @@ from typing import List
 
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
+from tiktoken.model import MODEL_TO_ENCODING
 
 from src.Llama_index_sandbox.utils import timeit
-from src.Llama_index_sandbox.rate_limit_controller import RateLimitController, rate_limit_controller, handle_rate_limit
+from src.Llama_index_sandbox.token_counter import TokenCounter
+import tiktoken
+
+token_counter = TokenCounter(900000)
 
 
-@handle_rate_limit
-def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, progress_percentage=0.01):
+def num_tokens_from_string(string: str, embedding_model_name: str) -> int:
+    encoding = tiktoken.get_encoding(MODEL_TO_ENCODING[embedding_model_name])
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
+
+def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, progress_percentage=0.05):
     """Generate embedding for a single node."""
     try:
-        node_embedding = embedding_model.get_text_embedding(node.get_content(metadata_mode="all"))
+        node_content = node.get_content(metadata_mode="all")
+        num_tokens = num_tokens_from_string(node_content, embedding_model.model_name)
+
+        # Add the tokens to the counter and check if the rate limit is exceeded.
+        token_counter.add(num_tokens)
+        if token_counter.is_rate_limit_exceeded():
+            logging.warning("Rate limit about to be exceeded, sleeping for 20 seconds...")
+            time.sleep(20)  # sleep for a while to respect rate limits
+            logging.info("Resuming")
+            token_counter.clear_old_tokens()  # reset the counter after waiting
+
+        node_embedding = embedding_model.get_text_embedding(node_content)
         node.embedding = node_embedding
 
         with progress_counter.get_lock():
@@ -29,8 +49,9 @@ def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, pr
             progress = (progress_counter.value / total_nodes) * 100
             if progress_counter.value % math.ceil(total_nodes * progress_percentage) == 0 or progress_counter.value == total_nodes:
                 logging.info(f"Progress: {progress:.2f}% - {progress_counter.value}/{total_nodes} nodes processed.")
+
     except Exception as e:
-        logging.exception("An error occurred in generate_node_embedding: %s", e)
+        logging.error(f"Failed to generate embedding due to: {e}")
 
 
 def generate_embeddings(nodes: List[TextNode], embedding_model):
