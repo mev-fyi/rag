@@ -154,8 +154,8 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
 @timeit
 def get_engine_from_vector_store(embedding_model_name: str,
                                  llm_model_name: str,
-                                 chunksize: int,
-                                 chunkoverlap: int,
+                                 TEXT_SPLITTER_CHUNK_SIZE: int,
+                                 TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE: int,
                                  index: VectorStoreIndex,
                                  query_engine_as_tool: bool,
                                  stream: bool,
@@ -166,7 +166,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
     # TODO 2023-09-29: determine how we should structure our indexes per document type
     service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
     # create partial store_response with everything but the query_str and response
-    store_response_partial = partial(store_response, embedding_model_name, llm_model_name, chunksize, chunkoverlap)
+    store_response_partial = partial(store_response, embedding_model_name, llm_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
 
     if engine == 'chat':
         retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)

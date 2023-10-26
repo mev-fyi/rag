@@ -7,7 +7,7 @@ import pinecone
 from pathlib import Path
 
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
-from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY
+from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
@@ -19,7 +19,7 @@ api_key = os.environ["PINECONE_API_KEY"]
 
 
 @timeit
-def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
+def initialise_vector_store(embedding_model_vector_dimension) -> PineconeVectorStore:
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
     index_name = "quickstart"
 
@@ -42,7 +42,7 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
     }
     pinecone.create_index(name=index_name,
                           metadata_config=metadata_config,
-                          dimension=embedding_model_chunk_size,
+                          dimension=embedding_model_vector_dimension,
                           metric="cosine",
                           pod_type="p1")
     pinecone_index = pinecone.Index(index_name=index_name)
@@ -54,7 +54,7 @@ def initialise_vector_store(embedding_model_chunk_size) -> PineconeVectorStore:
 
 
 @timeit
-def persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE):
+def persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE):
     """
     Persist the index to disk.
     NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
@@ -62,7 +62,7 @@ def persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE, CHUNK_OVER
     try:
         # Format the filename
         date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        name = f"{date_str}_{embedding_model_name}_{CHUNK_SIZE_PERCENTAGE}_{CHUNK_OVERLAP_PERCENTAGE}"
+        name = f"{date_str}_{embedding_model_name}_{TEXT_SPLITTER_CHUNK_SIZE}_{TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE}"
         persist_dir = index_dir + name
         # check if index_dir and if not create it
         if not os.path.exists(index_dir):
@@ -70,7 +70,7 @@ def persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE, CHUNK_OVER
         # NOTE 2023-09-29: https://stackoverflow.com/questions/76837143/llamaindex-index-storage-context-persist-not-storing-vector-store
         #   Vector Store IS NOT persisted. The method index.storage_context.persist is failing silently since when attempting to
         #   load the index back, it fails since there is no vector json file
-        index.storage_context.persist(persist_dir=persist_dir)  # TODO 2023-09-29: understand why vector_store is not saved there
+        index.storage_context.persist(persist_dir=persist_dir)
         # create a vector_store.json file with {} inside
         with open(f"{persist_dir}/vector_store.json", "w") as f:
             f.write("{}")
@@ -81,14 +81,14 @@ def persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE, CHUNK_OVER
 
 
 @timeit
-def load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size) -> VectorStoreIndex:
+def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension) -> VectorStoreIndex:
     """
     We now insert these nodes into our PineconeVectorStore.
 
     NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level
     abstraction that handles ingestion as well. We use VectorStoreIndex in the next section to fast-track retrieval/querying.
     """
-    vector_store = initialise_vector_store(embedding_model_chunk_size=embedding_model_chunk_size)
+    vector_store = initialise_vector_store(embedding_model_vector_dimension=embedding_model_vector_dimension)
     vector_store.add(nodes)
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
@@ -124,17 +124,17 @@ def load_index_from_disk() -> VectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE, embedding_model_chunk_size):
+def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, add_new_transcripts):
     logging.info("RECREATING INDEX")
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
     # download_pdfs(pdf_links, save_dir)
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY))  # [:1]
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY))  # [:5]
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY))  # [:5]
+    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts)  # [:5]
 
     # 2. Data chunking / text splitter
-    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs,  CHUNK_OVERLAP_PERCENTAGE=CHUNK_OVERLAP_PERCENTAGE, chunk_size=embedding_model_chunk_size)
-    text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, chunk_size=embedding_model_chunk_size)
+    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE)
+    text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
 
     # 3. Manually Construct Nodes from Text Chunks
     nodes_pdf = embed.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
@@ -154,6 +154,6 @@ def create_index(embedding_model_name, embedding_model, CHUNK_SIZE_PERCENTAGE, C
     # We now insert these nodes into our PineconeVectorStore.
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_chunk_size)
-    persist_index(index, embedding_model_name, CHUNK_SIZE_PERCENTAGE=CHUNK_SIZE_PERCENTAGE, CHUNK_OVERLAP_PERCENTAGE=CHUNK_OVERLAP_PERCENTAGE)
+    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name])
+    persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
     return index

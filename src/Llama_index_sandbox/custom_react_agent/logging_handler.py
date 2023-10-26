@@ -85,7 +85,7 @@ Developers using or extending this class should be aware of these assumptions an
 They may need to implement additional safeguards, optimizations, or features, depending on the specific requirements of their system and operational environment.
 """
 
-embedding_model_name, embedding_model_chunk_size, chunk_overlap = get_last_index_embedding_params()
+embedding_model_name, text_splitter_chunk_size, chunk_overlap = get_last_index_embedding_params()
 
 
 class JSONLoggingHandler(BaseCallbackHandler):
@@ -120,7 +120,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
                         "model_params": serialized,
                         "embedding_model_parameters": {
                             "embedding_model_name": embedding_model_name,
-                            "embedding_model_chunk_size": embedding_model_chunk_size,
+                            "text_splitter_chunk_size": text_splitter_chunk_size,
                             "chunk_overlap": chunk_overlap,
                             "number of chunks to retrieve": NUMBER_OF_CHUNKS_TO_RETRIEVE},
                         "user_raw_input": user_raw_input,

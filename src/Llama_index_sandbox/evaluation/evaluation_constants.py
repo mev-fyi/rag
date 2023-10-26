@@ -5,10 +5,10 @@
 
 # Assumption: the chunk sizes and overlaps are the same regardless of PDF or youtube video
 # Embedding model sizes as a percentage of the maximum size.
-CHUNK_SIZES = [20, 50, 70, 100]  # Representing percentages of EMBEDDING_DIMENSIONS from config.
+CHUNK_SIZES = [300, 500, 700, 1000]
 
 # Overlapping of chunks, represented as a percentage.
-CHUNK_OVERLAPS = [5, 10, 15]  # Representing percentages.
+CHUNK_OVERLAPS = [5, 10, 15]  # Representing percentages of CHUNK_SIZE.
 
 # Number of chunks retrieved for analysis.
 NUM_CHUNKS_RETRIEVED = [3, 5, 7, 10]
