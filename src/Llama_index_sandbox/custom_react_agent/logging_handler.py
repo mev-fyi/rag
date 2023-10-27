@@ -7,11 +7,11 @@ from llama_index.callbacks.schema import CBEventType, EventPayload
 from typing import Any, Optional, Dict, List
 import os
 from llama_index.llms import MessageRole
-from llama_index.prompts.chat_prompts import TEXT_QA_SYSTEM_PROMPT
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
+from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import TEXT_QA_SYSTEM_PROMPT
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
 from src.Llama_index_sandbox.utils import get_last_index_embedding_params
 

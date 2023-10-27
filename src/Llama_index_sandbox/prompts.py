@@ -62,10 +62,11 @@ Below is the current conversation consisting of interleaving human and assistant
 # Do not rely on your prior knowledge from your training data, only use what the query tool sent to you.
 # Unless the user clearly refers to previous content from the chat, make sure to always use the query tool to answer the user question.
 
+TOPIC_KEYWORDS = """Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents, 
+the Single Unifying Auction for Value Expression (SUAVE); sequencers; transaction ordering, L1s, L2s, transaction ordering, order flow auctions, auction theory, mechanism design, enshrined Proposer Builder Separation (ePBS)."""
 
-QUERY_ENGINE_TOOL_DESCRIPTION = """The query engine tool has access to research papers and 
-YouTube videos about the following content: Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents; 
-the Single Unifying Auction for Value Expression (SUAVE); sequencers; transaction ordering, L1s, L2s, transaction ordering, order flow auctions, auction theory, mechanism design, enshrined Proposer Builder Separation (ePBS).
+QUERY_ENGINE_TOOL_DESCRIPTION = f"""The query engine tool has access to research papers and 
+YouTube videos about the following content: {TOPIC_KEYWORDS} 
 """
 # Always write some words about the requested content to state to the user that you understood the request.
 
@@ -78,5 +79,5 @@ To determine if you should take the action to use the query engine, use its desc
 # You can use it to cite content from a document, a list of all documents created by a given author, or release from a given date for instance.
 
 
-QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive answer to the question, unless told otherwise in the question itself.
-Directly quote the sources of your knowledge in the same sentence in parentheses. If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""
+QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
+Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""

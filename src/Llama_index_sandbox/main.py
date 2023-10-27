@@ -14,17 +14,16 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 def initialise_chatbot(engine, query_engine_as_tool):
     start_logging()
 
-    recreate_index = True
+    recreate_index = False
     add_new_transcripts = False
     stream = True
 
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
-    chunk_overlap = chunk_pdf.get_chunk_overlap(TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, TEXT_SPLITTER_CHUNK_SIZE)
     embedding_model = embed.get_embedding_model(embedding_model_name=embedding_model_name)
 
     index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap = get_last_index_embedding_params()
-    if (not recreate_index) and ((index_embedding_model_name == embedding_model_name) or (index_text_splitter_chunk_size == TEXT_SPLITTER_CHUNK_SIZE) or (index_chunk_overlap == chunk_overlap)):
+    if (not recreate_index) and ((index_embedding_model_name != embedding_model_name) or (index_text_splitter_chunk_size != TEXT_SPLITTER_CHUNK_SIZE) or (index_chunk_overlap != TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)):
         logging.error(f"The new embedding model parameters are the same as the last ones and we are not recreating the index. Do you want to recreate the index or to revert parameters back?")
         assert False
 
@@ -53,10 +52,13 @@ def initialise_chatbot(engine, query_engine_as_tool):
 def run():
     engine = 'chat'
     query_engine_as_tool = True
+    reset_chat = True
+
+    logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}, reset_chat={reset_chat}")
 
     retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool)
     ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
-                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool)
+                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, reset_chat=reset_chat)
     return retrieval_engine
 
 

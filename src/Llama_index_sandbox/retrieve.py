@@ -14,10 +14,12 @@ from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llm_predictor.base import BaseLLMPredictor
 from llama_index.llms import OpenAI
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
+from llama_index.prompts.default_prompts import DEFAULT_SIMPLE_INPUT_PROMPT
 from llama_index.utils import print_text
 
 from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.custom_react_agent.logging_handler import JSONLoggingHandler
+from src.Llama_index_sandbox.custom_react_agent.tools.default_prompt_selectors import DEFAULT_TEXT_QA_PROMPT_SEL, DEFAULT_REFINE_PROMPT_SEL, DEFAULT_TREE_SUMMARIZE_PROMPT_SEL
 from src.Llama_index_sandbox.prompts import SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
 from src.Llama_index_sandbox.custom_react_agent.ReActAgent import CustomReActAgent
 from src.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
@@ -31,7 +33,20 @@ from src.Llama_index_sandbox.utils import timeit
 
 
 def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
-    return index.as_query_engine(similarity_top_k=similarity_top_k, service_context=service_context, verbose=verbose)
+    """Get a response synthesizer."""
+    text_qa_template = DEFAULT_TEXT_QA_PROMPT_SEL
+    refine_template = DEFAULT_REFINE_PROMPT_SEL
+    simple_template = DEFAULT_SIMPLE_INPUT_PROMPT
+    summary_template = DEFAULT_TREE_SUMMARIZE_PROMPT_SEL
+
+    return index.as_query_engine(similarity_top_k=similarity_top_k,
+                                 service_context=service_context,
+                                 verbose=verbose,
+                                 text_qa_template=text_qa_template,
+                                 refine_template=refine_template,
+                                 simple_template=simple_template,
+                                 summary_template=summary_template,
+                                 )
 
 
 def get_inference_llm(temperature,
@@ -116,7 +131,7 @@ def get_chat_engine(index: VectorStoreIndex,
         )
 
 
-def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False):
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False, reset_chat=False):
     # TODO 2023-10-15: We need metadata filtering at database level else for the query to look over Documents metadata else it fails e.g. when asked to
     #  retrieve content from authors. It would search in paper content but not necessarily correctly fetch all documents, and might return documents that cited the author but which can be irrelevant.
     all_formatted_metadata = None
@@ -138,7 +153,10 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
             if not run_application:
                 # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
                 print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{all_formatted_metadata}\n```\n", color='green')
-            # retrieval_engine.reset()
+            if reset_chat:
+                logging.info(f"Resetting chat engine after question.")
+                retrieval_engine.reset()  # NOTE 2023-10-27: comment out to reset the chat after each question and see the performance, i.e. correct response given memory versus hallucination.
+
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")
