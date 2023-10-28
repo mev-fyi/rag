@@ -61,6 +61,8 @@ def persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SP
     """
     try:
         # Format the filename
+        if '/' in embedding_model_name:
+            embedding_model_name = embedding_model_name.split('/')[-1]
         date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
         name = f"{date_str}_{embedding_model_name}_{TEXT_SPLITTER_CHUNK_SIZE}_{TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE}"
         persist_dir = index_dir + name
@@ -95,7 +97,7 @@ def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dime
 
 
 @timeit
-def load_index_from_disk() -> VectorStoreIndex:
+def load_index_from_disk(service_context) -> VectorStoreIndex:
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
@@ -103,7 +105,7 @@ def load_index_from_disk() -> VectorStoreIndex:
         pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
         index_name = "quickstart"
         vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
-        index = VectorStoreIndex.from_vector_store(vector_store)
+        index = VectorStoreIndex.from_vector_store(vector_store, service_context)
         return index
     except Exception as e:
         logging.error(f"Error: {e}")
@@ -116,7 +118,7 @@ def load_index_from_disk() -> VectorStoreIndex:
                 pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
                 index_name = "quickstart"
                 vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
-                index = VectorStoreIndex.from_vector_store(vector_store)
+                index = VectorStoreIndex.from_vector_store(vector_store, service_context)
                 return index
             except Exception as e:
                 logging.error(f"load_index_from_disk ERROR: {e}")
@@ -124,13 +126,13 @@ def load_index_from_disk() -> VectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, add_new_transcripts):
+def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, add_new_transcripts, num_files=None):
     logging.info("RECREATING INDEX")
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
     # download_pdfs(pdf_links, save_dir)
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY))#[:5]
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts)#[:5]
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files)
+    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
 
     # 2. Data chunking / text splitter
     text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE)

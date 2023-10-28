@@ -1,15 +1,16 @@
 import logging
 import time
 from functools import partial
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
-from llama_index import VectorStoreIndex, ServiceContext
+from llama_index import VectorStoreIndex, ServiceContext, OpenAIEmbedding
 from llama_index.agent import ReActAgent
 from llama_index.agent.react.formatter import ReActChatFormatter
 from llama_index.agent.react.output_parser import ReActOutputParser
 
 from llama_index.callbacks import CallbackManager
 from llama_index.chat_engine.types import BaseChatEngine
+from llama_index.embeddings import HuggingFaceEmbedding
 from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llm_predictor.base import BaseLLMPredictor
 from llama_index.llms import OpenAI
@@ -38,7 +39,6 @@ def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
     refine_template = DEFAULT_REFINE_PROMPT_SEL
     simple_template = DEFAULT_SIMPLE_INPUT_PROMPT
     summary_template = DEFAULT_TREE_SUMMARIZE_PROMPT_SEL
-
     return index.as_query_engine(similarity_top_k=similarity_top_k,
                                  service_context=service_context,
                                  verbose=verbose,
@@ -157,7 +157,6 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"Resetting chat engine after question.")
                 retrieval_engine.reset()  # NOTE 2023-10-27: comment out to reset the chat after each question and see the performance, i.e. correct response given memory versus hallucination.
 
-
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")
             response = retrieval_engine.query(query_str)
@@ -171,7 +170,9 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
 
 @timeit
 def get_engine_from_vector_store(embedding_model_name: str,
+                                 embedding_model: Union[OpenAIEmbedding, HuggingFaceEmbedding],
                                  llm_model_name: str,
+                                 service_context: ServiceContext,
                                  TEXT_SPLITTER_CHUNK_SIZE: int,
                                  TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE: int,
                                  index: VectorStoreIndex,
@@ -182,7 +183,6 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  ):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
-    service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name))
     # create partial store_response with everything but the query_str and response
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
 

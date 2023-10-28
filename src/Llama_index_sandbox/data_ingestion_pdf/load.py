@@ -195,7 +195,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path]):
+def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
     # Convert directory_path to a Path object if it is not already
     # logging.info("Loading PDFs")
     if not isinstance(directory_path, Path):
@@ -208,10 +208,19 @@ def load_pdfs(directory_path: Union[str, Path]):
     partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df)
     pdf_loaded_count = 0
 
+    # Create a generator for the PDF files
+    files_gen = directory_path.glob("*.pdf")
+
+    # If num_files is specified and is not None, convert the generator to a list and slice it
+    if num_files is not None:
+        files = [next(files_gen) for _ in range(num_files) if files_gen]
+    else:
+        files = list(files_gen)  # Convert generator to list to process all files
+
     # Using ThreadPoolExecutor to load PDFs in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Map over all PDF files in the directory
-        futures = {executor.submit(partial_load_single_pdf, file_path=pdf_file): pdf_file for pdf_file in directory_path.glob("*.pdf")}
+        futures = {executor.submit(partial_load_single_pdf, file_path=pdf_file): pdf_file for pdf_file in files}
 
         for future in concurrent.futures.as_completed(futures):
             pdf_file = futures[future]

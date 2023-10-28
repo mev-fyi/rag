@@ -65,7 +65,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
 
 @timeit
-def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True):
+def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, num_files: int = None):
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
@@ -84,10 +84,23 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
     partial_load_single_transcript = partial(load_single_video_transcript, youtube_videos_df=youtube_videos_df)
     video_transcripts_loaded_count = 0
 
+    # Convert directory_path to a Path object if it is not already
+    if not isinstance(directory_path, Path):
+        directory_path = Path(directory_path)
+
+    # Recursively find all .txt files in all subdirectories
+    all_files = list(directory_path.rglob("*.txt"))  # This can be large depending on your filesystem
+
+    # If num_files is provided, slice the list to process only the first 'num_files' files
+    if num_files is not None:
+        files = all_files[:num_files]  # Slice the list to get only the number of files you want
+    else:
+        files = all_files  # Otherwise, process all files
+
     # Using ThreadPoolExecutor to load PDFs in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Map over all video transcript files in the directory
-        futures = {executor.submit(partial_load_single_transcript, file_path=video_transcript): video_transcript for video_transcript in directory_path.rglob("*.txt")}
+        futures = {executor.submit(partial_load_single_transcript, file_path=video_transcript): video_transcript for video_transcript in files}
 
         for future in concurrent.futures.as_completed(futures):
             video_transcript = futures[future]
@@ -102,5 +115,5 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                 logging.info(f"Failed to process {video_transcript}, passing: {e}")
                 pass
     logging.info(f"Successfully loaded {video_transcripts_loaded_count} documents from video transcripts.")
-    assert len(all_documents) > 50, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
+    # assert len(all_documents) > 50, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents

@@ -43,6 +43,7 @@ def generate_node_embedding(node: TextNode, embedding_model, progress_counter, t
                 break
 
 
+@timeit
 def generate_embeddings(nodes: List[TextNode], embedding_model):
     import concurrent.futures
 

@@ -8,7 +8,7 @@ import multiprocessing
 import os
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
-from typing import List
+from typing import List, Union
 
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
@@ -22,24 +22,29 @@ token_counter = TokenCounter(900000)
 
 
 def num_tokens_from_string(string: str, embedding_model_name: str) -> int:
-    encoding = tiktoken.get_encoding(MODEL_TO_ENCODING[embedding_model_name])
-    num_tokens = len(encoding.encode(string))
+    try:
+        encoding = tiktoken.get_encoding(MODEL_TO_ENCODING[embedding_model_name])
+        num_tokens = len(encoding.encode(string))
+    except Exception as e:
+        logging.error(f"Failed to get number of tokens due to: {e}")
+        exit(1)
     return num_tokens
 
 
-def generate_node_embedding(node: TextNode, embedding_model: OpenAIEmbedding, progress_counter, total_nodes, progress_percentage=0.05):
+def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbedding, HuggingFaceEmbedding], progress_counter, total_nodes, progress_percentage=0.05):
     """Generate embedding for a single node."""
     try:
         node_content = node.get_content(metadata_mode="all")
-        num_tokens = num_tokens_from_string(node_content, embedding_model.model_name)
+        if embedding_model.model_name in MODEL_TO_ENCODING.keys():  # deactivate token counter if it is OSS model
+            num_tokens = num_tokens_from_string(node_content, embedding_model.model_name)
 
-        # Add the tokens to the counter and check if the rate limit is exceeded.
-        token_counter.add(num_tokens)
-        if token_counter.is_rate_limit_exceeded():
-            logging.warning("Rate limit about to be exceeded, sleeping for 20 seconds...")
-            time.sleep(20)  # sleep for a while to respect rate limits
-            logging.info("Resuming")
-            token_counter.clear_old_tokens()  # reset the counter after waiting
+            # Add the tokens to the counter and check if the rate limit is exceeded.
+            token_counter.add(num_tokens)
+            if token_counter.is_rate_limit_exceeded():
+                logging.warning("Rate limit about to be exceeded, sleeping for 20 seconds...")
+                time.sleep(20)  # sleep for a while to respect rate limits
+                logging.info("Resuming")
+                token_counter.clear_old_tokens()  # reset the counter after waiting
 
         node_embedding = embedding_model.get_text_embedding(node_content)
         node.embedding = node_embedding
@@ -76,7 +81,7 @@ def get_embedding_model(embedding_model_name):
         embedding_model = OpenAIEmbedding()
     else:
         embedding_model = HuggingFaceEmbedding(
-            tokenizer_name=embedding_model_name
+            model_name=embedding_model_name
         )
     # else:
     #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"
