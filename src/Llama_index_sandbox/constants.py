@@ -45,21 +45,21 @@ OPENAI_INFERENCE_MODELS = ["gpt-4", "gpt-4-32k", "gpt-4-0613", "gpt-4-32k-0613",
 
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"  #"gpt-3.5-turbo-16k-0613"  # "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
-        "Tell me about LVR",  #1
-        "How do L2 sequencers work?",  #2
-        "Do an exhaustive breakdown of the MEV supply chain",  #3
-        "What is ePBS?",  #4
-        "What is SUAVE?",  #5
-        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  #6
-        "What are intents?",  #7
-        "What are the papers that deal with LVR?",  #8
-        "What are solutions to mitigate front-running and sandwich attacks?",  #9
-        "Give me several sources about L2 sequencing?",  #10
-        "Give me several sources about SUAVE?",  #11
-        "Tell me about transaction ordering on L2s",  #12
-        "What are OFAs?",
-        "Can you tell me how the definition of MEV evolved over the years?",
-        "What is MEV burn?",
+        # "Tell me about LVR",  # 1
+        # "How do L2 sequencers work?",  # 2
+        # "Do an exhaustive breakdown of the MEV supply chain",  # 3
+        # "What is ePBS?",  # 4
+        # "What is SUAVE?",  # 5
+        # "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  # 6
+        # "What are intents?",  # 7
+        # "What are the papers that deal with LVR?",  # 8
+        # "What are solutions to mitigate front-running and sandwich attacks?",  # 9
+        # "Give me several sources about L2 sequencing?",  # 10
+        # "Give me several sources about SUAVE?",  # 11
+        # "Tell me about transaction ordering on L2s",  # 12
+        # "What are OFAs?",
+        # "Can you tell me how the definition of MEV evolved over the years?",
+        # "What is MEV burn?",
         "What is account abstraction?",
         "What is 4337?",
         "What is 1559?",
@@ -73,6 +73,7 @@ INPUT_QUERIES = [
         "What is the impact of latency in MEV?",
         "What is PEPC?",
         "Are roll-ups real?",
+        "Are intents real?",
         "What are relays?",
         "How does MEV compare across chains for instance Ethereum, Solana, Arbitrum?",
         "What are payment for order flows in MEV?",
@@ -81,22 +82,52 @@ INPUT_QUERIES = [
         "What is TEE?",
         "What is MPC?",
         "How does TEE and MPC relate to MEV?",
-    ]
-
+        "What is Ethereum alignment?",
+        "Return a selection of papers and videos that will introduce me to MEV",
+        "What is the role of the Ethereum Foundation?",
+        "How does Flashbots contribute to the MEV space?",
+        "Give me talks from Barnabe Monnot",
+        "Given your knowledge of transaction ordering, market microstructure and design, what Uniswap V4 hook designs would you recommend to mitigate LVR?",
+        "What is atomic composability?",
+        "What are the main advantages and challenges that decentralised finance face relative to traditional finance?",
+        "What is the number one thing which make decentralised finance better than traditional finance and why?",
+        """The Limits of Atomic Composability and Shared Sequencing
+        Problem statement: Perhaps the most-talked-about path to scaling blockchains today is deploying many rollups on Ethereum. While this bootstraps security and decentralization, deploying many disconnected rollups on Ethereum will fracture composability. We believe atomic composability – the ability to send a transaction A that finalizes if, and only if, transaction B is finalized – is crucial. 
+        Please describe the limits of composability between rollups on Ethereum. Ideally a solution would propose a formal model of rollups and an impossibility result. """,
+        """Optimal LVR Mitigation
+        Problem Statement:
+        Loss vs. rebalancing (aka LVR and pronounced ‘Lever’) was proposed in a 2022 paper as a way of modeling adverse selection costs borne 
+        by liquidity providers to constant function market maker decentralized exchanges (CFMM DEXs). Current work is focused on finding an optimal way to mitigate LVR in DEXs without using a price oracle. 
+        Please describe the potential mitigations to LVR and argue why your proposed solution is better than all known alternatives. """,
+        """Designing the MEV Transaction Supply Chain
+        Problem Statement: 
+        Assuming you could start from scratch, what is the optimal design of the miner extractable value (MEV) transaction supply chain? The process today is most naturally separated into distinct roles for searchers, builders, and proposers. What are the economic tradeoffs for maintaining these as separate roles versus having them consolidate? Are there new roles that would be beneficial to introduce? What are the optimal mechanisms to mediate how these different parties interact? Can the mechanisms mediating how the MEV supply chain functions be purely economic or are there components that require cryptographic solutions/trusted components?
+        The notion of what “optimal” means is intentionally left vague. Argue for what metrics are the most important when evaluating different mechanisms. Do we require strict collusion resistance between any groups of agents throughout the supply chain? Do we only require collusion resistance between agents at the same level of the supply chain? Is it enough that the mechanism’s properties hold in equilibrium or is it important that all parties have dominant strategies? On the other hand, what are lower bounds for how “optimal” the transaction supply chain can be? Are there certain conditions under which it is impossible to achieve all the “optimal” properties we might want?
+        This problem is left open to interpretation. Feel free to address any of the questions above or provide your own direction towards designing mechanisms for the transaction supply chain. """,
+        "What is referred to as good versus bad MEV? How would you explain that to a layman?",
+        "What are the consensus trade-offs that a protocol must make between MEV and decentralization?",
+        "What are the consensus trade-offs that a protocol must make to obtain a higher transaction throughput?",
+        "What are credible commitments?",
+        "What is at the intersection of AI and crypto?",
+        "Would a spot ETH ETF be good for the crypto ecosystem? Would that be a centralising force?",
+        "How can auction theory be used to design a better MEV auction?",
+        "What are all the subjects that are needed to understand MEV?",
+        "What are all the subjects you are an expert in?",
+]
 
 EVALUATION_INPUT_QUERIES = [
-        "Tell me about LVR",  #1
-        "How do L2 sequencers work?",  #2
-        "Do an exhaustive breakdown of the MEV supply chain",  #3
-        "What is ePBS?",  #4
-        "What is SUAVE?",  #5
-        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  #6
-        "What are intents?",  #7
-        "What are the papers that deal with LVR?",  #8
-        "What are solutions to mitigate front-running and sandwich attacks?",  #9
-        "Give me several sources about L2 sequencing?",  #10
-        "Give me several sources about SUAVE?",  #11
-        "Tell me about transaction ordering on L2s",  #12
+        "Tell me about LVR",  # 1
+        "How do L2 sequencers work?",  # 2
+        "Do an exhaustive breakdown of the MEV supply chain",  # 3
+        "What is ePBS?",  # 4
+        "What is SUAVE?",  # 5
+        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  # 6
+        "What are intents?",  # 7
+        "What are the papers that deal with LVR?",  # 8
+        "What are solutions to mitigate front-running and sandwich attacks?",  # 9
+        "Give me several sources about L2 sequencing?",  # 10
+        "Give me several sources about SUAVE?",  # 11
+        "Tell me about transaction ordering on L2s",  # 12
         "What are OFAs?",
         "Can you tell me how the definition of MEV evolved over the years?",
         "What is MEV burn?",
@@ -113,6 +144,7 @@ EVALUATION_INPUT_QUERIES = [
         "What is the impact of latency in MEV?",
         "What is PEPC?",
         "Are roll-ups real?",
+        "Are intents real?",
         "What are relays?",
         "How does MEV compare across chains for instance Ethereum, Solana, Arbitrum?",
         "What are payment for order flows in MEV?",
@@ -121,7 +153,39 @@ EVALUATION_INPUT_QUERIES = [
         "What is TEE?",
         "What is MPC?",
         "How does TEE and MPC relate to MEV?",
-    ]
+        "What is Ethereum alignment?",
+        "Return a selection of papers and videos that will introduce me to MEV",
+        "What is the role of the Ethereum Foundation?",
+        "How does Flashbots contribute to the MEV space?",
+        "Give me talks from Barnabe Monnot",
+        "Given your knowledge of transaction ordering, market microstructure and design, what Uniswap V4 hook designs would you recommend to mitigate LVR?",
+        "What is atomic composability?",
+        "What are the main advantages and challenges that decentralised finance face relative to traditional finance?",
+        "What is the number one thing which make decentralised finance better than traditional finance and why?",
+        """The Limits of Atomic Composability and Shared Sequencing
+        Problem statement: Perhaps the most-talked-about path to scaling blockchains today is deploying many rollups on Ethereum. While this bootstraps security and decentralization, deploying many disconnected rollups on Ethereum will fracture composability. We believe atomic composability – the ability to send a transaction A that finalizes if, and only if, transaction B is finalized – is crucial. 
+        Please describe the limits of composability between rollups on Ethereum. Ideally a solution would propose a formal model of rollups and an impossibility result. """,
+        """Optimal LVR Mitigation
+        Problem Statement:
+        Loss vs. rebalancing (aka LVR and pronounced ‘Lever’) was proposed in a 2022 paper as a way of modeling adverse selection costs borne 
+        by liquidity providers to constant function market maker decentralized exchanges (CFMM DEXs). Current work is focused on finding an optimal way to mitigate LVR in DEXs without using a price oracle. 
+        Please describe the potential mitigations to LVR and argue why your proposed solution is better than all known alternatives. """,
+        """Designing the MEV Transaction Supply Chain
+        Problem Statement: 
+        Assuming you could start from scratch, what is the optimal design of the miner extractable value (MEV) transaction supply chain? The process today is most naturally separated into distinct roles for searchers, builders, and proposers. What are the economic tradeoffs for maintaining these as separate roles versus having them consolidate? Are there new roles that would be beneficial to introduce? What are the optimal mechanisms to mediate how these different parties interact? Can the mechanisms mediating how the MEV supply chain functions be purely economic or are there components that require cryptographic solutions/trusted components?
+        The notion of what “optimal” means is intentionally left vague. Argue for what metrics are the most important when evaluating different mechanisms. Do we require strict collusion resistance between any groups of agents throughout the supply chain? Do we only require collusion resistance between agents at the same level of the supply chain? Is it enough that the mechanism’s properties hold in equilibrium or is it important that all parties have dominant strategies? On the other hand, what are lower bounds for how “optimal” the transaction supply chain can be? Are there certain conditions under which it is impossible to achieve all the “optimal” properties we might want?
+        This problem is left open to interpretation. Feel free to address any of the questions above or provide your own direction towards designing mechanisms for the transaction supply chain. """,
+        "What is referred to as good versus bad MEV? How would you explain that to a layman?",
+        "What are the consensus trade-offs that a protocol must make between MEV and decentralization?",
+        "What are the consensus trade-offs that a protocol must make to obtain a higher transaction throughput?",
+        "What are credible commitments?",
+        "What is at the intersection of AI and crypto?",
+        "Would a spot ETH ETF be good for the crypto ecosystem? Would that be a centralising force?",
+        "How can auction theory be used to design a better MEV auction?",
+        "What are all the subjects that are needed to understand MEV?",
+        "What are all the subjects you are an expert in?",
+]
+
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
 # * You may assume that the users financial questions are related to the documents they've selected.
