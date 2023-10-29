@@ -38,6 +38,11 @@ def start_logging():
 
     # Set up the logging level
     root_logger = logging.getLogger()
+
+    # If handlers are already present, we can disable them.
+    if root_logger.hasHandlers():
+        # Clear existing handlers from the root logger
+        root_logger.handlers.clear()
     root_logger.setLevel(logging.INFO)
 
     # Add handler to log messages to a file
@@ -114,3 +119,4 @@ def get_last_index_embedding_params():
     embedding_model_chunk_size = int(index[2])
     chunk_overlap = int(index[3])
     return embedding_model_name, embedding_model_chunk_size, chunk_overlap
+
