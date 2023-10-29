@@ -113,6 +113,16 @@ INPUT_QUERIES = [
         "How can auction theory be used to design a better MEV auction?",
         "What are all the subjects that are needed to understand MEV?",
         "What are all the subjects you are an expert in?",
+        "What is MEV-Share?",
+        "What is MEV-Boost?",
+        "What is a builder?",
+        "What is a searcher?",
+        "What is a validator?",
+        "What is an attester?",
+        "What is an integrated searcher builder?",
+        "How do searchers, builders, relays and validators interact with one another?",
+        "How can the user initiating a transaction get shielded from MEV?",
+        "Who has most power in the MEV supply chain across users, wallets, searchers, builders, relays, validators?",
 ]
 
 EVALUATION_INPUT_QUERIES = [
@@ -184,6 +194,16 @@ EVALUATION_INPUT_QUERIES = [
         "How can auction theory be used to design a better MEV auction?",
         "What are all the subjects that are needed to understand MEV?",
         "What are all the subjects you are an expert in?",
+        "What is MEV-Share?",
+        "What is MEV-Boost?",
+        "What is a builder?",
+        "What is a searcher?",
+        "What is a validator?",
+        "What is an attester?",
+        "What is an integrated searcher builder?",
+        "How do searchers, builders, relays and validators interact with one another?",
+        "How can the user initiating a transaction get shielded from MEV?",
+        "Who has most power in the MEV supply chain across users, wallets, searchers, builders, relays, validators?",
 ]
 
 
