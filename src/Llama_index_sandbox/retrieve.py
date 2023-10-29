@@ -13,12 +13,13 @@ from llama_index.chat_engine.types import BaseChatEngine
 from llama_index.embeddings import HuggingFaceEmbedding
 from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llm_predictor.base import BaseLLMPredictor
-from llama_index.llms import OpenAI
+from llama_index.llms import OpenAI, HuggingFaceLLM
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 from llama_index.prompts.default_prompts import DEFAULT_SIMPLE_INPUT_PROMPT
 from llama_index.utils import print_text
 
-from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE
+from src.Llama_index_sandbox.config import MAX_CONTEXT_LENGTHS
+from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE, OPENAI_INFERENCE_MODELS
 from src.Llama_index_sandbox.custom_react_agent.logging_handler import JSONLoggingHandler
 from src.Llama_index_sandbox.custom_react_agent.tools.default_prompt_selectors import DEFAULT_TEXT_QA_PROMPT_SEL, DEFAULT_REFINE_PROMPT_SEL, DEFAULT_TREE_SUMMARIZE_PROMPT_SEL
 from src.Llama_index_sandbox.prompts import SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
@@ -49,20 +50,33 @@ def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):
                                  )
 
 
-def get_inference_llm(temperature,
-                      llm,
+def get_inference_llm(llm_model_name):
+    if llm_model_name in OPENAI_INFERENCE_MODELS:
+        return OpenAI(model=llm_model_name)
+    else:
+        return HuggingFaceLLM(model_name=llm_model_name)
+
+
+def set_inference_llm_params(temperature,
+                      service_context,
+                      # llm,
                       stream=False,
                       callback_manager: Optional[CallbackManager] = None,
                       max_tokens: Optional[int] = None,
                       ):
-    llm.temperature = temperature
-    llm.max_tokens = max_tokens
-    llm.callback_manager = callback_manager
-    llm.model = OPENAI_MODEL_NAME
-    llm.max_tokens = max_tokens
-    # llm.stream = stream TODO 2023-10-17: determine where to set stream bool
-    # if callback_manager is not None:
-    #     llm.callback_manager = callback_manager
+    llm = service_context.llm
+    if isinstance(llm, OpenAI):
+        llm.temperature = temperature
+        llm.callback_manager = callback_manager
+        llm.max_tokens = max_tokens
+        # llm.model = OPENAI_MODEL_NAME
+        # llm.stream = stream TODO 2023-10-17: determine where to set stream bool
+        # if callback_manager is not None:
+        #     llm.callback_manager = callback_manager
+    else:
+        llm.temperature = temperature
+        llm.max_new_tokens = max_tokens  # TODO 2023-10-29: TBD what to set here
+        llm.context_window = MAX_CONTEXT_LENGTHS[llm.model_name]
     return llm
 
 
@@ -105,7 +119,7 @@ def get_chat_engine(index: VectorStoreIndex,
 
     max_tokens: Optional[int] = None  # NOTE 2023-10-05: tune timeout and max_tokens
     # TODO 2023-10-15: determine where to set stream bool
-    llm = get_inference_llm(temperature=temperature, stream=stream, callback_manager=callback_manager, max_tokens=max_tokens, llm=service_context.llm)
+    llm = set_inference_llm_params(temperature=temperature, stream=stream, callback_manager=callback_manager, max_tokens=max_tokens, service_context=service_context)
     # service_context.llm_predictor.llm = llm
     memory = memory or memory_cls.from_defaults(chat_history=chat_history, llm=llm)
 

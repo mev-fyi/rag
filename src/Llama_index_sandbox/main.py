@@ -7,7 +7,7 @@ from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 
 from src.Llama_index_sandbox.constants import INPUT_QUERIES, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE
-from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions
+from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.utils import start_logging, get_last_index_embedding_params
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.embed as embed
@@ -20,14 +20,16 @@ def initialise_chatbot(engine, query_engine_as_tool):
     recreate_index = False
     add_new_transcripts = False
     stream = True
-    num_files = 1
+    num_files = None
 
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
-    llm_model_name = os.environ.get('LLM_MODEL_NAME_OPENAI')
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
     embedding_model = embed.get_embedding_model(embedding_model_name=embedding_model_name)
 
-    service_context: ServiceContext = ServiceContext.from_defaults(llm=OpenAI(model=llm_model_name), embed_model=embedding_model)
+    llm_model_name = os.environ.get('LLM_MODEL_NAME_OPENAI')
+    # llm_model_name = os.environ.get('LLM_MODEL_NAME_OSS')
+    llm = get_inference_llm(llm_model_name=llm_model_name)
+    service_context: ServiceContext = ServiceContext.from_defaults(llm=llm, embed_model=embedding_model)
 
     index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap = get_last_index_embedding_params()
     if (not recreate_index) and ((index_embedding_model_name != embedding_model_name.split('/')[-1]) or (index_text_splitter_chunk_size != TEXT_SPLITTER_CHUNK_SIZE) or (index_chunk_overlap != TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)):

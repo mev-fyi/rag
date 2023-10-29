@@ -39,31 +39,48 @@ valid OpenAI model name in: gpt-4, gpt-4-32k, gpt-4-0613, gpt-4-32k-0613, gpt-4-
 gpt-3.5-turbo-16k-0613, gpt-3.5-turbo-0301, text-davinci-003, text-davinci-002, gpt-3.5-turbo-instruct, 
 text-ada-001, text-babbage-001, text-curie-001, ada, babbage, curie, davinci, gpt-35-turbo-16k, gpt-35-turbo
 '''
+OPENAI_INFERENCE_MODELS = ["gpt-4", "gpt-4-32k", "gpt-4-0613", "gpt-4-32k-0613", "gpt-4-0314", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-3.5-turbo-0613",
+"gpt-3.5-turbo-16k-0613", "gpt-3.5-turbo-0301", "text-davinci-003", "text-davinci-002", "gpt-3.5-turbo-instruct", "gpt-35-turbo-16k", "gpt-35-turbo"]
+
 
 OPENAI_MODEL_NAME = "gpt-3.5-turbo-0613"  #"gpt-3.5-turbo-16k-0613"  # "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
-        # "What is red teaming in AI",  # Should refuse to respond,
-        "Tell me about LVR",
-        # "What plagues current AMM designs?",
-        "How do L2 sequencers work?",
-        "Do an exhaustive breakdown of the MEV supply chain",
-        "What is ePBS?",
-        "What is SUAVE?",
-        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",
-        "What are intents?",
-        "What are the papers that deal with LVR?",
-        "What are solutions to mitigate front-running and sandwich attacks?",
-        "Give me several sources about L2 sequencing?",
-        "Give me several sources about SUAVE?",
-        "Tell me about transaction ordering on L2s",
+        "Tell me about LVR",  #1
+        "How do L2 sequencers work?",  #2
+        "Do an exhaustive breakdown of the MEV supply chain",  #3
+        "What is ePBS?",  #4
+        "What is SUAVE?",  #5
+        "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  #6
+        "What are intents?",  #7
+        "What are the papers that deal with LVR?",  #8
+        "What are solutions to mitigate front-running and sandwich attacks?",  #9
+        "Give me several sources about L2 sequencing?",  #10
+        "Give me several sources about SUAVE?",  #11
+        "Tell me about transaction ordering on L2s",  #12
         "What are OFAs?",
         "Can you tell me how the definition of MEV evolved over the years?",
         "What is MEV burn?",
         "What is account abstraction?",
         "What is 4337?",
         "What is 1559?",
-        # "What are videos that discuss order flow auctions?",
-        # "Cite all the sources you have about Tim Roughgarden"
+        "Who are the most active individuals in the MEV space?",
+        "How will account abstraction affect the MEV supply chain?",
+        "What is the difference between account abstraction and intents?",
+        "Is it bad that MEV is a centralizing force?",
+        "How is MEV on Solana different from MEV on Ethereum?",
+        "Explain to me the differences between Uniswap v2, v3 and v4",
+        "What are commit/reveal schemes?",
+        "What is the impact of latency in MEV?",
+        "What is PEPC?",
+        "Are roll-ups real?",
+        "What are relays?",
+        "How does MEV compare across chains for instance Ethereum, Solana, Arbitrum?",
+        "What are payment for order flows in MEV?",
+        "What is Anoma?",
+        "What are shared sequencers?",
+        "What is TEE?",
+        "What is MPC?",
+        "How does TEE and MPC relate to MEV?",
     ]
 
 
@@ -86,6 +103,24 @@ EVALUATION_INPUT_QUERIES = [
         "What is account abstraction?",
         "What is 4337?",
         "What is 1559?",
+        "Who are the most active individuals in the MEV space?",
+        "How will account abstraction affect the MEV supply chain?",
+        "What is the difference between account abstraction and intents?",
+        "Is it bad that MEV is a centralizing force?",
+        "How is MEV on Solana different from MEV on Ethereum?",
+        "Explain to me the differences between Uniswap v2, v3 and v4",
+        "What are commit/reveal schemes?",
+        "What is the impact of latency in MEV?",
+        "What is PEPC?",
+        "Are roll-ups real?",
+        "What are relays?",
+        "How does MEV compare across chains for instance Ethereum, Solana, Arbitrum?",
+        "What are payment for order flows in MEV?",
+        "What is Anoma?",
+        "What are shared sequencers?",
+        "What is TEE?",
+        "What is MPC?",
+        "How does TEE and MPC relate to MEV?",
     ]
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.

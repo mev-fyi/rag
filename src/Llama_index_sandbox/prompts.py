@@ -63,7 +63,9 @@ Below is the current conversation consisting of interleaving human and assistant
 # Unless the user clearly refers to previous content from the chat, make sure to always use the query tool to answer the user question.
 
 TOPIC_KEYWORDS = """Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents, 
-the Single Unifying Auction for Value Expression (SUAVE); sequencers; transaction ordering, L1s, L2s, transaction ordering, order flow auctions, auction theory, mechanism design, enshrined Proposer Builder Separation (ePBS)."""
+the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; transaction ordering, L1s, L2s, transaction ordering,
+ order flow auctions (OFAs), enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
+ EIP 1559, Protocol enforced Proposer commitments (PEPC), Multi-Party-Computation (MPC), Trusted Execution Environment (TEE)."""
 
 QUERY_ENGINE_TOOL_DESCRIPTION = f"""The query engine tool has access to research papers and 
 YouTube videos about the following content: {TOPIC_KEYWORDS} 

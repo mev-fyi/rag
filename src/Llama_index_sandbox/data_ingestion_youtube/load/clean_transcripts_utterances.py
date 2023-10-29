@@ -1,6 +1,7 @@
 
 """
 TODO we need to clean the generated transcripts. we can either do it at transcript generation time or afterwards.
+# TODO 2023-10-29: upgrading transcripts to identify who are the speakers would have tremendous value. Likely that can be done by passing each transcript to an LLM
 
 items to clean:
 "L Two": "L2",
