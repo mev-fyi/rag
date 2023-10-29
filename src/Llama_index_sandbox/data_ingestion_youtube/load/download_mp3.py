@@ -3,140 +3,69 @@ import itertools
 import os
 import argparse
 from typing import List, Optional, Dict
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
-from googleapiclient.discovery import build
 from dotenv import load_dotenv
 # To download videos and transcripts from private Channels or Playlists
-from google.oauth2.credentials import Credentials
 import pandas as pd
 import yt_dlp as ydlp
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
-from src.Llama_index_sandbox.utils import background, authenticate_service_account
+from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
+from src.Llama_index_sandbox.utils import authenticate_service_account
+
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor(max_workers=os.cpu_count())
 
 # Load environment variables from the .env file
 load_dotenv()
 DOWNLOAD_AUDIO = os.environ.get('DOWNLOAD_AUDIO', 'True').lower() == 'true'
-DOWNLOAD_TRANSCRIPTS = False
 
 
-def download_audio_ydlp(video_url: str, output_path: str, audio_title: str):
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'outtmpl': f'{output_path}/{audio_title}.%(ext)s',
-    }
+def chunked_iterable(iterable, size):
+    """Splits an iterable into chunks of a specified size."""
+    iterator = iter(iterable)
+    for first in iterator:
+        yield itertools.chain([first], itertools.islice(iterator, size - 1))
 
+
+async def download_audio_batch(video_infos, ydl_opts):
+    """
+    This function downloads multiple audio files based on the provided list of video information.
+    """
+    urls = [info['url'] for info in video_infos]  # Extract URLs from the video information
+    print(f"Dowloading batch of urls {urls}")
     with ydlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([video_url])
+        ydl.download(urls)  # Download all videos using a single command
 
 
-def get_video_info(credentials: Credentials, api_key: str, channel_id: str, max_results: int = 500000) -> List[dict]:
-    """
-    Retrieves video information (URL, ID, and title) from a YouTube channel using the YouTube Data API.
-
-    Args:
-        api_key (str): Your YouTube Data API key.
-        channel_id (str): The YouTube channel ID.
-        max_results (int, optional): Maximum number of results to retrieve. Defaults to 50.
-
-    Returns:
-        list: A list of dictionaries containing video URL, ID, and title from the channel.
-    """
-    # Initialize the YouTube API client
-    if credentials is None:
-        youtube = build('youtube', 'v3', developerKey=api_key)
-    else:
-        youtube = build('youtube', 'v3', credentials=credentials, developerKey=api_key)
-
-    # Get the "Uploads" playlist ID
-    channel_request = youtube.channels().list(
-        part="contentDetails",
-        id=channel_id,
-        fields="items/contentDetails/relatedPlaylists/uploads"
-    )
-    channel_response = channel_request.execute()
-    uploads_playlist_id = channel_response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
-
-    # Fetch videos from the "Uploads" playlist
-    video_info = []
-    next_page_token = None
-
-    while True:
-        playlist_request = youtube.playlistItems().list(
-            part="snippet",
-            playlistId=uploads_playlist_id,
-            maxResults=max_results,
-            pageToken=next_page_token,
-            fields="nextPageToken,items(snippet(publishedAt,resourceId(videoId),title))"
-        )
-        try:
-            playlist_response = playlist_request.execute()
-        except Exception as e:
-            print(f"Error fetching videos for channel {channel_id}: {e}")
-            return video_info
-        items = playlist_response.get('items', [])
-
-        for item in items:
-            video_id = item["snippet"]["resourceId"]["videoId"]
-            video_info.append({
-                'url': f'https://www.youtube.com/watch?v={video_id}',
-                'id': video_id,
-                'title': item["snippet"]["title"],
-                'publishedAt': item["snippet"]["publishedAt"]
-            })
-
-        next_page_token = playlist_response.get("nextPageToken")
-
-        if next_page_token is None or len(video_info) >= max_results:
-            break
-    return video_info
-
-
-@background
-def parse_video(video_info: Dict[str, str], dir_path: str, youtube_videos_df) -> None:
-    """
-    Fetch and save the transcript of a YouTube video as a .txt file.
-
-    Args:
-        video_info (Dict[str, str]): A dictionary containing video information such as 'id', 'title', and 'publishedAt'.
-        dir_path (str): The directory path where the transcript file will be saved.
-
-    Returns:
-        None
-    """
-
-    # Get video ID
-    video_id = video_info['id']
-
-    # Format video title and published date for file naming
-    video_title = video_info['title'].replace('/', '_')
-
+async def video_valid_for_processing(video_title, youtube_videos_df, dir_path):
     # Define the paths of the files to check
-    mp3_file_path = os.path.join(dir_path, f"{video_title}.mp3")
-    json_file_path = os.path.join(dir_path, f"{video_title}_diarized_content.json")
-    txt_file_path = os.path.join(dir_path, f"{video_title}_diarized_content_processed_diarzed.txt")
+    mp3_file_path = os.path.join(dir_path, f"{video_title}/{video_title}.mp3")
+    json_file_path = os.path.join(dir_path, f"{video_title}/{video_title}_diarized_content.json")
+    txt_file_path = os.path.join(dir_path, f"{video_title}/{video_title}_diarized_content_processed_diarzed.txt")
 
     # Check if any of the files already exist. If they do, return immediately.
     if os.path.exists(mp3_file_path) or os.path.exists(json_file_path) or os.path.exists(txt_file_path):
         print(f"Files for '{video_title}' already exist. Skipping download.")
-        return
+        return False
 
     # Similarly, replace sequences of spaces in the DataFrame's 'title' column
     youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
 
     # Now look for a match
     video_row = youtube_videos_df[youtube_videos_df['title'] == video_title]
 
     if video_row.empty:
-        print(f"Video '{video_title}' not in shortlist of youtube videos. Skipping download.")
+        print(f"SKIPPING '{video_title}'")
         # if the video title is not already in our list of videos, then do not download
-        return
+        return False
+    else:
+        print(f"ADDING '{video_title}'")
+    return True
 
+
+async def prepare_download_info(video_info, dir_path, video_title):
     strlen = len("yyyy-mm-dd")
     published_at = video_info['publishedAt'].replace(':', '-').replace('.', '-')[:strlen]
     video_title = f"{published_at}_{video_title}"
@@ -146,159 +75,49 @@ def parse_video(video_info: Dict[str, str], dir_path: str, youtube_videos_df) ->
     if not os.path.exists(video_dir_path):
         os.makedirs(video_dir_path)
 
-    # Create the file paths for the transcript and the audio
-    file_path = os.path.join(video_dir_path, f'{video_title}.txt')
     audio_file_path = os.path.join(video_dir_path, f'{video_title}.mp3')
-
-    # Check if transcript exists, if not, download it
-    if DOWNLOAD_TRANSCRIPTS and not os.path.exists(file_path):
-        try:
-            print(f"TRYING VIDEO: [{file_path}]")
-            # Get the transcript
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-
-            # Write the transcript to a .txt file
-            with open(file_path, 'w') as f:
-                for line in transcript:
-                    f.write(f"{line['text']} ")
-
-            print(f'Successfully saved transcript for {video_info["url"]} as {file_path}')
-
-        except TranscriptsDisabled:
-            print(f"No transcripts available for {video_info['url']} with title {video_title}")
-
-        except NoTranscriptFound:
-            try:
-                transcript = YouTubeTranscriptApi.get_transcript(video_id)
-            except Exception as e:
-                print(f"Error fetching translated transcript for {video_info['url']} with title {video_title}: {e}")
-                return
-        except Exception as e:
-            print(f"Unknown error [{e}] for {video_title}")
-    else:
-        pass
-        # print(f"Transcript already exists for {video_info['url']} with title {video_title}")
-    # Check if audio exists, if not, download it
-    if DOWNLOAD_AUDIO and not os.path.exists(audio_file_path):
-        try:
-            print(f"Downloading audio for {video_info['url']} to {video_dir_path}")
-            download_audio_ydlp(video_info['url'], video_dir_path, video_title)
-            print(f'Finished processing {video_info["url"]} with title {video_title}')
-
-        except Exception as e:
-            print(f'Error fetching .mp3 for {video_info["url"]} with title {video_title} and error: [{e}]')
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': f'{video_dir_path}/{video_title}.%(ext)s',
+    }
+    return ydl_opts, audio_file_path
 
 
-def get_channel_id(credentials: Optional[Credentials], api_key: str, channel_name: str) -> Optional[str]:
-    """
-    Get the channel ID of a YouTube channel by its name.
+async def process_video_batches(video_info_list, dir_path, youtube_videos_df, batch_size=5):
+    video_batches = list(chunked_iterable(video_info_list, batch_size))
 
-    Args:
-        api_key (str): Your YouTube Data API key.
-        channel_name (str): The name of the YouTube channel.
+    # Create a common download option for all videos in the batch.
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        # You might need to adjust 'outtmpl' to differentiate files or handle them in a way
+        # that they don't overwrite each other.
+        'outtmpl': f'{dir_path}/%(title)s.%(ext)s',
+    }
 
-    Returns:
-        Optional[str]: The channel ID if found, otherwise None.
-    """
-    # Initialize the YouTube API client
-    if credentials is None:
-        youtube = build('youtube', 'v3', developerKey=api_key)
-    else:
-        youtube = build('youtube', 'v3', credentials=credentials, developerKey=api_key)
+    tasks = []
+    for batch_info in video_batches:
+        valid_videos = [video for video in batch_info if await video_valid_for_processing(video['title'], youtube_videos_df, dir_path)]
+        if valid_videos:
+            # We're creating a task for each batch of valid videos.
+            task = asyncio.create_task(download_audio_batch(valid_videos, ydl_opts))
+            tasks.append(task)
 
-    # Create a search request to find the channel by name
-    request = youtube.search().list(
-        part='snippet',
-        type='channel',
-        q=channel_name,
-        maxResults=1,
-        fields='items(id(channelId))'
-    )
-
-    # Execute the request and get the response
-    response = request.execute()
-
-    # Get the list of items (channels) from the response
-    items = response.get('items', [])
-
-    # If there is at least one item, return the channel ID, otherwise return None
-    if items:
-        return items[0]['id']['channelId']
-    else:
-        return None
+    # Now we run the download tasks concurrently.
+    await asyncio.gather(*tasks)
 
 
-def get_playlist_title(credentials: Credentials, api_key: str, playlist_id: str) -> Optional[str]:
-    """
-    Retrieves the title of a YouTube playlist using the YouTube Data API.
 
-    Args:
-        api_key (str): Your YouTube Data API key.
-        playlist_id (str): The YouTube playlist ID.
-
-    Returns:
-        Optional[str]: The title of the playlist if found, otherwise None.
-    """
-    # Initialize the YouTube API client
-    if credentials is None:
-        youtube = build('youtube', 'v3', developerKey=api_key)
-    else:
-        youtube = build('youtube', 'v3', credentials=credentials, developerKey=api_key)
-
-    request = youtube.playlists().list(
-        part='snippet',
-        id=playlist_id,
-        fields='items(snippet/title)',
-        maxResults=1
-    )
-    response = request.execute()
-    items = response.get('items', [])
-
-    if items:
-        return items[0]['snippet']['title']
-    else:
-        return None
-
-
-def get_videos_from_playlist(credentials: Credentials, api_key: str, playlist_id: str, max_results: int = 5000) -> List[dict]:
-    # Initialize the YouTube API client
-    if credentials is None:
-        youtube = build('youtube', 'v3', developerKey=api_key)
-    else:
-        youtube = build('youtube', 'v3', credentials=credentials, developerKey=api_key)
-
-    video_info = []
-    next_page_token = None
-
-    while True:
-        playlist_request = youtube.playlistItems().list(
-            part="snippet",
-            playlistId=playlist_id,
-            maxResults=max_results,
-            pageToken=next_page_token,
-            fields="nextPageToken,items(snippet(publishedAt,resourceId(videoId),title))"
-        )
-        playlist_response = playlist_request.execute()
-        items = playlist_response.get('items', [])
-
-        for item in items:
-            video_id = item["snippet"]["resourceId"]["videoId"]
-            video_info.append({
-                'url': f'https://www.youtube.com/watch?v={video_id}',
-                'id': video_id,
-                'title': item["snippet"]["title"],
-                'publishedAt': item["snippet"]["publishedAt"]
-            })
-
-        next_page_token = playlist_response.get("nextPageToken")
-
-        if next_page_token is None or len(video_info) >= max_results:
-            break
-
-    return video_info
-
-
-def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Optional[List[str]] = None):
+async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Optional[List[str]] = None):
     """
     Run function that takes a YouTube Data API key and a list of YouTube channel names, fetches video transcripts,
     and saves them as .txt files in a data directory.
@@ -336,16 +155,11 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
             os.makedirs(dir_path)
 
         # Create a subdirectory for the current channel if it does not exist
-        dir_path += f'/{channel_name}'
+        dir_path += f'{channel_name}'
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
 
-        # Iterate through video information, fetch transcripts, and save them as .txt files
-        loop = asyncio.get_event_loop()
-        args = [(video_info, dir_path, youtube_videos_df) for video_info in video_info_list]
-
-        tasks = itertools.starmap(parse_video, args)
-        loop.run_until_complete(asyncio.gather(*tasks))
+        await process_video_batches(video_info_list, dir_path, youtube_videos_df)
 
     if yt_playlists:
         for playlist_id in yt_playlists:
@@ -362,11 +176,7 @@ def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Opt
             if not os.path.exists(dir_path):
                 os.makedirs(dir_path)
 
-            loop = asyncio.get_event_loop()
-            args = [(video_info, dir_path, youtube_videos_df) for video_info in video_info_list]
-
-            tasks = itertools.starmap(parse_video, args)
-            loop.run_until_complete(asyncio.gather(*tasks))
+            await process_video_batches(video_info_list, dir_path, youtube_videos_df)
 
 
 if __name__ == '__main__':
@@ -393,5 +203,5 @@ if __name__ == '__main__':
         raise ValueError(
             "No channels or playlists provided. Please provide channel names, IDs, or playlist IDs via command line argument or .env file.")
 
-    run(api_key, yt_channels, yt_playlists)
+    asyncio.run(run(api_key, yt_channels, yt_playlists))
 
