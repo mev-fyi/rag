@@ -56,7 +56,12 @@ INPUT_QUERIES = [
         "Give me several sources about L2 sequencing?",
         "Give me several sources about SUAVE?",
         "Tell me about transaction ordering on L2s",
-        # "Can you tell me how the definition of MEV evolved over the years?",
+        "What are OFAs?",
+        "Can you tell me how the definition of MEV evolved over the years?",
+        "What is MEV burn?",
+        "What is account abstraction?",
+        "What is 4337?",
+        "What is 1559?",
         # "What are videos that discuss order flow auctions?",
         # "Cite all the sources you have about Tim Roughgarden"
     ]
@@ -75,6 +80,12 @@ EVALUATION_INPUT_QUERIES = [
         "Give me several sources about L2 sequencing?",  #10
         "Give me several sources about SUAVE?",  #11
         "Tell me about transaction ordering on L2s",  #12
+        "What are OFAs?",
+        "Can you tell me how the definition of MEV evolved over the years?",
+        "What is MEV burn?",
+        "What is account abstraction?",
+        "What is 4337?",
+        "What is 1559?",
     ]
 
 # * Even if it seems like your tools won't be able to answer the question, you must still use them to find the most relevant information and insights. Not using them will appear as if you are not doing your job.
