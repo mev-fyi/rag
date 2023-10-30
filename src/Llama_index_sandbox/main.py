@@ -12,8 +12,6 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 
 def initialise_chatbot(engine, query_engine_as_tool):
-    start_logging()
-
     recreate_index = True
     add_new_transcripts = False
     stream = True
@@ -31,6 +29,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
     llm = get_inference_llm(llm_model_name=llm_model_name)
     service_context: ServiceContext = ServiceContext.from_defaults(llm=llm, embed_model=embedding_model)
 
+    start_logging(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, llm_model_name)
     index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap = get_last_index_embedding_params()
     if (not recreate_index) and ((index_embedding_model_name != embedding_model_name.split('/')[-1]) or (index_text_splitter_chunk_size != TEXT_SPLITTER_CHUNK_SIZE) or (index_chunk_overlap != TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)):
         logging.error(f"The new embedding model parameters are the same as the last ones and we are not recreating the index. Do you want to recreate the index or to revert parameters back?")
