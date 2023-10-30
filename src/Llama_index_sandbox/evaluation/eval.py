@@ -67,12 +67,14 @@ def run(config: Config):
     for index_comb in config.get_full_combinations():
         text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name = index_comb
         index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name)
-        start_logging(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, llm_model_name)
 
+        start_logging(f"create_index_{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}")
         index, service_context = get_or_create_index(index_params)
         for llm_model_name, similarity_top_k in product(config.INFERENCE_MODELS, config.NUM_CHUNKS_RETRIEVED):
             inference_params = config.get_inference_params(llm_model_name, similarity_top_k, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model)
             retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, index=index, service_context=service_context, params=inference_params)
+
+            start_logging(f"ask_questions_{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}_{similarity_top_k}")
             ask_questions(input_queries=EVALUATION_INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine, store_response_partial=store_response_partial, engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, reset_chat=config.reset_chat)
 
 

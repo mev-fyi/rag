@@ -25,7 +25,7 @@ def root_directory() -> str:
             current_dir = os.path.dirname(current_dir)
 
 
-def start_logging(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, llm_model_name):
+def start_logging(log_prefix):
     # Ensure that root_directory() is defined and returns the path to the root directory
 
     # Create a 'logs' directory if it does not exist
@@ -45,10 +45,8 @@ def start_logging(text_splitter_chunk_size, text_splitter_chunk_overlap_percenta
         root_logger.handlers.clear()
     root_logger.setLevel(logging.INFO)
 
-    if '/' in embedding_model_name:
-        embedding_model_name = embedding_model_name.split('/')[-1]
     # Add handler to log messages to a file
-    log_filename = f'{root_directory()}/logs/txt/log_{timestamp_str}_{embedding_model_name}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}.txt'
+    log_filename = f'{root_directory()}/logs/txt/{log_prefix}_{timestamp_str}.txt'
     file_handler = logging.FileHandler(log_filename)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     root_logger.addHandler(file_handler)
@@ -59,7 +57,8 @@ def start_logging(text_splitter_chunk_size, text_splitter_chunk_overlap_percenta
     root_logger.addHandler(console_handler)
 
     # Now, any logging.info() call will append the log message to the specified file and the standard output.
-    logging.info('********* LOGGING STARTED *********')
+    logging.info(f'********* {log_prefix} LOGGING STARTED *********')
+
 
 
 def timeit(func):
