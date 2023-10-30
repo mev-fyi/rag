@@ -81,7 +81,8 @@ def get_embedding_model(embedding_model_name):
         embedding_model = OpenAIEmbedding()
     else:
         embedding_model = HuggingFaceEmbedding(
-            model_name=embedding_model_name
+            model_name=embedding_model_name,
+            # device='cuda'
         )
     # else:
     #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"

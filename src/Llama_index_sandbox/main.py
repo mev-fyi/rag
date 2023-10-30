@@ -2,14 +2,11 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 import logging
 import os
-
 from llama_index import ServiceContext
-from llama_index.llms import OpenAI
 
 from src.Llama_index_sandbox.constants import INPUT_QUERIES, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.utils import start_logging, get_last_index_embedding_params
-import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.embed as embed
 from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
