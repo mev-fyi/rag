@@ -6,7 +6,7 @@ import os
 from llama_index import ServiceContext
 from llama_index.llms import OpenAI
 
-from src.Llama_index_sandbox.constants import INPUT_QUERIES, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE
+from src.Llama_index_sandbox.constants import INPUT_QUERIES, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.utils import start_logging, get_last_index_embedding_params
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
@@ -17,10 +17,13 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 def initialise_chatbot(engine, query_engine_as_tool):
     start_logging()
 
-    recreate_index = False
+    recreate_index = True
     add_new_transcripts = False
     stream = True
     num_files = None
+    similarity_top_k = NUMBER_OF_CHUNKS_TO_RETRIEVE
+    text_splitter_chunk_size = TEXT_SPLITTER_CHUNK_SIZE
+    text_splitter_chunk_overlap_percentage = TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE
 
     embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OSS')
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
@@ -38,8 +41,8 @@ def initialise_chatbot(engine, query_engine_as_tool):
 
     if recreate_index:
         index = create_index(embedding_model_name=embedding_model_name,
-                             TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE,
-                             TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE,
+                             text_splitter_chunk_size=text_splitter_chunk_size,
+                             text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage,
                              embedding_model=embedding_model,
                              add_new_transcripts=add_new_transcripts,
                              num_files=num_files)
@@ -54,6 +57,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
                                                                                           service_context=service_context,
                                                                                           TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE,
                                                                                           TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE,
+                                                                                          similarity_top_k=similarity_top_k,
                                                                                           index=index,
                                                                                           engine=engine,
                                                                                           stream=stream,

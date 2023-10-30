@@ -54,7 +54,7 @@ def initialise_vector_store(embedding_model_vector_dimension) -> PineconeVectorS
 
 
 @timeit
-def persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE):
+def persist_index(index, embedding_model_name, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage):
     """
     Persist the index to disk.
     NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
@@ -64,7 +64,7 @@ def persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SP
         if '/' in embedding_model_name:
             embedding_model_name = embedding_model_name.split('/')[-1]
         date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        name = f"{date_str}_{embedding_model_name}_{TEXT_SPLITTER_CHUNK_SIZE}_{TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE}"
+        name = f"{date_str}_{embedding_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}"
         persist_dir = index_dir + name
         # check if index_dir and if not create it
         if not os.path.exists(index_dir):
@@ -126,7 +126,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, add_new_transcripts, num_files=None):
+def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, add_new_transcripts, num_files=None):
     logging.info("RECREATING INDEX")
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
@@ -135,8 +135,8 @@ def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
 
     # 2. Data chunking / text splitter
-    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE)
-    text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
+    text_chunks_pdfs, doc_idxs_pdfs = chunk_pdf.chunk_documents(documents_pdfs, text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage, text_splitter_chunk_size=text_splitter_chunk_size)
+    text_chunks_youtube, doc_idxs_youtube = chunk_youtube.chunk_documents(documents_youtube, text_splitter_chunk_size=text_splitter_chunk_size, text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage)
 
     # 3. Manually Construct Nodes from Text Chunks
     nodes_pdf = embed.construct_node(text_chunks_pdfs, documents_pdfs, doc_idxs_pdfs)
@@ -157,5 +157,5 @@ def create_index(embedding_model_name, embedding_model, TEXT_SPLITTER_CHUNK_SIZE
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
     index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name])
-    persist_index(index, embedding_model_name, TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
+    persist_index(index, embedding_model_name, text_splitter_chunk_size=text_splitter_chunk_size, text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage)
     return index

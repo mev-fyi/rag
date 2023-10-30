@@ -192,8 +192,8 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  index: VectorStoreIndex,
                                  query_engine_as_tool: bool,
                                  stream: bool,
+                                 similarity_top_k: int,
                                  engine='chat',
-                                 similarity_top_k=NUMBER_OF_CHUNKS_TO_RETRIEVE,
                                  ):
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
