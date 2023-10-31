@@ -24,6 +24,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
     # Similarly, replace sequences of spaces in the DataFrame's 'title' column
     youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
 
     # Now look for a match
     video_row = youtube_videos_df[youtube_videos_df['title'] == title]
@@ -81,6 +82,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"
 
     youtube_videos_df = pd.read_csv(videos_path)
+    assert youtube_videos_df.shape[0] > 0, "Could not load YouTube videos CSV."
     partial_load_single_transcript = partial(load_single_video_transcript, youtube_videos_df=youtube_videos_df)
     video_transcripts_loaded_count = 0
 
@@ -115,5 +117,5 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                 logging.info(f"Failed to process {video_transcript}, passing: {e}")
                 pass
     logging.info(f"Successfully loaded {video_transcripts_loaded_count} documents from video transcripts.")
-    # assert len(all_documents) > 50, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
+    assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents
