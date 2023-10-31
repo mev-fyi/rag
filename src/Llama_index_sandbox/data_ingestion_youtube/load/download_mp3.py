@@ -1,4 +1,5 @@
 import asyncio
+import glob
 import itertools
 import os
 import argparse
@@ -39,14 +40,21 @@ async def download_audio_batch(video_infos, ydl_opts):
 
 
 async def video_valid_for_processing(video_title, youtube_videos_df, dir_path):
-    # Define the paths of the files to check
-    mp3_file_path = os.path.join(dir_path, f"{video_title}/{video_title}.mp3")
-    json_file_path = os.path.join(dir_path, f"{video_title}/{video_title}_diarized_content.json")
-    txt_file_path = os.path.join(dir_path, f"{video_title}/{video_title}_diarized_content_processed_diarzed.txt")
+    # Define the filenames to check without the directory structure or date prefix
+    mp3_filename = f"*_{video_title}.mp3"
+    json_filename = f"*_{video_title}_diarized_content.json"
+    txt_filename_old = f"*_{video_title}_diarized_content_processed_diarized.txt"
+    txt_filename = f"*_{video_title}_content_processed_diarized.txt"
 
-    # Check if any of the files already exist. If they do, return immediately.
-    if os.path.exists(mp3_file_path) or os.path.exists(json_file_path) or os.path.exists(txt_file_path):
-        print(f"Files for '{video_title}' already exist. Skipping download.")
+    # Use glob to search for the files in any directory under the root dir_path
+    mp3_files = glob.glob(os.path.join(dir_path, '**', mp3_filename), recursive=True)
+    json_files = glob.glob(os.path.join(dir_path, '**', json_filename), recursive=True)
+    txt_files_old = glob.glob(os.path.join(dir_path, '**', txt_filename_old), recursive=True)
+    txt_files = glob.glob(os.path.join(dir_path, '**', txt_filename), recursive=True)
+
+    # Check if any of the files were found. If they were, return immediately.
+    if mp3_files or json_files or txt_files_old or txt_files:
+        # print(f"Files for '{video_title}' already exist. Skipping download.")
         return False
 
     # Similarly, replace sequences of spaces in the DataFrame's 'title' column
@@ -114,7 +122,6 @@ async def process_video_batches(video_info_list, dir_path, youtube_videos_df, ba
 
     # Now we run the download tasks concurrently.
     await asyncio.gather(*tasks)
-
 
 
 async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlists: Optional[List[str]] = None):
