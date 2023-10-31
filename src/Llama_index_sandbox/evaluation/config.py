@@ -16,8 +16,8 @@ class Config:
         self.num_files = None
 
         # Indexing Parameters
-        self.NUM_CHUNKS_RETRIEVED = [3, 5, 7, 10]  # config.NUM_CHUNKS_RETRIEVED
-        self.CHUNK_SIZES = [700]  # config.CHUNK_SIZES
+        self.NUM_CHUNKS_RETRIEVED = [10]  # config.NUM_CHUNKS_RETRIEVED
+        self.CHUNK_SIZES = [750]  # config.CHUNK_SIZES
         self.CHUNK_OVERLAPS = [10]  # config.CHUNK_OVERLAPS
         self.EMBEDDING_MODELS = ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
         self.INFERENCE_MODELS = ["gpt-3.5-turbo-0613"]  # config.INFERENCE_MODELS
