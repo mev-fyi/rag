@@ -156,11 +156,10 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
     videos_path = f"{root_directory()}/datasets/evaluation_data/youtube_videos.csv"
     youtube_videos_df = pd.read_csv(videos_path)
 
-    dir_path = YOUTUBE_VIDEO_DIRECTORY
-
     # Iterate through the dictionary of channel IDs and channel names
     for channel_id, channel_name in yt_id_name.items():
 
+        dir_path = YOUTUBE_VIDEO_DIRECTORY
         # Get video information from the channel
         video_info_list = get_video_info(credentials, api_key, channel_id)
 
