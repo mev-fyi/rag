@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 # To download videos and transcripts from private Channels or Playlists
 import pandas as pd
 import yt_dlp as ydlp
+from yt_dlp import DownloadError
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
@@ -36,7 +37,13 @@ async def download_audio_batch(video_infos, ydl_opts):
     urls = [info['url'] for info in video_infos]  # Extract URLs from the video information
     print(f"Dowloading batch of urls {urls}")
     with ydlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download(urls)  # Download all videos using a single command
+        try:
+            ydl.download(urls)  # Download all videos using a single command
+        except DownloadError:
+            print(f"Download error for {urls}")
+        except Exception as e:
+            print(f"Other error not caught by handler: {e}")
+            pass
 
 
 async def video_valid_for_processing(video_title, youtube_videos_df, dir_path):
