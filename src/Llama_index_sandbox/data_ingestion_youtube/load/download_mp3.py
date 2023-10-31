@@ -12,7 +12,7 @@ from yt_dlp import DownloadError
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
-from src.Llama_index_sandbox.utils import authenticate_service_account
+from src.Llama_index_sandbox.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -47,33 +47,31 @@ async def download_audio_batch(video_infos, ydl_opts):
 
 
 async def video_valid_for_processing(video_title, youtube_videos_df, dir_path):
-    # Define the filenames to check without the directory structure or date prefix
-    mp3_filename = f"*_{video_title}.mp3"
-    json_filename = f"*_{video_title}_diarized_content.json"
-    txt_filename_old = f"*_{video_title}_diarized_content_processed_diarized.txt"
-    txt_filename = f"*_{video_title}_content_processed_diarized.txt"
+    # This helper function checks if the video_title exists in any of the filenames in the specified directory
+    video_title = video_title.replace('/', '_')
 
-    # Use glob to search for the files in any directory under the root dir_path
-    mp3_files = glob.glob(os.path.join(dir_path, '**', mp3_filename), recursive=True)
-    json_files = glob.glob(os.path.join(dir_path, '**', json_filename), recursive=True)
-    txt_files_old = glob.glob(os.path.join(dir_path, '**', txt_filename_old), recursive=True)
-    txt_files = glob.glob(os.path.join(dir_path, '**', txt_filename), recursive=True)
-
-    # Check if any of the files were found. If they were, return immediately.
-    if mp3_files or json_files or txt_files_old or txt_files:
-        # print(f"Files for '{video_title}' already exist. Skipping download.")
+    def title_exists_in_files(directory, suffix):
+        for filename in os.listdir(directory):
+            if video_title in filename and filename.endswith(suffix):
+                return True
         return False
 
-    # Similarly, replace sequences of spaces in the DataFrame's 'title' column
+    # Recursively check in dir_path and its subdirectories
+    for root, dirs, files in os.walk(dir_path):
+        if (title_exists_in_files(root, ".mp3") or
+                title_exists_in_files(root, "_diarized_content.json") or
+                title_exists_in_files(root, "_diarized_content_processed_diarized.txt") or
+                title_exists_in_files(root, "_content_processed_diarized.txt")):
+            return False
+
+    # The same code for dataframe handling
     youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
     youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
 
-    # Now look for a match
     video_row = youtube_videos_df[youtube_videos_df['title'] == video_title]
 
     if video_row.empty:
         print(f"SKIPPING '{video_title}'")
-        # if the video title is not already in our list of videos, then do not download
         return False
     else:
         print(f"ADDING '{video_title}'")
@@ -105,7 +103,8 @@ async def prepare_download_info(video_info, dir_path, video_title):
 
 async def process_video_batches(video_info_list, dir_path, youtube_videos_df, batch_size=5):
     video_batches = list(chunked_iterable(video_info_list, batch_size))
-
+    # TODO 2023-10-31: fix somehow the addition of spaces before colons : e.g. for DVT and for Defi panel
+    #  The different pipes somehow. Check the match method in utils.py
     # Create a common download option for all videos in the batch.
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -114,8 +113,9 @@ async def process_video_batches(video_info_list, dir_path, youtube_videos_df, ba
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        # You might need to adjust 'outtmpl' to differentiate files or handle them in a way
-        # that they don't overwrite each other.
+        # NOTE 2023-10-31: we do not pass the video title and its subdirectory because we process several URL at once per batch.
+        # Therefore we cannot match tuples of ydl_opts and their URLs.
+        # So we'll have discerpeancies.
         'outtmpl': f'{dir_path}/%(title)s.%(ext)s',
     }
 
@@ -190,6 +190,7 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
                 os.makedirs(dir_path)
 
             await process_video_batches(video_info_list, dir_path, youtube_videos_df)
+    move_remaining_mp3_to_their_subdirs()
 
 
 if __name__ == '__main__':
