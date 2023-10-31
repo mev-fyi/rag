@@ -11,6 +11,7 @@ from llama_index.llms import ChatMessage, MessageRole, ChatResponse
 from llama_index.utils import print_text
 
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
+from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import AVOID_CITING_CONTEXT
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER
 from src.Llama_index_sandbox.utils import timeit
@@ -41,7 +42,10 @@ class CustomReActAgent(ReActAgent):
             input_chat = self._react_chat_formatter.format(
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
-            # send prompt
+
+            # NOTE 2023-10-31: this is to engineer the response from the query engine. The query engine would state "based on context [...]" and we want to avoid that from the last LLM call.
+            if last_metadata is not None:
+                input_chat[-1].content += f"\n {AVOID_CITING_CONTEXT}"
             chat_response = self._llm.chat(input_chat)
 
             # Create a deep copy of chat_response for modification
