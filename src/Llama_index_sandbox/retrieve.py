@@ -84,6 +84,7 @@ def get_chat_engine(index: VectorStoreIndex,
                     service_context: ServiceContext,
                     query_engine_as_tool: bool,
                     stream: bool,
+                    log_name: str,
                     chat_mode: str = "react",
                     verbose: bool = True,
                     similarity_top_k: int = 5,
@@ -111,7 +112,7 @@ def get_chat_engine(index: VectorStoreIndex,
 
     logging_event_ends_to_ignore = []
     logging_event_starts_to_ignore = []
-    json_logging_handler = JSONLoggingHandler(event_ends_to_ignore=logging_event_ends_to_ignore,event_starts_to_ignore=logging_event_starts_to_ignore)
+    json_logging_handler = JSONLoggingHandler(event_ends_to_ignore=logging_event_ends_to_ignore, event_starts_to_ignore=logging_event_starts_to_ignore, log_name=log_name, similarity_top_k=similarity_top_k)
     # Instantiate the CallbackManager and add the handlers
     callback_manager = CallbackManager(handlers=[json_logging_handler])
 
@@ -193,6 +194,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  query_engine_as_tool: bool,
                                  stream: bool,
                                  similarity_top_k: int,
+                                 log_name: str,
                                  engine='chat',
                                  ):
 
@@ -201,7 +203,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
     store_response_partial = partial(store_response, embedding_model_name, llm_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
 
     if engine == 'chat':
-        retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool)
+        retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool, log_name=log_name)
         query_engine = get_query_engine(index=index, service_context=service_context, verbose=True, similarity_top_k=similarity_top_k)
     elif engine == 'query':
         query_engine = None

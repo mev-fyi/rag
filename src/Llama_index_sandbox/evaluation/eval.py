@@ -41,7 +41,7 @@ def get_or_create_index(params: Dict[str, Any]) -> Tuple[Any, ServiceContext]:
     return index, service_context
 
 
-def initialise_chatbot(engine, query_engine_as_tool, index, service_context, params):
+def initialise_chatbot(engine, query_engine_as_tool, index, service_context, params, log_name):
     similarity_top_k = params["similarity_top_k"]
     embedding_model_name = params["embedding_model_name"]
     embedding_model = params["embedding_model"]
@@ -60,7 +60,8 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
                                                                                           index=index,
                                                                                           engine=engine,
                                                                                           stream=stream,
-                                                                                          query_engine_as_tool=query_engine_as_tool)
+                                                                                          query_engine_as_tool=query_engine_as_tool,
+                                                                                          log_name=log_name)
     return retrieval_engine, query_engine, store_response_partial
 
 
@@ -69,11 +70,12 @@ def run(config: Config):
         text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name = index_comb
         index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name)
 
-        start_logging(f"create_index_{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}")
+        log_name = f"{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}"
+        start_logging(f"create_index_{log_name}")
         index, service_context = get_or_create_index(index_params)
         for llm_model_name, similarity_top_k in product(config.INFERENCE_MODELS, config.NUM_CHUNKS_RETRIEVED):
             inference_params = config.get_inference_params(llm_model_name, similarity_top_k, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model)
-            retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, index=index, service_context=service_context, params=inference_params)
+            retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, index=index, service_context=service_context, params=inference_params, log_name=log_name)
 
             # write NUMBER_OF_CHUNKS_TO_RETRIEVE as global scope
             glb.NUMBER_OF_CHUNKS_TO_RETRIEVE = similarity_top_k

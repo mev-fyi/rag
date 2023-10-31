@@ -93,12 +93,13 @@ class JSONLoggingHandler(BaseCallbackHandler):
 
     logs = []
 
-    def __init__(self, event_starts_to_ignore: List[CBEventType], event_ends_to_ignore: List[CBEventType]):
+    def __init__(self, event_starts_to_ignore: List[CBEventType], event_ends_to_ignore: List[CBEventType], log_name: str, similarity_top_k: int):
         super().__init__(event_starts_to_ignore, event_ends_to_ignore)
 
         if not os.path.exists(f"{root_dir}/logs/json"):
             os.makedirs(f"{root_dir}/logs/json")
-        self.log_file = f"{root_dir}/logs/json/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}.json"
+
+        self.log_file = f"{root_dir}/logs/json/{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}_{log_name}_{similarity_top_k}.json"
 
         self.current_section = None  # This will point to the part of the log we are currently writing to.
         self.current_logs = []  # Keep all current logs in memory for rewriting.
