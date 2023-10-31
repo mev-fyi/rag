@@ -9,11 +9,12 @@ import os
 from llama_index.llms import MessageRole
 
 from src.Llama_index_sandbox import root_dir
-from src.Llama_index_sandbox.constants import NUMBER_OF_CHUNKS_TO_RETRIEVE
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import TEXT_QA_SYSTEM_PROMPT
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
 from src.Llama_index_sandbox.utils import get_last_index_embedding_params
+from src.Llama_index_sandbox import globals as glb
+
 
 """
 This module contains the JSONLoggingHandler class, a comprehensive logging handler designed for monitoring and recording 
@@ -122,7 +123,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
                             "embedding_model_name": embedding_model_name,
                             "text_splitter_chunk_size": text_splitter_chunk_size,
                             "chunk_overlap": chunk_overlap,
-                            "number of chunks to retrieve": NUMBER_OF_CHUNKS_TO_RETRIEVE},
+                            "number of chunks to retrieve": glb.NUMBER_OF_CHUNKS_TO_RETRIEVE},  # NOTE 2023-10-30: fix the retrieval of this as global variable
                         "user_raw_input": user_raw_input,
                         "LLM_input": message_content,
                     }

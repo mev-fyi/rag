@@ -46,7 +46,7 @@ def start_logging(log_prefix):
     root_logger.setLevel(logging.INFO)
 
     # Add handler to log messages to a file
-    log_filename = f'{root_directory()}/logs/txt/{log_prefix}_{timestamp_str}.txt'
+    log_filename = f'{root_directory()}/logs/txt/{timestamp_str}_{log_prefix}.log'
     file_handler = logging.FileHandler(log_filename)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     root_logger.addHandler(file_handler)

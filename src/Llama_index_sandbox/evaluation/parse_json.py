@@ -137,9 +137,12 @@ def get_latest_parsed_json_log():
     return latest_file
 
 
-def parse_2023_10_24_json_format():
+def parse_2023_10_24_json_format(raw_json_log_path=None):
     # Define the path to your original file. Please make sure this path is correct.
-    original_file_path = get_latest_raw_json_log()
+    if raw_json_log_path is None:
+        original_file_path = get_latest_raw_json_log()
+    else:
+        original_file_path = raw_json_log_path
     file_name = original_file_path.split('/')[-1]
     if file_name:
         print(f"The most recent file is: {file_name}")
@@ -232,7 +235,7 @@ def parse_2023_10_24_json_format():
         print("The file doesn't contain valid JSON.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-
+    return new_file_path
 
 # parse_old_json_format()
 parse_2023_10_24_json_format()
