@@ -119,7 +119,8 @@ def get_last_index_embedding_params():
     embedding_model_name = index[1]
     embedding_model_chunk_size = int(index[2])
     chunk_overlap = int(index[3])
-    return embedding_model_name, embedding_model_chunk_size, chunk_overlap
+    vector_space_distance_metric = ''  # TODO 2023-11-02: save vector_space_distance_metric in index name
+    return embedding_model_name, embedding_model_chunk_size, chunk_overlap, vector_space_distance_metric
 
 
 import os
@@ -223,7 +224,77 @@ def move_remaining_mp3_to_their_subdirs():
             print(f"No matching video title found in DataFrame for: {video_title}")
 
 
+def merge_directories(base_path):
+    '''
+    This function walks through all subdirectories and merges the contents of directories that have
+    names differing only by the pipe character used, from fullwidth to ASCII. Files from the fullwidth
+    pipe directory are moved to the ASCII pipe directory, and if a file with the same name exists, the
+    file from the fullwidth pipe directory is deleted. After the merge, the fullwidth pipe directory is
+    deleted if empty.
+
+    Args:
+        base_path: The base directory path to start searching from.
+
+    Returns: None
+    '''
+
+    # Helper function to rename the pipe character
+    def standardize_name(dir_or_file_name):
+        return dir_or_file_name.replace('｜', '|')
+
+    # Track directories to be removed after processing
+    dirs_to_remove = []
+
+    # Walk through the directory structure
+    for root, dirs, _ in os.walk(base_path):
+        # Map of standard directory names to their full paths
+        standard_dirs = {}
+
+        # First pass to fill in the mapping
+        for dir_name in dirs:
+            standard_dirs[standardize_name(dir_name)] = os.path.join(root, dir_name)
+
+        # Second pass to perform the merging
+        for dir_name in dirs:
+            standard_name = standardize_name(dir_name)
+            src = os.path.join(root, dir_name)
+            dst = standard_dirs[standard_name]
+
+            # Only proceed if the directory names actually differ (by the pipe character)
+            if src != dst:
+                if not os.path.exists(dst):
+                    # If the destination doesn't exist, simply rename the directory
+                    os.rename(src, dst)
+                    print(f"Renamed {src} to {dst}")
+                else:
+                    # Merge contents
+                    for item in os.listdir(src):
+                        src_item = os.path.join(src, item)
+                        dst_item = os.path.join(dst, standardize_name(item))
+                        if os.path.exists(dst_item):
+                            # If there is a conflict, delete the source item
+                            os.remove(src_item)
+                            print(f"Deleted due to conflict: {src_item}")
+                        else:
+                            shutil.move(src_item, dst_item)
+                            print(f"Moved {src_item} to {dst_item}")
+
+                    # Add to list of directories to remove if they are empty
+                    dirs_to_remove.append(src)
+
+    # Remove the source directories if they are empty
+    for dir_to_remove in dirs_to_remove:
+        if not os.listdir(dir_to_remove):
+            os.rmdir(dir_to_remove)
+            print(f"Removed empty directory: {dir_to_remove}")
+        else:
+            print(f"Directory {dir_to_remove} is not empty after merge. Please check contents.")
+
+# Usage
+
+
 if __name__ == '__main__':
-    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # find_matching_files(directory)
-    move_remaining_mp3_to_their_subdirs()
+    # move_remaining_mp3_to_their_subdirs()
+    merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
