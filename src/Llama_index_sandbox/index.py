@@ -83,14 +83,14 @@ def persist_index(index, embedding_model_name, text_splitter_chunk_size, text_sp
 
 
 @timeit
-def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension) -> VectorStoreIndex:
+def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension, vector_space_distance_metric) -> VectorStoreIndex:
     """
     We now insert these nodes into our PineconeVectorStore.
 
     NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level
     abstraction that handles ingestion as well. We use VectorStoreIndex in the next section to fast-track retrieval/querying.
     """
-    vector_store = initialise_vector_store(embedding_model_vector_dimension=embedding_model_vector_dimension)
+    vector_store = initialise_vector_store(embedding_model_vector_dimension=embedding_model_vector_dimension, vector_space_distance_metric=vector_space_distance_metric)
     vector_store.add(nodes)
     index = VectorStoreIndex.from_vector_store(vector_store)
     return index
@@ -126,7 +126,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, add_new_transcripts, num_files=None):
+def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, add_new_transcripts, vector_space_distance_metric, num_files=None):
     logging.info("RECREATING INDEX")
     # 1. Data loading
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
@@ -156,6 +156,6 @@ def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size
     # We now insert these nodes into our PineconeVectorStore.
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name])
+    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name], vector_space_distance_metric=vector_space_distance_metric)
     persist_index(index, embedding_model_name, text_splitter_chunk_size=text_splitter_chunk_size, text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage)
     return index

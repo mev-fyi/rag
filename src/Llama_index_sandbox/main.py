@@ -40,6 +40,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
                              text_splitter_chunk_size=text_splitter_chunk_size,
                              text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage,
                              embedding_model=embedding_model,
+                             vector_space_distance_metric='cosine',
                              add_new_transcripts=add_new_transcripts,
                              num_files=num_files)
     else:
