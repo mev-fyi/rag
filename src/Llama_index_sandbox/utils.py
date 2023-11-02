@@ -388,13 +388,14 @@ def delete_mp3_if_text_or_json_exists(base_path):
                 else:
                     # If there are only .mp3 files, print their names and containing directory
                     for mp3_file in mp3_files:
-                        print(f".mp3 file without .txt or .json: {mp3_file} in directory {subdir_path}")
+                        pass
+                        # print(f".mp3 file without .txt or .json: {mp3_file} in directory {subdir_path}")
 
 
 if __name__ == '__main__':
     directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # find_matching_files(directory)
-    # move_remaining_mp3_to_their_subdirs()
-    # merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
-    # clean_fullwidth_characters(directory)
+    clean_fullwidth_characters(directory)
+    move_remaining_mp3_to_their_subdirs()
+    merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
     delete_mp3_if_text_or_json_exists(directory)

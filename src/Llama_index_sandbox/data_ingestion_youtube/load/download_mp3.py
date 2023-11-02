@@ -12,7 +12,7 @@ from yt_dlp import DownloadError
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
-from src.Llama_index_sandbox.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs
+from src.Llama_index_sandbox.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs, clean_fullwidth_characters, merge_directories, delete_mp3_if_text_or_json_exists
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -190,7 +190,13 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
                 os.makedirs(dir_path)
 
             await process_video_batches(video_info_list, dir_path, youtube_videos_df)
+
+    # clean up because downloaded file names have full-width characters instead of ASCII
+    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    clean_fullwidth_characters(directory)
     move_remaining_mp3_to_their_subdirs()
+    merge_directories(directory)
+    delete_mp3_if_text_or_json_exists(directory)
 
 
 if __name__ == '__main__':
