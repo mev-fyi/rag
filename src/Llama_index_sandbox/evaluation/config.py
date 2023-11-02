@@ -13,21 +13,23 @@ class Config:
         self.reset_chat = True
         self.add_new_transcripts = False
         self.stream = True
-        self.num_files = None
+        self.num_files = 10
 
         # Indexing Parameters
+        self.VECTOR_SPACE_DISTANCE_METRIC = ['cosine']
         self.NUM_CHUNKS_RETRIEVED = [10]  # config.NUM_CHUNKS_RETRIEVED
         self.CHUNK_SIZES = [750]  # config.CHUNK_SIZES
         self.CHUNK_OVERLAPS = [10]  # config.CHUNK_OVERLAPS
         self.EMBEDDING_MODELS = ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
         self.INFERENCE_MODELS = ["gpt-3.5-turbo-0613"]  # config.INFERENCE_MODELS
 
-    def get_index_params(self, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name):
-        index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap = get_last_index_embedding_params()
+    def get_index_params(self, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric):
+        index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap, index_vector_space_distance_metric = get_last_index_embedding_params()
         recreate_index = (
             text_splitter_chunk_size != index_text_splitter_chunk_size or
             text_splitter_chunk_overlap_percentage != index_chunk_overlap or
-            embedding_model_name.split('/')[-1] != index_embedding_model_name
+            embedding_model_name.split('/')[-1] != index_embedding_model_name or
+            vector_space_distance_metric != index_vector_space_distance_metric  # TODO 2023-11-02: implement vector_space_distance_metric
         )
 
         index_params = {
@@ -37,13 +39,14 @@ class Config:
             "embedding_model_name": embedding_model_name,
             "embedding_model": embedding_model,
             "llm_model_name": llm_model_name,
+            'vector_space_distance_metric': vector_space_distance_metric,
             "add_new_transcripts": self.add_new_transcripts,
             "num_files": self.num_files
         }
         return index_params
 
     def get_full_combinations(self):
-        index_combinations = product(self.CHUNK_SIZES, self.CHUNK_OVERLAPS, self.EMBEDDING_MODELS, [embed.get_embedding_model(embedding_model_name=e) for e in self.EMBEDDING_MODELS], self.INFERENCE_MODELS)
+        index_combinations = product(self.CHUNK_SIZES, self.CHUNK_OVERLAPS, self.EMBEDDING_MODELS, [embed.get_embedding_model(embedding_model_name=e) for e in self.EMBEDDING_MODELS], self.INFERENCE_MODELS, self.VECTOR_SPACE_DISTANCE_METRIC)
         return index_combinations
 
     def get_inference_params(self, llm_model_name, similarity_top_k, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model):

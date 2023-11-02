@@ -34,6 +34,7 @@ def get_or_create_index(params: Dict[str, Any]) -> Tuple[Any, ServiceContext]:
                              text_splitter_chunk_size=params["text_splitter_chunk_size"],
                              text_splitter_chunk_overlap_percentage=params["text_splitter_chunk_overlap_percentage"],
                              embedding_model=params["embedding_model"],
+                             vector_space_distance_metric=params['vector_space_distance_metric'],
                              add_new_transcripts=params["add_new_transcripts"],
                              num_files=params["num_files"])
     else:
@@ -67,8 +68,8 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
 
 def run(config: Config):
     for index_comb in config.get_full_combinations():
-        text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name = index_comb
-        index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name)
+        text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric = index_comb
+        index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric)
 
         log_name = f"{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}"
         start_logging(f"create_index_{log_name}")

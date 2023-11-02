@@ -19,7 +19,7 @@ api_key = os.environ["PINECONE_API_KEY"]
 
 
 @timeit
-def initialise_vector_store(embedding_model_vector_dimension) -> PineconeVectorStore:
+def initialise_vector_store(embedding_model_vector_dimension, vector_space_distance_metric='cosine') -> PineconeVectorStore:
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
     index_name = "quickstart"
 
@@ -43,7 +43,7 @@ def initialise_vector_store(embedding_model_vector_dimension) -> PineconeVectorS
     pinecone.create_index(name=index_name,
                           metadata_config=metadata_config,
                           dimension=embedding_model_vector_dimension,
-                          metric="cosine",
+                          metric=vector_space_distance_metric,
                           pod_type="p1")
     pinecone_index = pinecone.Index(index_name=index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)

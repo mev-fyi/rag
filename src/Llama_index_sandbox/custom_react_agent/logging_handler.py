@@ -86,7 +86,7 @@ Developers using or extending this class should be aware of these assumptions an
 They may need to implement additional safeguards, optimizations, or features, depending on the specific requirements of their system and operational environment.
 """
 
-embedding_model_name, text_splitter_chunk_size, chunk_overlap = get_last_index_embedding_params()
+embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
 
 
 class JSONLoggingHandler(BaseCallbackHandler):
