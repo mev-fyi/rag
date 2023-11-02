@@ -47,7 +47,7 @@ def transcribe_and_save(file_path):
 
     # Check if the content has been diarized already
     if os.path.exists(transcript_file_path):
-        # print(f"Content for {file_path.split('/')[-1].replace('.mp3', '.json')} has already been diarized. Skipping...\n")
+        print(f"Content for {file_path.split('/')[-1].replace('.mp3', '.json')} has already been diarized. Skipping...\n")
         return
 
     if not os.path.exists(file_path):

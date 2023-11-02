@@ -240,7 +240,7 @@ def merge_directories(base_path):
 
     # Helper function to rename the pipe character
     def standardize_name(dir_or_file_name):
-        return dir_or_file_name.replace('｜', '|')
+        return dir_or_file_name.replace('：', ':')
 
     # Track directories to be removed after processing
     dirs_to_remove = []
@@ -290,11 +290,111 @@ def merge_directories(base_path):
         else:
             print(f"Directory {dir_to_remove} is not empty after merge. Please check contents.")
 
-# Usage
+
+def replace_fullwidth_colon_and_clean():
+    base_path = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+
+    for root, dirs, files in os.walk(base_path):
+        json_files = set()
+
+        # First, collect all .json filenames without extension
+        for file in files:
+            if file.endswith('.json'):
+                json_files.add(file[:-5])  # Removes the '.json' part
+
+        # Next, iterate over files and process them
+        for file in files:
+            original_file_path = os.path.join(root, file)
+            if '：' in file:
+                # Replace the fullwidth colon with a standard colon
+                new_file_name = file.replace('｜', '|')   # return dir_or_file_name.replace('｜', '|')
+                new_file_path = os.path.join(root, new_file_name)
+
+                if os.path.exists(new_file_path):
+                    # If the ASCII version exists, delete the fullwidth version
+                    print(f"Deleted {original_file_path}")
+                    os.remove(original_file_path)
+                else:
+                    # Otherwise, rename the file
+                    print(f"Renamed {original_file_path} to {new_file_path}")
+                    os.rename(original_file_path, new_file_path)
+
+            # If a corresponding .json file exists, delete the .mp3 file
+            if file[:-4] in json_files and file.endswith('.mp3'):
+                os.remove(original_file_path)
+                print(f"Deleted .mp3 file {original_file_path} because a corresponding .json exists")
+
+
+def fullwidth_to_ascii(char):
+    """Converts a full-width character to its ASCII equivalent."""
+    # Full-width range: 0xFF01-0xFF5E
+    # Corresponding ASCII range: 0x21-0x7E
+    fullwidth_offset = 0xFF01 - 0x21
+    return chr(ord(char) - fullwidth_offset) if 0xFF01 <= ord(char) <= 0xFF5E else char
+
+
+def clean_fullwidth_characters(base_path):
+    for root, dirs, files in os.walk(base_path, topdown=False):  # topdown=False to start from the innermost directories
+        # First handle the files in the directories
+        for file in files:
+            new_file_name = ''.join(fullwidth_to_ascii(char) for char in file)
+            original_file_path = os.path.join(root, file)
+            new_file_path = os.path.join(root, new_file_name)
+
+            if new_file_name != file:
+                if os.path.exists(new_file_path):
+                    # If the ASCII version exists, delete the full-width version
+                    os.remove(original_file_path)
+                    print(f"Deleted {original_file_path}")
+                else:
+                    # Otherwise, rename the file
+                    os.rename(original_file_path, new_file_path)
+                    print(f"Renamed {original_file_path} to {new_file_path}")
+
+        # Then handle directories
+        for dir in dirs:
+            new_dir_name = ''.join(fullwidth_to_ascii(char) for char in dir)
+            original_dir_path = os.path.join(root, dir)
+            new_dir_path = os.path.join(root, new_dir_name)
+
+            if new_dir_name != dir:
+                if os.path.exists(new_dir_path):
+                    # If the ASCII version exists, delete the full-width version and its contents
+                    shutil.rmtree(original_dir_path)
+                    print(f"Deleted directory and all contents: {original_dir_path}")
+                else:
+                    # Otherwise, rename the directory
+                    os.rename(original_dir_path, new_dir_path)
+                    print(f"Renamed {original_dir_path} to {new_dir_path}")
+
+
+def delete_mp3_if_text_or_json_exists(base_path):
+    for root, dirs, _ in os.walk(base_path):
+        for dir in dirs:
+            subdir_path = os.path.join(root, dir)
+            # Get a list of files in the current subdirectory
+            files = os.listdir(subdir_path)
+            # Filter out .mp3, .txt and .json files
+            mp3_files = [file for file in files if file.endswith('.mp3')]
+            txt_json_files = [file for file in files if file.endswith('.txt') or file.endswith('.json')]
+
+            if mp3_files:
+                # If there are both .mp3 and (.txt or .json) files, delete the .mp3 files
+                if txt_json_files:
+                    for mp3_file in mp3_files:
+                        mp3_file_path = os.path.join(subdir_path, mp3_file)
+                        print(f"Deleted .mp3 file: {mp3_file_path}")
+                        os.remove(mp3_file_path)
+                else:
+                    # If there are only .mp3 files, print their names and containing directory
+                    for mp3_file in mp3_files:
+                        print(f".mp3 file without .txt or .json: {mp3_file} in directory {subdir_path}")
 
 
 if __name__ == '__main__':
     directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # find_matching_files(directory)
     # move_remaining_mp3_to_their_subdirs()
-    merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
+    # merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
+    # clean_fullwidth_characters(directory)
+    delete_mp3_if_text_or_json_exists(directory)
