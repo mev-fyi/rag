@@ -1,0 +1,172 @@
+00:00:02.570 - 00:00:12.910, Speaker A: To this talk. This is the last talk in this room for today. So let's welcome Shane Viterana from Stargaze. So, Shane, all yours.
+00:00:14.850 - 00:00:18.400, Speaker B: Thank you. Hey, guys, how's it going?
+00:00:19.570 - 00:00:22.446, Speaker C: So I'm Shane from Stargaze, and I.
+00:00:22.468 - 00:00:27.218, Speaker B: Am going to talk about in NFT primary markets.
+00:00:27.394 - 00:00:55.648, Speaker C: So let me go ahead and share my screen. Okay, so mev in NFT primary markets. So what am I talking about here when I'm talking about mev?
+00:00:55.824 - 00:01:02.890, Speaker B: So in this context, M stands for minter Extractable Value.
+00:01:03.820 - 00:01:17.036, Speaker C: And when I'm talking about a primary market, I'm talking about the first sale between the creator and the collector. So this is not about the secondary market, which is something like OpenSea where.
+00:01:17.058 - 00:01:22.860, Speaker B: You have bids and asks. This is only about mev in the very first sale.
+00:01:24.560 - 00:01:27.776, Speaker C: And the Minter is the person in.
+00:01:27.798 - 00:01:30.370, Speaker B: This case is minting the NFT for the first time.
+00:01:31.780 - 00:01:56.856, Speaker C: So just a note about mev in Tendermint, because Tendermint uses an ordering of first in, first out, it eliminates a whole class of mev that you get in other blockchains where you have priority gas auctions. So in this case, mev is only contained to the NFT minting size and.
+00:01:56.878 - 00:01:59.480, Speaker B: The order of the minting.
+00:02:01.180 - 00:02:07.224, Speaker C: So to understand this a little better, we first need to understand the anatomy.
+00:02:07.272 - 00:02:10.524, Speaker B: Of an NFT which has both on.
+00:02:10.562 - 00:02:13.230, Speaker C: Chain data and off chain data.
+00:02:15.040 - 00:02:17.630, Speaker B: So first let's talk about the on chain data.
+00:02:18.800 - 00:02:28.384, Speaker C: Now, the on chain data is in the NFT collection. In the case of Stargaze, it's SG.
+00:02:28.432 - 00:02:35.700, Speaker B: 721, and you have this mapping of Token IDs and Token Uris.
+00:02:36.280 - 00:02:45.288, Speaker C: The Token Uris is the metadata file that is stored on IPFS for a.
+00:02:45.294 - 00:02:47.064, Speaker B: Lot of the generative collections like you.
+00:02:47.102 - 00:02:58.556, Speaker C: See on Stargaze for like Starch Odes and Stargaze Punks and a bunch of all the other collections. The way it's stored is that you have a base URL, which is a.
+00:02:58.578 - 00:03:00.524, Speaker B: URL to the folder, and then you.
+00:03:00.562 - 00:03:05.244, Speaker C: Have a Token ID. And every time you mint, it just.
+00:03:05.282 - 00:03:07.650, Speaker B: Goes to the next sequential Token ID.
+00:03:08.740 - 00:03:11.536, Speaker C: So that kind of long string of.
+00:03:11.558 - 00:03:17.970, Speaker B: Characters you see over there is the IPFS Content ID. And this is basically a hash of the content.
+00:03:19.080 - 00:03:25.856, Speaker C: So this is how content addressing on IPFS works. So now if someone goes to IPFS.
+00:03:25.888 - 00:03:30.368, Speaker B: And changes the data, it also changes the link that the data points to.
+00:03:30.474 - 00:03:33.320, Speaker C: So this is how you know if.
+00:03:33.390 - 00:03:36.170, Speaker B: The data for the underlying NFT changed or not.
+00:03:36.620 - 00:03:42.388, Speaker C: So on chain, you have a record of the IPFS Content IDs that are.
+00:03:42.574 - 00:03:49.724, Speaker B: Associated with each token. So let's look at an example of this. Right.
+00:03:49.762 - 00:04:04.544, Speaker C: So this is starchode or baby chode. 1829. You have the NFT on the left. You have the metadata on the left side. And this is just a JSON file. It has a name image, and then.
+00:04:04.582 - 00:04:06.800, Speaker B: It has a bunch of attributes or traits.
+00:04:07.460 - 00:04:08.516, Speaker C: And you can kind of see the.
+00:04:08.538 - 00:04:11.636, Speaker B: Representation on the website on the right hand side.
+00:04:11.818 - 00:04:13.476, Speaker C: So the traits is what gives the.
+00:04:13.498 - 00:04:19.680, Speaker B: Rarity for an NFT. And this is how NFTs are typically valued.
+00:04:19.840 - 00:04:32.024, Speaker C: So, for example, in this NFT, this baby toad has a head of aquamohawk, and only 1% of NFTs in this.
+00:04:32.062 - 00:04:35.180, Speaker B: Collection have an aquamohawk.
+00:04:35.760 - 00:04:48.736, Speaker C: So this is represented in this metadata. So anyone looking at this can look at the whole collection, compile all the.
+00:04:48.758 - 00:04:55.040, Speaker B: Rarities, and figure out a Rarity score for each NFT in this collection.
+00:04:59.000 - 00:05:16.536, Speaker C: So given that the problem we have right now is sequential minting, right? So now if you go and mint an NFT ethereum also started this way, you have a problem of sequential minting where every time you mint, it just.
+00:05:16.558 - 00:05:19.304, Speaker B: Increments the token ID by one, right?
+00:05:19.502 - 00:05:21.176, Speaker C: So let's break it down to like.
+00:05:21.198 - 00:05:24.248, Speaker B: A very trivial case where you mint.
+00:05:24.424 - 00:05:37.644, Speaker C: One NFT per block, right? So let's say that right now you're on block 4459 and someone minted Baby Chode 4459. But by looking, someone who's really savvy.
+00:05:37.692 - 00:05:40.130, Speaker B: Can look at IPFS and figure out.
+00:05:41.300 - 00:05:49.476, Speaker C: That Baby toad 4461 is incredibly rare, right? So in this case, that NFT has.
+00:05:49.498 - 00:05:51.140, Speaker B: The highest Rarity score.
+00:05:51.960 - 00:05:57.044, Speaker C: So knowing that someone who's savvy can.
+00:05:57.162 - 00:05:59.664, Speaker B: Wait for two blocks and then mint.
+00:05:59.712 - 00:06:01.416, Speaker C: The exact NFT that they want and.
+00:06:01.438 - 00:06:14.990, Speaker B: They can snipe it this way. So can the devs do something? How do we fix this problem? So I'm just going to kind of walk through a few of the solutions here.
+00:06:21.040 - 00:06:25.032, Speaker C: So they kind of ordered from easy to hard, okay?
+00:06:25.186 - 00:06:29.312, Speaker B: IPFS submarine is one way to solve this problem.
+00:06:29.446 - 00:06:34.864, Speaker C: So the way this works is that a creator would publish the metadata to.
+00:06:34.902 - 00:06:36.720, Speaker B: A private IPFS node.
+00:06:37.540 - 00:06:42.356, Speaker C: And because of content addressing, nothing has.
+00:06:42.378 - 00:06:45.136, Speaker B: To change on the contract side. So they can go ahead and deploy.
+00:06:45.168 - 00:06:54.188, Speaker C: This contract, but won't have to change any of the token URLs because once this is published to a public node.
+00:06:54.224 - 00:07:10.572, Speaker B: Is going to be exactly the same, right? So first they publish it to a private node, and then they do the minting. Then everyone comes and mints their NFTs, and then only afterwards do you publish it to a public node, right?
+00:07:10.626 - 00:07:32.308, Speaker C: So this way the creator hides all the metadata and there's no way for the Minter to know and figure out which NFT they want in order to snipe it. Now, the advantages of this is that for the developer, they don't have to.
+00:07:32.314 - 00:07:33.670, Speaker B: Do a thing, right?
+00:07:34.280 - 00:07:36.436, Speaker C: This all kind of falls into the.
+00:07:36.458 - 00:07:38.660, Speaker B: Hands of the creator.
+00:07:39.560 - 00:07:42.376, Speaker C: The disadvantage of this is that the.
+00:07:42.398 - 00:07:44.136, Speaker B: UX is worse, right?
+00:07:44.318 - 00:07:55.096, Speaker C: So now when the user mints, they don't get to see what they got immediately, right? They have to wait until either a validator some third party or the creator.
+00:07:55.128 - 00:08:01.596, Speaker B: Themselves goes ahead and publishes the public version of the NFT, all right, and.
+00:08:01.618 - 00:08:09.856, Speaker C: Then reveal later is very similar, right. Instead of publishing to a private IPFS node, first the creator goes ahead and.
+00:08:09.878 - 00:08:14.640, Speaker B: Publishes a placeholder collection to IPFS so.
+00:08:14.710 - 00:08:43.676, Speaker C: Generally this is like some kind of animated GIF that just kind of rolls through a sampling of the NFTs in the collection. Then the user goes ahead and performs the Mint. And then when they do that, they just get this kind of like, random sample. It's not the real NFT that they Minted, and then they have to wait for the creator to go and upload the real version of it and then.
+00:08:43.698 - 00:08:45.564, Speaker B: They get the NFT, right?
+00:08:45.762 - 00:08:55.404, Speaker C: So the advantage of this, again, is the developer doesn't have to do anything, but the smart contract has to have.
+00:08:55.442 - 00:09:00.000, Speaker B: The ability to go and update the token Uris.
+00:09:01.220 - 00:09:03.084, Speaker C: Of course, the disadvantage to the user.
+00:09:03.132 - 00:09:09.140, Speaker B: Is that they have to wait until the creator goes ahead and uploads the real collection.
+00:09:13.080 - 00:09:21.576, Speaker C: So what can we do? Can we make the UX better so that the NFT is available as soon.
+00:09:21.598 - 00:09:22.810, Speaker B: As the Mint happens?
+00:09:24.700 - 00:09:29.220, Speaker C: So this can be solved using randomness.
+00:09:29.300 - 00:09:32.516, Speaker B: And a shuffle and shuffling.
+00:09:32.628 - 00:09:35.356, Speaker C: Okay, so the way this works is.
+00:09:35.378 - 00:09:37.870, Speaker B: That first you got to generate a random number.
+00:09:38.720 - 00:09:40.412, Speaker C: The reason you need a random number.
+00:09:40.466 - 00:09:43.900, Speaker B: Is because it's an input into the shuffle algo.
+00:09:44.800 - 00:09:46.588, Speaker C: So in this case, we're using fishery.
+00:09:46.604 - 00:09:51.040, Speaker B: Eight, which is a well known shuffling algorithm.
+00:09:51.780 - 00:09:59.616, Speaker C: And I'll get back to the randomness in a little bit because as some.
+00:09:59.638 - 00:10:01.340, Speaker B: Of you may know, it's not trivial.
+00:10:01.420 - 00:10:08.768, Speaker C: To generate a random number on a blockchain is because every node would have to generate the same random number at.
+00:10:08.774 - 00:10:19.448, Speaker B: The same time for it to work. So there's various approaches to solving that problem, but this is the approach that Stargaze is taking.
+00:10:19.534 - 00:10:22.248, Speaker C: And let me just go over this a little bit.
+00:10:22.414 - 00:10:25.740, Speaker B: So first, when a collection is launched.
+00:10:28.000 - 00:10:41.088, Speaker C: All the token IDs for that collection is randomly shuffled, okay? So that solves the sequential Minting just a little bit, because now you don't know exactly which one you're going to.
+00:10:41.094 - 00:10:45.136, Speaker B: Get next, but someone who's savvy can look into the blockchain and query the.
+00:10:45.158 - 00:10:50.228, Speaker C: Data and know which one still is.
+00:10:50.234 - 00:10:51.510, Speaker B: Going to be Minted next.
+00:10:55.800 - 00:11:01.508, Speaker C: So this is better than just regular sequential Minting, but it adds a bit.
+00:11:01.514 - 00:11:04.090, Speaker B: Of extra element to it.
+00:11:05.980 - 00:11:08.504, Speaker C: You can't just do the single shuffle, right?
+00:11:08.542 - 00:11:11.930, Speaker B: You have to do a little bit more than that.
+00:11:13.500 - 00:11:15.916, Speaker C: So what we do is that on.
+00:11:15.938 - 00:11:20.972, Speaker B: The Minting process, we do another smaller shuffle. So what this does is that it.
+00:11:21.026 - 00:11:25.964, Speaker C: Takes a range of token IDs either.
+00:11:26.002 - 00:11:30.832, Speaker B: From the front of the list or from the back of the list, and that's going to be random, right?
+00:11:30.886 - 00:11:31.984, Speaker C: So you don't know if you're getting.
+00:11:32.022 - 00:11:38.550, Speaker B: One from the front or the back, and then it does a secondary shuffle on the Mint and.
+00:11:40.840 - 00:11:41.428, Speaker C: That'S how you.
+00:11:41.434 - 00:11:42.900, Speaker B: Get the NFT, right?
+00:11:42.970 - 00:11:47.028, Speaker C: So the reason for not doing a.
+00:11:47.034 - 00:11:49.572, Speaker B: Full shuffle on each Mint is because.
+00:11:49.626 - 00:11:56.884, Speaker C: It'S an expensive operation. So if you have a collection of 10,000, you don't want to be shuffling.
+00:11:56.932 - 00:12:11.036, Speaker B: That on every mint. Now, someone could still potentially figure out the order. So you need another element to this.
+00:12:11.138 - 00:12:13.900, Speaker C: And that is having a shuffle function.
+00:12:14.050 - 00:12:21.872, Speaker B: That anyone can call. When anyone can call the shuffle function, it adds an element of time to it, right?
+00:12:21.926 - 00:12:23.568, Speaker C: So now if someone's really savvy, they.
+00:12:23.574 - 00:12:26.160, Speaker B: Can figure out exactly what's going on inside the blockchain.
+00:12:28.040 - 00:12:29.828, Speaker C: They don't know exactly what they're going.
+00:12:29.834 - 00:12:32.710, Speaker B: To get next because anyone can come and call the shuffle function.
+00:12:36.120 - 00:12:37.700, Speaker C: And that randomizes the order.
+00:12:37.770 - 00:12:42.392, Speaker B: Again, so anyone can call this.
+00:12:42.446 - 00:12:48.868, Speaker C: And generally it's something that maybe whales can do. And when whales call this function, they're.
+00:12:48.884 - 00:12:50.810, Speaker B: Kind of socializing the cost of it.
+00:12:51.260 - 00:12:55.308, Speaker C: And they're also kind of benefiting the.
+00:12:55.314 - 00:12:56.830, Speaker B: Blockchain at the same time.
+00:12:57.360 - 00:12:58.876, Speaker C: And the reason for this is, at.
+00:12:58.898 - 00:13:03.340, Speaker B: Least in the context of Stargaze, it has this fee structure called Fairburn.
+00:13:03.920 - 00:13:05.788, Speaker C: In Fairburn, 50% of the fees are.
+00:13:05.794 - 00:13:08.464, Speaker B: Burned and 50% go to stakers, right?
+00:13:08.502 - 00:13:15.392, Speaker C: So when whales come and do the shuffle, they're actually helping the network in two ways.
+00:13:15.446 - 00:13:17.584, Speaker B: They're helping to randomize the collections and.
+00:13:17.622 - 00:13:26.420, Speaker C: They'Re also potentially increasing the value of the token and also distributing fees to all the stakers.
+00:13:28.920 - 00:13:31.080, Speaker B: So this is kind of neat.
+00:13:34.060 - 00:13:37.880, Speaker C: So I mentioned earlier that getting randomness.
+00:13:38.380 - 00:13:40.520, Speaker B: On a blockchain is non trivial.
+00:13:42.220 - 00:13:45.900, Speaker C: Well, one way to do it is to use a service called Drand.
+00:13:46.560 - 00:13:50.924, Speaker B: Drand is run by a consortium of.
+00:13:50.962 - 00:13:54.316, Speaker C: Companies, I believe, and they generate a.
+00:13:54.338 - 00:14:05.250, Speaker B: Random number every 30 seconds. Now, blockchains can't talk to the outside world, right? They can't just use the API for Drand and get a random number.
+00:14:06.980 - 00:14:08.484, Speaker C: So the way this has to work.
+00:14:08.522 - 00:14:13.280, Speaker B: Is that some external party has to submit the randomness to the chain.
+00:14:13.440 - 00:14:16.580, Speaker C: So let's say you have a smart contract.
+00:14:17.240 - 00:14:19.220, Speaker B: In our case, it's cosmosm.
+00:14:20.380 - 00:14:21.608, Speaker C: So there has to be some kind.
+00:14:21.614 - 00:14:23.492, Speaker B: Of incentive structure, some kind of bounty.
+00:14:23.556 - 00:14:25.160, Speaker C: Maybe some kind of reward.
+00:14:28.380 - 00:14:35.100, Speaker B: For submitting a random beacon. And also, this random beacon is expensive to verify.
+00:14:36.240 - 00:14:41.224, Speaker C: So one thing we're thinking of doing is to implement this in an SDK.
+00:14:41.272 - 00:14:47.120, Speaker B: Go module so the gas will be less to verify.
+00:14:48.340 - 00:14:50.304, Speaker C: Another option is to build this into.
+00:14:50.342 - 00:14:52.592, Speaker B: Tendermint itself and kind of like provide.
+00:14:52.646 - 00:14:56.000, Speaker C: It as a service to any chain.
+00:14:57.140 - 00:14:58.710, Speaker B: That wants to use it.
+00:15:00.200 - 00:15:02.512, Speaker C: And once again, this is the input.
+00:15:02.576 - 00:15:05.780, Speaker B: That is fed into the shuffle algorithm.
+00:15:10.120 - 00:15:30.716, Speaker C: Okay, one more thing I wanted to mention is that another potential way to do this is to use threshold decryption. This is a bit beyond the scope of the talk because we have decided to go with the random shuffling approach. But this is probably another way you.
+00:15:30.738 - 00:15:32.908, Speaker B: Can do it right in Cosmos and.
+00:15:32.914 - 00:15:42.188, Speaker C: Intendement you have a validator set. That validator set could be in control of a decryption key. So when the seller publishes the collection.
+00:15:42.284 - 00:15:48.676, Speaker B: They can encrypt the Ipfscids or they.
+00:15:48.698 - 00:15:56.324, Speaker C: Can also encrypt a shuffled version of the set. And then during the Mint operation, the.
+00:15:56.362 - 00:16:02.280, Speaker B: Validator set can go and decrypt either the Token ID or the Uri.
+00:16:03.180 - 00:16:04.504, Speaker C: And this is something you can only.
+00:16:04.542 - 00:16:08.788, Speaker B: Do in an app specific chain. And this is probably cheaper than verifying.
+00:16:08.804 - 00:16:11.640, Speaker C: A random beacon, so this is probably.
+00:16:11.710 - 00:16:22.830, Speaker B: More of an advanced way of doing it that we might explore a bit later. Okay.
+00:16:25.680 - 00:16:31.676, Speaker C: Anyway, folks, that's all I had for my talk. You can reach me on Twitter.
+00:16:31.788 - 00:16:34.240, Speaker B: I am Shane. Three V on Twitter.
+00:16:35.300 - 00:16:38.050, Speaker C: A bunch of people helped me out with this talk, so.
+00:16:40.100 - 00:16:41.410, Speaker B: Hats off to them.
+00:16:41.940 - 00:17:00.440, Speaker C: And also, if you're interested in any of this stuff, if you're interested in NFTs with Cosmosm and mechanism design around NFTs, please get in touch. You can also check us out at stargaze zone.
+00:17:00.860 - 00:17:01.350, Speaker B: Thank you.
