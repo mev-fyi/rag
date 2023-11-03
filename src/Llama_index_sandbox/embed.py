@@ -59,6 +59,7 @@ def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbeddi
         logging.error(f"Failed to generate embedding due to: {e}")
 
 
+@timeit
 def generate_embeddings(nodes: List[TextNode], embedding_model):
     import concurrent.futures
 
@@ -70,7 +71,7 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
                                               progress_counter=progress_counter,
                                               total_nodes=total_nodes)
 
-    num_threads = multiprocessing.cpu_count()  # Number of threads based on the system's available CPUs
+    num_threads = int(3/4 * multiprocessing.cpu_count())
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
         list(executor.map(partial_generate_node_embedding, nodes))
@@ -99,8 +100,9 @@ def construct_single_node(text_chunk, src_doc_metadata):
 @timeit
 def construct_node(text_chunks, documents, doc_idxs) -> List[TextNode]:
     """ 3. Manually Construct Nodes from Text Chunks """
-    #  TODO 2023-09-26: should the LlamaIndex TextNode representation be scrutinized e.g. versus other implementations (e.g. Anyscale)?
-    with ProcessPoolExecutor() as executor:
+    available_workers = int(3 / 4 * multiprocessing.cpu_count())  # Calculate 3/4 of the available CPU count
+
+    with ProcessPoolExecutor(max_workers=available_workers) as executor:
         future_to_idx = {
             executor.submit(construct_single_node, text_chunks[idx], documents[doc_idxs[idx]].metadata): idx
             for idx in range(len(text_chunks))

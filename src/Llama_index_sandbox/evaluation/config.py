@@ -13,14 +13,14 @@ class Config:
         self.reset_chat = True
         self.add_new_transcripts = False
         self.stream = True
-        self.num_files = 10
+        self.num_files = None  # 10
 
         # Indexing Parameters
         self.VECTOR_SPACE_DISTANCE_METRIC = ['cosine']
-        self.NUM_CHUNKS_RETRIEVED = [10]  # config.NUM_CHUNKS_RETRIEVED
+        self.NUM_CHUNKS_RETRIEVED = [5]  # config.NUM_CHUNKS_RETRIEVED
         self.CHUNK_SIZES = [750]  # config.CHUNK_SIZES
         self.CHUNK_OVERLAPS = [10]  # config.CHUNK_OVERLAPS
-        self.EMBEDDING_MODELS = ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
+        self.EMBEDDING_MODELS = ['thenlper/gte-large']  # ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
         self.INFERENCE_MODELS = ["gpt-3.5-turbo-0613"]  # config.INFERENCE_MODELS
 
     def get_index_params(self, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric):

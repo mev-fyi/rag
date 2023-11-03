@@ -119,7 +119,7 @@ def get_last_index_embedding_params():
     embedding_model_name = index[1]
     embedding_model_chunk_size = int(index[2])
     chunk_overlap = int(index[3])
-    vector_space_distance_metric = ''  # TODO 2023-11-02: save vector_space_distance_metric in index name
+    vector_space_distance_metric = 'cosine'  # TODO 2023-11-02: save vector_space_distance_metric in index name
     return embedding_model_name, embedding_model_chunk_size, chunk_overlap, vector_space_distance_metric
 
 

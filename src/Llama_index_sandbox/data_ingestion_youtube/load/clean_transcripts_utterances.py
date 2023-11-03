@@ -39,6 +39,7 @@ def correct_typos_in_files():
         "SWAV": "SUAVE",
         "One Inc": "1inch",
         "Pepsi": "PEPC",
+        "MVV": "MEV",
     }
 
     # Walk through root_dir

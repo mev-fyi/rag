@@ -9,6 +9,7 @@ from src.Llama_index_sandbox.utils import timeit
 import ray
 
 
+@timeit
 def generate_embeddings(nodes: List[TextNode], embedding_model):
     ds = ray.data.from_items(nodes)
 
