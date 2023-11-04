@@ -2,11 +2,11 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# You might have different dependencies for the evaluation script
-COPY src/Llama_index_sandbox/evaluation/requirements.txt .
+# Copy the requirements file to the working directory in the container
+COPY src/Llama_index_sandbox/evaluation/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the evaluation directory
+# Copy the evaluation script directory
 COPY src/Llama_index_sandbox/evaluation .
 
 # Command to run the evaluation script
