@@ -151,6 +151,7 @@ def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size
     embed.generate_embeddings(nodes_pdf, embedding_model)
     embed.generate_embeddings(nodes_youtube, embedding_model)
     nodes = nodes_pdf + nodes_youtube
+    # TODO 2023-11-03: save nodes locally to easily re-create the index for new features which aren't nodes/embedding-related, e.g. distance metric
 
     # 6. Load Nodes into a Vector Store
     # We now insert these nodes into our PineconeVectorStore.
