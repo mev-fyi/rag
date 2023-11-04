@@ -1,5 +1,19 @@
 steps:
-  # Deploy the Docker image to Google Cloud Run
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
+      - '-f'  # Specify the Dockerfile path
+      - './Dockerfile_app'  # Use the path to your Dockerfile
+      - './src/Llama_index_sandbox'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
+
+  # Deploy to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -14,7 +28,8 @@ steps:
       - '--service-account'
       - 'cloud-run-backend@mev-fyi.iam.gserviceaccount.com'
       - '--update-env-vars'
-      - 'OPENAI_API_KEY=sm://mev-fyi/OPENAI_API_KEY,' # Add other secrets similarly
+      - 'OPENAI_API_KEY=sm://mev-fyi/OPENAI_API_KEY,'  # Add other secrets similarly
+      - 'OPENAI_API_BASE_ANYSCALE=sm://mev-fyi/OPENAI_API_BASE_ANYSCALE,'  # Add other secrets similarly
       - 'YOUTUBE_API_KEY=sm://mev-fyi/YOUTUBE_API_KEY,'
       - 'ASSEMBLY_AI_API_KEY=sm://mev-fyi/ASSEMBLY_AI_API_KEY,'
       - 'PINECONE_API_KEY=sm://mev-fyi/PINECONE_API_KEY,'
@@ -30,6 +45,8 @@ availableSecrets:
   secretManager:
     - versionName: projects/mev-fyi/secrets/OPENAI_API_KEY/versions/latest
       env: 'OPENAI_API_KEY'
+    - versionName: projects/mev-fyi/secrets/OPENAI_API_BASE_ANYSCALE/versions/latest
+      env: 'OPENAI_API_BASE_ANYSCALE'
     - versionName: projects/mev-fyi/secrets/YOUTUBE_API_KEY/versions/latest
       env: 'YOUTUBE_API_KEY'
     - versionName: projects/mev-fyi/secrets/ASSEMBLY_AI_API_KEY/versions/latest
