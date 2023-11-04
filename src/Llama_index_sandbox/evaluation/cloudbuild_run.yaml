@@ -1,0 +1,39 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA', './src/Llama_index_sandbox/evaluation']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA']
+
+  # Deploy to Compute Engine
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'compute'
+      - 'instances'
+      - 'create-with-container'
+      - 'my-eval-instance'
+      - '--container-image'
+      - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
+      - '--machine-type'
+      - 'n1-standard-4'
+      - '--zone'
+      - 'us-central1-a'
+      - '--scopes'
+      - 'cloud-platform'
+      - '--tags'
+      - 'http-server,https-server'
+
+      # Add additional container-env flags for other environment variables as needed
+      # Include the necessary environment variables for your eval here.
+      - '--container-env'
+      - 'OPENAI_API_KEY_ANYSCALE=<your-secret-here>'
+      - 'OPENAI_API_BASE_ANYSCALE=<your-secret-here>'
+      - 'ASSEMBLY_AI_API_KEY=<your-secret-here>'
+      - 'PINECONE_API_KEY=<your-secret-here>'
+      - 'PINECONE_API_ENVIRONMENT=<your-secret-here>'
+      - 'ASSEMBLY_AI_API=<your-secret-here>'
+      - 'YOUTUBE_CHANNELS=<your-secret-here>'
+
+images:
+  - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
