@@ -6,6 +6,7 @@ from typing import Tuple, Dict, Any
 
 from src.Llama_index_sandbox.constants import TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, EVALUATION_INPUT_QUERIES
 from src.Llama_index_sandbox.evaluation.config import Config
+from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 from src.Llama_index_sandbox.utils import start_logging
@@ -67,6 +68,7 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
 
 
 def run(config: Config):
+    set_secrets_from_cloud()
     for index_comb in config.get_full_combinations():
         text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric = index_comb
         index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric)

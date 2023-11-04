@@ -5,6 +5,7 @@ import os
 from llama_index import ServiceContext
 
 from src.Llama_index_sandbox.constants import INPUT_QUERIES, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, NUMBER_OF_CHUNKS_TO_RETRIEVE
+from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.utils import start_logging, get_last_index_embedding_params
 import src.Llama_index_sandbox.embed as embed
@@ -63,6 +64,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
 
 
 def run():
+    set_secrets_from_cloud()
     engine = 'chat'
     query_engine_as_tool = True
     reset_chat = True

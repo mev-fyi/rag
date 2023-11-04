@@ -1,5 +1,6 @@
 import logging
 
+from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
 
@@ -10,6 +11,7 @@ app = Flask(__name__)
 engine = 'chat'
 query_engine_as_tool = True
 retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool)
+set_secrets_from_cloud()
 
 
 @app.route('/chat', methods=['POST'])
