@@ -5,35 +5,46 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA']
 
-  # Deploy to Compute Engine
+  # Deploy to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
-      - 'compute'
-      - 'instances'
-      - 'create-with-container'
-      - 'my-eval-instance'
-      - '--container-image'
+      - 'run'
+      - 'deploy'
+      - 'llama-eval-service'  # Update this to the appropriate service name
+      - '--image'
       - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
-      - '--machine-type'
-      - 'n1-standard-4'
-      - '--zone'
-      - 'us-central1-a'
-      - '--scopes'
-      - 'cloud-platform'
-      - '--tags'
-      - 'http-server,https-server'
-
-      # Add additional container-env flags for other environment variables as needed
-      # Include the necessary environment variables for your eval here.
-      - '--container-env'
-      - 'OPENAI_API_KEY_ANYSCALE=<your-secret-here>'
-      - 'OPENAI_API_BASE_ANYSCALE=<your-secret-here>'
-      - 'ASSEMBLY_AI_API_KEY=<your-secret-here>'
-      - 'PINECONE_API_KEY=<your-secret-here>'
-      - 'PINECONE_API_ENVIRONMENT=<your-secret-here>'
-      - 'ASSEMBLY_AI_API=<your-secret-here>'
-      - 'YOUTUBE_CHANNELS=<your-secret-here>'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--service-account'
+      - 'cloud-run-backend@mev-fyi.iam.gserviceaccount.com'
+      - '--update-env-vars'
+      - 'OPENAI_API_KEY=sm://mev-fyi/OPENAI_API_KEY,'
+      - 'OPENAI_API_BASE_ANYSCALE=sm://mev-fyi/OPENAI_API_BASE_ANYSCALE,'  # Add other secrets similarly
+      - 'ASSEMBLY_AI_API_KEY=sm://mev-fyi/ASSEMBLY_AI_API_KEY,'
+      - 'PINECONE_API_KEY=sm://mev-fyi/PINECONE_API_KEY,'
+      - 'PINECONE_API_ENVIRONMENT=sm://mev-fyi/PINECONE_API_ENVIRONMENT,'
+      - 'ASSEMBLY_AI_API=sm://mev-fyi/ASSEMBLY_AI_API,'
+      - 'YOUTUBE_CHANNELS=sm://mev-fyi/YOUTUBE_CHANNELS'
 
 images:
   - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
+
+# Define the secrets to be available as environment variables in the Cloud Run service
+availableSecrets:
+  secretManager:
+    - versionName: projects/mev-fyi/secrets/OPENAI_API_KEY/versions/latest
+      env: 'OPENAI_API_KEY'
+    - versionName: projects/mev-fyi/secrets/OPENAI_API_BASE_ANYSCALE/versions/latest
+      env: 'OPENAI_API_BASE_ANYSCALE'  # Add other secrets similarly
+    - versionName: projects/mev-fyi/secrets/ASSEMBLY_AI_API_KEY/versions/latest
+      env: 'ASSEMBLY_AI_API_KEY'
+    - versionName: projects/mev-fyi/secrets/PINECONE_API_KEY/versions/latest
+      env: 'PINECONE_API_KEY'
+    - versionName: projects/mev-fyi/secrets/PINECONE_API_ENVIRONMENT/versions/latest
+      env: 'PINECONE_API_ENVIRONMENT'
+    - versionName: projects/mev-fyi/secrets/ASSEMBLY_AI_API/versions/latest
+      env: 'ASSEMBLY_AI_API'
+    - versionName: projects/mev-fyi/secrets/YOUTUBE_CHANNELS/versions/latest
+      env: 'YOUTUBE_CHANNELS'
