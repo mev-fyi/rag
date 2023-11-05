@@ -2,12 +2,15 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Copy the requirements file to the working directory in the container
+# Copy the requirements file first to leverage Docker cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the evaluation script directory
-COPY src/Llama_index_sandbox .
+# Copy the whole app
+COPY . .
 
-# Command to run the evaluation script
-CMD ["python", "eval.py"]
+# Append src directory to PYTHONPATH
+ENV PYTHONPATH "${PYTHONPATH}:/app/src"
+
+# Command to run the evaluation script, ensuring the path is correct
+CMD ["python", "./src/Llama_index_sandbox/eval.py"]
