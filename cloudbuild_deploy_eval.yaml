@@ -1,27 +1,13 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
-      - '-f'  # Specify the Dockerfile path
-      - './Dockerfile_app'  # Use the path to your Dockerfile
-      - .
-
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
-
-  # Deploy to Google Cloud Run
+    # Deploy to Google Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'llama-flask-service'
+      - 'llama-eval-service'
       - '--image'
-      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
+      - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
       - '--region'
       - 'us-central1'
       - '--allow-unauthenticated'
@@ -38,7 +24,7 @@ steps:
       - 'YOUTUBE_CHANNELS=sm://mev-fyi/YOUTUBE_CHANNELS'
 
 images:
-  - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
+  - 'gcr.io/mev-fyi/llama-eval-app:$SHORT_SHA'
 
 # Define the secrets to be available as environment variables in the Cloud Run service
 availableSecrets:
