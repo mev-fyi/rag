@@ -14,6 +14,11 @@ retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engi
 set_secrets_from_cloud()
 
 
+@app.route('/hello')
+def hello_world():
+    return 'Hello World!'
+
+
 @app.route('/chat', methods=['POST'])
 def chat_endpoint():
     # Get message from the POST request
@@ -36,4 +41,4 @@ def chat_endpoint():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

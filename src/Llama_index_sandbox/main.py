@@ -31,7 +31,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
     service_context: ServiceContext = ServiceContext.from_defaults(llm=llm, embed_model=embedding_model)
 
     start_logging(f"create_index_{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}_{similarity_top_k}")
-    index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap = get_last_index_embedding_params()
+    index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap, vector_space_distance_metric = get_last_index_embedding_params()
     if (not recreate_index) and ((index_embedding_model_name != embedding_model_name.split('/')[-1]) or (index_text_splitter_chunk_size != TEXT_SPLITTER_CHUNK_SIZE) or (index_chunk_overlap != TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)):
         logging.error(f"The new embedding model parameters are the same as the last ones and we are not recreating the index. Do you want to recreate the index or to revert parameters back?")
         assert False
@@ -41,7 +41,7 @@ def initialise_chatbot(engine, query_engine_as_tool):
                              text_splitter_chunk_size=text_splitter_chunk_size,
                              text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage,
                              embedding_model=embedding_model,
-                             vector_space_distance_metric='cosine',
+                             vector_space_distance_metric=vector_space_distance_metric,
                              add_new_transcripts=add_new_transcripts,
                              num_files=num_files)
     else:
