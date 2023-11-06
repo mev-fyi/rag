@@ -52,6 +52,8 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
 
     # 7. Retrieve and Query from the Vector Store
     # Now that our ingestion is complete, we can retrieve/query this vector store.
+    log_name = f"{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}"
+    start_logging(f"ask_questions_{log_name}_{similarity_top_k}")
     retrieval_engine, query_engine, store_response_partial = get_engine_from_vector_store(embedding_model_name=embedding_model_name,
                                                                                           embedding_model=embedding_model,
                                                                                           llm_model_name=llm_model_name,
@@ -62,7 +64,8 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
                                                                                           index=index,
                                                                                           engine=engine,
                                                                                           stream=stream,
-                                                                                          query_engine_as_tool=query_engine_as_tool)
+                                                                                          query_engine_as_tool=query_engine_as_tool,
+                                                                                          log_name=log_name)
     return retrieval_engine, query_engine, store_response_partial
 
 

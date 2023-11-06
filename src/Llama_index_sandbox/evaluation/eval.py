@@ -85,7 +85,7 @@ def run(config: Config):
             # write NUMBER_OF_CHUNKS_TO_RETRIEVE as global scope
             glb.NUMBER_OF_CHUNKS_TO_RETRIEVE = similarity_top_k
 
-            start_logging(f"ask_questions_{embedding_model_name.split('/')[-1]}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}_{similarity_top_k}")
+            start_logging(f"ask_questions_{log_name}_{similarity_top_k}")
             ask_questions(input_queries=EVALUATION_INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine, store_response_partial=store_response_partial, engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, reset_chat=config.reset_chat)
 
 
