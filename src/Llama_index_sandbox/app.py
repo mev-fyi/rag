@@ -20,6 +20,12 @@ def hello_world():
     return 'Hello World!'
 
 
+@app.route('/healthz')
+def health():
+    # Optionally add any vital health checks your app needs.
+    return 'OK', 200
+
+
 @app.route('/chat', methods=['POST'])
 def chat_endpoint():
     # Get message from the POST request
@@ -42,4 +48,4 @@ def chat_endpoint():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
