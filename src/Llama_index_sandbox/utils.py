@@ -8,21 +8,52 @@ from google.oauth2.credentials import Credentials
 from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 
 
+import os
+import subprocess
+
 def root_directory() -> str:
     """
-    Determine the root directory of the project based on the presence of '.git' directory.
+    Determine the root directory of the project by using the 'git' command first,
+    and if that fails, by manually traversing the directories upwards to find a '.git' directory.
+    If none are found or an error occurs, raise an exception.
 
     Returns:
     - str: The path to the root directory of the project.
     """
-    current_dir = os.getcwd()
 
-    while True:
-        if '.git' in os.listdir(current_dir):
-            return current_dir
-        else:
-            # Go up one level
+    # First, try to use the git command to find the root directory
+    try:
+        git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], stderr=subprocess.STDOUT)
+        return git_root.strip().decode('utf-8')
+    except subprocess.CalledProcessError:
+        # Git command failed, which might mean we're not in a Git repository
+        # Fall back to manual traversal
+        pass
+    except Exception as e:
+        # Some other error occurred while trying to execute git command
+        print(f"An error occurred while trying to find the Git repository root: {e}")
+
+    # Manual traversal if git command fails
+    current_dir = os.getcwd()
+    root = os.path.abspath(os.sep)
+    while current_dir != root:
+        try:
+            if 'src' in os.listdir(current_dir):
+                print(f"Found root directory: {current_dir}")
+                return current_dir
             current_dir = os.path.dirname(current_dir)
+        except PermissionError as e:
+            # Could not access a directory due to permission issues
+            raise Exception(f"Permission denied when accessing directory: {current_dir}") from e
+        except FileNotFoundError as e:
+            # The directory was not found, which should not happen unless the filesystem is changing
+            raise Exception(f"The directory was not found: {current_dir}") from e
+        except OSError as e:
+            # Handle any other OS-related errors
+            raise Exception("An OS error occurred while searching for the Git repository root.") from e
+
+    # If we've reached this point, it means we've hit the root of the file system without finding a .git directory
+    raise Exception("Could not find the root directory of the project. Please make sure you are running this script from within a Git repository.")
 
 
 def start_logging(log_prefix):

@@ -11,7 +11,7 @@ from typing import Union
 import pandas as pd
 import pikepdf
 import requests
-from fitz import fitz
+# import fitz
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
@@ -37,14 +37,14 @@ def get_pdf_details(response: requests.Response) -> dict:
                     paper_title = info.title
                 except Exception as e:
                     logging.info(f"Could not retrieve details with [PyPDF] from: {e}")
-            if not paper_title:  # If details retrieval still fails, try with PyMuPDF
-                try:
-                    f.seek(0)
-                    doc = fitz.open(f)
-                    info = doc.metadata
-                    paper_title = info['title']
-                except Exception as e:
-                    logging.info(f"Could not retrieve details with [PyMuPDF] from: {e}")
+            # if not paper_title:  # If details retrieval still fails, try with PyMuPDF
+            #     try:
+            #         f.seek(0)
+            #         doc = fitz.fitz.open(f)
+            #         info = doc.metadata
+            #         paper_title = info['title']
+            #     except Exception as e:
+            #         logging.info(f"Could not retrieve details with [PyMuPDF] from: {e}")
 
             if not paper_title:  # If details retrieval still fails, try with pdfminer
                 try:
