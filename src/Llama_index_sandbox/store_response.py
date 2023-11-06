@@ -28,14 +28,14 @@ def response_to_dict(response: Response) -> Dict[str, Any]:
     }
 
 
-def store_response(embedding_model_name: str, llm_model_name: str, TEXT_SPLITTER_CHUNK_SIZE: int, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE: int, query_str: str, response: Response) -> None:
+def store_response(embedding_model_name: str, llm_model_name: str, text_splitter_chunk_size: int, text_splitter_chunk_overlap_percentage: int, query_str: str, response: Response) -> None:
     # Ensure the directory exists
     dir_path = "datasets/evaluation_results"
     os.makedirs(dir_path, exist_ok=True)
 
     # Format the filename
     date_str = datetime.now().strftime("%Y-%m-%d")
-    file_name = f"{date_str}_{embedding_model_name}_{llm_model_name}_{TEXT_SPLITTER_CHUNK_SIZE}_{TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE}.json"
+    file_name = f"{date_str}_{embedding_model_name}_{llm_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}.json"
     file_path = os.path.join(dir_path, file_name)
 
     # Convert the response to dict

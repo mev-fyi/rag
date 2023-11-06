@@ -4,7 +4,7 @@ from llama_index import ServiceContext
 from itertools import product
 from typing import Tuple, Dict, Any
 
-from src.Llama_index_sandbox.constants import TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE, EVALUATION_INPUT_QUERIES
+from src.Llama_index_sandbox.constants import EVALUATION_INPUT_QUERIES
 from src.Llama_index_sandbox.evaluation.config import Config
 from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
@@ -49,6 +49,8 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
     embedding_model = params["embedding_model"]
     llm_model_name = params["llm_model_name"]
     stream = params["stream"]
+    text_splitter_chunk_size = params['text_splitter_chunk_size']
+    text_splitter_chunk_overlap_percentage = params['text_splitter_chunk_overlap_percentage']
 
     # 7. Retrieve and Query from the Vector Store
     # Now that our ingestion is complete, we can retrieve/query this vector store.
@@ -56,8 +58,8 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
                                                                                           embedding_model=embedding_model,
                                                                                           llm_model_name=llm_model_name,
                                                                                           service_context=service_context,
-                                                                                          TEXT_SPLITTER_CHUNK_SIZE=TEXT_SPLITTER_CHUNK_SIZE,
-                                                                                          TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE=TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE,
+                                                                                          text_splitter_chunk_size=text_splitter_chunk_size,
+                                                                                          text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage,
                                                                                           similarity_top_k=similarity_top_k,
                                                                                           index=index,
                                                                                           engine=engine,

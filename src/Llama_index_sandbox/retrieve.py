@@ -188,8 +188,8 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  embedding_model: Union[OpenAIEmbedding, HuggingFaceEmbedding],
                                  llm_model_name: str,
                                  service_context: ServiceContext,
-                                 TEXT_SPLITTER_CHUNK_SIZE: int,
-                                 TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE: int,
+                                 text_splitter_chunk_size: int,
+                                 text_splitter_chunk_overlap_percentage: int,
                                  index: VectorStoreIndex,
                                  query_engine_as_tool: bool,
                                  stream: bool,
@@ -200,7 +200,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
 
     # TODO 2023-09-29: determine how we should structure our indexes per document type
     # create partial store_response with everything but the query_str and response
-    store_response_partial = partial(store_response, embedding_model_name, llm_model_name, TEXT_SPLITTER_CHUNK_SIZE, TEXT_SPLITTER_CHUNK_OVERLAP_PERCENTAGE)
+    store_response_partial = partial(store_response, embedding_model_name, llm_model_name, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage)
 
     if engine == 'chat':
         retrieval_engine = get_chat_engine(index=index, stream=stream, service_context=service_context, chat_mode="react", verbose=True, similarity_top_k=similarity_top_k, query_engine_as_tool=query_engine_as_tool, log_name=log_name)
