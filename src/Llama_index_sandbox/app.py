@@ -7,7 +7,10 @@ from src.Llama_index_sandbox.retrieve import ask_questions
 from flask import Flask, request, jsonify
 import os
 
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
 engine = 'chat'
 query_engine_as_tool = True
