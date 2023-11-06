@@ -1,6 +1,9 @@
 # Use an official lightweight Python image
 FROM python:3.9-slim
 
+# Use a build argument to specify the context
+ARG DOCKERIGNORE_CONTEXT=app
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -12,6 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy only the relevant directory to the working directory
 COPY . .
+
+# Use the build argument to copy the correct .dockerignore file before the build
+COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
 
 # Append src directory to PYTHONPATH
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
