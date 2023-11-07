@@ -19,3 +19,4 @@ notebooks/
 src/anyscale_sandbox/
 src/blog_example/
 datasets/
+.mp3
