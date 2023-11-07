@@ -6,7 +6,7 @@ from typing import Tuple, Dict, Any
 
 from src.Llama_index_sandbox.constants import EVALUATION_INPUT_QUERIES
 from src.Llama_index_sandbox.evaluation.config import Config
-from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
+from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud, get_firestore_client
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
 from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 from src.Llama_index_sandbox.utils import start_logging
