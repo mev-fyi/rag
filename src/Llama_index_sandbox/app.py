@@ -7,6 +7,8 @@ import uuid
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from google.cloud import firestore
+
+from src.Llama_index_sandbox.gcs_utils import get_firestore_client
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
 
@@ -20,7 +22,7 @@ recreate_index = False
 retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
 
 # Initialize Firestore DB
-db = firestore.Client()
+db = get_firestore_client()
 
 
 @app.route('/healthz')

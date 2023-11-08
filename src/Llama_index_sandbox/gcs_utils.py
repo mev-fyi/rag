@@ -20,15 +20,26 @@ def get_secret(project_id, secret_name):
 
 def get_firestore_client():
     """
-    Creates a Firestore client using credentials retrieved from Secret Manager.
+    Creates a Firestore client. If running locally, uses credentials from a
+    JSON file whose path is specified in the FIRESTORE_CREDENTIALS_PATH environment variable.
+    Otherwise, it retrieves credentials from Google Secret Manager.
     """
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
     if not project_id:
         raise EnvironmentError("GOOGLE_CLOUD_PROJECT environment variable is not set.")
 
-    service_account_info = get_secret(project_id, 'firestore-service-account')
-    credentials_info = json.loads(service_account_info)
-    credentials = service_account.Credentials.from_service_account_info(credentials_info)
+    # Path to service account key
+    credentials_path = os.environ.get("FIRESTORE_CREDENTIALS_PATH")
+
+    if credentials_path and os.path.exists(credentials_path):
+        # Use service account credentials from the file path
+        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+    else:
+        # Fetch service account credentials from Secret Manager
+        service_account_info = get_secret(project_id, 'firestore-service-account')
+        credentials_info = json.loads(service_account_info)
+        credentials = service_account.Credentials.from_service_account_info(credentials_info)
+
     firestore_client = firestore.Client(credentials=credentials, project=project_id)
     return firestore_client
 
