@@ -163,6 +163,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             logging.info(f"WARNING: on_event_start: event_type {event_type.name} was not caught by the logging handler.\n")
 
         self.log_entry(entry=entry)
+        logging.info(f"on_event_start: {entry}")
 
     def log_entry(self, entry):
         """
@@ -210,6 +211,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             logging.info(f"WARNING: on_event_end: event_type {event_type.name} was not caught by the logging handler.\n")
 
         self.log_entry(entry=entry)
+        logging.info(f"on_event_end: {entry}")
 
     def parse_message_content(self, message_content):
         """

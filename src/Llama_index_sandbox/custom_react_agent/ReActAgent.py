@@ -130,6 +130,7 @@ class CustomReActAgent(ReActAgent):
 
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
+            logging.info(f"{observation_step.get_content()}")
 
         # Note 2023-10-24: current hack: we return last_metadata manually here,
         # alternatively we can overload the ObservationReasoningStep object to have metadata

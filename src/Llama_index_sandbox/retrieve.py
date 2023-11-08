@@ -166,7 +166,7 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"The question asked is: [{query_str}]")
                 response, all_formatted_metadata = retrieval_engine.chat(query_str)
             if not run_application:
-                # logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
+                logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
                 print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{all_formatted_metadata}\n```\n", color='green')
             if reset_chat:
                 logging.info(f"Resetting chat engine after question.")
