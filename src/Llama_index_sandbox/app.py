@@ -25,6 +25,29 @@ retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engi
 db = get_firestore_client()
 
 
+def test_pinecone_from_gcs():
+    import requests
+    import logging
+
+    # Enable HTTP logging
+    logging.basicConfig(level=logging.DEBUG)
+    requests_logger = logging.getLogger("requests.packages.urllib3")
+    requests_logger.setLevel(logging.DEBUG)
+    requests_logger.propagate = True
+    logging.info("Testing Pinecone from GCS")
+    logging.info("Testing Pinecone from GCS")
+    logging.info("Testing Pinecone from GCS")
+
+    url = 'https://quickstart-377ec93.svc.gcp-starter.pinecone.io/query'
+
+    # Attempt to connect using the requests library
+    try:
+        response = requests.get(url, timeout=5)
+        logging.info(response.status_code)
+    except requests.exceptions.RequestException as e:
+        logging.info(e)
+
+
 @app.route('/healthz')
 def health():
     return 'OK', 200
@@ -59,6 +82,7 @@ def background_processing(message, job_id):
 
 @app.route('/chat', methods=['POST'])
 def chat_endpoint():
+    test_pinecone_from_gcs()
     data = request.get_json()
     message = data.get("message")
 
