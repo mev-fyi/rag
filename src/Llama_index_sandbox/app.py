@@ -41,6 +41,7 @@ def background_processing(message, job_id):
             query_engine_as_tool=query_engine_as_tool,
             run_application=True
         )
+        logging.info(f"Job {job_id} completed successfully with response: {response} \n\n{formatted_metadata}")
 
         # Save the response to Firestore
         db.collection('chat_responses').document(job_id).set({
