@@ -27,9 +27,6 @@ retrieval_engine, query_engine, store_response_partial = initialise_chatbot(
     engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index
 )
 
-logging.info("DISABLING HTTPS / SSL VERIFICATION")
-os.environ['PYTHONHTTPSVERIFY'] = '0'
-
 
 @app.route('/healthz')
 def health():
