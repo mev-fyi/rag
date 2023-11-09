@@ -54,13 +54,13 @@ def chat_endpoint():
             query_engine_as_tool=query_engine_as_tool,
             run_application=True
         )
-        logging.info(f"Job {job_id} completed successfully with response: {response.response} \n\n{formatted_metadata}")
+        response.response += f"\n\n{formatted_metadata}"
 
-        response += f"\n\n{formatted_metadata}"
+        logging.info(f"Job {job_id} completed successfully with response: {response}")
 
         # Save the response to Firestore
         db.collection('chat_responses').document(job_id).set({
-            'response': f"{response.response} \n\n{formatted_metadata}",
+            'response': f"{response.response}",
             'timestamp': firestore.SERVER_TIMESTAMP
         })
         return jsonify({"status": "completed", "response": response, "job_id": job_id}), 200
