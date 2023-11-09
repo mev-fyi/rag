@@ -8,15 +8,17 @@ from flask_cors import CORS
 from google.cloud import firestore
 from concurrent.futures import ThreadPoolExecutor
 
-from src.Llama_index_sandbox.gcs_utils import get_firestore_client
+from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
+
+set_secrets_from_cloud()
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
 # Setup executor for handling background tasks
-executor = ThreadPoolExecutor(2)  # Adjust the number of workers if needed
+executor = ThreadPoolExecutor(os.environ.get('NUMBER_OF_APP_WORKERS'))  # Adjust the number of workers if needed
 
 # Initialize Firestore DB
 db = get_firestore_client()

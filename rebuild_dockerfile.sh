@@ -3,6 +3,9 @@
 # Image name
 IMAGE_NAME="my-flask-app"
 
+# Assuming the script is in the same directory as the 'my-flask-app' directory
+CREDENTIALS_PATH="$(dirname "$0")/../mev-fyi-1eb7cbae539d.json"
+
 # Find container ID based on the image name
 CONTAINER_ID=$(docker ps -qf "ancestor=$IMAGE_NAME")
 
@@ -30,7 +33,6 @@ docker rmi $(docker images -f "dangling=true" -q) || echo "No dangling images to
 echo "Pruning containers, networks, and build cache..."
 docker system prune -af --volumes
 
-
 # Build the new Docker image
 echo "Building new Flask app image..."
 docker build -t my-flask-app -f Dockerfile_app .
@@ -38,7 +40,7 @@ docker build -t my-flask-app -f Dockerfile_app .
 echo "Flask app image build complete!"
 
 echo "Now launching Flask app on localhost:8080!"
-# docker run -it -p 8080:8080 --name my-flask-container my-flask-app /bin/bash
-docker run -it -p 8080:8080 --name my-flask-container my-flask-app
-# Instead of running the container in detached mode (-d), run it interactively with -it and without the -d. This might allow you to see the output directly in your terminal.
-# docker run -it -p 8080:8080 --name my-flask-container my-flask-app /bin/bash
+docker run -it -p 8080:8080 \
+  -v "${CREDENTIALS_PATH}:/tmp/keys/mev-fyi-1eb7cbae539d.json" \
+  -e GOOGLE_APPLICATION_CREDENTIALS="/tmp/keys/mev-fyi-1eb7cbae539d.json" \
+  --name my-flask-container my-flask-app
