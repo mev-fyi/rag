@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
 # Setup executor for handling background tasks
-executor = ThreadPoolExecutor(os.environ.get('NUMBER_OF_APP_WORKERS'))  # Adjust the number of workers if needed
+executor = ThreadPoolExecutor(int(os.environ.get('NUMBER_OF_APP_WORKERS')))  # Adjust the number of workers if needed
 
 # Initialize Firestore DB
 db = get_firestore_client()
