@@ -15,6 +15,9 @@ from src.Llama_index_sandbox.retrieve import ask_questions
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
+logging.info("DISABLING HTTPS / SSL VERIFICATION")
+os.environ['PYTHONHTTPSVERIFY'] = '0'
+
 # Setup executor for handling background tasks
 executor = ThreadPoolExecutor(2)  # Adjust the number of workers if needed
 
