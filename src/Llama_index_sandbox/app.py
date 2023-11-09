@@ -1,12 +1,12 @@
 import json
 import logging
 import os
-import threading
 import time
 import uuid
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from google.cloud import firestore
+from concurrent.futures import ThreadPoolExecutor
 
 from src.Llama_index_sandbox.gcs_utils import get_firestore_client
 from src.Llama_index_sandbox.main import initialise_chatbot
@@ -15,37 +15,19 @@ from src.Llama_index_sandbox.retrieve import ask_questions
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
-# Initialize the chatbot
-engine = 'chat'
-query_engine_as_tool = True
-recreate_index = False
-retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
+# Setup executor for handling background tasks
+executor = ThreadPoolExecutor(2)  # Adjust the number of workers if needed
 
 # Initialize Firestore DB
 db = get_firestore_client()
 
-
-def test_pinecone_from_gcs():
-    import requests
-    import logging
-
-    # Enable HTTP logging
-    logging.basicConfig(level=logging.DEBUG)
-    requests_logger = logging.getLogger("requests.packages.urllib3")
-    requests_logger.setLevel(logging.DEBUG)
-    requests_logger.propagate = True
-    logging.info("Testing Pinecone from GCS")
-    logging.info("Testing Pinecone from GCS")
-    logging.info("Testing Pinecone from GCS")
-
-    url = 'https://quickstart-377ec93.svc.gcp-starter.pinecone.io/query'
-
-    # Attempt to connect using the requests library
-    try:
-        response = requests.get(url, timeout=5)
-        logging.info(response.status_code)
-    except requests.exceptions.RequestException as e:
-        logging.info(e)
+# Initialize the chatbot
+engine = 'chat'
+query_engine_as_tool = True
+recreate_index = False
+retrieval_engine, query_engine, store_response_partial = initialise_chatbot(
+    engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index
+)
 
 
 @app.route('/healthz')
@@ -54,6 +36,7 @@ def health():
 
 
 def background_processing(message, job_id):
+    # This function will run in the background, invoked by the ThreadPoolExecutor
     try:
         response, formatted_metadata = ask_questions(
             input_queries=[message],
@@ -71,7 +54,6 @@ def background_processing(message, job_id):
             'response': f"{response} \n\n{formatted_metadata}",
             'timestamp': firestore.SERVER_TIMESTAMP
         })
-
     except Exception as e:
         logging.error(f"Error processing job {job_id}: {e}")
         db.collection('chat_responses').document(job_id).set({
@@ -82,7 +64,7 @@ def background_processing(message, job_id):
 
 @app.route('/chat', methods=['POST'])
 def chat_endpoint():
-    test_pinecone_from_gcs()
+    # This endpoint schedules background_processing to be run in the background and immediately returns a job ID
     data = request.get_json()
     message = data.get("message")
 
@@ -90,28 +72,26 @@ def chat_endpoint():
         return jsonify({"error": "Message not provided"}), 400
 
     job_id = str(uuid.uuid4())
-    thread = threading.Thread(target=background_processing, args=(message, job_id))
-    thread.start()
+    executor.submit(background_processing, message, job_id)
 
     return jsonify({"status": "processing", "job_id": job_id}), 202
 
 
 @app.route('/stream/<job_id>')
 def stream(job_id):
+    # This implementation stays the same, using server-sent events to stream the response
     def generate():
-        # Create an event stream from Firestore
         doc_ref = db.collection('chat_responses').document(job_id)
-
-        # Check for response in Firestore and yield when available
         while True:
             doc = doc_ref.get()
             if doc.exists:
                 yield f"data: {json.dumps(doc.to_dict())}\n\n"
                 break
             time.sleep(1)
+
     return Response(generate(), content_type='text/event-stream')
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, threaded=True)
+    app.run(host='0.0.0.0', port=port)
