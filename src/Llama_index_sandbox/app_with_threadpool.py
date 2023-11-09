@@ -6,6 +6,7 @@ import uuid
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from google.cloud import firestore
+from concurrent.futures import ThreadPoolExecutor
 
 from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
@@ -15,6 +16,9 @@ set_secrets_from_cloud()
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
+
+# Setup executor for handling background tasks
+executor = ThreadPoolExecutor(int(os.environ.get('NUMBER_OF_APP_WORKERS')))  # Adjust the number of workers if needed
 
 # Initialize Firestore DB
 db = get_firestore_client()
@@ -36,17 +40,8 @@ def health():
     return 'OK', 200
 
 
-@app.route('/chat', methods=['POST'])
-def chat_endpoint():
-    # This endpoint processes the chat request synchronously and returns a response
-    data = request.get_json()
-    message = data.get("message")
-
-    if not message:
-        return jsonify({"error": "Message not provided"}), 400
-
-    job_id = str(uuid.uuid4())
-
+def background_processing(message, job_id):
+    # This function will run in the background, invoked by the ThreadPoolExecutor
     try:
         response, formatted_metadata = ask_questions(
             input_queries=[message],
@@ -64,16 +59,32 @@ def chat_endpoint():
             'response': f"{response} \n\n{formatted_metadata}",
             'timestamp': firestore.SERVER_TIMESTAMP
         })
-        return jsonify({"status": "completed", "response": response}), 200
-
     except Exception as e:
         logging.error(f"Error processing job {job_id}: {e}")
-        return jsonify({"status": "error", "error": str(e)}), 500
+        db.collection('chat_responses').document(job_id).set({
+            'response': f"Error: {e}",
+            'timestamp': firestore.SERVER_TIMESTAMP
+        })
+
+
+@app.route('/chat', methods=['POST'])
+def chat_endpoint():
+    # This endpoint schedules background_processing to be run in the background and immediately returns a job ID
+    data = request.get_json()
+    message = data.get("message")
+
+    if not message:
+        return jsonify({"error": "Message not provided"}), 400
+
+    job_id = str(uuid.uuid4())
+    executor.submit(background_processing, message, job_id)
+
+    return jsonify({"status": "processing", "job_id": job_id}), 202
 
 
 @app.route('/stream/<job_id>')
 def stream(job_id):
-    # This implementation can stay the same if you still want to use server-sent events
+    # This implementation stays the same, using server-sent events to stream the response
     def generate():
         doc_ref = db.collection('chat_responses').document(job_id)
         while True:

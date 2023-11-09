@@ -77,6 +77,7 @@ class CustomReActAgent(ReActAgent):
                     logging.error(f'Error in modifying the Action Input part of the response_content: [{e}]')
 
             # given react prompt outputs, call tools or return response
+            logging.info(f"Starting _process_actions with chat_response_copy: {chat_response_copy}")
             if last_metadata is not None:
                 reasoning_steps, is_done, last_metadata = self._process_actions(output=chat_response_copy, last_metadata=last_metadata)
             else:
@@ -92,6 +93,7 @@ class CustomReActAgent(ReActAgent):
         )
         return response, last_metadata
 
+    @timeit
     def _process_actions(
             self, output: ChatResponse, last_metadata: Optional[str] = None
     ) -> Tuple[List[BaseReasoningStep], bool, str]:
