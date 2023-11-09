@@ -423,10 +423,37 @@ def delete_mp3_if_text_or_json_exists(base_path):
                         # print(f".mp3 file without .txt or .json: {mp3_file} in directory {subdir_path}")
 
 
+def print_frontend_content():
+    import os
+
+    # Define the list of relative paths of the files you want to print
+    file_paths = [
+        f"{root_directory()}/../rag_app_vercel/app/app/api/chat/route.ts",
+        f"{root_directory()}/../rag_app_vercel/app/app/api/auth/[...nextauth]/route.ts",
+        f"{root_directory()}/../rag_app_vercel/app/app/chat/[id]/page.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/app/sign-in/page.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/app/page.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/auth.ts",
+        f"{root_directory()}/../rag_app_vercel/app/components/chat.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/components/chat-panel.tsx",
+    ]
+
+    file_path = 'app.py'
+    print("Here is the content of the app.py backend:")
+    with open(file_path, 'r') as file:
+        content = file.read()
+        print(f"{file_path}\n```\n{content}```\n")
+
+    print("Here is the content of the frontend files:")
+    # Iterate through the list, printing the content of each file
+    for file_path in file_paths:
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as file:
+                content = file.read()
+                print(f"{file_path}\n```\n{content}```\n")
+        else:
+            print(f"{file_path}\n```File not found```")
+
+
 if __name__ == '__main__':
-    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    # find_matching_files(directory)
-    clean_fullwidth_characters(directory)
-    move_remaining_mp3_to_their_subdirs()
-    merge_directories(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06")
-    delete_mp3_if_text_or_json_exists(directory)
+    print_frontend_content()

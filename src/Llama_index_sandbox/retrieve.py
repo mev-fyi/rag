@@ -97,7 +97,9 @@ def get_chat_engine(index: VectorStoreIndex,
     #  We need to determine (1) if we pass several query engines as tool or build a massive single one (cost TBD),
     #  and (2) if we pass a description to the query tool and what is the expected retrieval impact from having a description versus not.
 
+    logging.info(f"Fetching query engine tool from index: {index}")
     query_engine = get_query_engine(index=index, service_context=service_context, verbose=verbose, similarity_top_k=similarity_top_k)
+    logging.info(f"Successfully created the query engine!")
     # NOTE 2023-10-14: the description assigned to query_engine_tool should have extra scrutiny as it is passed as is to the agent
     #  and the agent formats it into the react_chat_formatter to determine whether to perform an action with the tool or respond as is.
     # NOTE 2023-10-15: It is unclear how GPT exactly interprets the fn_schema, it is difficult to have a consistent result. Usually GPT greatly

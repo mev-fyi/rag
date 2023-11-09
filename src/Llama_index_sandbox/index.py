@@ -106,6 +106,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
         index_name = "quickstart"
         vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
         index = VectorStoreIndex.from_vector_store(vector_store, service_context)
+        logging.info(f"Successfully loaded index {persist_dir} from disk.")
         return index
     except Exception as e:
         logging.error(f"Error: {e}")
