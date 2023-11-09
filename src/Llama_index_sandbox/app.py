@@ -59,12 +59,14 @@ def chat_endpoint():
         )
         logging.info(f"Job {job_id} completed successfully with response: {response} \n\n{formatted_metadata}")
 
+        response += f"\n\n{formatted_metadata}"
+
         # Save the response to Firestore
         db.collection('chat_responses').document(job_id).set({
             'response': f"{response} \n\n{formatted_metadata}",
             'timestamp': firestore.SERVER_TIMESTAMP
         })
-        return jsonify({"status": "completed", "response": response}), 200
+        return jsonify({"status": "completed", "response": response, "job_id": job_id}), 200
 
     except Exception as e:
         logging.error(f"Error processing job {job_id}: {e}")

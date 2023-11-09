@@ -450,7 +450,7 @@ def print_frontend_content():
         if os.path.isfile(file_path):
             with open(file_path, 'r') as file:
                 content = file.read()
-                print(f"{file_path}\n```\n{content}```\n")
+                print(f"{file_path.replace('/home/user/PycharmProjects/rag/../rag_app_vercel/','')}\n```\n{content}\n```\n\n")
         else:
             print(f"{file_path}\n```File not found```")
 
