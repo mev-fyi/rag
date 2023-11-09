@@ -15,9 +15,6 @@ from src.Llama_index_sandbox.retrieve import ask_questions
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "https://www.mev.fyi"}})
 
-logging.info("DISABLING HTTPS / SSL VERIFICATION")
-os.environ['PYTHONHTTPSVERIFY'] = '0'
-
 # Setup executor for handling background tasks
 executor = ThreadPoolExecutor(2)  # Adjust the number of workers if needed
 
@@ -31,6 +28,9 @@ recreate_index = False
 retrieval_engine, query_engine, store_response_partial = initialise_chatbot(
     engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index
 )
+
+logging.info("DISABLING HTTPS / SSL VERIFICATION")
+os.environ['PYTHONHTTPSVERIFY'] = '0'
 
 
 @app.route('/healthz')
