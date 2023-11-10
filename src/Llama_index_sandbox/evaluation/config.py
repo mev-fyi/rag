@@ -1,4 +1,5 @@
 from itertools import product
+import os
 
 from src.Llama_index_sandbox import embed
 import src.Llama_index_sandbox.evaluation.evaluation_constants as config
@@ -20,8 +21,8 @@ class Config:
         self.NUM_CHUNKS_RETRIEVED = [5]  # config.NUM_CHUNKS_RETRIEVED
         self.CHUNK_SIZES = [750]  # config.CHUNK_SIZES
         self.CHUNK_OVERLAPS = [10]  # config.CHUNK_OVERLAPS
-        self.EMBEDDING_MODELS = ['thenlper/gte-large']  # ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
-        self.INFERENCE_MODELS = ["gpt-3.5-turbo-0613"]  # config.INFERENCE_MODELS
+        self.EMBEDDING_MODELS = [os.environ.get('EMBEDDING_MODEL_NAME')]  # ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
+        self.INFERENCE_MODELS = [os.environ.get('LLM_MODEL_NAME')]  # config.INFERENCE_MODELS
 
     def get_index_params(self, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric):
         index_embedding_model_name, index_text_splitter_chunk_size, index_chunk_overlap, index_vector_space_distance_metric = get_last_index_embedding_params()
