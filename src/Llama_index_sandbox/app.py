@@ -54,35 +54,42 @@ def chat_endpoint():
             query_engine_as_tool=query_engine_as_tool,
             run_application=True
         )
-        response.response += f"\n\n{formatted_metadata}"
+        # response.response += f"\n\n{formatted_metadata}"
 
-        logging.info(f"Job {job_id} completed successfully with response: {response}")
+        # logging.info(f"Job {job_id} completed successfully with response: {response}")
 
+        # db.collection('chat_responses').document(job_id).set({
+        #     'response': f"{response.response}",
+        #     'timestamp': firestore.SERVER_TIMESTAMP
+        # })
         # Save the response to Firestore
-        db.collection('chat_responses').document(job_id).set({
-            'response': f"{response.response}",
-            'timestamp': firestore.SERVER_TIMESTAMP
-        })
-        return jsonify({"status": "completed", "response": response, "job_id": job_id}), 200
+        response_dict = {
+            "status": "completed",
+            "response": response,
+            "formatted_metadata": formatted_metadata,
+            "job_id": job_id
+        }
+        logging.info(f'Returning response: {response_dict}')
+        return jsonify(response_dict), 200
 
     except Exception as e:
         logging.error(f"Error processing job {job_id}: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
 
 
-@app.route('/stream/<job_id>')
-def stream(job_id):
-    # This implementation can stay the same if you still want to use server-sent events
-    def generate():
-        doc_ref = db.collection('chat_responses').document(job_id)
-        while True:
-            doc = doc_ref.get()
-            if doc.exists:
-                yield f"data: {json.dumps(doc.to_dict())}\n\n"
-                break
-            time.sleep(1)
-
-    return Response(generate(), content_type='text/event-stream')
+# @app.route('/stream/<job_id>')
+# def stream(job_id):
+#     # This implementation can stay the same if you still want to use server-sent events
+#     def generate():
+#         doc_ref = db.collection('chat_responses').document(job_id)
+#         while True:
+#             doc = doc_ref.get()
+#             if doc.exists:
+#                 yield f"data: {json.dumps(doc.to_dict())}\n\n"
+#                 break
+#             time.sleep(1)
+#
+#     return Response(generate(), content_type='text/event-stream')
 
 
 if __name__ == '__main__':

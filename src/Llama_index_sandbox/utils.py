@@ -428,29 +428,32 @@ def print_frontend_content():
 
     # Define the list of relative paths of the files you want to print
     file_paths = [
+        # f"{root_directory()}/../rag_app_vercel/app/app/api/auth/[...nextauth]/route.ts",
         f"{root_directory()}/../rag_app_vercel/app/app/api/chat/route.ts",
-        f"{root_directory()}/../rag_app_vercel/app/app/api/auth/[...nextauth]/route.ts",
         f"{root_directory()}/../rag_app_vercel/app/app/chat/[id]/page.tsx",
         f"{root_directory()}/../rag_app_vercel/app/app/sign-in/page.tsx",
         f"{root_directory()}/../rag_app_vercel/app/app/page.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/auth.ts",
+        # f"{root_directory()}/../rag_app_vercel/app/auth.ts",
         f"{root_directory()}/../rag_app_vercel/app/components/chat.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/components/chat-list.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/components/chat-message.tsx",
         f"{root_directory()}/../rag_app_vercel/app/components/chat-panel.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/lib/hooks/use-chat-service.tsx",
     ]
 
-    file_path = 'app.py'
-    print("Here is the content of the app.py backend:")
-    with open(file_path, 'r') as file:
-        content = file.read()
-        print(f"{file_path}\n```\n{content}```\n")
+    # file_path = 'app.py'
+    # print("Here is the content of the app.py backend:")
+    # with open(file_path, 'r') as file:
+    #     content = file.read()
+    #     print(f"{file_path}\n```\n{content}```\n")
 
-    print("Here is the content of the frontend files:")
+    print("\n\nHere is the content of the frontend files:")
     # Iterate through the list, printing the content of each file
     for file_path in file_paths:
         if os.path.isfile(file_path):
             with open(file_path, 'r') as file:
                 content = file.read()
-                print(f"{file_path.replace('/home/user/PycharmProjects/rag/../rag_app_vercel/','')}\n```\n{content}\n```\n\n")
+                print(f"`{file_path.replace('/home/user/PycharmProjects/rag/../rag_app_vercel/','')}`\n```\n{content}\n```\n\n")
         else:
             print(f"{file_path}\n```File not found```")
 
