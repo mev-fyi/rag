@@ -458,5 +458,49 @@ def print_frontend_content():
             print(f"{file_path}\n```File not found```")
 
 
+import os
+import zipfile
+
+def save_data_into_zip ():
+    def zip_files(directory, file_extension, zip_file):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(file_extension):
+                    zip_file.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), directory))
+
+
+    zip_filename = "collected_documents.zip"
+
+    # Create a zip file
+    with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        # Add all .pdf files from baseline_evaluation_research_papers_2023-10-05
+        zip_files(f'{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05', '.pdf', zipf)
+
+        # Add all .txt files from nested directories in diarized_youtube_content_2023-10-06
+        zip_files(f'{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06', '.txt', zipf)
+
+    print(f"Files zipped into {zip_filename}")
+
+
+def copy_txt_files_to_transcripts(rootdir=root_directory()):
+    source_dir = os.path.join(rootdir, 'datasets', 'evaluation_data', 'diarized_youtube_content_2023-10-06')
+    target_dir = os.path.join(rootdir, 'datasets', 'evaluation_data', 'transcripts')
+
+    # Create the target directory if it doesn't exist
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    # Copy all .txt files from nested subdirectories
+    for root, dirs, files in os.walk(source_dir):
+        for file in files:
+            if file.endswith('.txt'):
+                source_file = os.path.join(root, file)
+                shutil.copy(source_file, target_dir)
+
+    print(f"All .txt files copied to {target_dir}")
+
+
 if __name__ == '__main__':
-    print_frontend_content()
+    # print_frontend_content()
+    #save_data_into_zip()
+    copy_txt_files_to_transcripts()
