@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from functools import partial
 from typing import Optional, Type, Union
@@ -169,7 +170,8 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 response, all_formatted_metadata = retrieval_engine.chat(query_str)
             if not run_application:
                 logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
-                print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{all_formatted_metadata}\n```\n", color='green')
+                if os.environ.get('ENVIRONMENT') == 'LOCAL':
+                    print_text(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n\n Fetched based on the following sources: \n{all_formatted_metadata}\n```\n", color='green')
             if reset_chat:
                 logging.info(f"Resetting chat engine after question.")
                 retrieval_engine.reset()  # NOTE 2023-10-27: comment out to reset the chat after each question and see the performance, i.e. correct response given memory versus hallucination.

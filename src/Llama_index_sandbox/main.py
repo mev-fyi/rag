@@ -16,8 +16,8 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
     add_new_transcripts = False
     stream = True
-    num_files = None
     config = Config()
+    num_files = config.num_files
     similarity_top_k = config.NUM_CHUNKS_RETRIEVED[0]
     text_splitter_chunk_size = config.CHUNK_SIZES[0]
     text_splitter_chunk_overlap_percentage = config.CHUNK_OVERLAPS[0]

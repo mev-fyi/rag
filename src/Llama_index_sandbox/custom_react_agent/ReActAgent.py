@@ -1,6 +1,7 @@
 import copy
 import json
 import logging
+import os
 from typing import Optional, List, Tuple, cast, Union
 
 from llama_index.agent import ReActAgent
@@ -131,7 +132,8 @@ class CustomReActAgent(ReActAgent):
         current_reasoning.append(observation_step)
 
         if self._verbose:
-            print_text(f"{observation_step.get_content()}\n", color="blue")
+            if os.environ.get('ENVIRONMENT') == 'LOCAL':
+                print_text(f"{observation_step.get_content()}\n", color="blue")
             logging.info(f"{observation_step.get_content()}")
 
         # Note 2023-10-24: current hack: we return last_metadata manually here,

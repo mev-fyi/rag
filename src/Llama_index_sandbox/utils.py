@@ -501,6 +501,6 @@ def copy_txt_files_to_transcripts(rootdir=root_directory()):
 
 
 if __name__ == '__main__':
-    # print_frontend_content()
+    print_frontend_content()
     #save_data_into_zip()
-    copy_txt_files_to_transcripts()
+    # copy_txt_files_to_transcripts()

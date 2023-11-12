@@ -41,10 +41,9 @@ def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbeddi
             # Add the tokens to the counter and check if the rate limit is exceeded.
             token_counter.add(num_tokens)
             if token_counter.is_rate_limit_exceeded():
-                logging.warning("Rate limit about to be exceeded, sleeping for 20 seconds...")
-                time.sleep(20)  # sleep for a while to respect rate limits
-                logging.info("Resuming")
-                token_counter.clear_old_tokens()  # reset the counter after waiting
+                duration = random.choices([random.uniform(0, 5), random.uniform(0, 20)], weights=[0.7, 0.3])[0]
+                time.sleep(duration)
+                logging.warning(f"Rate limit about to be exceeded, sleeping for {int(duration)} seconds...")
 
         node_embedding = embedding_model.get_text_embedding(node_content)
         node.embedding = node_embedding
