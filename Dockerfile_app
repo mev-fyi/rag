@@ -37,4 +37,9 @@ ENV FLASK_RUN_PORT=8080
 EXPOSE 8080
 
 # Command to run the application
-CMD ["gunicorn", "--timeout", "3600", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.app:app"]
+CMD ["gunicorn", "--timeout", "3600", "-w", "4", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.app:app"]
+
+# NOTE on number of gunicorn workers: If you're deploying your container on Google Cloud Platform and you've configured each instance to have 2 vCPUs, then
+# you effectively have 2 cores available for each instance. This information is crucial for configuring the number of Gunicorn workers optimally.
+# A common guideline for setting the number of Gunicorn workers is to use 2-4 workers per core. Therefore, for an instance with 2 vCPUs,
+# you might consider having anywhere from 4 to 8 workers. This range is a starting point; the optimal number can depend on your specific application's workload and behavior.

@@ -429,16 +429,18 @@ def print_frontend_content():
     # Define the list of relative paths of the files you want to print
     file_paths = [
         # f"{root_directory()}/../rag_app_vercel/app/app/api/auth/[...nextauth]/route.ts",
+        f"{root_directory()}/../rag_app_vercel/app/app/actions.ts",
         f"{root_directory()}/../rag_app_vercel/app/app/api/chat/route.ts",
-        f"{root_directory()}/../rag_app_vercel/app/app/chat/[id]/page.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/app/sign-in/page.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/app/page.tsx",
-        # f"{root_directory()}/../rag_app_vercel/app/auth.ts",
-        f"{root_directory()}/../rag_app_vercel/app/components/chat.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/components/chat-list.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/components/chat-message.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/components/chat-panel.tsx",
-        f"{root_directory()}/../rag_app_vercel/app/lib/hooks/use-chat-service.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/chat/[id]/server-logic.ts",
+        f"{root_directory()}/../rag_app_vercel/app/app/api/chat/[id]/page.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/pages/chat.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/pages/index.tsx",
+        f"{root_directory()}/../rag_app_vercel/app/auth.ts",
+        # f"{root_directory()}/../rag_app_vercel/app/components/chat.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/components/chat-list.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/components/chat-message.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/components/chat-panel.tsx",
+        # f"{root_directory()}/../rag_app_vercel/app/lib/hooks/use-chat-service.tsx",
     ]
 
     # file_path = 'app.py'

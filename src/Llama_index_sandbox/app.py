@@ -6,10 +6,13 @@ import uuid
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from google.cloud import firestore
+from src.Llama_index_sandbox import globals as glb
+import src.Llama_index_sandbox.constants as constants
 
 from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
+from src.Llama_index_sandbox.utils import get_last_index_embedding_params
 
 set_secrets_from_cloud()
 
@@ -63,11 +66,24 @@ def chat_endpoint():
         #     'timestamp': firestore.SERVER_TIMESTAMP
         # })
         # Save the response to Firestore
+        embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
+
+        model_specifications = {
+            "embedding_model_parameters": {
+                "embedding_model_name": embedding_model_name,
+                "text_splitter_chunk_size": text_splitter_chunk_size,
+                "chunk_overlap": chunk_overlap,
+                "number of chunks to retrieve": glb.NUMBER_OF_CHUNKS_TO_RETRIEVE,  # NOTE 2023-10-30: fix the retrieval of this as global variable
+                "temperature": constants.LLM_TEMPERATURE,
+            }
+        }
+
         response_dict = {
             "status": "completed",
             "response": response,
             "formatted_metadata": formatted_metadata,
-            "job_id": job_id
+            "job_id": job_id,
+            "model_specifications": model_specifications,
         }
         logging.info(f'Returning response: {response_dict}')
         return jsonify(response_dict), 200
