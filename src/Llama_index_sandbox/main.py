@@ -66,21 +66,20 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
                                                                                           stream=stream,
                                                                                           query_engine_as_tool=query_engine_as_tool,
                                                                                           log_name=log_name)
-    return retrieval_engine, query_engine, store_response_partial
+    return retrieval_engine, query_engine, store_response_partial, config
 
 
 def run():
     set_secrets_from_cloud()
     engine = 'chat'
     query_engine_as_tool = True
-    reset_chat = True
     recreate_index = False
 
-    logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}, reset_chat={reset_chat}")
+    logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
 
-    retrieval_engine, query_engine, store_response_partial = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
+    retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
     ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
-                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, reset_chat=reset_chat)
+                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, reset_chat=config.reset_chat)
     return retrieval_engine
 
 

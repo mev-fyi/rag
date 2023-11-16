@@ -149,7 +149,7 @@ def get_chat_engine(index: VectorStoreIndex,
         )
 
 
-def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, run_application=False, reset_chat=False):
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, reset_chat, run_application=False):
     # TODO 2023-10-15: We need metadata filtering at database level else for the query to look over Documents metadata else it fails e.g. when asked to
     #  retrieve content from authors. It would search in paper content but not necessarily correctly fetch all documents, and might return documents that cited the author but which can be irrelevant.
     all_formatted_metadata = None

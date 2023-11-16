@@ -11,7 +11,7 @@ class Config:
         # Ingestion Parameters
         self.engine = 'chat'
         self.query_engine_as_tool = True
-        self.reset_chat = True
+        self.reset_chat = False
         self.add_new_transcripts = False
         self.stream = True
         self.num_files = None  # 10

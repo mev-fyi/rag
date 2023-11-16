@@ -26,7 +26,7 @@ db = get_firestore_client()
 engine = 'chat'
 query_engine_as_tool = True
 recreate_index = False
-retrieval_engine, query_engine, store_response_partial = initialise_chatbot(
+retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(
     engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index
 )
 
@@ -55,7 +55,8 @@ def chat_endpoint():
             store_response_partial=store_response_partial,
             engine=engine,
             query_engine_as_tool=query_engine_as_tool,
-            run_application=True
+            run_application=True,
+            reset_chat=config.reset_chat
         )
         # response.response += f"\n\n{formatted_metadata}"
 
