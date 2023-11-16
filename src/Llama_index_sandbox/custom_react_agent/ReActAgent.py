@@ -47,6 +47,7 @@ class CustomReActAgent(ReActAgent):
             # NOTE 2023-10-31: this is to engineer the response from the query engine. The query engine would state "based on context [...]" and we want to avoid that from the last LLM call.
             if last_metadata is not None:
                 input_chat[-1].content += f"\n {AVOID_CITING_CONTEXT}"
+            logging.info(f"To confirm, the LLM's temperature is: {self._llm.temperature}")
             chat_response = self._llm.chat(input_chat)
 
             # Create a deep copy of chat_response for modification
