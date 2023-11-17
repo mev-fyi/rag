@@ -90,7 +90,8 @@ class CustomReActAgent(ReActAgent):
                 break
 
         response = self._get_response(current_reasoning)
-        confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
+        if os.environ.get('CONFIRM_RESPONSE') == 'True':
+            confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
         self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
