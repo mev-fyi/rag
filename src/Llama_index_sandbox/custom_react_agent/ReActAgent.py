@@ -2,7 +2,7 @@ import copy
 import json
 import logging
 import os
-from typing import Optional, List, Tuple, cast, Union
+from typing import Optional, List, Tuple, cast, Union, Sequence
 
 from llama_index.agent import ReActAgent
 from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep
@@ -14,7 +14,7 @@ from llama_index.utils import print_text
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import AVOID_CITING_CONTEXT
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
-from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER
+from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER, CONFIRM_FINAL_ANSWER
 from src.Llama_index_sandbox.utils import timeit
 
 
@@ -90,10 +90,23 @@ class CustomReActAgent(ReActAgent):
                 break
 
         response = self._get_response(current_reasoning)
+        confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
         self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
-        return response, last_metadata
+        return confirmed_response, last_metadata
+
+    @timeit
+    def confirm_response(self, question: str, response: str, sources: str) -> AgentChatResponse:
+        if sources is None:
+            return AgentChatResponse(response=response, sources=[])
+        final_input = ChatMessage(
+            role='user',
+            content=CONFIRM_FINAL_ANSWER.format(question=question, response=response, sources=sources)
+        )
+        chat_response = self._llm.chat([final_input])
+        final_answer = chat_response.raw['choices'][0]['message']['content']
+        return AgentChatResponse(response=final_answer, sources=[])
 
     @timeit
     def _process_actions(
@@ -135,7 +148,9 @@ class CustomReActAgent(ReActAgent):
         if self._verbose:
             if os.environ.get('ENVIRONMENT') == 'LOCAL':
                 print_text(f"{observation_step.get_content()}\n", color="blue")
+                print_text(f"{last_metadata}\n", color="blue")
             logging.info(f"{observation_step.get_content()}")
+            logging.info(f"{last_metadata}")
 
         # Note 2023-10-24: current hack: we return last_metadata manually here,
         # alternatively we can overload the ObservationReasoningStep object to have metadata

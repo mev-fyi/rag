@@ -67,15 +67,21 @@ the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; transac
  order flow auctions (OFAs), enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
  EIP 1559, Protocol enforced Proposer commitments (PEPC), Multi-Party-Computation (MPC), Trusted Execution Environment (TEE)."""
 
+TOPIC_PEOPLE = """Robert Miller (Flashbots), Tarun Chitra (Gauntlet), Hasu, Dan Robinson (Paradigm), Jon Charbonneau, 
+Barnabe Monnot (Robust Incentives Group at Ethereum Foundation), Guillermo Angeris, Stephane Gosselin (Frontier Research), Mallesh Pai (SMG), 
+Max Resnick (SMG), Quintus Kilbourn (Flashbots), Georgios Konstantopoulos (Paradigm), Alex Obadia, Su Zhu, Vitalik Buterin"""
+
 QUERY_ENGINE_TOOL_DESCRIPTION = f"""The query engine tool has access to research papers and 
-YouTube videos about the following content: {TOPIC_KEYWORDS} 
+YouTube videos about the following content: {TOPIC_KEYWORDS}
 """
+#  and the following people sometimes referred to by their first name only, among others: {TOPIC_PEOPLE}
 # Always write some words about the requested content to state to the user that you understood the request.
 
 QUERY_ENGINE_TOOL_ROUTER = f"""
 To determine if you should take the action to use the query engine, use its description detailed below. Use the query engine rather than not and do not rely on your prior knowledge.
 {QUERY_ENGINE_TOOL_DESCRIPTION}
 """
+# To determine if you should take the action to use the query engine, use its description detailed below.
 # determine if you should use it or if you can answer the question based on the chat history, and never based on your prior knowledge.
 # It can be used to both fetch the content documents and be used to cite the metadata from the documents namely the title, authors, release date, document type, and link to the document.
 # You can use it to cite content from a document, a list of all documents created by a given author, or release from a given date for instance.
@@ -83,3 +89,10 @@ To determine if you should take the action to use the query engine, use its desc
 
 QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
 Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""
+
+CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.
+If the question requests for sources, simply answer with the sources. 
+question: {question}
+response: {response}
+sources: {sources}
+"""
