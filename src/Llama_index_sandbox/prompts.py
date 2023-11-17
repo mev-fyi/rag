@@ -91,8 +91,8 @@ QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed ans
 Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""
 
 CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.
-If the question requests for sources, simply answer with the sources. 
+If the question requests for sources and they are available, replace the existing response with a new one citing the sources.
 question: {question}
-response: {response}
 sources: {sources}
+response: {response}
 """

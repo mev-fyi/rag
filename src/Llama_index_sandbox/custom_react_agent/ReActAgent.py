@@ -98,7 +98,8 @@ class CustomReActAgent(ReActAgent):
 
     @timeit
     def confirm_response(self, question: str, response: str, sources: str) -> AgentChatResponse:
-        if sources is None:
+        self._llm.model = 'gpt-4-0613'
+        if not sources:
             return AgentChatResponse(response=response, sources=[])
         final_input = ChatMessage(
             role='user',
