@@ -5,7 +5,7 @@ import os
 from typing import Optional, List, Tuple, cast, Union, Sequence
 
 from llama_index.agent import ReActAgent
-from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep
+from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
 from llama_index.callbacks import trace_method, CBEventType, EventPayload
 from llama_index.chat_engine.types import AgentChatResponse
 from llama_index.llms import ChatMessage, MessageRole, ChatResponse
@@ -102,10 +102,17 @@ class CustomReActAgent(ReActAgent):
                 #  and do not do another LLM call which would pass the query engine response. The result from that latter call is too stochastic
                 #  and highly denatures the highly detailed, exhaustive response from the query engine. Using GPT-4 for last evaluation would make
                 #  it very expensive.
-
-                response = AgentChatResponse(
-                    response=current_reasoning[-1].observation,
-                )
+                if isinstance(current_reasoning[-1], ResponseReasoningStep):
+                    response = AgentChatResponse(
+                        response=current_reasoning[-1].response,
+                    )
+                elif isinstance(current_reasoning[-1], ObservationReasoningStep):
+                    response = AgentChatResponse(
+                        response=current_reasoning[-1].observation,
+                    )
+                else:
+                    logging.error(f'Error in _process_actions: the last reasoning step is neither ObservationReasoningStep nor ResponseReasoningStep.')
+                    exit(1)
                 break
 
         if not response:  # NOTE 2023-11-20: when the last_metadata object is populated, we directly return the response from the query engine
