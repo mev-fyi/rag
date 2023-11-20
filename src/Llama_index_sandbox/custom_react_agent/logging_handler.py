@@ -12,7 +12,7 @@ from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import TEXT_QA_SYSTEM_PROMPT
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
-from src.Llama_index_sandbox.utils import get_last_index_embedding_params
+from src.Llama_index_sandbox.utils import get_last_index_embedding_params, timeit
 from src.Llama_index_sandbox import globals as glb
 
 
@@ -213,13 +213,14 @@ class JSONLoggingHandler(BaseCallbackHandler):
         self.log_entry(entry=entry)
         logging.info(f"on_event_end: {entry}")
 
+    @timeit
     def parse_message_content(self, message_content):
         """
         Parse the message content to retrieve 'retrieved_context' and 'previous_answer'.
         This function assumes 'message_content' is a string where the context and answer are
         separated by known delimiter strings.
         """
-
+        logging.info(f"parse_message_content: message_content: {message_content}")
         # Define your delimiters
         context_start_delim = "New Context:"
         context_end_delim = "Query:"
@@ -239,6 +240,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             retrieved_context = message_content[context_start:context_end].strip()
             previous_answer = message_content[answer_start:answer_end].strip()
             # Return the extracted information
+            logging.info(f"parse_message_content: retrieved_context: {retrieved_context}")
             return retrieved_context, previous_answer
 
         except ValueError as e:
