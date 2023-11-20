@@ -227,7 +227,10 @@ class JSONLoggingHandler(BaseCallbackHandler):
         answer_start_delim = "Original Answer:"
         answer_end_delim = "New Answer:"
         if "Observation:" in message_content:
-            return None, None
+            # NOTE 2023-11-20: this is a black box as an effect on the LLM response, which is particularly bad from the inference perspective since its supposed to only be logging.
+            # logging.info(f"parse_message_content: Observation: in message_content: {message_content}, returning None, None")
+            retrieved_context = message_content
+            return retrieved_context, None
         # Find the indices of your delimiters
         try:
             context_start = message_content.index(context_start_delim) + len(context_start_delim)

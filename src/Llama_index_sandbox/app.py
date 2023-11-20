@@ -1,11 +1,10 @@
-import json
 import logging
 import os
-import time
 import uuid
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google.cloud import firestore
+from llama_index.utils import print_text
+
 from src.Llama_index_sandbox import globals as glb
 import src.Llama_index_sandbox.constants as constants
 
@@ -87,6 +86,8 @@ def chat_endpoint():
             "model_specifications": model_specifications,
         }
         logging.info(f'Returning response: {response_dict}')
+        if os.environ.get('ENVIRONMENT') == 'LOCAL':
+            print_text(f"Final reply:\n\n{response}\n", color="pink")
         return jsonify(response_dict), 200
 
     except Exception as e:

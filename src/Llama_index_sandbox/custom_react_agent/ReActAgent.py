@@ -36,6 +36,7 @@ class CustomReActAgent(ReActAgent):
         current_reasoning: List[BaseReasoningStep] = []
 
         last_metadata = None
+        response = None
 
         # start loop
         for _ in range(self._max_iterations):
@@ -44,13 +45,23 @@ class CustomReActAgent(ReActAgent):
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
 
-            # NOTE 2023-10-31: this is to engineer the response from the query engine. The query engine would state "based on context [...]" and we want to avoid that from the last LLM call.
-            if last_metadata is not None:
-                input_chat[-1].content += f"\n {AVOID_CITING_CONTEXT}"
-            logging.info(f"To confirm, the LLM's temperature is: {self._llm.temperature}")
-            chat_response = self._llm.chat(input_chat)
+            if last_metadata is None:  # NOTE 2023-11-20: avoid doing another LLM call if we already have the response from the query engine
+                if os.environ.get('ENGINEER_CONTEXT_IN_TOOL_RESPONSE') == 'True':
+                    # NOTE 2023-10-31: this is to engineer the response from the query engine. The query engine would state "based on context [...]" and we want to avoid that from the last LLM call.
+                    input_chat[-1].content += f"\n {AVOID_CITING_CONTEXT}"
 
-            # Create a deep copy of chat_response for modification
+                logging.info(f"To confirm, the LLM's temperature is: {self._llm.temperature}")
+                chat_response = self._llm.chat(input_chat)
+            else:
+                # NOTE 2023-11-20, hack: manually craft the response pattern from the query engine response
+                chat_response = ChatResponse(
+                    message=ChatMessage(
+                        role=MessageRole.ASSISTANT,
+                        content=f'Thought: I can answer with using any more tools.\nAnswer:{input_chat.replace("Observation: ", "")}'
+                    )
+                )
+
+            # Create a deep copy of chat_response for modification to feed to the query engine
             chat_response_copy = copy.deepcopy(chat_response)
 
             # Enforce user question into Action Input
@@ -86,10 +97,19 @@ class CustomReActAgent(ReActAgent):
                 reasoning_steps, is_done, last_metadata = self._process_actions(output=chat_response_copy)
             current_reasoning.extend(reasoning_steps)
 
-            if is_done:
+            if is_done or last_metadata is not None:
+                # NOTE 2023-11-20: when the last_metadata object is populated, we directly return the response from the query engine
+                #  and do not do another LLM call which would pass the query engine response. The result from that latter call is too stochastic
+                #  and highly denatures the highly detailed, exhaustive response from the query engine. Using GPT-4 for last evaluation would make
+                #  it very expensive.
+
+                response = AgentChatResponse(
+                    response=current_reasoning[-1].observation,
+                )
                 break
 
-        response = self._get_response(current_reasoning)
+        if not response:  # NOTE 2023-11-20: when the last_metadata object is populated, we directly return the response from the query engine
+            response = self._get_response(current_reasoning)
         if os.environ.get('CONFIRM_RESPONSE') == 'True':
             confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
         else:
