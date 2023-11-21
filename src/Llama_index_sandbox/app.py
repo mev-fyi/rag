@@ -42,7 +42,6 @@ def chat_endpoint():
     message = data.get("message")
     chat_history = process_messages(data)
 
-
     if not message:
         return jsonify({"error": "Message not provided"}), 400
 

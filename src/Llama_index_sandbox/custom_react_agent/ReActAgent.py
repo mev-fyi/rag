@@ -77,7 +77,7 @@ class CustomReActAgent(ReActAgent):
                 # Modify its "input" value to be the user question
                 try:
                     action_input_json = json.loads(action_input_part)
-                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(question=message)
+                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(user_raw_input=message, llm_reasoning_on_user_input=action_input_json['input'])
                     action_input_json['input'] = augmented_message
 
                     # Replace the old part with the modified one

@@ -14,7 +14,7 @@ from llama_index.chat_engine.types import BaseChatEngine
 from llama_index.embeddings import HuggingFaceEmbedding
 from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.llm_predictor.base import BaseLLMPredictor
-from llama_index.llms import OpenAI, HuggingFaceLLM
+from llama_index.llms import OpenAI, HuggingFaceLLM, ChatMessage, MessageRole
 from llama_index.memory import BaseMemory, ChatMemoryBuffer
 from llama_index.prompts.default_prompts import DEFAULT_SIMPLE_INPUT_PROMPT
 from llama_index.utils import print_text
@@ -164,9 +164,11 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 str_response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=True)
                 str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
                 logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
+                logging.info(f"With input chat history: [{chat_history}]")
                 response, all_formatted_metadata = retrieval_engine.chat(message=str_response, chat_history=chat_history)
             else:
                 logging.info(f"The question asked is: [{query_str}]")
+                logging.info(f"With input chat history: [{chat_history}]")
                 response, all_formatted_metadata = retrieval_engine.chat(message=query_str, chat_history=chat_history)
             if not run_application:
                 logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
@@ -175,6 +177,13 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
             if reset_chat:
                 logging.info(f"Resetting chat engine after question.")
                 retrieval_engine.reset()  # NOTE 2023-10-27: comment out to reset the chat after each question and see the performance, i.e. correct response given memory versus hallucination.
+
+            if len(input_queries) > 1:
+                response = ChatMessage(
+                    role=MessageRole.USER,
+                    content=response.response,
+                )
+                chat_history.append(response)
 
         elif isinstance(retrieval_engine, BaseQueryEngine):
             logging.info(f"Querying index with query:    [{query_str}]")

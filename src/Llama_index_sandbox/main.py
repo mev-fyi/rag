@@ -74,12 +74,12 @@ def run():
     engine = 'chat'
     query_engine_as_tool = True
     recreate_index = False
-    chat_history = None
+    chat_history = []
 
     logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
 
     retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
-    ask_questions(input_queries=INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
+    ask_questions(input_queries=INPUT_QUERIES[:2], retrieval_engine=retrieval_engine, query_engine=query_engine,
                   store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, chat_history=chat_history, reset_chat=config.reset_chat)
     return retrieval_engine
 

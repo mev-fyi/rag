@@ -512,7 +512,7 @@ def process_messages(data):
     for message in messages:
         # Create a ChatMessage object for each message
         chat_message = ChatMessage(
-            role=MessageRole(message.get("role", "user").upper()),  # Convert the role to Enum
+            role=MessageRole(message.get("role", "user").lower()),  # Convert the role to Enum
             content=message.get("content", ""),
             additional_kwargs=message.get("additional_kwargs", {})  # Assuming additional_kwargs is part of your message structure
         )
