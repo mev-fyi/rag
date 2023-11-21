@@ -11,6 +11,9 @@ from google.oauth2.service_account import Credentials as ServiceAccountCredentia
 import os
 import subprocess
 
+from llama_index.llms import ChatMessage, MessageRole
+
+
 def root_directory() -> str:
     """
     Determine the root directory of the project by using the 'git' command first,
@@ -500,6 +503,22 @@ def copy_txt_files_to_transcripts(rootdir=root_directory()):
                 shutil.copy(source_file, target_dir)
 
     print(f"All .txt files copied to {target_dir}")
+
+
+def process_messages(data):
+    messages = data.get("messages", [])
+    chat_messages = []
+
+    for message in messages:
+        # Create a ChatMessage object for each message
+        chat_message = ChatMessage(
+            role=MessageRole(message.get("role", "user").upper()),  # Convert the role to Enum
+            content=message.get("content", ""),
+            additional_kwargs=message.get("additional_kwargs", {})  # Assuming additional_kwargs is part of your message structure
+        )
+        chat_messages.append(chat_message)
+
+    return chat_messages
 
 
 if __name__ == '__main__':

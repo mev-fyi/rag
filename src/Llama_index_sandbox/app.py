@@ -11,7 +11,7 @@ import src.Llama_index_sandbox.constants as constants
 from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
-from src.Llama_index_sandbox.utils import get_last_index_embedding_params
+from src.Llama_index_sandbox.utils import get_last_index_embedding_params, process_messages
 
 set_secrets_from_cloud()
 
@@ -40,7 +40,8 @@ def chat_endpoint():
     # This endpoint processes the chat request synchronously and returns a response
     data = request.get_json()
     message = data.get("message")
-    chat_history = data.get("chat_history")
+    chat_history = process_messages(data)
+
 
     if not message:
         return jsonify({"error": "Message not provided"}), 400
