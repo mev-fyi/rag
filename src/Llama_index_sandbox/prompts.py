@@ -84,9 +84,9 @@ Use the query engine as the default option and do not rely on prior knowledge. U
 #   The previous version where the LLM input was not provided, rendered the query engine clueless about the context since it was passed in the form of LLM input.
 #   The problem is that, if we give the chat for the LLM to reason without further query, it has very high chance of being totally off. I guess these are the limits
 QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
-Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. 
-If the cited content is from the same source, cite the source once in the last sentence. 
-If several files are matched across several years of release dates, favor most recent content. Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
+Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses and if the cited content is from the same source, cite the source once in the last sentence of that paragraph. 
+If several files are matched across several years of release dates, favor most recent content. If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
+Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
 
 CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.
 If the question requests for sources and they are available, replace the existing response with a new one citing the sources.
