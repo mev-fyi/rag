@@ -80,7 +80,9 @@ Use the query engine as the default option and do not rely on prior knowledge. U
 
 
 QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
-Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""
+Directly quote the link and title to the sources of your knowledge in the same sentence in parentheses. 
+If the cited content is from the same source, cite the source once in the last sentence. 
+If several files are matched across several years of release dates, favor most recent content. Now answer the question: {question}"""
 
 CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.
 If the question requests for sources and they are available, replace the existing response with a new one citing the sources.
