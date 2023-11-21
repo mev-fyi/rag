@@ -78,7 +78,7 @@ YouTube videos about the following content: {TOPIC_KEYWORDS}
 # Always write some words about the requested content to state to the user that you understood the request.
 
 QUERY_ENGINE_TOOL_ROUTER = f"""
-To determine if you should take the action to use the query engine, use its description detailed below. Use the query engine rather than not and do not rely on your prior knowledge.
+Use the query engine as the default option and do not rely on prior knowledge. Use the query engine description detailed below as a helper.
 {QUERY_ENGINE_TOOL_DESCRIPTION}
 """
 # To determine if you should take the action to use the query engine, use its description detailed below.

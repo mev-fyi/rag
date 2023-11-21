@@ -45,7 +45,7 @@ class CustomReActAgent(ReActAgent):
                 chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
 
-            if last_metadata is None:  # NOTE 2023-11-20: avoid doing another LLM call if we already have the response from the query engine
+            if (last_metadata is None) or (len(input_chat) == 2):  # NOTE 2023-11-20: avoid doing another LLM call if we already have the response from the query engine
                 if os.environ.get('ENGINEER_CONTEXT_IN_TOOL_RESPONSE') == 'True':
                     # NOTE 2023-10-31: this is to engineer the response from the query engine. The query engine would state "based on context [...]" and we want to avoid that from the last LLM call.
                     input_chat[-1].content += f"\n {AVOID_CITING_CONTEXT}"
