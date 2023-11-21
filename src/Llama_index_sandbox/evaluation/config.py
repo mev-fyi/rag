@@ -11,7 +11,7 @@ class Config:
         # Ingestion Parameters
         self.engine = 'chat'
         self.query_engine_as_tool = True
-        self.reset_chat = False
+        self.reset_chat = os.environ.get('RESET_CHAT')
         self.add_new_transcripts = False
         self.stream = True
         self.num_files = None  # 10
