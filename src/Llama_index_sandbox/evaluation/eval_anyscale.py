@@ -69,6 +69,7 @@ def initialise_chatbot(engine, query_engine_as_tool, index, service_context, par
 
 
 def run(config: Config):
+    chat_history = None
     for index_comb in config.get_full_combinations():
         text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric = index_comb
         index_params = config.get_index_params(text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, embedding_model_name, embedding_model, llm_model_name, vector_space_distance_metric)
@@ -84,7 +85,9 @@ def run(config: Config):
             glb.NUMBER_OF_CHUNKS_TO_RETRIEVE = similarity_top_k
 
             start_logging(f"ask_questions_{log_name}_{similarity_top_k}")
-            ask_questions(input_queries=EVALUATION_INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine, store_response_partial=store_response_partial, engine=config.engine, query_engine_as_tool=config.query_engine_as_tool, reset_chat=config.reset_chat)
+            ask_questions(input_queries=EVALUATION_INPUT_QUERIES, retrieval_engine=retrieval_engine, query_engine=query_engine,
+                          store_response_partial=store_response_partial, engine=config.engine, query_engine_as_tool=config.query_engine_as_tool,
+                          chat_history=chat_history, reset_chat=config.reset_chat)
 
 
 if __name__ == "__main__":

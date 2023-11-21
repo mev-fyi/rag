@@ -40,7 +40,7 @@ def health():
     return 'OK', 200
 
 
-def background_processing(message, job_id):
+def background_processing(message, chat_history, job_id):
     # This function will run in the background, invoked by the ThreadPoolExecutor
     try:
         response, formatted_metadata = ask_questions(
@@ -50,6 +50,7 @@ def background_processing(message, job_id):
             store_response_partial=store_response_partial,
             engine=engine,
             query_engine_as_tool=query_engine_as_tool,
+            chat_history=chat_history,
             run_application=True
         )
         logging.info(f"Job {job_id} completed successfully with response: {response} \n\n{formatted_metadata}")
@@ -72,12 +73,13 @@ def chat_endpoint():
     # This endpoint schedules background_processing to be run in the background and immediately returns a job ID
     data = request.get_json()
     message = data.get("message")
+    chat_history = data.get("chat_history")
 
     if not message:
         return jsonify({"error": "Message not provided"}), 400
 
     job_id = str(uuid.uuid4())
-    executor.submit(background_processing, message, job_id)
+    executor.submit(background_processing, message, chat_history, job_id)
 
     return jsonify({"status": "processing", "job_id": job_id}), 202
 

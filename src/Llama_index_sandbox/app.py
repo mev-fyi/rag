@@ -40,6 +40,7 @@ def chat_endpoint():
     # This endpoint processes the chat request synchronously and returns a response
     data = request.get_json()
     message = data.get("message")
+    chat_history = data.get("chat_history")
 
     if not message:
         return jsonify({"error": "Message not provided"}), 400
@@ -54,6 +55,7 @@ def chat_endpoint():
             store_response_partial=store_response_partial,
             engine=engine,
             query_engine_as_tool=query_engine_as_tool,
+            chat_history=chat_history,
             run_application=True,
             reset_chat=config.reset_chat
         )

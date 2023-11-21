@@ -149,7 +149,7 @@ def get_chat_engine(index: VectorStoreIndex,
         )
 
 
-def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, reset_chat, run_application=False):
+def ask_questions(input_queries, retrieval_engine, query_engine, store_response_partial, engine, query_engine_as_tool, reset_chat, chat_history, run_application=False):
     # TODO 2023-10-15: We need metadata filtering at database level else for the query to look over Documents metadata else it fails e.g. when asked to
     #  retrieve content from authors. It would search in paper content but not necessarily correctly fetch all documents, and might return documents that cited the author but which can be irrelevant.
     all_formatted_metadata = None
@@ -164,10 +164,10 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 str_response, all_formatted_metadata = log_and_store(store_response_partial, query_str, response, chatbot=True)
                 str_response = QUERY_TOOL_RESPONSE.format(question=query_str, response=str_response)
                 logging.info(f"Message passed to chat engine:    \n\n[{str_response}]")
-                response, all_formatted_metadata = retrieval_engine.chat(str_response)
+                response, all_formatted_metadata = retrieval_engine.chat(message=str_response, chat_history=chat_history)
             else:
                 logging.info(f"The question asked is: [{query_str}]")
-                response, all_formatted_metadata = retrieval_engine.chat(query_str)
+                response, all_formatted_metadata = retrieval_engine.chat(message=query_str, chat_history=chat_history)
             if not run_application:
                 logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")
                 if os.environ.get('ENVIRONMENT') == 'LOCAL':
