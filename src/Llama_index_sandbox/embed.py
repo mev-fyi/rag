@@ -10,6 +10,7 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from typing import List, Union
 
+from langchain.embeddings import OpenAIEmbeddings
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 from tiktoken.model import MODEL_TO_ENCODING
@@ -31,12 +32,13 @@ def num_tokens_from_string(string: str, embedding_model_name: str) -> int:
     return num_tokens
 
 
-def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbedding, HuggingFaceEmbedding], progress_counter, total_nodes, progress_percentage=0.05):
+def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbedding, HuggingFaceEmbedding, OpenAIEmbeddings], progress_counter, total_nodes, progress_percentage=0.05):
     """Generate embedding for a single node."""
     try:
         node_content = node.get_content(metadata_mode="all")
-        if embedding_model.model_name in MODEL_TO_ENCODING.keys():  # deactivate token counter if it is OSS model
-            num_tokens = num_tokens_from_string(node_content, embedding_model.model_name)
+        model_name = embedding_model.model_name if hasattr(embedding_model, 'model_name') else embedding_model.model
+        if model_name in MODEL_TO_ENCODING.keys():  # deactivate token counter if it is OSS model
+            num_tokens = num_tokens_from_string(node_content, model_name)
 
             # Add the tokens to the counter and check if the rate limit is exceeded.
             token_counter.add(num_tokens)
@@ -45,7 +47,10 @@ def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbeddi
                 time.sleep(duration)
                 logging.warning(f"Rate limit about to be exceeded, sleeping for {int(duration)} seconds...")
 
-        node_embedding = embedding_model.get_text_embedding(node_content)
+        if isinstance(embedding_model, OpenAIEmbedding) or isinstance(embedding_model, HuggingFaceEmbedding):
+            node_embedding = embedding_model.get_text_embedding(node_content)
+        if isinstance(embedding_model, OpenAIEmbeddings):
+            node_embedding = embedding_model.embed_query(node_content)
         node.embedding = node_embedding
 
         with progress_counter.get_lock():
@@ -78,7 +83,8 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
 
 def get_embedding_model(embedding_model_name):
     if embedding_model_name == "text-embedding-ada-002":
-        embedding_model = OpenAIEmbedding()
+        # embedding_model = OpenAIEmbedding(disallowed_special=())
+        embedding_model = OpenAIEmbeddings(disallowed_special=())  # https://github.com/langchain-ai/langchain/issues/923 encountered the same issue (2023-11-22)
     else:
         embedding_model = HuggingFaceEmbedding(
             model_name=embedding_model_name,
