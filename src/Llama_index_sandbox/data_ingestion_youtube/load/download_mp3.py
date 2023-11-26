@@ -29,8 +29,11 @@ logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.WARNING)
 def chunked_iterable(iterable, size):
     """Splits an iterable into chunks of a specified size."""
     iterator = iter(iterable)
-    for first in iterator:
-        yield itertools.chain([first], itertools.islice(iterator, size - 1))
+    while True:
+        chunk = list(itertools.islice(iterator, size))
+        if not chunk:
+            break
+        yield chunk
 
 
 async def download_audio_batch(video_infos, ydl_opts):
@@ -63,29 +66,34 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
     titles_in_df = youtube_videos_df[mask]['title'].tolist()
 
     # Filter and return videos that are in DataFrame
-    return [video for video in video_info_list if video['title'] in titles_in_df]
+    return titles_in_df
 
 
 async def video_valid_for_processing(video_title, dir_path):
-    normalized_video_title = video_title.replace('/', '_')
+    logging.info(f"video_valid_for_processing: {video_title}")
+    try:
+        normalized_video_title = video_title.replace('/', '_')
 
-    # Function to check for the title's existence in files
-    def title_exists_in_files(directory, suffix):
-        for filename in os.listdir(directory):
-            if normalized_video_title in filename and filename.endswith(suffix):
-                return True
-        return False
-
-    # Recursively check in dir_path and its subdirectories
-    for root, dirs, files in os.walk(dir_path):
-        if (
-                title_exists_in_files(root, ".mp3") or
-                title_exists_in_files(root, "_diarized_content.json") or
-                title_exists_in_files(root, "_diarized_content_processed_diarized.txt") or
-                title_exists_in_files(root, "_content_processed_diarized.txt")
-        ):
+        # Function to check for the title's existence in files
+        def title_exists_in_files(directory, suffix):
+            for filename in os.listdir(directory):
+                if normalized_video_title in filename and filename.endswith(suffix):
+                    return True
             return False
-    return True
+
+        # Recursively check in dir_path and its subdirectories
+        for root, dirs, files in os.walk(dir_path):
+            if (
+                    title_exists_in_files(root, ".mp3") or
+                    title_exists_in_files(root, "_diarized_content.json") or
+                    title_exists_in_files(root, "_diarized_content_processed_diarized.txt") or
+                    title_exists_in_files(root, "_content_processed_diarized.txt")
+            ):
+                return False
+        return True
+    except Exception as e:
+        logging.info(f"Exception in video_valid_for_processing: {e}")
+        return False
 
 
 async def prepare_download_info(video_info, dir_path, video_title):
@@ -111,7 +119,7 @@ async def prepare_download_info(video_info, dir_path, video_title):
     return ydl_opts, audio_file_path
 
 
-async def process_video_batches(channel_name, video_info_list, dir_path, youtube_videos_df, batch_size=5):
+async def process_video_batches(channel_name, video_info_list, dir_path, youtube_videos_df, batch_size=50):
     video_batches = list(chunked_iterable(video_info_list, batch_size))
     # TODO 2023-10-31: fix somehow the addition of spaces before colons : e.g. for DVT and for Defi panel
     #  The different pipes somehow. Check the match method in utils.py
@@ -132,9 +140,16 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
     tasks = []
     for batch_info in video_batches:
         filtered_videos = filter_videos_in_dataframe(batch_info, youtube_videos_df)
-        logging.info(f"[{channel_name}] filtered videos: {filtered_videos}")
-        valid_videos = [video for video in filtered_videos if await video_valid_for_processing(video['title'], dir_path)]
-        logging.info(f"[{channel_name}] valid videos: {valid_videos}")
+        # if len(filtered_videos) > 1:
+        #     logging.info(f"[{channel_name}] filtered videos: {filtered_videos}")
+        # valid_videos = [video for video in filtered_videos if await video_valid_for_processing(video['title'], dir_path)]
+        valid_videos = []
+        for video in filtered_videos:
+            logging.info(f"video_valid_for_processing: {video}")
+            if video_valid_for_processing(video['title'], dir_path):
+                valid_videos.append(video)
+        if len(valid_videos) > 1:
+            logging.info(f"[{channel_name}] valid videos: {valid_videos}")
 
         if valid_videos:
             task = asyncio.create_task(download_audio_batch(valid_videos, ydl_opts))
@@ -191,39 +206,26 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
     await asyncio.gather(*(process_video_batches_async(channel_id, channel_name, credentials, youtube_videos_df)
                            for channel_id, channel_name in yt_id_name.items()))
 
-    # for channel_id, channel_name in yt_id_name.items():
-    #     logging.info(f"Processing channel: {channel_name}")
-    #     dir_path = YOUTUBE_VIDEO_DIRECTORY
-    #     # Get video information from the channel
-    #     video_info_list = get_video_info(credentials, api_key, channel_id)
-    #
-    #     # Create a 'data' directory if it does not exist
-    #     if not os.path.exists(dir_path):
-    #         os.makedirs(dir_path)
-    #
-    #     # Create a subdirectory for the current channel if it does not exist
-    #     dir_path += f'{channel_name}'
-    #     if not os.path.exists(dir_path):
-    #         os.makedirs(dir_path)
-    #
-    #     await process_video_batches(video_info_list, dir_path, youtube_videos_df)
+    # Iterate through the dictionary of channel IDs and channel names
 
-    if yt_playlists:
-        for playlist_id in yt_playlists:
-            playlist_title = get_playlist_title(credentials, api_key, playlist_id)
-            # Ensure the title is filesystem-friendly (replacing slashes, for example)
-            playlist_title = playlist_title.replace('/', '_') if playlist_title else f"playlist_{playlist_id}"
-
-            video_info_list = get_videos_from_playlist(credentials, api_key, playlist_id)
-
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-
-            dir_path += f'/{playlist_title}'
-            if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
-
-            await process_video_batches(channel_name, video_info_list, dir_path, youtube_videos_df)
+    # if yt_playlists:
+    #     await asyncio.gather(*(process_video_batches_async(channel_id, channel_name, credentials, youtube_videos_df)
+    #                            for channel_id, channel_name in yt_id_name.items()))
+    #     for playlist_id in yt_playlists:
+    #         playlist_title = get_playlist_title(credentials, api_key, playlist_id)
+    #         # Ensure the title is filesystem-friendly (replacing slashes, for example)
+    #         playlist_title = playlist_title.replace('/', '_') if playlist_title else f"playlist_{playlist_id}"
+#
+    #         video_info_list = get_videos_from_playlist(credentials, api_key, playlist_id)
+#
+    #         if not os.path.exists(dir_path):
+    #             os.makedirs(dir_path)
+#
+    #         dir_path += f'/{playlist_title}'
+    #         if not os.path.exists(dir_path):
+    #             os.makedirs(dir_path)
+#
+    #         await process_video_batches(channel_name, video_info_list, dir_path, youtube_videos_df)
 
     # clean up because downloaded file names have full-width characters instead of ASCII
     directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
