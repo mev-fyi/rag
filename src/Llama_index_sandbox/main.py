@@ -73,7 +73,7 @@ def run():
     set_secrets_from_cloud()
     engine = 'chat'
     query_engine_as_tool = True
-    recreate_index = True
+    recreate_index = False
     chat_history = []
 
     logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
