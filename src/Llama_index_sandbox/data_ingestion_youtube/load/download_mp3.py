@@ -63,7 +63,7 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
     mask = youtube_videos_df['title'].isin(titles)
 
     # Get the titles present in the DataFrame
-    titles_in_df = youtube_videos_df[mask]['title'].tolist()
+    titles_in_df = youtube_videos_df[mask]
 
     # Filter and return videos that are in DataFrame
     return titles_in_df
@@ -88,7 +88,7 @@ def video_valid_for_processing(video_title, dir_path):
                     title_exists_in_files(root, "_diarized_content_processed_diarized.txt") or
                     title_exists_in_files(root, "_content_processed_diarized.txt")
             ):
-                logging.info(f"video_valid_for_processing: {video_title} is already processed")
+                # logging.info(f"video_valid_for_processing: {video_title} is already processed")
                 return False
         logging.info(f"video_valid_for_processing: {video_title} is not processed yet, adding to the list!")
         return True
@@ -145,10 +145,15 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
         #     logging.info(f"[{channel_name}] filtered videos: {filtered_videos}")
         # valid_videos = [video for video in filtered_videos if await video_valid_for_processing(video['title'], dir_path)]
         valid_videos = []
-        for video in filtered_videos:
-            is_video_Valid = video_valid_for_processing(video, dir_path)
+        for index, row in filtered_videos.iterrows():
+            # Convert the row to a dictionary
+            video_dict = row.to_dict()
+
+            # Now you can access the row data as a dictionary
+            # For example, video_dict['title'] will give you the title
+            is_video_Valid = video_valid_for_processing(video_dict['title'], dir_path)
             if is_video_Valid:
-                valid_videos.append(video)
+                valid_videos.append(video_dict)
         if len(valid_videos) > 1:
             logging.info(f"[{channel_name}] valid videos: {valid_videos}")
 
