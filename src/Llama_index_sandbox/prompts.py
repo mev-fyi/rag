@@ -25,6 +25,7 @@ Always quote the titles of the sources used for your answer in-line for the user
 Some rules to follow:
 1. Never directly reference the given context in your answer.
 2. Avoid statements like 'Based on the context, ...' or 'The context information ...' or anything along those lines.
+3. If the user input is gibberish and cannot be understood, respond with 'I do not understand your question, please rephrase it.'
 
 ## Tools
 You have access to a query engine tool. 
@@ -84,8 +85,13 @@ Use the query engine as the default option and do not rely on prior knowledge. U
 #   The previous version where the LLM input was not provided, rendered the query engine clueless about the context since it was passed in the form of LLM input.
 #   The problem is that, if we give the chat for the LLM to reason without further query, it has very high chance of being totally off. I guess these are the limits
 QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
-Quote the link and title to the sources of your knowledge in a new line at the end of that sentence. If the cited content is from the same source, cite the source once in a new line after that paragraph.
-Always write the source in markdown format to be rendered as a link. When citing the source, write the title in markdown with the url, then do a line return to specify the author then the release date on a third newline.
+To quote the source, use the format [title](https://example.com) followed by a new-line with the authors and a newline with the release date, namely as follows:
+```
+[title](https://example.com) <newline>
+authors: ... <newline>
+release date: ...
+```
+If the cited content is from the same source, cite the source once in a new line after that paragraph.
 If several files are matched across several years of release dates, favor most recent content. If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
 Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
 
