@@ -69,8 +69,7 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
     return titles_in_df
 
 
-async def video_valid_for_processing(video_title, dir_path):
-    logging.info(f"video_valid_for_processing: {video_title}")
+def video_valid_for_processing(video_title, dir_path):
     try:
         normalized_video_title = video_title.replace('/', '_')
 
@@ -89,10 +88,12 @@ async def video_valid_for_processing(video_title, dir_path):
                     title_exists_in_files(root, "_diarized_content_processed_diarized.txt") or
                     title_exists_in_files(root, "_content_processed_diarized.txt")
             ):
+                logging.info(f"video_valid_for_processing: {video_title} is already processed")
                 return False
+        logging.info(f"video_valid_for_processing: {video_title} is not processed yet, adding to the list!")
         return True
     except Exception as e:
-        logging.info(f"Exception in video_valid_for_processing: {e}")
+        logging.warning(f"Exception in video_valid_for_processing: {e}")
         return False
 
 
@@ -145,8 +146,8 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
         # valid_videos = [video for video in filtered_videos if await video_valid_for_processing(video['title'], dir_path)]
         valid_videos = []
         for video in filtered_videos:
-            logging.info(f"video_valid_for_processing: {video}")
-            if video_valid_for_processing(video['title'], dir_path):
+            is_video_Valid = video_valid_for_processing(video, dir_path)
+            if is_video_Valid:
                 valid_videos.append(video)
         if len(valid_videos) > 1:
             logging.info(f"[{channel_name}] valid videos: {valid_videos}")
