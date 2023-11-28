@@ -1,0 +1,752 @@
+00:00:06.330 - 00:00:06.880, Speaker A: You.
+00:00:09.490 - 00:00:28.510, Speaker B: So welcome everyone, to today's research seminar on a 16 z crypto. Very pleased to introduce Patrick McCorry of Consensus Infuria, who's been in this space for a long time, speaking about a topic he's thought a lot about. It'll be really fun to hear him talk about layer two and bridges. Awesome.
+00:00:28.660 - 00:00:50.714, Speaker A: Hi everyone. So what I want to talk about today is an introduction to layer two and bridges. So my goal is to really so this is like a slide deck that I've been iterating on for about three years. And it's not necessarily deeply technical, but there are some technical parts to it. It's mostly to help people work the mental model of how to think about layer two, protocols and bridges and how.
+00:00:50.752 - 00:00:53.354, Speaker C: Everything ties together and of course, what.
+00:00:53.392 - 00:00:55.190, Speaker A: The problem people are trying to solve.
+00:00:55.270 - 00:00:57.134, Speaker C: And the threat model around that.
+00:00:57.332 - 00:01:25.686, Speaker A: So without further ado, most people here are aware cryptocurrencies do not scale bitcoin supporting the magnitude of ten transactions per second. And Ethereum is about 15 transactions per second. And the issue is that when we go above the transaction throughput, we go to 16 transactions per second, 20 transactions per second, the fees skyrocket. So I used to make a joke back in the day, the fees would.
+00:01:25.708 - 00:01:27.430, Speaker C: Go from a penny to a dollar.
+00:01:27.770 - 00:01:33.350, Speaker A: But now they go from a dollar to $400. So has anyone here ever paid $400.
+00:01:33.420 - 00:01:35.138, Speaker C: For an Ethereum transaction?
+00:01:35.314 - 00:01:36.086, Speaker A: Okay, no one here.
+00:01:36.108 - 00:01:38.546, Speaker C: Maybe someone on the call? I definitely have. By mistake.
+00:01:38.658 - 00:01:40.874, Speaker B: One is like, have you been asked to pay $400?
+00:01:40.912 - 00:01:43.722, Speaker C: Oh yeah. Have you been asked to do it?
+00:01:43.776 - 00:01:44.042, Speaker A: Exactly.
+00:01:44.096 - 00:01:47.210, Speaker C: Have you been asked to pay $400 for a transaction?
+00:01:47.650 - 00:01:49.822, Speaker A: So clearly no one wants to pay.
+00:01:49.876 - 00:01:54.270, Speaker C: $400 for a transaction. It's just ludicrous under any definition.
+00:01:55.970 - 00:01:58.910, Speaker A: But there are solutions out there that claim to solve the problem.
+00:01:58.980 - 00:02:01.790, Speaker C: So Salana, they claim to do 65,000.
+00:02:01.860 - 00:02:04.834, Speaker A: Transactions, polygon claim to do what was it?
+00:02:04.872 - 00:02:07.986, Speaker C: I can't see it here, about 7000 transactions per second.
+00:02:08.088 - 00:02:10.050, Speaker A: And avalanche, that's marketing terms.
+00:02:10.120 - 00:02:15.110, Speaker C: We can go up the crazy amount of TPS, have low fees and solve the problem.
+00:02:15.260 - 00:02:16.982, Speaker A: So clearly we don't need layer two.
+00:02:17.036 - 00:02:29.146, Speaker C: We don't need this talk. We could just go outside and have a nice fancy Manhattan cocktail, maybe some vodka sauce, pizza. I'm only joking. Clearly that clearly we haven't solved the problem because otherwise we're still here.
+00:02:29.328 - 00:02:30.806, Speaker A: So the reason why we haven't solved.
+00:02:30.838 - 00:02:34.410, Speaker C: The problem really comes down to the phrase decentralization.
+00:02:34.830 - 00:02:47.274, Speaker A: And decentralization means different things to different people. The way I define it is really this overarching know, can we have a percentage of the world's population verify transactions.
+00:02:47.322 - 00:02:48.698, Speaker C: In blockchain real time?
+00:02:48.804 - 00:02:57.134, Speaker A: So regardless, if you're in China, India, Libya, Algeria, there should be some people there who can run a node, download.
+00:02:57.182 - 00:03:09.270, Speaker C: A copy of the database, validate transactions and protect the integrity of the network. That's sort of the bottleneck we're facing here with networks like Ethereum. One aspect of being decentralized.
+00:03:09.850 - 00:03:11.270, Speaker A: And of course it's a bit like.
+00:03:11.340 - 00:03:17.180, Speaker C: We put our rings together and we all protect the network that's kept and planted. I'm sure you've all seen that as a child.
+00:03:18.910 - 00:03:30.122, Speaker A: But because of this goal of decentralization, it also means that we have to artificially constrain the network's resources. So we have artificially constrained the CPU.
+00:03:30.266 - 00:03:32.510, Speaker C: The storage and the bandwidth.
+00:03:32.850 - 00:03:35.326, Speaker A: And because we've artificially constrained it, what.
+00:03:35.348 - 00:03:42.018, Speaker C: We end up with is a computer from the 1970s. It's slow, it's expensive, and everyone has to share it.
+00:03:42.104 - 00:03:43.486, Speaker A: So this is a picture of baby.
+00:03:43.518 - 00:03:47.890, Speaker C: Vitalik with his little computer and that's probably more powerful than Ethereum.
+00:03:49.910 - 00:04:00.722, Speaker A: So what does scalability mean in this context? So typically when you think about scaling blockchain networks, the goal is really to increase the transaction throughput while still adhering.
+00:04:00.866 - 00:04:11.450, Speaker C: To these same set of resources. So given the same set of resources, can we increase the TPS? That's how people have tried to scale the network and it's a very difficult problem to solve.
+00:04:11.950 - 00:04:13.994, Speaker A: So the goal of a layer two.
+00:04:14.032 - 00:04:16.954, Speaker C: Protocol or an off chain protocol is.
+00:04:16.992 - 00:04:32.706, Speaker A: Really a different take on how to scale the network. The goal is really instead of transacting on Ethereum, kindly take the assets on Ethereum, move it to another network or system and simply transact there. But at the same time, can we.
+00:04:32.728 - 00:04:35.970, Speaker C: Still retain the security of Ethereum so.
+00:04:36.040 - 00:04:50.166, Speaker A: We can transact locally amongst ourselves, but still not have to trust anyone? That's sort of the goal for these layer two protocols. So this brings me to crypto exchanges. I'm not the SEC, and I'm not.
+00:04:50.188 - 00:04:59.018, Speaker C: Here to DOX you, but raise your hand if you've ever bought cryptocurrency before from an exchange. There you go. Yeah, there you go. We got some hands up always at.
+00:04:59.024 - 00:05:23.618, Speaker A: Some crypto talk, but this is important. These cryptocurrency exchanges are basically how we've scaled the network for the past twelve years. And when you really think about what's happened for the past twelve years, one popular way for users to join the network is that they go on coinbase, they buy their coins, they use Bitcoin, Ethereum or Tron. I put Tron in here because it.
+00:05:23.624 - 00:05:25.758, Speaker C: Has more tether than Ethereum.
+00:05:25.934 - 00:05:41.046, Speaker A: They use cryptocurrencies as an interruptability layer. But basically cryptocurrencies was this interruptability layer between centralized exchanges. And obviously Ethereum has DeFi now and that's sort of taken off for a very long time.
+00:05:41.068 - 00:05:43.910, Speaker C: This was the primary use case of Bitcoin and Tron.
+00:05:45.070 - 00:05:51.878, Speaker A: But the issue here is that these cryptocurrency exchanges are custodial and they're private.
+00:05:52.054 - 00:06:00.414, Speaker C: They can freeze, confiscate, lose our funds. That's like celsius voyager BlockFi. All of these crypto lenders have now.
+00:06:00.452 - 00:06:06.634, Speaker A: Lost our funds and they're not auditable. There's no proof of reserves. We have no idea if their assets.
+00:06:06.682 - 00:06:12.770, Speaker C: Can cover their liabilities. We can't access the database of coinbase and check its integrity.
+00:06:15.270 - 00:06:20.046, Speaker A: So that's just stepping back a bit. This is how we scaled the network. What's the interaction?
+00:06:20.078 - 00:06:23.510, Speaker C: What's happening here? How are we interacting with these exchanges.
+00:06:23.930 - 00:06:28.450, Speaker A: And really all we've been building for the past twelve years are bridges.
+00:06:28.610 - 00:06:34.070, Speaker C: So bridge engineering, that's basically the focus for the past twelve years of our industry.
+00:06:34.570 - 00:06:41.146, Speaker A: And at a very high level, you can imagine we have ethereum. There is some smart contract on the.
+00:06:41.168 - 00:06:45.958, Speaker C: Network called the bridge contract that holds all of the assets.
+00:06:46.134 - 00:06:51.822, Speaker A: And then you have this external authority like Coinbase, who are really the single.
+00:06:51.876 - 00:06:54.286, Speaker C: Authority, the one ring to rule them off.
+00:06:54.388 - 00:06:57.146, Speaker A: They dictate whether the bridge can deposit.
+00:06:57.178 - 00:07:00.202, Speaker C: Or withdraw or can withdraw funds from the bridge.
+00:07:00.346 - 00:07:09.906, Speaker A: So to high level, Alice comes along and Alice is like Coinbase, I want to withdraw 1000 E from the bridge. And you can imagine the bridge has.
+00:07:09.928 - 00:07:12.898, Speaker C: Some functionality deposit, withdrawal, allowance.
+00:07:13.074 - 00:07:23.074, Speaker A: Then Coinbase will poke the bridge contract and say, bridge, you're authorized to give Alice 1000 ETH from the Bridger's perspective.
+00:07:23.122 - 00:07:25.958, Speaker C: Because remember, the bridge is holding all of the assets.
+00:07:26.134 - 00:07:34.186, Speaker A: The bridge basically has to evaluate and say, is the off chain database okay, should I give Alice the 1000 E?
+00:07:34.288 - 00:07:37.558, Speaker C: How can I trust the database is intact and secure?
+00:07:37.734 - 00:07:43.466, Speaker A: And in this case it's going to trust Coinbase and say, yes, I trust Coinbase to attest that the off chain.
+00:07:43.498 - 00:07:49.070, Speaker C: Database is okay and well, so then it sends off the 1000 E to Alice.
+00:07:50.130 - 00:07:55.694, Speaker A: But generically, what's happening here, what's happening at a high level? At a high level, there's the bridge.
+00:07:55.742 - 00:07:57.714, Speaker C: That holds all of the assets, and.
+00:07:57.752 - 00:08:07.974, Speaker A: There'S this off chain database that records the account balances, the smart contracts, the state. And the off chain database is really the liabilities. It records all of the liabilities that.
+00:08:08.012 - 00:08:10.130, Speaker C: Eventually have to be resolved by the bridge.
+00:08:10.290 - 00:08:11.766, Speaker A: And what we really care about here.
+00:08:11.788 - 00:08:12.994, Speaker C: Is this trust assumption.
+00:08:13.122 - 00:08:18.806, Speaker A: How is the bridge aware that this offchain system is intact before it allows.
+00:08:18.838 - 00:08:20.650, Speaker C: Any funds to be withdrawn?
+00:08:22.190 - 00:08:27.774, Speaker A: And this trans assumption has evolved over the years. So the basic example is the one.
+00:08:27.812 - 00:08:36.830, Speaker C: Ring to rule them all, the single authority, the Coinbases, the Bit stamps, any centralized cryptocurrency service with a single authority.
+00:08:37.810 - 00:08:41.374, Speaker A: Then we tried to evolve from that. So it was really easy for one.
+00:08:41.412 - 00:08:42.506, Speaker C: Authority to get hacked.
+00:08:42.538 - 00:08:45.618, Speaker A: So why don't we have a multi authority? Why don't we trust five out of.
+00:08:45.624 - 00:08:49.090, Speaker C: Nine Validators to protect the funds in the bridge?
+00:08:49.670 - 00:09:05.606, Speaker A: And then we sort of moved away from that as well and thought, well, what about a crypto economic bridge? And really when you look at something like Polygon and these multi authority bridges, the only real difference is how do we appoint who's a Validator? How do you become a Validator to.
+00:09:05.628 - 00:09:07.202, Speaker C: Protect the funds in the bridge?
+00:09:07.346 - 00:09:12.038, Speaker A: So if you look at Polygon, this is from 2021, the top six validators.
+00:09:12.054 - 00:09:14.838, Speaker C: On Polygon represented 85% of the stake.
+00:09:14.934 - 00:09:17.302, Speaker A: And so it's really just a multi authority bridge.
+00:09:17.446 - 00:09:20.778, Speaker C: I lock up Maddox tokens, I become a validator.
+00:09:20.954 - 00:09:23.578, Speaker A: I'm one of six people. If we all collude.
+00:09:23.594 - 00:09:39.474, Speaker C: We can steal all the funds in the system. Very straightforward. The only difference is that I have skin in the game. If I steal the funds, then my Maddox will go to zero. So you like to think that would keep them honest, and so far it has, basically.
+00:09:39.672 - 00:09:45.974, Speaker A: But the issue of all three approaches is that we're always trusting a set of authorities, we're still trusting a set.
+00:09:46.012 - 00:09:49.074, Speaker C: Of parties to protect the funds in the bridge.
+00:09:49.202 - 00:09:51.894, Speaker A: And this sucks. It sort of goes against the whole.
+00:09:51.932 - 00:09:54.918, Speaker C: Movement of what bitcoin was about in.
+00:09:54.924 - 00:09:57.110, Speaker A: The actual white paper of Bitcoin.
+00:09:57.850 - 00:09:59.098, Speaker C: Maybe it was the email or the.
+00:09:59.104 - 00:10:02.758, Speaker A: White paper, but the problem they're trying to solve is all the trust that's.
+00:10:02.774 - 00:10:09.630, Speaker C: Required to make this work, and now we've just reintroduced trust to make everything work still. And that's not an ideal scenario.
+00:10:10.290 - 00:10:12.186, Speaker A: So that's like an ideological perspective.
+00:10:12.218 - 00:10:13.802, Speaker C: We should remove intermediaries.
+00:10:13.946 - 00:10:15.726, Speaker A: But there's also a practical reason for.
+00:10:15.748 - 00:10:17.982, Speaker C: Why this is bad, and it's because.
+00:10:18.036 - 00:10:23.046, Speaker A: Exchanges just keep getting hacked. These exchanges aren't malicious.
+00:10:23.178 - 00:10:31.182, Speaker C: They don't want to steal your funds. They don't want to lose your funds. Celsius, for example, why would they want to blow up and lose all of their customers deposits?
+00:10:31.326 - 00:10:33.720, Speaker A: They want to make money. They want to offer a service.
+00:10:34.170 - 00:11:02.670, Speaker C: But of course, it's very difficult to do this. So, for example, Mount Gox lost 850,000 bitcoin, which later became 650K bitcoin. That's nearly 5% of all bitcoin assets got stolen in a single hack. We sort of just put it under the rug and pretend it never really happened, sort of at the state we're at now. And there's this wonderful spreadsheet by Taylor. She's recorded all of these hacks for the past six, seven years. So it's a great data sample.
+00:11:03.490 - 00:11:19.506, Speaker A: But the point they make here is that the security of these assets rely on human processes. If you want to run a cryptocurrency service today, you have to hire a security team who implement a set of human processes to protect a private key.
+00:11:19.608 - 00:11:21.582, Speaker C: With access to all of the funds.
+00:11:21.726 - 00:11:31.206, Speaker A: And what we're really telling companies is that, okay, you want to run a crypto service, take these human policies or processes, implement it for your company, and.
+00:11:31.228 - 00:11:33.238, Speaker C: Then you'll go protect billions of dollars.
+00:11:33.404 - 00:11:35.786, Speaker A: And one, that liability is crazier in.
+00:11:35.808 - 00:11:40.502, Speaker C: Seeing who wants to have $10 billion under custody.
+00:11:40.646 - 00:11:42.950, Speaker A: But the second part is that humans don't scale.
+00:11:43.030 - 00:11:45.318, Speaker C: We're not very good at scaling as a species.
+00:11:45.494 - 00:11:47.786, Speaker A: Software scales, human don't, and that's why.
+00:11:47.808 - 00:11:49.210, Speaker C: They keep getting hacked.
+00:11:50.350 - 00:11:53.406, Speaker A: So what about multi authority bridges? We think, oh, well, just throw more.
+00:11:53.428 - 00:12:02.274, Speaker C: People at the problem. And obviously that doesn't really work either. So the run on bridge was a great example. They lost $600 million worth of ether at the time.
+00:12:02.472 - 00:12:11.720, Speaker A: And when you look into it, it really wasn't a multi authority bridge. It was five out of nine validators got compromised. Four validators belonged to the same company.
+00:12:13.610 - 00:12:21.830, Speaker C: That company had pseudo access basically to another validator and basically had admin control over everything. So they lost all the funds.
+00:12:22.170 - 00:12:24.158, Speaker A: But still an example of a multi.
+00:12:24.194 - 00:12:25.930, Speaker C: Authority bridge getting hacked.
+00:12:26.590 - 00:12:28.586, Speaker A: There's all these crypto economic hacks, but.
+00:12:28.608 - 00:12:32.410, Speaker C: I haven't got a good example yet. My best example has been stock farm.
+00:12:33.710 - 00:12:36.586, Speaker A: The attacker took a flash loan to.
+00:12:36.608 - 00:12:40.266, Speaker C: Take over the governance process to steal all the funds in the system.
+00:12:40.448 - 00:12:42.670, Speaker A: Of course, if you implemented it, well.
+00:12:42.740 - 00:12:44.782, Speaker C: You could at least get rid of the flash load issue.
+00:12:44.916 - 00:12:47.486, Speaker A: But still, you get enough funds, you.
+00:12:47.508 - 00:12:51.230, Speaker C: Can steal everything in the system. And that's also not a great outcome.
+00:12:51.670 - 00:12:53.746, Speaker A: So I feel like as a community.
+00:12:53.848 - 00:13:07.640, Speaker C: We'Ve sort of forgot about this old school motto in the Bitcoin community not your keys, not your coins. Because we keep giving our coins away to other people and we should sort of bring this back as a philosophy for the next couple of years.
+00:13:08.330 - 00:13:14.694, Speaker A: So the question is, can we transact on an off chain system while still.
+00:13:14.732 - 00:13:19.978, Speaker C: Allowing users to maintain self custody of their funds so not have to trust the off chain system?
+00:13:20.144 - 00:13:21.466, Speaker A: And this was the goal of the.
+00:13:21.488 - 00:13:24.746, Speaker C: Original side chain paper in 2014, so.
+00:13:24.768 - 00:13:28.098, Speaker A: They don't use the word bridge, but it was a two way peg.
+00:13:28.214 - 00:13:29.406, Speaker C: The idea was that I could take.
+00:13:29.428 - 00:13:38.094, Speaker A: My assets that are on Bitcoin, lock them up, release them on an experimental side chain, transact there, and then bring.
+00:13:38.132 - 00:13:39.626, Speaker C: My funds back to Bitcoin.
+00:13:39.738 - 00:13:40.814, Speaker A: That was the goal of the side.
+00:13:40.852 - 00:13:45.460, Speaker C: Chain paper, this two way peg. No human intermediary we don't have to trust.
+00:13:47.510 - 00:13:50.306, Speaker A: And if I were going to call this a new name today, I would.
+00:13:50.328 - 00:13:53.826, Speaker C: Call it the consensus bridge. I lock my funds up on Ethereum.
+00:13:53.858 - 00:13:59.414, Speaker A: For example, unlock it on this other network. I trust the consensus protocol to stay.
+00:13:59.452 - 00:14:07.878, Speaker C: Alive, make progress and eventually lock my funds here and get them back on Ethereum. That's the basic concept.
+00:14:08.054 - 00:14:09.674, Speaker A: And then on Ethereum, what you would.
+00:14:09.712 - 00:14:28.686, Speaker C: Receive is maybe like block headers from the other network, maybe Bitcoin block headers. Maybe there'll be eventually, I can say, here's a block in Bitcoin, here's a transaction where I destroyed the coins and I can unlock them back to Ethereum. That's the typical side chain goal. But what is a consensus decision, if.
+00:14:28.708 - 00:14:32.718, Speaker A: You think about what is consensus is a judgment of a set of parties.
+00:14:32.814 - 00:14:34.622, Speaker C: We have a consensus protocol.
+00:14:34.766 - 00:14:36.258, Speaker A: We rely on an honest majority to.
+00:14:36.264 - 00:14:47.138, Speaker C: Make a decision in order to decide which transaction should be accepted. That's a very maybe trivial naive way to explain it, but that's basically what.
+00:14:47.144 - 00:14:50.678, Speaker A: A consensus decision is. And so actually, we're still trusting a.
+00:14:50.684 - 00:14:51.954, Speaker C: Set of external parties.
+00:14:52.082 - 00:15:08.862, Speaker A: In this case, we're trusting the external consensus protocol to protect the funds in the bridge. So a really good example of this would be, let's say Bitcoin was the experimental blockchain and the bridge relied on the consensus protocol in Bitcoin to agree.
+00:15:08.916 - 00:15:12.826, Speaker C: That this is indeed a transaction and should be processed.
+00:15:13.018 - 00:15:17.422, Speaker A: If I were the attacker, I would create six fake blocks in Bitcoin, send.
+00:15:17.476 - 00:15:28.466, Speaker C: The blocks to Ethereum with the invalid transaction in there, and then I would use that invalid transaction to steal the funds from the system. You're relying on the consensus protocol of the external system.
+00:15:28.568 - 00:15:30.194, Speaker A: The bridge has to follow and trust.
+00:15:30.232 - 00:15:35.320, Speaker C: The judgment of this external consensus protocol. Now, what's the issue with this?
+00:15:35.770 - 00:15:41.286, Speaker A: So, CFC, can we trust if the side chain blocks are valid, we could.
+00:15:41.308 - 00:15:44.658, Speaker C: Solve them with and we have validity proofs. You have these zero knowledge proofs.
+00:15:44.674 - 00:15:46.518, Speaker A: You prove that a block's valid and.
+00:15:46.524 - 00:15:48.358, Speaker C: There'S no invalid transitions.
+00:15:48.534 - 00:15:58.026, Speaker A: But the real problem of the side chain paper was liveness. If that consensus protocol goes offline, for whatever reason, your funds get stuck on.
+00:15:58.048 - 00:16:01.078, Speaker C: The experimental blockchain because you can't create a new block.
+00:16:01.174 - 00:16:02.346, Speaker A: You can't say, I want to withdraw.
+00:16:02.378 - 00:16:04.698, Speaker C: My funds, and then you can never prove that to the bridge.
+00:16:04.794 - 00:16:10.926, Speaker A: So the real issue there was liveness. You have to trust the consensus protocol to remain alive and well in order.
+00:16:10.948 - 00:16:14.850, Speaker C: To get your funds back to the bridge or out of the bridge, I guess.
+00:16:15.000 - 00:16:16.674, Speaker A: And that's how the Rainbow Bridge works.
+00:16:16.712 - 00:16:18.254, Speaker C: The near Rainbow Bridge.
+00:16:18.382 - 00:16:20.846, Speaker A: So on near and the Ethereum smart.
+00:16:20.878 - 00:16:42.010, Speaker C: Contract, it relies on a set of signatures from the know. On the near blockchain, there's validators signing blocks that gets sent to Ethereum. And then you could just prove there was a transaction process and you get your funds out. It's just relying on the signatures of the validators. So they've implemented what was basically the side chain paper, but for near and Ethereum.
+00:16:42.990 - 00:16:50.062, Speaker A: So obviously the issue there is, if the consensus protocol breaks, my funds get stuck. So we still haven't really solved the problem.
+00:16:50.116 - 00:16:53.162, Speaker C: We have to trust this external system to stay alive.
+00:16:53.306 - 00:17:00.154, Speaker A: So can we really build a bridge that protects us from an all powerful adversary? So even if the operators go offline.
+00:17:00.282 - 00:17:04.130, Speaker C: I can still get my funds back out? That's the goal.
+00:17:04.550 - 00:17:09.758, Speaker A: And this was the goal of plasma. This was the 2017 paper about plasma.
+00:17:09.934 - 00:17:14.600, Speaker C: It's really exciting because it solved the liveness issue, or at least we thought it did.
+00:17:16.170 - 00:17:18.840, Speaker A: Has anyone here tried to read the plasma paper?
+00:17:19.770 - 00:17:21.400, Speaker C: How did you find it?
+00:17:21.930 - 00:17:26.078, Speaker A: You forgot most. It's just like the lightning papers.
+00:17:26.194 - 00:17:32.140, Speaker C: Joseph Poon has a wonderful style of writing. It's very difficult to read, very difficult to understand.
+00:17:32.910 - 00:17:35.114, Speaker A: For this one, I didn't actually really try to read it.
+00:17:35.152 - 00:17:37.210, Speaker C: I glanced it and gave up.
+00:17:37.360 - 00:17:41.818, Speaker A: But you can see here, the whole idea is that there's a side chain.
+00:17:41.914 - 00:17:46.750, Speaker C: And the bridge is verifying everything about the side chain. That's the goal in plasma.
+00:17:47.170 - 00:17:57.794, Speaker A: But the problem in Plasma was that no one really understood the design space, both in terms of integrity of what you're proving or what you're trying to convince the bridge about, and also about.
+00:17:57.832 - 00:18:00.178, Speaker C: Making data available and we'll go into that in a bit.
+00:18:00.264 - 00:18:08.406, Speaker A: But it led to all these crazy designs. None of them were practical. It sort of felt like we wasted two years trying to design these and.
+00:18:08.428 - 00:18:09.670, Speaker C: None of them really worked.
+00:18:09.820 - 00:18:12.982, Speaker A: But what Plasma was trying to build.
+00:18:13.116 - 00:18:15.906, Speaker C: Is what I would call a validating bridge.
+00:18:16.098 - 00:18:19.418, Speaker A: And it's very straightforward. It's a very different model to what.
+00:18:19.424 - 00:18:41.010, Speaker C: We'Ve had so far. So ideally, there's still an operator that we could call the Executor. And the Executor wants to update this off chain database. It takes a list of transactions. It wants to update the database and then, of course, convince the bridge that this is the new state of the database. So I got this wonderful little animation here of the update.
+00:18:41.910 - 00:18:59.398, Speaker A: And then the Executor will propose an update to the database, to the bridge. Now, the difference is that the bridge will not blindly trust the Executor. The bridge will say, you've given me an update. You have to convince me that this is valid. And how do we do that?
+00:18:59.564 - 00:19:02.566, Speaker C: You submit convincing evidence. So as we'll see, that could be.
+00:19:02.588 - 00:19:09.066, Speaker A: The fraud proofs or the validity proofs. You have to convince this smart contract that this update is valid before it.
+00:19:09.088 - 00:19:10.810, Speaker C: Gets processed and accepted.
+00:19:11.310 - 00:19:25.886, Speaker A: And maybe the thing to highlight here is that unlike a layer one blockchain, when you think about layer twos and roll ups, the only thing that matters is the bridge. It doesn't matter you've got a peer to peer network or, I don't know.
+00:19:26.068 - 00:19:29.440, Speaker C: Crazy ways to propagate data.
+00:19:30.050 - 00:19:36.706, Speaker A: The sole decision maker is the bridge. If the bridge receives an update and it gets accepted, that's it.
+00:19:36.728 - 00:19:39.426, Speaker C: It gets processed, it's final, funds get out.
+00:19:39.608 - 00:19:42.626, Speaker A: We don't rely on an honest majority. We just rely on the bridge to.
+00:19:42.648 - 00:19:43.774, Speaker C: Make the correct judgment.
+00:19:43.902 - 00:19:45.446, Speaker A: And that's very different to how you.
+00:19:45.468 - 00:19:51.858, Speaker C: Design a layer one blockchain. On a layer one blockchain you're making this peer to peer network consensus protocol on its majority.
+00:19:51.954 - 00:19:53.446, Speaker A: We have none of this for layer two.
+00:19:53.468 - 00:19:58.220, Speaker C: It's just a bridge. And that's very different mental model between the L one and the L two.
+00:19:58.910 - 00:20:00.938, Speaker A: And of course the bridge will say.
+00:20:01.024 - 00:20:04.780, Speaker C: Is the database safe and alive? Validates and accept it.
+00:20:05.390 - 00:20:08.978, Speaker A: And this is what the roll up projects are trying to build. The loop ring, optimistic.
+00:20:09.014 - 00:20:09.786, Speaker C: Ethereum, ZK.
+00:20:09.818 - 00:20:12.526, Speaker A: Sync starkware Arbitrum They're all trying to.
+00:20:12.548 - 00:20:14.138, Speaker C: Build a validating bridge.
+00:20:14.234 - 00:20:16.350, Speaker A: They've all got very funky names for them.
+00:20:16.420 - 00:20:18.640, Speaker C: But this is ultimately what they're trying to build.
+00:20:19.970 - 00:20:28.254, Speaker A: And ultimately, if this works, that would imply that the layer one blockchain is protecting you. And it's sort of like this little boxing MOX.
+00:20:28.302 - 00:20:41.590, Speaker C: I don't really know who mayweather's punching there, but the adversary tries to censor your transaction. You'll punch the Ethereum doesn't allow that to happen. They try to include an invalid transaction. Nope, we don't allow that to happen.
+00:20:41.740 - 00:20:43.746, Speaker A: They try to withhold data and don't.
+00:20:43.778 - 00:20:56.534, Speaker C: Allow you to recreate the database. Nope. Ethereum does not allow that to happen. Ethereum's protecting you and your funds on this off chain system and it's really the marvels of engineering. I just saw this article somewhere and thought it was really relevant.
+00:20:56.662 - 00:20:58.938, Speaker A: All the bridges people are trying to build are crazy.
+00:20:59.024 - 00:21:02.666, Speaker C: You have the Wacky design, the most famous bridge, the tilting bridge.
+00:21:02.778 - 00:21:14.066, Speaker A: When you look at the smart contract, they're all very weird bridges that they're building, but it all sounds really cool. But how does it work? It sounds a bit too good to be true and it is slightly too.
+00:21:14.088 - 00:21:15.922, Speaker C: Good to be true as we'll get into it.
+00:21:16.056 - 00:21:20.994, Speaker A: So what I want to define now is the environment. Here are the players at a high.
+00:21:21.032 - 00:21:30.310, Speaker C: Level, how does this work? And what's the threat model and the security properties? Then hopefully some interesting research questions as well. So here are the agents.
+00:21:30.460 - 00:21:34.598, Speaker A: There's typically three. There's the honest user, that's us.
+00:21:34.684 - 00:21:38.986, Speaker C: We like Mooncats. I have a mooncat. I want to check my Mooncat on the system.
+00:21:39.168 - 00:21:45.114, Speaker A: There's the sequencer. The sequencer's only job is to take a list of transactions, order them for.
+00:21:45.152 - 00:21:48.606, Speaker C: Execution and then pass them on. So it's an ordering service.
+00:21:48.788 - 00:21:51.022, Speaker A: Then afterwards you have the executor who.
+00:21:51.076 - 00:21:57.630, Speaker C: Takes the order transactions, executes them and proposes a new state of the database to the bridge.
+00:21:58.450 - 00:22:07.586, Speaker A: So at a high level, as I mentioned, the sequencer is a transaction ordering service. Alice comes along and Alice wants to.
+00:22:07.608 - 00:22:15.974, Speaker C: Use the layer two system. So deposit funds into the bridge and this will be reflected on the layer two system.
+00:22:16.172 - 00:22:32.410, Speaker A: Then Bob comes along. Hi, Bob. And Alice wants to send coins to Bob. So Alice will send a transaction that gives one coin to Bob. Now, the sequencer could optimistically tell Bob, bob, your transaction is going to get ordered for execution.
+00:22:32.750 - 00:22:36.010, Speaker C: But it's not yet ordered, it's just a promise.
+00:22:37.310 - 00:22:52.434, Speaker A: Then the sequencer waits around for a while for more off chain transactions. There's no more transactions. And then eventually the sequencer will post this list of transactions to the bridge. Now, not every roll up works this.
+00:22:52.472 - 00:22:54.740, Speaker C: Way, but this is roughly what's happening.
+00:22:55.110 - 00:23:27.406, Speaker A: So the list of transactions get hit to the bridge and the bridge can order this for execution. Now they're ordered, but they're not yet executed. And then eventually the executor comes along and the executor will take the list of pending transactions, execute them and then propose an update to the bridge. So again, my 1990 animation. And then the executor will pose a checkpoint to the bridge to say bridge. Here's the new state of the database. And this is again a continuous process.
+00:23:27.508 - 00:23:32.426, Speaker C: We order transactions, we execute transactions, we order transactions, we execute transactions.
+00:23:32.618 - 00:23:46.686, Speaker A: And what's really nice actually is because the transactions can be ordered first. As long as your transactions are ordered for execution and this is final, we can all verify how it's going to be executed.
+00:23:46.798 - 00:23:48.786, Speaker C: So the execution can actually come later.
+00:23:48.888 - 00:23:50.334, Speaker A: So we just care that it's ordered.
+00:23:50.382 - 00:23:56.710, Speaker C: First and then eventually the system catches up and executes it. That's really important for the optimistic roll ups.
+00:23:57.610 - 00:24:05.738, Speaker A: But anyway, the whole point is that eventually an honest user like us, we could take all the data from the blockchain and compute a copy of the.
+00:24:05.744 - 00:24:10.460, Speaker C: Database, ourself, and we can independently verify that the database is also correct.
+00:24:11.950 - 00:24:13.402, Speaker A: So what's the threat model?
+00:24:13.536 - 00:24:16.620, Speaker C: What is the adversary here we're trying to protect against?
+00:24:17.390 - 00:24:23.466, Speaker A: So there's two things to consider. One is the message flow. We just assume that an honest user.
+00:24:23.498 - 00:24:26.762, Speaker C: Can transact with the bridge and the layer one blockchain.
+00:24:26.906 - 00:24:29.362, Speaker A: Any messages on the layer two system.
+00:24:29.496 - 00:24:33.598, Speaker C: Could be viewed, reordered, or just dropped by the adversary.
+00:24:33.694 - 00:24:36.046, Speaker A: So we have no guaranteed message delivery.
+00:24:36.078 - 00:24:37.940, Speaker C: On the layer two system at all.
+00:24:39.670 - 00:24:41.774, Speaker A: We also assume the adversary can corrupt.
+00:24:41.822 - 00:24:45.426, Speaker C: Nearly every single party. We assume the adversary simply cannot corrupt.
+00:24:45.458 - 00:24:47.750, Speaker A: The layer one blockchain and one honest.
+00:24:47.820 - 00:24:56.330, Speaker C: Party that could also be the user. We assume there's just a one honest party assumption outside of the system, but everyone else can basically be corrupt.
+00:24:57.070 - 00:24:59.290, Speaker A: So this is a very powerful adversary.
+00:24:59.870 - 00:25:06.410, Speaker C: They can drop all the messages, corrupt nearly everyone. Obviously, they can't break cryptography.
+00:25:06.910 - 00:25:11.014, Speaker A: And as you'll see over the next year or two, not every roll up.
+00:25:11.072 - 00:25:13.790, Speaker C: Has the tools to fully constrain this beast.
+00:25:14.130 - 00:25:15.598, Speaker A: And there'll be some roll ups that.
+00:25:15.604 - 00:25:22.480, Speaker C: Are deployed that aren't really a roll up because they can't satisfy the threat model. But we won't talk about that right now.
+00:25:23.030 - 00:25:31.314, Speaker A: But I do want to highlight, though, is that back in 2019, when we were discussing this, georgie's had this wonderful tweet to say, layer two security should.
+00:25:31.352 - 00:25:33.026, Speaker C: Equal equal layer one security.
+00:25:33.208 - 00:25:36.086, Speaker A: I am a believer. I mean, at the time I thought.
+00:25:36.108 - 00:25:37.510, Speaker C: That was too ambiguous.
+00:25:37.930 - 00:25:42.758, Speaker A: Layer two can never be layer one. What we're really debating is how close we can get.
+00:25:42.764 - 00:25:57.610, Speaker C: The layer one security is that closeness that we're really debating because obviously, layer one, your funds can never be stolen. Layer two, there's still always a chance that it could be or your funds get frozen. So it can never be the same. But how close we get is what we're debating.
+00:25:58.190 - 00:26:01.706, Speaker A: So what about the security properties? What does it mean for a roll.
+00:26:01.738 - 00:26:03.550, Speaker C: Up to actually be secure?
+00:26:04.050 - 00:26:05.566, Speaker A: Because I keep saying it's secure, but.
+00:26:05.588 - 00:26:06.880, Speaker C: What does that actually mean?
+00:26:07.250 - 00:26:25.030, Speaker A: So at a high level, the way to think about it is that there is this off chain database and the bridge's only goal is to protect its safety and liveness. And there's three sub goals to this. One is data availability. How does the bridge guarantee that all.
+00:26:25.100 - 00:26:27.814, Speaker C: Data is publicly available so that one.
+00:26:27.852 - 00:26:36.326, Speaker A: Honest party can get a copy of the database? Two, state transition integrity. How is the bridge convinced that a.
+00:26:36.348 - 00:26:42.006, Speaker C: Proposed update is valid or correct, all the transactions are processed correctly.
+00:26:42.118 - 00:27:02.530, Speaker A: And three, censorship resistance. So if the entire system goes offline. How can we guarantee a user can still get their funds out of the system eventually? So the data availability problem, let's talk about that first. And there's three questions they ask. Why does the data need to be publicly available?
+00:27:02.680 - 00:27:04.260, Speaker C: That's clearly a good question.
+00:27:04.710 - 00:27:06.850, Speaker A: What data needs to be publicly available?
+00:27:07.000 - 00:27:10.180, Speaker C: And how do we guarantee that it is publicly available?
+00:27:10.870 - 00:27:14.214, Speaker A: So why do we need the data to be available? So this is sort of the L.
+00:27:14.252 - 00:27:16.178, Speaker C: One versus the L two dilemma.
+00:27:16.274 - 00:27:30.346, Speaker A: When you think of an L one blockchain, like Bitcoin or Ethereum or Islan or whatever else, the database is the assets and the liabilities. Basically, because the database represents everything and.
+00:27:30.368 - 00:27:32.378, Speaker C: We rely on an honest majority of.
+00:27:32.384 - 00:27:36.846, Speaker A: The consensus protocol, we can always guarantee it's available and that everyone can get.
+00:27:36.868 - 00:27:37.886, Speaker C: A copy off it.
+00:27:37.988 - 00:27:58.290, Speaker A: It's not dependent on another system. The database is the root of trust, where for a layer two system, it's very different. The database is just the liabilities. And what really matters is the Bridge. The bridge has all of the assets, it's external to the system.
+00:27:58.440 - 00:28:00.674, Speaker C: It's not connected to the layer two system.
+00:28:00.872 - 00:28:05.750, Speaker A: And the bridge needs a guarantee that one honest party can get a copy of this database.
+00:28:06.170 - 00:28:09.014, Speaker C: So that's why it needs to be publicly available.
+00:28:09.212 - 00:28:13.286, Speaker A: The bridge needs a guarantee there's one party out there who can get the.
+00:28:13.308 - 00:28:17.270, Speaker C: Database and eventually propose an update to the database.
+00:28:17.610 - 00:28:19.834, Speaker A: So it's a very different mental model.
+00:28:19.872 - 00:28:28.960, Speaker C: Of L one, v. L two. I also wrote a blog post on this. If you want to read the blog, I can send a link because I think that mental model is really important.
+00:28:29.490 - 00:28:45.234, Speaker A: But why does the data need to be publicly available? As I mentioned, the Roll app should really have a one honest party assumption and it's really an assistant. The honest party is assisting the bridge. The bridge makes the sole decision, but.
+00:28:45.272 - 00:28:47.890, Speaker C: Has an assistant to help it make that decision.
+00:28:48.310 - 00:28:50.734, Speaker A: And the real reason is to guarantee.
+00:28:50.782 - 00:29:05.430, Speaker C: That one honest party can propose an update so we can enable Liveness for the system. Other reasons may be you want to audit the database. Maybe you don't want to put your funds in the arbitram unless you can independently verify the liabilities, cover the assets.
+00:29:05.770 - 00:29:09.446, Speaker A: And also maybe to withdraw your funds. If I want to withdraw my Mooncat.
+00:29:09.478 - 00:29:16.010, Speaker C: From the system, I should probably check my Mooncat is on the system before I withdraw. It very, very straightforward.
+00:29:17.070 - 00:29:19.290, Speaker A: And of course, what if the data wasn't available?
+00:29:19.360 - 00:29:20.654, Speaker C: What's the danger here?
+00:29:20.772 - 00:29:27.838, Speaker A: The danger is the adversary could freeze the funds in our system. No, the issue there is that if only the adversary has a copy of.
+00:29:27.844 - 00:29:32.142, Speaker C: The latest update, the honest party can't get the latest update, so the honest.
+00:29:32.196 - 00:29:33.586, Speaker A: Party can't get a copy of the.
+00:29:33.608 - 00:29:43.278, Speaker C: Database and so they just can't propose an update. So if the honest party can't get a. Copy of the database, your funds can get frozen forever. That's a pretty bad problem.
+00:29:43.464 - 00:29:46.102, Speaker A: Two, if it's a fraud proof based.
+00:29:46.156 - 00:29:49.106, Speaker C: System, as we'll see, they could also potentially steal your funds.
+00:29:49.218 - 00:29:51.506, Speaker A: They could propose an update that includes.
+00:29:51.538 - 00:29:55.478, Speaker C: An invalid transaction that steals all of our funds. And that's also not great.
+00:29:55.644 - 00:29:57.254, Speaker A: They could also trick us about entries.
+00:29:57.302 - 00:30:01.980, Speaker C: In the database as well. They may tell you of less or more money than you actually do.
+00:30:02.750 - 00:30:03.978, Speaker A: So, what about the data?
+00:30:04.064 - 00:30:05.930, Speaker C: What is actually posted?
+00:30:06.350 - 00:30:18.554, Speaker A: And there's two flavors for this. One approach is that you send the transaction data to the bridge. If you send the list of transactions to the bridge, the bridge can order this for execution.
+00:30:18.682 - 00:30:22.338, Speaker C: And then later on, you just post a little checkpoint to say, this is.
+00:30:22.344 - 00:30:23.710, Speaker A: The new state of the database.
+00:30:23.790 - 00:30:26.066, Speaker C: Given how these are executed, this is.
+00:30:26.088 - 00:30:27.730, Speaker A: What optimism and Arbitrum do.
+00:30:27.800 - 00:30:30.770, Speaker C: They post the list of transactions.
+00:30:31.830 - 00:30:36.914, Speaker A: Where the validity roll ups like StarkNet or Zksync?
+00:30:37.042 - 00:30:41.046, Speaker C: Well, I guess StarkNet was primarily the ones last year. I don't know if Zkzync is actually.
+00:30:41.068 - 00:30:49.558, Speaker A: Doing it yet, but StarkNet posted a state diff. So the ordering of transactions happened off chain. Now, I give it to the sequencer.
+00:30:49.654 - 00:30:51.914, Speaker C: They pass it to the executors, they.
+00:30:51.952 - 00:31:00.206, Speaker A: Create a validity proof and a state diff of the database. They post a state diff to Ethereum. And then as an honest party, I.
+00:31:00.228 - 00:31:04.926, Speaker C: Can just pick up the state diff, apply it to my database. And I've applied the update and the.
+00:31:04.948 - 00:31:08.954, Speaker A: State diff is just here's the storage.
+00:31:09.002 - 00:31:13.070, Speaker C: Slots that you have the update. And here's the new value for the storage slot.
+00:31:13.230 - 00:31:18.180, Speaker A: What's interesting there is that the transaction details are not public.
+00:31:18.550 - 00:31:21.022, Speaker C: You only see the effect of the transactions.
+00:31:21.166 - 00:31:26.306, Speaker A: So a good example of this is that you could have 1000 trades ban.
+00:31:26.338 - 00:31:27.990, Speaker C: And selling the same asset.
+00:31:28.410 - 00:31:33.334, Speaker A: But given those 1000 transactions, you just have to update two storage slots or.
+00:31:33.372 - 00:31:45.210, Speaker C: Maybe some of the account balances, but you update this is the new balance of ETH relative to Dai, maybe. So you just post the result of the transaction and not the transaction details.
+00:31:45.630 - 00:31:47.490, Speaker A: I'm a believer that the ideal bridge.
+00:31:47.510 - 00:31:53.520, Speaker C: Would have both, but we can talk about that later. Right now, every project picks one or the other.
+00:31:53.890 - 00:31:59.534, Speaker B: So you could imagine validity based roll ups doing the first approach, right?
+00:31:59.652 - 00:32:00.222, Speaker A: Yeah.
+00:32:00.356 - 00:32:05.134, Speaker B: But the point is, I guess the K and the Snark kind of allows you to get away with the second approach.
+00:32:05.182 - 00:32:05.346, Speaker D: Yeah.
+00:32:05.368 - 00:32:07.682, Speaker C: And you can aggregate the data as well.
+00:32:07.816 - 00:32:10.786, Speaker A: But so what's missing right now is and I don't know if StarkNet have.
+00:32:10.808 - 00:32:14.066, Speaker C: Done it yet, but I've spoke to them a few times about it, is.
+00:32:14.088 - 00:32:22.518, Speaker A: To really compare the data costs of both of these. Is it cheaper just to do transaction history or is it cheaper to do a state diff? And to my knowledge, I still don't.
+00:32:22.524 - 00:32:27.766, Speaker C: Have a good answer for that. There may be application specific reasons why you would do one or the other.
+00:32:27.868 - 00:32:31.978, Speaker B: Yeah, seems like they would vary with how many accounts the transactions typically touch.
+00:32:32.144 - 00:32:32.938, Speaker A: Yeah, exactly.
+00:32:33.024 - 00:32:34.826, Speaker C: And that's, though very much missing piece.
+00:32:34.848 - 00:32:36.006, Speaker A: Of work right now.
+00:32:36.048 - 00:32:42.800, Speaker C: People simply assume that state diffs are better. But I think it's dull out there. What the real answer is.
+00:32:46.130 - 00:32:47.440, Speaker D: Transaction data.
+00:32:50.770 - 00:32:53.742, Speaker A: Oh, the transaction data is the public plan tax of the data.
+00:32:53.876 - 00:32:55.202, Speaker B: I think she said the right hand side.
+00:32:55.256 - 00:32:58.066, Speaker A: Oh, the right hand side. It would be part of the hash, I guess.
+00:32:58.088 - 00:33:01.406, Speaker C: But the checkpoint, I would assume what they do is as a tree.
+00:33:01.518 - 00:33:02.578, Speaker A: A part of the branch would be.
+00:33:02.584 - 00:33:05.682, Speaker C: The list of transactions. The other one would be an update to the database.
+00:33:05.826 - 00:33:08.566, Speaker A: But even then, you don't have to.
+00:33:08.588 - 00:33:23.222, Speaker C: Post yet the transaction data to be a commitment, I'd assume. I don't know the exact details of how they've done it. Any other questions? Is everyone happy? I should have asked earlier if there's any questions. Okay, safu, safu.
+00:33:23.286 - 00:33:27.520, Speaker A: So how do we guarantee the data is actually publicly available?
+00:33:28.290 - 00:33:29.694, Speaker C: That's a big question.
+00:33:29.892 - 00:33:40.698, Speaker A: So back in Plasma, the initial approach was an on chain challenge. The operator would send the checkpoint to the blockchain and say, here's the checkpoint.
+00:33:40.794 - 00:33:43.060, Speaker C: I attest to the fact that this is public.
+00:33:43.510 - 00:33:48.946, Speaker A: Then any honest user could come along and challenge the bridge to say, bridge, I can't find the data.
+00:33:49.048 - 00:33:51.966, Speaker C: Can you make the operator reveal this on the blockchain?
+00:33:52.158 - 00:33:54.158, Speaker A: Now, this has something called the fisherman's.
+00:33:54.174 - 00:33:55.654, Speaker C: Problem that we can talk about later.
+00:33:55.772 - 00:34:06.610, Speaker A: Where the smart contract can't ascribe who's at fault. But this was a single issue that broke Plasma. They just couldn't solve the data availability problem. And on hindsight, I would argue it's.
+00:34:06.620 - 00:34:15.740, Speaker C: Because they didn't really understand what they were challenging. Do you challenge the update or a pacific value in the database? But again, we can talk about those design issues.
+00:34:17.630 - 00:34:26.446, Speaker A: The other approach is to rely on a trusted committee. So there's the Veladians, the antitrust. The idea is that there's a committee that will sign off and attest to.
+00:34:26.468 - 00:34:32.020, Speaker C: The fact that the data was made publicly available, and then the bridge will just assume that this is correct.
+00:34:32.870 - 00:34:39.154, Speaker A: There's also this trade off between liveness and safety. So in arbitram, they assume as long as two parties are honest, the data.
+00:34:39.192 - 00:34:45.346, Speaker C: Will always be available. Otherwise, you default back to your roll up and just post the data as a roll up or on chain.
+00:34:45.458 - 00:34:55.798, Speaker A: Which brings us to a roll up, the way roll ups solve the problem. And this is thanks to Barry WhiteHat. You take all the data and you just post it to Ethereum, and that's.
+00:34:55.814 - 00:34:57.162, Speaker C: How your guarantee is available.
+00:34:57.296 - 00:35:09.214, Speaker A: Now, what's interesting is that the guarantee for this availability is very subtle. It doesn't guarantee that all historical data is available. A layer one blockchain, like Ethereum only.
+00:35:09.252 - 00:35:14.686, Speaker C: Guarantees that recent data is available. Probably the past ten blocks or whatever.
+00:35:14.788 - 00:35:16.702, Speaker A: So anyone who's online at that given.
+00:35:16.756 - 00:35:18.510, Speaker C: Time can fetch the data.
+00:35:18.660 - 00:35:20.106, Speaker A: It doesn't actually guarantee you can fetch.
+00:35:20.138 - 00:35:26.626, Speaker C: All the historical data. The peer to peer network just gives us that today. You get an ethereum node, you run.
+00:35:26.648 - 00:35:30.574, Speaker A: It, you connect to the network, you download all the historical blocks, you catch.
+00:35:30.622 - 00:35:34.714, Speaker C: Up, then you start getting the recent decisions from the consensus protocol.
+00:35:34.862 - 00:35:37.746, Speaker A: That first part, the historical part, it's.
+00:35:37.778 - 00:35:39.206, Speaker C: Nice the peer to peer network does.
+00:35:39.228 - 00:35:41.046, Speaker A: That, but there's no reason why it.
+00:35:41.068 - 00:35:47.898, Speaker C: Has to do that. You could really get that data from elsewhere. So the subtle guarantee is that the.
+00:35:47.904 - 00:35:49.754, Speaker A: Peer to peer network only guarantees that.
+00:35:49.792 - 00:35:51.340, Speaker C: Recent data is available.
+00:35:51.710 - 00:35:53.706, Speaker A: And based on that insight, that's sort.
+00:35:53.728 - 00:36:13.650, Speaker C: Of what's behind EIP 4844 and the roadmap of eventually expiring data, allowing data to eventually get deleted. So maybe you join the network and you don't have all of the history, you just get the recent blocks and a copy of the actual database and you check that's correct. So it's a very subtle, very subtle guarantee.
+00:36:14.070 - 00:36:29.014, Speaker B: And is the idea that there should be some Library of Congress, which is not necessarily like running consensus or execution, but nonetheless storing the entire histories genesis? Or is the idea more like if it's more than a 30 year old.
+00:36:29.052 - 00:36:32.770, Speaker A: Like, too bad, eventually I think it's the latter there it's more like weak.
+00:36:32.850 - 00:36:44.966, Speaker C: Subjectivity basically saying that the history eventually doesn't matter because we've all reached social consensus that the database is correct up to this checkpoint. Yeah. So it says weekly, subjective, on a proof of stake.
+00:36:44.998 - 00:36:46.458, Speaker A: You have that property anyway, so you.
+00:36:46.464 - 00:36:49.626, Speaker C: May as well leverage it to get rid of the historical data.
+00:36:49.728 - 00:36:51.066, Speaker A: Where on Bitcoin, they want to remain.
+00:36:51.098 - 00:36:56.686, Speaker C: Objective, so they try to enforce history to always be bingo, you know, this.
+00:36:56.708 - 00:37:08.434, Speaker A: Is the rules, this is why everyone got excited. The reason why this is significant is because back in the plasma days, they're trying to solve data, they're trying to solve integrity. Then Barry Whitehawk comes along and just.
+00:37:08.472 - 00:37:09.780, Speaker C: Gets rid of one of the problems.
+00:37:10.150 - 00:37:12.098, Speaker A: Data availability is no longer an issue.
+00:37:12.184 - 00:37:32.860, Speaker C: Because you just post it to the blockchain. So from 2019, 2020 onwards, people could just focus on how to guarantee integrity, the state transitions, and that actually just simplified the entire design space, as, again, in hindsight, seems obvious. So what about the state transition integrity problem?
+00:37:33.310 - 00:37:35.142, Speaker A: So it's very straightforward.
+00:37:35.286 - 00:37:37.466, Speaker C: We're posting these little checkpoints to say.
+00:37:37.568 - 00:37:39.706, Speaker A: Here'S the new state of the database.
+00:37:39.898 - 00:37:49.200, Speaker C: We want to protect against an adversary who would say, they would say, here's a checkpoint, but the database includes an invalid transaction and sends them all the money.
+00:37:50.130 - 00:37:55.918, Speaker A: So this is probably the most interesting thing that everyone likes to talk about, but I'm not actually going to elude.
+00:37:55.934 - 00:37:56.930, Speaker C: On it too much.
+00:37:57.080 - 00:38:04.514, Speaker A: This is the optimistic versus the ZK, the felt proofs versus the validity proofs. This is what everyone talks about because.
+00:38:04.552 - 00:38:06.642, Speaker C: It'S a very interesting problem to solve.
+00:38:06.786 - 00:38:08.086, Speaker A: But I'm actually going to miss most.
+00:38:08.108 - 00:38:14.940, Speaker C: Of it today because I think other problems are more interesting and more important. Of course, we can talk about this if you want.
+00:38:19.470 - 00:38:21.130, Speaker A: I always tell the roll up project.
+00:38:21.200 - 00:38:23.500, Speaker C: That they should focus less on this problem.
+00:38:25.870 - 00:38:27.290, Speaker A: I can never listen to me. Exactly.
+00:38:27.360 - 00:38:28.906, Speaker C: That's why they're not censorship resistant.
+00:38:28.938 - 00:38:34.606, Speaker A: Which brings me to this slide censorship resistance. So the idea here is that what.
+00:38:34.628 - 00:38:36.522, Speaker C: If the sequencer doesn't cooperate?
+00:38:36.666 - 00:38:38.730, Speaker A: I give my transaction to the sequencer.
+00:38:38.810 - 00:38:45.186, Speaker C: And the sequencer is like, ha ha, no Potty, you can't get your mooncat out. Well, that would suck, wouldn't it? You want to get your mooncat out.
+00:38:45.288 - 00:38:57.366, Speaker A: So how do you solve this problem? So the insight here is that there's two parties. You have the sequencer and the executors. Now, what's really nice is that the sequencer has absolutely nothing to do with.
+00:38:57.388 - 00:39:00.390, Speaker C: Censorship resistance at all, and we're going to see why in a second.
+00:39:00.540 - 00:39:02.470, Speaker A: What really matters is that there's one.
+00:39:02.540 - 00:39:11.606, Speaker C: Honest executor, which could be anyone here who could take the list of transactions, execute them and propose an update.
+00:39:11.718 - 00:39:15.162, Speaker A: Once the transactions are ordered, then anyone can execute that.
+00:39:15.216 - 00:39:19.390, Speaker C: So what we really have to focus on is how the transactions get ordered.
+00:39:20.850 - 00:39:22.494, Speaker A: So there's two ways to solve this.
+00:39:22.532 - 00:39:24.382, Speaker C: Problem that have emerged over the years.
+00:39:24.516 - 00:39:27.006, Speaker A: One is an onchain Exodus and the.
+00:39:27.028 - 00:39:28.474, Speaker C: Other is called forced inclusion.
+00:39:28.522 - 00:39:33.374, Speaker A: And they're quite similar. So let's talk about onchain exodus.
+00:39:33.422 - 00:39:37.650, Speaker C: This is how the V one rule ops did it to the Stark axe and the ZK Sync.
+00:39:38.550 - 00:39:55.962, Speaker A: So the idea is that Alice could send her withdrawal transaction to the bridge and the bridge would say, executor operator, you have to process this transaction by a deadline. If the transaction does not get processed, I'm going to freeze the entire system.
+00:39:56.096 - 00:40:03.398, Speaker C: And allow everyone to withdraw their funds. And obviously that's how it works. So the executor will post a checkpoint.
+00:40:03.494 - 00:40:09.786, Speaker A: It does not include the center transaction, and eventually, obviously, then send a transaction.
+00:40:09.818 - 00:40:11.600, Speaker C: That freezes the entire system.
+00:40:12.290 - 00:40:14.618, Speaker A: Now, that's great, folks.
+00:40:14.714 - 00:40:15.662, Speaker C: It's great and bad.
+00:40:15.716 - 00:40:19.374, Speaker A: It's great in the sense that the entire system will be frozen and then.
+00:40:19.412 - 00:40:21.620, Speaker C: Everyone can just withdraw their funds from the system.
+00:40:22.070 - 00:40:31.474, Speaker A: The bad part is that these type of systems can only support transfers or swaps. You need to make sure that every.
+00:40:31.512 - 00:40:35.282, Speaker C: User has an account balance and the funds are not stuck in a smart contract.
+00:40:35.426 - 00:40:38.674, Speaker A: If your funds are stuck in a smart contract and the system gets frozen.
+00:40:38.802 - 00:41:01.246, Speaker C: Well, you can't process the transactions. So it only works for payments or swaps on the layer two. Exactly, yes. Only the layer two can support transfers and swaps so that's ZK sync and StockX, they can only support basically single state transitions. So you disable the entire option system.
+00:41:01.348 - 00:41:02.346, Speaker A: Very extreme.
+00:41:02.458 - 00:41:05.402, Speaker C: That's what they've implemented and so far they've not been frozen.
+00:41:05.546 - 00:41:21.140, Speaker B: It's interesting because somehow I thought of the restriction to payments. It's just making sure you only have approved relatively simple statements. Yeah, this is a completely different subaruitectural payoff. You have that restriction right. Which is interesting.
+00:41:22.170 - 00:41:22.534, Speaker C: Yeah.
+00:41:22.572 - 00:41:27.186, Speaker A: So the next one is forced inclusion. So obviously we want to have smart.
+00:41:27.218 - 00:41:32.070, Speaker C: Contract enabled off chain systems because that's more interesting than just payments.
+00:41:32.810 - 00:41:51.630, Speaker A: So the guarantee has to be that the system always remains alive, it can never be frozen and it can never be stopped. So again, Alice will send her transactions directly to the bridge. The difference is that the bridge will force all transactions to be executed in order.
+00:41:51.780 - 00:41:53.520, Speaker C: They got the subtle difference.
+00:41:54.610 - 00:41:57.678, Speaker A: So the executor could test this and.
+00:41:57.684 - 00:42:06.142, Speaker C: Say, okay, I'm going to test the bridge and try to exclude that transaction that was ordered. They post a checkpoint without Alice's transaction.
+00:42:06.286 - 00:42:08.660, Speaker A: The bridge will get angry about this.
+00:42:09.190 - 00:42:14.280, Speaker C: And reject the update and obviously slosh the know, give or take.
+00:42:15.770 - 00:42:17.718, Speaker A: So basically, you get punished, you get.
+00:42:17.724 - 00:42:22.534, Speaker C: Your head chopped off if you try to censor someone's transaction. So that's the force inclusion part.
+00:42:22.652 - 00:42:27.014, Speaker A: Now, the trade off here is that there's a lot of nitty gritty details.
+00:42:27.062 - 00:42:33.514, Speaker C: Here that are not well explored. This is around race conditions. What if the adversary can always get.
+00:42:33.552 - 00:42:35.850, Speaker A: Their actually, I think I have another.
+00:42:35.920 - 00:42:37.294, Speaker C: Slide, so we can talk about that in a bit.
+00:42:37.332 - 00:42:45.294, Speaker A: But basically, force inclusion is the best way to solve censorship resistance, but it requires a system remain online and for.
+00:42:45.332 - 00:42:53.140, Speaker C: One honest executor to eventually process your transaction. But again, there's lots of nitty gritty details that people don't talk about.
+00:42:53.590 - 00:42:58.334, Speaker A: But if we can solve all three problems, one story would be like, ideally.
+00:42:58.382 - 00:43:02.222, Speaker B: You could yourself, even if you get user, you yourself would provide that update.
+00:43:02.286 - 00:43:03.060, Speaker A: Yeah, exactly.
+00:43:03.910 - 00:43:05.726, Speaker C: Yeah. So that would be the ideal goal.
+00:43:05.758 - 00:43:13.462, Speaker A: But one good example there would be if you're an honest party on Arbitrum, you would have to stake funds, become.
+00:43:13.516 - 00:43:17.494, Speaker C: A state defender and then get your checkpoint in before everyone else.
+00:43:17.612 - 00:43:19.626, Speaker A: So there's this barrier in terms of.
+00:43:19.648 - 00:43:23.882, Speaker C: Just how much do I have to stake to become an executor? If I have to stake a million.
+00:43:23.936 - 00:43:25.898, Speaker A: Dollars, then I'm not going to be.
+00:43:25.904 - 00:43:39.806, Speaker C: Able to do that anyway. So it's not censorship resistance for me in that regard. If it was StarkNet, for example, well, the proverbs closed source, so I can't actually produce a block because I can't prove a block. So there's also lots of practical details around it.
+00:43:39.988 - 00:43:48.034, Speaker A: But with us going back, if you can solve data availability, data transition integrity and of course, censorship resistance, then maybe.
+00:43:48.072 - 00:44:07.900, Speaker C: We can slay the beast and deploy a secure layer two system. And for reference, this is the bear wheel from 2014. That was actually a Bitcoin logo that I swapped, the Ethereum. It was back when Bitcoin was crashing to $300, but the traders fought off the Bear Wheel. It was on the Bitstump exchange. This is a bit of bitcoin history.
+00:44:08.990 - 00:44:10.810, Speaker A: But other problems do arise.
+00:44:11.230 - 00:44:13.930, Speaker C: Oh, it's an incomplete slide, so we can just move on.
+00:44:14.080 - 00:44:15.850, Speaker A: But other problems do arise.
+00:44:17.150 - 00:44:21.758, Speaker C: One is mev. I'm sure everyone here has heard about mev before.
+00:44:21.924 - 00:44:24.190, Speaker A: The sequencer is in a privileged position.
+00:44:24.340 - 00:44:37.970, Speaker C: They have all the transactions off chain, they offer the fast path, they get all the off chain transactions. They can exploit this to whatever they want to do and extract everyone's value from everyone's transactions. Interestingly.
+00:44:38.470 - 00:44:40.178, Speaker A: The debate now is, is this a.
+00:44:40.184 - 00:44:46.406, Speaker C: Business model or an outright attack on the system? Should we allow mev to happen and.
+00:44:46.428 - 00:44:47.942, Speaker A: There'S three takes on it?
+00:44:48.076 - 00:45:00.134, Speaker C: You can try to defeat mev, so you think it's an attack on the system. These are like the fair ordering protocols that commit and reveals that remove the sequencer's privilege that decide the order of transactions.
+00:45:00.262 - 00:45:01.386, Speaker A: They sort of come down to like.
+00:45:01.408 - 00:45:07.354, Speaker C: A latency game, but at least for fair order it's like a latency game but they try to defeat it.
+00:45:07.552 - 00:45:15.840, Speaker A: The other one is to smooth it out. So instead of saying we used to say, well, mev is not a bad thing, we need to make sure that.
+00:45:16.290 - 00:45:19.738, Speaker C: Other people can get a share of it. It's not just a sequencer.
+00:45:19.834 - 00:45:22.462, Speaker A: So this is the block builder proposer scheme.
+00:45:22.606 - 00:45:25.666, Speaker C: You have searchers who are trying to extract value.
+00:45:25.848 - 00:45:28.974, Speaker A: They participate in an auction with the sequencer.
+00:45:29.102 - 00:45:38.566, Speaker C: So I say no sequencer. If you include my bot of transactions, you get eight ETH. Someone else comes along and they're like, oh, if you include my bot, you get three ETH. The sequencer will take the bots with.
+00:45:38.588 - 00:45:43.478, Speaker A: The has value, eight ETH, execute those transactions or order or put them in.
+00:45:43.484 - 00:45:56.778, Speaker C: That order, then obviously they get eight E. The searcher gets whatever profit they made from that and you share out the mev amongst searchers in the sequencer. So you smooth mev. That's how they describe it.
+00:45:56.944 - 00:46:00.846, Speaker A: Or you could constrain it. So what's nice about smart contracts is.
+00:46:00.868 - 00:46:09.218, Speaker C: That you can really define how much you're going to allow someone to extract from you. So an example, I could set 1% slippage. What I'm basically saying is that you.
+00:46:09.224 - 00:46:12.146, Speaker A: Can extract 1% of my trade from.
+00:46:12.168 - 00:46:13.890, Speaker C: Me and I'm still happy.
+00:46:14.040 - 00:46:16.238, Speaker A: So we can constrain it to some extent.
+00:46:16.414 - 00:46:21.330, Speaker C: We're not totally powerless against mev usually.
+00:46:21.400 - 00:46:33.574, Speaker B: Consider smoothing and smooth mev. That just refers to searchers taking a presumably sort of small portion. What, the block producer would otherwise just extract it all for itself?
+00:46:33.692 - 00:46:34.118, Speaker E: Exactly.
+00:46:34.204 - 00:46:37.526, Speaker B: Or at least it's trickle down to the searchers from the block producer.
+00:46:37.558 - 00:46:42.506, Speaker A: Yeah, it trickles down. If anything, it trickles down and it.
+00:46:42.528 - 00:46:47.638, Speaker C: Also maximizes MVV because searchers are dedicated to the sole purpose of extracting volume.
+00:46:47.734 - 00:46:51.338, Speaker A: So you're really saying, here's a big batch of transactions.
+00:46:51.434 - 00:47:01.502, Speaker C: There you go, guys. Extract as much as you can and we'll share the profits. It's very much the opposite end of the feeding it you're accepting it and fully exploiting it.
+00:47:01.636 - 00:47:03.506, Speaker B: If this competitive want to eventually all.
+00:47:03.528 - 00:47:08.786, Speaker A: Go into the proposer, well, that's one of the arguments, is that they'll only.
+00:47:08.808 - 00:47:20.722, Speaker C: Get a small slice, they'll get a tip, but everyone will get the sequencer. I think that's still basically outstanding thing they're trying to work out. But you would intuitively think that, yeah, but just go straight to the proposer.
+00:47:20.786 - 00:47:22.086, Speaker A: Or if you're one big search and.
+00:47:22.108 - 00:47:28.826, Speaker C: You'Re better than everyone else, then how better you are than everyone else is the profit you can take. If everyone else can only offer five.
+00:47:28.848 - 00:47:30.106, Speaker A: E, you can offer eight E. Well.
+00:47:30.128 - 00:47:46.110, Speaker C: I get the extra three E, don't I really like I think the scheme is really interesting. I think just generally speaking, it's quite an interest in taking mev. I guess that's flatbots in a nutshell. They've basically implemented a trusted version of this, but you'd want to make it trustless.
+00:47:47.010 - 00:47:57.634, Speaker A: Another issue is that the sequencer is in a very privileged position. Obviously they can exploit mev, but the sequencer, they offer the fast path. You give me a transaction, and I.
+00:47:57.672 - 00:48:02.066, Speaker C: Promise you this will be ordered and it'll be executed. You're trusting me for that.
+00:48:02.248 - 00:48:03.910, Speaker A: It also means that they're the only.
+00:48:03.980 - 00:48:07.810, Speaker C: Party who has a view of the pending database.
+00:48:07.970 - 00:48:12.454, Speaker A: They have all the pending transactions. It's not necessarily public, and they could.
+00:48:12.492 - 00:48:16.646, Speaker C: Lie to you about the state of the database. In the happy case, Alice will ask.
+00:48:16.668 - 00:48:17.818, Speaker A: What'S the exchange rate?
+00:48:17.904 - 00:48:25.500, Speaker C: The sequencer will reply with back then, it was $3,000 per ETH. But obviously they're lying to us now, aren't they?
+00:48:26.590 - 00:48:31.246, Speaker A: But if they're going to lie, they could say, well, it's $10,000 per e, and the user really has no way.
+00:48:31.268 - 00:48:55.286, Speaker C: To verify this because it's the pending state of the database. It's not the previously committed one. You want to make sure always transacting. On the most up to date version of the database, only the sequencer has access to that because they dictate the ordering of transactions. So that's also a really annoying issue with the sequencer. I mean, I ran out of time making slides, so I made last couple of points.
+00:48:55.468 - 00:49:04.054, Speaker A: So we spoke about sequencer privilege and mev. Another issue that turns up is fragmentation of assets. So right now, everything's on ethereum, give.
+00:49:04.092 - 00:49:07.478, Speaker C: Or take, if you're ethereum centric, it's all in the single blockchain.
+00:49:07.654 - 00:49:10.406, Speaker A: With roll ups, the assets get fragmented.
+00:49:10.438 - 00:49:16.810, Speaker C: Across different experimental blockchains. And the question is, will that fragmentation harm adoption?
+00:49:17.150 - 00:49:22.698, Speaker A: I don't think it will, because right now assets are fragmented across cryptocurrency exchanges.
+00:49:22.794 - 00:49:27.614, Speaker C: So we're quite familiar with this issue anyway, but it is an issue that pops up.
+00:49:27.732 - 00:49:35.154, Speaker A: But if the assets are fragmented across different blockchains, what we run into is.
+00:49:35.192 - 00:49:39.950, Speaker C: Now cross chain interaction or logic. Let's say I'm on arbitram.
+00:49:40.110 - 00:49:43.486, Speaker A: I want to grab an Arbitrage opportunity on StarkNet.
+00:49:43.598 - 00:50:08.794, Speaker C: How do I facilitate this cross chain transaction? What are the trust assumptions around that? Who puts up the assets? And what happens if it fails? Let's say I go from Arbitram StarkNet ZK sync optimism I'm doing logic in each blockchain. What if one of them fails? Like blockchain C fails? How do we handle the failure case there? Gracefully. I'm no longer guaranteed atomic execution of my transactions.
+00:50:08.922 - 00:50:17.546, Speaker A: So the whole cross chain interaction is very interesting. I think we could let basically the Bitcoin lightning network is actually a solution.
+00:50:17.578 - 00:50:25.358, Speaker C: To this problem for transferring assets. It's one solution. You have other ones like Nomad that we can talk about later or atomic swaps or other forms.
+00:50:25.454 - 00:50:29.602, Speaker A: But this cross chain interaction is very interesting.
+00:50:29.736 - 00:50:40.870, Speaker C: How do you trustlessly execute transactions across blockchain and move your assets across blockchain within a couple of seconds without going via the bridge?
+00:50:42.970 - 00:50:53.626, Speaker A: Another issue is posting data. As we mentioned, with the data availability problem, we have to post all the data to Ethereum and that's expensive. The next slide should show that.
+00:50:53.808 - 00:50:56.940, Speaker C: This is why I took last year, just to highlight the data cost.
+00:50:58.430 - 00:51:02.234, Speaker A: This time last year, if you performed a swap on a V one roll.
+00:51:02.282 - 00:51:07.066, Speaker C: Up, the gas cost was reduced from 120K gas to five K gas.
+00:51:07.178 - 00:51:08.426, Speaker A: I think it was five K gas.
+00:51:08.458 - 00:51:12.020, Speaker C: They do it on Arbitrum or optimism or something, but that's cool.
+00:51:13.750 - 00:51:17.966, Speaker A: 120K gas is 20 times more expensive than five K gas.
+00:51:18.158 - 00:51:20.322, Speaker C: So we clearly have a gas saving here.
+00:51:20.456 - 00:51:23.560, Speaker A: But the majority of this cost is still data.
+00:51:24.170 - 00:51:27.590, Speaker C: The data has to hit Ethereum. We have to pay for that data.
+00:51:27.740 - 00:51:35.654, Speaker A: So could we optimistically reintroduce the challenge process? Could we take the data, post it.
+00:51:35.692 - 00:51:42.022, Speaker C: Elsewhere, maybe with a committee or maybe in solicitor? Or maybe it's just an IPFS?
+00:51:42.086 - 00:51:48.826, Speaker A: Could we optimistically post it somewhere else, have this challenge process where we could still force the operator to bring it.
+00:51:48.848 - 00:51:50.590, Speaker C: Back to Ethereum in the worst case?
+00:51:50.740 - 00:51:56.254, Speaker A: And how would that work? And I think that's actually very fairly I think it's more straightforward to do.
+00:51:56.292 - 00:52:02.850, Speaker C: Now than it was for Plasma because the design space is much more solidified. It's very straightforward what data we're talking about.
+00:52:03.000 - 00:52:15.606, Speaker A: The main issue is really the fisherman's problem. The smart contract can ascribe blame to either the user or the operator or the sequencer. I think what you would really need.
+00:52:15.628 - 00:52:20.134, Speaker C: Is an evaluation around the financial cost there to work out how big of a problem is it.
+00:52:20.252 - 00:52:22.470, Speaker A: But I think that's resolvable.
+00:52:23.210 - 00:52:29.034, Speaker C: I'm quite bullish on that problem. But yeah, there's no solution to it yet anyway.
+00:52:29.232 - 00:52:42.522, Speaker A: Another one is delay attacks. So what do I mean by this? So when we think about the sendership resistance idea here okay, so the user will submit their transaction to the bridge.
+00:52:42.666 - 00:52:44.830, Speaker C: And it will be ordered for execution.
+00:52:45.410 - 00:53:00.258, Speaker A: So we know this has to get executed eventually. But how long is eventually? One way you could think about it is that if the executor wants to censor your transaction, they could just get dummy transactions and stick it in the.
+00:53:00.264 - 00:53:02.946, Speaker C: Bridge before you and then every time.
+00:53:02.968 - 00:53:04.854, Speaker A: They propose an update, they're just doing.
+00:53:04.892 - 00:53:13.320, Speaker C: It on their dummy transactions and then eventually it hits yours. But that could be one day, two days, seven days in the future.
+00:53:14.170 - 00:53:19.114, Speaker A: So how much does it cost an executor or a sequencer to delay the.
+00:53:19.152 - 00:53:21.030, Speaker C: Execution of your transaction?
+00:53:21.190 - 00:53:23.354, Speaker A: And how does the bridge ensure that.
+00:53:23.392 - 00:53:33.194, Speaker C: A minimum amount of computation was done? So there's lots of little pieces there to put together to work out how much does it cost to delay your transaction?
+00:53:33.322 - 00:53:35.646, Speaker A: And delaying could be a big deal.
+00:53:35.748 - 00:54:08.442, Speaker C: If I can make sure you can't withdraw your funds for four weeks, then maybe I'll lock you into the system long enough so I don't know, just to stop you interacting with Air one blockchain, maybe you have to pay me a bribe to get your funds back out. There's clearly going to be problems around that. And again, there's no work on delay attacks. No one really understands. If you look at Arbitrum today, how easy would it be to delay transactions there and again for the other networks as well? But I think mostly Arbitram because they're the only one who's actually implemented that.
+00:54:08.496 - 00:54:30.510, Speaker A: Feature and also does a formal model of the Bridge. There's no formal model of the Bridge. I think, as I mentioned earlier, the two types of data transaction data and the state diffs. I feel like you'd want both of those as part of your Bridge transaction data. For the forced inclusion, for censorship, resistance and the state diff.
+00:54:30.580 - 00:54:33.220, Speaker C: Maybe for just what, the executors post.
+00:54:33.590 - 00:54:35.490, Speaker A: But there's no model around that of.
+00:54:35.560 - 00:54:45.318, Speaker C: What is the ideal Bridge, what's the ideal functionality? How do you get around those nitty gritty details that emerge, like the race conditions? I think that's really interesting as well.
+00:54:45.484 - 00:54:47.346, Speaker A: But even with those problems, because there's.
+00:54:47.378 - 00:54:48.866, Speaker C: Still lots of problems I probably haven't.
+00:54:48.898 - 00:54:55.542, Speaker A: Talked about, is it worth it? And as I mentioned last year, the data, the cost of a transaction went.
+00:54:55.596 - 00:55:07.850, Speaker C: Down about 20 times. And that's not the best way to describe it, but it's significantly cheaper and costs are still coming down since I had that data. Yeah.
+00:55:07.920 - 00:55:14.014, Speaker A: So it's definitely worth it in terms of cost and in terms of just the mental model of how the system.
+00:55:14.052 - 00:55:16.750, Speaker C: Is going to know the ecosystem is going to evolve.
+00:55:17.410 - 00:55:22.786, Speaker A: I'm a believer that for the past twelve years we've scaled these networks with.
+00:55:22.808 - 00:55:28.494, Speaker C: These off chain systems, the finance, the Bitstumps, the Coinbases, but they're fully trusted.
+00:55:28.622 - 00:55:39.106, Speaker A: And we don't want to trust them. So I see the evolution is that these roll apps are going to not hopefully they'll replace them, but they're going to offer an alternative to the Coinbase's.
+00:55:39.138 - 00:55:42.706, Speaker C: Bisdumps and know the optimisms, the Arbitrams.
+00:55:42.738 - 00:55:45.542, Speaker A: The Starknets, it's really just another centralized.
+00:55:45.606 - 00:55:48.410, Speaker C: Service where you don't have to trust the operator.
+00:55:50.430 - 00:55:54.086, Speaker A: It's like an open database. You can either deploy your smart contracts.
+00:55:54.118 - 00:55:59.486, Speaker C: On a system like Coinbase and interact with all of their users. You could offer bridging services, you could.
+00:55:59.508 - 00:56:01.022, Speaker A: Quickly move your funds from one service.
+00:56:01.076 - 00:56:06.110, Speaker C: To another, something that just isn't possible today on these trusted exchanges.
+00:56:07.650 - 00:56:15.438, Speaker A: And I think this offers a good alternative to the existing system because custody is a liability.
+00:56:15.534 - 00:56:20.290, Speaker C: This comes from a blog post by Patalik back in 2019 where he basically.
+00:56:20.360 - 00:56:22.322, Speaker A: Describes that what's really exciting about Web.
+00:56:22.376 - 00:56:26.294, Speaker C: Three and cryptocurrency is that we can.
+00:56:26.332 - 00:56:28.646, Speaker A: Now deploy systems where we don't have.
+00:56:28.668 - 00:56:30.482, Speaker C: To take custody of users funds.
+00:56:30.546 - 00:56:37.866, Speaker A: So if I'm a roll up operator, I deploy software, I instantiate software, you lock your money into it, but I.
+00:56:37.888 - 00:56:40.186, Speaker C: Don'T have custody of it and now.
+00:56:40.208 - 00:56:42.086, Speaker A: I can deploy systems without custody.
+00:56:42.198 - 00:56:43.098, Speaker C: I don't have to take on the.
+00:56:43.104 - 00:56:57.454, Speaker A: Liability to protect billions of dollars and that's just really beneficial. So just to finish up, at the very start of the talk, I mentioned the need for human processes when you.
+00:56:57.492 - 00:56:59.726, Speaker C: Have a new cryptocurrency service because you.
+00:56:59.748 - 00:57:04.194, Speaker A: Have to protect the keys, you have to protect billions of dollars and that.
+00:57:04.232 - 00:57:08.130, Speaker C: Human process doesn't scale very well, which is why people keep getting hacked.
+00:57:08.630 - 00:57:26.294, Speaker A: If one roll up team can get this software correct and bug free and easy enough for people to instantiate, then ideally anyone here, you could take the software, instantiate it and offer basically the exact same service as what exists today.
+00:57:26.412 - 00:57:30.346, Speaker C: You could offer an exchange like Coinbase, you could even offer a service to.
+00:57:30.368 - 00:57:31.702, Speaker A: Buy and sell crypto.
+00:57:31.846 - 00:57:34.774, Speaker C: You give me the money, I give you it straight to your custody.
+00:57:34.822 - 00:57:41.130, Speaker A: On the roll app, all the services are very similar, but users don't have custody and software skills.
+00:57:41.210 - 00:57:44.414, Speaker C: Anyone could deploy this software and offer it as a service.
+00:57:44.612 - 00:57:49.406, Speaker A: So I'm a believer that users don't care about custody. It won't be users that lead the.
+00:57:49.428 - 00:57:55.522, Speaker C: Adoption of roll ups, they just don't care about security. It'll be the operators, it'll be anyone.
+00:57:55.576 - 00:57:59.698, Speaker A: Who'S going to do a startup today because as an operator you don't want.
+00:57:59.704 - 00:58:06.790, Speaker C: To take on the liability of custody like Coinbase, I think custodies 10% of all crypto assets.
+00:58:07.130 - 00:58:08.278, Speaker A: I do not want to have a.
+00:58:08.284 - 00:58:31.626, Speaker C: Startup that custodies 10% of all bitcoin or crypto assets. That's just a huge liability that's hard to get right for the foreseeable future. So roll up solve this problem, the problem of custody. And that's my last slide, so I hope you all enjoyed the session. Is there any questions or I don't.
+00:58:31.658 - 00:58:49.346, Speaker D: Know, when you say we just need one roll up team, you touched on how you can have different attitudes towards me liking it or not liking it. Isn't it application specific, what your attitude is or do you see one team giving a solution where depending on your attitude towards me?
+00:58:49.448 - 00:58:54.774, Speaker A: No, yeah, I mean, I think what the one team has to get right is just those basic properties of data.
+00:58:54.892 - 00:59:00.214, Speaker C: Censorship, resistance and state integrity. Just guarantee that you have this. And what's also really nice.
+00:59:00.252 - 00:59:01.826, Speaker A: Is you can have a virtual machine.
+00:59:01.858 - 00:59:04.806, Speaker C: That'S not Ethereum, Starknest, Cairo, for example.
+00:59:04.908 - 00:59:06.086, Speaker A: So as long as one team gets.
+00:59:06.108 - 00:59:11.366, Speaker C: The basic premise right, then everything else is an add on. Like how do you deal with mev?
+00:59:11.478 - 00:59:13.158, Speaker A: That's an add on to the bridge.
+00:59:13.254 - 00:59:16.666, Speaker C: You have a spare ordering protocol, you.
+00:59:16.688 - 00:59:17.846, Speaker A: Just move it out there's.
+00:59:17.878 - 00:59:38.900, Speaker C: Just add ons to the basic building block. But you still need this basic building block first before you worry about the add ons. Even to censorship resistance. Some of the rule apps coming out soon will not have that built in because they thought it was too hard. So it's still very incomplete. Any other questions?
+00:59:40.550 - 01:00:04.282, Speaker B: I just want to make sure I understood something you said a few slides ago that seemed really interesting, which is that the optimistic data availability yeah, right. You said the hard part, the unsolved part is kind of if you have a failure in data availability, there's two possible reasons for it. One is the sequencer is ignoring data availability person and the other is the data availability person has gone offline. Is that right?
+01:00:04.336 - 01:00:10.414, Speaker A: Yeah. The fisherman problem is basically the sequencer has attested to the bridge to say.
+01:00:10.452 - 01:00:12.574, Speaker C: Bridge, I have made the data available.
+01:00:12.772 - 01:00:21.086, Speaker A: The user comes along, challenges the bridge to say bridge, I can't find the data. The bridge can't describe blame. It doesn't know if the user's at.
+01:00:21.108 - 01:00:24.942, Speaker C: Fault or the sequencer's at fault. So it's more of a who's at fault.
+01:00:25.006 - 01:00:31.054, Speaker A: And so I think the goals for that would be you'd want to make sure that a user will only challenge.
+01:00:31.102 - 01:00:35.800, Speaker C: This if the data is not available. So there has to be some cost to the user for doing this.
+01:00:36.490 - 01:00:41.974, Speaker A: The way I've thought about it is that the user would have to put out a bound that covers the cost.
+01:00:42.012 - 01:00:49.994, Speaker C: Of all the data, which could be expensive, but their upfront cost should be, I'm going to pay for the data to be made available.
+01:00:50.192 - 01:00:53.366, Speaker A: But if you just did that one aspect, the issue is that the sequencer.
+01:00:53.398 - 01:00:59.378, Speaker C: Then has no incentive to ever post the data anywhere because the user is always going to pay for the data availability.
+01:00:59.574 - 01:01:04.750, Speaker A: So the way I've thought about it is that the users would have to pay for it, but that gets burnt.
+01:01:05.090 - 01:01:07.482, Speaker C: So it doesn't pay for the sequencer.
+01:01:07.626 - 01:01:09.918, Speaker A: But then the sequencer would have to.
+01:01:09.924 - 01:01:15.458, Speaker C: Have a pot of money that covers data availability. And if that starts getting low, the.
+01:01:15.464 - 01:01:17.266, Speaker A: Users would be charged in the platform.
+01:01:17.448 - 01:01:20.974, Speaker C: To top up the pot of money. So the users would pay for it eventually.
+01:01:21.102 - 01:01:22.626, Speaker A: And the sequencer doesn't want that because.
+01:01:22.648 - 01:01:24.286, Speaker C: The sequencer wants low fees.
+01:01:24.478 - 01:01:25.766, Speaker A: So I think that's how you would.
+01:01:25.788 - 01:01:36.198, Speaker C: Do the incentives around it. But that's still an open problem. I think some teams are looking at it now because it would be nice. The ideal world would be you could post it on.
+01:01:36.284 - 01:01:41.578, Speaker A: I mean, I guess it's my promise. Solista. Solista is great data availability platform, but.
+01:01:41.584 - 01:01:43.962, Speaker C: If you post the data there, you lose Ethereum security.
+01:01:44.096 - 01:01:45.738, Speaker A: So the challenge process could give you.
+01:01:45.744 - 01:01:48.614, Speaker C: The best of both worlds. You post it there because it's cheaper.
+01:01:48.742 - 01:01:50.426, Speaker A: But then in the worst case, you.
+01:01:50.448 - 01:01:55.498, Speaker C: Have to post it to Ethereum and just default to a roll up. So optimistically you keep it elsewhere.
+01:01:55.594 - 01:01:58.510, Speaker A: I think that's a cool problem, and I think the missing part is really.
+01:01:58.660 - 01:02:07.570, Speaker C: Just evaluating that financial cost and maybe the game theory around making sure the sequencer has an incentive to keep the data posted up somewhere.
+01:02:08.950 - 01:02:18.630, Speaker D: You mentioned that there can be a delay between transaction sequencing and transaction execution. Can you explain again why we need that delay?
+01:02:20.410 - 01:02:25.554, Speaker A: So it depends how the roll ups implement it. Not every roll up does ordering and execution.
+01:02:25.682 - 01:02:27.338, Speaker C: They do that off chain in a way.
+01:02:27.424 - 01:02:33.990, Speaker A: So what's nice about the ordering is that if it's an optimistic rule up, an optimistic rule up has a fault proof.
+01:02:34.150 - 01:02:35.738, Speaker C: There's a fraud proof system.
+01:02:35.904 - 01:02:40.478, Speaker A: The fraud proof could take seven days. So you're the sequencer, I give you.
+01:02:40.484 - 01:02:48.830, Speaker C: My transaction, you order for execution. Then we have to wait seven days for the execution to be finalized.
+01:02:49.250 - 01:02:54.098, Speaker A: That sucks. If I have to depend on the execution of this transaction, I have to.
+01:02:54.104 - 01:02:57.150, Speaker C: Wait around seven days before I do the next step of the protocol.
+01:02:57.310 - 01:02:58.834, Speaker A: So if you know the transaction is.
+01:02:58.872 - 01:03:01.246, Speaker C: Ordered for execution and the ordering cannot.
+01:03:01.278 - 01:03:03.662, Speaker A: Be changed, then we can all verify.
+01:03:03.806 - 01:03:05.890, Speaker C: How it's eventually going to execute.
+01:03:06.050 - 01:03:10.918, Speaker A: So it can get ordered immediately. You can verify that it's ordered and.
+01:03:10.924 - 01:03:19.580, Speaker C: It will be executed. And then you could go do whatever action depends on it. Then after seven days, it gets executed. Then you know it works.
+01:03:20.510 - 01:03:25.354, Speaker A: So one good example would be, let's just say I want to help you.
+01:03:25.392 - 01:03:28.960, Speaker C: Get money out of Arbitrage. This is the pinnacle example.
+01:03:30.050 - 01:03:33.226, Speaker A: Let's say you have $1,000 in arbitrary.
+01:03:33.338 - 01:03:35.130, Speaker C: And you want to withdraw your funds.
+01:03:35.290 - 01:03:41.106, Speaker A: To withdraw your funds today, you'd issue a withdrawal transaction. It gets ordered for execution, and then.
+01:03:41.128 - 01:03:47.726, Speaker C: After seven days, you can take your money out of the bridge, but you have to wait seven days. And that sucks.
+01:03:47.918 - 01:03:53.214, Speaker A: So if I'm a liquidity provider, if I can see that your withdrawal transaction.
+01:03:53.262 - 01:04:05.430, Speaker C: Was ordered for execution and is going to pay me $1,000, then I could just give you the money up front and say, okay, here's $1,000, because I know I'll eventually get refunded after the seven days.
+01:04:05.580 - 01:04:14.166, Speaker A: So now I can offer you this service where I can speed up your withdrawal because I know how the transaction will eventually execute. So that's why it's important that ordering.
+01:04:14.198 - 01:04:25.214, Speaker C: Can come before execution, executions release as a formality to convince the bridge, but we can all verify how it's going to execute. So you can optimistically act upon that as well.
+01:04:25.412 - 01:04:29.342, Speaker E: You had a chart over there where you compared, like ZKY sync optimistic has cost.
+01:04:29.396 - 01:04:29.950, Speaker A: Right.
+01:04:30.100 - 01:04:32.210, Speaker E: One of the costs was withdrawal.
+01:04:33.510 - 01:04:41.038, Speaker A: That was the cost to process the withdrawal transaction. So in the ZK Sync example, they did everything in a batch.
+01:04:41.214 - 01:04:50.338, Speaker C: So if they had the process 50 withdrawals, that would all come in a single Ethereum transaction. So it would aggregate up. The average cost was 15K gas per withdrawal.
+01:04:50.514 - 01:04:52.082, Speaker A: Where Arbitram wasn't.
+01:04:52.146 - 01:04:59.340, Speaker C: Maybe it was optimism wasn't really well implemented. So it would cost 500K gas per user withdrawal on the layer one.
+01:05:00.110 - 01:05:01.274, Speaker E: This is on the layer one?
+01:05:01.312 - 01:05:01.418, Speaker B: Yeah.
+01:05:01.424 - 01:05:03.494, Speaker A: That's on the layer one. These will make layer one costs.
+01:05:03.542 - 01:05:07.706, Speaker E: So you're, like, aborting the whole all your funds. You want to just take it back?
+01:05:07.728 - 01:05:08.010, Speaker D: Yeah.
+01:05:08.080 - 01:05:09.146, Speaker A: So if you wanted to withdraw your.
+01:05:09.168 - 01:05:14.250, Speaker C: Funds from optimism, you'd have to pay 500K gas on Ethereum. And that's because it just wasn't efficient.
+01:05:14.330 - 01:05:17.786, Speaker E: But if it's layer one, why is ZK Sync so cheap?
+01:05:17.978 - 01:05:22.894, Speaker A: ZK Sync aggregated all the withdrawals. So basically, they submitted one Ethereum transaction.
+01:05:22.942 - 01:05:24.862, Speaker C: That issued 100 customer withdrawals.
+01:05:24.926 - 01:05:26.178, Speaker A: So they were just very smart at.
+01:05:26.184 - 01:05:27.540, Speaker C: How they implemented it.
+01:05:28.470 - 01:05:38.934, Speaker E: Is there any way, like, if I think ZK Sync is going offline and I just want to abort the whole roll up and get my funds without any involvement from CK Sync, you would.
+01:05:38.972 - 01:05:43.574, Speaker A: Submit your transaction to the bridge, the onchain exodus, and if they don't act.
+01:05:43.612 - 01:05:45.826, Speaker C: Upon it, then the system will freeze.
+01:05:46.018 - 01:05:48.140, Speaker E: It's not to depend on the bridge, though.
+01:05:48.590 - 01:05:49.814, Speaker C: You always depend on the bridge.
+01:05:49.862 - 01:05:54.906, Speaker A: Yeah, but if you send it to the bridge, the operator can pick it.
+01:05:54.928 - 01:05:55.798, Speaker C: Up from the bridge.
+01:05:55.894 - 01:05:58.490, Speaker A: So you don't need a direct connection to the operator.
+01:05:59.950 - 01:06:01.870, Speaker E: But what if the operator is offline?
+01:06:02.370 - 01:06:06.090, Speaker A: If they're offline, then you submit it to the bridge. You wait out the period.
+01:06:06.170 - 01:06:11.518, Speaker C: You'll submit another transaction, it will freeze the entire system. Then you can just withdraw your funds for the system.
+01:06:11.684 - 01:06:15.460, Speaker E: But then assuming that after the freeze, everyone has full state data.
+01:06:16.550 - 01:06:18.386, Speaker C: Yeah, you assume everyone has a full state data.
+01:06:18.408 - 01:06:19.826, Speaker A: And what's also nice is even for.
+01:06:19.848 - 01:06:21.442, Speaker C: The optimistic roll ups of the state.
+01:06:21.496 - 01:06:30.562, Speaker A: Defenders or executors, they never have to coordinate off chain. All the data is published on Ethereum. So they just have to read Ethereum and interact.
+01:06:30.706 - 01:06:37.018, Speaker C: They don't have to have a peer to peer network amongst each other. They're just relying on Ethereum as a bulletin board.
+01:06:37.184 - 01:06:42.426, Speaker E: So when the breeze happens, the bridge needs to know the final state of.
+01:06:42.448 - 01:06:46.342, Speaker A: The bridge will have like it'll just revert to the previous checkpoint.
+01:06:46.406 - 01:06:47.820, Speaker C: The final okay.
+01:06:48.190 - 01:06:49.446, Speaker E: The on chain data checkpoint.
+01:06:49.478 - 01:06:53.214, Speaker C: Yep. And there'll be a merkle tree. You says, I have this balance. You withdraw it out.
+01:06:53.412 - 01:06:59.550, Speaker B: So there'll be some things that might have looked like they were executed up, too that'll be lost forever.
+01:07:00.210 - 01:07:09.630, Speaker A: And actually, one of the subtle details on Arbitram maybe is still the same. I haven't looked in a while. In their bridge, they have this forced inclusion mechanism.
+01:07:09.790 - 01:07:10.606, Speaker C: Go back to the slide.
+01:07:10.638 - 01:07:12.086, Speaker A: This one here where the user can.
+01:07:12.108 - 01:07:14.194, Speaker C: Forcefully include their transaction.
+01:07:14.322 - 01:07:20.406, Speaker A: The question is, when is that ordered? And so in Arbitram, the sequencer has.
+01:07:20.428 - 01:07:23.350, Speaker C: A ten minute window to submit their transactions.
+01:07:23.850 - 01:07:29.834, Speaker A: So let's just say you're a user, you submit your transaction for ordering. I'm the sequencer. I now have 10 minutes to get.
+01:07:29.872 - 01:07:34.810, Speaker C: My batch of transactions to be ordered in. After 10 minutes, you are to be prioritized.
+01:07:35.150 - 01:07:36.490, Speaker A: Now, that's like a subtle detail.
+01:07:36.560 - 01:07:37.642, Speaker C: Doesn't seem like a big deal.
+01:07:37.696 - 01:07:41.086, Speaker A: But as a user, if you send.
+01:07:41.108 - 01:07:49.134, Speaker C: Me lots of transactions and they're pending, and you can send a transaction in and get it ordered before me, you disrupt my entire pending view.
+01:07:49.252 - 01:07:51.086, Speaker A: And if I've been given people solved.
+01:07:51.118 - 01:08:27.614, Speaker C: Promises on how their transactions executed, I can no longer fulfill that. So users could front run the sequencer if you're not careful with ordering of transactions. And so they should really increase that from 10 minutes. They should do like 3 hours just to make sure the sequencer doesn't end up in a hot potato seat. But yeah, they're like subtle details, though. That the nitty gritty details people don't talk about. Any other questions or should we, I don't know, head to the next route? Get ready for the baseball game.
+01:08:27.652 - 01:08:27.854, Speaker D: Next.
+01:08:27.892 - 01:08:28.990, Speaker C: Betty awesome.
+01:08:29.140 - 01:08:29.660, Speaker A: Cheers, guys.
