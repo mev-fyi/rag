@@ -220,7 +220,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
         This function assumes 'message_content' is a string where the context and answer are
         separated by known delimiter strings.
         """
-        logging.info(f"parse_message_content: message_content: {message_content}")
+        # logging.info(f"parse_message_content: message_content: {message_content}")
         # Define your delimiters
         context_start_delim = "New Context:"
         context_end_delim = "Query:"
@@ -243,7 +243,7 @@ class JSONLoggingHandler(BaseCallbackHandler):
             retrieved_context = message_content[context_start:context_end].strip()
             previous_answer = message_content[answer_start:answer_end].strip()
             # Return the extracted information
-            logging.info(f"parse_message_content: retrieved_context: {retrieved_context}")
+            # logging.info(f"parse_message_content: retrieved_context: {retrieved_context}")
             return retrieved_context, previous_answer
 
         except ValueError as e:
