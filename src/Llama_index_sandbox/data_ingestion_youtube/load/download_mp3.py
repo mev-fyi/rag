@@ -90,7 +90,7 @@ def video_valid_for_processing(video_title, dir_path):
             ):
                 # logging.info(f"video_valid_for_processing: {video_title} is already processed")
                 return False
-        logging.info(f"video_valid_for_processing: {video_title} is not processed yet, adding to the list!")
+        logging.info(f"video_valid_for_processing: [{video_title}] is not processed yet, adding to the list!")
         return True
     except Exception as e:
         logging.warning(f"Exception in video_valid_for_processing: {e}")
