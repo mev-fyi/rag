@@ -12,7 +12,6 @@ from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.utils import timeit
 
 
-@timeit
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
@@ -25,13 +24,17 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     if not paper_row.empty:
         # Update metadata
         for document in documents:
+            if 'file_path' in document.metadata.keys():
+                del document.metadata['file_path']
+
             document.metadata.update({
                 'document_type': DOCUMENT_TYPES.ARTICLE.value,
-                'title': paper_row.iloc[0]['title'],
-                'pdf_link': paper_row.iloc[0]['article'],
+                'title': title,
+                'pdf_link': str(paper_row.iloc[0]['article']),
             })
 
     return documents
+
 
 @timeit
 def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
