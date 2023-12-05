@@ -45,7 +45,7 @@ def generate_node_embedding(node: TextNode, embedding_model: Union[OpenAIEmbeddi
             if token_counter.is_rate_limit_exceeded():
                 duration = random.choices([random.uniform(0, 5), random.uniform(0, 20)], weights=[0.7, 0.3])[0]
                 time.sleep(duration)
-                logging.warning(f"Rate limit about to be exceeded, sleeping for {int(duration)} seconds...")
+                # logging.warning(f"Rate limit about to be exceeded, sleeping for {int(duration)} seconds...")
 
         if isinstance(embedding_model, OpenAIEmbedding) or isinstance(embedding_model, HuggingFaceEmbedding):
             node_embedding = embedding_model.get_text_embedding(node_content)
