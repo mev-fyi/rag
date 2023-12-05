@@ -149,25 +149,7 @@ def download_pdf(link, save_dir, optional_file_name=None):
         return None
 
 
-def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
-    try:
-        documents = loader.load(file_path=file_path)
-    except Exception as e:
-        logging.info(f"Failed to load {file_path}: {e}")
-        # Find the corresponding row in the DataFrame
-        title = os.path.basename(file_path).replace('.pdf', '')
-        paper_row = paper_details_df[paper_details_df['title'] == title]
-
-        if not paper_row.empty:
-            pdf_link = paper_row.iloc[0]['pdf_link']
-            pdf_link += '.pdf' if not 'pdf' in pdf_link else ''
-            save_dir = Path(file_path).parent
-            new_file_path = download_pdf(pdf_link, save_dir, title + '.pdf')
-            if new_file_path:
-                documents = loader.load(file_path=new_file_path)
-            else:
-                return []
-
+def populate_document_metadata(documents, paper_details_df, file_path):
     # Update 'file_path' metadata and add additional metadata
     for document in documents:
         if 'file_path' in document.metadata.keys():
@@ -191,7 +173,29 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
             #   It will be high (highest too? TBD.) for talks and conferences in YouTube video format
             #   It will be relatively lower for podcasts, tweets, and less formal content.
 
-    return documents
+
+def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
+    try:
+        documents = loader.load(file_path=file_path)
+        populate_document_metadata(documents, paper_details_df, file_path)
+        return documents
+    except Exception as e:
+        logging.info(f"Failed to load {file_path}: {e}")
+        # Find the corresponding row in the DataFrame
+        title = os.path.basename(file_path).replace('.pdf', '')
+        paper_row = paper_details_df[paper_details_df['title'] == title]
+
+        if not paper_row.empty:
+            pdf_link = paper_row.iloc[0]['pdf_link']
+            pdf_link += '.pdf' if not 'pdf' in pdf_link else ''
+            save_dir = Path(file_path).parent
+            new_file_path = download_pdf(pdf_link, save_dir, title + '.pdf')
+            if new_file_path:
+                documents = loader.load(file_path=new_file_path)
+                populate_document_metadata(documents, paper_details_df, file_path)
+                return documents
+            else:
+                return []
 
 
 @timeit

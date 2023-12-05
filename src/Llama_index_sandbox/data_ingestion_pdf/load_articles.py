@@ -15,28 +15,30 @@ from src.Llama_index_sandbox.utils import timeit
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
+        title = os.path.basename(file_path).replace('.pdf', '').replace('<slash>', '/')
+        paper_row = paper_details_df[paper_details_df['title'] == title]
+
+        if not paper_row.empty:
+            # Update metadata
+            for document in documents:
+                if 'file_path' in document.metadata.keys():
+                    del document.metadata['file_path']
+
+                document.metadata.update({
+                    'document_type': DOCUMENT_TYPES.ARTICLE.value,
+                    'title': title,
+                    'pdf_link': str(paper_row.iloc[0]['article']),
+                })
+        else:
+            for document in documents:
+                if 'file_path' in document.metadata.keys():
+                    del document.metadata['file_path']
+        return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
         # Find the corresponding row in the DataFrame
-    title = os.path.basename(file_path).replace('.pdf', '').replace('<slash>', '/')
-    paper_row = paper_details_df[paper_details_df['title'] == title]
+        return []
 
-    if not paper_row.empty:
-        # Update metadata
-        for document in documents:
-            if 'file_path' in document.metadata.keys():
-                del document.metadata['file_path']
-
-            document.metadata.update({
-                'document_type': DOCUMENT_TYPES.ARTICLE.value,
-                'title': title,
-                'pdf_link': str(paper_row.iloc[0]['article']),
-            })
-    else:
-        for document in documents:
-            if 'file_path' in document.metadata.keys():
-                del document.metadata['file_path']
-    return documents
 
 
 @timeit
