@@ -7,8 +7,9 @@ import pinecone
 from pathlib import Path
 
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
-from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config
+from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config, ARTICLES_DIRECTORY
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
+import src.Llama_index_sandbox.data_ingestion_pdf.load_articles as load_articles
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
 import src.Llama_index_sandbox.embed as embed
@@ -133,6 +134,7 @@ def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size
     # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
     # download_pdfs(pdf_links, save_dir)
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files)
+    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files)
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
 
     # 2. Data chunking / text splitter

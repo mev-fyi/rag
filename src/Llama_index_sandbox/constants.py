@@ -219,4 +219,5 @@ EVALUATION_INPUT_QUERIES = [
 class DOCUMENT_TYPES(Enum):
     YOUTUBE_VIDEO = "youtube_video"
     RESEARCH_PAPER = "research_paper"
+    ARTICLE = "article"
 
