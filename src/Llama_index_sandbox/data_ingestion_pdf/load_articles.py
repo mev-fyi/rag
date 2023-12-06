@@ -27,7 +27,9 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                 document.metadata.update({
                     'document_type': DOCUMENT_TYPES.ARTICLE.value,
                     'title': title,
+                    'authors': str(paper_row.iloc[0]['authors']),
                     'pdf_link': str(paper_row.iloc[0]['article']),
+                    'release_date': str(paper_row.iloc[0]['release_date']),
                 })
         else:
             for document in documents:
