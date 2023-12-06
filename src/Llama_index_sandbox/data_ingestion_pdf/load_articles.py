@@ -35,6 +35,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
             for document in documents:
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
+            logging.warning(f"Failed to find metadata for {file_path}")
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
