@@ -9,6 +9,8 @@ class CustomQueryEngineTool(QueryEngineTool):
         query_str = cast(str, input)
         logging.info(f"Starting synchronous query engine tool")  #  Query with content: {query_str}")
 
+        # TODO 2023-12-08: we'll have to tear apart the methods triggered
+        #  by this function to perform node reranking
         try:
             response = self._query_engine.query(query_str)
             logging.info(f"Received synchronous response from query engine tool: {response}")

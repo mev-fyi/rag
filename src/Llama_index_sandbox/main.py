@@ -70,7 +70,8 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
 
 
 def run():
-    set_secrets_from_cloud()
+    if not os.environ.get('ENVIRONMENT') == 'LOCAL':
+        set_secrets_from_cloud()
     engine = 'chat'
     query_engine_as_tool = True
     recreate_index = False
