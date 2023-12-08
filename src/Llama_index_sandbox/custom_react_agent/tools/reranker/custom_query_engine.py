@@ -1,6 +1,5 @@
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
-from llama_index.indices.query.base import BaseQueryEngine
 from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.response.schema import RESPONSE_TYPE
 from llama_index.schema import NodeWithScore
@@ -10,20 +9,21 @@ from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 
 
 class CustomQueryEngine(RetrieverQueryEngine):
-    article_weights = {
-        'ethresear.ch': 1,
-        'writings.flashbots': 1,
-        'frontier.tech': 0.95,
-        'research.anoma': 0.95,
-        'remainder': 0.9
-    }
-    youtube_weights = {
-        'Bell Curve 2023': 0.95,
-        'Fenbushi Capital': 0.9,
-        'SevenX Ventures': 0.9,
-        'Tim Roughgarden Lectures': 0.9,
-        'remainder': 0.8,
-
+    document_weights = {
+        'article_weights': {
+            'ethresear.ch': 1,
+            'writings.flashbots': 1,
+            'frontier.tech': 0.95,
+            'research.anoma': 0.95,
+            'remainder': 0.9
+        },
+        'youtube_weights': {
+            'Bell Curve 2023': 0.95,
+            'Fenbushi Capital': 0.9,
+            'SevenX Ventures': 0.9,
+            'Tim Roughgarden Lectures': 0.9,
+            'remainder': 0.8,
+        },
     }
     authors_list = {
         'RIG': [],
@@ -41,25 +41,27 @@ class CustomQueryEngine(RetrieverQueryEngine):
             score = node_with_score.score
             document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED')
             authors = node_with_score.node.metadata.get('authors', 'UNSPECIFIED AUTHORS')
-            release_date = node_with_score.node.metadata.get('release_date', 'UNSPECIFIED AUTHORS')
-            link = node_with_score.node.metadata.get('video_link', 'UNSPECIFIED LINK') if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value else node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK')
-            if document_type == DOCUMENT_TYPES.ARTICLE.value:
-                if 'ethresear.ch' in link:
-                    score *= self.article_weights['ethresear.ch']
-                elif 'writings.flashbots' in link:
-                    score *= self.article_weights['writings.flashbots']
-            elif document_type == DOCUMENT_TYPES.RESEARCH_PAPER.value:
-                pass
-            elif document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                pass
+            link = node_with_score.node.metadata.get('video_link', 'UNSPECIFIED LINK') \
+                if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
+                else node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK')
 
+            # Document type weight adjustments
+            weight_key = document_type.lower() + '_weights'
+            if weight_key in self.document_weights:
+                for source, weight in self.document_weights[weight_key].items():
+                    if source in link or source == 'remainder':
+                        score *= weight
+                        break  # Break the loop once a match is found
 
+            # Author weight adjustment
+            for author in authors.split(','):
+                author = author.strip()
+                for firm, authors_in_firm in self.authors_list.items():
+                    if author in authors_in_firm:
+                        score *= self.authors_weights.get(firm, 1)
 
-
-
-
-
-
+            node_with_score.score = score
+        return nodes_with_score
 
 
 
