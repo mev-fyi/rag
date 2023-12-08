@@ -23,6 +23,7 @@ from src.Llama_index_sandbox.config import MAX_CONTEXT_LENGTHS
 from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE, OPENAI_INFERENCE_MODELS
 from src.Llama_index_sandbox.custom_react_agent.logging_handler import JSONLoggingHandler
 from src.Llama_index_sandbox.custom_react_agent.tools.default_prompt_selectors import DEFAULT_TEXT_QA_PROMPT_SEL, DEFAULT_REFINE_PROMPT_SEL, DEFAULT_TREE_SUMMARIZE_PROMPT_SEL
+from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_vector_store_index import CustomVectorStoreIndex
 from src.Llama_index_sandbox.prompts import SYSTEM_MESSAGE, QUERY_TOOL_RESPONSE, QUERY_ENGINE_TOOL_DESCRIPTION
 from src.Llama_index_sandbox.custom_react_agent.ReActAgent import CustomReActAgent
 from src.Llama_index_sandbox.custom_react_agent.formatter import CustomReActChatFormatter
@@ -81,7 +82,7 @@ def set_inference_llm_params(temperature,
     return llm
 
 
-def get_chat_engine(index: VectorStoreIndex,
+def get_chat_engine(index: CustomVectorStoreIndex,
                     service_context: ServiceContext,
                     query_engine_as_tool: bool,
                     stream: bool,
@@ -203,7 +204,7 @@ def get_engine_from_vector_store(embedding_model_name: str,
                                  service_context: ServiceContext,
                                  text_splitter_chunk_size: int,
                                  text_splitter_chunk_overlap_percentage: int,
-                                 index: VectorStoreIndex,
+                                 index: CustomVectorStoreIndex,
                                  query_engine_as_tool: bool,
                                  stream: bool,
                                  similarity_top_k: int,

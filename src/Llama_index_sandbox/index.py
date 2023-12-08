@@ -6,6 +6,7 @@ from datetime import datetime
 import pinecone
 from pathlib import Path
 
+from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_vector_store_index import CustomVectorStoreIndex
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
 from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config, ARTICLES_DIRECTORY
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
@@ -98,7 +99,7 @@ def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dime
 
 
 @timeit
-def load_index_from_disk(service_context) -> VectorStoreIndex:
+def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
@@ -106,7 +107,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
         pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
         index_name = "quickstart"
         vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
-        index = VectorStoreIndex.from_vector_store(vector_store, service_context)
+        index = CustomVectorStoreIndex.from_vector_store(vector_store, service_context)
         logging.info(f"Successfully loaded index {persist_dir} from disk.")
         return index
     except Exception as e:

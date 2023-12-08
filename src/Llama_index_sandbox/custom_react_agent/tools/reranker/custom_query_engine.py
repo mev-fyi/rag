@@ -26,12 +26,24 @@ class CustomQueryEngine(RetrieverQueryEngine):
         },
     }
     authors_list = {
-        'RIG': [],
-        'Flashbots': [],
-        'EF': [],
+        'EF': [
+            'https://ethresear.ch/u/mikeneuder',
+            ''
+        ],
+        'Flashbots': [
+            'https://collective.flashbots.net/u/Quintus',
+            'https://collective.flashbots.net/u/flashbots',
+            'https://collective.flashbots.net/u/bert',
+            'https://collective.flashbots.net/u/chayoterabit',
+            'https://collective.flashbots.net/u/dmarz',
+            'https://collective.flashbots.net/u/bert',
+            'https://collective.flashbots.net/u/sarah',
+            'https://collective.flashbots.net/u/elainehu/',
+            'https://collective.flashbots.net/u/Fred',
+            'https://collective.flashbots.net/u/system/summary',
+        ],
     }
     authors_weights = {
-        'RIG': 1.05,
         'Flashbots': 1.05,
         'EF': 1.05,
     }
@@ -40,7 +52,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
         for node_with_score in nodes_with_score:
             score = node_with_score.score
             document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED')
-            authors = node_with_score.node.metadata.get('authors', 'UNSPECIFIED AUTHORS')
+            authors = node_with_score.node.metadata.get('channel_name', 'UNSPECIFIED LINK') \
+                if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
+                else node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK')
             link = node_with_score.node.metadata.get('video_link', 'UNSPECIFIED LINK') \
                 if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
                 else node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK')

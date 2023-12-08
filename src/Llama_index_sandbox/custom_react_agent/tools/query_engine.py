@@ -5,6 +5,7 @@ from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomT
 
 
 class CustomQueryEngineTool(QueryEngineTool):
+
     def call(self, input: Any) -> CustomToolOutput:
         query_str = cast(str, input)
         logging.info(f"Starting synchronous query engine tool")  #  Query with content: {query_str}")
