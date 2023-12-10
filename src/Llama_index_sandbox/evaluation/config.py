@@ -19,6 +19,7 @@ class Config:
         # Indexing Parameters
         self.VECTOR_SPACE_DISTANCE_METRIC = ['cosine']
         self.NUM_CHUNKS_RETRIEVED = [int(os.environ.get('NUM_CHUNKS_RETRIEVED'))]  # config.NUM_CHUNKS_RETRIEVED
+        self.NUM_CHUNKS_SEARCHED_FOR_RERANKING = [int(os.environ.get('NUM_CHUNKS_SEARCHED_FOR_RERANKING'))]  # config.NUM_CHUNKS_RETRIEVED
         self.CHUNK_SIZES = [750]  # config.CHUNK_SIZES
         self.CHUNK_OVERLAPS = [10]  # config.CHUNK_OVERLAPS
         self.EMBEDDING_MODELS = [os.environ.get('EMBEDDING_MODEL_NAME')]  # ["BAAI/bge-large-en-v1.5"]  # config.EMBEDDING_MODELS
