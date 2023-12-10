@@ -45,6 +45,7 @@ OPENAI_INFERENCE_MODELS = ["gpt-4", "gpt-4-32k", "gpt-4-0613", "gpt-4-32k-0613",
 
 OPENAI_MODEL_NAME = "gpt-3.5-turbo"  #"gpt-3.5-turbo-16k-0613"  # "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
+        "What is ePBS?",
         "What's PEPC?",
         "What are FRPs?",
         "Tell me about LVR",  # 1

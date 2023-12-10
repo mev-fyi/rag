@@ -18,7 +18,7 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
     stream = True
     config = Config()
     num_files = config.num_files
-    similarity_top_k = config.NUM_CHUNKS_RETRIEVED[0]
+    similarity_top_k = config.NUM_CHUNKS_SEARCHED_FOR_RERANKING[0]
     text_splitter_chunk_size = config.CHUNK_SIZES[0]
     text_splitter_chunk_overlap_percentage = config.CHUNK_OVERLAPS[0]
 

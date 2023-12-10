@@ -50,6 +50,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
+    edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi']
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         """
         Reranks a list of nodes based on their scores, adjusting these scores according to predefined weights.
@@ -68,6 +70,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         for node_with_score in nodes_with_score:
             score = node_with_score.score
             document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED')
+            document_name = node_with_score.node.metadata.get('title', 'UNSPECIFIED')
             authors = node_with_score.node.metadata.get('channel_name', 'UNSPECIFIED LINK') \
                 if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
                 else node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK')
@@ -96,6 +99,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
                             break  # Break the loop once a match is found
                 if not matched and 'default' in self.document_weights[weight_key]:
                     score *= self.document_weights[weight_key]['default']
+                if document_name in self.edge_case_of_content_always_cited:
+                    # TODO 2023-12-10: determine if this multipler is satisfactory or not
+                    score *= 0.8
 
             if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
                 # Author weight adjustment
@@ -119,6 +125,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         nodes_with_score.sort(key=lambda x: x.score, reverse=True)
         # return the top NUM_CHUNKS_RETRIEVED nodes
         nodes_with_score = nodes_with_score[:int(os.environ.get('NUM_CHUNKS_RETRIEVED'))]
+        # TODO 2023-12-10: if the next node is in the same document, should we still include it or not?
         return nodes_with_score
 
     def _query(self, query_bundle: QueryBundle) -> RESPONSE_TYPE:
