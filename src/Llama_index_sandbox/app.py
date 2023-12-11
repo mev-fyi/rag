@@ -7,6 +7,7 @@ from llama_index.utils import print_text
 
 from src.Llama_index_sandbox import globals as glb
 import src.Llama_index_sandbox.constants as constants
+from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 
 from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
@@ -28,6 +29,11 @@ recreate_index = False
 retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(
     engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index
 )
+CustomQueryEngine.load_or_compute_weights(document_weight_mappings=CustomQueryEngine.document_weight_mappings,
+                                          weights_file=CustomQueryEngine.weights_file,
+                                          authors_list=CustomQueryEngine.authors_list,
+                                          authors_weights=CustomQueryEngine.authors_weights,
+                                          recompute_weights=True)
 
 
 @app.route('/healthz')

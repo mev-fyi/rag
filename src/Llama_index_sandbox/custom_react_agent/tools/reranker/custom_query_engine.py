@@ -1,5 +1,8 @@
 import logging
+import pickle
+from itertools import product
 
+import tldextract
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
 from llama_index.indices.base_retriever import BaseRetriever
@@ -13,6 +16,7 @@ from urllib.parse import urlparse
 from tldextract import extract  # You might need to install this package
 
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
+from src.anyscale_sandbox.utils import root_directory
 
 
 class CustomQueryEngine(RetrieverQueryEngine):
@@ -20,9 +24,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
             'ethresear.ch': 1,
-            'writings.flashbots': 1,
+            'writings.flashbots.net': 1,
             'frontier.tech': 0.95,
-            'research.anoma': 0.95,
+            'research.anoma.net': 0.95,
             'default': 0.9
         },
         f'{DOCUMENT_TYPES.YOUTUBE_VIDEO.value}_weights': {
@@ -34,6 +38,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'Tim Roughgarden Lectures': 0.9,
             'default': 0.8,
         },
+        f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
+            'default': 1
+        }
     }
     authors_list = {
         'EF': {
@@ -81,7 +88,97 @@ class CustomQueryEngine(RetrieverQueryEngine):
     # Add a default weight
     author_weight_mapping['default'] = authors_weights.get('default', 1)
 
+    # File to store the precomputed effective weights
+    weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
+
+    @staticmethod
+    def load_or_compute_weights(document_weight_mappings, weights_file, authors_list, authors_weights, recompute_weights=False):
+        def precompute_effective_weights(document_weight_mappings, authors_weights, authors_list):
+            effective_weights = {}
+
+            # Generate all possible combinations for articles with triplets
+            for group, authors in authors_list.items():
+                group_weight = authors_weights.get(group, 1)
+                for author_url in authors:
+                    author_extracted = tldextract.extract(author_url)
+                    author_domain = author_extracted.domain + '.' + author_extracted.suffix
+
+                    for source, weight in document_weight_mappings.get(DOCUMENT_TYPES.ARTICLE.value + '_weights', {}).items():
+                        source_extracted = tldextract.extract(source)
+                        source_domain = source_extracted.domain + '.' + source_extracted.suffix
+
+                        # Match domains for articles and calculate weight
+                        if author_domain == source_domain:
+                            key = (DOCUMENT_TYPES.ARTICLE.value, source, author_url)
+                            effective_weights[key] = weight * group_weight
+
+            # Generate pairs for research papers and videos
+            for document_type, document_weights in document_weight_mappings.items():
+                if document_type != DOCUMENT_TYPES.ARTICLE.value + '_weights':
+                    for source, weight in document_weights.items():
+                        key = (document_type, source)
+                        effective_weights[key] = document_weights.get(source, document_weights.get('default', 1))
+
+            return effective_weights
+
+        # Check if the file exists and the size of data structures hasn't changed
+        if os.path.exists(weights_file) and (not recompute_weights):
+            with open(weights_file, 'rb') as f:
+                return pickle.load(f)
+        else:
+            effective_weights = precompute_effective_weights(document_weight_mappings=document_weight_mappings, authors_list=authors_list, authors_weights=authors_weights)
+            with open(weights_file, 'wb') as f:
+                pickle.dump(effective_weights, f)
+            return effective_weights
+
+    # Load or compute the effective weights
+    effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
+        NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
+
+        for node_with_score in nodes_with_score:
+            score = node_with_score.score
+            document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED').lower()
+            document_name = node_with_score.node.metadata.get('title', 'UNSPECIFIED')
+
+            if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+                source = node_with_score.node.metadata.get('channel_name', 'UNSPECIFIED LINK').strip()
+                weight_key = (document_type + '_weights', source)
+                effective_weight = self.effective_weights.get(weight_key, self.document_weights[document_type + '_weights'].get('default', 1))
+            else:
+                link = node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK').strip()
+                extracted = tldextract.extract(link)
+                domain = f"{extracted.domain}.{extracted.suffix}"
+                author_url = node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK').strip()
+                weight_key = (document_type + '_weights', domain, author_url)
+                effective_weight = self.effective_weights.get(
+                    weight_key,
+                    self.document_weights[document_type + '_weights'].get(domain, self.document_weights[document_type + '_weights'].get('default', 1))
+                )
+
+            score *= effective_weight
+
+            # Special case adjustment
+            if document_name in self.edge_case_set:
+                score *= 0.8
+
+            node_with_score.score = score
+
+        # Optional logging if in local environment
+        if os.environ.get('ENVIRONMENT') == 'LOCAL':
+            self.log_unique_filenames(nodes_with_score[:NUM_CHUNKS_RETRIEVED], f"Top {NUM_CHUNKS_RETRIEVED} nodes before rerank")
+
+        # Get the top NUM_CHUNKS_RETRIEVED nodes based on score
+        top_nodes = heapq.nlargest(NUM_CHUNKS_RETRIEVED, nodes_with_score, key=lambda x: x.score)
+
+        # Optional logging if in local environment
+        if os.environ.get('ENVIRONMENT') == 'LOCAL':
+            self.log_unique_filenames(top_nodes, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
+
+        return top_nodes
+
+    def nodes_reranker_manual(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         """
         Reranks a list of nodes based on their scores, adjusting these scores according to predefined weights.
         The function considers both document type and author influence in the scoring system.
@@ -198,7 +295,6 @@ class CustomQueryEngine(RetrieverQueryEngine):
         # Constructing a single string for all document type counts
         document_type_counts_str = ", ".join(f"{doc_type}: {count}" for doc_type, count in document_type_count.items())
         logging.info(f"Document Type chunk-distribution: {document_type_counts_str}")
-
 
     def _query(self, query_bundle: QueryBundle) -> RESPONSE_TYPE:
         """Answer a query."""
