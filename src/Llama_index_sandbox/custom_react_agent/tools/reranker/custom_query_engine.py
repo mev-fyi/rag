@@ -9,6 +9,8 @@ from llama_index.schema import NodeWithScore
 from typing import List
 import os
 import heapq
+from urllib.parse import urlparse
+from tldextract import extract  # You might need to install this package
 
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 
@@ -16,7 +18,7 @@ from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 class CustomQueryEngine(RetrieverQueryEngine):
 
     document_weights = {
-        f'{DOCUMENT_TYPES.ARTICLE.value}weights': {
+        f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
             'ethresear.ch': 1,
             'writings.flashbots': 1,
             'frontier.tech': 0.95,
@@ -28,6 +30,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'Bell Curve 2023': 0.95,
             'Fenbushi Capital': 0.9,
             'SevenX Ventures': 0.9,
+            'Research Day': 0.9,
             'Tim Roughgarden Lectures': 0.9,
             'default': 0.8,
         },
@@ -57,15 +60,26 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi']
 
-    def __init__(self, retriever: BaseRetriever):
-        # Convert authors_list to sets for efficient lookup
-        super().__init__(retriever)
-        self.authors_set = {firm: set(authors) for firm, authors in self.authors_list.items()}
+    edge_case_set = set(edge_case_of_content_always_cited)
 
-        # Pre-compute sets for document weights
-        self.document_weight_sets = {
-            key: set(weights.keys()) for key, weights in self.document_weights.items()
-        }
+    # Pre-compute mappings for document weights
+    document_weight_mappings = {
+        key: {source: weight for source, weight in weights.items() if source != 'default'}
+        for key, weights in document_weights.items()
+    }
+    default_weights = {
+        key: weights.get('default', 1) for key, weights in document_weights.items()
+    }
+
+    # Pre-compute an author-to-weight mapping
+    author_weight_mapping = {}
+    for firm, authors in authors_list.items():
+        weight = authors_weights.get(firm, 1)
+        for author in authors:
+            author_weight_mapping[author] = weight
+
+    # Add a default weight
+    author_weight_mapping['default'] = authors_weights.get('default', 1)
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         """
@@ -109,10 +123,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         nodes_with_score = heapq.nlargest(NUM_CHUNKS_RETRIEVED, nodes_with_score, key=lambda x: x.score)
 
-        # return the top NUM_CHUNKS_RETRIEVED nodes
-        nodes_with_score = nodes_with_score[:NUM_CHUNKS_RETRIEVED]
-
-        # Log unique file names from the top 7 results of the truncated list
+        # Log unique file names from the top k results of the truncated list
         if os.environ.get('ENVIRONMENT') == 'LOCAL':
             self.log_unique_filenames(nodes_with_score, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
 
@@ -120,45 +131,42 @@ class CustomQueryEngine(RetrieverQueryEngine):
         return nodes_with_score
 
     def adjust_score_for_document_type(self, document_type, authors, link, score, document_name):
-        # Document type weight adjustments
         weight_key = document_type.lower() + '_weights'
         if weight_key in self.document_weights:
-            matched = False
-            if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                for source, weight in self.document_weights[weight_key].items():
-                    if source in authors:
-                        score *= weight
-                        matched = True
-                        break  # Break the loop once a match is found
-            if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                for source, weight in self.document_weights[weight_key].items():
-                    if source in link:
-                        score *= weight
-                        matched = True
-                        break  # Break the loop once a match is found
-            if not matched and 'default' in self.document_weights[weight_key]:
-                score *= self.document_weights[weight_key]['default']
-            if document_name in self.edge_case_of_content_always_cited:
-                # TODO 2023-12-10: determine if this multipler is satisfactory or not
+            source = authors if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value else link
+            weight = self.find_weight_for_source(source, weight_key)
+            score *= weight
+
+            # Apply special case adjustment if applicable
+            if document_name in self.edge_case_set:
                 score *= 0.8
+
         return score
+
+    def find_weight_for_source(self, source, weight_key):
+        extracted = extract(source)
+
+        # Join the subdomain and domain to get the key
+        # e.g., 'blog.example.co.uk' will become 'blog.example'
+        domain_key = '.'.join(filter(None, [extracted.subdomain, extracted.domain]))
+
+        # Check if the domain_key is directly in the document_weight_mappings
+        weight = self.document_weight_mappings.get(weight_key, {}).get(domain_key, self.default_weights.get(weight_key, 1))
+        return weight
 
     def adjust_score_for_authors(self, authors, score, document_type):
         if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-            # Author weight adjustment
             author_matched = False
             for author in authors.split(','):
                 author = author.strip()
-                for firm, authors_in_firm in self.authors_list.items():
-                    if author in authors_in_firm:
-                        score *= self.authors_weights.get(firm, 1)
-                        author_matched = True
-                        break  # Break the inner loop if an author matches
-                if author_matched:
-                    break  # Break the outer loop if any author matches
+                if author in self.author_weight_mapping:
+                    score *= self.author_weight_mapping[author]
+                    author_matched = True
+                    break  # Break the loop if an author matches
 
-            if not author_matched and 'default' in self.authors_weights:
-                score *= self.authors_weights['default']  # Apply default weight for authors if no author matched
+            if not author_matched:
+                score *= self.author_weight_mapping['default']  # Apply default weight if no author matched
+
         return score
 
     def log_unique_filenames(self, nodes: List[NodeWithScore], context: str):
