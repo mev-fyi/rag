@@ -2,16 +2,19 @@ import logging
 
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
+from llama_index.indices.base_retriever import BaseRetriever
 from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.response.schema import RESPONSE_TYPE
 from llama_index.schema import NodeWithScore
 from typing import List
 import os
+import heapq
 
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 
 
 class CustomQueryEngine(RetrieverQueryEngine):
+
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}weights': {
             'ethresear.ch': 1,
@@ -54,6 +57,16 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi']
 
+    def __init__(self, retriever: BaseRetriever):
+        # Convert authors_list to sets for efficient lookup
+        super().__init__(retriever)
+        self.authors_set = {firm: set(authors) for firm, authors in self.authors_list.items()}
+
+        # Pre-compute sets for document weights
+        self.document_weight_sets = {
+            key: set(weights.keys()) for key, weights in self.document_weights.items()
+        }
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         """
         Reranks a list of nodes based on their scores, adjusting these scores according to predefined weights.
@@ -69,6 +82,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
         Returns:
         List[NodeWithScore]: The same list of nodes, but reordered based on their adjusted scores, returning only the top results as defined by the 'NUM_CHUNKS_RETRIEVED' environment variable.
         """
+        NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED'))
+
         for node_with_score in nodes_with_score:
             score = node_with_score.score
             document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED')
@@ -83,53 +98,16 @@ class CustomQueryEngine(RetrieverQueryEngine):
             authors = authors.strip()
             link = link.strip()
 
-            # Document type weight adjustments
-            weight_key = document_type.lower() + '_weights'
-            if weight_key in self.document_weights:
-                matched = False
-                if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                    for source, weight in self.document_weights[weight_key].items():
-                        if source in authors:
-                            score *= weight
-                            matched = True
-                            break  # Break the loop once a match is found
-                if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                    for source, weight in self.document_weights[weight_key].items():
-                        if source in link:
-                            score *= weight
-                            matched = True
-                            break  # Break the loop once a match is found
-                if not matched and 'default' in self.document_weights[weight_key]:
-                    score *= self.document_weights[weight_key]['default']
-                if document_name in self.edge_case_of_content_always_cited:
-                    # TODO 2023-12-10: determine if this multipler is satisfactory or not
-                    score *= 0.8
-
-            if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
-                # Author weight adjustment
-                # Author weight adjustment
-                author_matched = False
-                for author in authors.split(','):
-                    author = author.strip()
-                    for firm, authors_in_firm in self.authors_list.items():
-                        if author in authors_in_firm:
-                            score *= self.authors_weights.get(firm, 1)
-                            author_matched = True
-                            break  # Break the inner loop if an author matches
-                    if author_matched:
-                        break  # Break the outer loop if any author matches
-
-                if not author_matched and 'default' in self.authors_weights:
-                    score *= self.authors_weights['default']  # Apply default weight for authors if no author matched
-
+            score = self.adjust_score_for_document_type(document_type, authors, link, score, document_name)
+            score = self.adjust_score_for_authors(authors, score, document_type)
             node_with_score.score = score
+
         # reorder the node_with_score objects within the list based on the score
-        # Log unique file names from the top 7 results of the sorted list
-        NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED'))
+        # Log unique file names from the top k results of the sorted list
         if os.environ.get('ENVIRONMENT') == 'LOCAL':
             self.log_unique_filenames(nodes_with_score[:NUM_CHUNKS_RETRIEVED], f"Initial top {NUM_CHUNKS_RETRIEVED} nodes before rerank")
 
-        nodes_with_score.sort(key=lambda x: x.score, reverse=True)
+        nodes_with_score = heapq.nlargest(NUM_CHUNKS_RETRIEVED, nodes_with_score, key=lambda x: x.score)
 
         # return the top NUM_CHUNKS_RETRIEVED nodes
         nodes_with_score = nodes_with_score[:NUM_CHUNKS_RETRIEVED]
@@ -140,6 +118,48 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         # TODO 2023-12-10: if the next node is in the same document, should we still include it or not?
         return nodes_with_score
+
+    def adjust_score_for_document_type(self, document_type, authors, link, score, document_name):
+        # Document type weight adjustments
+        weight_key = document_type.lower() + '_weights'
+        if weight_key in self.document_weights:
+            matched = False
+            if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+                for source, weight in self.document_weights[weight_key].items():
+                    if source in authors:
+                        score *= weight
+                        matched = True
+                        break  # Break the loop once a match is found
+            if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+                for source, weight in self.document_weights[weight_key].items():
+                    if source in link:
+                        score *= weight
+                        matched = True
+                        break  # Break the loop once a match is found
+            if not matched and 'default' in self.document_weights[weight_key]:
+                score *= self.document_weights[weight_key]['default']
+            if document_name in self.edge_case_of_content_always_cited:
+                # TODO 2023-12-10: determine if this multipler is satisfactory or not
+                score *= 0.8
+        return score
+
+    def adjust_score_for_authors(self, authors, score, document_type):
+        if document_type != DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+            # Author weight adjustment
+            author_matched = False
+            for author in authors.split(','):
+                author = author.strip()
+                for firm, authors_in_firm in self.authors_list.items():
+                    if author in authors_in_firm:
+                        score *= self.authors_weights.get(firm, 1)
+                        author_matched = True
+                        break  # Break the inner loop if an author matches
+                if author_matched:
+                    break  # Break the outer loop if any author matches
+
+            if not author_matched and 'default' in self.authors_weights:
+                score *= self.authors_weights['default']  # Apply default weight for authors if no author matched
+        return score
 
     def log_unique_filenames(self, nodes: List[NodeWithScore], context: str):
         unique_files_info = {}
