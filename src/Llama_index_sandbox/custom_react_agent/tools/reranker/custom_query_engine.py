@@ -145,13 +145,16 @@ class CustomQueryEngine(RetrieverQueryEngine):
             if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
                 source = node_with_score.node.metadata.get('channel_name', 'UNSPECIFIED LINK').strip()
                 weight_key = (document_type + '_weights', source)
-                effective_weight = self.effective_weights.get(weight_key, self.document_weights[document_type + '_weights'].get('default', 1))
+                effective_weight = self.effective_weights.get(
+                    weight_key,
+                    self.document_weights[document_type + '_weights'].get('default', 1)
+                )
             else:
                 link = node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK').strip()
                 extracted = tldextract.extract(link)
-                domain = f"{extracted.domain}.{extracted.suffix}"
+                domain = f"{extracted.subdomain}.{extracted.domain}.{extracted.suffix}".strip('.')
                 author_url = node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK').strip()
-                weight_key = (document_type + '_weights', domain, author_url)
+                weight_key = (document_type, domain, author_url)  #  + '_weights'
                 effective_weight = self.effective_weights.get(
                     weight_key,
                     self.document_weights[document_type + '_weights'].get(domain, self.document_weights[document_type + '_weights'].get('default', 1))
