@@ -126,7 +126,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         # reorder the node_with_score objects within the list based on the score
         # Log unique file names from the top 7 results of the sorted list
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED'))
-        if os.environ.get('ENVIRONMENT') != 'LOCAL':
+        if os.environ.get('ENVIRONMENT') == 'LOCAL':
             self.log_unique_filenames(nodes_with_score[:NUM_CHUNKS_RETRIEVED], f"Initial top {NUM_CHUNKS_RETRIEVED} nodes before rerank")
 
         nodes_with_score.sort(key=lambda x: x.score, reverse=True)
@@ -135,7 +135,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         nodes_with_score = nodes_with_score[:NUM_CHUNKS_RETRIEVED]
 
         # Log unique file names from the top 7 results of the truncated list
-        if os.environ.get('ENVIRONMENT') != 'LOCAL':
+        if os.environ.get('ENVIRONMENT') == 'LOCAL':
             self.log_unique_filenames(nodes_with_score, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
 
         # TODO 2023-12-10: if the next node is in the same document, should we still include it or not?
