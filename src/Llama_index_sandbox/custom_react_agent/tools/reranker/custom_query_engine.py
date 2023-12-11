@@ -1,3 +1,5 @@
+import logging
+
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
 from llama_index.query_engine import RetrieverQueryEngine
@@ -122,11 +124,51 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             node_with_score.score = score
         # reorder the node_with_score objects within the list based on the score
+        # Log unique file names from the top 7 results of the sorted list
+        NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED'))
+        self.log_unique_filenames(nodes_with_score[:NUM_CHUNKS_RETRIEVED], f"Initial top {NUM_CHUNKS_RETRIEVED} nodes before rerank")
+
         nodes_with_score.sort(key=lambda x: x.score, reverse=True)
+
         # return the top NUM_CHUNKS_RETRIEVED nodes
-        nodes_with_score = nodes_with_score[:int(os.environ.get('NUM_CHUNKS_RETRIEVED'))]
+        nodes_with_score = nodes_with_score[:NUM_CHUNKS_RETRIEVED]
+
+        # Log unique file names from the top 7 results of the truncated list
+        self.log_unique_filenames(nodes_with_score, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
+
         # TODO 2023-12-10: if the next node is in the same document, should we still include it or not?
         return nodes_with_score
+
+    def log_unique_filenames(self, nodes: List[NodeWithScore], context: str):
+        unique_files_info = {}
+        document_type_count = {}
+
+        logging.info(f"Logging unique file names and document types in context: {context}")
+
+        # Count occurrences of each title
+        title_count = {}
+        for node in nodes:
+            title = node.node.metadata.get('title', 'UNSPECIFIED FILE')
+            title_count[title] = title_count.get(title, 0) + 1
+
+        for node in nodes:
+            filename = node.node.metadata.get('title', 'UNSPECIFIED FILE')
+            document_type = node.node.metadata.get('document_type', 'UNSPECIFIED')
+
+            file_key = (document_type, filename)
+            if file_key not in unique_files_info:
+                unique_files_info[file_key] = {'chunk_count': title_count[filename], 'index': len(unique_files_info) + 1}
+
+            document_type_count[document_type] = document_type_count.get(document_type, 0) + 1
+
+        for file_key, info in unique_files_info.items():
+            document_type, filename = file_key
+            logging.info(f"Unique file #{info['index']}: Document Type: [{document_type}], Filename: [{filename}], Chunks Retrieved: [{info['chunk_count']}]")
+
+        # Constructing a single string for all document type counts
+        document_type_counts_str = ", ".join(f"{doc_type}: {count}" for doc_type, count in document_type_count.items())
+        logging.info(f"Document Type chunk-distribution: {document_type_counts_str}")
+
 
     def _query(self, query_bundle: QueryBundle) -> RESPONSE_TYPE:
         """Answer a query."""

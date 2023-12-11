@@ -45,17 +45,17 @@ OPENAI_INFERENCE_MODELS = ["gpt-4", "gpt-4-32k", "gpt-4-0613", "gpt-4-32k-0613",
 
 OPENAI_MODEL_NAME = "gpt-3.5-turbo"  #"gpt-3.5-turbo-16k-0613"  # "gpt-3.5-turbo-0613"  # "gpt-4" # "gpt-3.5-turbo-0613"  # "gpt-4-0613"  # "gpt-3.5-turbo-0613"
 INPUT_QUERIES = [
-        "What is ePBS?",
-        "What's PEPC?",
-        "What are FRPs?",
-        "Tell me about LVR",  # 1
-        "should I be concerned about it?",
-        "How do L2 sequencers work?",  # 2
-        "Do an exhaustive breakdown of the MEV supply chain",  # 3
-        "What is ePBS?",  # 4
+        # "What are FRPs?",
+        # "Tell me about LVR",  # 1
+        # "should I be concerned about it?",
+        # "How do L2 sequencers work?",  # 2
+        # "Do an exhaustive breakdown of the MEV supply chain",  # 3
+        # "What is ePBS?",  # 4
         "What is SUAVE?",  # 5
         "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  # 6
         "What are intents?",  # 7
+        "What is ePBS?",
+        "What's PEPC?",
         "What are the papers that deal with LVR?",  # 8
         "What are solutions to mitigate front-running and sandwich attacks?",  # 9
         "Give me several sources about L2 sequencing?",  # 10
