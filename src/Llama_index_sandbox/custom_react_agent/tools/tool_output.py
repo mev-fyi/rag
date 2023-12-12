@@ -37,48 +37,43 @@ def format_metadata(response):
         meta_info = node.metadata
         score = node.score
         title = meta_info.get('title', 'N/A')
+        is_video = 'channel_name' in meta_info
 
+        # Initialize metadata dictionary if not exists
         if title not in title_to_metadata:
             title_to_metadata[title] = {
-                'formatted_authors': None,
-                'pdf_link': 'N/A',
-                'release_date': 'N/A',
-                'channel_name': 'N/A',
-                'video_link': 'N/A',
-                'published_date': 'N/A',
+                'pdf_link': meta_info.get('pdf_link', 'N/A'),
+                'release_date': meta_info.get('release_date', 'N/A'),
+                'channel_name': meta_info.get('channel_name', 'N/A'),
+                'video_link': meta_info.get('video_link', 'N/A'),
+                'published_date': meta_info.get('release_date', 'N/A'),
                 'chunks_count': 0,
                 'highest_score': score,
-                'is_video': 'channel_name' in meta_info  # Check if it's a video
+                'is_video': is_video,
+                'formatted_authors': None if is_video else ''
             }
 
+        metadata = title_to_metadata[title]
+
         # Update authors for non-video sources
-        if 'authors' in meta_info and not title_to_metadata[title]['formatted_authors'] and not title_to_metadata[title]['is_video']:
-            authors_list = meta_info.get('authors', 'N/A').split(', ')
-            formatted_authors = ', '.join(authors_list) if authors_list != ['N/A'] else None
-            title_to_metadata[title]['formatted_authors'] = formatted_authors
+        if not is_video and 'authors' in meta_info:
+            authors_list = meta_info['authors'].split(', ')
+            metadata['formatted_authors'] = ', '.join(authors_list) if authors_list != ['N/A'] else None
 
         # Increment chunks count and update highest score
-        title_to_metadata[title]['chunks_count'] += 1
-        title_to_metadata[title]['highest_score'] = max(title_to_metadata[title]['highest_score'], score)
+        metadata['chunks_count'] += 1
+        metadata['highest_score'] = max(metadata['highest_score'], score)
 
-        # Update other metadata fields if they are not already set
-        for field in ['pdf_link', 'release_date', 'channel_name', 'video_link', 'published_date']:
-            if title_to_metadata[title][field] == 'N/A':
-                title_to_metadata[title][field] = meta_info.get(field, 'N/A')
+    # Sorting and formatting metadata
+    formatted_metadata_list = [
+        f"[Title]: {title}, " +
+        (f"[Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}, " if meta['is_video'] else
+         f"[Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, ") +
+        f"[Highest Score]: {meta['highest_score']}"
+        for title, meta in sorted(title_to_metadata.items(), key=lambda x: x[1]['highest_score'], reverse=True)
+    ]
 
-    # Sorting metadata based on highest score
-    sorted_metadata = sorted(title_to_metadata.items(), key=lambda x: x[1]['highest_score'], reverse=True)
-
-    formatted_metadata_list = []
-    for title, meta in sorted_metadata:
-        if meta['is_video']:
-            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['release_date']}, [Highest Score]: {meta['highest_score']}"
-        else:
-            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [Highest Score]: {meta['highest_score']}"
-        formatted_metadata_list.append(formatted_metadata)
-
-    all_formatted_metadata = '\n'.join(formatted_metadata_list)
-    return all_formatted_metadata
+    return '\n'.join(formatted_metadata_list)
 
 
 def log_and_store(store_response_fn, query_str, response, chatbot: bool):
