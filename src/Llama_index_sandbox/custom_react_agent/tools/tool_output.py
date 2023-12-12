@@ -33,42 +33,50 @@ class CustomToolOutput(ToolOutput):
 def format_metadata(response):
     title_to_metadata = {}
 
-    for key, meta_info in response.metadata.items():
+    for node in response.source_nodes:
+        meta_info = node.metadata
+        score = node.score
         title = meta_info.get('title', 'N/A')
-
-        if 'authors' in meta_info:
-            authors_list = meta_info.get('authors', 'N/A').split(', ')
-            # formatted_authors = authors_list[0] + (' et al.' if len(authors_list) > 3 else ', '.join(authors_list[1:]))
-            formatted_authors = authors_list[0] + ', ' + ', '.join(authors_list[1:])
-        else:
-            formatted_authors = None
 
         if title not in title_to_metadata:
             title_to_metadata[title] = {
-                'formatted_authors': formatted_authors,
-                'pdf_link': meta_info.get('pdf_link', 'N/A'),
-                'release_date': meta_info.get('release_date', 'N/A'),
-                'channel_name': meta_info.get('channel_name', 'N/A'),
-                'video_link': meta_info.get('video_link', 'N/A'),
-                'published_date': meta_info.get('release_date', 'N/A'),
-                'chunks_count': 0
+                'formatted_authors': None,
+                'pdf_link': 'N/A',
+                'release_date': 'N/A',
+                'channel_name': 'N/A',
+                'video_link': 'N/A',
+                'published_date': 'N/A',
+                'chunks_count': 0,
+                'highest_score': score,
+                'is_video': 'channel_name' in meta_info  # Check if it's a video
             }
 
-        title_to_metadata[title]['chunks_count'] += 1
+        # Update authors for non-video sources
+        if 'authors' in meta_info and not title_to_metadata[title]['formatted_authors'] and not title_to_metadata[title]['is_video']:
+            authors_list = meta_info.get('authors', 'N/A').split(', ')
+            formatted_authors = ', '.join(authors_list) if authors_list != ['N/A'] else None
+            title_to_metadata[title]['formatted_authors'] = formatted_authors
 
-        # Sorting metadata based on dates (from most recent to oldest)
-    sorted_metadata = sorted(title_to_metadata.items(), key=lambda x: (x[1]['release_date'] if x[1]['release_date'] != 'N/A' else x[1]['published_date']), reverse=True)
+        # Increment chunks count and update highest score
+        title_to_metadata[title]['chunks_count'] += 1
+        title_to_metadata[title]['highest_score'] = max(title_to_metadata[title]['highest_score'], score)
+
+        # Update other metadata fields if they are not already set
+        for field in ['pdf_link', 'release_date', 'channel_name', 'video_link', 'published_date']:
+            if title_to_metadata[title][field] == 'N/A':
+                title_to_metadata[title][field] = meta_info.get(field, 'N/A')
+
+    # Sorting metadata based on highest score
+    sorted_metadata = sorted(title_to_metadata.items(), key=lambda x: x[1]['highest_score'], reverse=True)
 
     formatted_metadata_list = []
     for title, meta in sorted_metadata:
-        if meta['formatted_authors']:
-            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}"  # , [# chunks retrieved]: {meta['chunks_count']}"
+        if meta['is_video']:
+            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['release_date']}, [Highest Score]: {meta['highest_score']}"
         else:
-            formatted_metadata = f"[Title]: {title}, [Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}"  # , [# chunks retrieved]: {meta['chunks_count']}"
-
+            formatted_metadata = f"[Title]: {title}, [Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, [Highest Score]: {meta['highest_score']}"
         formatted_metadata_list.append(formatted_metadata)
 
-    # Joining all formatted metadata strings with a newline
     all_formatted_metadata = '\n'.join(formatted_metadata_list)
     return all_formatted_metadata
 
