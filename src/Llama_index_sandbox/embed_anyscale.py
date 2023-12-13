@@ -5,7 +5,7 @@ from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 from ray.data import ActorPoolStrategy
 
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 import ray
 
 

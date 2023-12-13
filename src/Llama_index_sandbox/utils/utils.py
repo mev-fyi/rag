@@ -1,15 +1,15 @@
 import time
 import logging
 import os
+import inspect
 # import fitz
 from datetime import datetime
 from functools import wraps
+import shutil
 
 from google.oauth2.credentials import Credentials
 from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 
-
-import os
 import subprocess
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -98,7 +98,7 @@ def start_logging(log_prefix):
 
 def timeit(func):
     """
-    A decorator that logs the time a function takes to execute.
+    A decorator that logs the time a function takes to execute along with the directory and filename.
 
     Args:
         func (callable): The function being decorated.
@@ -110,7 +110,7 @@ def timeit(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         """
-        The wrapper function to execute the decorated function and log its execution time.
+        The wrapper function to execute the decorated function and log its execution time and location.
 
         Args:
             *args: Variable length argument list to pass to the decorated function.
@@ -119,20 +119,26 @@ def timeit(func):
         Returns:
             The value returned by the decorated function.
         """
-        logging.info(f"{func.__name__} STARTED.")
+        # Get the current file's path and extract directory and filename
+        file_path = inspect.getfile(func)
+        directory, filename = os.path.split(file_path)
+        dir_name = os.path.basename(directory)
+
+        # Log start of function execution
+        logging.info(f"{dir_name}.{filename}.{func.__name__} STARTED.")
         start_time = time.time()
 
-        # Call the decorated function and store its result.
-        # *args and **kwargs are used to pass the arguments received by the wrapper
-        # to the decorated function.
+        # Call the decorated function and store its result
         result = func(*args, **kwargs)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
         minutes, seconds = divmod(elapsed_time, 60)
-        logging.info(f"{func.__name__} COMPLETED, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
 
-        return result  # Return the result of the decorated function
+        # Log end of function execution
+        logging.info(f"{dir_name}.{filename}.{func.__name__} COMPLETED, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
+
+        return result
 
     return wrapper
 
@@ -199,9 +205,7 @@ def find_matching_files(directory: str):
             print(f"Deleting {mp3_file}")
 
 
-import os
 import pandas as pd
-import shutil
 
 
 def find_closest_match(video_title, df_titles):
@@ -258,6 +262,105 @@ def move_remaining_mp3_to_their_subdirs():
         else:
             print(f"No matching video title found in DataFrame for: {video_title}")
 
+
+def move_remaining_txt_to_their_subdirs():
+    # Load the DataFrame
+    videos_path = f"{root_directory()}/datasets/evaluation_data/youtube_videos.csv"
+    youtube_videos_df = pd.read_csv(videos_path)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
+
+    # Get a list of all txt files in the directory and subdirectories
+    txt_files = []
+    for subdir, dirs, files in os.walk(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"):
+        for file in files:
+            if file.endswith("_diarized_content_processed_diarized.txt"):
+                txt_files.append(os.path.join(subdir, file))
+
+    df_titles = youtube_videos_df['title'].tolist()
+    # Process each txt file
+    for txt_file in txt_files:
+        # Extract the segment after the last "/"
+        extension = "_diarized_content_processed_diarized.txt"
+        video_title = txt_file.replace(extension, '').split('/')[-1].rsplit('.', 1)[0]
+        # Replace double spaces with a single space
+        video_title = video_title.replace('  ', ' ').strip()
+
+        # video_row = youtube_videos_df[youtube_videos_df['title'].str.contains(video_title, case=False, na=False, regex=False)]
+        best_match = find_closest_match(video_title, df_titles)
+        video_row = youtube_videos_df[youtube_videos_df['title'] == best_match]
+
+        if not video_row.empty:
+            published_date = video_row.iloc[0]['published_date']
+            new_dir_name = f"{published_date}_{video_title}"
+
+            # Check if txt file is already in a directory matching its name
+            containing_dir = os.path.basename(os.path.dirname(txt_file))
+            if new_dir_name == containing_dir:
+                continue
+
+            new_dir_path = os.path.join(os.path.dirname(txt_file), new_dir_name)
+            os.makedirs(new_dir_path, exist_ok=True)
+            new_file_name = f"{published_date}_{video_title}{extension}"
+            new_file_path = os.path.join(new_dir_path, new_file_name)
+            if os.path.exists(new_file_path):
+                print(f"Deleted {txt_file} because {new_file_path} already exists")
+                os.remove(txt_file)
+            else:
+                print(f"Moved video {txt_file} to {new_file_path}!")
+                shutil.move(txt_file, new_file_path)
+        else:
+            print(f"No matching video title found in DataFrame for: {video_title}")
+
+
+def move_remaining_json_to_their_subdirs():
+    # Load the DataFrame
+    videos_path = f"{root_directory()}/datasets/evaluation_data/youtube_videos.csv"
+    youtube_videos_df = pd.read_csv(videos_path)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
+
+    # Get a list of all json files in the directory and subdirectories
+    json_files = []
+    for subdir, dirs, files in os.walk(f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"):
+        for file in files:
+            if file.endswith("_diarized_content.json"):
+                json_files.append(os.path.join(subdir, file))
+
+    df_titles = youtube_videos_df['title'].tolist()
+    # Process each json file
+    for json_file in json_files:
+        # Extract the segment after the last "/"
+        extension = "_diarized_content.json"
+        video_title = json_file.replace(extension, '').split('/')[-1].rsplit('.', 1)[0]
+        # Replace double spaces with a single space
+        video_title = video_title.replace('  ', ' ').strip()
+
+        # video_row = youtube_videos_df[youtube_videos_df['title'].str.contains(video_title, case=False, na=False, regex=False)]
+        best_match = find_closest_match(video_title, df_titles)
+        video_row = youtube_videos_df[youtube_videos_df['title'] == best_match]
+
+        if not video_row.empty:
+            published_date = video_row.iloc[0]['published_date']
+            new_dir_name = f"{published_date}_{video_title}"
+
+            # Check if json file is already in a directory matching its name
+            containing_dir = os.path.basename(os.path.dirname(json_file))
+            if new_dir_name == containing_dir:
+                continue
+
+            new_dir_path = os.path.join(os.path.dirname(json_file), new_dir_name)
+            os.makedirs(new_dir_path, exist_ok=True)
+            new_file_name = f"{published_date}_{video_title}{extension}"
+            new_file_path = os.path.join(new_dir_path, new_file_name)
+            if os.path.exists(new_file_path):
+                print(f"Deleted {json_file} because {new_file_path} already exists")
+                os.remove(json_file)
+            else:
+                print(f"Moved video {json_file} to {new_file_path}!")
+                shutil.move(json_file, new_file_path)
+        else:
+            print(f"No matching video title found in DataFrame for: {video_title}")
 
 def merge_directories(base_path):
     '''
@@ -553,11 +656,74 @@ def process_messages(data):
 #                 print(f"High-resolution thumbnail generated for {filename} at {thumbnail_path}")
 
 
+def delete_redundant_directories(root_path):
+    # Create a list to collect directories to be deleted
+    directories_to_delete = []
+
+    # Walk through the directory
+    for subdir, dirs, files in os.walk(root_path, topdown=False):  # Note the 'topdown=False' parameter
+        for dir in dirs:
+            # Construct the path to the current directory
+            current_dir_path = os.path.join(subdir, dir)
+            # Check if directory name ends with the specified suffixes
+            if dir.endswith('_diarized_content') or dir.endswith('_diarized_content_processed_diarized'):
+                # Construct the file names that should exist in the parent directory
+                json_file = dir.split('_', 1)[-1] + '_diarized_content.json'
+                txt_file = dir.split('_', 1)[-1] + '_diarized_content_processed_diarized.txt'
+                # Construct the paths to the files that should exist
+                json_file_path = os.path.join(subdir, json_file)
+                txt_file_path = os.path.join(subdir, txt_file)
+                # Check if both files exist
+                if os.path.exists(json_file_path) and os.path.exists(txt_file_path):
+                    # If both files exist, add the redundant directory to the list
+                    print(f"{current_dir_path} is to be deleted")
+                    directories_to_delete.append(current_dir_path)
+
+    # Delete the collected directories
+    for dir_path in directories_to_delete:
+        shutil.rmtree(dir_path)
+        print(f"Deleted redundant directory: {dir_path}")
+
+def clean_mp3_dirs(directory):
+    clean_fullwidth_characters(directory)
+    move_remaining_mp3_to_their_subdirs()
+    merge_directories(directory)
+    delete_mp3_if_text_or_json_exists(directory)
+
+
+import os
+import shutil
+
+
+def del_wrong_subdirs(root_dir):
+    # Define the expected maximum directory depth
+    expected_max_depth = 10  # Based on home/user/PycharmProjects/rag/datasets/evaluation_data/diarized_youtube_content_2023-10-06/<channel_name>/<release_date>_<video_title>/
+
+    for subdir, dirs, files in os.walk(root_dir, topdown=False):
+        # Split the path to evaluate its depth
+        path_parts = subdir.split(os.sep)
+
+        # Check if the directory name contains '_diarized_content' or '_diarized_content_processed_diarized'
+        if '_diarized_content' in subdir or '_diarized_content_processed_diarized' in subdir:
+            # Delete the directory and its content
+            # print(f"Removed directory and its content: {subdir}")
+            shutil.rmtree(subdir)
+        elif len(path_parts) > expected_max_depth:
+            # Delete the directory and its content if it exceeds the maximum depth
+            print(f"Removed directory and its content: {subdir}")
+            shutil.rmtree(subdir)
+
+
 if __name__ == '__main__':
     directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
+    # clean_mp3_dirs(directory=directory)
+    del_wrong_subdirs(directory)
+    move_remaining_txt_to_their_subdirs()
+    # move_remaining_json_to_their_subdirs()
     # print_frontend_content()
     # delete_mp3_if_text_or_json_exists(directory)
     # save_data_into_zip()
     # copy_txt_files_to_transcripts()
     # generate_pdf_thumbnails(pdf_directory=pdf_dir, output_directory=f'{root_directory()}/datasets/pdf_thumbnails')
+

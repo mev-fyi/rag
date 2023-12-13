@@ -21,7 +21,7 @@ import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
 import src.Llama_index_sandbox.embed_anyscale as embed_anyscale
 from src.Llama_index_sandbox import index_dir
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 
 api_key = os.environ["PINECONE_API_KEY"]
 

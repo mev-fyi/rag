@@ -32,8 +32,8 @@ from src.Llama_index_sandbox.custom_react_agent.tools.fn_schema import ToolFnSch
 
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine import CustomQueryEngineTool
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import log_and_store
-from src.Llama_index_sandbox.store_response import store_response
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.store_response import store_response
+from src.Llama_index_sandbox.utils.utils import timeit
 
 
 def get_query_engine(index, service_context, verbose=True, similarity_top_k=5):

@@ -9,10 +9,10 @@ from src.Llama_index_sandbox import globals as glb
 import src.Llama_index_sandbox.constants as constants
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 
-from src.Llama_index_sandbox.gcs_utils import get_firestore_client, set_secrets_from_cloud
+from src.Llama_index_sandbox.utils.gcs_utils import get_firestore_client, set_secrets_from_cloud
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
-from src.Llama_index_sandbox.utils import get_last_index_embedding_params, process_messages
+from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params, process_messages
 
 set_secrets_from_cloud()
 

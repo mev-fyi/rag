@@ -12,7 +12,7 @@ from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import TEXT_QA_SYSTEM_PROMPT
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_TOOL_ROUTER
-from src.Llama_index_sandbox.utils import get_last_index_embedding_params, timeit
+from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params, timeit
 from src.Llama_index_sandbox import globals as glb
 
 

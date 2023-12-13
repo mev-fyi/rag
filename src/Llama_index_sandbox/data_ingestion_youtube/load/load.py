@@ -12,7 +12,7 @@ from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
 from src.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):

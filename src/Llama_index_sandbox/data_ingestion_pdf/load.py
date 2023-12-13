@@ -19,7 +19,7 @@ from pypdf import PdfReader
 
 from src.Llama_index_sandbox import root_dir, RESEARCH_PAPER_CSV
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 
 
 def get_pdf_details(response: requests.Response) -> dict:

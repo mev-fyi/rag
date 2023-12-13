@@ -15,8 +15,8 @@ from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
 from llama_index.schema import TextNode, MetadataMode
 from tiktoken.model import MODEL_TO_ENCODING
 
-from src.Llama_index_sandbox.utils import timeit
-from src.Llama_index_sandbox.token_counter import TokenCounter
+from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.token_counter import TokenCounter
 import tiktoken
 
 token_counter = TokenCounter(900000)

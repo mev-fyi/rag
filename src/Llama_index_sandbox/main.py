@@ -7,9 +7,9 @@ from llama_index import ServiceContext
 from src.Llama_index_sandbox.constants import INPUT_QUERIES
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 from src.Llama_index_sandbox.evaluation.config import Config
-from src.Llama_index_sandbox.gcs_utils import set_secrets_from_cloud
+from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
-from src.Llama_index_sandbox.utils import start_logging, get_last_index_embedding_params
+from src.Llama_index_sandbox.utils.utils import start_logging, get_last_index_embedding_params
 import src.Llama_index_sandbox.embed as embed
 from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 

@@ -9,7 +9,7 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 
 
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):

@@ -15,7 +15,7 @@ from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import Extended
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import AVOID_CITING_CONTEXT
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
 from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER, CONFIRM_FINAL_ANSWER
-from src.Llama_index_sandbox.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit
 
 
 class CustomReActAgent(ReActAgent):

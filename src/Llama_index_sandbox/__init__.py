@@ -4,7 +4,7 @@ import sys
 # Append the parent directory to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from src.Llama_index_sandbox.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory
 
 from dotenv import load_dotenv
 load_dotenv()

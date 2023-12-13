@@ -3,7 +3,7 @@ import os
 
 from src.Llama_index_sandbox import embed
 import src.Llama_index_sandbox.evaluation.evaluation_constants as config
-from src.Llama_index_sandbox.utils import get_last_index_embedding_params
+from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params
 
 
 class Config:

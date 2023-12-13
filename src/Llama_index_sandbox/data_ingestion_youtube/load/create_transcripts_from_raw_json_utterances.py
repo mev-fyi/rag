@@ -4,7 +4,7 @@ import concurrent.futures
 import time
 import random
 
-from src.Llama_index_sandbox.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory
 
 
 def format_time(ms):
