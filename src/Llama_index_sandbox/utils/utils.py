@@ -714,12 +714,58 @@ def del_wrong_subdirs(root_dir):
             shutil.rmtree(subdir)
 
 
+def copy_and_verify_files():
+    # Define the root directory for PycharmProjects
+    pycharm_projects_dir = f"{root_directory()}/../"
+
+    # Define the source and destination directories
+    source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
+    destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
+
+    # List of files to copy
+    files_to_copy = [
+        "paper_details.csv",
+        "links/articles_updated.csv",
+        "links/youtube/youtube_videos.csv"
+    ]
+
+    # Create the destination directory if it does not exist
+    os.makedirs(destination_dir, exist_ok=True)
+
+    # Copy each file and verify size
+    for file in files_to_copy:
+        source_file = os.path.join(source_dir, file)
+        destination_file = os.path.join(destination_dir, os.path.basename(file))
+
+        try:
+            # Verify file size before copying
+            if os.path.exists(destination_file):
+                source_size = os.path.getsize(source_file)
+                destination_size = os.path.getsize(destination_file)
+
+                if destination_size > source_size:
+                    raise ValueError(f"File {file} in 'rag' repo is larger than in 'mev.fyi'. Copy aborted.")
+
+            shutil.copy(source_file, destination_file)
+            print(f"Copied: {source_file} to {destination_file}")
+        except IOError as e:
+            print(f"Unable to copy file. {e}")
+        except ValueError as e:
+            print(e)
+            break  # Stop the process if size condition is not met
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+    print("File copying completed.")
+
+
 if __name__ == '__main__':
-    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
-    # clean_mp3_dirs(directory=directory)
-    del_wrong_subdirs(directory)
-    move_remaining_txt_to_their_subdirs()
+    copy_and_verify_files()
+    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
+    # # clean_mp3_dirs(directory=directory)
+    # del_wrong_subdirs(directory)
+    # move_remaining_txt_to_their_subdirs()
     # move_remaining_json_to_their_subdirs()
     # print_frontend_content()
     # delete_mp3_if_text_or_json_exists(directory)
