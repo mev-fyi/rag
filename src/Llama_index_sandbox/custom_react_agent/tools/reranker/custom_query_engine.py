@@ -40,6 +40,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
             'default': 1
+        },
+        f'unspecified_weights': {  # default case for absent metadata
+            'default': 0.7
         }
     }
     authors_list = {
