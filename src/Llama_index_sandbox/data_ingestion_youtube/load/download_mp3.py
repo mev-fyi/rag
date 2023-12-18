@@ -13,7 +13,7 @@ import logging
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
-from src.Llama_index_sandbox.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs, clean_fullwidth_characters, merge_directories, delete_mp3_if_text_or_json_exists, start_logging
+from src.Llama_index_sandbox.utils.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs, clean_fullwidth_characters, merge_directories, delete_mp3_if_text_or_json_exists, start_logging
 
 from concurrent.futures import ThreadPoolExecutor
 
