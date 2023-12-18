@@ -718,45 +718,74 @@ def copy_and_verify_files():
     # Define the root directory for PycharmProjects
     pycharm_projects_dir = f"{root_directory()}/../"
 
-    # Define the source and destination directories
-    source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
-    destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
+    # Define the source directories
+    csv_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
+    articles_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/articles_pdf_download/")
+    papers_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/papers_pdf_downloads/")
 
-    # List of files to copy
-    files_to_copy = [
+    # Define the destination directories
+    csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
+    articles_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_2023-12-05/")
+    papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
+
+    # List of CSV files to copy
+    csv_files_to_copy = [
         "paper_details.csv",
         "links/articles_updated.csv",
         "links/youtube/youtube_videos.csv"
     ]
 
-    # Create the destination directory if it does not exist
-    os.makedirs(destination_dir, exist_ok=True)
+    # Create the destination directories if they do not exist
+    os.makedirs(csv_destination_dir, exist_ok=True)
+    os.makedirs(articles_pdf_destination_dir, exist_ok=True)
+    os.makedirs(papers_pdf_destination_dir, exist_ok=True)
 
-    # Copy each file and verify size
-    for file in files_to_copy:
-        source_file = os.path.join(source_dir, file)
-        destination_file = os.path.join(destination_dir, os.path.basename(file))
+    # Copy and verify CSV files
+    for file_name in csv_files_to_copy:
+        source_file = os.path.join(csv_source_dir, file_name)
+        destination_file = os.path.join(csv_destination_dir, file_name.split('/')[-1])  # Get the last part if there's a path included
+        copy_and_verify(source_file, destination_file)
 
-        try:
-            # Verify file size before copying
-            if os.path.exists(destination_file):
-                source_size = os.path.getsize(source_file)
-                destination_size = os.path.getsize(destination_file)
-
-                if destination_size > source_size:
-                    raise ValueError(f"File {file} in 'rag' repo is larger than in 'mev.fyi'. Copy aborted.")
-
-            shutil.copy(source_file, destination_file)
-            print(f"Copied: {source_file} to {destination_file}")
-        except IOError as e:
-            print(f"Unable to copy file. {e}")
-        except ValueError as e:
-            print(e)
-            break  # Stop the process if size condition is not met
-        except Exception as e:
-            print(f"Unexpected error: {e}")
+    # Copy PDF files without size verification
+    copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
+    copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
 
     print("File copying completed.")
+
+
+def copy_and_verify(source_file, destination_file):
+    try:
+        # Verify file size before copying
+        if os.path.exists(destination_file):
+            source_size = os.path.getsize(source_file)
+            destination_size = os.path.getsize(destination_file)
+
+            if destination_size > source_size:
+                raise ValueError(f"File {os.path.basename(source_file)} in destination is larger than the source. Copy aborted.")
+
+        shutil.copy(source_file, destination_file)
+        print(f"Copied: {source_file} to {destination_file}")
+    except IOError as e:
+        print(f"Unable to copy file. {e}")
+    except ValueError as e:
+        print(e)
+        # Stop the process if size condition is not met
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+
+def copy_all_files(source_dir, destination_dir):
+    for file_name in os.listdir(source_dir):
+        if file_name.lower().endswith('.pdf'):  # Ensuring it is a PDF file
+            source_file = os.path.join(source_dir, file_name)
+            destination_file = os.path.join(destination_dir, file_name)
+            try:
+                shutil.copy(source_file, destination_file)
+                print(f"Copied: {source_file} to {destination_file}")
+            except IOError as e:
+                print(f"Unable to copy file. {e}")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
 
 
 if __name__ == '__main__':
