@@ -19,7 +19,7 @@ from src.Llama_index_sandbox.utils.utils import timeit
 from src.Llama_index_sandbox.utils.token_counter import TokenCounter
 import tiktoken
 
-token_counter = TokenCounter(900000)
+token_counter = TokenCounter(4900000)
 
 
 def num_tokens_from_string(string: str, embedding_model_name: str) -> int:
