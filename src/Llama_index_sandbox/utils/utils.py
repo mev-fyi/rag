@@ -63,9 +63,10 @@ def root_directory() -> str:
 def start_logging(log_prefix):
     # Ensure that root_directory() is defined and returns the path to the root directory
 
-    # Create a 'logs' directory if it does not exist
-    if not os.path.exists(f'{root_directory()}/logs/txt'):
-        os.makedirs(f'{root_directory()}/logs/txt')
+    logs_dir = f'{root_directory()}/logs/txt'
+
+    # Create a 'logs' directory if it does not exist, with exist_ok=True to avoid FileExistsError
+    os.makedirs(logs_dir, exist_ok=True)
 
     # Get the current date and time
     now = datetime.now()
@@ -78,10 +79,11 @@ def start_logging(log_prefix):
     if root_logger.hasHandlers():
         # Clear existing handlers from the root logger
         root_logger.handlers.clear()
+
     root_logger.setLevel(logging.INFO)
 
     # Add handler to log messages to a file
-    log_filename = f'{root_directory()}/logs/txt/{timestamp_str}_{log_prefix}.log'
+    log_filename = f'{logs_dir}/{timestamp_str}_{log_prefix}.log'
     file_handler = logging.FileHandler(log_filename)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     root_logger.addHandler(file_handler)
@@ -93,7 +95,6 @@ def start_logging(log_prefix):
 
     # Now, any logging.info() call will append the log message to the specified file and the standard output.
     logging.info(f'********* {log_prefix} LOGGING STARTED *********')
-
 
 
 def timeit(func):
