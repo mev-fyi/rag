@@ -156,9 +156,6 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
     all_formatted_metadata = None
     for query_str in input_queries:
         # TODO 2023-10-08: add the metadata filters  # https://docs.pinecone.io/docs/metadata-filtering#querying-an-index-with-metadata-filters
-        if "gpt-4" in OPENAI_MODEL_NAME:
-            logging.info("Sleeping 20 seconds to avoid hitting rate limit for GPT-4-0613 which is 10k/min")
-            time.sleep(20)
         if isinstance(retrieval_engine, BaseChatEngine):
             if not query_engine_as_tool:
                 response = query_engine.query(query_str)
@@ -168,8 +165,9 @@ def ask_questions(input_queries, retrieval_engine, query_engine, store_response_
                 logging.info(f"With input chat history: [{chat_history}]")
                 response, all_formatted_metadata = retrieval_engine.chat(message=str_response, chat_history=chat_history)
             else:
-                logging.info(f"The question asked is: [{query_str}]")
-                logging.info(f"With input chat history: [{chat_history}]")
+                if os.environ.get('ENVIRONMENT') == 'LOCAL':
+                    logging.info(f"The question asked is: [{query_str}]")
+                    logging.info(f"With input chat history: [{chat_history}]")
                 response, all_formatted_metadata = retrieval_engine.chat(message=query_str, chat_history=chat_history)
             if not run_application:
                 logging.info(f"[End output shown to client for question [{query_str}]]:    \n```\n{response}\n```")

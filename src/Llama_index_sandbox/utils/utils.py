@@ -120,26 +120,30 @@ def timeit(func):
         Returns:
             The value returned by the decorated function.
         """
-        # Get the current file's path and extract directory and filename
-        file_path = inspect.getfile(func)
-        directory, filename = os.path.split(file_path)
-        dir_name = os.path.basename(directory)
+        if os.getenv('ENVIRONMENT') == 'LOCAL':
+            # Get the current file's path and extract directory and filename
+            file_path = inspect.getfile(func)
+            directory, filename = os.path.split(file_path)
+            dir_name = os.path.basename(directory)
 
-        # Log start of function execution
-        logging.info(f"{dir_name}.{filename}.{func.__name__} STARTED.")
-        start_time = time.time()
+            # Log start of function execution
+            logging.info(f"{dir_name}.{filename}.{func.__name__} STARTED.")
+            start_time = time.time()
 
-        # Call the decorated function and store its result
-        result = func(*args, **kwargs)
+            # Call the decorated function and store its result
+            result = func(*args, **kwargs)
 
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        minutes, seconds = divmod(elapsed_time, 60)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            minutes, seconds = divmod(elapsed_time, 60)
 
-        # Log end of function execution
-        logging.info(f"{dir_name}.{filename}.{func.__name__} COMPLETED, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
+            # Log end of function execution
+            logging.info(f"{dir_name}.{filename}.{func.__name__} COMPLETED, took {int(minutes)} minutes and {seconds:.2f} seconds to run.\n")
 
-        return result
+            return result
+        else:
+            # If not in 'LOCAL' environment, just call the function without timing
+            return func(*args, **kwargs)
 
     return wrapper
 

@@ -90,7 +90,8 @@ class CustomReActAgent(ReActAgent):
                     logging.error(f'Error in modifying the Action Input part of the response_content: [{e}]')
 
             # given react prompt outputs, call tools or return response
-            logging.info(f"Starting _process_actions with chat_response_copy: {chat_response_copy}")
+            if os.environ.get('ENVIRONMENT') == 'LOCAL':
+                logging.info(f"Starting _process_actions with chat_response_copy: {chat_response_copy}")
             if last_metadata is not None:
                 reasoning_steps, is_done, last_metadata = self._process_actions(output=chat_response_copy, last_metadata=last_metadata)
             else:
@@ -117,10 +118,10 @@ class CustomReActAgent(ReActAgent):
 
         if not response:  # NOTE 2023-11-20: when the last_metadata object is populated, we directly return the response from the query engine
             response = self._get_response(current_reasoning)
-        if os.environ.get('CONFIRM_RESPONSE') == 'True':
-            confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
-        else:
-            confirmed_response = response
+        # if os.environ.get('CONFIRM_RESPONSE') == 'True':
+        #     confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
+        # else:
+        confirmed_response = response
         self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
@@ -180,8 +181,8 @@ class CustomReActAgent(ReActAgent):
             if os.environ.get('ENVIRONMENT') == 'LOCAL':
                 print_text(f"{observation_step.get_content()}\n", color="blue")
                 print_text(f"{last_metadata}\n", color="blue")
-            logging.info(f"{observation_step.get_content()}")
-            logging.info(f"{last_metadata}")
+                logging.info(f"{observation_step.get_content()}")
+                logging.info(f"{last_metadata}")
 
         # Note 2023-10-24: current hack: we return last_metadata manually here,
         # alternatively we can overload the ObservationReasoningStep object to have metadata
