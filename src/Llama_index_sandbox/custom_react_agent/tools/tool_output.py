@@ -60,7 +60,7 @@ def format_metadata(response):
             authors_list = meta_info['authors'].split(', ')
             metadata['formatted_authors'] = ', '.join(authors_list) if authors_list != ['N/A'] else None
 
-        # Increment chunks count and update highest score
+        # Increment chunks count and update the highest score
         metadata['chunks_count'] += 1
         metadata['highest_score'] = max(metadata['highest_score'], score)
 
@@ -70,7 +70,7 @@ def format_metadata(response):
         (f"[Channel name]: {meta['channel_name']}, [Video Link]: {meta['video_link']}, [Published date]: {meta['published_date']}, " if meta['is_video'] else
          f"[Authors]: {meta['formatted_authors']}, [Link]: {meta['pdf_link']}, [Release date]: {meta['release_date']}, ") +
         f"[Highest Score]: {meta['highest_score']}"
-        for title, meta in sorted(title_to_metadata.items(), key=lambda x: x[1]['highest_score'], reverse=True)
+        for title, meta in sorted(title_to_metadata.items(), key=lambda x: (x[1].get('num_chunks', 0), x[1]['highest_score']), reverse=True)
     ]
 
     return '\n'.join(formatted_metadata_list)
