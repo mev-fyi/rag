@@ -45,6 +45,8 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         if 'file_path' in document.metadata.keys():
             del document.metadata['file_path']
 
+        assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
+
         # Update metadata
         document.metadata.update({
             # TODO 2023-10-04: is there an impact of different metadata keys across documents?

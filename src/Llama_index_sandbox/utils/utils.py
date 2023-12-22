@@ -766,7 +766,9 @@ def copy_and_verify(source_file, destination_file):
             destination_size = os.path.getsize(destination_file)
 
             if destination_size > source_size:
-                raise ValueError(f"File {os.path.basename(source_file)} in destination is larger than the source. Copy aborted.")
+                # raise ValueError(f"File {os.path.basename(source_file)} in destination is larger than the source. Copy aborted.")
+                print(f"/!\File {os.path.basename(source_file)} in destination is larger than the source. Copy aborted.")
+                return
 
         shutil.copy(source_file, destination_file)
         print(f"Copied: {source_file} to {destination_file}")
