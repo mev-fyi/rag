@@ -9,13 +9,12 @@ from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engi
 from src.Llama_index_sandbox.evaluation.config import Config
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from src.Llama_index_sandbox.retrieve import get_engine_from_vector_store, ask_questions, get_inference_llm
-from src.Llama_index_sandbox.utils.utils import start_logging, get_last_index_embedding_params
+from src.Llama_index_sandbox.utils.utils import start_logging, get_last_index_embedding_params, copy_and_verify_files
 import src.Llama_index_sandbox.embed as embed
 from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 
-def initialise_chatbot(engine, query_engine_as_tool, recreate_index):
-    add_new_transcripts = False
+def initialise_chatbot(engine, query_engine_as_tool, recreate_index, add_new_transcripts=False):
     stream = True
     config = Config()
     num_files = config.num_files
@@ -81,11 +80,17 @@ def run():
     engine = 'chat'
     query_engine_as_tool = True
     recreate_index = True
+    if recreate_index:
+        copy_and_verify_files()
+        add_new_transcripts = True
     chat_history = []
 
     logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
 
-    retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(engine=engine, query_engine_as_tool=query_engine_as_tool, recreate_index=recreate_index)
+    retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(engine=engine,
+                                                                                        query_engine_as_tool=query_engine_as_tool,
+                                                                                        recreate_index=recreate_index,
+                                                                                        add_new_transcripts=add_new_transcripts)
     ask_questions(input_queries=INPUT_QUERIES[:10], retrieval_engine=retrieval_engine, query_engine=query_engine,
                   store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, chat_history=chat_history, reset_chat=config.reset_chat)
     return retrieval_engine

@@ -726,11 +726,13 @@ def copy_and_verify_files():
     # Define the source directories
     csv_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
     articles_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/articles_pdf_download/")
+    articles_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/article_thumbnails/")
     papers_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/papers_pdf_downloads/")
 
     # Define the destination directories
     csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
     articles_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_2023-12-05/")
+    articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
 
     # List of CSV files to copy
@@ -744,6 +746,7 @@ def copy_and_verify_files():
     os.makedirs(csv_destination_dir, exist_ok=True)
     os.makedirs(articles_pdf_destination_dir, exist_ok=True)
     os.makedirs(papers_pdf_destination_dir, exist_ok=True)
+    os.makedirs(articles_thumbnails_destination_dir, exist_ok=True)
 
     # Copy and verify CSV files
     for file_name in csv_files_to_copy:
@@ -754,6 +757,7 @@ def copy_and_verify_files():
     # Copy PDF files without size verification
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
+    copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
 
     print("File copying completed.")
 
@@ -781,9 +785,9 @@ def copy_and_verify(source_file, destination_file):
         print(f"Unexpected error: {e}")
 
 
-def copy_all_files(source_dir, destination_dir):
+def copy_all_files(source_dir, destination_dir, file_extension='.pdf'):
     for file_name in os.listdir(source_dir):
-        if file_name.lower().endswith('.pdf'):  # Ensuring it is a PDF file
+        if file_name.lower().endswith(file_extension):  # Ensuring it is a PDF file
             source_file = os.path.join(source_dir, file_name)
             destination_file = os.path.join(destination_dir, file_name)
             try:
