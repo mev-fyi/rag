@@ -11,6 +11,7 @@ import pandas as pd
 import requests
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
+from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 from src.Llama_index_sandbox.utils.utils import timeit
 from src.anyscale_sandbox import root_dir, mev_fyi_dir, research_papers_dir
 
@@ -135,5 +136,5 @@ def load_pdfs(directory_path: Union[str, Path]):
                 pdf_loaded_count += 1
             except Exception as e:
                 logging.info(f"Failed to process {pdf_file}: {e}")
-    logging.info(f"Successfully loaded {pdf_loaded_count} documents.")
+    logging.info(f"Successfully loaded {pdf_loaded_count} [{DOCUMENT_TYPES.RESEARCH_PAPER.value}] documents.")
     return all_documents

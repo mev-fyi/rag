@@ -83,7 +83,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
     if add_new_transcripts:
         logging.info("Creating transcripts from raw json utterances")
         create_transcripts_from_raw_json_utterances.run(log=False)
-        correct_typos_in_files()
+        correct_typos_in_files(log=False)
     else:
         logging.info("Skipping transcript creation from raw json utterances")
 

@@ -19,7 +19,7 @@ import os
 from src.Llama_index_sandbox import root_directory
 
 
-def correct_typos_in_files():
+def correct_typos_in_files(log=True):
 
     """
     Correct specific typos in .txt files under a given directory.
@@ -51,7 +51,8 @@ def correct_typos_in_files():
                     content = file.read()
                     for typo, correction in typo_dict.items():
                         content = content.replace(typo, correction)
-                        print("Corrected typo: ", typo, " -> ", correction, " in ", file_path, "\n")
+                        if log:
+                            print("Corrected typo: ", typo, " -> ", correction, " in ", file_path, "\n")
 
                 # Write corrected content back to file
                 with open(file_path, 'w', encoding='utf-8') as file:
