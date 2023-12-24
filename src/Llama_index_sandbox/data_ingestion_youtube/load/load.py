@@ -8,11 +8,11 @@ import pandas as pd
 from llama_index import SimpleDirectoryReader
 import re
 
-from src.Llama_index_sandbox import root_dir
+from src.Llama_index_sandbox import root_dir, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
 from src.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
@@ -31,6 +31,13 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
     if video_row.empty:
         # logging.info(f"Could not find video transcript for {title}. Passing.")
+        return []
+
+    # Safely access the first row if it exists
+    video_data = video_row.iloc[0] if not video_row.empty else None
+
+    if video_data is None:
+        logging.info(f"No data found for video transcript with title {title}.")
         return []
 
     reader = SimpleDirectoryReader(
@@ -52,11 +59,10 @@ def load_single_video_transcript(youtube_videos_df, file_path):
             # TODO 2023-10-04: is there an impact of different metadata keys across documents?
             #  Necessarily, multi-document agents deal with several document types?
             'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
-            'title': video_row.iloc[0]['title'],
-            'channel_name': video_row.iloc[0]['channel_name'],
-            'video_link': video_row.iloc[0]['url'],
-            # TODO 2023-10-08: we might want to limit date to yyyy-mm only  https://docs.pinecone.io/docs/metadata-filtering
-            'release_date': video_row.iloc[0]['published_date']
+            'title': video_data['title'],
+            'channel_name': video_data['channel_name'],
+            'video_link': video_data['url'],
+            'release_date': video_data['published_date']
         })
         # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
         #       (1) i would want to avoid the case where the agent only looks as paper index
@@ -69,13 +75,14 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
 @timeit
 def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, num_files: int = None):
+    root_dir = root_directory()
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     if add_new_transcripts:
         logging.info("Creating transcripts from raw json utterances")
-        create_transcripts_from_raw_json_utterances.run()
+        create_transcripts_from_raw_json_utterances.run(log=False)
         correct_typos_in_files()
     else:
         logging.info("Skipping transcript creation from raw json utterances")
@@ -116,8 +123,20 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                 all_documents.extend(documents)
                 video_transcripts_loaded_count += 1
             except Exception as e:
-                logging.info(f"Failed to process {video_transcript}, passing: {e}")
+                logging.info(f"Failed to process {str(video_transcript).replace(root_dir, '')}, passing: {e}")
+                # Check if the file name does not start with a date in the format yyyy-mm-dd_
+                if not re.match(r'\d{4}-\d{2}-\d{2}_', os.path.basename(video_transcript)):
+                    try:
+                        os.remove(video_transcript)
+                        logging.info(f"Deleted invalid file: {video_transcript}")
+                    except OSError as delete_error:
+                        logging.error(f"Error deleting file {video_transcript}: {delete_error}")
                 pass
     logging.info(f"Successfully loaded [{video_transcripts_loaded_count}] documents from video transcripts.")
     assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents
+
+
+if __name__ == '__main__':
+    start_logging('log_prefix')
+    load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=False, num_files=None)
