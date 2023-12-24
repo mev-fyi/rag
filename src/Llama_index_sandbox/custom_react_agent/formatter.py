@@ -1,4 +1,5 @@
 from typing import Optional, List
+from datetime import datetime
 
 from llama_index.agent.react.formatter import ReActChatFormatter, get_react_tool_descriptions
 from llama_index.agent.react.types import ObservationReasoningStep, BaseReasoningStep
@@ -22,8 +23,9 @@ class CustomReActChatFormatter(ReActChatFormatter):
         current_reasoning = current_reasoning or []
 
         tool_descs_str = "\n".join(get_react_tool_descriptions(self.tools))
-
+        current_date = datetime.now().strftime('%Y-%m-%d')
         fmt_sys_header = self.system_header.format(
+            current_date=current_date,
             tool_desc=tool_descs_str,
             tool_names=", ".join([tool.metadata.get_name() for tool in self.tools]),
         )

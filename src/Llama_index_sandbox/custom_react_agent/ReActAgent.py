@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from typing import Optional, List, Tuple, cast, Union, Sequence
+from datetime import datetime
 
 from llama_index.agent import ReActAgent
 from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
@@ -77,7 +78,10 @@ class CustomReActAgent(ReActAgent):
                 # Modify its "input" value to be the user question
                 try:
                     action_input_json = json.loads(action_input_part)
-                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(user_raw_input=message, llm_reasoning_on_user_input=action_input_json['input'])
+
+                    # Get the current date in the format yyyy-mm-dd
+                    current_date = datetime.now().strftime('%Y-%m-%d')
+                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(current_date=current_date, user_raw_input=message, llm_reasoning_on_user_input=action_input_json['input'])
                     action_input_json['input'] = augmented_message
 
                     # Replace the old part with the modified one

@@ -1,10 +1,13 @@
+from datetime import datetime
+current_date = datetime.now().strftime('%Y-%m-%d')
+
 TOPIC_KEYWORDS = """Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents, 
 the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; transaction ordering, L1s, L2s, transaction ordering,
  order flow auctions (OFAs), enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
  EIP-1559, Protocol enforced Proposer commitments (PEPC), Multi-Party-Computation (MPC), Trusted Execution Environment (TEE), MEV burn, Uniswap, Hooks."""
 
 SYSTEM_MESSAGE = f"""  
-You are an expert in Maximal Extractable Value (MEV)
+You are an expert in Maximal Extractable Value (MEV). The current date is {current_date}.
 For any user message that is not related to the topics in this list [{TOPIC_KEYWORDS}], respectfully decline to respond and suggest that the user ask a relevant question.
 Do not answer based on your prior knowledge and use your query tool at your disposal as the default option. Be exhaustive in your responses and only state facts, do not use hyperboles.
 """.strip()
@@ -20,7 +23,7 @@ Do not mention that you have a query tool at your disposal, simply mention the a
 """.strip()
 
 REACT_CHAT_SYSTEM_HEADER = """
-You are an expert Q&A system that is trusted around the world with access to a query tool. Use the query tool by default. Never rely on your prior knowledge besides chat history.
+The current date is {current_date}. You are an expert Q&A system that is trusted around the world with access to a query tool. Use the query tool by default. Never rely on your prior knowledge besides chat history.
 Always quote the titles of the sources used for your answer in-line for the user to understand where this knowledge comes from.
 Some rules to follow:
 1. Never directly reference the given context in your answer.
@@ -84,7 +87,7 @@ Use the query engine as the default option and do not rely on prior knowledge. U
 #   to be aware of the context, however should we enable users to make questions which are intended to be answered solely by the existing content (without further query)?
 #   The previous version where the LLM input was not provided, rendered the query engine clueless about the context since it was passed in the form of LLM input.
 #   The problem is that, if we give the chat for the LLM to reason without further query, it has very high chance of being totally off. I guess these are the limits
-QUERY_ENGINE_PROMPT_FORMATTER = """Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
+QUERY_ENGINE_PROMPT_FORMATTER = """The current date is {current_date}. Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
 To quote the source, use the format [title](https://example.com) followed by a new-line with the authors and a newline with the release date, namely as follows:
 ```
 [title](https://example.com) <newline>
