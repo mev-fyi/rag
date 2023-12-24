@@ -3,6 +3,7 @@ import os
 import concurrent.futures
 import time
 import random
+from functools import partial
 
 from src.Llama_index_sandbox.utils.utils import root_directory
 
@@ -47,7 +48,7 @@ def process_utterance(utterance, sentence_count):
     return output
 
 
-def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sentence count is a parameter to evauluate/optimise for
+def process_transcript(file_path, log, sentence_count=7):  # TODO 2023-10-05: the sentence count is a parameter to evauluate/optimise for
     SKIP_EXISTING = False  # Set to False if you want to re-process already processed files.
     try:
         # Save the results locally
@@ -58,23 +59,27 @@ def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sen
             # print(f"Skipping {file_path.split('/')[-1]} as processed file already exists.")
             return
 
-        print(f"Processing: {file_path.split('/')[-1]}")
+        if log:
+            print(f"Processing: {file_path.split('/')[-1]}")
 
         with open(file_path, 'r') as f:
             file_content = f.read()
             if not file_content.strip():
-                print(f"Empty JSON at {output_filename}. Returning...")
+                if log:
+                    print(f"Empty JSON at {output_filename}. Returning...")
                 # shutil.rmtree(os.path.dirname(file_path))
                 return
             try:
                 data = json.loads(file_content)
             except json.JSONDecodeError:
-                print(f"Invalid JSON content in {output_filename}. Returning...")
+                if log:
+                    print(f"Invalid JSON content in {output_filename}. Returning...")
                 # shutil.rmtree(os.path.dirname(file_path))
                 return
 
             if not data:
-                print("no data!")
+                if log:
+                    print("no data!")
                 return
 
         all_segments = []
@@ -86,12 +91,14 @@ def process_transcript(file_path, sentence_count=7):  # TODO 2023-10-05: the sen
         with open(output_path, 'w') as output_file:
             for segment in all_segments:
                 output_file.write(segment + '\n')
-        print(f"Saved {output_filename}")
+        if log:
+            print(f"Saved {output_filename}")
     except Exception as e:
-        print(f"Error processing {output_filename}: {e}")
+        if log:
+            print(f"Error processing {output_filename}: {e}")
 
 
-def run():
+def run(log=True):
     data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
 
     files_to_process = []
@@ -100,9 +107,12 @@ def run():
             if file.endswith("_diarized_content.json"):
                 files_to_process.append(os.path.join(root, file))
 
+    # Create a partial function that includes the log flag
+    process_with_log = partial(process_transcript, log=log)
+
     # Process the files in parallel
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(process_transcript, files_to_process)
+        executor.map(process_with_log, files_to_process)
 
 
 if __name__ == "__main__":
