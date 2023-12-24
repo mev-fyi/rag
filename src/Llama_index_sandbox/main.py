@@ -83,6 +83,8 @@ def run():
     if recreate_index:
         copy_and_verify_files()
         add_new_transcripts = True
+    else:
+        add_new_transcripts = False
     chat_history = []
 
     logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
