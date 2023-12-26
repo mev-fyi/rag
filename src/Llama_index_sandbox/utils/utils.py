@@ -775,7 +775,7 @@ def copy_and_verify(source_file, destination_file):
                 return
 
         shutil.copy(source_file, destination_file)
-        print(f"Copied: {source_file} to {destination_file}")
+        # print(f"Copied: {source_file} to {destination_file}")
     except IOError as e:
         print(f"Unable to copy file. {e}")
     except ValueError as e:
@@ -792,7 +792,7 @@ def copy_all_files(source_dir, destination_dir, file_extension='.pdf'):
             destination_file = os.path.join(destination_dir, file_name)
             try:
                 shutil.copy(source_file, destination_file)
-                print(f"Copied: {source_file} to {destination_file}")
+                # print(f"Copied: {source_file} to {destination_file}")
             except IOError as e:
                 print(f"Unable to copy file. {e}")
             except Exception as e:

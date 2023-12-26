@@ -28,7 +28,8 @@ def num_tokens_from_string(string: str, embedding_model_name: str) -> int:
         num_tokens = len(encoding.encode(string))
     except Exception as e:
         logging.error(f"Failed to get number of tokens due to: {e}")
-        exit(1)
+        num_tokens = 0
+        # exit(1)
     return num_tokens
 
 

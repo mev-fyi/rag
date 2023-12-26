@@ -19,11 +19,12 @@ def generate_node_embedding(node: TextNode, embedding_model, progress_counter, t
         try:
             if isinstance(embedding_model, OpenAIEmbeddings):
                 node_embedding = embedding_model.get_text_embedding(
-                    node.get_content(metadata_mode="all")
+                    node.get_content(metadata_mode="all"),
+                    disallowed_special=()  # This disables the check for all special tokens
                 )
             elif isinstance(embedding_model, HuggingFaceEmbeddings):
                 node_embedding = embedding_model.embed_documents(
-                    node.get_content(metadata_mode="all")
+                    node.get_content(metadata_mode="all"),
                 )
             else:
                 assert False, "The embedding model is not supported."

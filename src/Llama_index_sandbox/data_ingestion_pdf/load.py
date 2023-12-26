@@ -235,5 +235,5 @@ def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
             except Exception as e:
                 logging.info(f"Failed to process {pdf_file}, removing file: {e}")
                 os.remove(pdf_file)
-    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from PDF files.")
+    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{DOCUMENT_TYPES.RESEARCH_PAPER.value}] files.")
     return all_documents
