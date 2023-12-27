@@ -4,6 +4,8 @@ import os
 from functools import partial
 from pathlib import Path
 from typing import Union
+
+import numpy as np
 import pandas as pd
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
@@ -19,10 +21,19 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
         paper_row = paper_details_df[paper_details_df['title'] == title]
 
         if not paper_row.empty:
+            assert paper_row.iloc[0]['title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['article']}"
+            assert paper_row.iloc[0]['authors'] != np.nan, f"authors is NaN for {paper_row.iloc[0]['article']}"
+            assert paper_row.iloc[0]['article'] != np.nan, f"pdf_link is NaN for {paper_row.iloc[0]['article']}"
+            assert paper_row.iloc[0]['release_date'] != np.nan, f"release_date is NaN for {paper_row.iloc[0]['article']}"
+
             # Update metadata
             for document in documents:
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
+
+                if '<|endoftext|>' in document.text:
+                    logging.error(f"Found <|endoftext|> in {title} with {file_path}")
+                document.text.replace('<|endoftext|>', '')
 
                 document.metadata.update({
                     'document_type': DOCUMENT_TYPES.ARTICLE.value,

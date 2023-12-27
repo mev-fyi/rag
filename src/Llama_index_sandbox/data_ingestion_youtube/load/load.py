@@ -4,6 +4,8 @@ import os
 from functools import partial
 from pathlib import Path
 from typing import Union
+
+import numpy as np
 import pandas as pd
 from llama_index import SimpleDirectoryReader
 import re
@@ -47,13 +49,20 @@ def load_single_video_transcript(youtube_videos_df, file_path):
     #  expectedly creates a single document. which one has the correct behavior? do we care?
     documents = reader.load_data()
 
+    assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
+    assert video_data['title'] != np.nan, f"Title is NaN for {video_data['url']}"
+    assert video_data['channel_name'] != np.nan, f"channel_name is NaN for {video_data['url']}"
+    assert video_data['url'] != np.nan, f"url is NaN for {video_data['url']}"
+    assert video_data['published_date'] != np.nan, f"published_date is NaN for {video_data['url']}"
+
     # Update 'file_path' metadata and add additional metadata
     for document in documents:
         if 'file_path' in document.metadata.keys():
             del document.metadata['file_path']
 
-        assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
-
+        if '<|endoftext|>' in document.text:
+            logging.error(f"Found <|endoftext|> in {title} with {file_path}")
+        document.text.replace('<|endoftext|>', '')
         # Update metadata
         document.metadata.update({
             # TODO 2023-10-04: is there an impact of different metadata keys across documents?

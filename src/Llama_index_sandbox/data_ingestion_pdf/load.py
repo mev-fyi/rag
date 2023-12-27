@@ -8,6 +8,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
 import pikepdf
 import requests
@@ -155,23 +156,27 @@ def populate_document_metadata(documents, paper_details_df, file_path):
         if 'file_path' in document.metadata.keys():
             del document.metadata['file_path']
 
+        if '<|endoftext|>' in document.text:
+            logging.error(f"Found <|endoftext|> in {title} with {file_path}")
+        document.text.replace('<|endoftext|>', '')
         # Find the corresponding row in the DataFrame
         title = os.path.basename(file_path).replace('.pdf', '')
         paper_row = paper_details_df[paper_details_df['title'] == title]
+
+        assert paper_row.iloc[0]['title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['pdf_link']}"
+        assert paper_row.iloc[0]['authors'] != np.nan, f"authors is NaN for {paper_row.iloc[0]['pdf_link']}"
+        assert paper_row.iloc[0]['pdf_link'] != np.nan, f"pdf_link is NaN for {paper_row.iloc[0]['pdf_link']}"
+        assert paper_row.iloc[0]['release_date'] != np.nan, f"release_date is NaN for {paper_row.iloc[0]['pdf_link']}"
 
         if not paper_row.empty:
             # Update metadata
             document.metadata.update({
                 'document_type': DOCUMENT_TYPES.RESEARCH_PAPER.value,
                 'title': paper_row.iloc[0]['title'],
-                'authors': paper_row.iloc[0]['authors'],
-                'pdf_link': paper_row.iloc[0]['pdf_link'],
-                # TODO 2023-10-08: we might want to limit date to yyyy-mm only  https://docs.pinecone.io/docs/metadata-filtering
-                'release_date': paper_row.iloc[0]['release_date']
+                'authors': str(paper_row.iloc[0]['authors']),
+                'pdf_link': str(paper_row.iloc[0]['pdf_link']),
+                'release_date': str(paper_row.iloc[0]['release_date'])
             })
-            # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
-            #   It will be high (highest too? TBD.) for talks and conferences in YouTube video format
-            #   It will be relatively lower for podcasts, tweets, and less formal content.
 
 
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
