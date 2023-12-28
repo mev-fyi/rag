@@ -630,37 +630,6 @@ def process_messages(data):
     return chat_messages
 
 
-# def generate_pdf_thumbnails(pdf_directory, output_directory, thumb_scale=2, page_fraction=0.6):
-#     """
-#     Generate high-resolution thumbnails for a portion of the first page of all PDFs.
-#
-#     Args:
-#     pdf_directory (str): Directory containing PDF files.
-#     output_directory (str): Directory to save the thumbnails.
-#     thumb_scale (float): Scale factor for the thumbnail resolution.
-#     page_fraction (float): Fraction of the page to be shown in the thumbnail (0 to 1).
-#     """
-#     if not os.path.exists(output_directory):
-#         os.makedirs(output_directory)
-#
-#     for filename in os.listdir(pdf_directory):
-#         if filename.lower().endswith('.pdf'):
-#             pdf_path = os.path.join(pdf_directory, filename)
-#             thumbnail_path = os.path.join(output_directory, os.path.splitext(filename)[0] + '.png')
-#
-#             # Open the PDF
-#             with fitz.open(pdf_path) as doc:
-#                 page = doc.load_page(0)  # First page
-#                 # Define the rectangle for the specified portion of the page
-#                 portion_rect = fitz.Rect(0, 0, page.rect.width, page.rect.height * page_fraction)
-#
-#                 # Create a pixmap for the specified rectangle with increased resolution
-#                 matrix = fitz.Matrix(thumb_scale, thumb_scale).prescale(portion_rect.width / page.rect.width, portion_rect.width / page.rect.width)
-#                 pix = page.get_pixmap(matrix=matrix, clip=portion_rect)
-#                 pix.save(thumbnail_path)
-#                 print(f"High-resolution thumbnail generated for {filename} at {thumbnail_path}")
-
-
 def delete_redundant_directories(root_path):
     # Create a list to collect directories to be deleted
     directories_to_delete = []
@@ -727,12 +696,14 @@ def copy_and_verify_files():
     csv_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
     articles_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/articles_pdf_download/")
     articles_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/article_thumbnails/")
+    research_paper_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/article_thumbnails/")
     papers_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/papers_pdf_downloads/")
 
     # Define the destination directories
     csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
     articles_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_2023-12-05/")
     articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
+    papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
 
     # List of CSV files to copy
@@ -758,6 +729,7 @@ def copy_and_verify_files():
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
     copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
+    copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
     print("File copying completed.")
 
@@ -802,6 +774,12 @@ def copy_all_files(source_dir, destination_dir, file_extension='.pdf'):
 if __name__ == '__main__':
     copy_and_verify_files()
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    # clean_fullwidth_characters(directory)
+    # move_remaining_mp3_to_their_subdirs()
+    # merge_directories(directory)
+    # delete_mp3_if_text_or_json_exists(directory)
+
+    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
     # # clean_mp3_dirs(directory=directory)
     # del_wrong_subdirs(directory)
@@ -811,5 +789,4 @@ if __name__ == '__main__':
     # delete_mp3_if_text_or_json_exists(directory)
     # save_data_into_zip()
     # copy_txt_files_to_transcripts()
-    # generate_pdf_thumbnails(pdf_directory=pdf_dir, output_directory=f'{root_directory()}/datasets/pdf_thumbnails')
 
