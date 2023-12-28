@@ -1,9 +1,12 @@
 from datetime import datetime
 current_date = datetime.now().strftime('%Y-%m-%d')
 
-TOPIC_KEYWORDS = """Maximal Extractable Value (MEV); loss-versus-rebalancing (LVR); blockchain intents, 
-the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; transaction ordering, L1s, L2s, transaction ordering,
- order flow auctions (OFAs), enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
+TOPIC_KEYWORDS = """Maximal Extractable Value (MEV), Auction Design, Cryptographic Privacy, Cryptoeconomic Privacy, 
+MEV in L2, MEV Taxonomy, Protocol Design, Search Optimization, Incentive Alignment in Blockchain Systems, Mechanism Design and its Implications, 
+Transaction Ordering and its Impacts, Auction theory and its Applications in Blockchain, Potential Solutions and Mitigations for MEV, 
+loss-versus-rebalancing (LVR); blockchain intents, the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; 
+transaction ordering, L1s, L2s, transaction ordering, order flow auctions (OFAs), 
+enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
  EIP-1559, Protocol enforced Proposer commitments (PEPC), Multi-Party-Computation (MPC), Trusted Execution Environment (TEE), MEV burn, Uniswap, Hooks."""
 
 SYSTEM_MESSAGE = f"""  

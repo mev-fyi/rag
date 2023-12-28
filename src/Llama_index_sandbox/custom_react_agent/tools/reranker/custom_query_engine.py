@@ -36,7 +36,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'SevenX Ventures': 0.9,
             'Research Day': 0.9,
             'Tim Roughgarden Lectures': 0.9,
-            'default': 0.8,
+            'default': 0.75,
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
             'default': 1
