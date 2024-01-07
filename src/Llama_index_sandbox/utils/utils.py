@@ -771,8 +771,50 @@ def copy_all_files(source_dir, destination_dir, file_extension='.pdf'):
                 print(f"Unexpected error: {e}")
 
 
+def copy_and_rename_flashbots_docs():
+    def copy_and_rename_pdfs(source_root, target_root):
+        # Ensure the target directory exists
+        os.makedirs(target_root, exist_ok=True)
+
+        # Walk through the source directory
+        for root, dirs, files in os.walk(source_root):
+            for file in files:
+                if file.endswith(('.pdf', '.pdfx')):
+                    # Construct the relative path
+                    relative_path = os.path.relpath(root, source_root)
+                    # Replace directory separators with '-' and remove leading 'flashbots_docs_pdf-' if present
+                    relative_path = relative_path.replace(os.path.sep, '-')
+                    if relative_path == '.':
+                        # If the file is at the root, do not prefix with the relative path
+                        new_filename = file
+                    elif relative_path.startswith('flashbots_docs_pdf-'):
+                        # Remove the unnecessary prefix
+                        new_filename = relative_path[len('flashbots_docs_pdf-'):] + '-' + file
+                    else:
+                        # Otherwise, use the relative path as a prefix
+                        new_filename = relative_path + '-' + file
+
+                    # Change the file extension from .pdfx to .pdf if necessary
+                    if new_filename.endswith('.pdfx'):
+                        new_filename = new_filename[:-1]
+
+                    # Construct the full source and target paths
+                    source_file = os.path.join(root, file)
+                    target_file = os.path.join(target_root, new_filename)
+
+                    # Copy the file
+                    shutil.copy2(source_file, target_file)
+                    print(f"Copied and renamed {source_file.split('/')[-1]} to {target_file.split('/')[-1]}")
+
+    # Usage
+    source_directory = f'{root_directory()}/../mev.fyi/data/flashbots_docs_pdf'
+    target_directory = f'{root_directory()}/datasets/evaluation_data/flashbots_docs'
+    copy_and_rename_pdfs(source_directory, target_directory)
+
+
 if __name__ == '__main__':
-    copy_and_verify_files()
+    # copy_and_verify_files()
+    copy_and_rename_flashbots_docs()
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # clean_fullwidth_characters(directory)
     # move_remaining_mp3_to_their_subdirs()
