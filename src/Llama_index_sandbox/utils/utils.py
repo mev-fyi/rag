@@ -728,9 +728,10 @@ def copy_and_verify_files():
     # Copy PDF files without size verification
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
-    copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
-    copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
+    # copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
+    # copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
+    copy_and_rename_website_docs_pdfs()
     print("File copying completed.")
 
 
@@ -771,7 +772,7 @@ def copy_all_files(source_dir, destination_dir, file_extension='.pdf'):
                 print(f"Unexpected error: {e}")
 
 
-def copy_and_rename_pdfs():
+def copy_and_rename_website_docs_pdfs():
     root_dir = root_directory()
     source_directories = {
         f'{root_dir}/../mev.fyi/data/flashbots_docs_pdf': f'{root_dir}/datasets/evaluation_data/flashbots_docs_2024_01_07',
@@ -813,7 +814,7 @@ def copy_and_rename_pdfs():
 
 if __name__ == '__main__':
     # copy_and_verify_files()
-    copy_and_rename_pdfs()
+    copy_and_rename_website_docs_pdfs()
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # clean_fullwidth_characters(directory)
     # move_remaining_mp3_to_their_subdirs()

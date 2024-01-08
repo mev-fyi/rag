@@ -119,7 +119,22 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
     return all_documents
 
 
-def run_pdf_processing(config: Dict[str, Dict[str, Union[str, Callable]]], debug=False):
+def load_docs_as_pdf(debug=False):
+    # Configuration for the PDF processing
+    config = {
+        'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
+            'title_extraction_func': ethereum_org_title_extraction,
+            'author': 'Ethereum.org',
+            'release_date': ''
+        },
+        'datasets/evaluation_data/flashbots_docs_2024_01_07': {
+            'title_extraction_func': flashbots_title_extraction,
+            'author': 'Flashbots Docs',
+            'release_date': ''
+        }
+    }
+
+    all_docs = []
     for directory, details in config.items():
         directory_path = os.path.join(root_dir, directory)
         title_extraction_func = details['title_extraction_func']
@@ -127,23 +142,10 @@ def run_pdf_processing(config: Dict[str, Dict[str, Union[str, Callable]]], debug
         release_date = details['release_date']
 
         logging.info(f"Processing directory: {directory_path}")
-        load_pdfs(directory_path, title_extraction_func, author, release_date, debug=debug)
+        all_docs += load_pdfs(directory_path, title_extraction_func, author, release_date, debug=debug)
+    return all_docs
 
-
-# Configuration for the PDF processing
-config = {
-    'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
-        'title_extraction_func': ethereum_org_title_extraction,
-        'author': 'Ethereum.org',
-        'release_date': ''
-    },
-    'datasets/evaluation_data/flashbots_docs_2024_01_07': {
-        'title_extraction_func': flashbots_title_extraction,
-        'author': 'Flashbots Docs',
-        'release_date': ''
-    }
-}
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    run_pdf_processing(config, debug=True)
+    load_docs_as_pdf(debug=True)

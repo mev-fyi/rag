@@ -7,6 +7,7 @@ import pinecone
 from pathlib import Path
 
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_vector_store_index import CustomVectorStoreIndex
+import src.Llama_index_sandbox.data_ingestion_pdf.load_docs as load_docs
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
 from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config, ARTICLES_DIRECTORY
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
@@ -136,6 +137,7 @@ def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size
     # download_pdfs(pdf_links, save_dir)
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files)
     documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files)
+    documents_pdfs += load_docs.load_docs_as_pdf()
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
 
     # 2. Data chunking / text splitter
