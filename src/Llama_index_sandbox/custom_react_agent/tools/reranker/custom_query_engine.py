@@ -24,9 +24,12 @@ class CustomQueryEngine(RetrieverQueryEngine):
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
             'ethresear.ch': 1,
+            'ethereum.org': 1,
+            'flashbot': 1,
             'writings.flashbots.net': 1,
             'frontier.tech': 0.95,
             'research.anoma.net': 0.95,
+            'dba.xyz': 0.95,
             'default': 0.9
         },
         f'{DOCUMENT_TYPES.YOUTUBE_VIDEO.value}_weights': {
@@ -50,6 +53,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'https://ethresear.ch/u/mikeneuder',
             'https://ethresear.ch/u/barnabe',
         },
+        'Ethereum.org': {
+                'Ethereum.org'
+        },
         'Flashbots': {
             'https://collective.flashbots.net/u/Quintus',
             'https://collective.flashbots.net/u/flashbots',
@@ -60,11 +66,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'https://collective.flashbots.net/u/elainehu/',
             'https://collective.flashbots.net/u/Fred',
             'https://collective.flashbots.net/u/system/summary',
+            'Flashbots Docs'
         },
     }
     authors_weights = {
         'Flashbots': 1.05,
         'EF': 1.05,
+        'Ethereum.org': 1.05,
         'default': 1,
     }
 
@@ -135,7 +143,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             return effective_weights
 
     # Load or compute the effective weights
-    effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
+    # effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
