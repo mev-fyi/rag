@@ -16,16 +16,24 @@ from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, fla
 from src.Llama_index_sandbox.utils.utils import timeit
 
 
-def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, loader=PyMuPDFReader(),
+def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, loader=PyMuPDFReader(),
                     debug=False):
     try:
-        title = extract_title(file_path, title_extraction_func)
-        if title is not None:
-            link = extract_link(domain_url=pdf_link, search_query=title)
-            extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
+        filename = os.path.basename(file_path)
+        existing_row = existing_metadata[existing_metadata['document_name'] == filename]
+
+        if not existing_row.empty:
+            documents_details = existing_row.to_dict('records')[0]
+            title, author, link, release_date = documents_details['title'], documents_details['authors'], \
+            documents_details['pdf_link'], documents_details['release_date']
         else:
-            link, extracted_author, extracted_release_date = None, None, None
-            logging.warning(f"Couldn't find title for [{file_path}]")
+            title = extract_title(file_path, title_extraction_func)
+            if title is not None:
+                link = extract_link(domain_url=pdf_link, search_query=title)
+                extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
+            else:
+                link, extracted_author, extracted_release_date = None, None, None
+                logging.warning(f"Couldn't find title for [{file_path}]")
 
         # Check if the title is valid
         if not is_valid_title(title):
@@ -46,16 +54,17 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
                 'title': title,
                 'authors': extracted_author if extracted_author is not None else author,
                 'pdf_link': link if link is not None else pdf_link,
-                'release_date': extracted_release_date if extracted_release_date is not None else release_date,
+                'release_date': extracted_release_date if extracted_release_date is not None else release_date
             })
 
         if debug:
-            logging.info(f'Processed [{title}]')
+            logging.info(f'Processed [{filename}] with named [{title}]')
         documents_details = {
             'title': title,
             'authors': extracted_author if extracted_author is not None else author,
             'pdf_link': link if link is not None else pdf_link,
-            'release_date': extracted_release_date if extracted_release_date is not None else release_date
+            'release_date': extracted_release_date if extracted_release_date is not None else release_date,
+            'document_name': filename
         }
         return documents, documents_details
     except Exception as e:
@@ -64,13 +73,13 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, num_files: int = None, num_cpus: int = None, debug=False):
+def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     all_documents = []
     partial_load_single_pdf = partial(load_single_pdf, title_extraction_func=title_extraction_func, extract_author_and_release_date_func=extract_author_and_release_date_func,
-                                      author=author, release_date=release_date, pdf_link=pdf_link, debug=debug)
+                                      author=author, release_date=release_date, pdf_link=pdf_link, existing_metadata=existing_metadata, debug=debug)
 
     files_gen = directory_path.glob("*.pdf")
     files = [next(files_gen) for _ in range(num_files)] if num_files is not None else list(files_gen)
@@ -93,8 +102,8 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
                 all_documents.extend(documents)
                 pdf_loaded_count += 1  # Increment the counter for each successful load
             except Exception as e:
-                logging.info(f"Failed to process {pdf_file}, removing file: {e}")
-                os.remove(pdf_file)
+                logging.info(f"Failed to process {pdf_file}, with reason: {e}")
+                # os.remove(pdf_file)
 
     logging.info(f"Successfully loaded [{pdf_loaded_count}] documents.")
     return all_documents, metadata_accumulator
@@ -121,6 +130,12 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
 
     all_docs = []
     all_metadata = []
+    # Load existing dataframe if it exists
+    csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
+    if os.path.exists(csv_path):
+        existing_metadata = pd.read_csv(csv_path)
+    else:
+        existing_metadata = pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
 
     for directory, details in config.items():
         directory_path = os.path.join(root_dir, directory)
@@ -131,7 +146,7 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
         pdf_link = details['pdf_link']
 
         logging.info(f"Processing directory: {directory_path}")
-        all_documents, all_documents_details = load_pdfs(directory_path, title_extraction_func, extract_author_and_release_date_func, author, release_date, pdf_link, debug=debug,
+        all_documents, all_documents_details = load_pdfs(directory_path, title_extraction_func, extract_author_and_release_date_func, author, release_date, pdf_link, existing_metadata=existing_metadata, debug=debug,
                               num_files=num_files, num_cpus=num_cpus)
         all_docs += all_documents
         all_metadata += all_documents_details
