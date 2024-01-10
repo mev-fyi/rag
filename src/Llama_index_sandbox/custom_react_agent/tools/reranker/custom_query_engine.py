@@ -143,7 +143,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             return effective_weights
 
     # Load or compute the effective weights
-    # effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
+    effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))

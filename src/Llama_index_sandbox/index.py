@@ -27,10 +27,10 @@ def initialise_vector_store(embedding_model_vector_dimension, vector_space_dista
     index_name = "mevfyi"
 
     # Check if the index already exists
-    existing_indexes = pinecone.list_indexes()
-    if index_name in existing_indexes:
-        # If the index exists, delete it
-        pinecone.delete_index(index_name)
+    # existing_indexes = pinecone.list_indexes()
+    # if index_name in existing_indexes:
+    #     # If the index exists, delete it
+    #     pinecone.delete_index(index_name)
 
     # NOTE: We do not index the metadata fields by video/paper link.
     #  https://docs.pinecone.io/docs/manage-indexes#selective-metadata-indexing
@@ -106,7 +106,7 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
     try:
         pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-        index_name = "quickstart"
+        index_name = "mevfyi"
         vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
         index = CustomVectorStoreIndex.from_vector_store(vector_store, service_context)
         logging.info(f"Successfully loaded index {persist_dir} from disk.")
@@ -120,7 +120,7 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
                 f.write("{}")
             try:
                 pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-                index_name = "quickstart"
+                index_name = "mevfyi"
                 vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
                 index = VectorStoreIndex.from_vector_store(vector_store, service_context)
                 return index

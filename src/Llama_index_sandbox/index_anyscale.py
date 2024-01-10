@@ -29,7 +29,7 @@ api_key = os.environ["PINECONE_API_KEY"]
 @timeit
 def initialise_vector_store(embedding_model_vector_dimension) -> PineconeVectorStore:
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-    index_name = "quickstart"
+    index_name = "mevfyi"
 
     # Check if the index already exists
     existing_indexes = pinecone.list_indexes()
@@ -111,7 +111,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
     try:
         pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-        index_name = "quickstart"
+        index_name = "mevfyi"
         vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
         index = VectorStoreIndex.from_vector_store(vector_store, service_context)
         return index
@@ -124,7 +124,7 @@ def load_index_from_disk(service_context) -> VectorStoreIndex:
                 f.write("{}")
             try:
                 pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-                index_name = "quickstart"
+                index_name = "mevfyi"
                 vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
                 index = VectorStoreIndex.from_vector_store(vector_store, service_context)
                 return index
