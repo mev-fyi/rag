@@ -5,6 +5,7 @@ from functools import partial
 from pathlib import Path
 from typing import Union, Callable
 
+import pandas as pd
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
@@ -29,7 +30,7 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
         # Check if the title is valid
         if not is_valid_title(title):
             logging.warning(f"Skipping file with invalid title: {title} in {file_path}")
-            return []
+            return [], {}
 
         documents = loader.load(file_path=file_path)
 
@@ -50,10 +51,16 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
         if debug:
             logging.info(f'Processed [{title}]')
-        return documents
+        documents_details = {
+            'title': title,
+            'authors': extracted_author if extracted_author is not None else author,
+            'pdf_link': link if link is not None else pdf_link,
+            'release_date': extracted_release_date if extracted_release_date is not None else release_date
+        }
+        return documents, documents_details
     except Exception as e:
         logging.error(f"Failed to load {file_path}: {e}")
-        return []
+        return [], {}
 
 
 @timeit
@@ -69,6 +76,8 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
     files = [next(files_gen) for _ in range(num_files)] if num_files is not None else list(files_gen)
 
     pdf_loaded_count = 0  # Initialize the counter
+    # Initialize a list to accumulate metadata
+    metadata_accumulator = []
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_cpus) as executor:
         futures = {executor.submit(partial_load_single_pdf, file_path=pdf_file): pdf_file for pdf_file in files}
@@ -76,7 +85,11 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
         for future in concurrent.futures.as_completed(futures):
             pdf_file = futures[future]
             try:
-                documents = future.result()
+                documents, documents_details = future.result()
+                if documents_details['title'] not in [md['title'] for md in metadata_accumulator]:
+                    metadata_accumulator.append(documents_details)
+                    pdf_loaded_count += 1
+
                 all_documents.extend(documents)
                 pdf_loaded_count += 1  # Increment the counter for each successful load
             except Exception as e:
@@ -84,7 +97,7 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
                 os.remove(pdf_file)
 
     logging.info(f"Successfully loaded [{pdf_loaded_count}] documents.")
-    return all_documents
+    return all_documents, metadata_accumulator
 
 
 def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
@@ -107,6 +120,8 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
     }
 
     all_docs = []
+    all_metadata = []
+
     for directory, details in config.items():
         directory_path = os.path.join(root_dir, directory)
         title_extraction_func = details['title_extraction_func']
@@ -116,8 +131,21 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
         pdf_link = details['pdf_link']
 
         logging.info(f"Processing directory: {directory_path}")
-        all_docs += load_pdfs(directory_path, title_extraction_func, extract_author_and_release_date_func, author, release_date, pdf_link, debug=debug,
+        all_documents, all_documents_details = load_pdfs(directory_path, title_extraction_func, extract_author_and_release_date_func, author, release_date, pdf_link, debug=debug,
                               num_files=num_files, num_cpus=num_cpus)
+        all_docs += all_documents
+        all_metadata += all_documents_details
+
+    # Save to CSV
+    df = pd.DataFrame(all_metadata)
+    csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
+    if os.path.exists(csv_path):
+        existing_df = pd.read_csv(csv_path)
+        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=['title'])
+    else:
+        combined_df = df
+
+    combined_df.to_csv(csv_path, index=False)
     return all_docs
 
 
