@@ -121,7 +121,7 @@ def extract_author_and_release_date_flashbots(link: str):
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Extract release date
-        release_date_selector = '#main-content > div > div > div > div > article > div.css-1ac81qj > div.css-1xm9et8 > div.chakra-skeleton.css-1cyydwu > p > a'
+        release_date_selector = '#__docusaurus_skipToContent_fallback > div > div > main > div > div > div > div > article > footer > div > div.col.lastUpdated_vwxv > span > b > time'
         release_date_element = soup.select_one(release_date_selector)
         if not release_date_element:
             # Try alternative selector
@@ -131,12 +131,10 @@ def extract_author_and_release_date_flashbots(link: str):
         release_date = None
         if release_date_element:
             release_date_str = release_date_element.get_text().replace('Page last updated: ', '')
-            release_date = datetime.strptime(release_date_str, '%B %d, %Y').strftime('%Y-%m-%d')
+            release_date = datetime.strptime(release_date_str, '%b %d, %Y').strftime('%Y-%m-%d')
 
-        # Extract author
-        author_selector = '#main-content > div > div > div > div > article > div.css-1ac81qj > div.css-1xm9et8 > div.chakra-skeleton.css-1tfhr0e > p > a'
-        author_element = soup.select_one(author_selector)
-        author = author_element.get_text() if author_element else None
+        # NOTE 2024-01-10: there are no authors on flashbot docs
+        author = None
 
         return author, release_date
     except Exception as e:

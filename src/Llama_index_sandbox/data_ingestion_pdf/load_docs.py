@@ -19,8 +19,12 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
                     debug=False):
     try:
         title = extract_title(file_path, title_extraction_func)
-        link = extract_link(domain_url=pdf_link, search_query=title)
-        extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
+        if title is not None:
+            link = extract_link(domain_url=pdf_link, search_query=title)
+            extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
+        else:
+            link, extracted_author, extracted_release_date = None, None, None
+            logging.warning(f"Couldn't find title for [{file_path}]")
 
         # Check if the title is valid
         if not is_valid_title(title):
@@ -96,7 +100,6 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
         'datasets/evaluation_data/flashbots_docs_2024_01_07': {
             'title_extraction_func': flashbots_title_extraction,
             'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-            'author'
             'author': 'Flashbots Docs',
             'pdf_link': 'https://docs.flashbots.net/',
             'release_date': ''
@@ -120,5 +123,5 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    num_cpus = 1
+    num_cpus = os.cpu_count()# 1
     load_docs_as_pdf(debug=True, num_cpus=num_cpus)
