@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Union, Callable
 
 import pandas as pd
+import numpy as np
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
@@ -16,6 +17,13 @@ from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, fla
 from src.Llama_index_sandbox.utils.utils import timeit
 
 
+def sanitize_metadata_value(value):
+    """Sanitize metadata value to ensure it's not None or np.nan."""
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return ''
+    return str(value).replace('"', '')
+
+
 def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, loader=PyMuPDFReader(),
                     debug=False):
     try:
@@ -24,15 +32,19 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
         if not existing_row.empty:
             documents_details = existing_row.to_dict('records')[0]
-            title, author, link, release_date = documents_details['title'], documents_details['authors'], \
-            documents_details['pdf_link'], documents_details['release_date']
+            title = sanitize_metadata_value(documents_details['title'])
+            extracted_author = sanitize_metadata_value(documents_details['authors'])
+            link = sanitize_metadata_value(documents_details['pdf_link'])
+            extracted_release_date = sanitize_metadata_value(documents_details['release_date'])
         else:
-            title = extract_title(file_path, title_extraction_func)
-            if title is not None:
-                link = extract_link(domain_url=pdf_link, search_query=title)
+            title = sanitize_metadata_value(extract_title(file_path, title_extraction_func))
+            if title:
+                link = sanitize_metadata_value(extract_link(domain_url=pdf_link, search_query=title))
                 extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
+                extracted_author = sanitize_metadata_value(extracted_author)
+                extracted_release_date = sanitize_metadata_value(extracted_release_date)
             else:
-                link, extracted_author, extracted_release_date = None, None, None
+                link, extracted_author, extracted_release_date = '', '', ''
                 logging.warning(f"Couldn't find title for [{file_path}]")
 
         # Check if the title is valid
@@ -52,18 +64,18 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
             document.metadata.update({
                 'document_type': DOCUMENT_TYPES.ARTICLE.value,
                 'title': title,
-                'authors': extracted_author if extracted_author is not None else author,
-                'pdf_link': link if link is not None else pdf_link,
-                'release_date': extracted_release_date if extracted_release_date is not None else release_date
+                'authors': extracted_author,
+                'pdf_link': link,
+                'release_date': extracted_release_date
             })
 
         if debug:
             logging.info(f'Processed [{filename}] with named [{title}]')
         documents_details = {
             'title': title,
-            'authors': extracted_author if extracted_author is not None else author,
-            'pdf_link': link if link is not None else pdf_link,
-            'release_date': extracted_release_date if extracted_release_date is not None else release_date,
+            'authors': extracted_author,
+            'pdf_link': link,
+            'release_date': extracted_release_date,
             'document_name': filename
         }
         return documents, documents_details
@@ -105,7 +117,7 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
                 logging.info(f"Failed to process {pdf_file}, with reason: {e}")
                 # os.remove(pdf_file)
 
-    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents.")
+    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{author}].")
     return all_documents, metadata_accumulator
 
 
@@ -166,5 +178,5 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    num_cpus = os.cpu_count()# 1
+    num_cpus = 1  # os.cpu_count()# 1
     load_docs_as_pdf(debug=True, num_cpus=num_cpus)

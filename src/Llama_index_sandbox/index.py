@@ -27,10 +27,10 @@ def initialise_vector_store(embedding_model_vector_dimension, vector_space_dista
     index_name = "mevfyi"
 
     # Check if the index already exists
-    # existing_indexes = pinecone.list_indexes()
-    # if index_name in existing_indexes:
-    #     # If the index exists, delete it
-    #     pinecone.delete_index(index_name)
+    existing_indexes = pinecone.list_indexes()
+    if index_name in existing_indexes:
+        # If the index exists, delete it
+        pinecone.delete_index(index_name)
 
     # NOTE: We do not index the metadata fields by video/paper link.
     #  https://docs.pinecone.io/docs/manage-indexes#selective-metadata-indexing
