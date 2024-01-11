@@ -1,0 +1,239 @@
+00:00:13.610 - 00:00:36.840, Speaker A: I'm actually trying to do some practical stuff like implementing a snark circuit to process a rule of transactions. So if you want to follow along your welcome to. So if you want to install any requirements, they are over here. And this link is public. I cannot buy a domain, so you can use this one.
+00:00:38.990 - 00:00:39.740, Speaker B: Yeah.
+00:00:42.110 - 00:01:04.400, Speaker A: That'S a question. Are you going to do anything more than following some tutorials on the online? Yeah, I created this tutorial and it's mostly going to be like me explaining how roll up works and maybe creating a circuit for it live.
+00:01:05.730 - 00:01:15.640, Speaker B: Okay, sure. Out.
+00:02:18.570 - 00:03:46.594, Speaker A: Basically, ZK roll up is all about using Snap not for their privacy expect, but for creating sustained pools so that we can verify lots of computation done off chain on a smart contract on Ethereum chain. So for roll up, we basically do all the signature aggregation balance checks, changing all the balances for the participants involved in our transactions off chain, and we patch all the transactions together and submit the snark proof as well as the compressed transactions on chain. ZK rules are basically a layer two solution, and unlike plasma, we don't really have to worry about things like data being not available and users being like in plasma, users have to continuously watch their coins so that they can be active and submit challenges if anything bad happens. Roll up has no such assumptions. So a snap proves the validity that the transaction that the computation done off chain is actually valid, right? So it's pretty simple. So we have two actors involved in the role of chain. There's a coordinator and there is user.
+00:03:46.594 - 00:05:11.360, Speaker A: So the coordinator basically takes all the transactions like inputs and signatures from the users via RPC, endpoint in an API, or anything like that. And he basically generates a batch and passes all the transactions to the snark circuit. The snark does all the processing and emits the updated root hash and the snark proof. So on an Ethereum smart contract, we maintain a balanced Merkel tree, right? So it's like the Merkel tree, and the leaves contain balances and accounts of all the users, right? And this root hash of this Merkel tree can only be updated via snark proof, right? So as soon as the batch is processed by a coordinator, he submits the snark proof on chain and the on chain verifier checks. If the proof is correct and the proof is correct, the new route is updated in the smart contract, right? So yeah, this is why roll up seems really amazing to me. So it has no exit games and it has no likeness assumptions, no data availability issues. The transaction fees is still very less.
+00:05:11.360 - 00:06:03.374, Speaker A: And basically we can create blockchains, not only for payments, we can do stuff like cryptokitties, we can do stuff like what Fairwind did, like any sort of smart contract, right? So basically a snark storage layer. Basically you can put anything you want in the leaf of the Merkel tree and it will work, right? Yeah. So for the purpose of this tutorial sort of thing, we are using circom and snark js. They're basically javascript based compilers. And these are basic commands. You can hop back to them whenever it's needed. We'll mostly need them every time we do a compilation and we create an input.
+00:06:03.422 - 00:06:07.602, Speaker B: Right, cool.
+00:06:07.736 - 00:06:35.210, Speaker A: So I'm just going to show how to create one simple constraint, which is like arithmetic constraint. We are going to see if a plus B equals c and create a snap proof for it, right? So that we can go anywhere and prove, and prove to someone that this computation was done correctly, right? So it's pretty simple, as you can see, just like create a template. Template is just like a circuit.
+00:06:37.550 - 00:06:37.914, Speaker B: And.
+00:06:37.952 - 00:07:26.298, Speaker A: The inputs, they are called signals. So every variable is a sort of signal. You can imagine circuits like electronics circuits, right? So in electronics circuits, also we have signals in inputs and outputs as well. So here we are accepting three private inputs, we are calling it a, B and c, and we have one public input, it's called c, right? And we create an output signal, call out. And this is that we are forcing a constraint. We are basically forcing a plus B to be equal to c, which is provided as a public input. We can basically prove that two plus two equals four without getting to know what the first two variables were.
+00:07:26.298 - 00:07:45.666, Speaker A: We don't need to know that they were two and two. Yeah, that's what. So they can be one and three, or they can be three and one. We don't really need to know here. So this basically creates a constraint for addition. We can do one for multiplication as well, like this. It's pretty simple.
+00:07:45.666 - 00:07:57.320, Speaker A: And whatever we need to give as an output, we just force a constraint and we assign to the output variable. So as you can see, it's pretty simple, right?
+00:07:58.250 - 00:07:58.854, Speaker B: Yeah.
+00:07:58.972 - 00:08:04.680, Speaker A: So as soon as we are done with the. Is anyone following around or should I wait?
+00:08:05.690 - 00:08:06.902, Speaker B: Yeah. Cool.
+00:08:07.036 - 00:08:37.540, Speaker A: So if anyone wants to compile it and generate inputs, first of all, from the circum circuit, we create a compiled version, and it's basically JSON representation of this constraint in the circuit, right? And then we basically have to create inputs. So the inputs for this would basically be ABC, ABD, and C so we just put that in a file. I can show you that part.
+00:08:45.770 - 00:08:46.230, Speaker B: Yeah.
+00:08:46.300 - 00:08:49.846, Speaker A: So this thing, basically the.
+00:08:50.028 - 00:08:51.206, Speaker C: Can you zoom in?
+00:08:51.308 - 00:08:52.200, Speaker A: Yeah, sure.
+00:08:58.510 - 00:08:58.970, Speaker B: Yeah.
+00:08:59.040 - 00:09:43.090, Speaker A: So here we just pass the inputs two, four, six and 24, and we create an input JSON, which has all of these variables. And then basically when you have input JSON ready, we calculate witness, which is like the inputs we are going to provide to snark that the input basically satisfies all the constraints defined in the circuit. So if this command throws an error, that basically means your input is not going to pass the snap server, that something is wrong with the input.
+00:09:43.170 - 00:09:43.800, Speaker B: Right.
+00:09:44.570 - 00:10:17.554, Speaker A: And this is the trusted setup. It's currently only on your laptop, so it's going to be pretty unsafe. And then we can create a proof and we can do snaggs verify, which will basically tell you if the proof was right or not. So if it displays okay, then it was good. If it says invalid, then something went wrong. Your input did not satisfy all the constraints defined in the circuit, right? Yeah, sure. What's growth and what are the other options?
+00:10:17.672 - 00:10:18.050, Speaker B: Sure.
+00:10:18.120 - 00:10:35.254, Speaker A: So growth is like growth 16, which is the most efficient proverb. There are some other options you can do dash protocol and help. I don't really know, I've always been using this one.
+00:10:35.292 - 00:10:35.880, Speaker B: Right?
+00:10:44.670 - 00:11:32.434, Speaker A: Yeah. So if you guys want, I can run these and show you, but it takes quite a while to run all the proofs, so I'm going to hop ahead if someone wants to run. I'll be happy to debug if there's any issues. Cool. We are going to verify EDDSA signature next. So in snarks it's much more easier to verify EDDSA signature than Ethereum or bitcoin signatures because it requires lesser number of constraints. There's a library called circumlib and they export a template.
+00:11:32.434 - 00:12:33.470, Speaker A: It's called EdDSA Mincy verifier, have you heard? So there's a hash function called MimSi because shard 256 is like way too costly to use. Inside of snark, MiMC uses much less number of constraints and therefore the proven time is low. And for the purpose of this workshop, this level of security should be just fine. It's very easy to use this template. We just pass the from. For EdDSA pub key, there are two parts, there are X coordinate and there's a Y coordinate, right? So in the verifier we send the X coordinate and here we send the Y coordinate and this is parts of signature. And this is the message that we want to check the signature against.
+00:12:33.620 - 00:12:34.126, Speaker B: Right.
+00:12:34.228 - 00:12:43.342, Speaker A: So if the calculate witness things run smoothly, then your signature was basically correct, right?
+00:12:43.476 - 00:12:44.160, Speaker B: Yeah.
+00:12:46.870 - 00:12:48.610, Speaker A: Which verifier we should use.
+00:12:48.760 - 00:12:49.460, Speaker B: Yeah.
+00:12:49.910 - 00:13:18.058, Speaker A: You said that this verifier is only for the demo group of guys. Which one? That is efficient. But there is security. Yeah. The security is not widely researched yet, so people generally tend to avoid this because the security is not really proven at the moment. But it's not broken. It's not proven either, so people generally tend to avoid it.
+00:13:18.058 - 00:13:20.410, Speaker A: But it's fine. For the kids who have a workshop.
+00:13:20.930 - 00:13:27.646, Speaker C: It'S very hard to prove that we think it's all right. And today we announced that we put.
+00:13:27.668 - 00:13:35.060, Speaker A: It like a $20,000 battery, but we still don't know.
+00:13:37.830 - 00:13:40.020, Speaker C: Is there any other one which works well?
+00:13:41.110 - 00:13:47.366, Speaker A: Redison works pretty good. That's all right.
+00:13:47.388 - 00:13:48.120, Speaker B: I think.
+00:13:50.490 - 00:14:01.420, Speaker C: It'S not as lower than what you say is already. Kind of. You don't click any information.
+00:14:05.870 - 00:14:09.478, Speaker A: In this. We are just trying to verify a signature insider.
+00:14:09.494 - 00:14:09.766, Speaker B: Snap.
+00:14:09.798 - 00:14:30.420, Speaker A: We are not trying to make things private in this circuit. While verifying transactions for roll up, we'll have to verify if a transaction submitted by a from address is actually signed by. No.
+00:14:31.110 - 00:14:32.980, Speaker B: Yeah. Cool.
+00:14:35.690 - 00:14:56.522, Speaker A: The next part is creating a merkel root for given leaves. In here, we basically have two or three variables. It's like part two root is basically the leaves in the Merkel group.
+00:14:56.576 - 00:14:57.180, Speaker B: Right.
+00:14:57.790 - 00:15:54.510, Speaker A: And part two root portion is basically binary vector. Let's say there's a leaf at index zero in part two root. So part two root portion at index zero will basically have zero or 10 means that the leaf is left, one means it's right. So we'll see how that's used later. This is an output signal. So multimim c seven basically creates hash if you provide it inputs. The first parameter here, two, is like the number of inputs you want to give it, right? If part two root portion is zero, the first input to MIMc becomes the leaf itself.
+00:15:54.580 - 00:15:54.862, Speaker B: Right?
+00:15:54.916 - 00:16:11.838, Speaker A: So this is how the binary vectorization works. If this thing is zero, then the first input becomes leaf. And because this thing is also zero, the second input becomes the sibling.
+00:16:11.934 - 00:16:12.386, Speaker B: Right.
+00:16:12.488 - 00:16:26.950, Speaker A: And if it's one, then the first input becomes the leaf, and the second input becomes the actual leaf that we want to prove the path for.
+00:16:27.100 - 00:16:27.894, Speaker B: Right?
+00:16:28.092 - 00:17:00.574, Speaker A: Does that make sense? Then we basically just do the same thing, but over a loop, right? And we can just basically copy paste this part over here. And as soon as we have filled all the inputs, if we do Merkel root out, which is basically this template out, so it basically gives us a hash of the leaf.
+00:17:00.622 - 00:17:01.074, Speaker B: Right.
+00:17:01.192 - 00:17:11.906, Speaker A: So whatever we have passed over here, doing out, over it gives us a hash. So if we give like two and three dot out, gives us a hash of those two inputs.
+00:17:12.018 - 00:17:12.294, Speaker B: Right.
+00:17:12.332 - 00:17:17.430, Speaker A: So it's basically used to create hashes of leaves so that we can create a muppet tree.
+00:17:17.790 - 00:17:20.330, Speaker B: Right? Yeah.
+00:17:20.480 - 00:17:35.520, Speaker A: And this part is checking the existence of a leaf in a tree. It's also pretty basic. We just take the paths and we assign elements like we did over here.
+00:17:36.130 - 00:17:37.120, Speaker B: Over here.
+00:17:37.490 - 00:17:50.766, Speaker A: And this part basically tells us if the DX root that we have given, if the root root given over here matches the root that we have just created inside the snack.
+00:17:50.958 - 00:17:51.700, Speaker B: Right.
+00:17:52.230 - 00:18:13.180, Speaker A: Isn't there missing anything? There is an operator, the arrow. Yeah. This was basically designed as a workshop, so because of bad Internet connections, I tried to skip it. People basically had to enter these values. But I can show you the snot circuit over here.
+00:18:15.470 - 00:18:16.220, Speaker B: Yeah.
+00:18:18.030 - 00:18:54.134, Speaker A: So, yeah, maybe at the end we can let people try and fill in stuff that helps. Yeah, sure. Sounds good. So just to show you the circuit, whatever was missing is present in this file. So it's present on GitHub. I'll give out the link in a while. So the sample circuits are present here.
+00:18:54.134 - 00:18:57.320, Speaker A: So whatever was missing over there is.
+00:19:02.590 - 00:19:02.954, Speaker B: Yeah.
+00:19:02.992 - 00:19:03.580, Speaker A: So.
+00:19:05.710 - 00:19:06.554, Speaker B: Cool.
+00:19:06.752 - 00:19:51.034, Speaker A: So I'm just going to do how deposits work, how withdrawal work in a roll up chain, right? So basically the operator gets all the transactions and let's say a snark batch is supposed to be of ten transactions, right? So the operator, if he has 20 transactions, he picks up top ten according to the correct nons, and he provides it to the snark circuit. And we go from route one to route two and we submit all the transactions and the snap profound chain. So yeah, this is how state transitions work for snark, for roll up.
+00:19:51.072 - 00:19:51.610, Speaker B: Right?
+00:19:51.760 - 00:20:25.358, Speaker A: So the account is basically like this, the X coordinate of the public key, the Y coordinate, the balance nons, and the token type. And the leaf is basically the hash of all of these. But for the workshop, we are just going to do balance only. So no nons, no token type. But in a roll up chain, we can actually have multiple tokens trading simultaneously. And the operator can accept fees in any or all of them.
+00:20:25.544 - 00:20:26.280, Speaker B: Right?
+00:20:30.250 - 00:21:25.922, Speaker A: So this is how account looks like. So it's a key balance nonsense. And the balance history is this. So we basically change the account route every time we submit a batch on chain. And in a transaction, we have from, we have from index, which is like the leaf index in the Merkel tree, and we have two address and amount the token type. So deposits to rule of chain are like, they're pretty interesting. So what we do here is deposits happen totally on chain, right? So as soon as someone deposits, let's say one e, it's pushed to an array.
+00:21:25.922 - 00:22:21.900, Speaker A: As soon as someone deposits, someone does a second deposit, both the deposits are hashed together, and they are like a tree is created. So, yeah, this is the first deposit, second deposit, and it's the hash. Then as soon as we have a third deposit, then we wait for a fourth deposit. As soon as it's done, we create a hash and we combine them together. So what we can do is whenever we want to include the deposits in the roll up chain, we just pick up the latest root and we attach it to the existing balance tree. So we create a whole new subtree and a snark proof is created, which basically just proves that this leaf was empty and the depository has been inserted over here.
+00:22:22.590 - 00:22:23.340, Speaker B: Yeah.
+00:22:26.350 - 00:23:18.646, Speaker A: So this was the old account street, and now the new account tree becomes that whole thing, and the deposit route gets placed over here. So withdrawing is also like a simple state transition, like a transfer state transition. So people just send their tokens to leaf index zero, which can only receive tokens. Leaf number zero cannot actually spend any tokens. This is defined in the snark. So people have to do a transfer to leaf index zero, and then they can go on chain, and then they can prove in the latest Merkel route that they did a transaction to leaf index zero, and they'll get their tokens back from the deposit pool.
+00:23:18.838 - 00:23:25.680, Speaker B: Right? Yeah.
+00:23:28.050 - 00:23:44.130, Speaker C: Earlier you had mentioned that the data availability assumption. Don't you need data availability assumptions to be able to properly withdraw from your market tree?
+00:23:47.990 - 00:23:55.842, Speaker A: So with every snap proof that we submit on chain, we submit a content form of transactions.
+00:23:55.906 - 00:23:56.566, Speaker B: Right?
+00:23:56.748 - 00:24:13.450, Speaker A: So using that, anyone can come and prove that basically all the transactions that have been processed in the latest NaRC are present on chain. So the data availability is same as Ethereum chain.
+00:24:16.670 - 00:24:34.686, Speaker C: I just missed it seems like, does this example really have anything to do with accounting balances or there's just a state transition function from trees to trees, and you're trying to show that basically the trees that were produced are correct. What does that do to the accountant?
+00:24:34.718 - 00:24:35.226, Speaker B: Balances.
+00:24:35.278 - 00:24:35.734, Speaker C: Really?
+00:24:35.852 - 00:24:59.994, Speaker A: Yeah. So in the state transition function, right, which is like written inside a snap, we basically say that, let's say Alice is transferring $50 to Bob, right? So in that we basically check if Alice exists in the dream, if he has $50 to spend, and then we basically change his, let's say Alice had 100.
+00:25:00.032 - 00:25:00.282, Speaker B: Right.
+00:25:00.336 - 00:25:11.978, Speaker A: So we change his balance from 100 to 50, and we increment Bob's balance if he exists in the tree from zero to, let's say 50, and we update the Merkel root.
+00:25:12.074 - 00:25:12.334, Speaker B: Yeah.
+00:25:12.372 - 00:25:20.754, Speaker A: So this is how transition happened. And we submitted the updated root on chain. Does that answer a question?
+00:25:20.872 - 00:25:23.906, Speaker C: Yeah. So it's not really about account. It's pretty general.
+00:25:24.008 - 00:25:25.220, Speaker A: Yeah, it's pretty general.
+00:25:26.090 - 00:25:26.646, Speaker B: Yeah.
+00:25:26.748 - 00:25:30.566, Speaker A: You can basically store anything inside the leaf and write a state transition around it.
+00:25:30.588 - 00:25:31.410, Speaker C: With some condition.
+00:25:31.490 - 00:25:50.960, Speaker A: Yeah, with some conditions. Anything that can be. Yeah. So this is basically just like doing all the checks inside the snap. I think I'm going to skip all the steps and we are going to go to the final circuit so I can show you how it's actually happening.
+00:25:55.810 - 00:25:56.974, Speaker B: One question.
+00:25:57.172 - 00:25:59.710, Speaker C: It's not only validate one transaction.
+00:26:01.890 - 00:26:17.480, Speaker A: For validating multiple transactions, you just do the same thing with a for loop for the number of, number of transactions you want to process. Right now it processes only one. But I have a section over here which is for multiple transactions and you can check it out.
+00:26:19.370 - 00:26:22.966, Speaker C: Why do you do it with an intermediate group?
+00:26:23.148 - 00:26:47.502, Speaker A: Yeah. So asking, is it there? Okay. The thing is, as soon as we process one input, we should update the accounts tree. Otherwise, if a leaf is changing multiple times inside the same batch, then it may be able to double spend.
+00:26:47.556 - 00:26:47.918, Speaker B: Right.
+00:26:48.004 - 00:27:17.426, Speaker A: So let's say in a batch, Alice had only $50 and she was able to get both of those transactions in the same batch. So if we don't update the Merkel route after processing every transaction, then when the snark is processing the second transaction of balance, the circuit will never know that a previous transaction already spent the $50 that she had.
+00:27:17.548 - 00:27:21.322, Speaker B: Right. Makes sense. Yeah.
+00:27:21.376 - 00:27:54.014, Speaker A: So this is pretty standard. We take the inputs as the previous account roots, the intermediate route, since this is just for one transaction, so it has only one intermediate route. If you wanted to do multiple, this would be an array. And these are all the accounts, these are all the balances. The balances in an array and where you provide all the transaction input.
+00:27:54.062 - 00:27:54.418, Speaker B: Right.
+00:27:54.504 - 00:28:08.126, Speaker A: Which is like the sender pub key, sender balance receiver pub key receiver balance amount, the sender signatures and the proof of existence for sender and receiver.
+00:28:08.258 - 00:28:08.746, Speaker B: Right.
+00:28:08.848 - 00:28:13.180, Speaker A: And we output the new accounts route after processing everything.
+00:28:13.950 - 00:28:16.860, Speaker B: Right, cool.
+00:28:20.930 - 00:28:38.062, Speaker A: I guess part three, we did a part where we, in part two, we did a part where we showed the existence of Merkel Leaf, I guess. Yeah, leaf existence.
+00:28:38.126 - 00:28:38.498, Speaker B: Right.
+00:28:38.584 - 00:28:42.820, Speaker A: So using this template over here.
+00:28:46.490 - 00:28:46.998, Speaker B: Yeah.
+00:28:47.084 - 00:29:51.340, Speaker A: So using that, we are basically going to prove that a sender account exists in the previous account root, which is provided as an input, right. So we just pass the pub keys and balance and we do the same thing for all the senders given in the batch, right. And then we just do a simple signature check that if the sender has actually signed the message and then we create a new leaf hash. The leaf hash previously contained like pub key balance which was 50. Then after spending 50 his leaf would look like pub key and zero. So we need to create new hash for this and we need to update the accounts route. So this basically outputs the intermediate route, right.
+00:29:51.340 - 00:30:46.410, Speaker A: And using this intermediate route we basically check if the receiver exists in the tree or not. If we exist, then we credit the Receiver with whatever amount was sent by the sender. Here's where we debit the sender and this is where we credit the receiver. And then we basically just create a new leaf for the receiver again and we update the route for it. And we just output the final route as a newly new route of the new mercury with updated balances. And then we just like, then we run the below commands and we get approved which we can submit on chain many five transactions.
+00:30:46.750 - 00:30:47.402, Speaker B: Right.
+00:30:47.536 - 00:30:57.790, Speaker A: So that basically proves that the transition that was done off chain was valid and we pushed the transaction on chain for data of availability.
+00:30:58.610 - 00:31:24.920, Speaker C: So where was the check that the transaction has correspond that the transaction hash previous transaction. Sorry, transaction. The account matches the account information. Previous account information matches the.
+00:31:36.810 - 00:31:44.846, Speaker A: Basically in general. So let me rephrase the question and you can tell me if I'm correct or not.
+00:31:44.868 - 00:31:45.150, Speaker B: Right.
+00:31:45.220 - 00:32:10.360, Speaker A: So you are basically asking if the accounts route submitted over here if it had the correct balance that Alice gave me or not. If it did not, then when I submit on chain, the previous root hash which is submitted on chain won't match with the input submitted over here. It has to be changed. That makes sense.
+00:32:14.330 - 00:32:15.080, Speaker C: Cool.
+00:32:16.570 - 00:32:50.560, Speaker A: Yeah, so I wanted to create a smart contract via this generate verifier call and this basically creates the proof that we need to push on chain. So if you guys want to try this out then maybe we can do that now. Yeah, are there any questions with this? Yeah, so maybe take something.
+00:32:52.370 - 00:32:53.600, Speaker B: Yeah, sure.
+00:32:54.610 - 00:33:07.538, Speaker A: The, it's the link of the workshop.
+00:33:07.634 - 00:33:08.280, Speaker C: And.
+00:33:19.890 - 00:33:20.640, Speaker B: One.
+00:33:23.810 - 00:33:35.966, Speaker A: This is the bigger make.
+00:33:35.988 - 00:33:46.120, Speaker C: It also.
+00:34:04.970 - 00:34:44.550, Speaker A: It'S anchor bracket. That's really good. Yeah, so that, so that basically assigns the signal value and creates a constraint. Why do. Yeah, let's say there are two signals, right? Yeah, let's say there are two signals, a and b. And I want to put the input in c and I want to make sure it checks like there's a constraint that c should always equal a plus b at that time. I do the angle bracket and equals.
+00:34:44.550 - 00:35:22.670, Speaker A: There's a link in this workshop which basically directs to identity's blog post on how to use snark js and circum that basically has an explanation on how to use all the operators. You can clone this repo for all the code, base all the sample circuits and input Javascript files.
+00:35:24.610 - 00:35:34.520, Speaker C: So it's going to be up after the conference. Okay, cool.
+00:35:41.610 - 00:36:39.260, Speaker A: Everybody else on your second it in single circuit or no, we can actually include multiple, we can use multiple circuits from a single circuit. So for multiple transactions, I just had to put a for loop for the first single transaction and had to create intermediate route after processing every lease. So just putting a for loop, what it was, it gets pretty big. It takes like 2030 minutes on my.
+00:36:41.790 - 00:36:44.190, Speaker C: What are the actual checks of the balance?
+00:36:48.370 - 00:36:49.120, Speaker A: Yes.
+00:36:51.570 - 00:37:00.690, Speaker C: Just out of curiosity, what is the size of the proving fee for many, for many transactions?
+00:37:02.070 - 00:37:08.262, Speaker A: It is pretty big. I don't really have the numbers right now, but yeah, there's a link here.
+00:37:08.316 - 00:37:11.080, Speaker C: If you want to see that.
+00:37:14.730 - 00:37:25.020, Speaker A: So if you, if you want to check how multiple token transfers work, there are test cases and input files over here. Feel free to try them out.
+00:37:25.790 - 00:37:28.646, Speaker C: Oh, it's already pre generated on GitHub.
+00:37:28.838 - 00:37:29.194, Speaker B: Yeah.
+00:37:29.232 - 00:38:29.600, Speaker A: Yes, they're over there. So everyone has the link. The library that allows us to verify the proofs in Ethereum. In the last step over here.
+00:38:34.310 - 00:38:34.626, Speaker B: If.
+00:38:34.648 - 00:38:44.606, Speaker A: You run this thing, then it will create a verifier solidity contract for you and then you can just deploy and remix and check the proof.
+00:38:44.638 - 00:38:46.282, Speaker C: So it's part of smart chain.
+00:38:46.366 - 00:39:01.530, Speaker A: Yeah, so if you want to follow along, it's like pretty simple. All the code is present here, you just have to rename most of the files.
+00:39:02.350 - 00:39:02.714, Speaker B: Right.
+00:39:02.752 - 00:39:11.280, Speaker A: So if you just clone this, then it should work pretty well for you. And this link is present in requirements over here.
+00:39:13.890 - 00:39:14.640, Speaker C: Okay.
+00:39:18.290 - 00:39:19.040, Speaker B: Cool.
+00:39:21.250 - 00:39:29.840, Speaker A: Yeah, so I can maybe do this part quickly to just show how it works.
+00:39:34.690 - 00:39:36.120, Speaker B: You it?
+00:40:00.050 - 00:41:39.238, Speaker A: Yeah, for this I just need to, if you just like create a file called circuit circom and copy paste this code and then we can move over to this. I just have to do the compilation over here. Basically creates a compile which basically request and solve the constraints. And then I can just create inputs. This will create an input JSON for me, which is basically the variables ABC and D. Right. So just to remind you, we are like putting up constraints that a plus B should be c.
+00:41:39.238 - 00:42:16.066, Speaker A: Right. Calculate witness runs correctly, which basically means that we are running the input that we created against all the constraints in the circuit. Then it basically means that the proof which is generated would most likely be correct. I can try changing the input and see if it breaks.
+00:42:16.098 - 00:42:23.190, Speaker B: Righteous.
+00:42:30.450 - 00:42:42.560, Speaker A: So if I change any inputs and a plus b don't equal the c thing, then it will basically show that the constraint does not match.
+00:42:42.950 - 00:42:43.700, Speaker B: Right.
+00:42:44.790 - 00:43:31.710, Speaker A: So you can do the same thing for verifying the EdDSA signature and doing a mergal tree proof, like proving that a leaf exists in a mockery and creating a mergal root. All of that stuff. Yeah. So I'm going to try processing a single transaction over here. So in the file structure. Yeah. If you go to the fourth folder called single case, it basically has the circuit and they characterize witness.
+00:43:31.710 - 00:43:35.294, Speaker A: Yeah.
+00:43:35.492 - 00:43:36.480, Speaker C: Where is it?
+00:43:38.850 - 00:43:49.320, Speaker A: So it creates a file called witness JSON, and it has all the public and private inputs. All the public inputs, yeah.
+00:43:49.930 - 00:43:53.510, Speaker C: Well, same as the input JSon, basically.
+00:43:53.660 - 00:44:05.670, Speaker A: No, it has input JSON is basically all the inputs you need to provide. You need to provide to calculate witness to data witness.
+00:44:08.810 - 00:44:10.334, Speaker C: Can you open it one more?
+00:44:10.492 - 00:44:11.200, Speaker B: Sure.
+00:44:18.050 - 00:44:41.880, Speaker C: And so the numbers that are listed here, I mean, they're not, they don't really, they don't need anything like whatever, they're random or they're kind of like random. But the length of this thing is short. Basically all the things. The length of this thing is short, just, I understand, like the length of this is array of whatever, five numbers.
+00:44:44.410 - 00:44:58.620, Speaker A: Yeah, exactly. For a circuit with larger number of constraints, the witness file would also be large because the number basically depends on the number of inputs you are giving.
+00:44:59.390 - 00:45:41.610, Speaker C: This is all kind of new to me. So the constraints that are there versus the computation that happens, how does that affect the size of this thing? If the constraints are, for example, computing hash, you say there's lots of computation there, but there's very little logical constraints about besides the assertions that you make on it. Like here you have assertions about the arguments, but then you may produce bindings inside of a circuit to bind new variables. Does that make sense when you make circuits like this, constraints on things matter versus just raw computation?
+00:45:42.830 - 00:45:49.898, Speaker A: Yeah. So let me repeat the question to make sure.
+00:45:49.984 - 00:46:15.138, Speaker C: Yeah, so what you're trying to do is get an intuition for this idea of constraints, like how many constraints matter versus raw computation. So I can say something like the lead binding in this language, whatever that says, let a equals hash of these things versus like a plus b equals c is like the assertion. So you want to see what's different?
+00:46:15.304 - 00:46:16.814, Speaker A: Calculation and width string.
+00:46:16.862 - 00:46:17.518, Speaker C: Yeah.
+00:46:17.704 - 00:46:18.150, Speaker A: Okay.
+00:46:18.220 - 00:46:19.960, Speaker C: The width of calculation is.
+00:46:24.410 - 00:46:25.814, Speaker A: Yeah, just like. Yes.
+00:46:25.852 - 00:46:27.734, Speaker C: I mean in some languages it takes.
+00:46:27.772 - 00:46:29.918, Speaker A: Longer, but that's because there's not very much optimize.
+00:46:30.034 - 00:46:44.814, Speaker C: But like when you, when you get optimal, it's always. Yeah, so it's like if we had a deck, you would spend like 0.1%.
+00:46:44.852 - 00:46:47.214, Speaker A: Of your time calculating minutes and all.
+00:46:47.252 - 00:46:48.240, Speaker C: The rest of the time.
+00:46:54.130 - 00:46:54.686, Speaker B: It.
+00:46:54.788 - 00:47:13.958, Speaker A: Yeah, so we can do the same thing. We just have to write a new circuit that we defined in the previous parts. And we really have to check the senders, leave receivers, key the balances and we need to update the amount.
+00:47:14.044 - 00:47:14.534, Speaker B: Right.
+00:47:14.652 - 00:47:25.400, Speaker A: So I'll just move to processing a single transaction and you guys can try out the rest parts and I'll be here to help her out. Right.
+00:47:29.610 - 00:47:55.640, Speaker B: So it.
+00:48:06.890 - 00:48:54.502, Speaker A: That was present in the website. So I've just like copy pasted it and yeah, I just have to run the same command and I'll go through how to create the inputs for this and then maybe you guys can try it out. Yeah, so, yeah, so for this workshop I, so I basically created a script which like generates the input for your subcu. So we basically here create a new private key. And we declared it that it's Alice's private key. And we create a Bob's private key.
+00:48:54.556 - 00:48:54.870, Speaker B: Right.
+00:48:54.940 - 00:49:14.794, Speaker A: And we have Alice's pub key. We have Bob's pub key. And we are basically using these two helper files from Circumliv. And we basically create an account for Alice. And we create account for. And we hash the pub keys and the balances together as it was given the tutorial.
+00:49:14.842 - 00:49:15.102, Speaker B: Right.
+00:49:15.156 - 00:49:37.498, Speaker A: And we use Mimsi and then we create a leaf account for Bob. And we create a leaf hash for Bob. And we basically generates initial account route for both these accounts. So since it's only two accounts, we just need to hash them together. And we'll get a marker route.
+00:49:37.534 - 00:49:38.360, Speaker B: That's right.
+00:49:39.530 - 00:50:16.274, Speaker A: Then we need to do a simple transaction and from Alice to Bob. And Alice needs to sign that transaction. So we send a private key over here and we get a signature over here. Then we generate a new account. So Alice is basically trying to send 500 tokens here. Alice in the previous state road had 500 tokens and Bob had zero. So after transferring, Alice should have zero.
+00:50:16.472 - 00:50:16.978, Speaker B: Right.
+00:50:17.064 - 00:50:30.326, Speaker A: So we create the intermediate route. As soon as you process a leaf, we need to create intermediate route so that Alice is not able to spend 500 tokens she spent earlier again.
+00:50:30.508 - 00:50:31.240, Speaker B: Right.
+00:50:33.690 - 00:50:45.690, Speaker A: So we create a new leaf hash and we declare it as the intermediate route. Then he update the box account with the money he got from Alice.
+00:50:48.110 - 00:50:48.474, Speaker B: And.
+00:50:48.512 - 00:51:15.550, Speaker A: We get a leaf hash for it. And that's the final route. And we pass all of this as inputs. We pass all of this as inputs to the circuit, and we dump all of this data in input JSON file. And when we basically run calculate witness, it uses these inputs to generate a witness. And later we can use a witness file to create proofs.
+00:51:15.710 - 00:51:16.420, Speaker B: Right.
+00:51:17.370 - 00:52:07.138, Speaker A: You want me to try out or you guys want to do it? I can try it, yes, sure. Takes a while. Because this circuit has lot many constraints than the previous one, and it basically uses other circuits. Every signature verification has its own constraints. Like Mergaloot has its own constraints.
+00:52:07.154 - 00:52:07.286, Speaker B: Right.
+00:52:07.308 - 00:52:29.710, Speaker A: So it takes a while. This will create an input file for us. If I try to change the input or witness after this, it won't work.
+00:52:29.900 - 00:52:30.640, Speaker B: That.
+00:52:55.370 - 00:52:56.120, Speaker A: It?
+00:52:58.330 - 00:53:13.094, Speaker C: Yeah, so go ahead. So you were saying that like, you know, shaw 56, does it compile?
+00:53:13.142 - 00:53:18.890, Speaker A: Well, yeah, so it, it just creates a lot of constraints.
+00:53:22.770 - 00:53:29.280, Speaker C: But what you're saying is that you also said that you're just saying that the compilation of building, that really takes.
+00:53:31.570 - 00:53:32.910, Speaker A: Yeah, the brewing.
+00:53:34.130 - 00:53:57.480, Speaker C: So what if. I guess what I'd ask there is that, assuming that you did it once, is there some way of, kind of like some roll up jet where you just like, you did that one time and you made a circuit, but you don't want to prove it every time? I guess you can't. Never mind.
+00:53:59.070 - 00:54:54.546, Speaker A: So you basically have to create a proof every time you create a new batch, right? Yeah. At most we can parallelize it. And using vanilla js, we can predict if I process this batch of transactions, the new merger would be this, and I can in parallel start processing next batch while the proof for previous batch is being created. So I created the proof before coming here because it takes a lot of time. So if you guys want to try it out, maybe you can run these commands. I can try running them, but it takes quite a lot of time. So it depends on the number of constraints.
+00:54:54.546 - 00:55:57.994, Speaker A: For this, it will take like two minutes. Yeah, that's fine. Setup is basically one party right now, but I guess identity people have been working on doing MPC with Snark Js as well. So it's like multiparty computation. And lot of people run the setup and they're supposed to discard the toxic waste. So if, let's say, ten people participate, and even if one of them is honest, then it should be fine, because we are the participant over here. We can basically create false proofs.
+00:55:57.994 - 00:56:02.398, Speaker A: But if we had multiple participants like let's say 100 to 100, then it.
+00:56:02.404 - 00:56:03.200, Speaker B: Should be.
+00:56:12.710 - 00:56:26.770, Speaker A: Takes a lot of time. I can't do anything about it. So if you guys want to try it out, I'll be here to help out and I'll be here to. If you have any questions or stuff. Yeah, what about the debug pool?
+00:56:26.850 - 00:56:28.870, Speaker C: So if I writing.
+00:56:31.610 - 00:56:42.560, Speaker A: I think there's a log flag so you can actually write logs. But I guess people are still working on a compiler, so I guess it should be out.
+00:56:47.650 - 00:57:06.710, Speaker C: If you wish to reach the system like Sonic or some of which of these libraries were reduced and which you have to throw away. Is there anything that you will reuse if you change the proving system?
+00:57:06.860 - 00:57:14.760, Speaker A: I guess we'll have to create new libraries for the new proving systems. I guess we'll have to create new.
+00:57:18.810 - 00:57:20.630, Speaker C: Compiler that display.
+00:57:21.950 - 00:57:38.640, Speaker A: The compiler is just for going from circum language to the r one cs constraints. Yeah, that part can most probably stay from there. If there's a new province that come out, you can maybe use that part.
+00:57:39.250 - 00:57:48.714, Speaker C: Likely that there's some different optimization activities that you have, but the optimizers are coming to different. So you can still have those language.
+00:57:48.762 - 00:57:49.360, Speaker A: Stuff.
+00:57:52.210 - 00:57:54.800, Speaker C: But if you want to do stack different.
+00:58:22.290 - 00:58:33.274, Speaker A: So these links would be online and you can try them out. You can maybe take me out on Telegram or Twitter if you have any question. I can help out.
+00:58:33.412 - 00:58:34.402, Speaker C: What's your name?
+00:58:34.536 - 00:58:47.750, Speaker A: Barov Shalan. This is my handle on Twitter and on Telegram.
+00:58:49.210 - 00:58:51.590, Speaker C: There's a bunch of groups in the workforce.
+00:58:56.490 - 00:59:51.782, Speaker A: I have some links in the tutorial app as well. We have a small demo where we basically do a transaction via wallet that we have created. And maybe you can see that as well. There's a bunch of stuff in the late link here and we have been working on a thing called roll up NC, the roll up non custodial. What it does is that it basically does not push the transactions on chain. So when you try to push transaction on chain, that basically limits the amount of transaction that we can process to the amount of transactions that can be submitted in a block. So we are limited by the Ethereum gas limit, but if we don't push transaction on chain, then we can process a lot more transactions in a single batch.
+00:59:51.782 - 01:00:00.700, Speaker A: So this is for things like if you want to make Twitter on a roll up chain and it's blazing fast, stuff like that.
+01:00:05.230 - 01:00:46.906, Speaker C: I think I maybe finally understood what you were, maybe not, but what you said about the parallel computation. So is it possible to put like a proof constraint in this language? Also? Basically what I would say is these arguments satisfy. Let's say you wanted to run something in parallel or whatever. I had some set up, and it's like, yeah, the arguments to this thing also satisfies this relationship between each other. And I wanted to express the fact that there is a proof of this. I guess what I'm saying is you run around them in parallel and say you had some really expensive things going to run for some other really expensive things. You wanted to express that it was all going to match up.
+01:00:46.906 - 01:01:16.590, Speaker C: If you did create one circle between the two of them, rather than having one function that describes something that would help with you, you could break it up. And then basically you don't save any time by basically breaking up into smaller pit composed to the larger circuit drivers, because you have tons of constraints or whatever that are all related to the same data. And maybe some of them could have been run in parallel. Do you save any time by splitting them off into different circuits?
+01:01:16.750 - 01:01:54.750, Speaker A: Yes, I guess we are already splitting them off into different circuits. So, yeah, that basically does not save us much time, because the constraints of those circuits are compiled and they are taken into when we generate a group, those constraints are still added to the constraints of the original circuit. There's no such thing as like multiple circuits. You run one circuit. There is kind of this idea of putting multiple pieces.
+01:01:57.010 - 01:02:07.940, Speaker C: Or just like you lived and you had some musicians about the data that some of them are dependent on others or whatever, you had some relationship between all.
+01:02:10.470 - 01:02:48.800, Speaker A: You can basically, let's say you have a batch of transactions, so even before the circuit creates a proof of them, you can basically say if all the transactions in the batch are correct, then this will be the new proof, and you can use the new route to run another proof in parallel of that. First proof is if it runs perfectly, then we don't really have to wait to start the process again.
+01:02:51.730 - 01:02:57.380, Speaker C: How? Expecting to verify a snag start for the school coming.

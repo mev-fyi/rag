@@ -1,0 +1,402 @@
+00:00:00.330 - 00:00:20.302, Speaker A: Thanks everyone, for coming to the session today. We're really lucky to have Christopher from Anoma here to talk to us about what he and his team have been working on. So without further ado, take it away.
+00:00:20.356 - 00:00:21.150, Speaker B: Christopher.
+00:00:23.330 - 00:00:23.886, Speaker A: Thanks.
+00:00:23.988 - 00:01:11.298, Speaker C: Thanks for inviting me. I hope I can provide something interesting. So I've prepared two presentations for you today which are focused on the two components of phenoma that I think are most interesting from a kind of applied CK cryptographic perspective. The first presentation is on a component called Tyga, and Tyga is kind of our private state transition, or shielded state transition framework. And I'll describe a little bit about what that is, context for why we're building it, and explain how it works. And I have a bunch of diagrams of data flow because it's a bit intricate. So I'm hoping to spend some time there, and maybe this will be a test for me also of explaining this project to someone outside our company cult.
+00:01:11.384 - 00:01:15.474, Speaker B: So it would be good to test whether it makes any sense. Then.
+00:01:15.512 - 00:01:30.378, Speaker C: The second presentation I have for you is on a language called vampire, which is an intermediate representation for polynomials that we're hoping can be of service, and a compiler that we're hoping can be of service to both anoma and also.
+00:01:30.464 - 00:01:32.298, Speaker B: Other projects and ecosystems, just as a.
+00:01:32.304 - 00:01:54.410, Speaker C: Kind of reusable compiler component to help reduce some of the fragmentation in the ZK tooling space. Of course, start with fragmented languages and add one language. You have n plus one fragmented languages. But I'll make my pitch as to why vampire might not be that kind of thing yet again. And then finally, I'm just going to.
+00:01:54.420 - 00:01:57.346, Speaker B: Give a shout out to. We have the CK benchmarking project that.
+00:01:57.368 - 00:02:00.834, Speaker C: We'D love to either invite contributions or.
+00:02:00.872 - 00:02:03.922, Speaker B: Forks or sort of mamesis of.
+00:02:03.976 - 00:02:10.514, Speaker C: So we'll talk about that briefly, but please go ahead. These are slides, but go ahead and stop me.
+00:02:10.552 - 00:02:23.274, Speaker B: And both of these projects have code which is publicly accessible, so I can also jump to specific parts if it would be helpful to go over things. We can see how it goes. I'll go ahead and kick this off.
+00:02:23.312 - 00:02:29.706, Speaker C: Just by talking a little bit about the Enoma architecture and tiger, and tell.
+00:02:29.728 - 00:02:31.420, Speaker B: Me if you can see this.
+00:02:34.670 - 00:02:36.320, Speaker A: Yep, we can see it.
+00:02:36.770 - 00:02:57.074, Speaker C: Okay, so basically said that already. And first, I should give credit. Both Tiger and Vampire are sort of built by part of the Inova project, and they're built by heliax, which has about 45 people, including maybe sort of ten cryptographers or cryptography adjacent researchers and engineers spread out across North America, Europe.
+00:02:57.122 - 00:02:58.402, Speaker B: And a few peppered in Asia.
+00:02:58.466 - 00:03:00.182, Speaker C: So this is not just my work.
+00:03:00.236 - 00:03:03.766, Speaker B: Credit to everyone at the acts is.
+00:03:03.788 - 00:03:16.006, Speaker C: An architecture for private counterparty, discovery and settlement. And this, in our conceptualization of anoma, we use a little bit of a different frame for thinking about what problem we're trying to solve.
+00:03:16.038 - 00:03:17.786, Speaker B: So I'm first going to explain what.
+00:03:17.808 - 00:03:22.398, Speaker C: That is and why we like to.
+00:03:22.404 - 00:03:23.838, Speaker B: Think about things this way.
+00:03:24.004 - 00:03:52.786, Speaker C: So if we go through a bit of the history of distributed ledgers, we started out with bitcoin, we call generation one, back with Satoshi's white paper that everyone knows. And bitcoin had already a simple form of programmability, maybe more than it got credit for, but at least I like to call this strictle. So bitcoin had a Utxo based system that was not private, did not involve.
+00:03:52.818 - 00:03:55.286, Speaker B: Any snarks or fancy cryptography, but that.
+00:03:55.308 - 00:03:58.418, Speaker C: Did allow some level of programmatic unlocking conditions.
+00:03:58.434 - 00:04:00.314, Speaker B: So no state, but you could create.
+00:04:00.352 - 00:04:02.726, Speaker C: Utxos that were locked to particular timestamps.
+00:04:02.758 - 00:04:06.666, Speaker B: Or particular scripts that you could express in bitcoin ops script, which is pretty.
+00:04:06.688 - 00:04:57.302, Speaker C: Limited, but could do some things. Then along came Ethereum, and many kind of riffs on Ethereum which have changed, have tried to make it faster or different in various ways, or changed the account model or other things, but in all cases still falling into the general category of what I call programmable settlement. So in programmable settlement architectures, there's a very flexible state machines, usually one which has programmable contracts and mutable state that can be read or written. So you have full expressivity for building other things, including roll ups, Ethereum, cosmos, Solana, near. All of these projects fall into this category. These are, and critically, all of these are still doing settlement. So what do I mean by settlement? Settlement happens when you have a trend, resources together on a single ledger.
+00:04:57.302 - 00:05:08.922, Speaker C: And settlement can be made private pretty easily. This was pioneered by Zcash with ccash blockchain supporting just the zack asset. Not a lot of programmability.
+00:05:08.986 - 00:05:10.762, Speaker B: It's kind of like bitcoin and private.
+00:05:10.906 - 00:05:13.294, Speaker C: But it provides really strong privacy to.
+00:05:13.332 - 00:05:15.150, Speaker B: Observers of the settlement layer.
+00:05:15.310 - 00:05:41.146, Speaker C: It's easy to provide privacy in settlement, because once you have a transaction and you know all of the state transitions that are going to happen, you can kind of represent your state in some ZK friendly way, like notes. And you could just provide a proof that the state transition satisfies whatever invariance you want to be satisfied. And the actual state transition basically is computed and proved off the blockchain, and.
+00:05:41.168 - 00:05:42.860, Speaker B: You just submit a proof that it's correct.
+00:05:43.470 - 00:05:53.238, Speaker C: However, settlement is not sufficient. Settlement only happens when there are many parties. Only can happen when there are many parties who already know who they are.
+00:05:53.264 - 00:05:57.182, Speaker B: And what they want. So if we think about this is.
+00:05:57.236 - 00:06:07.486, Speaker C: Sufficient for just sending money. So if we think about sending money, I want to send money to Alice, I want to send money to Bob. I need to know Bob's dress, the amount. But that action is unilateral.
+00:06:07.518 - 00:06:10.210, Speaker B: It doesn't require a counterparty, but many.
+00:06:10.280 - 00:06:49.114, Speaker C: More complex applications, including many applications that are used on ledgers like Ethereum today, also try to do something that looks like what we call counterparty discovery. So counterparty discovery is where I have something like an asset, let's call it a, or it could be capability, whatever. I want something else, let's call it b. And I would like to find somebody to be my counterparty. And here we use the term counterparty, which has to some people, maybe this has the association of like a trust third party, but that's not what I mean by counterparty. I mean someone else. I have some thing, right? Some capability with respect to the ledger.
+00:06:49.114 - 00:07:14.502, Speaker C: So the ledger says that I own this token and I would like some other thing that somebody else has. I may not know who has it, and critically, in this case, I don't really care who has it, but I care about the thing, which I might possibly be getting. So when you think about things in this general fashion, most, I think it would be fair to say applications on Ethereum take this form. So if we think about. Let's see.
+00:07:14.556 - 00:07:15.606, Speaker B: Do I have some examples here?
+00:07:15.628 - 00:07:25.878, Speaker C: Yeah, if we think about something like Uniswap. With Uniswap, your counterparty is mediated by the block, or counterparty discovery is mediated.
+00:07:25.894 - 00:07:27.174, Speaker B: By the blockchain directly.
+00:07:27.302 - 00:08:12.890, Speaker C: So there are lps providing liquidity into Uniswap, and you, as somebody trading, are using the state on the blockchain to figure out who your counterparty is. It's a little bit indirect because lps are kind of treated as one amorphous entity. You don't interact with one of them individually, but it's still mediated all through. Then with something like OpenSea or a lot of sequencers, counterparty discovery is done through a single operator database. So if you use OpenSeA, which historically settled trades using protocol called Wyvern, now I think they have their own, called seaport. OpenSea runs a database of orders for NFT purchases.
+00:08:13.630 - 00:08:18.074, Speaker B: You can post bids and asks. I think they could do auctions, maybe other stuff.
+00:08:18.272 - 00:08:31.066, Speaker C: So you're using basically the database operated by that company to discover your counterparty, and then once you've discovered a counterparty, the transaction is posted to the blockchain. So OpenSea doesn't custody the assets, but they custody the liquidity.
+00:08:31.258 - 00:08:32.800, Speaker B: You could think of it like this.
+00:08:33.350 - 00:09:25.790, Speaker C: And in particular, when you do counterparty discovery on the blockchain or with a single operator database, you're not really getting privacy. So if you're doing, even if you have private settlement, if you do counterparty discovery with OpenSea in their database and then they make a ZK proof of the NFT trade or whatever, you're not getting any sort of privacy to, you know, I guess our way of thinking about things is that privacy is hard and systems are only going to be as private as their weakest link. So if most blockchain applications really are going to do counterparty discovery in addition to settlement, then we don't even want to bother just only solving the privacy problem for settlement because it's just going to move. The point of data extraction and surveillance capitalism is just going to move to counterparty discovery. So we might as well go all the way in one fell swoop.
+00:09:25.950 - 00:09:29.826, Speaker B: That's basically what we're trying to do with Aniba. Yeah.
+00:09:29.848 - 00:09:37.686, Speaker C: So there are all these fragmented approaches, basically, to counterparty discovery which aren't unified into any sort of programmatic method and.
+00:09:37.708 - 00:09:39.350, Speaker B: Don'T provide any privacy.
+00:09:39.690 - 00:09:50.162, Speaker C: And we are trying to fix both of those problems with something that we call an intent centric architecture. So in Anoma's ask a question.
+00:09:50.236 - 00:10:04.910, Speaker A: On the previous slide you had roll up operator, I think, as one of the examples of a single operate database. How do you think about roll ups and roll up sequencers in the context of, like, counterparty discovery?
+00:10:07.090 - 00:10:22.338, Speaker C: Right. So the roll up sequencer is not directly your counterparty, like Opensea is not directly your counterparty, but they're mediating discovery of your counterparty. If your counterparty is in another transaction, or partial transaction, which is sent to.
+00:10:22.344 - 00:10:24.354, Speaker B: The sequencer, that's what I mean.
+00:10:24.472 - 00:11:19.874, Speaker C: So when the sequencer is ordering, and in particular if it is often sequence, there are many different specific approaches, and I can't comment on all of them, but often sequencers take transactions from users with signatures from users, and then they combine them together in a way which could involve reordering them or could involve combining them together and posting them as one blog to save on gas fees, stuff like this. Sometimes you may not. A sequencer is not the same thing as Opensea. I mean, sometimes the assets that you're interacting with are not necessarily, they're not being provided by other transactions in the same batch or something like this, but you're still subject to whatever the sequencer chooses in terms of ordering. And if the sequencer is mediating discovery.
+00:11:19.922 - 00:11:29.666, Speaker B: Of parties to batch or transactions lists, even just to save costs, then you lose privacy to them. Thanks.
+00:11:29.708 - 00:11:29.914, Speaker C: Yeah.
+00:11:29.952 - 00:11:35.306, Speaker A: So in their orderings of the transactions, they can have an impact on sort.
+00:11:35.328 - 00:11:37.580, Speaker B: Of the counterparty discovery, right.
+00:11:38.430 - 00:11:58.782, Speaker C: To be clear, this is related to the problem of like, sequencer Mev, but that's not quite what I'm talking about. I just mean that even if we have private settlements. So suppose that the sequencers were making a ZK proof, and they could post the proof to the blockchain when you settled the combined set of role of transactions.
+00:11:58.846 - 00:11:59.410, Speaker B: Right.
+00:11:59.560 - 00:12:05.762, Speaker C: If the sequencer has to make all the proofs, then you lose privacy to them, even if you're private to observance to the blockchain.
+00:12:05.826 - 00:12:11.320, Speaker B: That's all. Sure. That's like central distinction. Cool.
+00:12:11.930 - 00:12:57.896, Speaker C: Yeah, actually, I should just pause here. Are there other questions so far? So in the architecture of anoma, we try and incorporate this feature of counterparty discovery in a kind of more native or kind of programmatic way, which is what we call intent centricity. So an intent centric architecture, there are two phases, from when a user signs something to when they read a result back from the system, right? That's basically the loop that we care about. User signs something, they click send in metamask, then later on they read some state, hopefully through a light client instead of a block explorer.
+00:12:57.928 - 00:12:59.580, Speaker B: But you get my drift.
+00:13:00.480 - 00:13:17.444, Speaker C: From when a user signs something to when they read state. In the enema architecture, there are two phases, which the architecture takes as first class, which are counterparty discovery and settlement. And settlement is the thing which you're used to. So settlement is where there's a transaction, and we post the transaction to a blockchain and users read the state back.
+00:13:17.482 - 00:13:17.924, Speaker B: That's easy.
+00:13:17.962 - 00:13:47.340, Speaker C: All the blockchain needs to do is order the transaction, and privacy is straightforward. The thing which is new and kind of interesting from a privacy standpoint is the first phase of counterparty discovery. So in counterparty discovery, instead of crafting transactions, users are crafting what we call intents. You can think of intents as roughly synonymous with partial transaction. So intents are binding programmatic commitments to preferences, which basically look something like I have a and I want b, and I'm going to give you a diagram in a later slide that is less.
+00:13:47.490 - 00:13:48.984, Speaker B: Hand wavy, I promise.
+00:13:49.112 - 00:14:05.284, Speaker C: But we have a sort of peer to peer gossip network for these intents. So just like you can think of this as like a mem pool, but for the stage prior to transactions. So transaction mem pool gossips around transactions between validators, full nodes, maybe searchers, other.
+00:14:05.322 - 00:14:06.900, Speaker B: People who are interested in them.
+00:14:07.050 - 00:14:54.308, Speaker C: These transactions generally in like typical mempools, are already valid. You could post them to the blockchain and settle them. It's up to a proposer to include them in a block, or it's up to someone building a block to include those transactions. The architectures can become more complicated, but the transactions are complete. Intents, by contrast, are not complete, so they are not valid alone. Rather, intents are broadcast around this network, and they are eventually discovered by solvers whose job it is to find compatible intents and use them to create transactions. So for example, if a solver finds an intent that says a for b and an intent that says b for a, they can combine those because they balance, or so to speak, and that becomes a valid transaction, which then goes to the separate, there is a separate transaction mem pool, but I'm not going to talk about it because it's not anything new.
+00:14:54.308 - 00:14:57.252, Speaker C: But that transaction then can be just.
+00:14:57.306 - 00:14:59.670, Speaker B: Settled in the conventional sense.
+00:15:03.080 - 00:15:15.060, Speaker D: Another question for your precise just make sure that I understand correctly. So when you are broadcasting in this p two b network, you are broadcasting this commitment.
+00:15:15.140 - 00:15:15.770, Speaker B: Or.
+00:15:18.800 - 00:16:05.050, Speaker D: Because it seems like if it's just commitment to those intents, then I don't know how sowers can find those, because it's commitment and they don't see anything outside or you mean it's partially committed. I still review like I have a I want b, but maybe they concrete like I want how much a and how much b. And that's encrypted in this commitment, because I just don't know if someone, this server, can create transactions to bundle maybe two transactions like a to b two a, then at least he need to see whether those transactions are valid, if it's all binded in this commitment and how he can create such a stuff.
+00:16:05.420 - 00:16:49.368, Speaker C: Sorry. Yes, it's a good question. I'm using the term commitment in a slightly different way, which means that there is also a commitment in the ZK sense, in Tyga, but in the architecture, commitment just means that the process is non interactive, so that the user has already provided a signature which commits them to accepting the final results of the transaction if it satisfies the preferences which they expressed. So I say like a for b is. I want to contrast this to systems that are like RFQ systems, where you say, like, I want this thing, but you don't actually commit to that trade. You're just using it to discover someone who you will then talk to, and you will then actually agree to the trade. Anoma is not such a system.
+00:16:49.368 - 00:17:03.516, Speaker C: So this is, by contrast, when you make an intent, it's like, I have a, here's a proof that I have a, I want b, and here's a signature that says, if you can find b, then I authorize sending my a to whoever gives me b.
+00:17:03.618 - 00:17:06.300, Speaker B: So in that sense, it's binding in a commitment.
+00:17:08.640 - 00:17:25.044, Speaker D: But does this have any privacy here? Because it seems like you reviewed your intents, or you mean privacy license because you didn't choose specific counterparty to trade or whatever. It seems like everything is reviewed here.
+00:17:25.082 - 00:17:25.670, Speaker B: Right?
+00:17:26.600 - 00:17:31.924, Speaker C: Right. Well, that's the interesting question. So let me just say that my next three slides will talk about that.
+00:17:31.962 - 00:17:33.590, Speaker B: So maybe I'll just go.
+00:17:35.580 - 00:17:58.456, Speaker C: As you already know. I guess. So why bother listening to me? But privacy Entitlement is easy. But privacy and counterparty discovery is not. And especially in this world of non interactive counterparty discovery, where parties want to find each other, they need to provide sufficient information that solvers can know when and how two intents can be matched.
+00:17:58.488 - 00:18:03.440, Speaker B: And how to create the transaction which matches them. So there's a sense of.
+00:18:03.510 - 00:18:12.208, Speaker C: But there is some intermediate point here that is possible, and that seems to.
+00:18:12.214 - 00:18:12.960, Speaker B: Us to be interesting.
+00:18:13.030 - 00:18:22.404, Speaker C: In particular, it's still possible to hide identities, and it's possible to do who I am or like. My account is not revealed, only the.
+00:18:22.442 - 00:18:26.536, Speaker B: Asset is revealed and the conditions under which I want my attend to be.
+00:18:26.558 - 00:18:52.668, Speaker C: Matched, which I accept in settlement that privacy is possible. So user privacy is possible, and it's possible to do partial solving or partial matching. So if we think of maybe it's just easier. Yeah, let me just get to the.
+00:18:52.674 - 00:18:54.372, Speaker B: Diagram, and then I'll explain partial solving.
+00:18:54.456 - 00:19:05.956, Speaker C: So we're interested in providing a sort of good modicum of privacy that still preserves the ability of parties crafting these intents to find each other and of.
+00:19:05.978 - 00:19:09.830, Speaker B: Solvers to create transactions which match them.
+00:19:15.560 - 00:19:36.412, Speaker C: Right? So the basic high level data flow here is that users will create intents. Those intents are sent around the gossip network. They're found by some solvers. Solvers are not a, they're not like a, there's no PKI for solvers. They're not like validators or something. There's no specific permission set. Just any node sees intents can match them.
+00:19:36.466 - 00:19:38.056, Speaker B: Those intents are compatible.
+00:19:38.248 - 00:19:41.996, Speaker C: And this can happen in cycles until we get a final valid transaction which.
+00:19:42.018 - 00:19:43.600, Speaker B: Can be posted to blockchain.
+00:19:44.980 - 00:20:52.320, Speaker C: So in tiger, basically, we want to achieve two kinds of privacy. We want to achieve user privacy. So think of it, the addresses of the users will not be revealed. And we want to achieve this kind of partial solving privacy. And partial solving privacy means that when we have, let's say here, we have three intents involving stars, dolphins, and trees. And you can also call these a, b, and c. And the basic idea of partial solving privacy is that if we have two intents, one of which is a for b, star for dolphin, and one of which is b for c, dolphin for tree, we can combine these into an intent that is a for c, star for tree, and a subsequent party in the gossip chain which sees this intent will know that there's an intent which trades star for Tree, but they won't know whether someone wanted to trade Star for Tree or whether it came from some prior partial solving which already occurred.
+00:20:52.320 - 00:20:53.830, Speaker C: Does that make sense?
+00:20:55.180 - 00:20:59.690, Speaker D: So what is that? Blue one, yellow one, and green one?
+00:21:01.340 - 00:21:13.980, Speaker C: So I should explain a little bit about the infrastructure of Tyga. How many people here are familiar with maybe zexi or verizexi or some derivative of these systems?
+00:21:16.160 - 00:21:18.670, Speaker D: I think some people are, some people are not.
+00:21:20.180 - 00:22:00.636, Speaker C: Okay, so IGA provides the framework, at least provides both data privacy and function privacy in manner still along the original zero cache research lineage. So, state is split into notes, and there's a note commitment. Tree notes can be spent once, and in order to spend a note, you must prove that you know the commitment that you have the authorization to spend it. In our case, you must prove that the predicate along with that note is satisfied, and you must reveal the nullifier which is added to the nullifier set. And future transactions cannot spend the same node to reveal the same nullifier, or.
+00:22:00.658 - 00:22:02.220, Speaker B: They will be considered invalid.
+00:22:02.800 - 00:22:24.912, Speaker C: So when we want to represent things like tokens, in this framework, if we have our dolphin and tree, those would all be individual nodes which are initially owned, in this example by Alice, Bob, and Charlie, respectively. And in the transaction, we check this balance of.
+00:22:24.966 - 00:22:25.460, Speaker B: Let's see.
+00:22:25.530 - 00:22:29.408, Speaker C: So if you think of zcash, zcash has one asset.
+00:22:29.584 - 00:22:33.156, Speaker B: The circuit is written with one asset or one function in the language of.
+00:22:33.178 - 00:22:39.428, Speaker C: Data privacy and function privacy. And that function checks the balance of zec. There's also a transparent part, but I'm.
+00:22:39.444 - 00:22:41.736, Speaker B: Just going to not talk about this for now.
+00:22:41.838 - 00:22:54.216, Speaker C: And basically, in a shielded to shielded transaction, that function checks that some notes were spent, some notes which were created. It checks that the sum of the value created is equal to the sum.
+00:22:54.248 - 00:22:58.830, Speaker B: Of the value destroyed, so that no tokens are created or destroyed on that.
+00:22:59.280 - 00:23:36.568, Speaker C: And we do the same thing in Tyga, except that instead of there just being one asset or one data type, the linearity of which we care about, there are many. In particular, we do a sort of content addressed asset type derivation scheme. So how to describe this? In each note, there is a predicate similar to like how Zexi has birth and death predicates. For each note type, there is a predicate describing how notes of that type can be created and how notes of.
+00:23:36.574 - 00:23:37.992, Speaker B: That type can be destroyed.
+00:23:38.136 - 00:24:12.790, Speaker C: And when we do this balance check, we derive the value basis for the balance check, which are sort of independent generators, which we can check homomorphic balances of. We check that those balances independently sum to zero. So if I have a. Concretely, if I have a transaction which involves a star, a dolphin, a tree, the balance checks will check that if one star was destroyed, one star was also created. If one dolphin was destroyed, one dolphin was also created. If one tree was destroyed, one tree was also created. Does that help?
+00:24:15.320 - 00:24:44.960, Speaker D: So you mean those notes is a predicate function similar to what Zach have for spending and receiving. Like for Alice, you are spending a star and want a dolphin, and you encode that in that node, and you can maybe derive some homomorphic commitment of balance from that to either check the balance. And that's part of the predicate.
+00:24:49.620 - 00:24:56.432, Speaker C: Yes, that's right. I mean, it's the same state architecture as sexy.
+00:24:56.496 - 00:24:57.350, Speaker B: Pretty much.
+00:24:58.680 - 00:25:01.350, Speaker C: What is different?
+00:25:03.560 - 00:25:22.344, Speaker E: I want to follow up on that question. So in your use case, you have only one predicate. Then why do you still do the two layer recursion, as in Zexi? Because now you kind of don't have birth and death anymore, and you don't need the functional privacy.
+00:25:22.392 - 00:25:22.990, Speaker B: Right.
+00:25:26.480 - 00:25:27.740, Speaker C: One predicate.
+00:25:31.540 - 00:25:35.520, Speaker E: Sorry, can you please repeat? So it's not one predicate?
+00:25:37.460 - 00:25:56.608, Speaker C: No. I guess I was trying to explain how the value balance check works, but there are different types. And like in Zexi, a type corresponds to or is derived from a creation, a birth predicate, and a death predicate. We call them different things, but that's.
+00:25:56.624 - 00:25:58.260, Speaker B: What it maps to in Zexi.
+00:25:58.940 - 00:26:00.324, Speaker C: And we want to check a balance.
+00:26:00.372 - 00:26:03.908, Speaker B: Of those types independently. So there are different functions.
+00:26:04.084 - 00:26:10.476, Speaker C: But rather than checking, I guess you could do something where you wanted to check their balance in a combined way.
+00:26:10.498 - 00:26:12.620, Speaker B: But we want to check your balances independently.
+00:26:16.300 - 00:26:34.030, Speaker E: I see, go ahead. I'm trying to understand the difference or the dirt between what you are proposing and the Zexi is that the taxi has two predicates, and now you have only one predicate. Is that a reasonable answer?
+00:26:39.060 - 00:27:11.050, Speaker C: That is not really an important difference at the moment. We have one predicate, but it gets a bit as to whether it's being created or destroyed. I think the important difference from this architecture in Zexi is how partial transactions work. Okay. And if you took what's in the Zexi paper and did a lot of work to kind of. I don't want to say that this is like, maybe it's better to think of this as this is us figuring out how to kind of instantiate sexy for the model in which we wanted to use it.
+00:27:12.000 - 00:27:16.220, Speaker B: And we have different engineer requirements.
+00:27:17.040 - 00:27:19.416, Speaker C: It provides data privacy and function privacy.
+00:27:19.448 - 00:27:21.404, Speaker B: And structure state in the same way.
+00:27:21.602 - 00:27:23.390, Speaker C: I don't know if all of the exact.
+00:27:24.400 - 00:27:29.890, Speaker B: We might derive asset types in a slightly different way, but it's probably not an important conceptual difference.
+00:27:31.300 - 00:27:32.770, Speaker E: All right, cool, thanks.
+00:27:33.940 - 00:27:38.230, Speaker C: The difference that I want to explain a bit, though, is this sense of.
+00:27:39.000 - 00:27:41.264, Speaker B: Partial transactions and total transactions.
+00:27:41.392 - 00:28:30.020, Speaker C: So basically, the difference in taiga, in what makes between partial transactions and total transactions or final transactions, is that final transactions satisfy the balance criterion and partial transactions don't. And partial transactions correspond to these intents. So if we think of what Alice is doing, when Alice authors an intent and broadcasts it on the network, Alice has some asset, we'll call it star. And Alice wants a dolphin. What's tricky in the private world, as opposed to the transparent world is that we're operating in this model where state is note. So Alice wants an asset of type dolphin, but there are many dolphins, and Alice doesn't know which of them she's going to get. So she can't make a proof if we want.
+00:28:30.020 - 00:29:00.584, Speaker C: Alice wants to be able to receive this thing privately, but she can't make a proof of the dolphin note or whatever because she doesn't know which one it only. The only thing Alice can do is send her star, and she can't even send her star to somebody because she doesn't know who's going to get it yet. So for this purpose, we use this like partial transaction staged composition pipeline. So first, Alice creates Alice's partial transaction.
+00:29:00.632 - 00:29:02.908, Speaker B: I'll sort of circle this with my mouse here.
+00:29:03.074 - 00:29:47.336, Speaker C: And Alice's partial transaction spends the thing which she has star, and it spends it to what we call an intent predicate. So an intent predicate is kind of like, I guess you could think of it as a temporary application that lives only in the duration of this transaction creation process. But it's not like a smart contract that's deployed to the blockchain. It's never kept in any sort of registry. But Alice uses this intent predicate to express her settlement conditions. So she wants the final transaction to be valid, which will spend her star only if she gets a dolphin and she knows what dolphin. She knows the asset type for dolphin, but she doesn't know which specific dolphin.
+00:29:47.368 - 00:29:48.364, Speaker B: She'S going to get.
+00:29:48.482 - 00:30:20.928, Speaker C: So Alice like creates this partial transaction that spends her one note of star, creates another note with this temporary intent validity predicate that says that in order to balance that note, to spend a note of that type, someone has to send Alice a dolphin. And Bob and Charlie do this respectively with their assets. They have dolphins trees, then a solver. So a solver which sees in this.
+00:30:20.954 - 00:30:23.044, Speaker B: Step three, we have two solvers in these examples.
+00:30:23.092 - 00:30:36.940, Speaker C: Step three is the first solver sees Alice's partial transaction and it can send Bob's dolphin to Alice and satisfy part of the constraints. And then it can create this new.
+00:30:37.010 - 00:30:38.668, Speaker B: Partial transaction and forward it to the.
+00:30:38.674 - 00:30:42.908, Speaker C: Second solver, who can combine it with Charlie's partial transaction and satisfy all of.
+00:30:42.914 - 00:30:48.770, Speaker B: The constraints in the final transaction. Does that make sense?
+00:31:00.280 - 00:31:10.040, Speaker E: You probably are going to mention this later in a slide, but I'm really curious to know that how you're going to solve the concurrency issues in the dexi.
+00:31:14.880 - 00:31:41.236, Speaker C: Right. So I would describe the primary. We don't solve the, I mean, you have to choose a place to order things if you want dependent state updates to be ordered. I guess we're primarily interested in cases where what users want can be specified in independent ways. So this is not like for an.
+00:31:41.258 - 00:31:43.956, Speaker B: Amm or something like this, but you.
+00:31:43.978 - 00:32:03.156, Speaker C: Can express, because intents are cheap, you can express the economics of creating a bunch of intents are different than the economics of creating a bunch of transactions. So like limit order dexes, when you have to publish everything to the blockchain, are pretty expensive because it's a lot of transactions and most of them aren't.
+00:32:03.188 - 00:32:04.196, Speaker B: Going to get matched.
+00:32:04.308 - 00:32:06.584, Speaker C: But intents don't require fees, they only.
+00:32:06.622 - 00:32:08.340, Speaker B: Require fees on solve it.
+00:32:08.430 - 00:32:10.504, Speaker C: So you could create many different limit.
+00:32:10.552 - 00:32:12.604, Speaker B: Orders with different expiries and different price.
+00:32:12.642 - 00:32:53.960, Speaker E: Ranges, if I understand quickly. So there's still a competing raising condition where say, two nodes tries to modify the stars at the same time. But you are saying that because the intent to modify this die is cheap, if one of the node fails, then he can just generate another one with almost no cost, is that right? Yes. So you still execute the things in serial but because you don't actually go through the whole proof generation mechanism.
+00:32:57.120 - 00:32:57.576, Speaker B: It'S.
+00:32:57.608 - 00:33:07.070, Speaker E: Fine that some of the transaction gets rejected. I mean from the. Yeah, not from the user, user experience point of view.
+00:33:10.500 - 00:33:25.024, Speaker C: Some of this is application dependent. So if in general, I guess in this paradigm we're hoping that it will be easier to write applications in ways that don't require large amounts of shared.
+00:33:25.072 - 00:33:28.180, Speaker B: State, that it's completely dependent, like an amm.
+00:33:29.640 - 00:33:50.156, Speaker C: So if Alice wants to do trades, Alice might have her, in the case of a non fungible token, Alice might have different things that she's willing to trade her star for, and one of those intents will find a counterparty first, and that one will get matched. And it's possible that many will find counterparties at the same time and that.
+00:33:50.178 - 00:33:51.580, Speaker B: There will be a race condition.
+00:33:51.920 - 00:33:57.196, Speaker C: But if there's a bunch of price, that's most likely in cases when there's like a bunch of price uncertainty or.
+00:33:57.218 - 00:34:01.810, Speaker B: The assets being traded are very popular or something like this.
+00:34:02.340 - 00:34:23.940, Speaker C: And there instead what Alice can do, because she has access to predicates, is that she can write a declining price function into her intent. So she'll start by requesting like a very good price that is probably not going to get matched, and then over time the price that she's willing to accept will get lower and lower down to some threshold.
+00:34:24.100 - 00:34:25.530, Speaker B: So there's kind of like.
+00:34:28.060 - 00:34:31.432, Speaker C: Some solver still accepts the execution risk of maybe.
+00:34:31.486 - 00:34:33.736, Speaker B: The two competing transactions are submitted at.
+00:34:33.758 - 00:34:35.704, Speaker C: The same time, but Alice can just.
+00:34:35.742 - 00:34:44.350, Speaker B: Specify her execution and price preferences and she doesn't need to worry about the, she doesn't pay the fees for ordering, if that makes sense.
+00:34:45.280 - 00:34:46.796, Speaker C: So it is true that someone has.
+00:34:46.818 - 00:34:49.472, Speaker B: To accept their execution. Yeah, maybe that's a clearer way to answer.
+00:34:49.606 - 00:34:57.840, Speaker C: We just offload the execution risk onto these specialized parties called solvers, who at least can deduplicate among their own transactions.
+00:34:58.260 - 00:35:02.820, Speaker B: And they might compete with one another, but it depends on the topology of the network.
+00:35:04.040 - 00:35:05.750, Speaker E: Yeah, cool, thanks.
+00:35:07.640 - 00:35:20.744, Speaker C: So I guess back to your question, if I'm pronouncing that correctly, what privacy do we provide? In Tyga, we provide identity privacy, but.
+00:35:20.782 - 00:35:23.716, Speaker B: Not asset or sort of constraint privacy.
+00:35:23.908 - 00:35:47.212, Speaker C: During counterparty discovery, and we provide full privacy during settlement. This is important, I guess, as a distinction also to mention that in the world of settlement privacy, there is one observer, or one class of observer who is an observer of the blockchain, and we only care, like the privacy property is simple because we only care about privacy to that observer. What can an observer of the blockchain.
+00:35:47.276 - 00:35:49.756, Speaker B: See so when we talk about Zcash's.
+00:35:49.788 - 00:36:16.308, Speaker C: Privacy model or Monero's privacy model or whatever, we're talking about observers of the blockchain. Observers of the blockchain might have different information, but there's still one class of observer. However, when we talk about privacy and counterparty discovery, it's more nuanced because there are many different observers. This counterparty discovery network is sort of sparse, or you might broadcast intents if you're concerned about privacy, first to your neighborhood solver or your friend solvers, and only then, or perhaps never, if you're.
+00:36:16.324 - 00:36:21.416, Speaker B: Very concerned about privacy to the entire network, as there are multiple different observers.
+00:36:21.528 - 00:36:23.308, Speaker C: But to those observers, to whomever you.
+00:36:23.314 - 00:36:27.148, Speaker B: Broadcast your intents, the assets and constraints are still public.
+00:36:27.234 - 00:36:30.640, Speaker C: So if you're using very unusual assets.
+00:36:31.860 - 00:36:35.040, Speaker B: Frequently there may be some measure of statistical linkability.
+00:36:38.260 - 00:36:55.176, Speaker C: But at least we postulate this is more or less the best you can get with non interactive intent matching like this, because the solvers need to have both the requisite information to test if two intents can be matched and to.
+00:36:55.198 - 00:36:57.752, Speaker B: Construct the transaction which actually matches them.
+00:36:57.886 - 00:37:12.024, Speaker C: So alternatives are you can get more privacy if you do some kind of MPC between the parties, or if you do the solving in fHe.
+00:37:12.072 - 00:37:17.020, Speaker B: But that seems very unlikely to be practical anytime soon. Future reaches directions.
+00:37:20.320 - 00:37:32.444, Speaker C: Yeah, that's, I guess, what Tyga is going after. You can find it on GitHub. It's currently implemented using Halo two as a back end. We've discovered that some halo two plumbing.
+00:37:32.492 - 00:37:36.484, Speaker B: Still needs to be put in place, so we're trying to work the ECC team on that.
+00:37:36.682 - 00:37:41.216, Speaker C: There's some example predicates, proofs can be created and verified, and we have partial.
+00:37:41.248 - 00:37:43.880, Speaker B: Transactions, but please don't use it in production.
+00:37:47.980 - 00:37:50.040, Speaker C: So that's pretty much tiger.
+00:37:54.220 - 00:37:57.320, Speaker B: Pause for questions and I can talk about empire.
+00:38:00.880 - 00:38:07.630, Speaker E: I'm interested to know that the tiger's performance versus Xi. And where is Xi? Do you have any data?
+00:38:09.460 - 00:38:17.804, Speaker C: Yeah, currently we have four notes. You have to pick a fixed constant number. We have four input and four output notes.
+00:38:17.932 - 00:38:21.990, Speaker B: And proving takes 2 seconds. Halo two.
+00:38:23.880 - 00:38:28.870, Speaker C: It took 18 seconds with plonk, so halo two was a great speed up.
+00:38:29.800 - 00:38:30.260, Speaker B: Cool.
+00:38:30.330 - 00:38:34.340, Speaker E: And this is for the inner circuit or the outer circuit?
+00:38:35.480 - 00:38:39.844, Speaker C: This is for the outer circuit, but the inner circuit proofs can be constructed in parallel.
+00:38:39.892 - 00:38:42.328, Speaker B: So it's less like both on a.
+00:38:42.334 - 00:38:43.816, Speaker C: Machine, but also we expect it.
+00:38:43.838 - 00:38:47.790, Speaker B: In general, they're constructed by separate parties. Yeah. Cool. Thanks.
+00:38:53.910 - 00:39:07.654, Speaker C: Actually a question I would ask, so I'm aware of, like Alio has some Zexi derived implementation espresso systems has a Vera Zexi prototype on GitHub. Are there other production ish implementations of.
+00:39:07.692 - 00:39:09.240, Speaker B: Zexi that you know?
+00:39:14.330 - 00:39:19.914, Speaker E: Yeah, there's a snack VM and also the Verizon. So those are the two that I'm aware of.
+00:39:20.112 - 00:39:35.098, Speaker C: Right. So I guess the second part of this presentation is about this intermediate language that we're building polynomials called vampire.
+00:39:35.194 - 00:39:45.040, Speaker B: So I'm going to switch maybe. Cool.
+00:39:47.350 - 00:40:13.158, Speaker C: So vampire is trying to vampire by the vampire team, Joshua, Maurice and Carlo is trying to simplify the lives of high level compiler developers. So I guess our process started out here a year ago with trying to write some higher level applications using serial.
+00:40:13.174 - 00:40:15.454, Speaker B: Knowledge proof systems, particularly the multi s.
+00:40:15.492 - 00:40:28.066, Speaker C: Chiller pool, and then later tyga and frequently having to switch which proof system backend. Those applications were written in because backends improved or backends didn't quite have the.
+00:40:28.088 - 00:40:32.290, Speaker B: Performance characteristics we expected, or we encountered implementation difficulties.
+00:40:34.070 - 00:41:40.050, Speaker C: So for that reason we thought it would be kind of easier if there were one central, slightly more abstract representation that could be easily compiled circuits. And I want here to contrast. So vampire is not a ZKDSL. There are lots of great zkdsls, and some of them might have internal components which are kind of like vampire. I can't say that I know the structure of everything clearly, but vampire is instead designed already to be an internal component of a Zk compiler stack, and it's designed to be an internal component that is responsible for translating a sort of abstract representation of polynomials, corresponding circuits into a proof system specific representation for many different proof systems. So different proof systems like sort of Plunkish, halo two, plunk up, r one cs, Bellman, Webstark, there are others, have all support the same complexity class of programs, and their representations are at least in principle semantic equivalent in power. But they're different in specifics.
+00:41:40.130 - 00:41:41.458, Speaker B: So you have to express your constraints.
+00:41:41.474 - 00:41:42.994, Speaker C: As r one cs, or as Plunkish.
+00:41:43.042 - 00:41:45.238, Speaker B: Or potentially in some plunk variants you.
+00:41:45.244 - 00:41:46.006, Speaker C: Can use lookup gates.
+00:41:46.038 - 00:41:47.418, Speaker B: There are lots of these sort of.
+00:41:47.584 - 00:41:50.826, Speaker C: Specific different implementations of plunk, have different.
+00:41:50.848 - 00:41:52.506, Speaker B: Gate arities, stuff like that.
+00:41:52.608 - 00:42:05.994, Speaker C: There are all of these proof system specific representation constraints that are, if you put them in your higher level language, it's just awkward and you have to deal with them separately in each higher level language. And it means your higher level language.
+00:42:06.122 - 00:42:13.810, Speaker B: Has to fix a particular proof system as opposed to being able to adopt new proof system specific representations.
+00:42:15.750 - 00:42:29.974, Speaker C: Vampire is concerned only with the translation of this abstract polynomial circuit representation to proof system specific representations for different proof system backups. Let me talk a little bit about.
+00:42:30.012 - 00:42:32.002, Speaker B: What that representation looks like.
+00:42:32.156 - 00:43:11.858, Speaker C: So all the circuits that we're dealing with are circuits and polynomials, or have sort of one to many correspondence, in that the semantics of a circuit are completely captured by a polynomial, but the circuit contains more information about computation. So you can have two circuits which represent or are semantically identical to one polynomial, but they involve a different sequence of gates, right? And those differences in the sequence of gates and in the structure of the circuit can be more or less efficient for different proof systems, different fields, different configurations of other things.
+00:43:11.944 - 00:43:18.550, Speaker B: Depending on solvent proof systems, the ratio of the cost of addition multiplication is quite different, stuff like this.
+00:43:18.700 - 00:43:23.302, Speaker C: So in general, we can think of arithmetic circuits as representations of computation paths.
+00:43:23.366 - 00:43:28.918, Speaker B: Of polynomials, particularly polynomial verification, join arithmetic.
+00:43:28.934 - 00:43:30.780, Speaker C: Circuits by wiring them together.
+00:43:33.310 - 00:43:38.794, Speaker B: And they just, sorry, my slides being slow here, they correspond to systems of polynomial equations.
+00:43:38.922 - 00:43:44.174, Speaker C: Confusingly, in this slide, since a squared equals a, it should say like a.
+00:43:44.212 - 00:43:55.810, Speaker B: Zero squared equals a one. They're two different a's. But this is just an example of a polynomial circuit which corresponds to it. I'm sure this is like probably straightforward.
+00:43:57.750 - 00:44:00.886, Speaker C: And often in intermediate representations, we need.
+00:44:00.908 - 00:44:05.554, Speaker B: To represent circuits as expression trees. So if we think about the circuit.
+00:44:05.602 - 00:44:18.506, Speaker C: As an expression tree, it has some constraints of equality amongst all of the initial values or inputs to the circuit. Then these intermediate values and nodes, and.
+00:44:18.528 - 00:44:19.500, Speaker B: Then the final.
+00:44:22.030 - 00:44:23.306, Speaker C: And often we need.
+00:44:23.328 - 00:44:28.190, Speaker B: To compile this to sort of more descriptive list of gates and actual wires.
+00:44:28.530 - 00:44:35.840, Speaker C: Back end. In vampire, you can write circuits in this kind, or polynomials in this high level.
+00:44:37.570 - 00:44:38.320, Speaker B: Form.
+00:44:38.710 - 00:44:43.294, Speaker C: If we think about this looks like function definition, but they're really just aliases.
+00:44:43.342 - 00:44:46.206, Speaker B: There's no sort of complicated function abstraction.
+00:44:46.238 - 00:45:16.000, Speaker C: Going on here, but you can write booleans, range, constraints, division, et cetera. And if we think about a specific example, let's take pythagorean game. So in the pythagorean game, a player of the game submits triple abc and value s, and the verifier checks that.
+00:45:16.610 - 00:45:25.374, Speaker B: Triple has a pythagorean relationship, so that a squared plus b squared equals c squared. We do this using this extra bit.
+00:45:25.412 - 00:45:29.620, Speaker C: S. You can write that in vampire, like this.
+00:45:33.590 - 00:45:42.870, Speaker B: Alias, and you have this just is constraint, which checks whether two bits are equal.
+00:45:46.490 - 00:45:49.046, Speaker C: Vampire is responsible for compiling, I'll talk.
+00:45:49.068 - 00:45:52.262, Speaker B: About in the subsequent slides a little bit about how this works.
+00:45:52.316 - 00:45:58.310, Speaker C: But vampire is responsible for compiling this representation, which you see here into proof system specific representations.
+00:45:58.390 - 00:46:00.474, Speaker B: And it tries to abstract that just.
+00:46:00.512 - 00:46:07.198, Speaker C: Via three commands, which are probably the ones you expect. Compile prove and verify. So you can give a vampire a.
+00:46:07.204 - 00:46:25.140, Speaker B: Vampire input file and it will compile it to a back end proof system with specific parameters. Then you can make proofs, and then you can verify proofs. And you can also import this rest library, in addition to calling it to be in the command line.
+00:46:25.830 - 00:46:33.126, Speaker C: So if we look at this example again, here is what parameters look like. So in this case we're using sort.
+00:46:33.148 - 00:46:37.526, Speaker B: Of plunkish output over BLS 1231 and.
+00:46:37.548 - 00:46:38.950, Speaker C: The bander snatch curves.
+00:46:40.970 - 00:46:47.578, Speaker B: And we have to provide, when you approve, you provide a witness map and.
+00:46:47.744 - 00:46:53.818, Speaker C: Vampire internally compiles all of this to the specific representation needed.
+00:46:53.904 - 00:47:02.826, Speaker B: At the moment, it's the Ck garage, plonkish backend and tableau, two backends supported. Blah blah blah.
+00:47:02.858 - 00:47:04.874, Speaker C: This just involves ast conversion.
+00:47:05.002 - 00:47:06.826, Speaker B: Then we need to convert this into.
+00:47:06.948 - 00:47:09.778, Speaker C: Normal form, expand it into the specific.
+00:47:09.864 - 00:47:15.540, Speaker B: Declarations of inputs and wires and constraints, and what.
+00:47:20.090 - 00:47:27.174, Speaker C: Sometimes we can translate like subtraction to addition, turn it into. In the case of three plunk, we.
+00:47:27.212 - 00:47:39.590, Speaker B: Turn it into set of three block constraints. I should not talk about that yet. That makes sense.
+00:47:57.160 - 00:48:00.116, Speaker D: Are you asking questions or.
+00:48:00.298 - 00:48:01.960, Speaker C: Yeah, potentially.
+00:48:05.100 - 00:48:20.284, Speaker D: Just one quick question. So when you are writing circuit, you have to write in this high level way, and it will compare to your one power r, which is defined by a lot of expressions, and you get some expression tree, and from that expression tree go into rncs or punky stuff.
+00:48:20.482 - 00:48:21.708, Speaker B: Is that correct?
+00:48:21.874 - 00:48:51.728, Speaker C: Yes, sorry. This is vampire. This is the ir that you write here. In general, we expect this vampire is like a vampire we think of as being roughly analogous to LlVM, but four circuits. So it's designed more to be an intermediate representation. I mean, you can write it, of course, as a human, like you can write Llvm as a human, but most people don't. Instead they write higher level languages which compile to LLvM.
+00:48:51.728 - 00:49:06.956, Speaker C: And Llvm solves this very specific problem of translating an infinite register machine into a finite register machine for different finite register machines with different numbers of registers and different SIMD operations like LVM does.
+00:49:06.978 - 00:49:08.520, Speaker B: A lot of stuff. Vampire is much simpler.
+00:49:08.600 - 00:49:28.080, Speaker C: But similarly, vampire just tries to solve the problem of translating abstract polynomial representation with whatever degree polynomial you want, and these kind of aliases and standard arithmetic operations into specific representations of constraints and circuits which have more restrictive formats like.
+00:49:28.150 - 00:49:30.790, Speaker B: All gates or air 83, stuff like this.
+00:49:32.600 - 00:49:46.744, Speaker C: So we expect that people will. In our case, we have a part of the compiler stack that lives on top of vampire, and we expect that it might be useful to other folks. Also, building languages on top of vampire who just wants to solve this part.
+00:49:46.782 - 00:49:48.840, Speaker B: Of the compilation problem somewhere.
+00:49:55.120 - 00:50:57.760, Speaker D: Just make sure I understand this. So if I want to prove for this game player, you prove that those ABC and s specify the relationship because previous graph there is docker all those front end language compared to this IR. So do I need to firstly write all this IR and then have some compiler from. I just don't know what are you writing in Zorcrate and how it compared to this function because this seems like already contains all the constraints you need at least for checking this program. Or you mean maybe there is a larger program which repeatedly have this kind of pattern and you just use this as error and. Yeah, just try to figure out what's your normal sequence for using that and also what kind of front end language you can already support through your create. All those stuff already been supported.
+00:50:57.760 - 00:51:25.088, Speaker D: I don't know whether expressed my question clearly not. And also for this IR stuff, for this expression tree, it seems like it's very hard to express lookup permutation, which seems to involve more complicated relationship. I even don't know how you can make that compatible for RNCs and plonkes if RNCs clearly don't support lookup and how you can make that.
+00:51:25.194 - 00:52:00.716, Speaker C: Yes, I see, right, so the idea of vampire is not to, it's not translating between r one cs and plug up, it's only compiling this IR, which is what you see in this picture. This is vampire, and the vampire compiler compiles this IR to different specific representations. And in that compilation it can do optimizations. For example, you can write something which is like a lookup gate, and when it compiles to back ends support lookups, it's compiled to a lookup.
+00:52:00.748 - 00:52:02.116, Speaker B: And when it compiles to r one.
+00:52:02.138 - 00:52:06.224, Speaker C: Cs it just uses the non lookup.
+00:52:06.272 - 00:52:08.276, Speaker B: But semantically equivalent check.
+00:52:08.458 - 00:52:13.780, Speaker C: And to some extent as the compiler optimization passes improves, we can do that automatically.
+00:52:13.860 - 00:52:16.010, Speaker B: We can't do all of it automatically yet.
+00:52:18.540 - 00:52:30.696, Speaker D: So you mean there are some way to. So does one point r support lookup semantics already? Like just use some other way when comparing to r one cs?
+00:52:30.888 - 00:52:32.110, Speaker B: Yeah, that's right.
+00:52:32.640 - 00:52:38.930, Speaker D: Okay, well is that some merkle tree stuff like in rncs for doing lookup or.
+00:52:43.140 - 00:52:55.348, Speaker C: No, the idea is that you write the thing which you want to generate a lookup gate for in vampire, you write it in the regular way, not a lookup, but then vampire can at.
+00:52:55.354 - 00:52:57.396, Speaker B: The moment with some instructions to do.
+00:52:57.418 - 00:52:59.268, Speaker C: This when possible, but can generate the.
+00:52:59.274 - 00:53:05.290, Speaker B: Lookup table and encode it in plug ish constraint systems for you.
+00:53:06.060 - 00:53:07.892, Speaker C: So we don't encode the lookup gate.
+00:53:07.956 - 00:53:10.964, Speaker B: In r one cs, rather we compile.
+00:53:11.012 - 00:53:14.220, Speaker C: The thing which is not a lookup to lookup table.
+00:53:17.950 - 00:53:48.194, Speaker D: So you mean like when you are writing this IR, you don't indicate that it's lookup, but you just write some other constraints. And if it's plunk back end you automatically change to lookup. I think the back end seems to be like a bunch of work if you really want to do this optimization. Well, do you have any benchmark for comparing with some manually written circuits for maybe something vampire, right?
+00:53:48.312 - 00:54:02.390, Speaker C: Not entirely. I mean, some of the halo two compilation we just got working last week, so benchmarks will take a little bit longer. We have a zero knowledge benchmarking project. It doesn't include all of vampire's optimizations yet.
+00:54:02.540 - 00:54:06.938, Speaker B: I actually have a slide about that at the end, but yeah, your point is well taken.
+00:54:07.024 - 00:54:36.382, Speaker C: I mean, I think it will take work to get all of these compiler passes working. Well, that's most of the work. But I guess the thesis of vampire is that that work has to happen somewhere, and it's better for it to happen in a kind of reusable component that doesn't necessitate any other choices. So as long as your front end language can translate things to the syntax, then the part of proof system specific optimizations, that part of the compiler transformation.
+00:54:36.446 - 00:54:50.360, Speaker B: Passes can always be done like by vampire for your language. So it just makes sense to put it in one place. Okay.
+00:54:53.390 - 00:54:53.914, Speaker D: Go ahead.
+00:54:53.952 - 00:55:00.650, Speaker F: Sorry, maybe you can finish your questions. Another question about the vampire.
+00:55:01.950 - 00:55:18.080, Speaker D: Yeah, also I have just another question not related to where you are on this one pair development. And is that many besides Norma? Like is there any other projects using this ir to write their.
+00:55:19.650 - 00:55:20.400, Speaker B: Yeah.
+00:55:23.590 - 00:55:46.166, Speaker C: I think we're in the early to mid prototype stage. There's a prototype which supports Halo two and plunkish as back ends it can compile, prove and verify. And we're currently working with a little bit with, what's it called, the Triton.
+00:55:46.198 - 00:55:51.980, Speaker B: VM team to see if they can use this as well. We don't have other production users yet.
+00:55:52.830 - 00:55:57.230, Speaker D: So they are using stark, correct if I remember correctly.
+00:55:58.050 - 00:55:59.038, Speaker B: That's right.
+00:55:59.204 - 00:56:11.630, Speaker C: But whether the internal encoding choices of a stark are still compatible with this, it's just like a different direction of compatible.
+00:56:17.430 - 00:56:47.760, Speaker F: Yeah, sorry. So my question to the vampire is how do you do the layout here? How do you lay out different values into columns if it's in a plank context? So I know you have this form like transformation, but there's a one pass potential. You can put those values into share same columns or different columns, kind of lay out how many columns and how many rows you're going to use.
+00:56:50.370 - 00:56:53.086, Speaker B: Awesome. Yeah.
+00:56:53.108 - 00:57:02.478, Speaker F: Is it something like maybe you will expect the developer to specify that in some way? Like in the front end IR or. I don't know.
+00:57:02.564 - 00:57:34.762, Speaker C: No, we don't have all the optimization passes done, but it's kind of like an area packing problem depending on specific cost. Mean, I think probably at least out of work I'm aware of Sean and the ECC team in their Halo two API have made the most practical progress towards efficient packing and we want to translate that into compiler algorithms instead of manually specified things.
+00:57:34.816 - 00:57:36.922, Speaker B: But it's not, I don't know.
+00:57:37.056 - 00:57:37.526, Speaker F: I see.
+00:57:37.568 - 00:57:39.054, Speaker C: Yeah, at the moment it's like very.
+00:57:39.092 - 00:57:41.230, Speaker B: Simple heuristics, it's not fancy.
+00:57:42.290 - 00:57:42.654, Speaker C: Yeah.
+00:57:42.692 - 00:58:17.740, Speaker F: So my Samsung thoughts like right now about this is you have registers, models when you specify in the front end language, and then now you need to map those registers into limited slots in terms of columns. And then if you want to fit into the columns, then you need to have different selectors to turn on and off different custom grids. So yeah, maybe. I think this is some optimization or coloring problem, like optimization problem for the coloring and how many slots you have and there's some trade off I guess you need to play with.
+00:58:19.790 - 00:58:36.094, Speaker C: Yeah, I mean one thing we're trying to do is to have intermediate formats that are also compatible with existing SMT solvers or sort of optimization tools so.
+00:58:36.132 - 00:58:39.774, Speaker B: That the back end could just come with some cost metrics and we can export it.
+00:58:39.812 - 00:58:41.794, Speaker C: And then because it's easy to check.
+00:58:41.832 - 00:58:46.260, Speaker B: A quality of circuits, then when we get some optimized thing we can check them.
+00:58:48.870 - 00:58:55.320, Speaker F: Yeah, it makes sense. I think definitely they're going to be tiered intermediate languages, I think.
+00:58:59.110 - 00:58:59.858, Speaker B: Cool.
+00:59:00.024 - 00:59:35.210, Speaker C: So let me then just quickly cover last bit here. So in order to try and evaluate all of these different approaches, we've started to do some ZK compiler benchmarking. At the moment this repository covers risk zeros, risk five, stark covers garage, plonk, Minevm and handler two and includes Sudoku.
+00:59:35.290 - 00:59:35.920, Speaker B: And.
+00:59:38.210 - 00:59:40.986, Speaker C: Sudoku and one other example, benchmarks.
+00:59:41.018 - 00:59:47.826, Speaker B: I should just click the thing. Yes.
+00:59:48.008 - 00:59:53.986, Speaker C: If you go to this repository and click on benchmarks, we have stoke and.
+00:59:54.008 - 01:00:02.040, Speaker B: Fibonacci compile proof verify times for Ensun Blake, but not with everything.
+01:00:06.830 - 01:00:25.470, Speaker C: It's very hard to compare. Comparisons tend to be apples to oranges, which makes this problem difficult, I think until we get a sort of clear configuration matrix of proof system properties that.
+01:00:25.540 - 01:00:38.962, Speaker B: You can select a set of properties like no trust to set up or universal trust to set up or something. And then you can get a trade off space of proof or time verifier time proof size, which is usually what people care about.
+01:00:39.096 - 01:00:40.994, Speaker C: We're not quite there, but at least.
+01:00:41.032 - 01:00:47.122, Speaker B: We have some compilation benchmarks, proving and verification benchmarks for some of these systems.
+01:00:47.186 - 01:01:00.060, Speaker C: So I wanted to share this just because it's like our little effort to try and start to map the territory of how these different approaches compare to one another. And it's definitely not enough yet.
+01:01:00.510 - 01:01:11.114, Speaker B: So, curious if you guys have heard about other benchmarking approaches or. Yeah, you know, any systems that would be ready for.
+01:01:11.152 - 01:01:13.006, Speaker C: We tried to include Triton in this.
+01:01:13.028 - 01:01:23.380, Speaker B: As well, but they wanted us to wait. So trying to include more kind of systems for a little bit easier navigation that people tried to understand that they could be using.
+01:01:42.660 - 01:01:45.616, Speaker C: Anyway. Also in case we tried to make.
+01:01:45.638 - 01:01:49.280, Speaker B: This repository very easy to contribute to, if people want to submit.
+01:01:52.440 - 01:01:53.284, Speaker C: Either other.
+01:01:53.322 - 01:01:58.070, Speaker B: Examples or other back end instructions of how to do so, or I'll explain here.
+01:02:00.920 - 01:02:04.340, Speaker C: Do you guys know of other benchmarking attempts?
+01:02:08.840 - 01:02:14.052, Speaker D: You mean benchmark against different proof system, right?
+01:02:14.106 - 01:02:24.164, Speaker C: Okay, what we're trying to do here is take the same example like a nine by nine sudoku puzzle and a circuit, which checks that a sudoku solution.
+01:02:24.212 - 01:02:28.920, Speaker B: For that puzzle is not all the numbers, but a sudoku solution with some initial set of numbers is valid.
+01:02:29.000 - 01:02:40.264, Speaker C: And we're trying to implement that circuit or that like puzzle in at the moment, these four different backends. So Risc zero, which is just implementation.
+01:02:40.312 - 01:02:42.176, Speaker B: Rust file to risk five used with.
+01:02:42.198 - 01:02:46.668, Speaker C: Risk zeros proverb verifier with mine's vm with plonk.
+01:02:46.764 - 01:02:49.276, Speaker B: I think this is the ZK garage.
+01:02:49.308 - 01:03:00.416, Speaker C: Plonk implementation and with halo two. And we want to understand, just for the purposes of comparing these approaches, how long it takes to run the compilers.
+01:03:00.528 - 01:03:05.332, Speaker B: But most importantly to generate and verify proofs and how big the proofs are.
+01:03:05.386 - 01:03:12.104, Speaker C: So this is trying to use the same circuit. So like assuming that we develop the developer care about this particular program, how.
+01:03:12.142 - 01:03:14.360, Speaker B: Do these persistence compare?
+01:03:16.220 - 01:04:12.940, Speaker D: Yeah, but the performance I guess very largely depends on concrete program because those two examples are quite simple and you can easily get some benchmark result. But for example, if you are running some hash function, if you use some lookup and in a very nice way, you use some custom gating a nice way, you definitely can save a lot, especially for some low level optimize library like for simpler program, maybe you can use rig five mIDN, you just need to verify a very simple execution trace, which might be similar to your program with a VM circuit overhead. But yeah, I think it very largely depends on your circuit shape, your application, because if you are using very simple circuit, you are not really unlocking this power for custom gate lookup and all those magic.
+01:04:15.200 - 01:04:15.950, Speaker C: Yeah.
+01:04:18.160 - 01:04:26.444, Speaker D: So maybe some more larger real world example makes more sense. But yeah, again, it's still very hard to compare.
+01:04:26.492 - 01:04:33.604, Speaker C: Yeah, I agree. It's early stage and it's hard to, I mean, just like even implementing the same circuit in all of these four.
+01:04:33.642 - 01:04:35.428, Speaker B: Proof systems took us like two months.
+01:04:35.594 - 01:05:46.600, Speaker D: Yes, because we are comparing with halo two and the planky two, which are two very similar arithmetic, but it's still very hard even for circuit implementation. Different implementation might differ like five or ten times because you can't even use the same optimization if you are considering the underlying field are different. For example like risk plunket will use Godilocks field, which means your witness need to be smaller within this 64 bit length. But for hello two, which you might use some eritica, which means your underlying field might be larger, like 256 four bit or whatever. And so you can use just larger value as your intermediate value, which might reduce your size. And also planky tool relies on this recursive to really be performant. Because if you are talking about only talking about a pro time, usually planky two, the first layer can be five times faster than hello two, but the proof size is like 1000 times larger than hello two.
+01:05:46.600 - 01:05:55.900, Speaker D: So you need to add up the second layer. So it's just very complicated to directly do benchmark, first from the circuit side, second from the concrete setup.
+01:05:59.520 - 01:06:00.270, Speaker C: Yeah.
+01:06:02.400 - 01:06:06.864, Speaker B: We haven't tried pocket two. I guess we should, but this is.
+01:06:06.902 - 01:06:24.708, Speaker C: What we find as well. And I guess it's one reason why we're hoping to find. Maybe it's too much to ask people to contribute to vampire, but I would at least like to. We have this theory that this is the component that makes sense in the ZK compiler stack, because everyone has to do these kinds of passes and it.
+01:06:24.714 - 01:06:30.596, Speaker B: Would be nice if we could duplicate it. I would be very interested in hearing.
+01:06:30.628 - 01:06:34.216, Speaker C: From people who either think that they can't use vampire or think that they.
+01:06:34.238 - 01:06:38.650, Speaker B: Can, and why maybe we can improve our hypotheses there.
+01:06:43.830 - 01:07:02.760, Speaker D: Yeah, I think one concern is that I don't know how to like how much work compared with directly rating hello to circuit. In our case, if you have so many custom gates self defined compared with using one power hour and how much developer effort that can save. It was personal concern from my side.
+01:07:07.690 - 01:07:26.958, Speaker A: I was just going to ask the benchmark numbers that you had on the screen, those are not using vampire. Those are just like all the constraints are directly written and implemented directly in each of the proof system constraint systems, right?
+01:07:27.124 - 01:07:28.958, Speaker B: That is correct. Okay.
+01:07:29.044 - 01:07:31.342, Speaker C: We are currently working on adding vampire.
+01:07:31.406 - 01:07:34.420, Speaker B: To this benchmark suite, but it's not there yet.
+01:07:34.790 - 01:07:38.766, Speaker C: And then we would do like vampire in this proof system versus the proof.
+01:07:38.798 - 01:07:44.310, Speaker B: System implemented kind of natively. And you can see what the compiler extraction.
+01:07:44.650 - 01:07:48.470, Speaker A: So it'd be like another row in each of those tables.
+01:07:50.010 - 01:07:56.314, Speaker B: Yes, and we're also trying to support additional vacuums. Cool.
+01:07:56.512 - 01:08:20.194, Speaker A: Yeah, I think something like a ketchack hash function would be a cool benchmark. Although again, then your implementation will depend on the specifics of each proof system. But if vampire does this distinction between lookup tablet, then perhaps it can work.
+01:08:20.232 - 01:08:21.060, Speaker B: I don't know.
+01:08:26.110 - 01:08:45.200, Speaker A: But it's cool that you guys are making an effort to map out the space because categorizing things by prover time and verification time and proof size, et cetera. So that's cool.
+01:08:46.790 - 01:08:54.094, Speaker C: Yeah, I mean, I think it's a drop in a very large space of things which are difficult to navigate unless.
+01:08:54.142 - 01:08:56.260, Speaker B: You understand their internals very well.
+01:08:57.350 - 01:08:58.100, Speaker A: Yeah.
+01:09:03.830 - 01:09:27.502, Speaker C: One, you know, I guess like part of our theory though is that it's true that it takes a lot of effort to develop compiler optimization passes. However, if we assume that there are going to be many, many zero knowledge programs in the future, it is better to develop the compiler optimization passes because otherwise 10,000 developers have to do the same thing.
+01:09:27.556 - 01:09:34.240, Speaker B: Right. So you can split things in different ways, but the cost has to be paid at some point.
+01:09:38.450 - 01:09:39.200, Speaker A: Yes.
+01:09:40.070 - 01:09:40.820, Speaker B: Cool.
+01:09:41.590 - 01:09:56.530, Speaker A: Anyone else have any more questions for Christopher? All right, is there anything else you wanted to present, Christopher?
+01:09:58.790 - 01:10:01.700, Speaker C: No, I don't think so. I hope that was interesting.
+01:10:03.510 - 01:10:29.510, Speaker A: Yeah, this was a really cool presentation on Tiger and vampire. And this benchmark project is very cool as. Yeah, I hope, I hope the discussion was insightful for you. It was insightful for us, for sure. Thanks a lot for presenting. I appreciate your time and preparation.
+01:10:29.810 - 01:10:30.560, Speaker B: Some.
+01:10:31.970 - 01:10:32.960, Speaker C: Thank you.
+01:10:34.210 - 01:10:39.260, Speaker A: All right, thanks for coming, everybody. See you later.

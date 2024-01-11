@@ -1,0 +1,473 @@
+00:00:01.450 - 00:00:32.422, Speaker A: Hello and welcome, everyone. My name is Peter Robinson, and this is the Ethereum engineering group meetup. So today we've got Declan Fox, who's going to talk about the ZKe EVM. That consensus is building. So before I go any further, everyone who's on the call, this recording will be going up to YouTube. If you are unhappy with that, please leave the call now. Turn your video off, don't talk, whatever.
+00:00:32.422 - 00:00:43.980, Speaker A: But yes, that is the plan, that this will be uploaded to YouTube. So, Declan, I could introduce you, but I know you're going to do a much better job, so please introduce yourself.
+00:00:46.110 - 00:00:47.100, Speaker B: Hey, everyone.
+00:00:47.870 - 00:00:49.402, Speaker C: Yeah, nice to meet you all.
+00:00:49.536 - 00:01:01.950, Speaker D: I'm Declan, Declan Fox. So I lead all things product for consensus rollups, where we have a growing number of production ready products. So I've been in the blockchain space.
+00:01:02.100 - 00:01:03.874, Speaker C: For about five years.
+00:01:04.072 - 00:01:12.946, Speaker D: In a previous life, I built a digital asset creation platform where we took real world assets, tokenized them, managed them.
+00:01:13.048 - 00:01:16.194, Speaker C: On the blockchain like Mainnet, Ethereum, and.
+00:01:16.232 - 00:01:26.258, Speaker D: Then before crypto, I actually founded a health tech startup and began my career in the automotive industry working on driverless electric cars for Jaguar Land Rover.
+00:01:26.434 - 00:01:27.720, Speaker C: So a bit of a.
+00:01:29.770 - 00:01:45.200, Speaker A: Wow, that's an interesting background. So before you start, are you prepared to have people ask questions at any time, or should we all save them up to the end, put them in the chat? What do you want us to do?
+00:01:46.050 - 00:01:50.218, Speaker C: Yeah, I think what would be best if we put questions in the chat.
+00:01:50.314 - 00:01:56.050, Speaker D: And then at the end I can always circle back and answer them just in case some of the questions are answered by later slides.
+00:01:56.790 - 00:02:00.638, Speaker A: Sounds good. Sounds good. All right, so please present your slides.
+00:02:00.814 - 00:02:05.778, Speaker B: Great. Awesome.
+00:02:05.864 - 00:02:10.118, Speaker D: Okay, so, yeah, good morning, everyone. For the next hour or so, I'll.
+00:02:10.124 - 00:02:12.322, Speaker C: Be discussing broadly roll ups.
+00:02:12.386 - 00:02:31.180, Speaker D: We'll sort of COVID the past, present, and future of roll ups, and specifically, I'll talk about our latest roll up, which is the consensus ckevM. Hopefully by the end of the talk, you'll have a sort of clearer understanding of why we think that the consensus ckevm is the next big step in the adoption of web3.
+00:02:34.880 - 00:02:38.376, Speaker C: Okay, so for the menu today, I'm.
+00:02:38.408 - 00:02:47.356, Speaker D: Going to be covering why roll ups in the first place. Like, what is a roll up? Why do we have rollups? We'll also be going into some different types. So optimistic.
+00:02:47.388 - 00:02:49.800, Speaker C: Versus ck or zero knowledge roll ups.
+00:02:49.980 - 00:03:00.948, Speaker D: Then we'll dive into our latest roll up, which is the Zkevm or zero knowledge Ethereum virtual machine. We'll touch a little bit on the economics of rollups as well, and the.
+00:03:00.954 - 00:03:03.336, Speaker C: Sort of overall business model.
+00:03:03.438 - 00:03:09.656, Speaker D: And then finally we'll go into the sort of consensus Cke EVM testnet, which will be launching very soon.
+00:03:09.838 - 00:03:11.028, Speaker C: And then, like I just said, we'll.
+00:03:11.044 - 00:03:12.504, Speaker D: Sort of save Q a for after.
+00:03:12.542 - 00:03:14.670, Speaker C: And hopefully have some good questions.
+00:03:16.240 - 00:03:47.300, Speaker D: This presentation will start off with some familiar and basic concepts, but my plan is to kind of slowly introduce some more advanced concepts towards the end, so hopefully everyone will be able to learn something new. And full disclaimer, I'm not a researcher, I'm not a software engineer. I do have a technical background, but if you ask me any questions on elliptic curve cryptography, then we'll need to sort of share that with the technical team and get back to you on discord or something. Okay, so why roll ups?
+00:03:47.640 - 00:03:49.492, Speaker C: Well, I want to start by first.
+00:03:49.546 - 00:03:51.112, Speaker D: Taking a big step back.
+00:03:51.246 - 00:03:52.696, Speaker C: So I expect most people are pretty.
+00:03:52.718 - 00:03:54.756, Speaker D: Familiar with the blockchain trilemma.
+00:03:54.868 - 00:03:57.096, Speaker C: It's a relatively simplified model, but quite.
+00:03:57.118 - 00:04:22.944, Speaker D: An easy one to understand. Essentially, the blockchain trilemma states that you can only focus on two of the three properties, scalability, security and decentralization. So we all know that bitcoin and Ethereum are secure and decentralized, but they do not scale. Ethereum tops out to like 15 to 20 transactions per second. On the other hand, blockchains like Tron and ripple do scale, and they are.
+00:04:22.982 - 00:04:25.776, Speaker C: Secure, but that's because they centralized, which.
+00:04:25.798 - 00:05:03.830, Speaker D: Kind of defeats the purpose of a blockchain. So we're yet to conceive a network that features watertight security over a widely decentralized network, while being able to manage Internet scale transactional throughput. And that is because all of these chains are monolithic blockchains. So monolithic blockchains try to do too much. They take on the responsibility of the four key properties of public blockchains, which is data availability. So ensuring the transaction data behind the blockhead is made public such that anyone can recreate the state.
+00:05:04.520 - 00:05:05.872, Speaker C: They also do consensus.
+00:05:05.936 - 00:05:22.316, Speaker D: So this is kind of transaction ordering. They do settlement, which is all about the verification of transactions, coordination of cross chain transfers as well. And then lastly the big one, which is execution. So taking the pre state, executing a series of transactions and then transitioning to.
+00:05:22.338 - 00:05:27.276, Speaker C: The new state machine. And you can kind of see from.
+00:05:27.298 - 00:05:30.280, Speaker D: This illustration here that Ethereum, for example.
+00:05:30.370 - 00:05:32.960, Speaker C: Does all four of these operations.
+00:05:33.460 - 00:05:37.760, Speaker D: So try and remember this illustration, because we'll come back to this shortly.
+00:05:40.260 - 00:05:40.672, Speaker B: Great.
+00:05:40.726 - 00:05:51.316, Speaker D: So the industry realized this and started experimenting with various different scaling solutions. The first was state channels, where only a pre agreed set of parties could.
+00:05:51.338 - 00:05:53.510, Speaker C: Transact amongst each other.
+00:05:54.360 - 00:06:05.320, Speaker D: Then we had plasma where anybody can transact but could also be censored. And then eventually we landed on a solution that solves censorship too.
+00:06:05.470 - 00:06:08.100, Speaker C: And we call the solution roll ups.
+00:06:08.260 - 00:06:57.436, Speaker D: And the reason it's uncensorable is because the transactions are actually submitted to mainnet l one. Okay, have an answer for that? Siri is getting involved. So what is a roll up? Well, a roll up is actually a blockchain that batches and executes transaction in an environment that is optimized for the execution before then posting their blocks to another blockchain like Ethereum for the consensus and data availability. And a good way to visualize a roll up is as an extra layer on top of Ethereum. Hence we often refer to it as a layer two scaling solution. This is very different to a side chain. So a side chain such as polygon proof of stake needs to bootstrap its own validator set for security and has.
+00:06:57.458 - 00:06:59.836, Speaker C: Its own trust assumptions, whereas a roll.
+00:06:59.868 - 00:07:03.920, Speaker D: Up gets to inherit the security and trust of Ethereum.
+00:07:06.990 - 00:07:09.226, Speaker C: So a side chain is actually just.
+00:07:09.248 - 00:07:49.650, Speaker D: Another monolithic blockchain, which means it suffers from the blockchain trilemma. So it trades off decentralization, possibly for scalability. Polygon is capped at 100 validators, whereas Ethereum is around 450,000 and growing. So in the very simplified terms, a roll up borrowing the security of Ethereum is 4500 times more decentralized and secure than polygon. And here's just a sort of screenshot from polygon scan. You can see the last think 15 blocks are all validated by the same validator. The other big difference is that side chains rely on more trusted bridges to connect to the hub of Ethereum.
+00:07:49.650 - 00:08:02.726, Speaker D: So I'm picking on Polygon a bit here, but their bridge to Ethereum is a five out of eight multisig bridge where four of the keys are the four founders, which is pretty much the same scenario as the Rowan bridge, which was hacked for 650,000,000 when the Sky.
+00:08:02.758 - 00:08:05.946, Speaker C: Mavis team held a significant portion of the bridge keys.
+00:08:06.138 - 00:08:22.516, Speaker D: Whereas meanwhile the roll ups use native trustless bridges, which offer much lower trust assumptions. Okay, so the reason roll ups are so effective is that they optimize for the computationally heavy execution operation in the.
+00:08:22.538 - 00:08:24.788, Speaker C: Modular stack, and then they rely on.
+00:08:24.794 - 00:08:29.460, Speaker D: A far more decentralized and secure base layer for settlement, consensus and data availability.
+00:08:30.120 - 00:08:31.576, Speaker C: So we can see here that the.
+00:08:31.598 - 00:08:33.652, Speaker D: Smart contract roll up takes the execution.
+00:08:33.716 - 00:08:36.920, Speaker C: Step, and the rest is done by Ethereum.
+00:08:39.340 - 00:08:58.720, Speaker D: And roll ups are already here so this is a screenshot from l two beat, where you can see here that there is like over $5 billion in value locked across all of the Ethereum roll ups. L two roll ups like optimism and arbitrum. They're now generating more revenue in fees than alternative l ones like say, avalanche.
+00:08:59.540 - 00:09:02.316, Speaker C: And not only that, but roll ups.
+00:09:02.348 - 00:09:07.136, Speaker D: Don'T need to issue tokens to provide security. So to incentivize miners, for example, to.
+00:09:07.158 - 00:09:12.096, Speaker C: Secure the bitcoin network, there is a block reward. But this block reward comes from newly.
+00:09:12.128 - 00:09:49.330, Speaker D: Issued BTC tokens, which inflict the currency and is an effective tax on token holders. And this is not the case for roll ups as the security is handled by Ethereum and the ETH token. We're now seeing more activity consistently on layer two roll ups than on Ethereum main net itself. So there are around 2.3 times more transactions happening inside the Ethereum ecosystem with roll ups than without. And as you can see, this number is increasing, and I soon expect this to see a sort of hockey stick moment as we see layer twos reach their escape velocity.
+00:09:53.030 - 00:09:54.894, Speaker C: So roll ups are how we accelerate.
+00:09:54.942 - 00:10:16.460, Speaker D: The transition to web3. They theoretically allow us to scale to hundreds of thousands of transactions per second, all without sacrificing the decentralization and security of Ethereum. So not only will this make existing applications far cheaper, but it unlocks new use cases that require high throughput. So, including web3 consumer services like social gaming, content and media.
+00:10:20.110 - 00:10:22.586, Speaker C: And this is 100% supported by the.
+00:10:22.608 - 00:10:42.766, Speaker D: EF, the Ethereum Foundation. Vitalik has previously published a roll up centric roadmap, and he just very recently, I think, last week updated the goal for the surge, which is a different section to the merge we had very recently. And the goal of the surge is to get to 100,000 transactions per second and beyond all on roll ups.
+00:10:42.878 - 00:10:45.700, Speaker C: So that's a commitment from the EF as well.
+00:10:48.760 - 00:10:53.156, Speaker D: Okay, so optimistic versus ck or zero knowledge roll ups.
+00:10:53.348 - 00:10:56.116, Speaker C: So these are two main types of roll ups.
+00:10:56.228 - 00:11:13.980, Speaker D: First of optimistic, optimistic roll ups use economic incentives to keep bad actors in check. So for an optimistic roll up, if layer two tries to submit an invalid block or an invalid transaction to layer one, we have these watchers which will detect and report fraud.
+00:11:15.680 - 00:11:17.376, Speaker C: If the fraud claim is valid, then.
+00:11:17.398 - 00:11:24.288, Speaker D: The watcher is financially rewarded by slashing the deposit of a layer two operator. Optimism and arbitram are two of the.
+00:11:24.294 - 00:11:27.200, Speaker C: Kind of more popular optimistic rollups.
+00:11:29.460 - 00:12:00.990, Speaker D: ZK rollups, on the other hand, use cryptography and maths, not watchers, to verify computation. So for each batch of transactions, the l two would submit evidence to the l one in the form of a proof, which we call a validity proof. And this verifies the integrity of the l two state transition. Interestingly, we say ZK roll up, but we're actually using the Zk technology more for scalability and less for privacy in this matter, some people argue we should have called them validity rollups for that reason.
+00:12:01.360 - 00:12:12.788, Speaker C: And Starknet and Zksync are two of the kind of more popular current Zk rollups. Okay, so the optimistic and ZK rollups.
+00:12:12.824 - 00:12:34.280, Speaker D: Of today are not actually fully serving the ecosystem needs and consensus. R and D knows this better than anyone. We have a deep experience with roll ups. We were exploring new use cases back in 2019. We published research and built ZK roll ups focused on both privacy and scalability. And there are two kind of critical problems that we think they're still worth solving.
+00:12:35.100 - 00:12:37.464, Speaker C: So the first is a lack of.
+00:12:37.502 - 00:12:40.372, Speaker D: EVM equivalence, which slows down adoption.
+00:12:40.516 - 00:12:42.596, Speaker C: So EVM equivalence essentially means the roll.
+00:12:42.628 - 00:12:55.404, Speaker D: Up is nearly identical to layer one ethereum from the DAP developer perspective. And without this, it is very challenging for Dapps to migrate and difficult for new teams and projects to innovate as well.
+00:12:55.522 - 00:12:57.436, Speaker C: So we've actually heard reports that it.
+00:12:57.458 - 00:13:00.656, Speaker D: Took some teams up to like seven months to migrate to layer two, which.
+00:13:00.678 - 00:13:03.520, Speaker C: Is kind of slowing down the pace of adoption.
+00:13:04.500 - 00:13:22.244, Speaker D: And the second one is really just essentially the multitude of trade offs that optimistic roll ups make in comparison to zero knowledge roll ups, which I'll kind of touch on in more detail in just a second. Okay, so here's a case study why EVM equivalence is so important.
+00:13:22.442 - 00:13:24.608, Speaker C: Optimism, which is one of the biggest.
+00:13:24.624 - 00:13:33.008, Speaker D: Optimistic roll ups, originally was not EVM equivalent. So they released this really insightful blog post, aligning the following conclusion.
+00:13:33.124 - 00:13:36.744, Speaker C: The first is that they were fragmenting.
+00:13:36.792 - 00:13:40.700, Speaker D: Already resource constrained teams to maintain compatible tools.
+00:13:41.200 - 00:13:44.056, Speaker C: So they realized that third party teams.
+00:13:44.088 - 00:14:18.292, Speaker D: Would always need to dedicate labor to maintain compatibility, which was not sustainable. They then themselves found it harder to adopt experimental implementations like Aragon. So they originally had guest as their execution client. They wanted to experiment with different ones like Aragon. If they wanted to do this, though, they would have to internally dedicate labor to maintaining vastly different code. So again, wasn't really sustainable. And then lastly, they realized that re implementing parts of the EVM actually introduced gas overhead in comparison to existing hyper optimized versions.
+00:14:18.292 - 00:14:34.204, Speaker D: So EVM equivalents would allow them to minimize gas costs and lower transaction fees for users. And the outcome of all of this was that they actually took the hit and rearchitected their entire stack for the optimistic virtual machine 2.0, which was EVM equivalent. So we kind of see this as.
+00:14:34.242 - 00:14:36.156, Speaker C: The canary in the coal mine for.
+00:14:36.178 - 00:14:54.180, Speaker D: Anyone not really pursuing Ethereum compatibility. And here's like a great snippet from one of their team members. He tweets essentially saying that the optimism team spent weeks helping Unisop get launched initially on optimism, but now teams just sort of launch without any support in minutes. So this developer experience is much better.
+00:14:54.330 - 00:14:55.860, Speaker C: For web3 adoption.
+00:14:59.800 - 00:15:09.656, Speaker D: Okay, so however, optimistic roll ups have many trade offs against ZK roll ups, Vitalik agrees. He says in the medium to long term ZK roll ups will win out.
+00:15:09.678 - 00:15:11.956, Speaker C: On all use cases as ZK snark.
+00:15:11.988 - 00:15:18.324, Speaker D: Technology improves also enabled us ck snark everything. And the reasons for this is firstly.
+00:15:18.372 - 00:15:21.416, Speaker C: That zero knowledge roll ups eliminate reliance.
+00:15:21.448 - 00:15:55.496, Speaker D: On those watches that we mentioned. So they replace that game theoretic economic security with cryptographic security. But trust assumptions becomes maths rather than incentivized actors. And then due to these game theory mechanisms of optimistic roll ups, a transaction cannot actually be considered final until the time window or the dispute time delay has passed. So we have this dispute time delay, basically it can be up to like a week or seven days if it's any shorter. Then it's a trade off against security.
+00:15:55.598 - 00:15:58.676, Speaker C: Because even if a fraud was detected.
+00:15:58.708 - 00:16:29.510, Speaker D: By a validator, the actual transaction needs to be minted from mined from the mempool. So if the optimistic roll up contains like billions of value, then a rational actor could spend millions to attack the network and censor the transaction for the duration of this seven day dispute time delay window. And actually requiring this delay is a really bad user experience for NFTs. So due to their uniqueness, fast withdrawals do not work. And therefore to withdraw an NFT, users must wait one week or potentially more.
+00:16:31.080 - 00:16:33.956, Speaker C: So applications that and use cases that.
+00:16:33.978 - 00:16:43.076, Speaker D: Need more deterministic fast finality are not really suitable for these kind of roll ups, which make up a large proportion of enterprise multiparty workflow use cases.
+00:16:43.108 - 00:16:46.744, Speaker C: For example, whilst hard confirmations are not.
+00:16:46.942 - 00:17:23.992, Speaker D: For ZK roll ups are not yet real time due to the settlement on the base layer, they're still far less limited than current optimistic roll ups. And obviously this is exacerbated in a multichain world where applications are going to be moving assets cross chain in a timely manner. So it's pretty problematic by design. So most roll ups, optimistic roll ups, use liquidity providers to sort of mitigate this problem of long withdrawal times, but only for fungible tokens because they're not unique. But the issue here is that you actually end up having problems with capital.
+00:17:24.056 - 00:17:29.836, Speaker C: Efficiency because these providers have to lock up capital for withdrawals, which is really.
+00:17:29.858 - 00:17:47.460, Speaker D: Just an inefficient use of capital, and it's probably very unlikely that they'll actually be willing to keep that money idle for very long. They also charge a small service fee, which would add up for institutions and professional traders. And again, if rollouts proliferate, then this liquidity is just spread even more and problems worsen.
+00:17:51.260 - 00:17:53.540, Speaker C: They're also more challenging to decentralize.
+00:17:53.620 - 00:18:02.140, Speaker D: So zero knowledge proof generation can be much better decentralized due to its self verifying nature than optimistic roll up aggregation.
+00:18:04.400 - 00:18:06.364, Speaker C: And then on the privacy front as well.
+00:18:06.402 - 00:18:34.128, Speaker D: So ZK roll ups actually can enable privacy natively, which will be an important part of the future of web3 at consensus. We have already published papers and developed our own privacy roll up using ZK technology as well. And lastly, optimistic roll ups lead to much higher transaction costs at scale than ZK roll ups. And that's because for zero knowledge roll ups, less data needs to be posted on chain.
+00:18:34.224 - 00:18:38.024, Speaker C: So specifically like signatures, transaction parameters, and.
+00:18:38.062 - 00:18:54.780, Speaker D: Therefore is more cost effective at scale due to a lower variable cost. So shout out to Sanjay Schaff for the inspiration on this slide, but essentially the fixed cost for zero knowledge roll ups is much higher due to the pre verification.
+00:18:55.120 - 00:18:59.404, Speaker C: But the variable cost of gas per transaction is much lower.
+00:18:59.602 - 00:19:28.676, Speaker D: And you can see that after all of the different protocol improvements like bedrock compression, dropping the transaction size physique to 14 bytes. Proto dank sharding dank sharding, which we'll cover in a bit. We end up with actually the gas per transaction for zero knowledge being a 10th of what it is for optimistic and at scale, this kind of roughly translates to zero knowledge becoming progressively cheaper for users once the roll up hits.
+00:19:28.708 - 00:19:32.408, Speaker C: Around 100 transactions per second, which at.
+00:19:32.414 - 00:19:42.300, Speaker D: The scale kind of we're hoping for web3, we're expecting hundreds of thousands to millions of transactions per second. This variable cost metric becomes the far more critical one for most use cases.
+00:19:46.000 - 00:19:46.460, Speaker B: Okay?
+00:19:46.530 - 00:19:54.308, Speaker D: And generally speaking, optimistic rollups are still in the development stage. The two largest by TVO are optimism and arbitrum.
+00:19:54.424 - 00:19:56.256, Speaker C: If we recall how they work.
+00:19:56.438 - 00:20:00.208, Speaker D: Watches are supposed to detect and report fraud when the LT operator submits a.
+00:20:00.214 - 00:20:01.916, Speaker C: Bad transaction to Mainnet.
+00:20:02.108 - 00:20:07.984, Speaker D: Optimism does not yet have the fraud proofs enabled, which means as a user, you're trusting the sequencer run by optimism.
+00:20:08.032 - 00:20:10.580, Speaker C: To not be malicious and arbitrum does.
+00:20:10.650 - 00:20:13.200, Speaker D: Have fraud proofs enabled, but they're not permissionless.
+00:20:13.360 - 00:20:14.736, Speaker C: And the only entity that can submit.
+00:20:14.768 - 00:20:22.200, Speaker D: A fraud proof against arbitrum is arbitram. So we still very much have the training wheels when it comes to optimistic rollups.
+00:20:23.820 - 00:20:26.644, Speaker C: Okay, and then what about ZK rollups?
+00:20:26.772 - 00:20:35.192, Speaker D: So implementing the EVM in the ZK rollup is extremely challenging. Most teams decided to kind of like hell the EVM. We're going to build our own bespoke.
+00:20:35.256 - 00:20:41.536, Speaker C: Execution environment, but this means building a new ecosystem, essentially, so there can be.
+00:20:41.558 - 00:20:44.400, Speaker D: Friction because of new bespoke programming languages.
+00:20:44.900 - 00:20:46.812, Speaker C: We have to create new tooling.
+00:20:46.956 - 00:21:04.720, Speaker D: There's fewer best practices and battle tested standards. Some businesses worry about vendor lock in as well. And then some solutions decided to build transpilers or new compilers which actually take solidity code and then translate it to a format that can be interpreted by their own virtual machine.
+00:21:04.880 - 00:21:07.804, Speaker C: And this is kind of a neat hack.
+00:21:07.872 - 00:21:12.612, Speaker D: But the problem here is that we're introducing more complexity, which can lead to inefficiencies.
+00:21:12.676 - 00:21:15.476, Speaker C: It can lead to bugs, potential hacks.
+00:21:15.668 - 00:21:24.296, Speaker D: As well as reaudits with less, fewer auditors, fewer reputable auditors to choose from. And then also as the EVM continues.
+00:21:24.328 - 00:21:27.016, Speaker C: To evolve, the maintainability of such solutions.
+00:21:27.048 - 00:21:36.480, Speaker D: Can become too much for some teams. So optimistic rollups have already somewhat validated this outcome, as we saw from optimism case study earlier.
+00:21:38.500 - 00:21:40.716, Speaker C: Then there are various types of ZK.
+00:21:40.748 - 00:21:49.860, Speaker D: Rollups, so the two most popular are starks and snarks. Starks stands for scalable, transparent argument of knowledge. Snarks is succinct, non interactive argument of knowledge.
+00:21:50.200 - 00:21:51.716, Speaker C: Starks, as I understand, are actually just.
+00:21:51.738 - 00:22:04.868, Speaker D: Like a newer type of snark, sometimes called post quantum snarks. Starks does sound a lot cooler as well. So generally speaking, starks are faster to generate the proof. They're post quantum secure.
+00:22:05.044 - 00:22:07.320, Speaker C: They do not require a trusted setup.
+00:22:07.740 - 00:22:16.232, Speaker D: However, they are much larger in size, so they require more cool data space on the l one. They require more gas to verify for end users.
+00:22:16.376 - 00:22:21.324, Speaker C: They're far newer technology, so less battle testing, fewer libraries, and they also have.
+00:22:21.362 - 00:22:34.304, Speaker D: What we call 80 bit security. So there is a one in 1000 chance of forging a proof which is still currently below the threshold recommended by some security experts. And there's a great post by a 16 z on that if you want to read more.
+00:22:34.502 - 00:22:35.916, Speaker C: So as a quick sort of overview.
+00:22:35.948 - 00:22:43.716, Speaker D: You can see here that snarks are much smaller. They take less time to verify, but they're larger to generate. So the time taken to generate them.
+00:22:43.738 - 00:22:45.924, Speaker C: Is higher starks, on the other hand.
+00:22:46.042 - 00:23:00.556, Speaker D: Are much larger, but much quicker to verify. So you actually can see some teams like polygon Hermes using starks for the proof generation, and then they use snarks for the actual verification on mainnet. So they kind of use both in.
+00:23:00.578 - 00:23:05.196, Speaker C: One solution and then just like the.
+00:23:05.218 - 00:23:11.256, Speaker D: Optimistic rollups, ZK rollups are still mostly in development. So I think startnet have been production for over a year now, but they're.
+00:23:11.288 - 00:23:13.664, Speaker C: Still mostly sort of permissioned, meaning only.
+00:23:13.702 - 00:23:15.516, Speaker D: Whitelisted contracts can be deployed.
+00:23:15.628 - 00:23:18.556, Speaker C: It's also still centralized and not fully open sourced.
+00:23:18.748 - 00:23:26.396, Speaker D: Zksync as well, which recently announced a baby alpha launch is also TBC on when they will be fully permissionless production.
+00:23:26.508 - 00:23:29.780, Speaker C: Hopefully end of this year with their full alpha launch.
+00:23:30.120 - 00:23:32.208, Speaker D: The sort of TLDR is that we're.
+00:23:32.224 - 00:23:34.404, Speaker C: Still very early on the roll up.
+00:23:34.442 - 00:23:37.130, Speaker D: Space and most teams still have the training wheels on.
+00:23:39.740 - 00:23:42.436, Speaker C: So I guess to summarize, we felt.
+00:23:42.468 - 00:23:47.016, Speaker D: When we're looking at the space that there were underserved needs for developers in.
+00:23:47.038 - 00:23:50.028, Speaker C: The ecosystem where the solution is to.
+00:23:50.034 - 00:23:51.496, Speaker D: Have the benefits of a Zk roll.
+00:23:51.528 - 00:23:55.516, Speaker C: Up, but with that EVM equivalence, which.
+00:23:55.538 - 00:24:00.060, Speaker D: Is why we decided to build and launch our consensus Zkevm.
+00:24:02.480 - 00:24:04.850, Speaker C: Okay, so Zkevm roll up.
+00:24:05.860 - 00:24:23.376, Speaker D: What is a ZKe EVM roll up? Lots of acronyms here. Hope everyone's following. Let's go back to the illustration of just a regular Zk roll up from earlier. However, in this scenario, we're saying ethereum is the layer one, and then the consensus is the layer two. Okay, so the l two is executing.
+00:24:23.408 - 00:24:26.568, Speaker C: Batches of transactions, it's generating proofs, and.
+00:24:26.574 - 00:24:38.532, Speaker D: Then it's posting their blocks back to Ethereum. If we dig a little deeper, you can see that the l two blocks are essentially consolidated into l one transactions.
+00:24:38.676 - 00:24:40.956, Speaker C: So here we can see all the.
+00:24:40.978 - 00:24:51.756, Speaker D: Transactions inside the l two block. These are then fed into the ZkvM, which takes the execution, trace the bytecode, feeds it into the prover, generates the.
+00:24:51.778 - 00:24:57.196, Speaker C: Proof, and then sends that proof from the l two operator to the smart.
+00:24:57.228 - 00:24:59.564, Speaker D: Contract on the l one, which verifies.
+00:24:59.692 - 00:25:01.776, Speaker C: The validity of the proof and then.
+00:25:01.798 - 00:25:08.400, Speaker D: Actually stores the data of the proof as well. And this just happens as one transaction. So essentially what we're doing is consolidating.
+00:25:08.480 - 00:25:11.332, Speaker C: All of that execution into just one.
+00:25:11.386 - 00:25:27.528, Speaker D: Transaction on the sort of limited throughput for Ethereum. So that's how it works under the hood. And the cool thing is that Vizika evm roll up, the bytecode that you execute on l one is the same bytecode that you execute on l two. So what this means is you can.
+00:25:27.534 - 00:25:30.184, Speaker C: Take a smart contract, say uniswap v.
+00:25:30.222 - 00:25:32.184, Speaker D: Three, and you can seamlessly deploy it.
+00:25:32.222 - 00:25:35.468, Speaker C: On a Zk EVM roll up. So for a user you get all.
+00:25:35.474 - 00:25:59.522, Speaker D: Your favorite dapps, but for ultra low transaction fees. And additionally with a ZKE EVM roll up, your client interface is the same as l one. So it's for developers, all the popular tools and infrastructure, metamask, infura, truffle, these will all work out of the box. So the consensus Zk EvM has three goals.
+00:25:59.666 - 00:26:03.250, Speaker C: The first goal is execution of unaltered.
+00:26:03.410 - 00:26:09.320, Speaker D: Native bytecode in accordance with the ethereum virtual machine, and is specified in the Ethereum yellow paper.
+00:26:09.770 - 00:26:14.330, Speaker C: The second goal is 100% coverage of all the different EVM opcodes.
+00:26:14.750 - 00:26:25.066, Speaker D: And then the third goal is to have we call a type two zkevm, which is something that Vitalik himself gave as a taxonomy for the different types of Zkevm.
+00:26:25.258 - 00:26:26.686, Speaker C: So just to kind of summarize, type.
+00:26:26.708 - 00:26:34.578, Speaker D: Two means that you can basically verify an environment that looks exactly like Ethereum, but with only minor changes.
+00:26:34.744 - 00:26:37.006, Speaker C: It's fully compatible with almost all Ethereum.
+00:26:37.038 - 00:27:02.020, Speaker D: Apps, and it can share most of the infrastructure as well. And the type two ZKe EVM is really just the Ethereum experience at scale. So here we can see the different levels of compatibility across different teams. Only polygon, scroll and consensus are what we call bytecode compatible, and aiming for that type two.
+00:27:03.430 - 00:27:05.666, Speaker C: The key difference here is in the.
+00:27:05.688 - 00:27:27.350, Speaker D: Architecture of polygon, they actually use an alternative runtime, which you call the ZK executor. This runs tailor made ZK ASM opcodes rather than the EVM opcodes. And this is just to optimize the interpretation. So in other words, reducing the number of constraints in the circuit versus actually proving the EVM directly.
+00:27:27.690 - 00:27:36.162, Speaker C: So just a slight architectural difference there. So there are four rather large challenges.
+00:27:36.226 - 00:27:56.190, Speaker D: To building a proper ZKE EVM. The first is complexity, so an EVM implementation is composed of many parts strongly coupled. Second is all around the intricacies of the EVM. It was never designed to have zero knowledge circuits, so it has many historical and complex behaviors, making it very challenging for the arithmetization.
+00:27:56.850 - 00:27:59.422, Speaker C: Third is around the auditability as well.
+00:27:59.476 - 00:28:00.862, Speaker D: Especially because we're still very early.
+00:28:00.916 - 00:28:03.006, Speaker C: We need to make sure there's no.
+00:28:03.028 - 00:28:11.246, Speaker D: Bugs or no issues for users if we want to secure millions or billions of dollars. So it has to be auditable to be trusted. System must be able to be easily.
+00:28:11.278 - 00:28:17.346, Speaker C: Reviewed by external parties and then fourth is really the key one, which is performances.
+00:28:17.378 - 00:28:33.146, Speaker D: So the proof must be generated quickly and it's a minimal cost as well, so that transactions for users are low. And fortunately, our amazing research and design team have come up with a solution for each of these, and I really.
+00:28:33.168 - 00:28:35.546, Speaker C: Encourage you to watch their talks at.
+00:28:35.568 - 00:28:50.958, Speaker D: Devcon and consensus connect if you want to get into the details of how the architecture looks. But essentially for the complexity part, we came up with a modular design, so everything is decoupled. It's modular, makes it much easier to.
+00:28:50.964 - 00:28:54.230, Speaker C: Manage for the intricacies, for the rhythmatization.
+00:28:54.330 - 00:29:01.662, Speaker D: We've actually published a 250 page specification outlining how we've achieved that some bedtime reading.
+00:29:01.726 - 00:29:06.130, Speaker C: It's pretty dense, but very thorough on the auditability side.
+00:29:06.200 - 00:29:20.426, Speaker D: So there's kind of usually a few moving parts of a ZKE EVM specification, implementation, verification. These are all done by different teams, and it's hard to audit through different code bases. So actually coming together and have a single source of truth makes it very.
+00:29:20.448 - 00:29:22.838, Speaker C: Easy for auditors to come and audit.
+00:29:22.934 - 00:29:23.706, Speaker D: The code as well.
+00:29:23.728 - 00:29:27.340, Speaker C: On the ZkVM then lastly, on the.
+00:29:27.790 - 00:29:32.874, Speaker D: Performance front, well, you have to wait and see, but there's some very exciting.
+00:29:32.922 - 00:29:38.426, Speaker C: Work there done and the current results are very promising.
+00:29:38.538 - 00:29:45.266, Speaker D: So R and D has run our ZKVM against the evm test suite, which is kind of the gold standard for.
+00:29:45.288 - 00:29:50.338, Speaker C: Ethereum clients, and for the parts that have been implemented so far, which is.
+00:29:50.424 - 00:29:59.666, Speaker D: Around 90% zero tests are failing, which is amazing. So pretty much everything's implemented. Some of the stuff that isn't right now are some of the more complicated.
+00:29:59.778 - 00:30:03.094, Speaker C: Pre compiles, but we also validated this.
+00:30:03.132 - 00:30:08.706, Speaker D: By taking the ZkVM and using sort of the standard Uniswap contract and proving.
+00:30:08.738 - 00:30:11.018, Speaker C: That as well, which is amazing.
+00:30:11.104 - 00:30:16.490, Speaker D: And then finally taking some random main net blocks and validating the execution of those as well.
+00:30:16.560 - 00:30:26.286, Speaker C: So again, some great real world examples there of the results. So the next step was really to.
+00:30:26.308 - 00:30:40.674, Speaker D: Validate this with real users on a testnet. We announced a devcon a few weeks ago where we published the full spec of the Zkevm publicly for anyone to review and read. We announced that we'd also be launching a private closed beta testnet as well.
+00:30:40.712 - 00:30:43.780, Speaker C: Very soon, so we're really excited about that.
+00:30:45.510 - 00:30:56.886, Speaker D: However, we weren't the only ones to make an announcement at Devcon. It's been a lot more excitement and interest around this problem and solution of the Zkevm. Some people have asked me whether we.
+00:30:56.908 - 00:31:00.166, Speaker C: Can have multiple Zkevm roll ups.
+00:31:00.358 - 00:31:11.206, Speaker D: And actually the ecosystem needs multiple zkevms. And the reason for that is, just like we have diversity at L one and have maintained public goods like Besu.
+00:31:11.238 - 00:31:13.902, Speaker C: And Teku, we need diversity and security.
+00:31:13.956 - 00:31:27.346, Speaker D: At the l two layer. So Vitalik actually gave a really great talk at Devcon as well, pushing for what we call like multi prover CKE EVM roll ups. And in this scenario, great thing here is that a single bug does not.
+00:31:27.368 - 00:31:28.898, Speaker C: Impact the roll up at all.
+00:31:29.064 - 00:31:30.434, Speaker D: So if we imagine how this works.
+00:31:30.472 - 00:31:33.666, Speaker C: The transaction goes to the node, and.
+00:31:33.688 - 00:31:35.358, Speaker D: Then this takes the transaction and spreads.
+00:31:35.374 - 00:31:37.442, Speaker C: It to three or potentially more different.
+00:31:37.496 - 00:31:39.638, Speaker D: Zkevm rollups, who all generated proof and.
+00:31:39.644 - 00:31:42.406, Speaker C: Then send that back, which is much.
+00:31:42.428 - 00:31:51.034, Speaker D: Better for redundancy, resiliency, kind of incentivizes experimentation as well for different proving schemes. And probably most importantly, it prevents any.
+00:31:51.072 - 00:31:53.114, Speaker C: Sort of vendor lock in as well.
+00:31:53.152 - 00:31:55.290, Speaker D: For the future of scaling ethereum.
+00:31:55.790 - 00:31:57.610, Speaker C: So good for the ecosystem.
+00:31:59.310 - 00:32:21.698, Speaker D: Then we have the roll up centric roadmap from the EF, the Ethereum foundation. So the idea is that after dank sharding, we will have 64 execution shards on Ethereum. The long term plan is to actually turn these execution shards into what we call ZKe EVM enshrined roll ups, which basically means roll up is enshrined into the protocol itself, rather than being a.
+00:32:21.704 - 00:32:23.060, Speaker C: Separate layer on top.
+00:32:23.750 - 00:32:32.226, Speaker D: And if we think about what this means, sort of going to the future, it kind of means that the entire ethereum ecosystem, potentially like thousands of roll.
+00:32:32.258 - 00:32:35.094, Speaker C: Ups, millions of transactions per second, this.
+00:32:35.132 - 00:32:56.536, Speaker D: Will all be verified by a single succinct, zero knowledge proof. So actually having resiliency for this mechanism to be fully actualized is super important. Okay, so roll up economics, I thought it'd be good to touch a little bit on how value is moved through a roll up. So in a very simplified way, we.
+00:32:56.558 - 00:32:58.572, Speaker C: Have your on the l two itself.
+00:32:58.626 - 00:33:01.756, Speaker D: The transaction fee, which is just the l two gas price, times the l.
+00:33:01.778 - 00:33:04.428, Speaker C: Two gas used as well.
+00:33:04.594 - 00:33:10.816, Speaker D: We also have mev, and there's kind of two main approaches that we're seeing in the market. There's sort of optimistic approach, which is.
+00:33:10.838 - 00:33:13.856, Speaker C: Capture and distribute, or you can look.
+00:33:13.878 - 00:33:17.456, Speaker D: To seek to minimize mev as much as possible, which is the route that.
+00:33:17.478 - 00:33:19.570, Speaker C: Arbitrum is kind of going ahead with.
+00:33:20.420 - 00:33:25.716, Speaker D: And this is a sort of, I guess, revenue of the roll up. And what we do is we take away the cost as well.
+00:33:25.738 - 00:33:28.388, Speaker C: So there's usually the execution of the.
+00:33:28.394 - 00:33:48.860, Speaker D: Roll up, which is the operator, the prover, everything that's needed to process transactions and generate proofs and then send that to L one. And then there's actually huge costs right now on settling. So actually verifying the transactions and the proof on L one and then storing the data needed as well. Data availability on l one.
+00:33:48.930 - 00:33:50.620, Speaker C: So those are the current costs.
+00:33:51.120 - 00:33:55.276, Speaker D: So think about the profit is simply the fees collected, less the fees paid.
+00:33:55.458 - 00:33:56.816, Speaker C: And what it really comes down to.
+00:33:56.838 - 00:34:03.840, Speaker D: Is the technical efficiency of the roll up. So that will be one of the key differentiators for having cheaper fees for users.
+00:34:06.660 - 00:34:08.656, Speaker C: And the current bottleneck right now is.
+00:34:08.678 - 00:34:14.084, Speaker D: Basically the fees paid to Mainet. So this is what's keeping transactions not super low, but low.
+00:34:14.202 - 00:34:15.856, Speaker C: If we just take arbitrary and optimism.
+00:34:15.888 - 00:34:35.004, Speaker D: As two examples here, you can see that around 80% of the revenue is paid just to the l one to store the data. And this is because right now roll ups use the cool data opcode to post their data to L one. And this cool data opcode is very.
+00:34:35.042 - 00:34:38.220, Speaker C: Expensive, so it was not intended for roll ups.
+00:34:39.120 - 00:34:46.496, Speaker D: It's super expensive, which kind of leaves the margin for optimistic roll ups around 20%. And it means the users aren't getting.
+00:34:46.518 - 00:34:48.610, Speaker C: The lowest transaction fees that they can get.
+00:34:49.940 - 00:34:51.824, Speaker D: The other interesting thing as well is.
+00:34:51.862 - 00:34:55.116, Speaker C: That the more users that user roll.
+00:34:55.148 - 00:35:00.412, Speaker D: Up, the cheaper the transactions become, because transaction costs are amortized across a batch.
+00:35:00.556 - 00:35:03.636, Speaker C: So if you have one transaction in the batch, they'll end up paying more.
+00:35:03.658 - 00:35:10.308, Speaker D: Than if you had, say, 100 transactions in a batch. It's pretty simplified, but that's kind of how it works. So whereas on L one, when you.
+00:35:10.314 - 00:35:12.820, Speaker C: Have more transactions, the fees get higher.
+00:35:12.890 - 00:35:18.600, Speaker D: As you get congestion on l two, as you have more transactions, the fees get lower. So it's a much better feedback loop.
+00:35:21.380 - 00:35:23.888, Speaker C: Okay, so there are a number of.
+00:35:23.894 - 00:35:44.152, Speaker D: Proposed improvements to Ethereum, which will support successive roll ups and remove the bottleneck on costs. I'll just quickly go through some of these, which are the most notable ones. 4488, which is just a simple call. Data gas cost reduction potentially decrease cost of roll ups by around five times. Although this might be sort of skipped now to focus more on EIP 4844.
+00:35:44.206 - 00:35:45.960, Speaker C: Which is proto dank sharding.
+00:35:46.700 - 00:35:53.388, Speaker D: Hopefully this will be alongside the next Ethereum fork, which is a shanghai. And this is estimated to boost the.
+00:35:53.394 - 00:35:56.460, Speaker C: Scalability by up to 100 times, which.
+00:35:56.530 - 00:35:58.476, Speaker D: I'm also paving the way for full.
+00:35:58.578 - 00:36:00.328, Speaker C: Dank sharding to be implemented.
+00:36:00.504 - 00:36:07.810, Speaker D: And it does this by creating a sort of new blob transaction type, and then creating a fee market for this new transaction type.
+00:36:08.900 - 00:36:13.036, Speaker C: Too expensive and then we have dank.
+00:36:13.068 - 00:36:56.272, Speaker D: Sharding, which kind of inverts the blockchain trilemma. You have more decentralized validators, more data availability, more scalability, and this hopefully drops fees by around 1000 times as well. So quick analogy on how EIP 4844 works. Imagine the morning commute into the city. So the road into the city represents a chain of blocks. And congested cars in traffic are the congested transactions on Ethereum. So the issue is that some people who travel by car actually would travel by bus, but there is no option to do so.
+00:36:56.272 - 00:37:14.836, Speaker D: So they end up just jumping in the car and sort of joining the queue. It's long congested queue throughput is limited. Some people pay more to go via a toll road and get in front of others, which creates a fee market. That's the current state today. So 4844 is basically like opening up.
+00:37:14.858 - 00:37:16.564, Speaker C: A new bus lane so that people.
+00:37:16.602 - 00:37:33.372, Speaker D: Who want to travel by bus can do so. And this really just increases the throughput of how many people can get into the city, get onto ethereum in the same amount of time. So by moving the roll up data, like the roll up data, which is sort of people who want to travel.
+00:37:33.426 - 00:37:36.028, Speaker C: By bus into these blobs, what we.
+00:37:36.034 - 00:37:43.756, Speaker D: Call blobs, which is this new bus lane, we've increased the overall throughput, the number of people that can actually get into the office on time.
+00:37:43.938 - 00:37:44.670, Speaker B: Okay.
+00:37:45.780 - 00:37:50.880, Speaker D: And if everyone works from home and no one uses the roads, well, we call that Cardano.
+00:37:54.020 - 00:37:55.804, Speaker C: What does this mean for roll ups?
+00:37:55.852 - 00:38:16.440, Speaker D: Well, because the bottleneck of data availability in the base layer is now mitigated, we have this huge increase in block space supply, lowering the roll up cost when storing data on chain. So for context of EIP 4844, we have around 85 kb/second bandwidth, which is around one megabytes per block.
+00:38:16.780 - 00:38:18.036, Speaker C: If we actually look at the biggest.
+00:38:18.068 - 00:38:20.868, Speaker D: Consumer right now of cool data availability.
+00:38:20.964 - 00:38:23.772, Speaker C: Which is arbitrarium, it's using around half.
+00:38:23.826 - 00:38:33.404, Speaker D: A kilobyte per second. So it's not even 100 times lower right now. So there's going to be a huge increase of supply which will absolutely drop.
+00:38:33.452 - 00:38:35.360, Speaker C: The fees for roll ups.
+00:38:38.840 - 00:38:45.424, Speaker D: Okay, so we are planning to launch a testnet. We've already opened up registrations.
+00:38:45.552 - 00:38:48.228, Speaker C: I'll give a quick idea of the.
+00:38:48.234 - 00:38:50.820, Speaker D: Plan for what the feature set will be for the Testnet.
+00:38:50.900 - 00:38:53.476, Speaker C: So we'll have a single centralized operator.
+00:38:53.588 - 00:38:59.400, Speaker D: Which will operate by consensus. Initially, this will be exposed via infura as well.
+00:38:59.550 - 00:39:01.308, Speaker C: We'll have block Explorer so you can.
+00:39:01.314 - 00:39:13.872, Speaker D: See what's happening underneath the hood. We'll have validity proofs which will be settled on the go early Ethereum testnet as well. We'll hopefully have integration with truffle as well, so it'll be easy for people.
+00:39:13.926 - 00:39:16.604, Speaker C: To deploy and manage their smart contracts.
+00:39:16.652 - 00:39:26.108, Speaker D: And we'll also have comprehensive documentation as well. So kind of help people navigate the roll up and move their funds appropriately.
+00:39:26.284 - 00:39:28.592, Speaker C: So just a high level will be EVM ready.
+00:39:28.726 - 00:39:39.476, Speaker D: We won't have any waiting periods because the finality of ZK roll up to be much better. So you'll be able to exit and move between l one and l two much faster. We'll have the ability to prove enabled.
+00:39:39.508 - 00:39:42.376, Speaker C: So you'll be able to verify the.
+00:39:42.398 - 00:39:44.484, Speaker D: Prover is executing everything correctly.
+00:39:44.612 - 00:39:46.536, Speaker C: And then obviously terms of fees will.
+00:39:46.558 - 00:39:57.100, Speaker D: Be much, much cheaper than Mainnet as well. Testnet sign up so we'll soon be launching a private testnet.
+00:39:57.180 - 00:39:59.744, Speaker C: Our first batch we had so many.
+00:39:59.782 - 00:40:18.264, Speaker D: People subscribe that we've had to close it. It was crazy. So it's full right now, but we will reopen the applications very soon. I recommend keeping an eye on Twitter. So any updates we'll post on the consensus Twitter handle. There's my Twitter handle as well. I'll post something and then also on discord as well.
+00:40:18.302 - 00:40:21.204, Speaker C: We have the official discord for consensus.
+00:40:21.252 - 00:40:24.856, Speaker D: Make sure it's this link and not a different link because there's obviously a lot of scams out there.
+00:40:24.878 - 00:40:29.800, Speaker C: So be safe. Okay, thank you very much.
+00:40:29.950 - 00:40:31.870, Speaker D: I guess we can do Q A.
+00:40:32.320 - 00:40:35.470, Speaker C: Peter, did you want me to leave this slide on?
+00:40:35.840 - 00:41:22.520, Speaker A: Yeah, I'll go through that, but I think they're asked, let's do the Q a first. So yeah, you'll have to scroll way up to the top of the questions. And the first one is from Faye and there's apparently some Twitter thing by someone or other. And do you have questions about that Twitter comment? I'm not sure what the Twitter comment is, but you might just. Oh yes, we're not twelve days away from the Cke Evm in any meaningful way. Blah blah blah blah.
+00:41:23.260 - 00:41:42.748, Speaker D: Yes. I guess this is just sort of. This is a growing narrative that is really helpful because it can be easy for people just to put their money in places where they don't understand. And roll ups have come a long way, but we're still fairly early in terms of making them properly decentralized, permissionless, safe.
+00:41:42.844 - 00:41:45.584, Speaker C: There's even question marks around the actual.
+00:41:45.622 - 00:41:58.436, Speaker D: Upgrade keys of the smart contracts themselves for the bridges. Like if a team has the ability to just upgrade the contract then really there's question marks over how secure your funds are anyway. And all of these things really need.
+00:41:58.458 - 00:42:00.296, Speaker C: To be solved and made a lot.
+00:42:00.318 - 00:42:14.520, Speaker D: Clearer to users before we can actually start moving all the activity to l two. I think there's a lot of more interest, especially from Vitalik, to actually label the different stages of development that roll up should go through. Like are they at the training wheel stage?
+00:42:14.600 - 00:42:18.236, Speaker C: Do they have proper governance in place for upgrading the contract then?
+00:42:18.258 - 00:42:25.804, Speaker D: Are they sort of fully permissionless and decentralized and have all of these safeguards ready before we can start moving billions.
+00:42:25.852 - 00:42:27.010, Speaker C: Of dollars to them?
+00:42:29.460 - 00:43:03.084, Speaker A: Yeah, and I think is Zkevm is going to be production ready sometime next week, I think. Well, certainly for our one, the answer is no, but we're working on it, I think is the same thing to say. All right, what are the main differences between ZK syncs Zke EVM and consensus EVM? I think that that was talked about already in the slide, so I think that one's already been answered, I think.
+00:43:03.282 - 00:43:12.920, Speaker D: Yeah, I guess just quick overview, maybe. So in terms of type, Zk sync is more of like a type four. Basically they're language level compatible.
+00:43:13.000 - 00:43:15.344, Speaker C: So what they do is they take.
+00:43:15.382 - 00:43:38.520, Speaker D: Solidity, they then run that through their own compiler, so they have an intermediate representation. They run that through a compiler, which is a lower level compiler, and then that actually turns it into bytecode that can be used by their own virtual machine. So there are some modifications there. It's not the same sort of compatibility that say, consensus is trying to achieve, which is bytecode compatibility.
+00:43:40.540 - 00:43:41.290, Speaker B: Yeah.
+00:43:41.980 - 00:43:53.950, Speaker A: All right, thank you. So the next one was from Chris, who asked, can you elaborate on the l two, borrowing security from l one?
+00:43:55.600 - 00:43:56.444, Speaker B: I don't know.
+00:43:56.562 - 00:44:02.530, Speaker A: Has that been answered, Chris, or do you still need more on that?
+00:44:04.580 - 00:44:06.224, Speaker D: Yeah, that was more of a sort.
+00:44:06.262 - 00:44:13.990, Speaker E: Of, I suppose, musing type question. So when the phrase borrowing security from an l one is used.
+00:44:16.200 - 00:44:16.548, Speaker B: What do.
+00:44:16.554 - 00:44:36.840, Speaker E: You mean by that? What security is actually being borrowed? Because the l one doesn't in any way affect the l two. The l two just in some way posts data back to that l one at intervals. So when you're using the phrase borrowing security there, what security is it that gets borrowed?
+00:44:37.500 - 00:44:38.520, Speaker C: I suppose.
+00:44:40.240 - 00:45:09.824, Speaker D: Yeah. So, namely the verification and validation of ZK rollups, of the validity proof itself and the data availability that is needed to recreate the state and verify as well. And because that's happening and deposited on Ethereum, which is much more decentralized, in order to attack that, you would have to essentially attack the Ethereum network. So this is great for roll ups because when you spin up a new roll up, you don't have to worry.
+00:45:09.872 - 00:45:12.820, Speaker C: About launching a token to help for security.
+00:45:12.890 - 00:45:27.320, Speaker D: You don't have to worry about decentralization. Nearly every single roll up right now is just one single operator. They are all centralized. And that's because they don't have to worry about this security aspect. They can just inherit from Ethereum.
+00:45:29.200 - 00:46:07.910, Speaker A: Are you also maybe saying that once you've posted that proof onto Ethereum, then to reorganize the roll up and change stuff on the roll up, it means reorganizing the Ethereum chain. And so reorganizing Ethereum chain is going to be now that we're at this checkpoint phase where you've got stuff that is completely final, then once a block that contains a fraud proof that contains the proof thing from the ZK roll up is final on Ethereum, it's going to be impossible for that reorganization to happen.
+00:46:10.920 - 00:46:12.150, Speaker D: That's pretty much correct.
+00:46:13.320 - 00:46:44.310, Speaker A: Yeah, I think that's pretty much what you said anyway, but said in a different way. Deb, does roll up chain use its own consensus to commit on local roll up chain? If yes, then what consensus does it use and how decentralized is it? And so I think the answer is it doesn't use consensus. Actually, no. It's more complicated because of that. Two of three things. So anyway, sorry, Declan, you should go for it.
+00:46:46.200 - 00:46:48.836, Speaker D: Right now. Most roll ups are centralized and they.
+00:46:48.858 - 00:46:52.500, Speaker C: Don'T have consensus on the l two in that sense.
+00:46:52.650 - 00:46:55.908, Speaker D: But the plan is to, even though.
+00:46:55.994 - 00:46:59.096, Speaker C: Your funds are safe and it's more.
+00:46:59.118 - 00:47:32.000, Speaker D: Secure, there's still issues around censorship, resistance. So if you have one operator who suddenly decides not to include your transactions or even a liveness issue where it goes down and all of a sudden the roll up stops actually taking transactions and executing. It's therefore still good to have decentralization. And so the plan is for most teams to decentralize on the l two as well, for censorship, resistance and liveness, and they will have to come up with consensus mechanisms. So it's still pretty early on that, but that will be in most teams roadmaps.
+00:47:38.080 - 00:47:39.272, Speaker C: Think you're on mute, Peter?
+00:47:39.336 - 00:48:03.350, Speaker A: Yeah, it's better if I'm off mute. Yeah. So Bo said, my concern with darknet is that it's vaporware, has proprietary vms. Is that a key goal behind ZkevM teams, or do they build ZkevM for other reasons also? So I think that has been well and truly gone over by now. The difference?
+00:48:04.040 - 00:48:08.970, Speaker D: Yeah, I'd probably just add like Stucknet. I wouldn't say stucknet is vaporware at all.
+00:48:10.300 - 00:48:11.492, Speaker C: They have a different approach.
+00:48:11.556 - 00:48:31.120, Speaker D: Doesn't mean it's a worse approach. It's just a different approach to the ecosystem. And we're trying to build a complementary roll up solution. We're focusing more on extending the network effects of Ethereum and the EVM. They're focused on a slightly different approach by seeing what's possible for roll ups outside of the EVM. And I think having both is good for users ultimately.
+00:48:31.460 - 00:48:32.210, Speaker B: Yeah.
+00:48:33.060 - 00:49:30.770, Speaker A: And I guess we could say that certainly our approach at consensus that we've come to the opinion that having an EVM compatible roll up makes more sense. But that's an opinion, and others are welcome to their own opinions. All right, another question again from Bo. More broadly, startnet guys like to make claims about security, but I see the larger risk is rewriting audited code bases, creating new vulnerabilities. For this reason, I think rewriting working solidity codebase is a risky idea from a security perspective. At the end of the day, real users care about their money being stolen in an exploit, not implementation details. Well, certainly the last comment I think we can all agree on that people care about their money not being stolen and don't care so much about the implementation details of the blockchain stuff.
+00:49:30.770 - 00:49:34.930, Speaker A: Yeah.
+00:49:38.740 - 00:49:54.340, Speaker D: I think so. Basically there's two ways to use Starknet right now. You can either use a transpiler which takes solidity code, it transpiles it into Cairo, which is a sort of native language for the Cairo VM virtual machine on Starknet.
+00:49:54.500 - 00:49:55.656, Speaker C: If you do that, then you will.
+00:49:55.678 - 00:50:05.448, Speaker D: Have to re audit the code and that can obviously create more headaches. There's less Cairo auditors, and Cairo language is newer. The other way is to use Cairo.
+00:50:05.464 - 00:50:09.516, Speaker C: Directly, which if done professionally and all.
+00:50:09.538 - 00:50:29.568, Speaker D: The kind of same security guarantees that you would developing a contract on solidity, then it still could be safe for users. So it's more just the fact that it's building a different ecosystem and sort of supporting infrastructure and teams and tooling and auditors as well to enable that. We also have David on the call who's a Starknet pro, so I don't.
+00:50:29.584 - 00:50:32.790, Speaker C: Know if he has anything to add to that.
+00:50:33.100 - 00:51:00.000, Speaker F: I'll just add that in my experience anyway, Starknet, it's growing pretty quickly. There's a lot of momentum there in that community. Certainly consensus has got with diligence will be doing some auditing work. They've got some smart people there working on those sort of things. So in the long run, I don't think this is going to be an issue. It's probably certainly going to be no more an issue than it is on Ethereum.
+00:51:02.340 - 00:51:20.676, Speaker A: Would there be the issue, though, that there are fewer people who understand Cairo and so there'll be fewer people who can, I don't know Cairo, I'll openly admit, not a Cairo expert. So if there was some code that was written in Cairo, I wouldn't be able to tell you if there was.
+00:51:20.698 - 00:51:22.356, Speaker B: A bug or mean.
+00:51:22.458 - 00:51:31.320, Speaker A: I wonder if it's similar to know. Like, one of the reasons that Solana hack happened was there weren't enough people who understood Solana.
+00:51:35.820 - 00:51:57.490, Speaker F: With any chain that uses a different language. That's going to be the case initially, but Starknet is growing very quickly. There's a lot of development work happening. There's a lot of people who are deciding to work in Cairo as opposed to transpiling solidity. So I don't think that's necessarily going to be an issue for too long.
+00:51:58.740 - 00:52:02.308, Speaker B: Okay. All right. All right.
+00:52:02.394 - 00:52:14.390, Speaker A: Question from Peter Munnings. Is the code open source? Are we open sourcing our Zke evM? What licensing are we going to do? Is it going to be a licensed product?
+00:52:15.900 - 00:52:25.560, Speaker D: The plan is to open source the licensing we're still discussing. It's kind of too early, really. We haven't even launched testnet yet. But the plan is to open source.
+00:52:26.380 - 00:52:28.344, Speaker C: When everything's ready and secure and good.
+00:52:28.382 - 00:52:33.548, Speaker D: Enough for people to actually find value from it as well. And, yeah, in the meantime, there's a.
+00:52:33.554 - 00:52:36.316, Speaker C: Spec which is basically as good as.
+00:52:36.338 - 00:52:40.610, Speaker D: Well in terms of explaining the design and why we've made the decisions we have.
+00:52:42.020 - 00:53:14.090, Speaker A: Okay, so Frank has said actually on that spec, we could argue that a system that has been designed for being verifiable rather than auditable would be better. I think he's saying, and is a 250 page spec easily auditable? Is it auditable? Can you put people realistically audit that 250 page spec? I think is what Frank is saying.
+00:53:15.020 - 00:53:15.770, Speaker B: Yeah.
+00:53:16.380 - 00:53:26.830, Speaker D: So the spec is different to the actual code. And when we release the code for auditing, that will be easier to audit than having like tens of thousands of lines of code, basically.
+00:53:27.440 - 00:53:31.804, Speaker C: So the spec is pretty dense, but.
+00:53:31.842 - 00:53:34.908, Speaker D: The actual code as well will be of a single source of truth.
+00:53:34.924 - 00:53:37.600, Speaker C: So I think that's where it becomes easier.
+00:53:38.100 - 00:53:38.850, Speaker B: Okay.
+00:53:39.380 - 00:53:55.450, Speaker A: And then Charles said, does the spec need to be 250 pages long? So is there a summary version for people to read who aren't familiar with the ideas to power them up and get them across how it all works.
+00:54:03.650 - 00:54:04.206, Speaker B: Yeah.
+00:54:04.308 - 00:54:06.686, Speaker D: We should definitely have simplified versions for.
+00:54:06.708 - 00:54:09.758, Speaker C: People, depending on their level, but I.
+00:54:09.764 - 00:54:11.662, Speaker D: Think the spec includes all the arithmetization.
+00:54:11.726 - 00:54:14.770, Speaker C: As well, which is pretty hard to simplify.
+00:54:16.550 - 00:54:17.058, Speaker B: Yeah.
+00:54:17.144 - 00:54:23.438, Speaker A: Okay. Yes. Because a lot of it's going to be circuits and stuff, isn't it, those CK circuit things?
+00:54:23.624 - 00:54:24.360, Speaker B: Yeah.
+00:54:26.250 - 00:54:54.160, Speaker G: The question was actually, is there a shorter version of people who are familiar with the ideas? How short can you make the bit of the spec that an implementer who knows what they're doing actually reads and make sure that they check all the pieces that they've done against the spec? There's a limit to how much you can shorten before you start losing critical information.
+00:54:58.400 - 00:55:16.790, Speaker D: Yeah, possibly. I think we'll need to think about different levels of explaining the system to different audiences. The purpose of the spec is to be very thorough and give people a solid idea of how the system works, why we decided to make those design choices, and to give sort of credibility as well before we actually release the code.
+00:55:17.640 - 00:55:18.390, Speaker B: Yeah.
+00:55:20.520 - 00:55:36.440, Speaker A: So Frank has got one here, arguing for a formal specification that would be better than auditing. I don't know, Frank, is that a question or that feels more like a statement?
+00:55:38.460 - 00:55:50.776, Speaker H: No, but I think it's related to the other question I had previously. If you say that when the code is going to be written, it's going to be simpler to write the code, you need to understand the specs.
+00:55:50.808 - 00:55:50.956, Speaker B: Right.
+00:55:50.978 - 00:56:28.490, Speaker H: So there's a sort of a dependency that the circular dependency. So if the spec is ambiguous, it's going to be hard to write the code. So at the same time, I could argue that such a spec, which is very complicated, would probably need to be written in a formal language and undergo some formal verification as well, with the amount of money that is at stake. So is it something that people are thinking about or is it something that seems too hard?
+00:56:31.020 - 00:56:34.830, Speaker D: It's definitely something we're thinking about formal verification as well.
+00:56:36.480 - 00:56:37.084, Speaker B: Yeah.
+00:56:37.202 - 00:56:40.844, Speaker C: Nicola's the brain box on that, but.
+00:56:40.882 - 00:56:47.632, Speaker D: It'S definitely something that we're thinking about as well. Ultimately, we just want users to be safe, we want it to be as easy to audit as possible.
+00:56:47.686 - 00:56:48.720, Speaker C: That's the goal.
+00:56:49.540 - 00:56:53.410, Speaker D: We'll definitely think of different ways to do that over the next year or so.
+00:56:54.840 - 00:57:16.170, Speaker A: Yeah. Okay, so Charles has got another question here. Slide 48. The economics of lower fees from higher transaction density is based on a fixed finality time regular anchoring back to l one rather than waiting for a block to be full question. So is it about waiting for.
+00:57:18.380 - 00:57:19.032, Speaker D: A.
+00:57:19.166 - 00:57:23.340, Speaker A: Batch to be full or do we just then batches at a regular interval?
+00:57:24.320 - 00:57:26.940, Speaker C: No, that's a separate issue.
+00:57:27.010 - 00:57:30.044, Speaker D: So the real bottleneck right now on.
+00:57:30.082 - 00:57:33.072, Speaker C: Costs is just the need to post.
+00:57:33.126 - 00:57:39.120, Speaker D: Data on chain to ethereum via this cool data op code, which is expensive.
+00:57:42.500 - 00:57:44.290, Speaker C: Based on the fixed financial time.
+00:57:45.080 - 00:57:46.550, Speaker A: So what you said is.
+00:57:48.600 - 00:57:49.076, Speaker C: If you.
+00:57:49.098 - 00:58:19.390, Speaker G: Have 100 transactions being posted in one go, you pay a lot less? Is there a viable model where instead of saying we post back every n seconds, minutes, we wait until we have a certain, basically we fill up our block and then we post it back so that we're always getting that cheap thing and the trade off is finality time.
+00:58:23.540 - 00:58:25.776, Speaker C: Is that a realistic trade off that.
+00:58:25.798 - 00:58:27.650, Speaker G: You could choose to make?
+00:58:29.380 - 00:58:30.032, Speaker B: Yeah.
+00:58:30.166 - 00:58:49.816, Speaker D: So most approaches, you have a dynamic batch where it either gets sent to the l one based on either all the transactions being filled in the batch or it reaching a certain time. And that's because we're concerned about finality as well. Obviously it's a bit of a trade off because you want just the right amount of transactions in the batch to.
+00:58:49.838 - 00:58:52.824, Speaker C: Properly amortize the costs for users, but.
+00:58:52.862 - 00:59:01.790, Speaker D: You don't want them to be too slow or too big batches to reduce the finality as well. So it is a trade off.
+00:59:03.040 - 00:59:03.790, Speaker B: Yeah.
+00:59:07.840 - 00:59:09.196, Speaker A: How helpful would it be to have.
+00:59:09.218 - 00:59:19.730, Speaker G: A signaling mechanism where you could say, I don't really care about the speed of finality on this transaction, I care about the price, or give it to me fast?
+00:59:22.100 - 00:59:26.256, Speaker D: I think that is something that could be a feature in the future.
+00:59:26.358 - 00:59:26.624, Speaker B: Yeah.
+00:59:26.662 - 00:59:33.910, Speaker D: Where depending on your use case, maybe even like on a transaction basis, if you want more finality and you're willing to pay higher costs, that could be an option.
+00:59:37.740 - 00:59:38.890, Speaker B: Sounds good.
+00:59:39.740 - 00:59:59.870, Speaker A: Or even you could imagine different roll ups. There's all sorts of options. So Charles actually asked another one. So can you elaborate on the difference? In working on Zke EVM instead of l one, you said they were nearly exactly the same, implying they were not exactly the same.
+01:00:01.200 - 01:00:01.660, Speaker B: Yeah.
+01:00:01.730 - 01:00:18.470, Speaker A: So what is likely to be the difference between the two? And I think I saw something about that. The data storage format would be a little bit different and not using kick hack 256. But is that going to be the limit of it, how the data is stored? Maybe.
+01:00:24.020 - 01:00:25.984, Speaker C: How the l two state is.
+01:00:26.022 - 01:00:28.864, Speaker D: Managed, which is different than, say, a standard l one.
+01:00:28.902 - 01:00:37.508, Speaker C: So, for example, ketchup. I think there might be some other minor differences, but that would be a.
+01:00:37.514 - 01:00:48.330, Speaker D: Question for the engineer. That's the key one to the surrounding team. Ultimately, for users, it pretty much looks exactly the same. I think 99% of Ethereum smart contracts and Dapps can be seamlessly ported over.
+01:00:55.770 - 01:00:57.030, Speaker C: That makes sense.
+01:00:57.180 - 01:01:26.146, Speaker A: Okay, iclis first. Thank you for doing such an Ethereum technical session. It's very helpful. Bit off topic. Would there be any courses, programs, boot camps, specifically to deal with Ethereum from a technical point of view? Something more structured for the beginner to an expert level. So I think that we've got consensus academy is still a thing, and they do boot camps, so maybe that's an idea. I don't know.
+01:01:26.146 - 01:01:29.330, Speaker A: Declan, do you have any other thoughts beyond consensus academy?
+01:01:32.070 - 01:01:36.040, Speaker D: No, consensus academy is very good. I'd definitely recommend that.
+01:01:37.210 - 01:01:40.120, Speaker C: Otherwise there's lots of always good.
+01:01:40.650 - 01:01:44.630, Speaker D: Are you talking about roll up specifically or just ethereum?
+01:01:45.050 - 01:01:49.210, Speaker A: I think they're talking about blockchain and ethereum generally.
+01:01:50.270 - 01:01:50.778, Speaker B: Okay.
+01:01:50.864 - 01:01:58.220, Speaker D: Yeah, I think consensus academy is definitely the best place to understand more around ethereum from a technical point of view. I've done the courses. They're great.
+01:01:59.310 - 01:02:13.230, Speaker A: Yeah. Okay. Faith is, I noticed that binance supports deposit withdrawal on arbitrum, and since arbitrum is centralized, so binance just talks to the arbitram server through RPC rather than running another arbitrum node.
+01:02:16.530 - 01:02:17.520, Speaker B: And then.
+01:02:21.990 - 01:02:24.420, Speaker A: What he's proposing is probably how it works.
+01:02:26.490 - 01:02:38.700, Speaker E: Yeah, it'll send the messages. Arbisom has a centralized sequencer, so it will just send the messages to that as the mempool gets ordered, eventually makes it to roll off.
+01:02:44.190 - 01:03:03.060, Speaker A: Yeah. And then there's one comment that doesn't really have context about more people understanding solidity, more hacks. Isn't that the case? I'm not quite sure what that refers to. So, Faye, if you can explain that, if you're still on the call, then maybe we'll understand your question.
+01:03:04.630 - 01:03:23.270, Speaker E: You mentioned that because, Carl, have fewer people to understand then probably easier to hack. My counterargument is that because a lot of people know solidity, but probably it's easier for solidity contracts to be hacked.
+01:03:24.810 - 01:04:05.106, Speaker A: No, I think that I've been involved in information security for a very long time, and hoping for security by obscurity does not help you. In fact, it's a massive hindrance. Historically, people, a great example is people who have closed source code. They assume that it's unhackable because people don't know what the code is. So then of course someone steals the code and then analyzes all their code and then finds the vulnerability. So sufficiently motivated hackers will learn Cairo or whatever, all the language it is to hack. So, yeah, I don't think that I.
+01:04:05.128 - 01:04:23.610, Speaker F: Might just add one thing there, too, Peter, I think there maybe was a misunderstanding about what we were talking about before because we were referring to the fewer number of developers who understand Cairo being some sort of limit on auditing code as opposed to whether it's hackable or not.
+01:04:23.760 - 01:04:25.340, Speaker A: Yes, well, that's true.
+01:04:27.950 - 01:04:28.314, Speaker B: Yeah.
+01:04:28.352 - 01:04:53.202, Speaker A: And then there's a discussion about hacking, which is not really a question as such. Yeah. And then there's more stuff. All right, so I think we've done the questions. So, Declan, you survived the questions, which is awesome. And that was an absolutely wonderful talk. And I think you've done the talk on roll ups and description of roll ups better than I've seen anyone do it.
+01:04:53.202 - 01:05:02.390, Speaker A: So congratulations. Thank you very much. And we should all do a round of applause. So thank. Yeah.
+01:05:02.460 - 01:05:04.050, Speaker D: Thank you, everyone. Thanks, Peter.
+01:05:04.210 - 01:05:04.678, Speaker B: Yeah.
+01:05:04.764 - 01:05:09.740, Speaker A: Could you reshare the slide? You know, that slide that had the forthcoming talk?
+01:05:11.150 - 01:05:12.140, Speaker C: Oh, yeah.
+01:05:23.780 - 01:05:24.368, Speaker B: All right.
+01:05:24.454 - 01:06:11.150, Speaker A: Thank you. Thank you, Declan. So there are a lot of talks coming up, and next week I'm actually going to be talking about the Abi encoding and talk about how that works. And in particular, we are going to use the information from that talk to do a deep dive on a hack that happened last week. So literally a week ago that I helped resolve or do a root cause analysis on. And so it's amazing how having a knowledge of Abi encoding can help you do root cause analysis for hacks and how important it is. So the week after that, on the Tuesday, there's a symposium on distributed ledger technology.
+01:06:11.150 - 01:06:49.208, Speaker A: So that is a conference that's going to be on the Gold coast in Queensland and Australia. Tickets are $100 australian. So if you can fly in, it's in person only. So you're going to have to fly into Brisbane or be living here to get to it. But it's a great opportunity. So go to that website to get your tickets, and the day after that, Ermius is going to do his talk on security and cross chain transactions. And then we've got a stack of other talks coming up as well.
+01:06:49.208 - 01:07:33.480, Speaker A: So I'm looking forward to it. And for that, the talk, which is the last one for the year on advanced solidity test, everyone polish your solidity skills. I'm going to try and have something that everyone will be surprised at and there'll be stuff that people will not get. So my hope is to have everyone not completely pass that test, not get 100%. That's my goal. So if you go to the next slide. All right, so if you're here today, you can see this talk and others on YouTube, you can join the slack workspace to ask questions and join in the conversation.
+01:07:33.480 - 01:08:12.432, Speaker A: If you're watching this on YouTube and you want to get involved, you can go to the meetup and register for talks and then find out when they are. There's example code for some of the talks that's on a GitHub repo, and Frank, who you heard here, and others are involved in a formal methods reading group. So join the Slack workspace and then join that channel for the learn about the formal methods group. And they have talks about once every two weeks. So, yeah, that's it. So look, Declan, thank you again for a fabulous talk. And thank you, everyone, for coming along this week.
+01:08:12.432 - 01:08:17.250, Speaker A: So have a great day. Night and yeah, thank you.
+01:08:21.440 - 01:08:22.430, Speaker C: Thank you.
+01:08:23.120 - 01:08:24.140, Speaker B: Bye bye.
+01:08:25.280 - 01:08:26.040, Speaker D: Thank you. Bye.
