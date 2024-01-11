@@ -85,16 +85,13 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
+def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     all_documents = []
     partial_load_single_pdf = partial(load_single_pdf, title_extraction_func=title_extraction_func, extract_author_and_release_date_func=extract_author_and_release_date_func,
                                       author=author, release_date=release_date, pdf_link=pdf_link, existing_metadata=existing_metadata, debug=debug)
-
-    files_gen = directory_path.glob("*.pdf")
-    files = [next(files_gen) for _ in range(num_files)] if num_files is not None else list(files_gen)
 
     pdf_loaded_count = 0  # Initialize the counter
     # Initialize a list to accumulate metadata
@@ -129,14 +126,41 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
             'extract_author_and_release_date_func': extract_author_and_release_date_ethereum_org,
             'author': 'Ethereum.org',
             'pdf_link': 'https://ethereum.org/',
-            'release_date': ''
+            'release_date': '',
+            'exclude_titles': [
+                'Content standardization',
+                'Style Guide',
+                'How can I get involved?',
+                'Adding a quiz',
+                '"The Graph: Fixing Web3 data querying"',
+                'Translation Program lang: en',
+                'Content buckets lang: en',
+                'Adding developer tools lang: en',
+                'Contributing',
+                'Language resources',
+                'Code of conduct',
+                'How can I get involved?',
+                'Online communities',
+                'About Us',
+                'The Graph: Fixing Web3 data querying',
+            ],  # List of titles to exclude
+            'exclude_filenames': ['contributing']  # List of filenames to exclude
         },
         'datasets/evaluation_data/flashbots_docs_2024_01_07': {
             'title_extraction_func': flashbots_title_extraction,
             'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
             'author': 'Flashbots Docs',
             'pdf_link': 'https://docs.flashbots.net/',
-            'release_date': ''
+            'release_date': '',
+            'exclude_titles': [
+                'Join Flashbots',
+                'Contributing',
+                'Prohibited Use Policy',
+                'Terms of Service',
+                'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
+
+            ],  # List of titles to exclude
+            'exclude_filenames': ['policies']  # List of filenames to exclude
         }
     }
 
@@ -150,16 +174,38 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
         existing_metadata = pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
 
     for directory, details in config.items():
-        directory_path = os.path.join(root_dir, directory)
-        title_extraction_func = details['title_extraction_func']
-        extract_author_and_release_date_func = details['extract_author_and_release_date_func']
-        author = details['author']
-        release_date = details['release_date']
-        pdf_link = details['pdf_link']
+        # Pre-filter existing metadata based on exclude_titles and exclude_filenames
+        exclude_titles = set(details.get('exclude_titles', []))
+        exclude_filenames = set(details.get('exclude_filenames', []))
+        filtered_metadata = existing_metadata[
+            ~(existing_metadata['title'].fillna('').str.lower().isin([t.lower() for t in exclude_titles])) &
+            ~(existing_metadata['document_name'].fillna('').str.lower().apply(
+                lambda x: any(f.lower() in x for f in exclude_filenames)))
+            ]
+        filtered_metadata.to_csv(csv_path, index=False)
 
-        logging.info(f"Processing directory: {directory_path}")
-        all_documents, all_documents_details = load_pdfs(directory_path, title_extraction_func, extract_author_and_release_date_func, author, release_date, pdf_link, existing_metadata=existing_metadata, debug=debug,
-                              num_files=num_files, num_cpus=num_cpus)
+        directory_path = os.path.join(root_dir, directory)
+        files_gen = Path(directory_path).glob("*.pdf")
+        files = []
+        for file_path in files_gen:
+            filename = os.path.basename(
+                file_path).lower()  # Convert filename to lowercase for case-insensitive comparison
+            title = sanitize_metadata_value(extract_title(file_path, details['title_extraction_func']))
+
+            # Check for exclusion based on title and filename
+            if not any(excluded_title.lower() in title.lower() for excluded_title in exclude_titles) and \
+                    not any(excluded_filename.lower() in filename for excluded_filename in exclude_filenames):
+                files.append(file_path)
+            else:
+                logging.info(f"[{details.get('author')}] Excluding file: {filename} with title: {title}")
+
+        logging.info(f"Processing directory: {directory_path} with {len(files)} files")
+        all_documents, all_documents_details = load_pdfs(directory_path, details['title_extraction_func'],
+                                                         details['extract_author_and_release_date_func'],
+                                                         details['author'], details['release_date'],
+                                                         details['pdf_link'], files,
+                                                         existing_metadata=filtered_metadata,
+                                                         num_files=num_files, num_cpus=num_cpus, debug=debug)
         all_docs += all_documents
         all_metadata += all_documents_details
 

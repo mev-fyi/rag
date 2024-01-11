@@ -157,7 +157,7 @@ def extract_link(domain_url: str, search_query: str):
 
         # Open the search bar with CTRL+K
         webdriver.ActionChains(driver).key_down(Keys.CONTROL).send_keys('k').key_up(Keys.CONTROL).perform()
-        time.sleep(0.5)  # Wait for search bar to open
+        time.sleep(1.5)  # Wait for search bar to open
 
         # Find the search input and enter the search query
         search_input = driver.find_element(By.CSS_SELECTOR, "input[type='search']")
@@ -165,7 +165,7 @@ def extract_link(domain_url: str, search_query: str):
         search_input.send_keys(Keys.ENTER)
 
         # Wait a moment for the page to update
-        time.sleep(1)
+        time.sleep(1.5)
 
         # Get the current URL after the search
         result_url = driver.current_url
