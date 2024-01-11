@@ -42,7 +42,7 @@ def get_videos_from_playlist(credentials: Credentials, api_key: str, playlist_id
     return video_info
 
 
-def get_channel_id(credentials: Optional[Credentials], api_key: str, channel_name: str) -> Optional[str]:
+def get_channel_id(credentials: Optional[Credentials], api_key: str, channel_name: str, channel_name_to_id) -> Optional[str]:
     """
     Get the channel ID of a YouTube channel by its name.
 
@@ -53,6 +53,9 @@ def get_channel_id(credentials: Optional[Credentials], api_key: str, channel_nam
     Returns:
         Optional[str]: The channel ID if found, otherwise None.
     """
+    if channel_name in channel_name_to_id:
+        return channel_name_to_id[channel_name]
+
     # Initialize the YouTube API client
     if credentials is None:
         youtube = build('youtube', 'v3', developerKey=api_key)

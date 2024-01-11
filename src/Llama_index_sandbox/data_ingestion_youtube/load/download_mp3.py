@@ -1,6 +1,7 @@
 import asyncio
 import glob
 import itertools
+import json
 import os
 import argparse
 from typing import List, Optional, Dict
@@ -203,7 +204,16 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
         print("No service account file found. Proceeding with public channels or playlists.")
 
     # Create a dictionary with channel IDs as keys and channel names as values
-    yt_id_name = {get_channel_id(credentials=credentials, api_key=api_key, channel_name=name): name for name in yt_channels}
+    # Define the path for storing the mapping between channel names and their IDs
+    channel_mapping_filepath = f"{root_directory()}/datasets/evaluation_data/channel_handle_to_id_mapping.json"
+
+    # Load existing mappings if the file exists, or initialize an empty dictionary
+    channel_name_to_id = {}  # Initialize regardless
+    if os.path.exists(channel_mapping_filepath):
+        with open(channel_mapping_filepath, 'r', encoding='utf-8') as file:
+            channel_name_to_id = json.load(file)
+
+    yt_id_name = {get_channel_id(credentials=credentials, api_key=api_key, channel_name=name, channel_name_to_id=channel_name_to_id): name for name in yt_channels}
 
     videos_path = f"{root_directory()}/datasets/evaluation_data/youtube_videos.csv"
     youtube_videos_df = pd.read_csv(videos_path)
