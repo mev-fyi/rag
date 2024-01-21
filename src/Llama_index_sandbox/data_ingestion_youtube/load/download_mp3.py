@@ -70,7 +70,7 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
     return titles_in_df
 
 
-def video_valid_for_processing(video_title, dir_path):
+def video_valid_for_processing(channel_name, video_title, dir_path):
     try:
         normalized_video_title = video_title.replace('/', '_')
 
@@ -91,7 +91,7 @@ def video_valid_for_processing(video_title, dir_path):
             ):
                 # logging.info(f"video_valid_for_processing: {video_title} is already processed")
                 return False
-        logging.info(f"video_valid_for_processing: [{video_title}] is not processed yet, adding to the list!")
+        logging.info(f"[{channel_name}] video_valid_for_processing: [{video_title}] is not processed yet, adding to the list!")
         return True
     except Exception as e:
         logging.warning(f"Exception in video_valid_for_processing: {e}")
@@ -152,7 +152,7 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
 
             # Now you can access the row data as a dictionary
             # For example, video_dict['title'] will give you the title
-            is_video_Valid = video_valid_for_processing(video_dict['title'], dir_path)
+            is_video_Valid = video_valid_for_processing(channel_name, video_dict['title'], dir_path)
             if is_video_Valid:
                 valid_videos.append(video_dict)
         if len(valid_videos) > 1:
