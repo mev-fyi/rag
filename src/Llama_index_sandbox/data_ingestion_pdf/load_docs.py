@@ -158,6 +158,8 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
                 'Prohibited Use Policy',
                 'Terms of Service',
                 'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
+                'Code of Conduct',
+                'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
 
             ],  # List of titles to exclude
             'exclude_filenames': ['policies']  # List of filenames to exclude
