@@ -1,0 +1,540 @@
+00:00:03.760 - 00:00:27.230, Speaker A: All right, so, hey, everybody, thanks for making it. Today we have Guillaume from Aztec to present on Noir, which is a new language they've been developing. Thanks so much for joining us. We really appreciate your time. And, yeah, take it away.
+00:00:28.160 - 00:00:28.908, Speaker B: Okay.
+00:00:29.074 - 00:00:51.956, Speaker C: Thank you. Thank you also for inviting me. Sorry. So, yeah, I'm going to talk about Noir. My purpose is to show noir with an example. So like a real life example? No, not real life, but an example. And I will show code.
+00:00:51.956 - 00:01:35.648, Speaker C: We'll do some live coding session. So my example is based on Sudoku. So it will be very simple. It will be a beginner, entry level talk. So before I start, just to give some motivation, I am considering a simple use case. So this use case is, let's say you want to distribute a price to the first person that is able to solve your sudoku puzzle. So a standard way to do that is to ask users to send their submissions via email.
+00:01:35.648 - 00:01:48.820, Speaker C: Then you can write a small program to check that the submission is correct. And then you can just send the price to the first emails that you receive that is valid.
+00:01:49.160 - 00:01:51.476, Speaker B: So I think this works quite well.
+00:01:51.658 - 00:01:54.604, Speaker C: But it's not completely secure.
+00:01:54.672 - 00:01:58.424, Speaker B: Like there are some manual process and so on.
+00:01:58.542 - 00:02:11.580, Speaker C: And let's say if the price is very big, if it is a lot of money, maybe you want something that is more secure. Bottom line, it's not really secure.
+00:02:13.280 - 00:02:17.756, Speaker B: So what you can do, we can.
+00:02:17.778 - 00:03:03.148, Speaker C: Say that we can remove a lot of manual steps by just using a blockchain. So let's see how you could do that in a blockchain. So now you ask your user to send submissions to a smart contract that you write. You can reuse the code of the small program that you wrote to check the submission. So to check it now, you need to check it inside the smart contract. And the smart contract can then send the money to the sender address of the first transaction that is valid. So this solves a lot of problems, but I think it's not secure as well.
+00:03:03.234 - 00:03:06.936, Speaker B: So one reason that it's not secure.
+00:03:06.968 - 00:03:10.384, Speaker C: Is that because you are sending your.
+00:03:10.422 - 00:03:12.284, Speaker B: Submission to the blockchain.
+00:03:12.332 - 00:03:25.888, Speaker C: But what that really means is that there is some Miners, validators or whatever that are looking at the transaction pools. And so they can see your solution before it's in the blockchain.
+00:03:25.984 - 00:03:28.160, Speaker B: And what miner?
+00:03:28.320 - 00:03:51.276, Speaker C: I think they all do that. They try to do Mev. And in that case, the MeV with your transaction is very easy. They just take your solution and then submit their own transaction instead to get the price. So this is not safe at all. It's not secure. And of course, the solution to make.
+00:03:51.298 - 00:03:54.412, Speaker B: It secure, we see that the problem.
+00:03:54.466 - 00:04:01.264, Speaker C: Is that you provide the solution. So the proper way to do it.
+00:04:01.302 - 00:04:04.096, Speaker B: Is not send the solution to the.
+00:04:04.118 - 00:04:11.660, Speaker C: Puzzle, but instead, you are going to send a proof that you have a valid solution. The smart contract will verify this proof.
+00:04:11.740 - 00:04:13.350, Speaker B: And then will send you the money.
+00:04:15.160 - 00:04:27.130, Speaker C: Okay, do you have any question on this small use case? Don't hesitate to stop me if you want to ask question. We'll check the chat from time to time.
+00:04:30.380 - 00:04:34.692, Speaker B: All right, so we need to prove.
+00:04:34.836 - 00:05:14.912, Speaker C: Sudoku solution in zero knowledge. And we are going to use noir. But first of all, what is zero knowledge? What does that mean? What is a zero knowledge proof? I suppose you all know what it is, so I will be very short. So we are going to use journal edge proofs. That is the proof that the statement is true. And it's zero knowledge, meaning that it does not reveal anything else, except, of course, that the statement is true. So, in our case, the statement is simple, is I have a solution to a particular Sudoku puzzle.
+00:05:14.912 - 00:05:34.140, Speaker C: This is a statement we want to prove. If you don't consider zero knowledge, the normal way to prove that would be to provide the solution. But we have seen that this is not good enough for us. And it is not zero knowledge to provide the solution because it reveals why.
+00:05:34.210 - 00:05:36.124, Speaker B: The statement is true.
+00:05:36.322 - 00:05:40.370, Speaker C: We just want to say it's true. We don't want to say why it is true.
+00:05:42.260 - 00:05:42.672, Speaker B: Okay.
+00:05:42.726 - 00:06:35.568, Speaker C: And is this even possible? So, yes, of course it's possible. And for Sudoku, there is, I think, a neat way to explain this. So, one way to prove in zero knowledge that you have a valid solution to a Sudoku puzzle is to use a cart. So you can use nine deck, and each deck has cart from one to nine. And then you just lay down your solution on the grid, except that you put your solution face down and face up only for the cells that correspond to the puzzle. So that all the gray cell will have the card face up and all the yellow. Is it or blank? Let's say the blank cells will have.
+00:06:35.654 - 00:06:37.170, Speaker B: The card face down.
+00:06:38.340 - 00:06:40.392, Speaker C: Okay, so this is just the setup.
+00:06:40.556 - 00:06:44.180, Speaker B: The setup is the card decks.
+00:06:46.040 - 00:06:49.040, Speaker C: Everybody know what are the cards?
+00:06:49.200 - 00:06:55.080, Speaker B: And then the proverbs lay the cards on the grid.
+00:06:55.660 - 00:07:19.644, Speaker C: Then how we can convince a verifier that we have a valid solution. So this is the proof. So, for this verifier is selecting, let's say, select a line. For instance, the first line. Yeah, I've not completed the full grid, but you see my point so he selects the first line. The proverb, take all the cards of.
+00:07:19.682 - 00:07:22.944, Speaker B: The first line, insert them from one.
+00:07:22.982 - 00:07:34.764, Speaker C: To nine, give them to the verifier, and the ferrier checks that. Okay, it's the card from one to nine. Then he knows the line is valid. But it doesn't know because it doesn't know the real ordering of the card.
+00:07:34.822 - 00:07:37.860, Speaker B: It doesn't know where are the numbers.
+00:07:38.010 - 00:07:45.400, Speaker C: And then you can repeat this for all the lines, all the columns, and all the square. And at the end, he will be convinced that this is a valid solution.
+00:07:48.140 - 00:07:52.376, Speaker B: Okay, so this is what we want.
+00:07:52.398 - 00:08:13.392, Speaker C: To do with noir. We are not going to do it with noir yet. First, we are going to do it in rust. So it's not going to be your knowledge, of course. It's just a simple program to check a suku solution. But it's important to understand this program. But it's very simple.
+00:08:13.392 - 00:08:15.760, Speaker C: So, I have only three functions.
+00:08:16.340 - 00:08:21.010, Speaker B: The main, and then these two functions. Check puzzle and check line.
+00:08:21.620 - 00:08:42.490, Speaker C: So, the main is taking a solution as an argument. And then the puzzle, it checks that the solution corresponds to the puzzle. And then it checks that the lines of the solution are valid. Then I don't do the column on the square, because if you know how to do the lines, it will be exactly the same for the columns on the square. So it's not interesting.
+00:08:45.840 - 00:08:49.864, Speaker B: Okay, so let's see what is check puzzle.
+00:08:49.912 - 00:09:06.450, Speaker C: So, check puzzle. So, my solution is represented as, let's say the Sudoku grid is represented with a 2d array. So it's an array of nine lines. On each line is an array of nine numbers.
+00:09:07.380 - 00:09:08.224, Speaker B: Okay.
+00:09:08.422 - 00:09:10.000, Speaker C: For the puzzle, it's the same.
+00:09:10.070 - 00:09:19.988, Speaker B: So when the cell is blank, the puzzle at this cell, the value is zero.
+00:09:20.074 - 00:09:29.450, Speaker C: And when it is not blank, it is gray. It will be the number of the cell.
+00:09:30.540 - 00:09:31.290, Speaker B: Okay.
+00:09:32.380 - 00:09:45.144, Speaker C: And then to check that a solution correspond to a puzzle, I just need to check that the gray cell corresponds. So if it is not zero, it must be the same. Else return false.
+00:09:45.192 - 00:09:48.770, Speaker B: And if all my check pass, then return true.
+00:09:49.620 - 00:09:58.850, Speaker C: Is this clear to everyone? I think it's very simple. So it should be clear then to check the line.
+00:09:59.540 - 00:10:04.390, Speaker B: So I do it for all the lines here.
+00:10:05.640 - 00:10:09.396, Speaker C: So, I do two things. I check that all the numbers in.
+00:10:09.418 - 00:10:12.870, Speaker B: The line are from one to nine.
+00:10:13.560 - 00:10:24.730, Speaker C: First thing. And the second thing that I do is I check that there is no duplicate. So I do this with this helper array that I call check. It's initialized to zero here.
+00:10:26.000 - 00:10:30.236, Speaker B: And then add the index corresponding to.
+00:10:30.258 - 00:10:54.710, Speaker C: The cell value of the line here. If it is zero, I set it to one, and if it is not zero, that means it was previously set to one. So then that means it's a duplicate. So I have an error, I return false, and if all my checkpass, then all my lines are correct again. Is it clear for everybody?
+00:10:59.950 - 00:11:01.066, Speaker B: Okay, good.
+00:11:01.248 - 00:11:06.330, Speaker C: So now you are going to try to do the same thing, but with noir.
+00:11:06.770 - 00:11:07.998, Speaker B: So what is the difference?
+00:11:08.084 - 00:11:24.770, Speaker C: With noir, the purpose of noir is to be able to use the onsh proofs. So you use noir to define your statement that you want to prove.
+00:11:25.190 - 00:11:28.450, Speaker B: So statements is a noir program.
+00:11:28.520 - 00:11:32.226, Speaker C: So maybe the reverse noir program is.
+00:11:32.248 - 00:11:33.990, Speaker B: A statement that you want to prove.
+00:11:34.570 - 00:11:52.010, Speaker C: So you write your program using noir, and then with Noir you can compile this program into what we call a circuit. And then noir can give this circuit to a proving system to generate proof as your merge proof and verify your proof.
+00:11:52.350 - 00:11:53.100, Speaker B: Okay.
+00:11:57.650 - 00:12:29.218, Speaker C: So when we design noir, we have these three goals. This is our motto. So safety, simplicity and performance. And to do that, to achieve this, we have implemented a full compiler on giant inoir. I think that a lot of projects are just interpreters. With noir we have a full compiler. So how do we achieve, for instance, simplicity.
+00:12:29.218 - 00:13:25.898, Speaker C: So we do this with the front end of the compiler. So we have a powerful type system that is implemented and then we can implement what a developer would expect from any programming language that is like functions, loops, conditional, but also struct tuples. We have arrays and we have also generics. So quite powerful type system. Also you can organize the code using modules, using some modules and even external crates that are on GitHub, you can reference them. So yeah, our goal at least is that it's very to use and then you can organize your code with structs, with module, et cetera. So having the code organized like that and having an intuitive syntax, think it's very important to write safe code.
+00:13:25.898 - 00:13:53.780, Speaker C: So this is important for safety. Another thing is that we have striked a lot of cryptographic constructs. So this is just example. So we have a standard library where we implement many cryptographic primitives. We also expose an open interface for the proving system. So noir is not tied to a platform, it's not tied to any proving system. You can change your proving system.
+00:13:53.780 - 00:14:25.130, Speaker C: And then my last example, so if you have a noir program, you can also with noir generate verifier smart contract that will verify the proof for your program on chain. You need to of course to publish the contract, but you have at least the code of the contract for the verification. So this will be useful for our use case, where you will need to verify the Sudoku proof inside the smart contract.
+00:14:28.180 - 00:14:28.930, Speaker B: Okay.
+00:14:32.420 - 00:15:03.524, Speaker C: So the last point is performance. So we have some intermediate representation for the program. This is a low level, and we can do many, let's say, classical compiler optimizations on it. So this is quite powerful. And also we benefit from aztec expertise because we are the only DSL. So the only language that is using aztec proving system. And I suppose, I don't know, but.
+00:15:03.562 - 00:15:07.576, Speaker B: I think that it is the fastest.
+00:15:07.688 - 00:15:34.310, Speaker C: Currently in production proving system, the one from Aztec. And also we can use custom gates that are implemented in the proving system of Aztec. So this is very powerful. And I think we are probably the only language that allows to do this currently.
+00:15:39.830 - 00:15:40.740, Speaker B: All right.
+00:15:42.710 - 00:16:04.266, Speaker C: Of course, big disclaimer. This is work in progress. So this is what we want to do. We are not there yet. We want to be intuitive, but you will find sometimes that noir is cumbersome. We want to be safe, but we have bugs, so it's probably not safe. But the good point is that we are working on it, so it will improve over time.
+00:16:04.266 - 00:16:05.850, Speaker C: So if you write a noir program.
+00:16:05.920 - 00:16:09.754, Speaker B: Now, it will just get better by.
+00:16:09.792 - 00:16:12.830, Speaker C: Doing nothing, just by upgrading your noir version.
+00:16:15.890 - 00:16:19.120, Speaker B: Okay, so now we are going to.
+00:16:21.570 - 00:17:07.470, Speaker C: Do coding with noir. So I think I told you that noir is similar to rust. That's why I was showing rust before. So the syntax on noir is quite inspired by rust. So what I'm going to do is I'm going to take the program we wrote in rust and use it as is and try to make it work with noir. So there are a few things to consider for the zero knowledge part. So the statement we want to prove is that we have a solution corresponding to a puzzle, and then the solution is valid.
+00:17:07.470 - 00:17:40.602, Speaker C: This is a statement. And what is zero knowledge? So what we don't reveal is the input, the input to the main function. So main is the entry point in war. So this is a statement you want to prove. It is the program that is the main function. Basically what you are going to prove. And to give the input to the main function, you need to have this.
+00:17:40.656 - 00:17:44.730, Speaker B: Proverb file with the values.
+00:17:45.950 - 00:18:02.142, Speaker C: So it will be used by the proverb to generate the proof. You see here, that was not in the rest program, but you see here a pub. So this keyword is because sometimes you want to have some inputs that are not private but public.
+00:18:02.276 - 00:18:03.246, Speaker B: This can be interesting.
+00:18:03.348 - 00:18:57.202, Speaker C: In our case, we want people to know what the puzzle is. Another solution will be to hard code the puzzle in the program. But that would be not easy to check what is the real puzzle, because when we compile into a circuit, it will not be readable anymore. So it's better to use it as an argument and then you just say pub and then it will be a public input. So when you generate your proof, it will also generate a verifier TML file that contains all the public inputs for the verifier. Okay, so what I'm going to do is going to all the errors that you will get if you try to do it yourself. So I will do it.
+00:18:57.202 - 00:19:29.420, Speaker C: We will see plenty of errors. So I will show you how to solve these errors, how to work on what I think is the biggest blocker right now. And we will also try to optimize the program, which means reducing the gate cone. So gate refer to the gate of the circuit that is generated from your program. Okay, so to do that I'm going to use.
+00:19:31.890 - 00:19:39.498, Speaker B: Oops. Okay, so here I have the program.
+00:19:39.584 - 00:19:47.246, Speaker C: This is a rust program. I have my proverb tamil file with.
+00:19:47.268 - 00:19:50.560, Speaker B: The values so I can just try to.
+00:19:52.850 - 00:19:54.080, Speaker C: Execute it.
+00:19:54.690 - 00:19:55.440, Speaker B: So.
+00:19:57.170 - 00:20:23.622, Speaker C: Let'S generate a proof. So obviously it doesn't work. So we'll see all the errors we get. So the first error is string are not implemented. So this is something we want to implement. But for now we don't have string type in the language. This is not really important because we just use here the string to print something.
+00:20:23.622 - 00:20:37.326, Speaker C: But printing something and generating a proof that you print something doesn't really make sense. So anyway we will not support print statements. Yeah, maybe, we will probably support it.
+00:20:37.348 - 00:20:39.150, Speaker B: But just for debugging purposes.
+00:20:40.130 - 00:20:49.074, Speaker C: Okay, so it will not be really inside the circuit. What I'm going to do, since I cannot print, what I'm going to do.
+00:20:49.112 - 00:20:53.060, Speaker B: Is to return a value.
+00:20:55.990 - 00:20:56.658, Speaker C: Return a.
+00:20:56.664 - 00:20:59.650, Speaker B: Boolean instead of printing something.
+00:20:59.720 - 00:21:02.774, Speaker C: So you already have the boolean here.
+00:21:02.972 - 00:21:04.200, Speaker B: So like that.
+00:21:05.690 - 00:21:07.720, Speaker C: Okay, so I need to remove here.
+00:21:09.850 - 00:21:16.140, Speaker B: The prints. Okay, so far so good.
+00:21:18.830 - 00:21:46.980, Speaker C: So now let me try again. Much more errors now. So first error, Noah has no logical operators. So yeah, again, this is something that maybe will change in the future. So the reason we don't have it, it's because it's explained here in the error message, because of short circuits. So if you use.
+00:21:49.190 - 00:21:52.902, Speaker B: And operator, and.
+00:21:52.956 - 00:22:13.530, Speaker C: If this is false in a normal programming language, this will not be executed, but with noir it will be executed. So to just emphasize that it doesn't work as a normal programming language, we don't support it. And instead, does it say what to do instead?
+00:22:13.600 - 00:22:41.980, Speaker B: Yeah, instead you should try the bitwise operator. Is there a question? No. Okay. Hello? I couldn't hear you. Okay.
+00:22:44.750 - 00:23:18.854, Speaker C: So we need to use bitwise operator. So in fact, it turned out that this is not so convenient. So the reason is because of the precedence of operators, the precedence of bitwise and logical operator is not the same. So finally we came to the conclusion, so that it's not a good idea to do that, but meanwhile you have to do that. And I recommend to use parentheses just.
+00:23:18.892 - 00:23:21.526, Speaker B: To make sure that precedence, you have.
+00:23:21.548 - 00:23:23.110, Speaker C: No issue with precedences.
+00:23:26.110 - 00:23:36.982, Speaker B: So here also I have one here. So of course, bitwise on a boolean.
+00:23:37.046 - 00:23:44.190, Speaker C: And logical on a boolean should be exactly the same except for the precedence.
+00:23:45.410 - 00:23:46.320, Speaker B: All right.
+00:23:52.890 - 00:24:07.020, Speaker C: So now what is the error? Yes, so here the error is not really clear, but it complains about this line return false. So in fact, we don't support.
+00:24:08.750 - 00:24:10.940, Speaker B: Early return statement in wa.
+00:24:12.270 - 00:24:14.380, Speaker C: So basically you cannot do that.
+00:24:15.070 - 00:24:15.820, Speaker B: So.
+00:24:17.630 - 00:25:01.610, Speaker C: The way to. So what should you do instead? So one possibility is to create intermediate variables and then add additional if statement with these intermediate variables. But that can be pretty confusing, I think. So here what we want to do is to say that it doesn't work in that case. So there is an easy way to do that with noir, is to use constraint statements. So you can see constraint like, it's a bit like an assert. By the way, we'll probably rename it as assert.
+00:25:01.610 - 00:25:13.854, Speaker C: So it creates a gate in your circuit that makes sure that this expression is true. And this is exactly what we want to do. We want this to be true.
+00:25:13.892 - 00:25:18.400, Speaker B: So if this were not true, then.
+00:25:18.930 - 00:25:35.270, Speaker C: You will not be able to generate a proof, the proof will fail, and even not try to generate the proof, we'll say the constraints are not satisfied. So here, if it is zero, it's okay.
+00:25:35.340 - 00:25:38.134, Speaker B: And if it is not zero, so.
+00:25:38.172 - 00:25:40.198, Speaker C: I want it to constraint to be zero.
+00:25:40.284 - 00:25:40.920, Speaker B: Okay.
+00:25:44.410 - 00:25:54.540, Speaker A: Should the first constraint, when you put the parentheses, you put the parentheses around AIG, should it also include the less than one?
+00:26:01.070 - 00:26:13.522, Speaker C: So the parentheses are for the bitwise operator. I was explaining that because of the precedence, it's better to use them. And by the way, it should be like that, right? Okay, that's what you are saying. Okay.
+00:26:13.576 - 00:26:16.850, Speaker B: Yeah. Yes, this is correct.
+00:26:16.920 - 00:26:19.022, Speaker C: So we don't need parentheses for the constraint.
+00:26:19.086 - 00:26:23.010, Speaker B: So I could put them, but it's not necessary.
+00:26:23.830 - 00:26:25.140, Speaker C: It will be fine.
+00:26:27.750 - 00:26:30.050, Speaker B: Okay. Right.
+00:26:30.120 - 00:26:33.350, Speaker C: So now I constraint this to be zero, and then I assign it to one.
+00:26:33.420 - 00:26:35.000, Speaker B: Okay, so far so good.
+00:26:35.390 - 00:26:39.962, Speaker C: Here I have return as well. So basically here what I want is.
+00:26:40.016 - 00:26:41.420, Speaker B: I want this.
+00:26:44.810 - 00:26:45.814, Speaker C: So if it is.
+00:26:45.852 - 00:26:52.540, Speaker B: Not zero, it shouldn't match. So what I can do.
+00:26:54.350 - 00:26:55.210, Speaker C: Is say.
+00:26:55.280 - 00:26:57.980, Speaker B: Either it's zero or.
+00:26:59.790 - 00:27:28.340, Speaker C: It is the same. Okay, do you all agree? Should probably return, you will complain. So I can return something at the end of a function, I just put my expression without semicolon and it will be returned. For instance, if I don't do that, it will complain that I miss a return statement.
+00:27:36.900 - 00:27:37.840, Speaker B: Somewhere.
+00:27:40.640 - 00:27:43.630, Speaker C: Okay, too many errors before, so.
+00:27:46.640 - 00:27:48.030, Speaker B: Let me clear that.
+00:27:51.700 - 00:27:54.850, Speaker C: So let's solve the errors first.
+00:27:58.100 - 00:28:01.090, Speaker B: I cannot find solution. Why is that?
+00:28:13.680 - 00:28:14.764, Speaker C: Solution is here.
+00:28:14.802 - 00:28:18.492, Speaker B: So the error is not that it seems.
+00:28:18.546 - 00:28:20.696, Speaker C: Okay, so let's see the second error.
+00:28:20.728 - 00:28:30.800, Speaker B: Now he's telling me that he doesn't like this symbol.
+00:28:32.740 - 00:29:07.216, Speaker C: This is because we don't support reference in war. So everything that you put inside the function is as argument will be by value argument, so it will be copied inside the function. So this is not really a problem, because like copy in the circuit, copy are very cheap. That's the first reason. The second reason, you will see it later, so that the compiler is optimized.
+00:29:07.328 - 00:29:07.990, Speaker B: Anyway.
+00:29:10.120 - 00:29:26.360, Speaker C: So it will not create a copy if it doesn't need to. And the third thing is, maybe if you will introduce reference later on in the future. The reason is because sometimes it's quite convenient to modify.
+00:29:27.760 - 00:29:30.524, Speaker B: You have a function that take your.
+00:29:30.562 - 00:29:44.176, Speaker C: Data, modify it, so you just want your data to move modified by the function. So this kind of expression of syntax, maybe we will add it in the future, but for now we don't have it.
+00:29:44.198 - 00:29:46.320, Speaker B: So no reference.
+00:29:47.380 - 00:29:57.888, Speaker C: And you can imagine everything is copied, but you don't care really about the impact of the copy to the performance.
+00:29:58.064 - 00:29:58.790, Speaker B: Okay.
+00:30:07.110 - 00:30:18.374, Speaker C: So now he is complaining about u size. So indeed we don't have this type use size. Again in the future we may add.
+00:30:18.412 - 00:30:21.686, Speaker B: It, it makes sense to have it.
+00:30:21.708 - 00:30:28.140, Speaker C: But for now we don't have it. So yeah, let's use a u 32 instead.
+00:30:28.670 - 00:30:29.420, Speaker B: Right.
+00:30:33.040 - 00:31:13.704, Speaker C: So we have all integral types except use size. So you can have u one, u twelve, u 15, whatever, up to a limit. So we don't support big integrals. So the limit will be alpha, the size of the prime number that is used by the probing system. So for instance, with the aztec probing system, the prime number is 254 bits, so you cannot go over alpha, this.
+00:31:13.822 - 00:31:22.030, Speaker B: Like 120 something for integral types. Okay.
+00:31:28.140 - 00:31:46.170, Speaker C: So now the error is what? I forgot to remove this. Another one, I'm sorry.
+00:31:54.740 - 00:31:57.904, Speaker B: Okay, so now he's complaining, missing pub.
+00:31:57.942 - 00:32:15.288, Speaker C: Keyword on return time. So, yeah, when you return from the main function, technically this value, in fact, is an input to the circuit and it's always a public input. So we want the user to be clear that this is public.
+00:32:15.374 - 00:32:18.970, Speaker B: So he has to write pub just.
+00:32:19.900 - 00:32:27.580, Speaker C: To show that it is public. Of course, if you want to hide the return value, you just don't return.
+00:32:27.650 - 00:32:28.750, Speaker B: It and that's it.
+00:32:30.800 - 00:32:34.300, Speaker A: Is the return type of main always a boolean?
+00:32:34.720 - 00:32:42.080, Speaker C: No, you can return whatever you want. So for now you can return integrals, you can return arrays.
+00:32:42.980 - 00:32:47.024, Speaker B: We don't support struct as inputs and.
+00:32:47.062 - 00:32:49.510, Speaker C: Output of main, but this will be.
+00:32:50.520 - 00:32:52.996, Speaker B: Added I think very soon.
+00:32:53.178 - 00:32:54.390, Speaker A: Cool, thanks.
+00:32:59.710 - 00:33:00.460, Speaker B: Okay.
+00:33:02.190 - 00:33:31.880, Speaker C: Next error. So this is a biggest problem. So expected type comp time field phone type u 32. So what comp time means, so it's not a good name, but we don't have a better one for now it means compile time, known at compile time. So basically if you want to index an array, the compiler must know the value. Here the value is coming from.
+00:33:33.610 - 00:33:34.022, Speaker B: A.
+00:33:34.076 - 00:33:57.662, Speaker C: Which is the solution. So it's coming from input of the circuit. So cannot know the value. So it's complaining. So this is I think a limitation of an important limitation. Of course we will support this in the future, but for now we don't have it.
+00:33:57.796 - 00:34:01.886, Speaker B: And we will, I think have it.
+00:34:02.068 - 00:34:17.634, Speaker C: In a few months, but clearly not next month. So we need to work around that. Does anyone have some ids? So what to do? So we want here to check the.
+00:34:17.672 - 00:34:20.806, Speaker B: Line that the line is correct, that.
+00:34:20.828 - 00:34:25.560, Speaker C: Is we want to check that all the lines have number from one to nine.
+00:34:26.810 - 00:34:38.370, Speaker B: And we cannot do it like that. Okay.
+00:34:38.900 - 00:34:47.360, Speaker C: Yeah, it's not an easy exercise. No worries. So one solution, if you remember what I was showing with the cards.
+00:34:50.660 - 00:34:50.928, Speaker B: The.
+00:34:50.934 - 00:35:06.330, Speaker C: Verifier select a line, the proverb takes the cards on the line, sort them from one to nine and then give them to the verifier that is checking that it's 123-45-6789 well we can just do the same. So how can we do that?
+00:35:08.220 - 00:35:11.832, Speaker B: So we don't need this array because.
+00:35:11.886 - 00:35:23.020, Speaker C: We cannot write to it like that. But what we can do is we just need to sort this array. So AI.
+00:35:28.510 - 00:35:33.054, Speaker B: So here I'm using the standard library to sort it and then.
+00:35:33.092 - 00:35:36.240, Speaker C: I'm checking that it is equal from one to nine.
+00:35:37.810 - 00:35:38.560, Speaker B: Okay.
+00:35:44.370 - 00:35:46.098, Speaker C: And we don't need that anymore in.
+00:35:46.104 - 00:36:03.070, Speaker B: Fact, so, oh yes.
+00:36:05.760 - 00:36:09.280, Speaker C: So I want to constrain that this.
+00:36:09.430 - 00:36:13.504, Speaker B: Array sorted is equal to that. Okay.
+00:36:13.542 - 00:36:22.790, Speaker C: Now it's better because I was trying to assign this value to something that is not a variable. So he was not really happy now? It should be better.
+00:36:30.150 - 00:36:30.900, Speaker B: Yes.
+00:36:31.510 - 00:36:34.894, Speaker C: I need to tell him that I want to use the standard library.
+00:36:34.942 - 00:36:52.780, Speaker B: So can do it like that. Okay.
+00:36:53.310 - 00:36:57.390, Speaker C: Yes. So it's complaining that G is an unused variable, which is the case.
+00:36:57.460 - 00:36:59.120, Speaker B: And in fact, yeah.
+00:37:02.900 - 00:37:04.530, Speaker C: I don't need it at all.
+00:37:06.500 - 00:37:06.912, Speaker B: Right.
+00:37:06.966 - 00:37:09.970, Speaker C: Because now I'm sorting. So I will comment it for now.
+00:37:20.390 - 00:37:21.720, Speaker B: Ah, okay.
+00:37:22.330 - 00:37:46.282, Speaker C: So now you see the error. It's not a very nice error. So here, in fact, it's a type system that has issue with generics. So let me show you. Yeah, so this sort function was just added today.
+00:37:46.336 - 00:37:47.610, Speaker B: So it's normal.
+00:37:47.690 - 00:37:53.514, Speaker C: So this is a standard library and this is a sort function to sort an array.
+00:37:53.562 - 00:37:58.834, Speaker B: It's using generic, but then the type.
+00:37:58.872 - 00:38:09.640, Speaker C: System is not able to know the size of the array. So he complained that he's not able to compare them. So it's okay, let's just copy it and use it.
+00:38:19.620 - 00:38:46.100, Speaker B: So I will create my sort function. So this time I'm not using generic, but we use 32 nine. Then I'm going from one to nine. Okay.
+00:38:53.620 - 00:38:55.330, Speaker C: Only two errors now.
+00:38:57.380 - 00:38:59.490, Speaker B: But so.
+00:39:00.900 - 00:39:14.804, Speaker C: Yes, the famous, very famous error. So for some historical reasons, I will not explain them. We require semicolon after a for loop.
+00:39:14.932 - 00:39:18.072, Speaker B: And by the way, I already put them.
+00:39:18.206 - 00:39:38.568, Speaker C: Yes, of course, because I copied from the Sandra library. So on every for loop you need this semicolon. So maybe we will remove this, but maybe we'll keep it. It's not very important. There is some reason, but that's very important.
+00:39:38.674 - 00:39:39.330, Speaker B: Okay.
+00:39:41.700 - 00:40:06.040, Speaker C: So now the error is saying arrays of arrays are not supported, which is a big problem because I'm using 2d arrays. But in fact. Yeah. So we will probably support this in future. For now, we don't support it and it's not a big problem because it's quite easy to emulate a 2d array with 1d array.
+00:40:06.460 - 00:40:14.436, Speaker B: So here, instead of having an array.
+00:40:14.468 - 00:40:18.520, Speaker C: Of array, I will just have one array of 81 elements.
+00:40:22.220 - 00:40:23.720, Speaker B: 81 elements.
+00:40:29.200 - 00:40:36.036, Speaker C: And then instead of accessing my element like that, I just need to do.
+00:40:36.218 - 00:40:48.810, Speaker B: Nine times I plus g. All right, so no big deal. In fact, so I still need this.
+00:40:59.210 - 00:41:10.620, Speaker C: Of course, this is not an array anymore. So I need to construct my line.
+00:41:11.950 - 00:41:29.532, Speaker B: So let's start with a line with zero. And now write this equal to nine.
+00:41:29.586 - 00:41:31.550, Speaker C: Times I plus g.
+00:41:33.620 - 00:41:37.808, Speaker B: So now I've created my line and I can check.
+00:41:37.894 - 00:41:39.650, Speaker C: That my line is correct.
+00:41:44.180 - 00:41:44.930, Speaker B: Okay.
+00:41:52.190 - 00:41:54.582, Speaker C: Now it's telling me that my variable.
+00:41:54.646 - 00:41:57.594, Speaker B: Needs to be mutable, which is correct.
+00:41:57.632 - 00:42:08.540, Speaker C: Because I'm modifying it here. So let's just say it's mutable. I just see the second error here.
+00:42:08.990 - 00:42:16.640, Speaker B: I forgot again, the semicolon on the for loops. And the last one is what?
+00:42:18.610 - 00:42:27.066, Speaker C: Yes, okay. I forgot here nine times I plus.
+00:42:27.168 - 00:42:30.800, Speaker B: G. Okay.
+00:42:41.420 - 00:42:59.384, Speaker C: So we could generate a circuit here you see the number of gates in the circuit. But then I was not able to prove, in saying that the proverb file is not properly formed, which is, of course, because here I'm using these 2d arrays and I don't have it anymore.
+00:42:59.432 - 00:43:05.890, Speaker B: So let me copy the proper.
+00:43:06.260 - 00:43:09.680, Speaker C: Okay, so now I have just one big array.
+00:43:12.660 - 00:43:16.790, Speaker B: Solution, equal. Okay.
+00:43:26.650 - 00:43:39.674, Speaker C: Still have an error. So now he's telling me that he wanted three values, but he got two of them. So indeed there are two values in.
+00:43:39.712 - 00:43:42.806, Speaker B: Here, the solution and the puzzle.
+00:43:42.838 - 00:43:44.186, Speaker C: But you remember I told you that.
+00:43:44.208 - 00:43:44.780, Speaker B: The.
+00:43:46.750 - 00:44:07.700, Speaker C: Return value is in fact an input also to the circuit, so we need to provide it. The good news is that we don't need to compute it because it's computed when you prove it. So you just can just put an empty value like that and it will work. You can see it, by the way.
+00:44:08.150 - 00:44:09.490, Speaker B: So let's prove.
+00:44:11.430 - 00:44:13.666, Speaker C: I forgot to save my file.
+00:44:13.858 - 00:44:14.600, Speaker B: Okay.
+00:44:20.680 - 00:44:29.496, Speaker C: Now it's generating the proof. So we have the proof. And you see, now we have this.
+00:44:29.518 - 00:44:33.720, Speaker B: Verifier toml file which contain my return.
+00:44:33.790 - 00:44:41.660, Speaker C: Value, which is one. So the verification is correct. And I have also the puzzle.
+00:44:43.280 - 00:44:44.030, Speaker B: Okay.
+00:44:48.480 - 00:44:50.156, Speaker C: So we managed to do it.
+00:44:50.338 - 00:44:59.824, Speaker B: That's very nice. One thing. Okay, yeah.
+00:44:59.862 - 00:45:03.170, Speaker C: Maybe I can show you. I will show this.
+00:45:04.040 - 00:45:19.492, Speaker A: Can I ask a question? In the prover tomo file, why is the return type not specified? Why don't we set that to just like true in the input file?
+00:45:19.636 - 00:45:23.930, Speaker C: Yeah, good question. So you can, for instance, if I put one here.
+00:45:25.740 - 00:45:27.130, Speaker B: It will work the.
+00:45:35.250 - 00:45:43.140, Speaker A: Like, if we left it as the quotes, if the main returned false or something, it also would have generated a proof, right?
+00:45:43.990 - 00:45:48.420, Speaker C: So you see, I generated the proof. Now I put zero.
+00:45:54.620 - 00:45:55.308, Speaker B: In case it.
+00:45:55.314 - 00:45:58.524, Speaker C: Will answer your question. And now with zero is not happy.
+00:45:58.642 - 00:46:01.070, Speaker B: Oh, great. Cool. Very cool.
+00:46:03.200 - 00:46:23.652, Speaker C: So, because you don't need to specify it, because it's computed, when you generate the proof, the value is computed because it's a proof of execution. So we need to execute the program. So we know the value because we execute the program. Okay, so what I wanted to show.
+00:46:23.706 - 00:46:24.310, Speaker B: Is.
+00:46:27.000 - 00:46:28.400, Speaker C: This is a number of gates.
+00:46:28.480 - 00:46:32.010, Speaker B: So, 13,000. And.
+00:46:34.940 - 00:46:39.530, Speaker C: We are going to experiment to see how we can reduce this number. So.
+00:46:41.980 - 00:46:49.950, Speaker B: Check, we'll call it set or check card.
+00:46:52.240 - 00:47:02.556, Speaker A: Can I actually ask one more question? So you said, yeah, please. Sure. It's using the aztec proof system. What proof system is used in aztec?
+00:47:02.588 - 00:47:10.070, Speaker B: Under the hood, so it's turboplank. Okay, cool.
+00:47:13.670 - 00:47:59.140, Speaker C: That's why we have custom gates. So I want to experiment with several ways to check this and I will do just one that is using sort.
+00:48:16.290 - 00:48:21.422, Speaker B: Okay, so you see that I'm calling.
+00:48:21.476 - 00:48:29.960, Speaker C: Several function, every call is by value. So I'm copying the array several times, but at the end it doesn't really matter.
+00:48:34.340 - 00:48:38.450, Speaker B: What did I do? Nine.
+00:48:38.900 - 00:48:41.490, Speaker C: Oh, it's a, okay.
+00:48:48.850 - 00:48:49.630, Speaker B: So you see.
+00:48:49.700 - 00:48:57.294, Speaker C: The number of kits is exactly the same. So the compiler was able to optimize this copy.
+00:48:57.342 - 00:49:00.694, Speaker B: So really you should try to write clean code.
+00:49:00.812 - 00:49:19.322, Speaker C: Don't try to optimize stuff that the compiler is optimizing. Another example I show you before we do real optimization is again, don't try to beat the compiler. So here another way to expect this.
+00:49:19.376 - 00:49:20.170, Speaker B: For instance.
+00:49:22.350 - 00:49:25.840, Speaker C: I could use like for instance an if statement. So if this.
+00:49:27.730 - 00:49:33.710, Speaker B: Is not zero, I must have this constraint.
+00:49:48.530 - 00:49:57.060, Speaker C: Number of gates exactly the same. I suppose it was the same one, right? Just second.
+00:49:57.770 - 00:49:59.320, Speaker B: Yeah, it was the same.
+00:50:01.450 - 00:50:06.614, Speaker C: So really use the way that you.
+00:50:06.652 - 00:50:09.500, Speaker B: Prefer to write it.
+00:50:10.990 - 00:50:27.120, Speaker C: That makes more sense for you. Another example, so the two are exactly equivalent. Like somebody smart say, okay, maybe I can remove this or.
+00:50:31.240 - 00:50:31.876, Speaker B: And I can.
+00:50:31.898 - 00:50:33.270, Speaker C: Do something like that.
+00:50:35.160 - 00:50:35.940, Speaker B: Um.
+00:50:38.540 - 00:50:41.160, Speaker C: If I multiply the puzzle.
+00:50:44.700 - 00:50:45.064, Speaker B: By.
+00:50:45.102 - 00:50:49.850, Speaker C: The solution, wait.
+00:51:00.090 - 00:51:01.260, Speaker B: I do that.
+00:51:02.110 - 00:51:09.260, Speaker C: I don't need the r statement because if it is zero, then this will be zero and this will be zero.
+00:51:09.630 - 00:51:12.814, Speaker B: And if it is not zero, it.
+00:51:12.852 - 00:51:31.910, Speaker C: Should be equal to this. So this time, this would be equal to this time this. So I could remove the or statement, but if you, oops, what I've done again.
+00:51:45.730 - 00:52:07.270, Speaker B: Yeah, I have two loops on only one. Okay, so it works, but the gates.
+00:52:09.450 - 00:52:22.874, Speaker C: Are greater now. And in fact this is incorrect. So maybe I can, will explain later on why it is incorrect, but it is incorrect. So don't try to be the compiler, the compiler is here to help you.
+00:52:22.912 - 00:52:26.000, Speaker B: And is doing a good job.
+00:52:26.770 - 00:52:34.834, Speaker C: That being said, it's possible to improve these checks here. So we want to check that this.
+00:52:34.872 - 00:52:38.210, Speaker B: Line has number from one to nine.
+00:52:38.280 - 00:53:16.856, Speaker C: So has somebody, some idea of what we could try? Okay, so one possibility, for instance, if you remember at the beginning we were trying to check that there were no duplicate number in the nine. So what you should know is that, well, in fact there are several ways to try to optimize this. One is of course the sort algorithm. So this sort algorithm is, you can.
+00:53:16.878 - 00:53:21.016, Speaker B: See it's a quadratic here, it's insertion.
+00:53:21.048 - 00:54:07.988, Speaker C: Sort it's not very performance, but sorting in a circuit also is not easy. What I can tell you is that when we will connect to the next version of the stack backend, which is ultraplunk, we will be able to do set equality, and with this we will be able to do, let's say non determinism sorting using set equality, and then we will be able to have a linear time sort done by the vacant. So I think doing sort is the best thing here in that case, but with proper sort implemented by the vacan, which we don't have for now.
+00:54:08.174 - 00:54:16.436, Speaker B: Okay, so this sort is quadratic and.
+00:54:16.458 - 00:54:41.224, Speaker C: Also is doing a lot of comparison. So you should know that in a circuit, arithmetic operation are very cheap. Non arithmetic operation are expensive because they need to be emulated with arithmetic operation. So here, comparison is not arithmetic. So this is a bit expensive, so we should try to remove them. But then it's not easy to sort without comparison.
+00:54:41.272 - 00:54:45.624, Speaker B: Right. So if you remember the first rust.
+00:54:45.672 - 00:54:53.490, Speaker C: Version, we were checking if there was no duplicate. So this can be done.
+00:54:54.340 - 00:55:01.540, Speaker B: Let me write a function here. No duplicate.
+00:55:04.120 - 00:55:21.624, Speaker C: So the idea is that if you have a set of elements, let me just write the id here. And I know that there is no duplicate in this set, and I want to add an element, not in the.
+00:55:21.662 - 00:55:29.260, Speaker B: Sense, like in the sense add to the set. So union.
+00:55:32.400 - 00:55:36.020, Speaker C: For the resulting set to still have no duplicates.
+00:55:36.200 - 00:55:41.040, Speaker B: Then that means that a is distinct.
+00:55:42.500 - 00:55:44.320, Speaker C: To all elements.
+00:55:46.260 - 00:55:48.450, Speaker B: Of s, right.
+00:55:49.800 - 00:56:03.530, Speaker C: This one will be, if this one has no duplicates, then this one has no duplicate. Only if I have this. Okay. And this is quite easy to check. So how do I can just.
+00:56:05.500 - 00:56:05.876, Speaker B: Loop.
+00:56:05.908 - 00:56:14.670, Speaker C: Over all element of s and check that they are distinct? So let's do that. So I should.
+00:56:19.120 - 00:56:20.524, Speaker B: I will take all.
+00:56:20.562 - 00:56:26.988, Speaker C: Elements for g in nine.
+00:56:27.154 - 00:56:43.300, Speaker B: Oops. Oops. K in zero j. And I want that the element j.
+00:56:43.370 - 00:56:46.790, Speaker C: Is distinct to all the previous one.
+00:56:49.870 - 00:56:54.446, Speaker B: Okay, so if I do that, that.
+00:56:54.468 - 00:56:56.606, Speaker C: Means that in this array there is.
+00:56:56.628 - 00:57:03.960, Speaker B: No duplicate, and I did my semicolon.
+00:57:06.700 - 00:57:30.252, Speaker C: All right, do you agree? And the good news here is that I have no comparison, like inferior, superior. So if I add this constraint now it's just one line.
+00:57:30.306 - 00:57:31.390, Speaker B: So tech.
+00:57:34.960 - 00:57:38.640, Speaker C: So my elements are from one to nine and there is no duplicate.
+00:57:39.140 - 00:57:42.004, Speaker B: This prove that the element of the.
+00:57:42.042 - 00:57:44.390, Speaker C: Array are exactly one to nine.
+00:57:44.920 - 00:57:48.788, Speaker B: Okay, so now let's try this.
+00:57:48.954 - 00:57:59.992, Speaker C: So this function is doing the same as this one, but you can see that they are really different. So it's not a compiler optimization. Clearly the compiler could not have come with this.
+00:58:00.126 - 00:58:01.704, Speaker B: So let's try this.
+00:58:01.902 - 00:58:06.410, Speaker A: I think the constraint should be within the for loop, right?
+00:58:08.720 - 00:58:14.380, Speaker C: Yes. So you are right. This will work well. This will compile.
+00:58:17.760 - 00:58:22.544, Speaker A: I mean, the constraint on line 27, because we haven't defined like I.
+00:58:22.662 - 00:58:26.640, Speaker B: Right. Thank you.
+00:58:26.710 - 00:58:33.190, Speaker C: So it should be a g. Yeah. And also here I need a constraint. That's what I wanted to say.
+00:58:35.320 - 00:58:36.070, Speaker B: Yeah.
+00:58:37.400 - 00:58:41.984, Speaker C: Because if I don't put a constraint, it will just evaluate to a boolean, which will be true or false.
+00:58:42.032 - 00:58:50.600, Speaker B: But then it's not failing the circuit having a boolean. Okay, now it's better.
+00:58:50.670 - 00:59:07.630, Speaker C: Thank you very much. So what I'm saying is this function is doing exactly the same as this one. At least the purpose of it is the same. The content, of course, is not the same. So remember, we have this number of gates, and now.
+00:59:11.990 - 00:59:13.794, Speaker B: It was 30,000. Okay.
+00:59:13.832 - 00:59:16.260, Speaker C: Now we have much less, but it doesn't work.
+00:59:17.670 - 00:59:18.420, Speaker B: Interesting.
+00:59:25.350 - 00:59:30.754, Speaker C: So, here we can see that this is quite annoying because we don't know which constraint is failing.
+00:59:30.802 - 00:59:33.606, Speaker B: So this is something that we want.
+00:59:33.628 - 00:59:40.230, Speaker C: To add also to noir to indicate where it is failing.
+00:59:42.410 - 00:59:54.086, Speaker A: I think it's in the constraint on line 29. We're constraining that it's less than one or greater than that. We should be checking that it's like greater than zero and less than.
+00:59:54.128 - 00:59:54.718, Speaker C: Exactly.
+00:59:54.884 - 01:00:02.110, Speaker B: Thank you. And it should be that now.
+01:00:02.180 - 01:00:29.466, Speaker C: Okay, this is what we want. Okay, so it's working. And you can see that we have much less constraint now. So cool. This is because we avoid all the comparisons, because this is still quadratic. So we still have comparison, by the way. So we will see how to remove them.
+01:00:29.466 - 01:01:09.960, Speaker C: But before that, I want to show you the most important optimization that you can do. So, this is the first thing that you should look at is the types that you are using. So, we have mainly integral types for now. In noir, the most efficient type is the field type that corresponds to the native field of the probing system. So if you can use it, it's most efficient. If you don't know what is a field, maybe you should not use it. Then the second.
+01:01:09.960 - 01:02:14.540, Speaker C: What is interesting also is to try to limit the most possible, the range of your integrals. So, here we know that our number should all be between one and nine. So, in fact, using u 32 for this is not good, because u 32 allows for very big integrals, but we don't need that range. So if I ask you what number of bits I should allow for my integral, it will be simply like u four. It's an exit decimal. So 16, because with zero to 15, I can represent my numbers for the sudoku from one to nine without any issue. So I should replace all of them with u four.
+01:02:26.420 - 01:02:31.918, Speaker B: And now let's see, does it support.
+01:02:32.004 - 01:02:36.480, Speaker A: Like u of any number or like powers of two?
+01:02:36.930 - 01:03:03.110, Speaker C: Yeah, that's what I was saying at the beginning. So yeah, any number. So you can have u one, u three, u 78, whatever, until a limit. And this limit depend on the characteristic of the field that you are using, that the probing system is using.
+01:03:03.180 - 01:03:06.940, Speaker B: Sorry. So for a stack back end, the.
+01:03:07.870 - 01:03:14.346, Speaker C: Prime is this number of bits. And you will be able to use.
+01:03:14.448 - 01:03:19.546, Speaker B: U with alpha, this number of bits.
+01:03:19.578 - 01:03:21.440, Speaker C: So alpha fit is like.
+01:03:23.730 - 01:03:24.766, Speaker B: One, two.
+01:03:24.868 - 01:04:03.160, Speaker C: Eight, no to five, and probably one to four. This will be the maximum that you can use in noir with a stack proving system. Okay, so you have seen that the number of gates have reduced a lot. That's pretty massive. So let's see if we can do better. So we see that we still have some comparison here. So my question is now is, can we remove this comparison? And if yes, how.
+01:04:05.850 - 01:04:06.694, Speaker B: You can check.
+01:04:06.732 - 01:04:11.800, Speaker A: That it's equal to one or two or three or four or five all the way to nine?
+01:04:12.490 - 01:04:18.200, Speaker C: Yes. I'm not sure it will be better, but yeah, we could try that.
+01:04:23.160 - 01:04:54.120, Speaker B: So what we want is one, four, five.
+01:05:08.210 - 01:05:13.200, Speaker A: Or maybe there's a way to take advantage of the fact that it's only you four now.
+01:05:16.940 - 01:05:17.448, Speaker B: Yes.
+01:05:17.534 - 01:05:43.870, Speaker C: So let's try just for, so you see, 6000, it's, it's more in fact. But yeah, it's a good idea to try something. So this is not good. So what we can do is that take advantage that we know that they are all distinct and we have a bunch of distinct numbers that are positive.
+01:05:44.930 - 01:05:45.342, Speaker B: Okay?
+01:05:45.396 - 01:05:47.822, Speaker C: And we want that this number are one to nine.
+01:05:47.876 - 01:05:50.414, Speaker B: So when it is check, in fact.
+01:05:50.452 - 01:05:55.166, Speaker C: It'S to sum them and check that their sum is 45, which is sum.
+01:05:55.198 - 01:06:19.080, Speaker B: From one to nine. So here. Okay.
+01:06:23.630 - 01:06:30.970, Speaker C: So now we don't have the comparison. Yes, it must be mutable.
+01:06:32.830 - 01:06:33.580, Speaker B: Sorry.
+01:06:36.630 - 01:06:40.980, Speaker C: But it doesn't work. So do you know why? Do you have an idea?
+01:06:43.430 - 01:06:44.494, Speaker B: It's a bit tricky.
+01:06:44.542 - 01:06:46.500, Speaker C: So the reason is.
+01:06:50.490 - 01:06:51.240, Speaker B: Yeah.
+01:06:53.050 - 01:06:56.054, Speaker A: Is 45 not in U four.
+01:06:56.252 - 01:06:57.782, Speaker C: Exactly. Yes, good point.
+01:06:57.836 - 01:07:01.734, Speaker B: So because of this, we have not.
+01:07:01.772 - 01:07:24.160, Speaker C: Given a type to s. And because of this line, the type system has. Okay. In fact, what you want is a U four. So s is the U four now. And when you do that, you are checking a U four against 45, which will never work, of course. But of course we should not do that.
+01:07:24.160 - 01:07:28.000, Speaker C: This is not good because.
+01:07:29.810 - 01:07:30.334, Speaker B: I just.
+01:07:30.372 - 01:07:39.154, Speaker C: Need to have a multiple of 16 in my sum and it will work. So what we really want to do is this constraint s to be 45.
+01:07:39.192 - 01:07:45.014, Speaker B: But that means s must not be a U four. So we should use something else.
+01:07:45.052 - 01:07:49.094, Speaker C: And if you remember I was saying that the most efficient one is a field.
+01:07:49.132 - 01:07:52.646, Speaker B: So let's use a field for s. Of course.
+01:07:52.668 - 01:08:21.410, Speaker C: Now the type system will complain here, but it's not a problem. We can convert this to a field. So a field is a very big integral, like 254 bits, so it can fit a U four with a tissue. So this is just things, compiler don't care. But consider this value as a field so it's not creating any specific constraint.
+01:08:22.630 - 01:08:26.020, Speaker A: Would it be more efficient to put s as like.
+01:08:28.070 - 01:08:33.510, Speaker C: Six? I don't think so.
+01:08:33.580 - 01:08:46.780, Speaker B: Let's see, so we have this number of constraints, 24, 81. So let's try u what.
+01:08:52.590 - 01:09:09.610, Speaker C: Five will be 32, so u six. The problem is that also. Okay, let's do that for now.
+01:09:11.440 - 01:09:11.756, Speaker B: And.
+01:09:11.778 - 01:09:14.030, Speaker C: Then I will tell you why it's not a good idea.
+01:09:14.560 - 01:09:16.620, Speaker A: Do we also need to update?
+01:09:18.640 - 01:09:19.630, Speaker B: Thank you.
+01:09:24.020 - 01:09:47.016, Speaker C: So it was 24 something. So you see it's bigger. So the most efficient one is the field. And this one was not a good idea because the number in a, imagine for instance that a is 9999, so it cannot be because we know they're all distinct. But if it is like, if it.
+01:09:47.038 - 01:09:52.380, Speaker B: Is this, something like that, it's possible.
+01:09:52.450 - 01:09:54.190, Speaker C: To overflow the U six.
+01:09:56.480 - 01:09:57.084, Speaker B: And maybe.
+01:09:57.122 - 01:10:03.228, Speaker C: It'S possible to get 45 with number which sum is not 45. You see what I mean?
+01:10:03.314 - 01:10:03.950, Speaker A: Yeah.
+01:10:04.320 - 01:10:04.780, Speaker B: Okay.
+01:10:04.850 - 01:10:19.110, Speaker C: I don't know if it is the case, but it's dangerous to do that. So with field it's fine. You are not going to overflow field by adding nine u four. This is for sure. Okay.
+01:10:20.680 - 01:10:25.888, Speaker A: Why is it more efficient actually to use? Why does it lead to less gains?
+01:10:26.064 - 01:10:45.784, Speaker C: That's a good question. So we compile down to a circuit, and a circuit is a bunch of constraints living in the field. So like every variable we have, we need to represent it with a field when we compile to a circuit.
+01:10:45.832 - 01:10:49.948, Speaker B: So if we have directly a field.
+01:10:50.034 - 01:10:51.800, Speaker C: Then we don't need to do this conversion.
+01:10:51.880 - 01:11:00.396, Speaker B: So it's the best thing that you can do. I see, so it's one, I guess.
+01:11:00.418 - 01:11:14.180, Speaker A: For the question, if we replaced a, all the elements of a right now, are you four? If we replaced all the elements of a to be field, would that be faster?
+01:11:15.160 - 01:11:17.750, Speaker C: No, because then you have other problems.
+01:11:22.300 - 01:11:24.308, Speaker A: Because of overflow.
+01:11:24.484 - 01:11:35.372, Speaker C: Yes, exactly. So if you sum a bunch of fields and you check this, it could be minus one, plus 56, plus zero.
+01:11:35.506 - 01:11:36.190, Speaker B: Whatever.
+01:11:36.880 - 01:11:42.300, Speaker A: Maybe it's not sound, but would the circuit have fewer gates?
+01:11:44.020 - 01:11:44.770, Speaker C: Yes.
+01:11:46.980 - 01:11:48.610, Speaker A: Okay, that makes sense.
+01:11:52.580 - 01:12:03.460, Speaker C: All right, so there is a last optimization I wanted to show you. So this one is a bit.
+01:12:03.530 - 01:12:04.150, Speaker B: Yeah.
+01:12:05.960 - 01:12:47.670, Speaker C: So it's inspired by some check protocol. So some check protocol are old protocol that allows to prove the summation of evaluation of a polynomial over an hypercube. And it's an old protocol, but it's going to be used in all the next generation of probing system. Like, for instance, hyperplanck is using it. So we are not going to use sumcheck here, but just we are going to sum a polynomial. So that's why I say it's inspired by sumcheck. So let's do another last one.
+01:12:47.670 - 01:12:54.870, Speaker C: So I still have my line.
+01:12:58.120 - 01:13:08.226, Speaker B: Yeah. So let me explain you the id. So I want to check that the.
+01:13:08.248 - 01:13:14.690, Speaker C: Numbers are one to nine in the Array, and I'm considering the polynomial.
+01:13:15.110 - 01:13:20.454, Speaker B: First, my array, it's a bunch of.
+01:13:20.492 - 01:13:23.782, Speaker C: Number I, one, two, et cetera, till a nine.
+01:13:23.836 - 01:13:29.690, Speaker B: Okay. And I consider this polynomial, which is.
+01:13:29.840 - 01:13:33.302, Speaker C: X minus a one times x minus.
+01:13:33.366 - 01:13:37.260, Speaker B: A two times x minus a nine.
+01:13:38.990 - 01:13:43.040, Speaker C: All right? So now.
+01:13:45.090 - 01:13:49.214, Speaker B: If this set, so not.
+01:13:49.252 - 01:14:01.506, Speaker C: As an array, now, but as a set, is equal to one to nine. So when I say as a set, that means without any order. Without any ordering, then what can you.
+01:14:01.528 - 01:14:19.256, Speaker B: Say about of p of one? So if this array has one to.
+01:14:19.278 - 01:14:28.572, Speaker C: 912-345-6789 as numbers, then that means one of them will be one. So when I evaluate p of one.
+01:14:28.626 - 01:14:30.764, Speaker B: One of them will be.
+01:14:30.962 - 01:14:34.510, Speaker C: Will do one minus one. So it will be zero.
+01:14:35.600 - 01:14:40.670, Speaker B: Okay, then what about p of two?
+01:14:42.480 - 01:14:53.104, Speaker C: So again, if two is inside the array, one of them will be two. For instance, this one. So if I compute p of two, I will do two minus two.
+01:14:53.142 - 01:14:57.860, Speaker B: So it will be zero again, and et cetera.
+01:15:00.950 - 01:15:06.466, Speaker C: All this will be zero. So then what does that mean?
+01:15:06.488 - 01:15:11.030, Speaker B: If I sum them, so a equal.
+01:15:12.650 - 01:15:15.606, Speaker C: Let'S say as a set, equal this.
+01:15:15.708 - 01:15:18.214, Speaker B: That means that the sum of p.
+01:15:18.252 - 01:15:21.500, Speaker C: Of one plus p of two.
+01:15:23.630 - 01:15:24.380, Speaker B: Plus.
+01:15:26.990 - 01:15:29.100, Speaker C: P of nine equals zero.
+01:15:29.470 - 01:15:30.380, Speaker B: All right.
+01:15:33.400 - 01:15:37.396, Speaker C: Then what about the reverse? If I have this sum equal to.
+01:15:37.418 - 01:15:41.750, Speaker B: Zero, does that mean that a equal is this set?
+01:15:43.880 - 01:15:47.556, Speaker C: So the answer is no, but it's.
+01:15:47.588 - 01:15:52.104, Speaker B: Not likely to be something else.
+01:15:52.222 - 01:15:58.410, Speaker C: So then the question is how likely it is. So, I wrote a little program.
+01:16:01.740 - 01:16:02.490, Speaker B: Should.
+01:16:04.720 - 01:16:07.724, Speaker C: Try all the combination because we know.
+01:16:07.762 - 01:16:09.884, Speaker B: That the elements are u four.
+01:16:09.922 - 01:16:25.650, Speaker C: So it's from zero to 15. And then I evaluate this polynomial and compute this sum, and these are the polynomials, so they are sorted. Of course, because any permutation will be the same.
+01:16:27.060 - 01:16:37.614, Speaker B: All the polynomials that evaluate one to.
+01:16:37.652 - 01:16:39.360, Speaker C: Nine is equal to zero.
+01:16:42.830 - 01:16:43.242, Speaker B: Okay.
+01:16:43.296 - 01:17:11.494, Speaker C: Of course, I didn't put the one that we want, which is 123-45-6789 and for instance, if you see the first one, the sum of its coefficient is exactly 45. So we cannot use this trick here. But what do we see here? That all of this, they contain ten. So what does that mean?
+01:17:11.532 - 01:17:15.346, Speaker B: Is that if I have this equals.
+01:17:15.378 - 01:17:17.894, Speaker C: Zero, that means a is one of.
+01:17:17.932 - 01:17:20.060, Speaker B: Them or this one.
+01:17:21.310 - 01:17:25.020, Speaker C: Okay, so if I have this and.
+01:17:27.230 - 01:17:36.720, Speaker B: All my AI not equal to ten, then that means my set is like that.
+01:17:41.170 - 01:17:59.698, Speaker A: Okay, so you could also do it by introducing, instead of adding up the p one, p two, p nine, you could add randomness when you combine them. But I'm guessing it doesn't support, nor doesn't support drawing random values.
+01:17:59.874 - 01:18:00.310, Speaker B: Yes.
+01:18:00.380 - 01:18:21.930, Speaker C: So having random values in the circuit, in a circuit is very difficult. It's something that we are considering. The idea will be to hash all your witnesses and use this as a random oracle.
+01:18:22.930 - 01:18:23.680, Speaker A: Right.
+01:18:24.610 - 01:18:26.750, Speaker C: But for now we don't have it at least.
+01:18:26.900 - 01:18:29.694, Speaker A: Yeah, that sounds like an interesting idea.
+01:18:29.892 - 01:18:31.840, Speaker B: Yeah. Cool.
+01:18:33.570 - 01:18:46.154, Speaker C: So we need to do without. So that's why I came to this. So now it's quite easy. We just need to check that there are different ten. We need to evaluate the polynomial.
+01:18:46.222 - 01:18:52.840, Speaker B: So let me just, I don't want to.
+01:19:01.040 - 01:19:23.880, Speaker C: Don'T have much time, so I will just write it directly. So this is the best solution I could came with. So what we are doing here? So here I am evaluating my polynomial from one to nine.
+01:19:24.330 - 01:19:25.080, Speaker B: Okay.
+01:19:26.010 - 01:19:34.274, Speaker C: And I start with, because it's a multiplication. So I need to do nine multiplication.
+01:19:34.322 - 01:19:36.906, Speaker B: So I start with one, and then.
+01:19:36.928 - 01:19:56.400, Speaker C: I multiply with k minus AI. So like I'm doing this. Tag times this. Okay, I need to use a field, as you remember, because if I use u four, it will not work at all.
+01:20:00.630 - 01:20:09.872, Speaker B: Okay. And then this computes p of one.
+01:20:09.926 - 01:20:18.470, Speaker C: P of two, et cetera, for each k. And then I sum them. Okay, so then what I've computed here into s.
+01:20:20.760 - 01:20:21.910, Speaker B: Is this.
+01:20:22.760 - 01:20:49.656, Speaker C: So at the end I will check that this must be zero. That's my first condition. And then the second condition is this. So I not done that. I could, I can show you if we have time, if you want, because it's not that interesting. So instead I've noticed that, okay, they all have ten, but they also all have zero. So first thing is that comparing to zero is a bit more efficient.
+01:20:49.656 - 01:20:57.570, Speaker C: Than comparing to ten. And not only they all have zero, but they all have 20 inside.
+01:20:58.180 - 01:21:02.416, Speaker B: Okay, so what I need to do.
+01:21:02.438 - 01:21:03.860, Speaker C: Now is, and I need to take.
+01:21:03.930 - 01:21:07.812, Speaker B: Eight number in my line and check.
+01:21:07.866 - 01:21:09.430, Speaker C: That none of them is zero.
+01:21:11.240 - 01:21:11.990, Speaker B: Okay.
+01:21:13.240 - 01:21:17.384, Speaker C: And so that's why it's from zero to eight now.
+01:21:17.582 - 01:21:20.488, Speaker B: And how do I check that eight.
+01:21:20.574 - 01:21:22.410, Speaker C: Of these numbers are not zero?
+01:21:23.100 - 01:21:27.144, Speaker B: I just multiply them together and then.
+01:21:27.182 - 01:21:34.412, Speaker C: If they are all nonzero, the result will not be zero. And if one of them is zero, then the wool product will be zero.
+01:21:34.546 - 01:21:35.230, Speaker B: Okay.
+01:21:36.320 - 01:21:40.350, Speaker C: So this is more efficient at checking that each number is not zero.
+01:21:43.540 - 01:21:47.680, Speaker B: So this would be my best solution.
+01:21:48.820 - 01:22:18.006, Speaker C: Let's try it. I don't remember the number where it was before, but it was 2000 or something. So now it's 1500. I did also the full solution with.
+01:22:18.028 - 01:22:21.934, Speaker B: Also the line, the square and the columns.
+01:22:22.082 - 01:22:27.558, Speaker C: And as a result, I have less than 3000 gates for a full sudoku.
+01:22:27.574 - 01:22:30.860, Speaker B: Solution, which I think it's not so bad.
+01:22:32.590 - 01:22:45.520, Speaker C: So if you have some question, if you want, I can show you why this is better than just comparing the numbers, but as you want. So I would prefer to answer questions, maybe.
+01:22:49.800 - 01:22:50.550, Speaker B: Awesome.
+01:22:51.960 - 01:23:15.760, Speaker A: Thanks. This was awesome. Like the transformate starting from a rust program and then trying to compile it and fixing errors to get to the noir specific stuff. Is there like documentation on general guidance on translating rust programs to noir?
+01:23:16.500 - 01:23:21.040, Speaker B: No, not yet. Okay. Unfortunately.
+01:23:24.580 - 01:23:32.832, Speaker C: Yes. I know that some of the errors, sometimes error are well explained, but sometimes can be a bit difficult to understand.
+01:23:32.886 - 01:23:35.248, Speaker B: What is going on. Yeah.
+01:23:35.414 - 01:23:39.384, Speaker A: And are while loops supported or.
+01:23:39.462 - 01:23:45.240, Speaker C: No, for now we only have this for loop with constant range.
+01:23:46.540 - 01:23:48.232, Speaker B: Right. Okay, cool.
+01:23:48.366 - 01:23:58.748, Speaker C: What we do have, which can be nice, let me show you, for instance, here.
+01:23:58.914 - 01:24:04.030, Speaker B: No, not here. What I could have done.
+01:24:06.020 - 01:24:06.672, Speaker C: Not a.
+01:24:06.726 - 01:24:11.264, Speaker B: But call it g in a can.
+01:24:11.302 - 01:24:15.810, Speaker C: Do something like that. G. Sorry. Like for each.
+01:24:20.190 - 01:24:21.082, Speaker B: Got it. Yeah.
+01:24:21.136 - 01:24:23.610, Speaker A: And that should be the same number of beats?
+01:24:24.350 - 01:24:32.398, Speaker B: Yes, just a sugar syntax. Cool. Okay.
+01:24:32.484 - 01:24:35.040, Speaker A: Anyone else have any questions on the call?
+01:24:42.770 - 01:24:52.322, Speaker B: Okay, well. Oh, Maxine, did you have a question? No, I was just going to say thank you. Yeah, thank you so much.
+01:24:52.376 - 01:25:12.230, Speaker A: This was such an awesome talk and demo. How did you build this? Did you build everything from scratch or did it go from like, did you fork rust or something and then alter the rust stuff or what was the approach?
+01:25:12.650 - 01:25:14.970, Speaker C: No, it was mostly from scratch.
+01:25:16.190 - 01:25:16.940, Speaker B: Awesome.
+01:25:17.790 - 01:25:26.800, Speaker A: Yeah, this is really cool. I really like the syntax, and it's very easy to write a program now.
+01:25:27.890 - 01:25:28.590, Speaker B: Awesome.
+01:25:28.740 - 01:25:41.966, Speaker A: And also, your presentation was also really cool. Like the thought process of fixing all the errors and showing and explaining all the functionality was really, I thought, effective. So, yeah, thanks a lot for.
+01:25:42.068 - 01:25:42.880, Speaker B: Thank you.
+01:25:43.810 - 01:25:55.846, Speaker A: Taking the time on a Friday to teach us up. Yeah, thanks so much. Thanks so much. I think we'll end it there, so.
+01:25:56.028 - 01:25:59.846, Speaker B: Yeah. Thank you. Okay. Thank you.
+01:26:00.028 - 01:26:05.350, Speaker A: All right, take care, everybody, and enjoy the rest of your Friday.
+01:26:07.130 - 01:26:08.210, Speaker C: Have a good weekend. Bye.

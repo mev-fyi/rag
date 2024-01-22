@@ -1,0 +1,386 @@
+00:00:10.880 - 00:00:23.104, Speaker A: Hi everyone. Welcome to this whiteboarding session on Mapboost, a new type of relay design that enhances Ethereum's liveness and censorship resistance. I'm Shaubik, a protocol research engineer at Eigen Layer.
+00:00:23.232 - 00:00:26.564, Speaker B: Hi, I'm Kaido. I'm a protocol researcher at egenlayer as well.
+00:00:26.682 - 00:01:01.296, Speaker A: Before we dive into the whiteboard, let us give you some context on the importance of this protocol in the current map world, the proposer has a binary choice. Either it has to sell its entire transaction inclusion power and get full map profit, or it can retain its transaction inclusion power, but it loses all the map profit. The evidence shows that more than 90% of validators have chosen to sell their right while getting full mev profit.
+00:01:01.488 - 00:01:42.770, Speaker B: Now the question is, who did they sell their rights to? The answer is the builders. In this case, however, we know builders currently are and will stay centralized, especially if that is the assumption we're currently making in the Ethereum PBS assumptions so we believe not in the short term, in the medium term, or in the long term, decentralized priority should have this much power in the entire network. Which is why we proposed a new design to allow proposers to sell a portion of their block for mev profit, while at the same time retaining transaction inclusion power for the rest of the block. We termed this design metboost plus and its decentralized version Metboost Plus plus.
+00:01:43.700 - 00:01:46.096, Speaker C: In this whiteboarding session, we're going to.
+00:01:46.118 - 00:02:32.000, Speaker B: First talk about the trust assumptions in Metboost, and why these trust assumptions could be problematic. Next, we're going to talk about Medboost plus, which is our proposed design and why. Aim to solve some of the inefficiencies or shortcomings of the current protocols and what are the tradeoffs we're making. Lastly, we're going to talk about our decentralized version of Mapboost in probably how we can move one step further to remove the trust assumptions we currently place on relay. Okay, let's get started with the first part around Methboost. What is the current ecosystem look like, and what are the trust assumptions in the current ecosystem? There are three main players in Methboost. First, you have the builder.
+00:02:35.300 - 00:02:37.724, Speaker C: Like the name suggests, builder's main role.
+00:02:37.772 - 00:03:11.880, Speaker B: Is to build blocks. The second main player introduced to the mev supply chain is called a relay. Relay currently plays a very, very important role in the Ethereum world, where relay's main goal is trying to shield the centralization pressure from mev away from the Ethereum validator set. These two actors currently live outside the protocol. So we're going to draw a dotted line here.
+00:03:15.130 - 00:03:16.806, Speaker C: And the last player in.
+00:03:16.828 - 00:03:20.650, Speaker B: The metaboost world are the proposers.
+00:03:26.500 - 00:03:28.320, Speaker C: So how would they interact?
+00:03:29.060 - 00:03:37.060, Speaker B: First, at the beginning of every single slot the builder is going to send its block in plain text to the relay.
+00:03:38.040 - 00:03:40.052, Speaker C: The relay is going to do two things.
+00:03:40.186 - 00:03:49.720, Speaker B: The first thing it's going to do is going to validate, validate the entire block is accurate.
+00:03:51.260 - 00:03:52.616, Speaker C: And the second thing it's going to.
+00:03:52.638 - 00:03:56.840, Speaker B: Do is to validate the bid is accurate.
+00:04:01.000 - 00:04:02.528, Speaker C: When the builder sends a block to.
+00:04:02.554 - 00:04:19.260, Speaker B: The relay not only just sends a block, it also sends a number. And this number in abstraction term is what we call a bid, which is how much the builder is willing to pay to the proposer for this block to be at the proposer's slot.
+00:04:19.680 - 00:04:26.270, Speaker A: So when the builder is sending the bid, so is it part of some mechanism that's going on?
+00:04:28.260 - 00:04:48.230, Speaker B: How is the bid represented in the block? There are two ways the bid is represented. It's a transfer function to proposer's EOA account or it is through the feed recipient thing. But it doesn't really matter in the example we're giving here and it shouldn't impact how our design work.
+00:04:49.160 - 00:04:56.248, Speaker C: So the builder sends a block and the bid, the relay first validates everything.
+00:04:56.414 - 00:05:49.980, Speaker B: And then it's going to construct a header. What this header is, you can think of it as a hash version of the block. In actuality it's called the execution payload header or blinded execution payload. It's going to assign this, the builder sends over the block, it validates, it computes, make sure the bids are correct and it's going to pick the winning bid, meaning which bid is the highest number. And using that block it's going to construct a header. Whenever the proposer pings the relay to get header, the relay will return the most profitable header to the proposer. So it's going to send over this header.
+00:05:49.980 - 00:05:56.380, Speaker B: What the proposer will do in return is it's going to sign this header.
+00:05:58.580 - 00:06:01.452, Speaker C: It'S going to sign this header meaning.
+00:06:01.516 - 00:06:35.380, Speaker B: We have already committed this header and the relay will return this full block, full block to the proposer. In actuality, a few other things also happen. After it gets the signature from the proposer, the relay also sends the sign header along with a full block.
+00:06:38.460 - 00:06:39.364, Speaker C: Bypassing.
+00:06:39.412 - 00:06:45.736, Speaker B: The proposer to the Ethereum network. In actuality, another thing also happens which.
+00:06:45.758 - 00:06:49.080, Speaker C: Is when the builder sends this entire.
+00:06:49.150 - 00:07:24.608, Speaker B: Thing to the ethereum network, there's a delay between sharing it to the builder and this is required to satisfy some trust assumptions. The next question very naturally is what are these people actually trusting each other for? So let's try to spell that out as well and think about are those trust assumptions sustainable? The first trust assumption is between the builder and the relay. So whenever the builder decides to send its full block to the relay, the builder is trusting relay for a few very, very important tasks.
+00:07:24.784 - 00:07:28.970, Speaker C: The first thing is non public.
+00:07:31.980 - 00:08:37.392, Speaker B: Whenever the builder sends a block to the relay, expects the relay to keep the block in secret, and doesn't broadcast the entire network, as we'll see in the second point why this is really important. The second point I just called it in general node messing. What this trust assumption basically means is when the builder trusts the relay, once you receive this full block, it's not going to try to mess with it. And there's a lot of ways you can mess with the block. The simplest way is just steal the MEV inside the block, or you can do really malicious things and actually cause the builder and its underlying searchers to lose significant amount of money. And this has been seen in web boost, the zero day incident where a sandwich bot lost tens of millions of dollars. And the last trust assumption the builder is placing on the relay is running this auction mechanism where they validate the bid and compute the bid that has the highest amount of, sorry.
+00:08:37.392 - 00:08:54.932, Speaker B: Validate the bid and then compute the highest winning block. It trustes that it's not going to censor any sort of blocks from my block building entity. So these are the three main trust assumptions that's happening between the builder and the relay.
+00:08:54.996 - 00:09:01.160, Speaker A: Are there generally multiple relays in the current map world? Or is it like there's just one few relays?
+00:09:01.240 - 00:09:36.012, Speaker B: Yes, in the current world. In this example, we're saying there's only one builder, one relay and one proposer. In reality, there are multiple builders and multiple relays. And proposer are the Ethereum validators. So relay, currently the six major relays control around 99% of all relay volume or winning blocks. And the builder here are generally we have five to seven block builders who control around 80% to 90% of the blocks built on Ethereum. Okay, so that's the trust assumption between the builder and relay.
+00:09:36.012 - 00:10:12.240, Speaker B: And what I would call this trust assumption is very, very strong trusted relationship. Why is that? Because a malicious relay can cause significant amount of damage to the builder. So whenever a builder decides to connect with a relay, it needs to really, really trust it. Otherwise tens of millions of dollars will be at risk. On the inside, the proposer is also trusting the relay on some kind of duties. So let's start listing them out. So the first responsibility that the proposer is trusting is block validity.
+00:10:12.240 - 00:10:27.530, Speaker B: A sub point is bid accuracy. If you think these terms are somewhat familiar, because I think I read them through the frontier post.
+00:10:27.900 - 00:10:31.784, Speaker C: So blockability represents that the proposer is.
+00:10:31.822 - 00:11:15.984, Speaker B: Trusting the relay to correctly verify this block is correct. Bid accuracy is that from this block, the bid that the block builder is claiming is also correct. And the second part of the trust assumption is around data availability. As a proposer, once I sign this block header, I assume you're going to release a block to me or to the network. And this is why they're important. If a relay is malicious, what the relay could do is what they call a block withholding attack, meaning it doesn't broadcast a block, causing the proposer to lose this slot. If the proposer loses slot, it would not have the block reward.
+00:11:15.984 - 00:11:53.024, Speaker B: Or if there's a lot of missing slots, the proposer could even be slashed for inactivity leaks. However, as you can see, the trust assumption here between the relay and proposer versus the builder and relay are very, very different, because while this trust assumption is very strong, this trust assumption is very low. And because this trust assumption is low, as we'll see, if we abstract away from the network and we think about what is actually happening, if this is not ethereum, and someone is looking at analyzing this system, what would they think about this system?
+00:11:53.062 - 00:12:03.680, Speaker A: So when you say the trust assumption between this is far stronger than this trust assumption, is it? Because if this trust assumption is broken, the proposer only loses the proposal reward.
+00:12:03.760 - 00:12:04.100, Speaker B: Yes.
+00:12:04.170 - 00:12:13.684, Speaker A: Suppose it's not going for a long time. So let's ignore the inactivity leak, but in this case, they lose a map Mev reward, which could be substantially greater than the proposal reward.
+00:12:13.732 - 00:12:13.896, Speaker C: Yeah.
+00:12:13.918 - 00:12:31.720, Speaker B: Not just losing some reward, but in the block building case, as we've seen in the map boost zero day event, if I can take your transaction and manipulate it arbitrarily, I can cause significant amount of damage. Even the reward is very small initially.
+00:12:31.800 - 00:12:33.856, Speaker A: Got it. So second point is very important.
+00:12:33.958 - 00:13:05.444, Speaker B: Yeah, the second point is very important. And also the first point is important because if everyone knows this information, somebody won't mess with you, since no money is there to be made. So these two points are really important to the builders. So let's continue with the thought experiment. This is not ethereum. Somebody walks in and lets you to explain how the proposing is done. One very common example where just the example that makes sense is what the proposer is actually doing is we're treating the proposer as a dummy.
+00:13:05.444 - 00:13:34.640, Speaker B: It doesn't know anything, it doesn't know what's happening in the world. Whatever his friend relay gives him, he just signed it and he doesn't even get the block like 1 second later after the relay sends it to the entire world. The trade off of being treating the proposer as a dummy is that we can have really high trust assumptions for the builder, so the builder can trust there's no one messing, the information is going to be private and the proposer can have some sort of MVB reward.
+00:13:36.020 - 00:13:38.052, Speaker C: Now we know what the problem is.
+00:13:38.106 - 00:14:31.380, Speaker B: As we stressed in the beginning, if we treat the proposer as a dummy, we lose a lot of the censorship resistance in the current world. If we want to censor it, we can just talk to all the relays, make sure they start censoring some sort of certain transactions and the proposer wouldn't be able to get them. And for a censor transaction to get on chain, it would be extremely, extremely difficult. And this was seen actually in the OFAC case, even though OFAC case some people could make the argument that this is something good because these people are whatever people want to say about them. But if another thing happens, but using the same channel from traditional world's legality, impacting on chain world, that could get really ugly. So our goal here is restore, like stop treating the proposer as a dummy. Let's try to restore the proposing power back to the guy and let him propose some slots.
+00:14:31.380 - 00:15:09.312, Speaker B: So now we're going to talk about medboots plus. The goal of Medboots plus, as we stated before, is we want to give proposer proposing power back. Let the proposer propose. Okay, let's think about how can we actually do it. Let's first try to keep all the trust assumptions constant as of now, and see how we can do it. And very soon you realize this is really, really difficult. Because if we want the proposer to propose and have some say in transaction inclusion, we must be able to share.
+00:15:09.366 - 00:15:12.876, Speaker C: This block to the proposer in plain.
+00:15:12.908 - 00:15:53.200, Speaker B: Text or some form of plain text. So one solution you can do fully homomorphic encryption, where encrypt this and the proposes are some operation to add transaction on top of it. And then you decrypt using some relay mechanism and at the end send it back to the proposer and the proposer proposed. However, that is really, really complicated and I don't think we're going to get it anytime soon before PBS and this entire thing goes into the Ethereum protocol layer. So another way we can think about this problem is we have to relax some of the trust assumptions here in place. And if you think about this entire thing, who has the most advantageous trust assumption? It's a builder.
+00:15:54.660 - 00:15:57.024, Speaker C: Builder has two really, really high trust.
+00:15:57.062 - 00:16:29.544, Speaker B: Assumptions that are really strong at the same time. The first one is non public information, meaning trust relay did not disclose anything. The second one is the quote unquote no messing, because for some blocks, if the block is being messed around, there could cause significant amount of damage as we've seen before. However, that's not the case for all the blocks. Many, many blocks, as data have shown, are just made of simple transfer events. That number ranges from 40% to 30%. Depends on sort of the volatility experience in that certain time period.
+00:16:29.592 - 00:16:35.752, Speaker A: Can you give some examples where those don't fall under this paradigm?
+00:16:35.896 - 00:17:14.980, Speaker B: Yeah, so for example, let's say I'm the builder, I build a block, but only the top block. Only on the term is top of block. I like to call it top. Only top is really mev rich, meaning there's a lot of value there, there's a lot of bribery going on. But rest of block, or what I like to call Rob, is just normal vanilla transaction ordering where proposer can actually play a role in. So what if we actually separate those where the proposer sells the top of block to the builder while retaining rest of block building capacity?
+00:17:15.140 - 00:17:22.840, Speaker C: So let's think through that example. Where do we change first?
+00:17:22.990 - 00:17:29.560, Speaker B: So first the builder changes, right. The builder is no longer building a full block, is building a partial block.
+00:17:30.780 - 00:17:32.124, Speaker C: So let's reflect that.
+00:17:32.162 - 00:17:35.276, Speaker B: So instead of building this full block, we're going to build a part of.
+00:17:35.298 - 00:17:47.260, Speaker C: The block, partial, partial block.
+00:17:47.340 - 00:18:07.320, Speaker B: You still need to want to specifically say your bid so the relay can have an easier time computing they're conducting its auction. So let's say it sends this partial block to the relay. Really does the same thing. Evaluate the partial block is correct, and also evaluates the bid. Now on this part is where things get a little bit tricky.
+00:18:08.460 - 00:18:11.000, Speaker C: There's no header to be signed. Why?
+00:18:11.070 - 00:18:15.916, Speaker B: Because for you to construct a header, you must have the entire block ready.
+00:18:16.098 - 00:18:20.524, Speaker A: So does that mean the relay has to send the partial block to the proposer now?
+00:18:20.642 - 00:18:31.680, Speaker B: Yes, that's one way, or alternative way is you can let the proposer send its transaction to the relay and the relay become a builder in some sense.
+00:18:31.750 - 00:18:34.556, Speaker C: But since this word doesn't work anymore.
+00:18:34.588 - 00:19:09.240, Speaker B: We'Re just going to erase it here and brainstorm a few solutions. So the first naive implementation is I have the partial block here. The proposer is going to build some partial block as well. And we're going to give these partial blocks some names. We're going to call this one top, as in top of block, because these are really Mev rich and they need to be sit on top to ensure ordering. And these kind of blocks are the proposer bill. We can assume they're not very sophisticated.
+00:19:09.240 - 00:19:36.920, Speaker B: We're going to call it Rob. So the builder sends top, the proposer sends rob. What the relay will do is going to validate both, make sure there's no conflict where it doesn't do that, it just piece them together.
+00:19:37.610 - 00:19:38.600, Speaker C: You have.
+00:19:41.050 - 00:19:47.814, Speaker B: Two partial blocks inside the full blocks. But now we go back to the same problem again, which is we are.
+00:19:47.852 - 00:19:49.786, Speaker A: Still having this same assumption, you are.
+00:19:49.808 - 00:20:01.360, Speaker B: Still having these same assumption at the same time. We cannot really share the block with the proposer because the proposer will be able to see the partial block and you wouldn't have these kind of assumptions again.
+00:20:01.890 - 00:20:03.118, Speaker C: Now we have to go back to.
+00:20:03.124 - 00:20:08.720, Speaker B: The old version where let's say we conduct this header step.
+00:20:12.230 - 00:20:13.054, Speaker C: Where it blind.
+00:20:13.102 - 00:20:14.660, Speaker B: Signs it and everything.
+00:20:15.750 - 00:20:18.194, Speaker C: This is a more complicated version of.
+00:20:18.232 - 00:20:34.770, Speaker B: Blind signing because now the proposer does the rest of log wall building. But it doesn't really change the foundational problem, which is the proposer is still a dummy. It has no idea what is actually signed into the network, it cannot verify it. It's just trusting the relay.
+00:20:34.930 - 00:20:37.106, Speaker C: So we know this example doesn't work.
+00:20:37.228 - 00:20:45.580, Speaker B: The next step is, okay, maybe we cannot satisfy all these trust assumptions. We must relax some trust assumptions so that we can continue moving forward.
+00:20:46.830 - 00:20:50.654, Speaker C: Looking at all these, what do you think?
+00:20:50.692 - 00:20:56.734, Speaker B: Who has the best treatment on the entire mev pipeline right now?
+00:20:56.932 - 00:20:59.486, Speaker A: Seems like Relay has a lot of power here.
+00:20:59.588 - 00:21:03.390, Speaker B: Yes, relay has a lot of power. Right. Each side are trusting.
+00:21:06.310 - 00:21:06.818, Speaker A: Who do you.
+00:21:06.824 - 00:21:10.594, Speaker B: Think is like the most beneficiary of Relay's power?
+00:21:10.712 - 00:21:12.766, Speaker A: Seems builders are getting lot of benefit.
+00:21:12.878 - 00:21:23.442, Speaker B: Yes, the whole reason relay has a lot of power is so that it can satisfy the builder's requirement. Okay, so let's think about how do we, maybe we can change some of these requirements.
+00:21:23.586 - 00:21:26.134, Speaker C: One thing we can do is right.
+00:21:26.172 - 00:21:46.670, Speaker B: Now these assumptions are being encoded inside the ethereum blockchain, because you're treating the proposer as a dummy and the relay does all the proposing and sending everything to the network. Let's say that's not the case. We can now guarantee on a protocol level, but we can add in some new trust assumptions. One very straightforward one is through crypto economic.
+00:21:50.890 - 00:21:53.426, Speaker C: So instead of saying there's absolutely no.
+00:21:53.548 - 00:22:03.210, Speaker B: Public information or no messing, we will give you the same trust assumption such that these things won't happen. You have privacy.
+00:22:05.870 - 00:22:07.054, Speaker C: And you have what.
+00:22:07.092 - 00:22:14.174, Speaker B: We'Re going to start calling it atomicity, meaning the stuff you send will stay the way it is.
+00:22:14.372 - 00:22:15.022, Speaker C: However.
+00:22:15.156 - 00:22:18.094, Speaker A: So you just mentioned that we'll use crypto economics, right?
+00:22:18.132 - 00:22:18.334, Speaker B: Yes.
+00:22:18.372 - 00:22:20.430, Speaker A: So what does that mean, the crypto economics?
+00:22:20.510 - 00:22:21.042, Speaker C: Yes.
+00:22:21.176 - 00:22:30.930, Speaker B: Great question. So I'm going to get right to it. So your additional trust assumption is this, if one and two are broken.
+00:22:34.570 - 00:22:34.934, Speaker C: You.
+00:22:34.972 - 00:23:08.300, Speaker B: Will get some reward. Another way to think about this is we're changing the risk reward ratio for the builders before. The builder is basically saying, I'm willing to take on x amount of risk for y amount of reward. Now I'm saying that now the risk is different, meaning the risk have shifted from x to y, and we're also changing the reward mechanism from the before value to a higher value.
+00:23:09.870 - 00:23:11.846, Speaker C: Let's say if that's the case, well.
+00:23:11.888 - 00:23:27.058, Speaker B: You are still also trusting the relay for doing the auction correctly. That is still the case. All right, another very logical question we sort of have is, okay, where does this reward come from?
+00:23:27.144 - 00:23:27.682, Speaker C: Right.
+00:23:27.816 - 00:23:53.062, Speaker B: Let's say we're not really changing the builder and relay trust relationship here, where builder trust the relay will not just publicly make sure all these information are public. This reward will essentially come from the proposer. And now if that's the case, we actually have a lot of more design space involved in the partial block relay than the current version.
+00:23:53.126 - 00:23:57.706, Speaker A: So in this, the reward, it comes after it's decided the one two is broken, right?
+00:23:57.728 - 00:23:58.010, Speaker C: Yes.
+00:23:58.080 - 00:24:01.178, Speaker A: How is it decided in a credible neutral manner?
+00:24:01.354 - 00:24:02.590, Speaker B: Oh, that's a great question.
+00:24:02.660 - 00:24:06.160, Speaker C: So how do we decide if.
+00:24:09.490 - 00:24:46.810, Speaker B: What is a credible neutral, or just like, what is a programmable way to prove one and two are broken? And this is where Eigen layer comes in. And we'll quickly discuss how Eigen layer works. I'll discuss on that end. Okay, so quick recap on how Eigen layer works. If the proposer decides to make this commitment that I will not break one and two, and if I break them, I will transfer some amount of reward to the victim, in this case, the builder.
+00:24:47.470 - 00:24:49.674, Speaker C: What the proposer will do, it will.
+00:24:49.712 - 00:24:52.170, Speaker B: Essentially change its withdrawal credential.
+00:24:58.030 - 00:24:59.626, Speaker C: Instead of its EoA.
+00:24:59.738 - 00:25:12.770, Speaker B: We're going to change it to a contract. Moreover, this contract is conditional on some slashing condition.
+00:25:14.730 - 00:25:16.774, Speaker C: And this slashing condition is.
+00:25:16.812 - 00:25:39.450, Speaker B: Basically programmed into the slashing contract. The moment the proposer changes withdrawal credential to this contract essentially is pledging that I won't break one too. If I break them, somebody can submit approve here or evidence.
+00:25:39.870 - 00:25:41.854, Speaker C: We're going to just do the same way.
+00:25:41.892 - 00:25:49.066, Speaker B: We're going to call it fraud proof and we can slash the current proposer.
+00:25:49.098 - 00:25:52.820, Speaker A: At question and where do you gather this evidence from?
+00:25:53.590 - 00:26:46.820, Speaker B: So now the question is, okay, what is this evidence? That's a great question. This evidence basically involves proving this single proposer committed to something, but it didn't satisfy this. And as we'll go on with the Medboost plus design, we'll explain exactly what is being committed and how do you use that commitment to generate a proof that someone didn't follow the protocol? So now is a good time to erase this entire board and describe how mevboost plus actually works. Okay, so now we discuss how does Mapboost plus actually work similar to Metboost? We're going to first lay out the key participants in this system. Actually, before that, I think I want to give a quick mental model on what Metboost plus actually is. So.
+00:26:51.110 - 00:26:52.660, Speaker C: In Metboost plus.
+00:26:58.330 - 00:27:02.230, Speaker B: You can envision it as sort of a wrapper around Metboost.
+00:27:03.930 - 00:27:06.310, Speaker C: This is the traditional metboost.
+00:27:09.550 - 00:27:47.110, Speaker B: What Metboost actually handles is the full block auction portion where he interacts with a lot of full blocks. Metboost plus add some additional features that allow the protocol or the proposer to also support partial block auction. And because partial block auction, the mechanism is very, very different from full block auction, we need another sort of processing unit, in some sense, another piece of software that handles partial blocks.
+00:27:47.690 - 00:27:51.238, Speaker C: And in this sense we're going to.
+00:27:51.244 - 00:27:53.590, Speaker B: Have a bunch of smaller blocks.
+00:27:56.090 - 00:28:00.298, Speaker A: So is it like there are two different lanes that is going on?
+00:28:00.384 - 00:28:00.778, Speaker C: Yes.
+00:28:00.864 - 00:28:27.650, Speaker B: So one mental model you can think about is what methods is, is instead of having one lane of blocks coming in, it's just full blocks. You have two lanes of blocks coming in. One part is partial block, one part is methods plus, which is a full block. And on the back end you also have, what will we call a preference selector.
+00:28:29.910 - 00:28:30.942, Speaker C: Preference selector.
+00:28:31.006 - 00:28:56.822, Speaker B: What preference selector does is it talks to the partial block auction and met boost and decides which block I'm going to take. So you can program some really basic decision making rules. For example, if you're a validator that really, really values censorship, resistance, what you could say is if the partial block and the metboost block, they share the same profit, I'm going to do the partial block and do my own transaction inclusion for the rest of the block.
+00:28:56.886 - 00:29:05.482, Speaker A: So this preference selector is for the validator, but is there a preference selector for the builder also that where it wants to send the block?
+00:29:05.546 - 00:29:39.260, Speaker B: Yes, that's a great question. So where does this part goes in? Basically, who's relaying and talking to the proposers at Medboost plus is similar to our current design, which is a relay. So relay basically communicates with the builder. And on the metboost plus side, that's where the proposer is. And also what you can see sort of is, okay, in partial block you need to do the client registration. That happens very similarly in the current methods world where you still need to do that as a validator. So the relay knows when to accept the ping from you.
+00:29:40.030 - 00:29:40.634, Speaker C: Perfect.
+00:29:40.752 - 00:30:06.580, Speaker B: So now we're going to focus specifically on this portion around partial block. And this is where we're going to spend most of our time to discuss the trade offs and sort of the new possibility that we're open with partial block auction. In this case, we're just going to refer to this interaction as partial block relay. All right, I'm going to quickly erase the board.
+00:30:14.670 - 00:30:19.686, Speaker C: Okay, so partial block relay, like before.
+00:30:19.808 - 00:30:35.822, Speaker B: We have a few players. We have the builder. In this case, it's a partial builder. Put a p just to differentiate what the partial builder does, what the builder does. Essentially it's going to create a partial.
+00:30:35.886 - 00:30:39.554, Speaker C: Block that fills, let's say only the.
+00:30:39.592 - 00:30:45.710, Speaker B: Top of block, top 50%, for example. Next, you still have the relay.
+00:30:45.870 - 00:30:48.534, Speaker C: And in this case, while the same.
+00:30:48.572 - 00:30:59.980, Speaker B: Relay can run both full block and partial block option, it needs to support some partial block specific functionalities. We're going to do the same thing. Put a p in parentheses in front of it.
+00:31:00.430 - 00:31:01.594, Speaker C: Actually, this might be a little bit.
+00:31:01.632 - 00:31:09.378, Speaker B: Hard to read, so let's just put A-P-A different color somewhere to delineate that. These just do partial.
+00:31:09.574 - 00:31:14.350, Speaker C: Oh, it's perfect D and P. Okay.
+00:31:14.500 - 00:31:20.750, Speaker B: And lastly is our proposer. And since it's in network, we're going to draw the dotted line again just to differentiate.
+00:31:24.530 - 00:31:33.426, Speaker C: And then you have the proposer. We're going to first explain, walk through.
+00:31:33.528 - 00:31:45.560, Speaker B: The process, and then we're going to talk about what are the implications and what are the trust assumptions embedded in it. So in this partial block, we're going to put a p on it as well.
+00:31:46.650 - 00:31:50.618, Speaker C: To stress the builder still sends a.
+00:31:50.624 - 00:32:14.536, Speaker B: Full block in the clear to the relay. The relay does two things still. Number one evaluates two things. Number one invalidates the partial block. Number two is we still need a.
+00:32:14.558 - 00:32:15.130, Speaker C: Bit.
+00:32:16.860 - 00:32:18.940, Speaker B: Validate the bit accuracy.
+00:32:24.880 - 00:32:27.916, Speaker C: Next, we're going to wait for the.
+00:32:27.938 - 00:32:37.020, Speaker B: Proposer to ping the relay. The proposer is going to ask the relay for the most profitable block.
+00:32:37.100 - 00:32:46.568, Speaker C: It's going to sign a header similar to before. It's.
+00:32:46.684 - 00:32:55.632, Speaker B: However, this header is not the header from last time where once you sign this header, I can propose it on your behalf. It is a partial block header.
+00:32:55.696 - 00:32:58.628, Speaker A: So when you say last time, it's no longer an execution payload.
+00:32:58.724 - 00:33:12.700, Speaker B: Yeah, it's no longer execution payload. It's a specific header that we wanted to sign. So to also save confusion, even though it function really similar like a header, we're going to call it something new. We're going to call it, it is the partial commitment.
+00:33:19.700 - 00:33:22.972, Speaker C: You and what exactly goes into that commitment.
+00:33:23.036 - 00:33:37.800, Speaker B: We're going to go step by step with you guys to think about what do we need to put into this commitment so we can know that if the proposer deviate from the protocol in the future. Okay, it signs this commitment, it asks for this commitment.
+00:33:39.900 - 00:33:45.400, Speaker C: The relay will respond with the commitment and the validator will.
+00:33:45.470 - 00:33:49.340, Speaker B: Sign the commitment and attach it with a signature.
+00:33:50.880 - 00:33:53.516, Speaker C: At this point, this is where the things become different.
+00:33:53.698 - 00:34:04.530, Speaker B: Before, the relay would just propose a block to the whole chain. In this case, the relay will relay this block and send it to the proposer in plain text.
+00:34:15.020 - 00:34:17.096, Speaker C: What the proposer will do is it's.
+00:34:17.128 - 00:34:18.780, Speaker B: Going to construct the full block.
+00:34:20.560 - 00:34:23.596, Speaker C: Make the full block, so you still have.
+00:34:23.618 - 00:34:28.060, Speaker B: Going to have your top of block from the relay.
+00:34:30.580 - 00:34:31.376, Speaker C: And it's going to.
+00:34:31.398 - 00:34:32.800, Speaker B: Build its own block.
+00:34:35.700 - 00:34:37.010, Speaker C: Underneath it.
+00:34:37.460 - 00:34:47.852, Speaker B: And the proposer can have arbitrary ways to build that block, while the most vanilla way is just randomly choose the one that fits the transaction gas fee requirement.
+00:34:47.916 - 00:34:55.156, Speaker A: So this top up block, this is part of the rule itself that it has to be the partial block from here has to be in the top?
+00:34:55.258 - 00:35:35.668, Speaker B: Yes, that's a great question. So is this part of the rule that the top of block should sit on the top? In our scenario, we will make a rule and here's the reason. The first reason is research have shown that top of block is where most MEV sits. So if we just use top of block for we make that embed that consideration inside our protocol, the validator or the proposer can still expose to most of the MeV. The second reason is if we hard code this top of block to behave to be sitting on top, it can give the builder actually a lot more design my room because it knows nothing goes in before me, so I know what's my initial state.
+00:35:35.754 - 00:35:36.244, Speaker C: Got it.
+00:35:36.282 - 00:35:55.156, Speaker B: And lastly, if we encode this top of block into our partial relay mechanism. We can also make our future slashing mechanism a lot easier. And that goes into what's in commitment, how do we detect malicious behavior and so on. And we'll touch that after we finish this interaction.
+00:35:55.268 - 00:36:02.552, Speaker A: So now after this block has been made, in this case, does the proposer releases the data to the rest of the Ethereum network?
+00:36:02.616 - 00:36:16.460, Speaker B: Yes, that's exactly what's going to happen. So before the relay does the proposing, to be honest, to be honest, in this case, the proposer does the proposing, after it builds a full block, it's going to broadcast to the entire network. And that concludes a successful round.
+00:36:16.540 - 00:36:16.944, Speaker A: Got you.
+00:36:16.982 - 00:36:59.528, Speaker B: But successful round is like easy, right? Because everyone is a happy route, no one gets upset. Okay, before we think about the bad cases, let's also spell out what exactly is happening in this case. So who are trusting what and what are different people? Trust assumption. Okay, so first, the builder and the relay. The trust assumption is actually relatively the same if you think about it, right? I trust privacy from you that you're not going to share anything. But the second one is a little bit different. I trust you not to mess with it, but I cannot get the guarantee my block won't be messed with.
+00:36:59.634 - 00:37:00.304, Speaker C: That makes sense.
+00:37:00.342 - 00:37:03.890, Speaker B: I still trust you to follow the protocol, so no.
+00:37:05.700 - 00:37:06.720, Speaker C: Missing.
+00:37:07.300 - 00:37:16.804, Speaker B: And the third thing is you still trust the auction mechanism, but what you don't have is your previous assumption, which.
+00:37:16.842 - 00:37:23.140, Speaker C: Is block atomicity.
+00:37:25.820 - 00:37:33.492, Speaker B: Because the relay, when following the protocol, will still need to share the plain text to the proposer.
+00:37:33.556 - 00:37:41.564, Speaker A: So this no messing. So here the trust is the relay will not mess, but the proposer can still mess.
+00:37:41.682 - 00:37:50.428, Speaker B: Yes, that's exactly right. So this messing, let me just put a parentheses here as well. It's on the relay. So it's trusting the relay, it's not.
+00:37:50.434 - 00:37:52.524, Speaker C: Going to mess with the block, but.
+00:37:52.562 - 00:38:37.864, Speaker B: It cannot guarantee that on the validator. That's why you no longer have block out of the city. Okay, so that's a trust relationship between the builder and relay. Now let's explore what is a trust relationship. Okay, also good to just highlight that the trust assumption, what the builder can do in this system is a lot less than what the builder can do in the previous system because it doesn't have atomicity anymore. So the amount of treatment that builder is getting inside methods, plus is not as strong as before. All right, now on the relay and proposer side, so what is the relay trusting the proposer on? Like before, I'm trusting you for block.
+00:38:37.912 - 00:38:38.780, Speaker C: Validity.
+00:38:42.740 - 00:39:07.610, Speaker B: And also bid accuracy. Second, I'm trusting you for data availability like before. There's no really any other additional trust assumptions here being made. The big thing is, if I do not have block atomicity, what do I have being exchanged? And that goes into our slashing mechanism and the on high p route. So let's say in this case.
+00:39:10.620 - 00:39:10.984, Speaker C: The.
+00:39:11.022 - 00:39:15.450, Speaker B: Validator, the proposer, after getting the partial block, mess with the data.
+00:39:16.380 - 00:39:26.920, Speaker A: So is the problem here is that before the whole block is released to the ethereum network, the proposer had the sole view on this partial block, and that's why it can manipulate.
+00:39:27.000 - 00:39:58.164, Speaker B: Yes, that's exactly right. Before proposing, the proposer sees this entire thing. So what is the unhappy path? Let's also spell it out a little bit clearer in the top of block thing. Let's say each line represent one transaction. There's one transaction here and there's one transaction here. There's only two transactions here in the builder's block. And instead of doing what the proposer is supposed to do, which is construct.
+00:39:58.212 - 00:40:07.550, Speaker C: This new block, put these two transactions here, and build his own transactions here.
+00:40:09.200 - 00:40:12.380, Speaker B: The proposer decides to do something a little bit more creative.
+00:40:15.250 - 00:40:16.878, Speaker C: First of all, it removes one of.
+00:40:16.884 - 00:40:52.410, Speaker B: The transactions, and secondly, it adds its own transactions here and here. Clearly in this case, the block animicity is violated and there's nothing the builder or the relay can stop the proposer from. And like we mentioned before, instead of putting this inside the protocol onto the Ethereum layer, we should abstract this away from the Ethereum protocol and make it a crypto economic security. So let's say whenever the proposer does this, we should be able to slash him, right? And that goes into our slashing condition.
+00:40:53.470 - 00:40:57.706, Speaker C: So we're going to quickly erase the.
+00:40:57.728 - 00:41:13.170, Speaker B: Board and think about in this unhappy path what would happen and how do we make sure that we can still objectively prove the proposer did this in Ian previous block. Okay, let's try to erase.
+00:41:32.970 - 00:41:35.506, Speaker C: Okay, so let's think about how do.
+00:41:35.548 - 00:42:02.770, Speaker B: We slash, or how do we compensate the builder for a proposer who deviated from the protocol we just discussed. First I think about what are things we currently have, right? We have a partial block and this is sent from the builder. We have a full block.
+00:42:06.230 - 00:42:06.754, Speaker C: This is.
+00:42:06.792 - 00:42:11.620, Speaker B: Constructed by the validator, but we know afterward that some malicious things happen.
+00:42:12.070 - 00:42:14.226, Speaker C: So basically what we're trying to prove.
+00:42:14.258 - 00:42:17.350, Speaker B: Here is that in this full block.
+00:42:20.170 - 00:42:21.910, Speaker C: This partial block.
+00:42:25.050 - 00:42:27.000, Speaker B: Doesn'T sit here.
+00:42:28.190 - 00:42:33.814, Speaker A: So when you say doesn't sit here, is this something related to transaction and indexes?
+00:42:33.942 - 00:43:01.170, Speaker B: Yes, exactly. So what does it mean? It doesn't sit here. It just means this doesn't strictly equal to that. So what are some ways you can manipulate that? Number one is you can reorder the existing transactions inside. You can add transactions inside, or you can delete transactions inside, or you can do any of those combination of any of those combinations. So basically, from index this to this, it should be the same index as a partial.
+00:43:01.830 - 00:43:10.614, Speaker A: So ideally in practice, how do you match this thing that are the same or not? Do you check some kind of merkel tree or something like that?
+00:43:10.652 - 00:43:10.950, Speaker C: Yes.
+00:43:11.020 - 00:43:20.330, Speaker B: So the way you check it, it's basically, we use a Merkel inclusion proof to prove that. If we can prove, for example, in this partial block.
+00:43:23.610 - 00:43:31.820, Speaker C: An index I equals, let's say it's transaction x, transaction one.
+00:43:33.230 - 00:43:35.820, Speaker B: If we can prove at index I.
+00:43:37.710 - 00:43:43.274, Speaker C: In this full block equals transaction, sorry.
+00:43:43.392 - 00:43:55.214, Speaker B: It doesn't equal transaction one, then we basically proved that the validator proposed a block such that it deviated from the partial block.
+00:43:55.262 - 00:43:56.194, Speaker C: Got it.
+00:43:56.392 - 00:44:16.694, Speaker B: And this is basically how you can prove something malicious has happened. The other part that's really interesting is not only commitment. If we remember, before the relay sends over the partial block, it needs to ask the proposer to sign commitment. So what should this commitment be a part of?
+00:44:16.892 - 00:44:21.654, Speaker C: Okay, let's walk through this entire thing.
+00:44:21.692 - 00:44:36.510, Speaker B: And think about what are the ingredients I need you to sign. The first thing I need you to sign is sort of this partial block hash, right? So I can prove that some index is some transaction. So let's just call it a root.
+00:44:38.050 - 00:44:39.710, Speaker C: Of the partial block.
+00:44:41.810 - 00:44:45.460, Speaker B: What is another thing that will be useful for us to sign?
+00:44:46.230 - 00:44:47.300, Speaker C: What do you think?
+00:44:48.550 - 00:44:49.886, Speaker A: Maybe the bid?
+00:44:50.078 - 00:45:19.216, Speaker B: Yes, the bid is important here as well, which is the bid amount. What are some other things? Another thing that's really interesting here is you want to bound, what's the index? You want to go here? So what's the maximum transaction happening here? And that will be, we'll just call.
+00:45:19.238 - 00:45:31.204, Speaker A: It t. So what is the inspiration behind putting this bound? Is it like, so that until what, you can challenge it or something like.
+00:45:31.242 - 00:45:40.360, Speaker B: That, it just makes our slashing a little bit easier. You can definitely remove it and just check the individual nodes where transaction one is not equal to zero.
+00:45:40.430 - 00:45:40.712, Speaker C: Okay.
+00:45:40.766 - 00:46:04.304, Speaker B: Because that's how if you just use simple merko tree, where it's not empty node for Merkle Patricia trees. Another thing that we could use is basically, what's the current block number or stock number? And lastly, the easy thing that we can do is just include the public key of the validator address of the.
+00:46:04.342 - 00:46:11.294, Speaker C: Proposer so basically with this we can.
+00:46:11.332 - 00:46:34.818, Speaker B: Essentially prove that some full block at a certain block and slot is proposed by this validator. But he also signed this commitment and the bid. Sorry. And the root is not the same root as it is here.
+00:46:34.984 - 00:46:36.370, Speaker C: Or another way.
+00:46:36.520 - 00:46:46.326, Speaker B: Okay, the last part is a little bit more complicated on how do you prove the root is not here? We use this mechanism. So you do another thing, which is basically two merco inclusion proofs.
+00:46:46.518 - 00:46:48.986, Speaker C: You need first Merko inclusion proof to.
+00:46:49.008 - 00:46:52.858, Speaker B: Prove transaction one exists at I within.
+00:46:52.944 - 00:46:54.010, Speaker C: This route.
+00:46:59.650 - 00:47:08.386, Speaker B: Transaction one and root p. And the second Merkel inclusion proof you.
+00:47:08.408 - 00:47:18.930, Speaker C: Need is proving not transaction one is at root fold.
+00:47:20.870 - 00:47:26.214, Speaker B: The second ingredient you need is the Merkle inclusion proof that under the full.
+00:47:26.252 - 00:47:31.238, Speaker C: Block root hash, the transaction index I.
+00:47:31.404 - 00:47:35.362, Speaker B: Is not transaction one, whereas some other block.
+00:47:35.506 - 00:47:36.854, Speaker C: So if you have both of these.
+00:47:36.892 - 00:47:51.386, Speaker B: And you have the transaction at the same index, you can prove that they are not the same and therefore you can slash this proposer for deviating from the protocol and the slash amount would move to the validator.
+00:47:51.498 - 00:48:03.422, Speaker A: So in the slashing condition, do you also check that the route that is being submitted by some challenger? Right. Is it same as the route that was signed by the proposer?
+00:48:03.486 - 00:48:03.714, Speaker C: Yes.
+00:48:03.752 - 00:48:28.620, Speaker B: So that's why the root of the partial block must be this entire thing. This entire thing must be signed and these are individually generated. What happens also as slashing is also important to discuss here. So if we go back to the previous example, we draw up here where how slashing works.
+00:48:30.510 - 00:48:31.260, Speaker C: Q.
+00:48:36.210 - 00:48:38.030, Speaker B: So you have the proposer.
+00:48:41.650 - 00:48:42.014, Speaker C: It.
+00:48:42.052 - 00:48:43.790, Speaker B: Changes its withdrawal credential.
+00:48:46.550 - 00:48:57.090, Speaker C: To a contract. This contract is subjective to the slashing contract.
+00:48:59.190 - 00:49:10.150, Speaker B: And it can be slash. And we just mentioned what are the sort of ingredients that goes into here, right. The commitment.
+00:49:12.410 - 00:49:14.950, Speaker C: The two merkle inclusion proofs.
+00:49:18.650 - 00:49:36.286, Speaker B: So after I slash you, that means, let's say in this example, we're slash you for the full validator amount, meaning your entire 32 e is gone. How do we distribute the profit? There's many ways you can program that whatever way you want. In our sashing contract, for our way, we're going to say we're going to.
+00:49:36.308 - 00:49:41.410, Speaker C: Give two e to the proof generator.
+00:49:41.830 - 00:49:43.780, Speaker B: And we're going to give the rest.
+00:49:45.510 - 00:49:55.858, Speaker C: 30 e to the builder. Why do we give it to the builder?
+00:49:55.954 - 00:50:36.466, Speaker B: Because in this case, whenever we violate from this commitment and matching with the block builder are the ones who are ultimately impacted. Maybe, actually, maybe builder are not the one who are ultimately impacted. Are the bundle submitter from the searchers. Because builder have a trusted relationship with the searchers, they can distribute that money a lot easier. And a simple way to just implement how do I distribute is whenever the searchers submit a bundle, you attach another field that just says how much compensation I need. And then basically, whenever the builder constructing this partial blocks, you just make sure that the numbers I add in from.
+00:50:36.488 - 00:50:40.982, Speaker C: The bundles doesn't see 30 e. So.
+00:50:41.036 - 00:50:48.070, Speaker A: One thing here, this is a challenger submitting these two things. Where does the challenger get this data?
+00:50:48.140 - 00:50:51.762, Speaker B: That's great. So who is this challenger?
+00:50:51.826 - 00:50:52.390, Speaker C: Right.
+00:50:52.540 - 00:51:20.110, Speaker B: What the challenger needs is, number one, it needs this signed commitment. If you go back to the previous board, we know that the only one who has the signed commitment is the relay. So in this case, the relay will be the challenger. And it makes a lot of sense, right, because relay and partial, and the blob builders already share a very trusted relationship. So the relay would love to do this. And moreover, this is something probably the relay team would love to hear. It's now the relay can finally get paid.
+00:51:20.110 - 00:51:24.366, Speaker B: Even it's not in the best circumstance, at least we have some revenue stream for the relays.
+00:51:24.398 - 00:51:30.378, Speaker A: So there is a fifth trust relationship where it says that the builder is trusting the relay to raise challenge if necessary.
+00:51:30.494 - 00:51:36.514, Speaker B: Yes, that's the trusted relationship, but it's not really trusted because the relay has an economic sentence.
+00:51:36.562 - 00:51:37.350, Speaker A: Got it.
+00:51:37.500 - 00:51:38.294, Speaker B: To submit this.
+00:51:38.332 - 00:51:40.418, Speaker A: So it's a rational model of which stands.
+00:51:40.514 - 00:51:41.160, Speaker C: Yes.
+00:51:41.930 - 00:52:29.830, Speaker B: So this is the entire workflow of Methus plus. And in the next part, we're going to discuss methoos plus plus. And in that part, we're going to talk about how do we actually decentralize this relay portion. Okay, now we're going to talk about Memphis Plus plus, the decentralized version of Memphis plus. So first of all, if we go back and think about which part do we need to decentralize on, the only part that's left is the relay. Before we jump directly into do we build a new POS network to decentralize the relay? We should first just list out what is the relay currently doing in Mapboost plus. So what are the relay's responsibilities?
+00:52:30.490 - 00:52:31.506, Speaker C: There are a few.
+00:52:31.628 - 00:52:34.518, Speaker B: The first one is it validates the block.
+00:52:34.614 - 00:52:35.066, Speaker C: Right.
+00:52:35.168 - 00:52:46.350, Speaker B: So evaluates the partial block is accurate.
+00:52:46.690 - 00:52:48.874, Speaker A: And this is for the proposal?
+00:52:49.002 - 00:52:58.062, Speaker B: Yes. This is from the builder. When they get from the builder, it's accurate, it's correct. The second thing it also does is it just validates a bid.
+00:52:58.126 - 00:53:02.100, Speaker C: Right. It validates the.
+00:53:04.070 - 00:53:48.900, Speaker B: Bid from the partial block is accurate. The third part is that it conducts an auction mechanism. The fourth one is that it only releases a partial block once it gets a correctly signed commitment from the proposer. So we can name that sort of as a custom data release policy. So we're just going to call it custom data.
+00:53:50.630 - 00:53:51.650, Speaker C: Release.
+00:53:53.990 - 00:54:00.002, Speaker A: Seems like there is another thing hidden here. Like is the data being made available to the proposer once you get the.
+00:54:00.056 - 00:54:00.418, Speaker C: Exactly.
+00:54:00.504 - 00:54:31.918, Speaker B: So this is the problem. It's the responsibility give to the builder at the same time because you have custom data release. I also have to provide the DA responsibility for the proposal. This is a big list of things. If we want to decentralize this, we definitely could, but it would be extremely, extremely difficult because there are so many responsibilities. So our first goal is basically look at this and be like, is there any way we can get rid of some of these responsibilities? Okay, let's try one by one.
+00:54:32.004 - 00:54:34.830, Speaker C: So luckily.
+00:54:37.910 - 00:55:07.070, Speaker B: Our friends at frontier and also ultrasound relay have already solved, not really sold, but relieved the relay of some of these responsibility by having something called the builder collateral. So what builder collateral does is eliminates these kind of requirements. Instead, it requires the builder to pledge some capital into a law contract so that if they misbehave, they will be slacked.
+00:55:07.090 - 00:55:08.198, Speaker A: So this is like a bond?
+00:55:08.294 - 00:55:09.930, Speaker B: Yes, it will be a bond.
+00:55:10.510 - 00:55:17.150, Speaker C: So we're going to replace these with builder collateral.
+00:55:17.570 - 00:55:27.246, Speaker A: And how is the decision made on whether they should be slashed or not? Is it like there is a validation, the execution of the block is done on the chain?
+00:55:27.358 - 00:55:41.910, Speaker B: That's a great question. If we replace it with builder collateral, although we remove two, we're adding another, which is when do we slash that collateral? So we'll add a new one, use a different color.
+00:55:42.060 - 00:55:49.830, Speaker C: And this is when slashing, when slash builder.
+00:55:51.530 - 00:56:34.886, Speaker B: And one way you can actually offload this, even though it might be really difficult to implement. But we can do it in optimistic way, similar to optimistic proof where we assume we don't slash it, but unless we see some evidence, unless we see some evidence, we're going to slash it. So this will looks like something very similar to the current validator bonding mechanism where this is a contract, the builder is going to submit collateral and then there's a slashing contract that can slash validator amount based on some condition. And in this case, the condition will.
+00:56:34.908 - 00:56:39.094, Speaker C: Actually have listed here if it is.
+00:56:39.132 - 00:57:23.778, Speaker B: Not a valid partial block or the bid doesn't reflect it. Luckily this can be encapsulated in a very generic, optimistic fraud proof layer two model where we can use a lot of the similar codes to prove that some partial block is empty. And the way you can actually do it, just pad with all the transactions at zero and treat that as a full block. The same thing for the validates bids is basically you can build it into it where you can specifically say the last bid is to increase some amount of dollar value for the validator. So now we basically solve this part and without having additional responsibility for the relay.
+00:57:23.954 - 00:57:33.130, Speaker C: So we successfully remove this with builder collateral plus this optimistic.
+00:57:38.110 - 00:57:39.420, Speaker B: Slashing game.
+00:57:42.190 - 00:57:43.402, Speaker C: That we described here.
+00:57:43.456 - 00:57:45.120, Speaker A: Is there a name to this system?
+00:57:46.130 - 00:57:47.130, Speaker B: Fraud proof?
+00:57:47.210 - 00:57:52.270, Speaker A: No, some kind of, the relay is like, after you remove this, is there a name to the relay?
+00:57:56.210 - 00:58:30.630, Speaker B: Well, not exactly. What shobig was referring to is kind of like optimistic relay, where the optimistic relay are not validating the partial blocks. But in the current optimistic relay that are currently in production, it still does some sort of validation. And also because they don't really have the optimistic slashing mechanism, which is nonetheless quite complicated to build out. So we don't really have a name for this, but let's say we're in the design space, we can't do a lot of things right now. Let's say we remove these two. So on the third one is on the auction.
+00:58:30.630 - 00:58:39.646, Speaker B: So before the relay does all this auction mechanism, what can you do so that the relay doesn't need to do the auction mechanism? One very simple way is actually you.
+00:58:39.668 - 00:58:42.254, Speaker C: Just let the validator do it for.
+00:58:42.292 - 00:58:43.840, Speaker B: The proposer in this case.
+00:58:47.470 - 00:58:51.898, Speaker C: So proposer is going to get all the bids from the builder and proposer.
+00:58:51.914 - 00:59:47.822, Speaker B: Is going to calculate this information. Last two are we need to have a custom data release policy and provide data availability. I mean that looks like DA layer that's programmable to me. So I think that's a little bit hard to get rid of because that's actually the only thing the relay do that we can easily decentralize given our current technology. So in summary, the first two parts of the relay we're going to get rid of by not doing any validation, but we're going to bound the collateral for builders and optimistic slashing mechanism to prove that the partial block is valid and the bids are accurate for auction, instead of the relay running it, we're going to ask the proposer to run it. And lastly is for custom data release. And d eight, we're going to bundle that into the final responsibility of the relay and that's how we're going to focus on decentralizing them.
+00:59:47.822 - 01:00:28.250, Speaker B: Okay, we're going to erase the board now and think about, and talk about what is met Boost plus plus actually looks like. Okay, so first let's think about who are the players. And what does each player do?
+01:00:28.700 - 01:00:34.980, Speaker C: Again, you have the builder, the builder.
+01:00:35.060 - 01:01:02.980, Speaker B: Once again, they're just partial block builders. And in this case, we're going to draw the line so we can have more delineation on where interactions happen. The second part is we're just going to call it the PDA, programmable data availability. Programmable because we need to do the custom data release policy. And lastly, what we have are the proposers, as usual.
+01:01:08.860 - 01:01:09.896, Speaker C: Also on top of.
+01:01:09.918 - 01:01:27.760, Speaker B: Them, we also need to think about just what are happening, what is being bonded, who is being slashed for what. So on the builder side, they're being bonded, right? They're being bonded and they want to make sure that your block and tip.
+01:01:29.940 - 01:01:31.052, Speaker C: Are valid.
+01:01:31.196 - 01:02:09.384, Speaker B: That's where you're being bonded. If you violate, you're going to get slash. For the proposers, what you're being bonded on is on atomicity, meaning whatever partial block the builder gave you, do not touch it, do not mess with it. That's a two part bonding. And also how Sash funds move is if the proposer gets, it goes to the builder. If the builder gets slash, it goes to the proposer. Because that's the harm party.
+01:02:09.432 - 01:02:10.540, Speaker C: Exactly. Okay.
+01:02:10.610 - 01:02:15.848, Speaker A: Is the PDA being bonded also or is it like. Depends on how the database is designed.
+01:02:16.024 - 01:02:30.956, Speaker B: Yes. So in this part, we would assume that this is a decentralized network, meaning there must be some kind of stakes involved. Maybe it's a POS network, maybe some other kind of design. But the key part is it provides the guarantee and it could be potentially be programmed.
+01:02:30.988 - 01:02:32.444, Speaker A: So we are treating it as a black box.
+01:02:32.502 - 01:03:00.300, Speaker B: Yeah, we're sort of treating it as a black box here. So the first thing is the builder will build a block, right? That's what always starts the conversation is it builds a block. Sorry, not a block builds a partial block. It's going to send to the PDA layer. I think I'm going to stand on this side. It sends it to the PDA layer. What the PDA layer would need to do in this sense is need to provide a certificate.
+01:03:00.300 - 01:03:40.136, Speaker B: It needs to provide certificate such that it has stored some data. Let's say this data is the hash and when the data was stored, so I know that it has been made available and will still continue to be available. H stands for the hash of the partial block or some sort of identifier for the things I'm being storing. And t stands for. What was the timestamp I'm storing at. And also, this entire thing needs to be verifiable, independently. Verifiable by anyone looking at this thing.
+01:03:40.158 - 01:03:41.604, Speaker A: Why is the timestamp necessary?
+01:03:41.732 - 01:03:45.512, Speaker B: So because most DA layers only store data for a fixed period of time.
+01:03:45.566 - 01:03:45.988, Speaker A: Got it.
+01:03:46.014 - 01:04:22.516, Speaker B: So we don't want for the DA to storing a partial block like five years ago and then the data availability layer doesn't store it anymore. So once the builder has this certificate, it can engage in a conversation with the proposer like always. No matter it's in Metboost, Metboost Plus, Metboost plus, plus it's always a proposer who's going to engage with the outside trusted party. So in this case we don't even need to dox proposers IP because we're going to make all these builder outpacing IP public.
+01:04:22.618 - 01:04:24.512, Speaker A: Is this because the builders are centralized.
+01:04:24.576 - 01:04:51.500, Speaker B: And they can, because the builders are centralized, they have much more capability to build like a relay like infrastructure where they can handle a lot of bandwidth and being asked to do different things. The proposer is going to go ask the builder for its most profitable blog header, partial blog header and a certificate that some blog has been made available on the DA layer.
+01:04:51.940 - 01:04:53.280, Speaker C: So what's it going to ask?
+01:04:53.350 - 01:05:17.910, Speaker B: Is going to ask for a few things and then the builder will send back. Also I'm just going to erase these parts so I can write a few other things. So the builder needs to send back the hash of the partial block or some identifier.
+01:05:18.810 - 01:05:24.134, Speaker C: He needs to send a certificate. Why do you need to send a certificate?
+01:05:24.182 - 01:05:29.066, Speaker B: Because it needs to prove to the proposer the data has been made available on the DA layer.
+01:05:29.178 - 01:05:31.018, Speaker A: Oh, so this is the same certificate?
+01:05:31.114 - 01:05:35.678, Speaker B: Yes, that is exactly the same certificate. So maybe I should draw like a.
+01:05:35.684 - 01:05:47.762, Speaker C: Dot, dot, dot here, better delineate. And lastly it needs to encode a message and we're going to get into.
+01:05:47.816 - 01:05:56.934, Speaker B: Why this message matters. If you remember from the relay responsibility, it also needs to know what is a custom data release policy.
+01:05:57.132 - 01:05:57.638, Speaker C: Right.
+01:05:57.724 - 01:06:13.820, Speaker B: So when can the DA layer release something? So that actually needs to be stored when the builder sends the data. So not only the builder needs to send the data itself, it also needs to send a release policy.
+01:06:19.290 - 01:06:33.058, Speaker A: So it seems like whatever message is being sent to the PDA that should be constructable from this and that should be related to this. Yes, all three are like related.
+01:06:33.154 - 01:06:40.214, Speaker B: Yeah. So all of these are actually related and here's how I relate. So what would this data release policy be in actuality?
+01:06:40.262 - 01:06:45.806, Speaker C: Is this only release a data when.
+01:06:45.988 - 01:07:12.710, Speaker B: Message M has been signed by proposer? When proposer signs message m and send it to a PDA layer. That's the only time when you can retrieve my partial block. What does this represent? This just represents the commitment.
+01:07:13.050 - 01:07:13.510, Speaker C: Right.
+01:07:13.580 - 01:07:40.160, Speaker B: This is the commitment signed by the proposer. And then how do you define the commitment is exactly by the builder? It used to be by the relay, since builder is assuming that responsibility is constructed by the builder and it can be known ahead of time. So that is how this entire flow works. And after that, the builder no longer comes into the conversation. What will happen is.
+01:07:46.390 - 01:07:47.762, Speaker C: The proposer will.
+01:07:47.816 - 01:07:53.934, Speaker B: Sign transaction stating that, sorry, now transaction.
+01:07:53.982 - 01:07:57.382, Speaker C: It will sign this message m and.
+01:07:57.436 - 01:08:18.170, Speaker B: Send it to the PDA layer. The PDA layer will read that this transaction signature is correct, matches the data release policy, and return the partial block. And lastly, once you have the partial block, you build your full block.
+01:08:23.270 - 01:08:23.586, Speaker C: And.
+01:08:23.608 - 01:08:58.614, Speaker B: You propose the network. So this is one interaction of a happy path between a builder, a decentralized programmable data availability layer, and a proposer. And as you can see, this could be very, very complex. And we're not saying this could be built in a day's matter. And also what we want to say is this entire design, even though it's very complicated, it's entirely auto protocol, meaning we're not changing anything in the consensus layer. And we think this could be a very interesting design space that we can play with down the line as well. So this is a high b path.
+01:08:58.614 - 01:09:04.954, Speaker B: And let's also walk through what if, right, builder or the proposer misbehaves.
+01:09:05.002 - 01:09:05.600, Speaker C: Yes.
+01:09:06.370 - 01:09:33.750, Speaker B: Okay, so let's first go with the builder. So how would the builder misbehave? The biggest reason for the builder to misbehave is by lying about the tip or submitting an invalid partial block. And like we said, if that happens, you go into the builder slashing mechanism where it checks.
+01:09:37.170 - 01:09:40.830, Speaker C: This partial block is valid.
+01:09:42.290 - 01:09:45.470, Speaker A: So that's where the bonding for the builder comes into the picture.
+01:09:45.550 - 01:09:47.986, Speaker C: Yes. And that's where the bonding comes in.
+01:09:48.008 - 01:10:13.990, Speaker B: But also at the same time, how do you know this is being proposed by the builder? So you need somewhere for the builder to actually sign this entire thing. Yeah. So that could happen in many ways. It can happen in the PDA layer, it can happen elsewhere. But I think the easiest way for, the easiest way to challenge is actually just attach a signature here. And this signature is from the builder. And this is from proposer.
+01:10:13.990 - 01:10:22.810, Speaker B: This is delineate. And this signature basically says this partial block is proposed by the builder. So now the proposer can just submit.
+01:10:22.890 - 01:10:29.690, Speaker C: This partial block along with the signature from the builder.
+01:10:29.770 - 01:10:31.274, Speaker B: And now we can slash the builder.
+01:10:31.322 - 01:10:43.030, Speaker A: So now is the slashing can only be done by the proposer because it has the partial block or. Yes, because the PDA also has the partial block, anyone can retrieve and do the permission?
+01:10:43.370 - 01:10:53.286, Speaker B: No, the partial block can only be retrieved by the proposer because of the data release policy. But it's in the proposer's interest to retrieve this.
+01:10:53.308 - 01:10:53.750, Speaker A: Got it.
+01:10:53.820 - 01:11:36.038, Speaker B: Because the proposer also signed a commitment to include this proposal. However, if the partial block is invalid, you can't really include that. So the proposer in this case gets a little bit messy. But the proposer will also be slash at the same time. So it goes like builder gets slash, builder transfer profit, transfer some amount to the proposer. Proposer gets transferred some amount to the builder. Now this is where the economic bonding thing comes in, which is what is the maximum amount of tip we can allow the builder to have, right? Or what is the minimum amount of bonds that the builder needs to put in.
+01:11:36.038 - 01:11:39.926, Speaker B: So the builder needs to put in a minimum. First of all, it first needs to.
+01:11:39.948 - 01:11:42.582, Speaker C: Put in 32 e. Why?
+01:11:42.716 - 01:11:47.074, Speaker B: Because if it lies, it was going to harm the proposer.
+01:11:47.122 - 01:11:49.878, Speaker C: 32 e. What are some other number?
+01:11:49.964 - 01:11:51.290, Speaker B: It's going to be a tip.
+01:11:53.070 - 01:11:55.530, Speaker C: And this tip is essentially the value.
+01:11:55.600 - 01:12:10.526, Speaker B: That you're trying to tell the proposer how much your block is valued. What the builder could do is lie about this tip saying it's 100 eth, but in reality it's actually 0.1. So you must be able to always.
+01:12:10.628 - 01:12:13.486, Speaker C: Cover 32 e plus tip.
+01:12:13.518 - 01:12:38.282, Speaker B: That's a minimum. However, there should be some cushion points since you're submitting this challenge on chain. There's going to be a lot of gas cost involved in this optimistic fraud proof. So we're going to put in some delta here. Or another way you can do it is you can just times 1.5 with this 32 e or some other economic incentive. However, the more bonding to put in for the builder, the less capital efficient the builder is.
+01:12:38.282 - 01:12:40.906, Speaker B: And that could be a problem as well.
+01:12:41.088 - 01:12:43.674, Speaker C: Now on the proposer, the proposer can.
+01:12:43.712 - 01:13:16.214, Speaker B: Always lie the same way. And now in this case, the commitment that we need is right here. This is the commitment from the proposer and we know that this thing is being sent to PDa. What you can do on the PDA layer is that you can make the PDA layer utilize the PDA's p two p layer, such that once you receive any sort of data release policy or quote unquote command, what you can do.
+01:13:16.252 - 01:13:19.794, Speaker C: Is you can circulate that across the nodes.
+01:13:19.842 - 01:14:04.930, Speaker B: So all the builder needs to do is just tune in to the p two p layer and listen for this commitment by the proposer. And now if the proposer misbehave, you don't need to count under the DA nodes to do this kind of challenge. The builder will have incentive to challenge the proposer. And also it's good to caveat here. All the things we discussed for Medboost plus still applies here in the sense that not every partial block should be sent in this channel. Only a portion of the partial block where the builder and the searcher feel comfortable losing atomicity is worth the reward. And in our opinion, if we look at most of the blocks, this should be the case.
+01:14:04.930 - 01:14:11.774, Speaker B: But for the really high value blocks, when volatility really kick in, we do not think this might be the most feasible block.
+01:14:11.822 - 01:14:19.334, Speaker A: So in this two lane theory, is the full block full block lane, is it becoming a premium lane somehow?
+01:14:19.382 - 01:15:01.590, Speaker B: Yeah, in some way the full block is going to be a premium lane because the more information because there are two reasons. Number one is in the full block lane, the builder trust assumption is extremely, extremely high. It's luxurious. It literally is treated as the king in the Ethereum protocol during the proposing phase because it can let the proposer sign whatever he wants as long as it's valid. But in this case, it's no longer the case. In this scenario, it's no longer the case. Therefore, the value that's going to be proposed through partial blocks is not going to be extremely, extremely high like the ones you can see in the full blocks.
+01:15:01.590 - 01:15:34.506, Speaker B: And I think that's it for the entire walkthrough. So we just do a quick recap. We started with Medboost. We provide the background. We've talked about Medboost plus, and lastly we presented the final version of Medboost Plus plus, which ties everything together and a very futuristic looking way. How can we do relay system differently than the current offerings? We look forward to chat with you next time, again, once we have our next report ready.
+01:15:34.608 - 01:15:34.826, Speaker C: Cool.
+01:15:34.848 - 01:15:35.670, Speaker B: See you soon. Bye.

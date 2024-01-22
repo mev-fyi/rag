@@ -1,0 +1,305 @@
+00:00:18.510 - 00:00:22.686, Speaker A: You. Hello everyone, and welcome to the ETH.
+00:00:22.718 - 00:00:34.020, Speaker B: Online 2023 scroll workshop. Getting started with the Scroll messenger. Joining us today is Raza Zid, who will be taking us through this session, and with that I'll pass it over to Rosa to get the session started.
+00:00:35.190 - 00:00:44.780, Speaker C: Thanks Rory, and thanks e global, for having me and scroll excited to talk to the devs about the scroll messenger there and also deploying on.
+00:00:47.310 - 00:00:50.934, Speaker D: Yeah, so we're going to talk a little bit about zero knowledge and scaling.
+00:00:50.982 - 00:00:54.042, Speaker C: Ethereum, being that there's a reason why.
+00:00:54.096 - 00:00:56.678, Speaker D: Scroll is in this space. What is scroll?
+00:00:56.854 - 00:01:00.734, Speaker C: Talk a little bit about roll ups and then we will dive into the.
+00:01:00.772 - 00:01:04.560, Speaker D: Bridge side of things, which is the scroll messenger. Short intro about myself.
+00:01:05.890 - 00:01:10.186, Speaker C: I'm Raza, a coding nerd. You can find me everywhere at Raza.
+00:01:10.218 - 00:01:13.730, Speaker D: Codes and definitely check out Scroll IO.
+00:01:14.230 - 00:01:20.226, Speaker C: As a quick notification to everyone, if you have a question or anything is.
+00:01:20.248 - 00:01:25.720, Speaker D: Not clear, please feel free to interrupt me. Would love to answer anything as we go.
+00:01:26.090 - 00:01:28.754, Speaker C: And also a quick reminder on our prizes.
+00:01:28.802 - 00:01:46.966, Speaker D: We've got 20k in prizes, a prize pool of means. You just deploy and verify your smart contract and you're already eligible for a part of the price pool. We've got three prizes of two k per team, and ten prizes of one K per team. You can read the criteria here, they're.
+00:01:46.998 - 00:01:49.374, Speaker C: Also on the East Global website, and.
+00:01:49.412 - 00:01:51.006, Speaker D: If you have any questions regarding them.
+00:01:51.028 - 00:01:52.606, Speaker C: Feel free to approach me, either on.
+00:01:52.628 - 00:01:57.438, Speaker D: Twitter or we have a telegram group.
+00:01:57.604 - 00:02:06.306, Speaker C: Which I will just quickly share inside the chat. So if you have a need of.
+00:02:06.328 - 00:02:12.142, Speaker D: Let'S say, testnet Eve, or if you have any questions, feel free to join.
+00:02:12.206 - 00:02:16.182, Speaker C: This Telegram group and the scroll team.
+00:02:16.236 - 00:02:19.014, Speaker D: Will be there to answer any questions.
+00:02:19.212 - 00:02:21.986, Speaker C: So let's dive into it. ZK roll ups.
+00:02:22.018 - 00:02:22.726, Speaker D: We're going to talk a little bit.
+00:02:22.748 - 00:02:30.134, Speaker C: About roll ups and the distinguishments between roll ups. ZK rollups specifically, as mentioned by Vitalik.
+00:02:30.182 - 00:02:32.246, Speaker D: The holy grill of scaling solutions.
+00:02:32.358 - 00:02:41.054, Speaker C: So very quickly, what is a roll up? I won't dive into too deep. I mean, crypto, Twitter is always added and everyone has their definition, but it.
+00:02:41.092 - 00:02:47.822, Speaker D: Simply put a roll up batches transactions off chain, so not on an l one, l one being ethereum, and then.
+00:02:47.876 - 00:02:49.806, Speaker C: Posts the resulting data on chain.
+00:02:49.838 - 00:03:11.282, Speaker D: Meaning in this case l one ethereum. So how does it solve scalability problems? Well, an l one doesn't need to re execute the transactions. However, an l one does need to prove that these transactions have been processed correctly. And typically there are two types of proofs, validity proofs, which we will talk about, and fraud proofs.
+00:03:11.346 - 00:03:12.946, Speaker C: If you're familiar with optimistic roll ups.
+00:03:12.978 - 00:03:15.158, Speaker D: They utilize fraud proofs and they work slightly different.
+00:03:15.244 - 00:03:20.726, Speaker C: But we won't talk about optimistic roll ups in this talk as the time is obviously limited.
+00:03:20.838 - 00:03:28.934, Speaker D: So validity proofs are utilized in a Zk roll up. A Zk roll up submits transactions together with a Zk proof that the transactions.
+00:03:28.982 - 00:03:31.270, Speaker A: Are valid, and a Zk roll up.
+00:03:31.280 - 00:03:49.170, Speaker D: Will generate the Zk proofs primarily to prove the states and that everything is updated correctly. So Ethereum knows hey, the transactions are correct. But how does Ethereum know it? Well, that's because on ethereum there's a smart contract that can verify the transactions.
+00:03:49.990 - 00:03:53.150, Speaker C: Sorry, verify the proof along with the.
+00:03:53.160 - 00:03:57.846, Speaker D: Transactions that are posted on that smart contract. So typically speaking, if you look at.
+00:03:57.868 - 00:03:59.926, Speaker C: The Zk rollout space right now, this.
+00:03:59.948 - 00:04:09.420, Speaker D: Is a graph from the article from Vitalik where he explained the different types of zkez Zk roles out there.
+00:04:10.670 - 00:04:12.266, Speaker C: I usually like to look at it.
+00:04:12.288 - 00:04:15.446, Speaker A: Simplified like this, and I'll touch upon.
+00:04:15.478 - 00:04:31.710, Speaker D: In a moment why this is important. So typically speaking right now, if you look at all the different types of Zk roll ups, you can either be very close to Ethereum, I. E. Being EVM compatible, or there's a trade off to be made in the performance the time to generate a proof.
+00:04:31.790 - 00:04:33.140, Speaker A: Now what does this mean?
+00:04:34.150 - 00:04:37.374, Speaker C: To generate a zero knowledge proof requires.
+00:04:37.422 - 00:04:41.186, Speaker D: Quite a bit of computation and overhead. So if we go back, you can.
+00:04:41.208 - 00:04:44.294, Speaker A: See that as you go move down.
+00:04:44.332 - 00:04:45.654, Speaker C: In the type, I. E. You go.
+00:04:45.692 - 00:04:54.642, Speaker D: Closer to type one, it takes a long time to generate the proof. That's because if a ZK roll up wants to stay close to the EVM.
+00:04:54.706 - 00:04:57.002, Speaker C: I. E. Act and behave just like.
+00:04:57.056 - 00:05:06.830, Speaker D: Ethereum, it takes a long time to generate the proof because of all the behaviors that needs to be proven that would normally occur for a smart contract in EVM.
+00:05:07.490 - 00:05:19.694, Speaker C: If you would pick a different type of virtual machine, the trade off is that you wouldn't have an EVM compatible.
+00:05:19.822 - 00:06:21.666, Speaker D: Chain, but you were able to generate faster proofs. Now, if you look at the typical qualification, it's usually EVM compatible versus language compatible ZK rollups. An example of language compatible is starkware and Zksync and EVM compatible being Ethereum. So why would you choose for EVM compatible even though it takes a longer time to generate proofs? Well, that is because you as a developer will be able to use all your existing skills, I. E. Yule, solidity, Viper and your existing devtools, just the way you would utilize them on Ethereum. So the major benefit of EVM compatibility is that even though the performance of time to generate a proof takes longer for the developer, the developer experience is much more pleasant because it's a lift and shift from what you're used to in the Ethereum ecosystem.
+00:06:21.778 - 00:06:22.982, Speaker C: So let's talk a little bit about.
+00:06:23.036 - 00:06:32.342, Speaker D: How scroll works, and this will be essential to understand why we need a bridge, something like scroll messenger, in order.
+00:06:32.396 - 00:06:36.550, Speaker C: To, let's say, move assets or send.
+00:06:36.620 - 00:06:41.690, Speaker D: Data back and forth. So the scroll architecture, like I mentioned before, we're a ZK roll up.
+00:06:41.760 - 00:06:43.146, Speaker C: So on the first layer you can.
+00:06:43.168 - 00:07:00.202, Speaker D: See here, that would be Ethereum, where we have mainly two contracts. The bridge contract, we'll dive out in a bit, and the rollout contract. On our ZK rollout, we basically have two different layers.
+00:07:00.266 - 00:07:01.838, Speaker C: One is a sequencing layer, you might.
+00:07:01.844 - 00:07:08.110, Speaker D: Have heard of a sequencer. This is a node that processes all the transactions. So any user that interacts with scroll.
+00:07:08.270 - 00:07:10.206, Speaker C: You would interact with it. Just like with Ethereum.
+00:07:10.238 - 00:07:34.074, Speaker D: It's just an RPC URL change. You would send any transactions to that RPC endpoint, and the execution node takes care of that. What happens simultaneously is that there's a different network of nodes, the proving network, that takes care of generating the proof and not to dive into too deep. If you have any questions, feel free to approach me or drop them in telegram group.
+00:07:34.192 - 00:07:37.120, Speaker C: But simply put, what we do is.
+00:07:37.490 - 00:07:50.366, Speaker D: Transactions are batched into blocks, blocks are batched into chunks, and then we generate a proof for every chunk and then the prover network. So this is done in a parallelized manner.
+00:07:50.558 - 00:07:56.222, Speaker C: The proving network generates an aggregated proof.
+00:07:56.286 - 00:08:07.714, Speaker D: Over all these proofs that are generated per chunk, sends it to the coordinator, and that's sent to the roll up node, and then the roll up node sends it to the roll up contract. I remember in my story I explained.
+00:08:07.762 - 00:08:09.526, Speaker C: That if you have an l one.
+00:08:09.548 - 00:08:31.822, Speaker D: Such as Ethereum, a roll up posts the batches of transactions on Ethereum. But Ethereum needs to understand, hey, are these correct or not? And so there's a smart contract on Ethereum that has the ability to verify the proof that a roll up, a Zk roll up, also posts. And that happens over here. So that's in a nutshell, how the scroll architecture works.
+00:08:31.876 - 00:08:32.926, Speaker C: And over here you can see an.
+00:08:32.948 - 00:08:52.030, Speaker D: Overview of what each of these nodes do. One quick comment I would like to make is that our proven network today is actually decentralized. It is permissioned, but it's one of the things that scroll is very much focused on is that some components right now are centralized.
+00:08:52.110 - 00:08:54.098, Speaker C: Most of some components are decentralized.
+00:08:54.194 - 00:09:01.910, Speaker D: We're now on the road to making sure that everything will be decentralized, and our objective is to make sure that everything's decentralized and permissionless.
+00:09:02.330 - 00:09:06.242, Speaker C: So I briefly spoke about the architecture.
+00:09:06.306 - 00:09:12.022, Speaker D: And over here you can see a more deep dive of the transaction lifecycle. Again, we won't dive in too deep.
+00:09:12.086 - 00:09:13.578, Speaker C: Into this because I want to show.
+00:09:13.664 - 00:09:37.906, Speaker D: To you guys how easy it is to deploy on scroll the main benefit of being EVM compatible, and then also dive into the bridge side of things. So over here you can see a user just like any other user, just like Ethereum would send their transactions, the execution node batches them together, sends it to the roll up node which posts it on the rollup contract. And side by side you have the.
+00:09:37.928 - 00:09:45.330, Speaker C: Coordinator that takes care of that, coordinates the prover network, and the proven network.
+00:09:45.410 - 00:09:56.666, Speaker D: Generates the ZK proof. It goes back and the roll up nodes posts it on the rollup contract. You can, by the way, find all of these images on our docs, but.
+00:09:56.688 - 00:09:58.694, Speaker C: We also have a good explanation.
+00:09:58.822 - 00:10:11.106, Speaker D: So whole transaction lifecycle is documented. Probably something to mention is the phases of a transaction. So I'm going to go back and forth between these slides.
+00:10:11.158 - 00:10:12.794, Speaker C: Phase one is when a user submits.
+00:10:12.842 - 00:10:44.962, Speaker D: A transaction, and what happens is that the sequencer basically processes the transactions and generates the block. This usually takes one to 2 seconds, and this is known as the pre committed phase. At this stage, transactions are available on the ZK rollout. The second phase is when the blocks of transactions are committed on l one. So before we commit the ZK proof, we already commit the batches of transaction.
+00:10:45.026 - 00:10:46.986, Speaker C: So that would be in this case over here.
+00:10:47.008 - 00:11:13.922, Speaker D: As you can see, in a matter of minutes we commit the batch of transactions on Ethereum. And then the phase number three is when we have generated the ZK proof and committed and verified it on chain as well. And that takes roughly ten minutes. Now I just want to quickly pause here. You might think, hey, ten minutes, that takes quite a bit of time. And this is something that is being improved over time.
+00:11:13.976 - 00:11:16.258, Speaker C: And we will see great things in.
+00:11:16.264 - 00:11:23.910, Speaker D: The zero knowledge scaling space. But the comparison is not necessarily instant versus ten minutes, but ten minutes versus.
+00:11:24.330 - 00:11:26.386, Speaker C: For instance, when you look at optimistic.
+00:11:26.418 - 00:11:29.042, Speaker D: Roll ups where there's an arbitrary period.
+00:11:29.106 - 00:11:33.814, Speaker C: Now if you know about the arbitrary period, sorry, if you don't know about.
+00:11:33.852 - 00:11:39.206, Speaker D: The arbitrary period, I'm just going to briefly touch upon it, which is, as you might know in an optimistic roll.
+00:11:39.238 - 00:11:40.854, Speaker C: Up, it's also a roll up commits.
+00:11:40.902 - 00:11:57.866, Speaker D: The batches of transaction. And then there is an arbitrary period, meaning a set of predefined period that can be either three days can be one day, can be one week where anyone can challenge these transactions. And if there is a fraud, if there are a malicious transaction, a fraud proof can be committed.
+00:11:57.978 - 00:11:59.794, Speaker C: So I know there is a whole.
+00:11:59.832 - 00:12:08.626, Speaker D: Debate about what the arbitrary period is, but let's assume that it's around three days or seven days. That's basically the comparison to make that.
+00:12:08.648 - 00:12:12.454, Speaker C: It'S ten minutes versus the seven days.
+00:12:12.492 - 00:12:26.122, Speaker D: Or three days that an optimistic roll up would have to be exposed to. So that was in a nutshell, how scroll works. Now, again, scroll is an l two.
+00:12:26.176 - 00:12:29.450, Speaker C: ZK roll up, meaning it's a different.
+00:12:29.520 - 00:12:48.434, Speaker D: Blockchain network, but it commits everything back to a layer one. And this is a very important point that I will touch upon again when we're going to go and talk about the bridge. But now I want to quickly showcase to everyone how easy it is to actually deploy a scroll. So I'm just going to show over.
+00:12:48.472 - 00:12:50.814, Speaker A: Here my code editor going to launch.
+00:12:50.862 - 00:12:53.700, Speaker C: Here and I've set everything up.
+00:12:58.390 - 00:13:15.798, Speaker D: Terminal. I just want to showcase the benefit of EVM compatibility. So this is just a basic smart contract that I grabbed from the solidity by example website. If you don't know, it's a great resource for you to look at solidity examples.
+00:13:15.894 - 00:13:19.606, Speaker C: And it's a basic ether wallet. And over here I have a deploy.
+00:13:19.638 - 00:13:31.066, Speaker D: Script that will utilize to deploy this smart contract. I'm going to showcase the hardhead config. And over here I'm going to utilize truffle dashboard.
+00:13:31.098 - 00:13:31.966, Speaker C: Now, if you know a little bit.
+00:13:31.988 - 00:13:37.838, Speaker D: About truffle, unfortunately it has been decommissioned or they're going to stop supporting it.
+00:13:37.924 - 00:13:52.774, Speaker C: I'm still going to use it till the end. It's where my journey started and I think it's a great tool to use. But we'll utilize the truffle dash to deploy. And over here I have configured the.
+00:13:52.812 - 00:13:59.318, Speaker D: URL, the RPC URL for sepolia scroll for local testing if need be.
+00:13:59.404 - 00:14:02.262, Speaker C: You can find all this information inside.
+00:14:02.316 - 00:14:17.360, Speaker D: Our docs as well. So what I'll do is I'll just compile my contract. Already compiled it, so it's nothing to compile. And then what I'll do is I will run this command which will basically.
+00:14:17.810 - 00:14:22.746, Speaker C: Launch, send the bytecode to the truffle.
+00:14:22.778 - 00:14:35.038, Speaker D: Dashboard to deploy on scrolls. I'm just going to go ahead and pull up first the truffle dashboard so you guys can see it as well and check if I'm connected to the right network.
+00:14:35.134 - 00:14:38.322, Speaker C: I am. By the way, a very easy way.
+00:14:38.376 - 00:14:43.694, Speaker D: To connect to any network that you would like is chainlist.
+00:14:43.742 - 00:14:45.798, Speaker C: So I'm just going to show that to everyone.
+00:14:45.964 - 00:14:48.466, Speaker D: If you type over here, scroll sepolia.
+00:14:48.578 - 00:14:50.102, Speaker C: Over here you can see the correct.
+00:14:50.156 - 00:14:53.718, Speaker D: Network and you can click add to metamask. I won't do that because I've already done that.
+00:14:53.804 - 00:14:58.060, Speaker C: If you add it to Metamask, it's a very easy way for you to.
+00:14:59.070 - 00:15:02.358, Speaker D: Add the scroll network to your wallet.
+00:15:02.534 - 00:15:04.426, Speaker C: And by the way, if you want.
+00:15:04.448 - 00:15:09.946, Speaker D: To add it manually to your devtool.
+00:15:10.138 - 00:15:18.254, Speaker C: This is a page of our developer, Quickstart. And over here you can see the RPC URL, the chain id, everything that you basically need in order to connect.
+00:15:18.372 - 00:15:22.500, Speaker D: To the scroll network. So I'm just going to go back.
+00:15:24.070 - 00:15:26.722, Speaker A: Just going to go back and remove this.
+00:15:26.776 - 00:15:31.446, Speaker D: And over here you can see the truffle dashboard. I will go ahead and run the.
+00:15:31.468 - 00:15:33.986, Speaker A: Command, go back to the dashboard.
+00:15:34.018 - 00:15:37.110, Speaker D: And over here you can see that the transaction has been sent.
+00:15:37.180 - 00:15:40.866, Speaker A: I'm going to click on confirm metamask.
+00:15:40.898 - 00:15:43.750, Speaker D: Pops up confirm transaction.
+00:15:44.110 - 00:15:47.770, Speaker A: And over here we can see the.
+00:15:47.840 - 00:15:49.574, Speaker D: Contract that's being deployed.
+00:15:49.622 - 00:15:50.940, Speaker C: We'll give it a second.
+00:16:01.330 - 00:16:02.394, Speaker A: And it's confirmed.
+00:16:02.442 - 00:16:05.610, Speaker D: We can view it on a block explorer. We've got an e to scan block Explorer.
+00:16:05.690 - 00:16:09.634, Speaker C: And over here you can see 15 seconds ago it's a success.
+00:16:09.752 - 00:16:12.354, Speaker D: And we deployed our smart contract so.
+00:16:12.472 - 00:16:16.414, Speaker C: The same way you could do that, if you've added to metamask the scroll.
+00:16:16.462 - 00:16:20.870, Speaker D: Network, you can do it, utilize remix, for instance.
+00:16:21.450 - 00:16:23.974, Speaker C: And it is as easy as that.
+00:16:24.012 - 00:16:24.994, Speaker D: To deploy and scroll.
+00:16:25.042 - 00:16:26.886, Speaker C: It's just an RPC URL change, you.
+00:16:26.908 - 00:16:36.758, Speaker D: Copy paste and you basically deploy to scroll. If your favorite devtool is maybe ape because you like Python or foundry, you've.
+00:16:36.774 - 00:16:38.934, Speaker C: Been red pilled and you like foundry.
+00:16:38.982 - 00:16:40.506, Speaker D: Nowadays it all works out of the.
+00:16:40.528 - 00:16:42.506, Speaker C: Box the same way as well.
+00:16:42.528 - 00:16:44.480, Speaker D: It's just an RPC endpoint change.
+00:16:45.650 - 00:16:47.086, Speaker C: So now that I've showncased on how.
+00:16:47.108 - 00:16:52.894, Speaker D: To deploy on scroll, I quickly want to touch upon bridges. So I've mentioned that.
+00:16:53.092 - 00:16:54.154, Speaker C: Am I good on time?
+00:16:54.212 - 00:16:54.530, Speaker A: Yes.
+00:16:54.600 - 00:17:01.982, Speaker D: So I've mentioned that scroll is a different network and blockchain networks are isolated.
+00:17:02.046 - 00:17:08.626, Speaker C: I-E-A network such as L one, such as Ethereum, cannot natively communicate with an.
+00:17:08.648 - 00:17:12.066, Speaker D: L two such as scroll. So enter blockchains.
+00:17:12.178 - 00:17:17.094, Speaker C: And here is just like a very simple example as a use case of.
+00:17:17.132 - 00:17:29.082, Speaker D: What if you would like to transfer an asset from one blockchain to another? Well, the way that happens is through something called bridge contracts. So one bridge contract would communicate with another.
+00:17:29.216 - 00:17:43.006, Speaker C: And the specific methods of transferring the tokens, they differ. It could be that there are wrap tokens being minted. There could be a different form of.
+00:17:43.028 - 00:17:48.126, Speaker D: Asset where this bridge contract actually holds specific assets, ERc twenty s and sends.
+00:17:48.158 - 00:18:00.002, Speaker C: Them to the user's wallet once the contract has been triggered. But you might see something missing actually in this overview because like I said, blockchains are isolated.
+00:18:00.066 - 00:18:06.722, Speaker D: So how do these two bridge contracts communicate? Well, that's usually through a third party service or a relayer.
+00:18:06.786 - 00:18:10.594, Speaker C: So this is actually how a bridge.
+00:18:10.642 - 00:18:13.082, Speaker D: Usually works is where a bridge has.
+00:18:13.136 - 00:18:16.954, Speaker C: A contract on both sides on a blockchain a and a blockchain b also.
+00:18:16.992 - 00:18:23.226, Speaker D: Refers sometimes as a source blockchain and the target blockchain. So the target blockchain is where you're going.
+00:18:23.328 - 00:18:25.086, Speaker C: And then utilizing a relayer, which is.
+00:18:25.108 - 00:18:32.478, Speaker D: Usually a service that listens to both contracts and makes sure that communication either in one way or both ways is possible.
+00:18:32.644 - 00:18:36.706, Speaker C: And that's what the scroll messenger is.
+00:18:36.728 - 00:19:01.834, Speaker D: The scroll messenger is a bridge. And so over here what you see is what I'll showcase to you guys in the smart contract is we're going to send a message from L one. So a testnet, sepolia to the scroll testnet and then we'll send a message from the scroll testnet to l one back to Sepolia and we'll do that step by step.
+00:19:01.952 - 00:19:04.298, Speaker A: Now, very important to note, when I.
+00:19:04.304 - 00:19:06.394, Speaker D: Say message, I mean that's arbitrary data.
+00:19:06.432 - 00:19:10.646, Speaker C: Meaning it's just any data. If you would like to transfer ERC.
+00:19:10.678 - 00:19:15.210, Speaker D: 20 assets, if you would like to transfer an NFT, that's all possible.
+00:19:15.280 - 00:19:19.166, Speaker C: And we've got specific guides for that. Right now I will showcase to you.
+00:19:19.188 - 00:19:21.166, Speaker D: The bare bone version of this, I.
+00:19:21.188 - 00:19:22.846, Speaker C: E any data that you would like.
+00:19:22.868 - 00:19:24.878, Speaker D: To send from left to right, I.
+00:19:24.884 - 00:19:27.834, Speaker C: E. In this case from ethereum to scroll.
+00:19:27.962 - 00:19:36.610, Speaker D: So what happens over here is, and I'll show the code in a bit, we have one smart contract and this can be any smart contract. In this case it's called the operator.
+00:19:37.030 - 00:19:39.874, Speaker C: That we have deployed on Sepolia.
+00:19:40.002 - 00:20:06.398, Speaker D: And what we want to do is say, hey, from this operator we want to change the message that is on l two inside our greeter contract. Now what will happen is that we will tell this smart contract, hey, talk to the scroll messenger, the bridge contract, and we want to target this smart contract and then we send an arbitrary piece of data.
+00:20:06.484 - 00:20:07.934, Speaker C: Now when we do that, we send.
+00:20:07.972 - 00:20:19.358, Speaker D: A little bit of Eth and that has to do with the fact that when you send a message or data from an l one to an l two, the transactions on l two have to be processed.
+00:20:19.534 - 00:20:24.354, Speaker C: And the l two messenger needs some.
+00:20:24.552 - 00:20:30.702, Speaker D: Eth in order to update the state of, in this case, the greeter smart contract.
+00:20:30.846 - 00:20:33.586, Speaker C: Now you might notice saying, hey, I'm.
+00:20:33.618 - 00:20:35.186, Speaker D: Not seeing the third party relay.
+00:20:35.218 - 00:20:36.326, Speaker C: And that's because when we go from.
+00:20:36.348 - 00:20:38.006, Speaker D: L one to l two, I'm just.
+00:20:38.028 - 00:20:42.054, Speaker A: Going to go back a couple of slides over here.
+00:20:42.092 - 00:21:04.754, Speaker D: You can see that we have in our sequencer on l two, a sync service. And what this does is it listens to the bridge contract and it pulls in any l one transactions that are committed on the bridge contract. And this is the scroll messenger contract on l one. So that's why in this specific overview you can't see that. But this is a simplified overview. So when we go back, I'm going.
+00:21:04.792 - 00:21:06.930, Speaker A: To pull up remix.
+00:21:10.550 - 00:21:17.600, Speaker D: Remix here. And over here I have a set of four contracts.
+00:21:17.700 - 00:21:21.756, Speaker A: Just going to go to this one.
+00:21:21.938 - 00:21:24.732, Speaker D: And I'm just going to walk everyone.
+00:21:24.866 - 00:21:25.550, Speaker C: Through.
+00:21:27.840 - 00:21:31.016, Speaker A: The set of contracts that delivered.
+00:21:31.048 - 00:21:46.132, Speaker D: A message from l one to l two. So I'm just going to open these contracts. That is this contract and this contract. So over here you can see we have a greeter on scroll. So I'm going to go back. That's this one. This is our smart contract on L two.
+00:21:46.132 - 00:21:55.476, Speaker D: And the Greeter on scroll looks something like this. It's a very simple smart contract. It has a variable where it says with a string says hello world.
+00:21:55.578 - 00:21:58.584, Speaker C: And over here you can see a.
+00:21:58.622 - 00:22:12.056, Speaker D: Function that allows this variable greeting to be updated. Now if you pay close attention, you can see that the variable is actually called hello world. But over here when I call the variable, it says hello world from Sepolian.
+00:22:12.168 - 00:22:15.164, Speaker A: And that is because prior to this.
+00:22:15.282 - 00:22:18.364, Speaker D: Session I actually sent a message from.
+00:22:18.402 - 00:22:19.564, Speaker C: L one to l two.
+00:22:19.602 - 00:22:21.344, Speaker D: And I'm going to show you how I did it.
+00:22:21.462 - 00:22:27.104, Speaker C: I won't do it during the workshop, being that it can usually take up.
+00:22:27.142 - 00:22:30.112, Speaker D: To four or five minutes, up to ten minutes.
+00:22:30.246 - 00:22:35.436, Speaker C: And at the risk of during a demo, everything breaks.
+00:22:35.468 - 00:22:37.300, Speaker D: I'm just going to showcase how it works.
+00:22:37.370 - 00:22:39.092, Speaker C: But again, feel free to approach me.
+00:22:39.146 - 00:22:47.220, Speaker D: Or any of the team if you run into something. So again, we have a greeter contract on L two and that's where we.
+00:22:47.290 - 00:22:49.416, Speaker C: Want to change state. When we say change state, we just.
+00:22:49.438 - 00:23:00.216, Speaker D: Want to update, we want to update some data, some arbitrary data. So I'm going to go and showcase the operator contract on Sepolia.
+00:23:00.328 - 00:23:01.756, Speaker C: So this is on L one.
+00:23:01.858 - 00:23:07.710, Speaker D: And what this contract does is actually a very simple bunch of things. What it will do is.
+00:23:09.520 - 00:23:09.996, Speaker C: We need.
+00:23:10.018 - 00:23:15.712, Speaker D: To tell this contract what the smart contract address of this l one bridge contract is.
+00:23:15.766 - 00:23:17.040, Speaker C: So that's what I've done over here.
+00:23:17.110 - 00:23:23.664, Speaker D: If you're wondering where you can get this information, over here in the docs, we have two places, I'm sorry, I.
+00:23:23.702 - 00:23:24.800, Speaker C: Need to remove.
+00:23:26.600 - 00:23:27.350, Speaker D: This.
+00:23:28.200 - 00:23:34.592, Speaker C: We have in our docs all the contracts that are available on all our scrolls.
+00:23:34.656 - 00:23:35.328, Speaker D: Smart contracts.
+00:23:35.344 - 00:23:36.324, Speaker C: So over here you can see the.
+00:23:36.362 - 00:23:52.636, Speaker D: L one and l two messenger. In this case, I need the l one messenger because remember, I want to send a message from l one to l two. So what I do first is this contract. I copy and paste it in the scroll messenger address.
+00:23:52.818 - 00:23:55.244, Speaker C: The second thing I need to tell.
+00:23:55.282 - 00:23:59.996, Speaker D: The scroll bridges is which smart contract I'm targeting on l two.
+00:24:00.098 - 00:24:01.468, Speaker C: In this case, remember, we want the.
+00:24:01.474 - 00:24:08.416, Speaker D: Greeter contract, and that is the smart contract over here. So I copy and paste that address. We send zero value because in this.
+00:24:08.438 - 00:24:10.428, Speaker C: Case, we're not actually sending any eth.
+00:24:10.604 - 00:24:14.268, Speaker D: To the target address. And over here, you can see the greeting that I send.
+00:24:14.374 - 00:24:23.604, Speaker C: And we set a gas limit. This gas limit is pretty high. I mean, 10,000 would work as well, but the only gas that actually they.
+00:24:23.642 - 00:24:24.580, Speaker D: Utilize.
+00:24:26.360 - 00:24:28.308, Speaker C: Will be spent and then the.
+00:24:28.314 - 00:24:29.592, Speaker D: Remainder will be sent back.
+00:24:29.726 - 00:24:32.072, Speaker C: And so over here, you can see that as soon as I click here.
+00:24:32.126 - 00:24:33.656, Speaker D: Transact, which I won't do.
+00:24:33.678 - 00:24:40.164, Speaker C: Right now, basically what happens is that the state on l two will be updated.
+00:24:40.212 - 00:24:51.692, Speaker D: And over here, you can see that's what I did a moment ago. Quick side note again, when we send it from l one to l two, we want to send some eth along. Doesn't need to be a lot, but.
+00:24:51.826 - 00:24:58.864, Speaker C: We want to make sure that our transaction doesn't revert on l two. And so when we send a little bit eth to l two. Sorry.
+00:24:58.982 - 00:25:01.980, Speaker D: Along with the smart contract so the transactions can be processed.
+00:25:02.140 - 00:25:03.636, Speaker C: Something that I've noticed right now I.
+00:25:03.658 - 00:25:16.676, Speaker D: Haven'T mentioned is the native currency on scroll is eth, and again, evm compatible, staying close to the ethereum ecosystem. So when you develop on scroll, you.
+00:25:16.698 - 00:25:18.328, Speaker C: Use ETH as a native currency to.
+00:25:18.334 - 00:25:21.432, Speaker D: Pay your gas transactions. The way you get your eth there.
+00:25:21.486 - 00:25:24.548, Speaker C: Is through the scroll bridge.
+00:25:24.724 - 00:25:27.268, Speaker D: Or if you just want some testnet.
+00:25:27.284 - 00:25:29.192, Speaker C: Eth, remember to join our telegram group.
+00:25:29.246 - 00:25:38.670, Speaker D: And we will send you some. So this is how we send it from l one to l two. Now, if you go back to our slide and we want to send it from l two to l one.
+00:25:39.280 - 00:25:41.824, Speaker C: There's one addition that we need to.
+00:25:42.022 - 00:25:45.152, Speaker D: Consider now when we send the message.
+00:25:45.206 - 00:25:53.088, Speaker A: From l two to l one, ethereum needs to know, hey, first of all.
+00:25:53.174 - 00:25:58.276, Speaker C: Is this transaction correct or not? Remember, when we look at all the.
+00:25:58.298 - 00:26:02.564, Speaker D: Transactions and then messages at the end of this also transaction, they're batched together.
+00:26:02.682 - 00:26:06.648, Speaker C: And they're sent to l one. So the ZK proof is generated for that as well.
+00:26:06.734 - 00:26:11.524, Speaker D: But also on l one we want to make sure that the correct user.
+00:26:11.572 - 00:26:15.800, Speaker C: Is allowed to withdraw any data.
+00:26:15.950 - 00:26:25.404, Speaker D: So in order to do that on l ones, we're going to need something called Merkel proof. And so I'm just going to go.
+00:26:25.442 - 00:26:30.156, Speaker A: Back to remix and over here what.
+00:26:30.178 - 00:26:33.696, Speaker C: I'll do is I'll showcase a part.
+00:26:33.718 - 00:26:35.056, Speaker D: Of our doc which is important to.
+00:26:35.078 - 00:26:41.424, Speaker C: Just dive in if you need any more information. But basically what we're going to do.
+00:26:41.462 - 00:26:48.564, Speaker D: Is we're going to make a call. We have a relay service for this. And what this does is over here.
+00:26:48.602 - 00:26:50.196, Speaker C: You can see the API call that.
+00:26:50.218 - 00:27:03.672, Speaker D: You can make is by sending the smart contract address of your operator, you will make an API call and I'll show you what it looks like. Looks like something like this and that looks like a lot.
+00:27:03.726 - 00:27:06.552, Speaker A: I'm just going to increase the size.
+00:27:06.606 - 00:27:10.056, Speaker D: Of my screen and basically what it will give you back is all the.
+00:27:10.078 - 00:27:17.404, Speaker C: Transaction data that you will need to fill in in a specific page. I'll show you that in a bit. You will need to tell the l.
+00:27:17.442 - 00:27:20.910, Speaker D: One messenger, smart contract messenger. Hey.
+00:27:23.060 - 00:27:24.816, Speaker C: This transaction was either sent for.
+00:27:24.838 - 00:27:26.336, Speaker D: Me or is sent by me.
+00:27:26.438 - 00:27:29.984, Speaker C: And I have the proof and that.
+00:27:30.022 - 00:27:33.948, Speaker D: Starts over here you can see proof, I have the merkel proof to withdraw.
+00:27:34.044 - 00:27:39.396, Speaker C: This piece of data and that will allow to update state. And I think I've got a couple of minutes and then I'll show you.
+00:27:39.418 - 00:27:43.824, Speaker D: Guys a video of how that exactly looks like. So over here on the etherscan Sapolia.
+00:27:43.952 - 00:27:47.204, Speaker C: If you click on the link inside.
+00:27:47.242 - 00:27:49.572, Speaker D: The docs, it will take you to the messenger contract.
+00:27:49.636 - 00:27:50.984, Speaker C: And over here you fill out all.
+00:27:51.022 - 00:27:56.504, Speaker D: The data and I hope I'm not walking through this too quickly, but over.
+00:27:56.542 - 00:28:05.164, Speaker C: Here you can see, I'll quickly showcase a video that when all your data is filled in, what you can do.
+00:28:05.202 - 00:28:10.300, Speaker D: Is click on write and that will send the transaction.
+00:28:15.270 - 00:28:19.854, Speaker A: And over here and this can view the transaction.
+00:28:19.902 - 00:28:22.530, Speaker D: And then once the transaction is sent.
+00:28:22.680 - 00:28:31.066, Speaker C: As you can see over here, I'm just going to click back again. Once transaction is sent successfully to the l one messenger and the proof has been submitted over here you can see.
+00:28:31.088 - 00:28:35.850, Speaker D: I click reading and it changed from hello world to hello from scroll.
+00:28:36.830 - 00:28:48.206, Speaker C: All right, with 1 minute left on the clock, I'm not sure if there are any questions. Would love to answer some. I hope this was useful. I know it was kind of like.
+00:28:48.228 - 00:28:50.154, Speaker D: A speed run, but again a drop.
+00:28:50.202 - 00:28:53.666, Speaker C: Telegram link any questions you have, feel free to approach us.
+00:28:53.688 - 00:29:00.530, Speaker D: We would love to help you. Super stoked to see what you guys will build. I'm just going to go to the chat.
+00:29:05.370 - 00:29:05.878, Speaker C: Question.
+00:29:05.964 - 00:29:09.000, Speaker D: All the roll ups are under the hood. No need to do something special?
+00:29:09.610 - 00:29:17.718, Speaker C: Yes, so there's no need to do anything special. Basically what you need to do is change your RPC endpoint meaning and I'll.
+00:29:17.734 - 00:29:23.594, Speaker D: Just pull up the quick start. Over here you can see the quick start.
+00:29:23.792 - 00:29:32.922, Speaker C: All you need to do is change your RPC endpoint. If you want to add it manually to metamask you can do it over here, but you can use chainlist like I showed.
+00:29:32.986 - 00:29:36.846, Speaker D: But over here you can see hard hat config foundry configs anything that you.
+00:29:36.868 - 00:29:44.340, Speaker C: Need in order to get started and deploy on scroll. I hope Katya I answered the question.
+00:29:44.790 - 00:29:47.060, Speaker D: If I misunderstood, let me know.
+00:29:50.910 - 00:29:55.150, Speaker B: Yeah, if there are any other questions, please feel free to ask or type in a chat.
+00:30:00.500 - 00:30:01.344, Speaker C: Awesome.
+00:30:01.542 - 00:30:02.496, Speaker D: Okay, awesome.
+00:30:02.598 - 00:30:21.110, Speaker B: Cheers. Well thank you Raza for the great workshop and presentation and thank you everybody else for attending. As you said, just reach out to Raza and the scroll partner discord channel for any further questions or anything you need and looking forward to seeing whatever else produces for this hackathon. So cheers. Thank you all, have a good rest of the week.
+00:30:21.960 - 00:30:23.110, Speaker A: Thanks a lot.
+00:30:23.480 - 00:30:32.164, Speaker C: My telegram I'll just do everyone is at Raza codes, but please don't DM directly join the telegram link.
+00:30:32.282 - 00:30:33.424, Speaker D: But this is how you can verify.
+00:30:33.472 - 00:30:36.350, Speaker C: It'S actually me when we interact in the telegram group.
+00:30:37.360 - 00:30:39.210, Speaker A: Awesome. All right everyone.

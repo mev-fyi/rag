@@ -1,0 +1,91 @@
+00:00:09.530 - 00:00:11.614, Speaker A: Eight and nine, we're gonna be going.
+00:00:11.652 - 00:00:13.674, Speaker B: Over the Chainlink mix really briefly.
+00:00:13.722 - 00:00:28.806, Speaker A: It's some boilerplate code to get you a jump start on your next project. And then we're gonna go into deploying an ERC 20 token contract. We'll also go into what ercs are, what eip these are, and we'll give you these tools. So let's jump into it.
+00:00:28.908 - 00:00:29.318, Speaker C: Now.
+00:00:29.404 - 00:00:30.646, Speaker D: That was a lot of stuff to.
+00:00:30.668 - 00:00:33.254, Speaker C: Code, and quite frankly, I don't think.
+00:00:33.292 - 00:01:13.698, Speaker D: Any of us want to have to do that every single time, have to code everything from scratch. Now, you can absolutely git clone all of these repositories right from their GitHub, but there's actually an even easier way for us to start with a blank project here. And this is with brownie mixes. So if we Google Brownie mixes GitHub, we'll get this mixes organization which just has a ton of boilerplate code for us to go ahead, get started and start developing. The one we're going to be working with is this Chainlink mix piece which is forked from this official one here. This gives us some wonderful contracts, some tests, a brownie config, and really everything that we need to do to get started.
+00:01:13.784 - 00:01:16.086, Speaker C: So if you have brownie installed, we.
+00:01:16.108 - 00:01:30.934, Speaker D: Can just bake this mix. So we'll do brownie bake chainlink mix. And in our new empty directory here, we'll get this new chainlink folder with everything inside of it. So then we can CD the chain link and we can see it has.
+00:01:30.972 - 00:01:34.774, Speaker C: All of these pieces in here already in the contracts.
+00:01:34.902 - 00:02:17.480, Speaker D: We have a whole bunch of different samples of working with the VRF, working with the price feed, working with this thing called keepers to automate our smart contracts and making API calls and delivering any API call that we want to the blockchain. It also has a brownie config which already has a number of wonderful pieces in each one of these networks so that we don't have to go copy paste and add it in here. It's even got support for testnets like avalanche, polygon, binance and more. It has a number of really powerful tests, including testing some price feeds. It has a whole bunch of deployment scripts, some mocking scripts, some helpful scripts, and really everything that we need to get started and get going. For starters, we could run Brownie test.
+00:02:19.850 - 00:02:22.266, Speaker C: And it's going to compile everything and.
+00:02:22.288 - 00:02:58.208, Speaker D: Then on a development chain run all these unit tests. And if we wanted to test this on a real testnet, we could do brownie test, network, rinkby, or any network that we wanted. If you're looking for a good starter place that has a lot of really powerful smart contracts for you to get started, I highly recommend using this mix as a boilerplate starting point for any of your contracts or any of your projects here. Now we are cooking. So we've learned a ton of the fundamentals of working with Brownie and working with smart contracts.
+00:02:58.304 - 00:02:59.316, Speaker C: Now that we have kind of all.
+00:02:59.338 - 00:03:05.016, Speaker D: The building blocks, though, we can actually code a lot of these much faster and much more efficiently than before.
+00:03:05.118 - 00:03:06.392, Speaker C: One of the things that we've seen.
+00:03:06.446 - 00:03:19.068, Speaker D: Over and over and over again is working with tokens and the ERC 20 token standard. We're going to learn how to build our own token. But before we do that, let's understand why we'd even want to do this.
+00:03:19.154 - 00:03:35.468, Speaker A: Now, first, let's define even what are ERC twenty s? So, ERC twenty s are tokens that are deployed on a chain using what's called the ERC 20 token standard. You can read more about it in the ERC 20 token standard here. Link in the description as well. But basically it's a smart contract that actually represents a token.
+00:03:35.564 - 00:03:38.992, Speaker C: So it's a token, but it's a smart contract. It's both. It's really cool.
+00:03:39.046 - 00:04:10.156, Speaker A: Tether, chain link, uni token, and Dai are all examples of ERC 20s. Technically, Chainlink is an ERC 677, as there are upgrades to the ERC 20 that some tokens take that are still backwards compatible with ERC twenty s. So basically you can think of them as ERC twenty s with a little additional functionality. Now why would I even care to want to make an ERC 20? Well, you can do a lot of really cool stuff with it. You can make governance token, you can secure an underlying network, you can create some type of synthetic asset or really anything else. In any case, how do we build.
+00:04:10.178 - 00:04:13.080, Speaker C: One of these ERC 20s? How do we build one of these tokens?
+00:04:13.160 - 00:04:17.504, Speaker A: Well, all we have to do is build a smart contract that follows the token standard.
+00:04:17.622 - 00:04:19.024, Speaker C: All we have to do is build.
+00:04:19.062 - 00:04:40.472, Speaker A: A smart contract that has these functions. It has a name function, a symbol function, decimals function, et cetera. All these functions, we need to be able to transfer it, we need to be able to get the balance of it, et cetera. And again, if you want to check out some of the improvements that are still ERC 20 compatible, like the ERC 677 or the ERC 777, you definitely can go check those out and build one of those instead.
+00:04:40.606 - 00:04:50.136, Speaker B: So let's create a new folder and get started. We're going to create our new brownie file, of course, with brownie init, it's going to start up our repository and start up everything that we are going.
+00:04:50.158 - 00:04:50.872, Speaker A: To work with here.
+00:04:50.926 - 00:05:41.908, Speaker B: We can kind of actually just jump in and start right with our contracts. So let's create a new file and we'll call it ourtoken Sol. And this is where we're going to add all of our token code. Now, since this is an EIP, all this is a smart contract. So what we could do is we could grab all these functions, copy and paste them in here one at a time, grab the name, grab the symbol, grab the decimals, and then code all these up, be like, all right, this does some stuff, blah blah blah. Or we could do it the much easier way, right? Since we're engineers, we don't always want to reinvent the wheel. So once again, our friends at open Zeppelin have some amazing contract packages for actually building our own ERC 20 token.
+00:05:41.908 - 00:06:17.172, Speaker B: So we can go right to the open Zeppelin documentation. I'm working on the four X version, but again, it doesn't matter the version that you use, so long as in our config file, we add the version that we're going to use, which again, we've already gone over. So let's go over to their ERC 20 documentation. And this is the entirety of the code that is needed to make an ERC 20. So we can just go ahead and even copy this, paste it in here, and boom, we have some ERC 20 code in here. Let's actually just change the name of everything in here, though. So we're going to call this our token Sol.
+00:06:17.172 - 00:06:21.136, Speaker B: We have this SPDX license identifier MIT.
+00:06:21.248 - 00:06:21.668, Speaker C: Great.
+00:06:21.754 - 00:06:46.332, Speaker B: We're going to be using solidity version 0.8, which I know I've done a lot of this code actually in point in 0.6, but I highly recommend working with 0.8 because it has a lot of really fantastic improvements to solidity. You'll notice this is our first dive into using a different version of solidity here. You'll notice that most of the syntax is exactly the same. There are, like I said, a couple of nice improvements with 0.8,
+00:06:46.332 - 00:07:31.550, Speaker B: the main one being you no longer have to use those safe math functions that we talked about before. But then we're going to go ahead and import Openzeppelin contracts token ERC 20 sol. Now, of course, since we're importing open Zeppelin, we're importing this package, we got to add this to our brownie config yaml. And before we even get started, you technically have all the tools that you need to code and deploy your own ERC 20 token. Now I'm actually going to challenge you to go ahead and try to start a Brownie project, create your own token using Openzeplum packages, and then deploy it on a testnet. I'm going to show you how to do all of it here anyways. But challenging yourself and trying to do things your own and exploring is really one of the fastest ways to learn and grow in this space.
+00:07:34.540 - 00:07:35.876, Speaker C: Did you give it a shot?
+00:07:35.988 - 00:07:42.510, Speaker B: No, really pause it now and give it a try. All right, welcome back. Now we'll go through it and we'll do it together.
+00:07:42.880 - 00:07:45.100, Speaker D: Of course, we need to add these dependencies.
+00:07:47.940 - 00:08:18.360, Speaker B: Open Zeppelin Open Zeppelin contracts let's do their version four. So let's even go to GitHub, open Zeppelin and we'll do 4.2.0, which was released yesterday at this time, which is great, 4.2.0 and of course again, compiler, we'll have silk oops.
+00:08:22.380 - 00:08:23.480, Speaker D: Remappings.
+00:08:28.810 - 00:08:59.282, Speaker B: We'll add at Open Zeppelin equals this. And then we're going to go ahead and save. Now we can use this at Openzeppelin and it'll refer to the Openzeppelin contracts here. So great, now we can go ahead and import these. Let's change the contract name to our token. We're going to inherit this ERC 20 Sol from Openzeppelin. We can even go ahead to Openzeppelin contracts, GitHub, and we can even see what this ERC 20 looks like.
+00:08:59.282 - 00:09:44.206, Speaker B: So we can go to their contracts down to token ERC 20, ERC 20 sol. And this is their initiation of an ERC 20, which has all these functions like name, symbol, decimals, total supply, et cetera. In our constructor we're going to add an initial supply, which is going to be in way, of course, so the initial supply of that token. And we're going to use the constructor of the ERc 20 sol, which again we can go ahead and check in the code here and we can see the constructor uses a name and a symbol. So we have a name, we'll call it our token and the symbol we'll do ot and boom. That is literally all we need for our token here.
+00:09:44.228 - 00:09:45.138, Speaker D: I told you this was going to.
+00:09:45.144 - 00:10:00.578, Speaker B: Be a much faster project. Now, for scripts, all we have to do is create a new file, we'll add a one deploytoken sol and we'll also add a helpful scripts py excuse.
+00:10:00.594 - 00:10:03.400, Speaker C: Me, this deploytoken py excuse me.
+00:10:04.170 - 00:10:10.098, Speaker D: We'll just quickly add a get account function. We'll say def get account and you can go ahead and just copy paste.
+00:10:10.114 - 00:10:10.918, Speaker C: From the last one.
+00:10:11.004 - 00:10:14.698, Speaker D: And if you want you can actually just copy paste from our last helpful scripts because it's pretty much going to.
+00:10:14.704 - 00:10:15.786, Speaker C: Be exactly the same.
+00:10:15.888 - 00:10:22.142, Speaker D: So that we have all these wonderful ifs statements so that we can deploy from really anything that we want.
+00:10:22.276 - 00:10:34.396, Speaker C: Now in our deployment token script we'll do from brownie import our token and.
+00:10:34.418 - 00:10:35.900, Speaker D: Then from scripts.
+00:10:38.320 - 00:10:41.772, Speaker C: Helpful scripts import get account.
+00:10:41.906 - 00:10:43.852, Speaker D: And just to make sure, let's add.
+00:10:43.906 - 00:10:48.048, Speaker C: An init PI in here just to.
+00:10:48.054 - 00:10:49.888, Speaker D: Make sure that our scripts can actually import.
+00:10:50.054 - 00:10:52.784, Speaker C: So since we know, since we know.
+00:10:52.822 - 00:10:54.656, Speaker D: That we need an initial supply here.
+00:10:54.758 - 00:11:17.096, Speaker C: Let'S go ahead and do initial supply equals and then we can do whatever we want here. If we want to make it a little bit more readable, we'll also do from web3 import web3. And we can do web3 two way and we'll say 1000 is the.
+00:11:17.118 - 00:11:23.000, Speaker D: Initial supply and this is in ether. So our initial supply is going to be 1000 ether.
+00:11:23.600 - 00:11:53.604, Speaker C: Then we just add our main function. We do account equals get account. We do our token equals our token deploy. We just add as a parameter. This is initial supply we'll do from account and then we'll do print our token name and that's the whole function.
+00:11:53.722 - 00:11:55.028, Speaker A: Now of course if you don't have.
+00:11:55.034 - 00:11:58.352, Speaker D: Your environment variable set, we're going to add our env file.
+00:11:58.496 - 00:12:05.080, Speaker C: This is where we can add our private key, our web3 inferior project.
+00:12:05.150 - 00:12:06.696, Speaker D: Id and then if we want our.
+00:12:06.718 - 00:12:09.016, Speaker C: Etherscan token, I'm going to skip doing.
+00:12:09.038 - 00:12:14.590, Speaker D: This for now because my environment variables are already set. And then last but not least, we'll add env.
+00:12:17.040 - 00:12:26.912, Speaker C: So private key equals ox, blah blah blah went through and pure private equals blah blah blah. Ether scan token equals blah blah blah and perfect.
+00:12:27.046 - 00:12:28.716, Speaker D: Now if we want to actually deploy.
+00:12:28.748 - 00:12:33.196, Speaker C: This to a testnet, all we have to do go into our config, we'll.
+00:12:33.228 - 00:12:34.160, Speaker D: Add wallets.
+00:12:35.860 - 00:12:44.084, Speaker C: From key. We'll add our environment variable private key. Now brownie knows where to grab this.
+00:12:44.122 - 00:12:46.192, Speaker D: From because we've defined it in our helpful scripts.
+00:12:46.256 - 00:12:53.156, Speaker C: What I could do now, so brownie runs scripts, deploy token Py and we.
+00:12:53.178 - 00:12:54.436, Speaker D: Can go ahead and see that our.
+00:12:54.458 - 00:12:57.016, Speaker C: Token is printed out. We can see that we have this.
+00:12:57.038 - 00:13:01.624, Speaker D: Token deployed on our local ganache. We can see our token here and this is great.
+00:13:01.742 - 00:13:14.556, Speaker C: Now I can go ahead and run this again. Network rinkby now, if I grab this address, go to the Rinkbee ether scan, pop it in.
+00:13:14.658 - 00:13:16.384, Speaker D: After a quick refresh, I can now.
+00:13:16.422 - 00:13:19.548, Speaker C: See that my contract has indeed been added.
+00:13:19.644 - 00:13:25.612, Speaker D: And Etherscan even picks up that it's a token. Now we could do grab this contract.
+00:13:25.676 - 00:13:35.556, Speaker C: Address, go to assets, add it in our metamask here. Next, add tokens and you'll see we.
+00:13:35.578 - 00:13:38.752, Speaker D: Are the proud owners of 1000 our tokens.
+00:13:38.896 - 00:13:40.996, Speaker C: Now, something else that you might want.
+00:13:41.018 - 00:13:46.968, Speaker D: To do is add this to a liquidity pool or add this to a place where you can actually go ahead and sell it and put it on the market.
+00:13:47.134 - 00:13:57.016, Speaker C: You can do something like that as easily as just popping onto uniswap, going to pool, hitting more, create a pool and then adding our token in here.
+00:13:57.118 - 00:14:00.524, Speaker D: We'd have to manage the token list and be sure to add the token in here.
+00:14:00.562 - 00:14:04.780, Speaker C: But we could go ahead and add a token, create our own pool and.
+00:14:04.850 - 00:14:06.392, Speaker D: Automatically put it on uniswap.
+00:14:06.456 - 00:14:07.596, Speaker C: And that's how easy it is to.
+00:14:07.618 - 00:14:14.370, Speaker D: Actually sell it on one of these pools. But all right, so this was probably our easiest project of the course, but it really shows how far you've come along.
+00:14:14.820 - 00:14:36.884, Speaker A: Eight and nine completed, check mark. So really at this point you have the vast majority of the tools that you need. Now we're going to get into some different industries like Defi. Defi is going to be the one that we start with here. We're going to learn what aave is and we're going to learn how to interact with Aave and interact with these composable defi components in a fantastic way.
+00:14:37.002 - 00:14:39.872, Speaker B: So take a break, relax.
+00:14:40.016 - 00:14:43.530, Speaker A: You've completed eight and nine. We'll see you in the next one. Follow.

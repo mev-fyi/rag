@@ -1,0 +1,334 @@
+00:00:00.170 - 00:00:01.726, Speaker A: Stop sharing your screen real quick.
+00:00:01.908 - 00:00:20.900, Speaker B: Yeah, share it. Sweet.
+00:00:20.980 - 00:00:24.890, Speaker A: Okay, we are live, so we'll just give it a few minutes. Let some people join in here.
+00:00:27.420 - 00:00:27.896, Speaker B: And then.
+00:00:27.918 - 00:00:29.752, Speaker C: Should I be watching the YouTube too?
+00:00:29.806 - 00:00:31.080, Speaker B: Probably. Just so I can see.
+00:00:31.150 - 00:00:41.808, Speaker A: I think at the end what I can do is just any good questions in there? If you also want to peek while you're doing, you can, but if anything, I'll just drop good questions for you.
+00:00:41.974 - 00:00:42.992, Speaker B: Yeah, I'll watch, too.
+00:00:43.046 - 00:00:49.828, Speaker C: Just because I want these sessions to be pretty collaborative, I want them to.
+00:00:49.834 - 00:00:51.060, Speaker B: Be less luxury.
+00:00:53.960 - 00:01:12.180, Speaker C: Because I don't even have a half hour of content. I don't even have an hour of content. So I really want to use this time to kind of talk about building DeFi protocols and how to build them. And I guess I'm introuring right now. Oh, we're not recording. Oh, we are live in YouTube, though.
+00:01:12.270 - 00:01:13.390, Speaker A: Yeah, we are live.
+00:01:16.240 - 00:01:16.652, Speaker B: Cool.
+00:01:16.706 - 00:01:23.020, Speaker A: Well, welcome, everyone. Thanks for joining us. We'll get started here in just a few minutes. Let some more people join.
+00:01:25.280 - 00:01:26.764, Speaker C: How's everybody doing?
+00:01:26.962 - 00:01:41.830, Speaker A: Yeah, as Patrick was just saying, if you're just joining, yeah, we really want to make these collaborative, so we'll keep an eye on the YouTube page. Definitely any questions that you have, drop them into the chat. I'll be collecting those as we go along.
+00:01:47.560 - 00:01:48.356, Speaker B: Hey, Don.
+00:01:48.458 - 00:01:50.570, Speaker C: Yeah, thanks a lot for Don.
+00:01:56.140 - 00:02:02.990, Speaker A: We'll just give it just like one more minute. How long would you say it is? About like 30 minutes or so.
+00:02:04.080 - 00:02:06.590, Speaker C: It's honestly, it can be as long as we want it to be.
+00:02:07.120 - 00:02:16.492, Speaker B: Cool. Sweet.
+00:02:16.556 - 00:02:59.550, Speaker A: Well, we can go ahead and get started. Thanks, everyone who's joining us on YouTube. Really excited for Patrick to be joining us, giving us a presentation, know, building Defi protocols and preventing price oracle attacks. So these have been happening quite a lot lately in the Defi realm, and there's a lot of ways to prevent these. And so this is what we kind of want to go into. You'll also notice this is our first chain link builder session, so we'll be doing a lot more of these more often. If you have topics that you're dying to learn more about within Chainlink development, definitely reach out to myself or Patrick, and we can help kind of get a workshop about that going and get you on the right track.
+00:02:59.550 - 00:03:18.176, Speaker A: As always, our doors are always open, too, so you'll find us on the Chainlink discord, which will drop all the links in. Feel free to reach out to us if you have questions about anything developer related, anytime. And we're available without further ado. Yeah, Patrick, thanks a lot for joining today and for hosting this.
+00:03:18.278 - 00:03:39.320, Speaker C: Yeah, Keenan, thank you so much for setting this up and having me here. Excited to chat a little bit more here. So for those in the chat. So I'm watching the YouTube chat here. Definitely want to have this be a little bit more collaborative session. So if you have any questions, feel free to reach out. How many engineers are actually watching right now?
+00:03:39.470 - 00:03:46.620, Speaker B: How many engineers are here? It looks like there's a little bit of a delay.
+00:03:49.760 - 00:04:20.570, Speaker C: Not very many. All right, cool. Well, I'm just going to go ahead and share screen and jump right into it. So we're going to take a look at some of the past attacks and what the tools are that they have been using. And then we can kind of use this knowledge, obviously, to build our Defi protocols moving forward in a secure, reliable way. Right. So history repeats itself and we want to do our best to make it not repeat itself.
+00:04:20.570 - 00:04:41.304, Speaker C: So in front of me, I have preventflashlonattacks.com. It's got some of the most recent attacks and the transactions. We can actually look at the transactions of some of these attacks and see exactly what happened. For example, I forget which one this is, but does it say, does Ethereum.
+00:04:41.352 - 00:04:46.012, Speaker B: Say what it is? November 14. What happened November 14?
+00:04:46.076 - 00:05:19.028, Speaker C: So this is probably value DFI. Value DFI or cheesebag. But we can see this massive list of transactions, super complicated transactions, to find these really tiny holes in the code. And the attacker just used it to just destroy and blow these holes wide open. So a lot of them start with flash loans, with taking out crazy amounts of leverage to basically be able to do these a lot cheaper.
+00:05:19.044 - 00:05:19.224, Speaker B: Right.
+00:05:19.262 - 00:05:32.044, Speaker C: This person did this insane transaction. It cost $75. So you can check out that website, you can go check out some of these attacks and what actually happened. But we want to talk about what's actually going to go, going on here.
+00:05:32.082 - 00:05:51.044, Speaker B: So let's look at one of the simpler ones. I forget which one was the simpler ones. Oh, that one's reentrancy. Two, actually.
+00:05:51.082 - 00:06:28.396, Speaker C: They're all pretty tricky. They all have a lot of stuff, but yeah, anyways, so generally what we've seen from these attacks is one of two different kinds. We'll see this oracle attack and we'll see these reentrancy attacks. And then we're actually going to look at building a quick defi protocol and building it to get owned and then building it to actually be. Yeah, oracle attack, reentry attacks. And then there's one other kind of type of attack. It's like pump and arbitrage or like economic attacks.
+00:06:28.396 - 00:06:51.140, Speaker C: These ones are a little bit harder to quantify. They're a little bit harder to decide if it's right or not. And we'll talk about that in a second. But yeah, let's go ahead and let's build a defi protocol and learn how to make it right. And learn how to make it wrong. So we have some code here. And again, this is going to be a little bit more technical.
+00:06:51.140 - 00:06:55.050, Speaker C: Please feel free to reach out, ask questions as we're going along here.
+00:06:56.300 - 00:06:59.816, Speaker B: And what is this one? That's the same thing.
+00:06:59.918 - 00:07:46.344, Speaker C: Please feel free to reach out and ask questions here as we go along. So what this is, is it's code for a really simple options protocol. Really simple options protocol. So if you wanted to make a d five protocol that does some type of options trading, you can check this out. We actually wrote a blog on this, how to build a defi call option exchange and solidity code and kind of everything explainer is in here. We're just going to jump right into it, kind of do a real quick brief of it. Basically what we're doing is we can write options.
+00:07:46.344 - 00:08:39.732, Speaker C: So we can write like a strike price. We can write, hey, we want to sell or buy a token X number of days for this much premium and it's going to expire in a few days. So we say, hey, for those of you who are a little bit unfamiliar with how options work, basically you can say, I want to buy or sell. I want the right to buy or sell an asset before sometime, right? So that's what an option is. So in a cryptocurrency it's literally as simple as hey, I want to buy or sell Ethereum or ERC 20 in a week, but at this price. And there's a lot of reasons why somebody would do it. One of the reasons is for premiums.
+00:08:39.732 - 00:09:13.444, Speaker C: You can charge like a premiums on writing these. So we can write these options. We can also buy these options. So when somebody writes it, you say, hey, I have 100 USDT, I am willing to write an option. Somebody pays me $5 for you to buy it at 90 USDT or something like that. Somebody can buy it and then somebody can exercise it. So these call options here, you have the right but you don't have to, but not the obligation to exercise these.
+00:09:13.444 - 00:09:32.812, Speaker C: So then we also have this exercise function. And so this is kind of the basic smart contract that we're going to go here. Again, all the comments are in here. Hello. Question when will the storage option come? What does that mean?
+00:09:32.866 - 00:09:33.692, Speaker B: I don't know what that means.
+00:09:33.746 - 00:10:47.700, Speaker C: When will the storage option come? Yeah, let me know what that question means. Anyways, so we have this options contract, and getting the price of these assets is really important because if we're going to say, hey, we want to set the strike price, we want to say, you're allowed to execute this option when the price is $100. If we have the wrong price, we're going to get screwed. And we can see that's what actually happened for a lot of these protocols. What will happen is these protocols, they'll have their price depend on one of these decentralized exchange, like Uniswap, like DydX. I know a lot of these exchanges are taking a lot of preventative measures to kind of mitigate against this, but at the end of the day, they're decentralized exchanges, but they're not decentralized price feeds. They're not decentralized data feeds.
+00:10:47.700 - 00:11:23.450, Speaker C: They are still single points of data. The data depends on their liquidity. So like Uniswap, for example, Uniswap works when there's money on either side of the pool. So if you have one ETH on one side and 100 USDT on the other side, that one ETH is worth 100 USDT and vice versa. But it all depends on the liquidity. So if you dump a million USDT on one side, the ETH is now worth a million USDT. Flash loans allow you to do that for a very short amount of time, for one block in particular.
+00:11:23.450 - 00:12:36.304, Speaker C: So if we look at our smart contract here, it's really easy to find where some of these oracle vulnerabilities are or these oracle manipulations are, by literally just looking for, okay, where are we getting that price from? So ours, our application here is going to be really simple since we just have our right options, our buy options, and our right options say what's the strike price? Right, and then what's the premium? Whatever. When we look at this strike price, we can kind of do almost like a self audit and say, okay, we're getting the latest cost to be the strike price, times the amount of tokens, and we're dividing it by the Eth price. This is how we're getting the value. So we can do a quick almost backtrace, say okay, cool, where are we getting this EtH price from? Eth price is what? It's a variable. It's like a global variable here, and we actually set it, I believe we.
+00:12:36.342 - 00:12:36.930, Speaker B: Call.
+00:12:40.190 - 00:12:41.562, Speaker C: Update Eth price.
+00:12:41.616 - 00:12:42.700, Speaker B: Where is that?
+00:12:45.090 - 00:12:55.410, Speaker C: We have this update prices function where we set the Eth price to this get eth price function. So okay cool, let's go to this get eth price. We can go back to this function, we can see where we're getting the data from.
+00:12:55.480 - 00:12:56.050, Speaker B: Okay cool.
+00:12:56.120 - 00:13:31.120, Speaker C: So obviously you should be familiar with this if you're here. If you're not, that's fine too. So this is the syntax for getting from a chain link price feed. So we have ethfeed latest round data. ETh feed is a, is a chain link aggregator contract at this address. So this is on the COVID network. So we can actually go to the chain link docs, go to content addresses and we can see.
+00:13:33.010 - 00:13:34.682, Speaker B: Wrong one contract.
+00:13:34.746 - 00:14:01.160, Speaker C: Addresses on ethereum we see this is the Eth USD price here. We can click it, it'll bring us to the contract itself. These are not the transactions. The transactions I believe are back here or, excuse me, no, sorry. This is the proxy. It's going to be in the aggregator. Don't worry about that for now.
+00:14:01.160 - 00:15:02.886, Speaker C: If you're confused about the aggregator versus the proxy, we can talk about that in a second. But we can look at the defi price feeds and we can see that we're getting our pricing data from all these nodes. And actually it looks like we just hit a heartbeat so that they're all responding right now. So all these nodes are where we're, oh wait, no, it just took a second to load. All these nodes are where we're getting our data from. So we're getting our data on the price of ETH USD from this network of decentralized nodes. And why is this important? This is really important because back in our contract if we had this get EtH price function, be something like Dex get latest price of FUSD or whatever the syntax for that function is, this is going to return the price on that Dex on that decentralized exchange.
+00:15:02.886 - 00:15:29.454, Speaker C: And again, if someone does a flash loan, if someone crashes it during that single block, your smart contract is now jeopardized because somebody could easily flash crash that exchange, ruin your smart contract. And if you're setting, let's say if somebody wrote an options contract for some crazy insane amount, now they can just flash crash the exchange and just make out like bandits.
+00:15:29.502 - 00:15:30.100, Speaker B: Basically.
+00:15:33.110 - 00:16:28.678, Speaker C: This should be the easiest way to protect yourself against these oracle, these flash loan attacks is using decentralized prices, using chainlink price feeds, using this network of decentralized oracles to get these price feeds. Now if there's a data feed that isn't here, feel free. To reach out and suggest something. You can also build your own price feeds as well. You just go to docschain link, you can go to using an API and then just use a network of nodes to get a network of APIs to kind of aggregate your own decentralized answer on the price feed. So this is the easiest way to prevent some of these oracle attacks is using these decentralized price feeds because again, they can't be flash loan attacked, they can't be flash hacked. So that being said, I kind of know I bounce all over the place and talked a lot.
+00:16:28.678 - 00:17:01.982, Speaker C: Are there any questions so far? I think regulation will call for more use of decentralized oracles. Too much money, still unnecessary. And for what, Erica, I think you're spot on. I don't know if, well, okay, regulation though, I think because this is the Defi world, this is the decentralized world, regulation is kind of tough to say. It will be implemented. I think standards will be built as opposed to regulations, right. And then it just becomes easy.
+00:17:01.982 - 00:17:56.980, Speaker C: Hey, anytime a new DeFi protocol comes out, you ask the simple question, hey, are you following these standards? If they're not, then you don't put money in. Hopefully auditors will pick up on the standards too, and they'll have some insights to say, hey, don't do this. So I don't think it's regulators so much, but I do think standards will eventually come out and getting pricing data will just be from decentralized oracles. Because we've seen all these projects that don't get hacked because they're doing it, because they're getting their data from decentralized oracles. Ave synthetics, urine. All these projects are using decentralized oracles, which have proven to be the superior way to get your pricing data. So good question.
+00:17:56.980 - 00:18:21.274, Speaker C: Yeah, standards. That's a really good point, though. That's a really good thought. I think regulation will call for more. I just read that. Is it fair to say that the release of staking is as much a timing issue as it is a development issue? It's a little bit out of scope for this demo. Out of scope for this demo.
+00:18:21.274 - 00:18:31.018, Speaker C: If you want to talk about defi, if you want to talk about flash loan attacks and prevention, you're in the right spot. Yeah, staking. If you want to talk about staking.
+00:18:31.114 - 00:18:41.040, Speaker B: You jump into the discord. Anyways, where was I?
+00:18:41.410 - 00:18:52.260, Speaker C: Yeah. So let's take a look at this. Let's compile, let's deploy it. Thanks to gage, he actually built this. Can you guys see that.
+00:18:54.790 - 00:19:01.894, Speaker B: I don't think you can see cool. Well, actually not cool, but you guys.
+00:19:01.932 - 00:19:03.480, Speaker C: Can'T see my metamask, right?
+00:19:06.650 - 00:19:07.720, Speaker B: That's kind of.
+00:19:09.950 - 00:19:11.194, Speaker A: Yeah, I can see it.
+00:19:11.312 - 00:19:12.806, Speaker C: You can or you can't?
+00:19:12.998 - 00:19:13.546, Speaker A: Yeah.
+00:19:13.648 - 00:19:15.900, Speaker B: When it's there, yeah. Okay.
+00:19:16.670 - 00:19:18.620, Speaker C: All right, well, I'm going to play this.
+00:19:19.870 - 00:19:27.230, Speaker B: Oh, this is rank b. Whoops, sorry. You go to Covid? Apologies.
+00:19:29.090 - 00:19:29.694, Speaker C: Okay, cool.
+00:19:29.732 - 00:19:30.960, Speaker B: Yeah, you can't see it.
+00:19:31.650 - 00:19:42.880, Speaker C: The stream is really delayed. Let's compile this guy.
+00:19:49.430 - 00:19:55.710, Speaker B: Deploy. I meant to do this now we'll deploy. Deploy to Covid.
+00:19:55.870 - 00:20:56.440, Speaker C: While I'm deploying, any other thoughts on flash loans, staying safe, decentralized oracles? I feel like a lot of people in the chat here are pretty based, so I might not need to get educated on the power of decentralized oracles. And I could probably move to the next topic. Anyway, we just deployed our smart contract here. We have all these options here. And again, these are going to be where we're getting our price. So anytime if I wanted to write an option, I would write the token string. This would be like the address of token strike price.
+00:20:56.440 - 00:20:58.742, Speaker C: That's going to be a unit obviously.
+00:20:58.796 - 00:20:59.126, Speaker B: And then.
+00:20:59.148 - 00:21:02.540, Speaker C: Yeah, the rest of the parameters are in here and then we'd have a list.
+00:21:03.150 - 00:21:19.580, Speaker B: Actually, you know what? Yeah, I can just do the. I was thinking for a second link. Covid address. Yeah, let's just, let's go ahead and. Let's just do it. Let's do it live.
+00:21:20.510 - 00:21:29.826, Speaker C: Address of the token. We're going to say the strike price is going to be 15. Premium is going to be one.
+00:21:30.008 - 00:21:43.526, Speaker B: Actually I think this is in way. So it's 1234-567-8678 and the expiry, I.
+00:21:43.548 - 00:21:50.470, Speaker C: Believe expiries in seconds. Let's say this is a 62nd contract.
+00:21:53.230 - 00:22:19.034, Speaker B: For ten tokens. Let's write this option. Error encoding army. It's invalid params. What is my invalid param here? I need a quote there. Gas estimation failed. Why is gas estimation failed? Token.
+00:22:19.034 - 00:22:38.620, Speaker B: Hash equals eth. Hash tokenash equals link. Hash. Only ETH and link are supported. Token. Give me a second. Sorry.
+00:22:38.620 - 00:22:44.500, Speaker B: To it.
+00:22:49.110 - 00:22:50.260, Speaker C: Oh right.
+00:22:53.110 - 00:22:53.860, Speaker B: Sorry.
+00:22:57.450 - 00:22:59.240, Speaker C: Still failed. What I do wrong.
+00:22:59.690 - 00:23:05.110, Speaker B: Link strike expiry token. Is there no quotes?
+00:23:09.470 - 00:23:10.762, Speaker C: Anyone see what I'm doing wrong?
+00:23:10.816 - 00:23:30.310, Speaker B: Here's. I think I need to do the. That's right. Oh no I don't because I'm doing a link.
+00:23:37.500 - 00:23:38.570, Speaker C: Sorry guys.
+00:23:40.620 - 00:24:02.250, Speaker B: I did this earlier. We're just going to do fascination failed. Incorrect amount of link. I have fake eth. Right.
+00:24:06.060 - 00:24:18.428, Speaker C: All right, well, I forget what I was missing here. Probably go back and figure it out. But yeah, if you guys want to figure it out, it's all on the blog here, too. I would just have to go read it in front of you guys.
+00:24:18.514 - 00:24:19.516, Speaker B: And I don't really know if I.
+00:24:19.538 - 00:24:52.970, Speaker C: Want to do that. But basically what I was looking to demo here anyways is if we're getting the prices from here and we do a flash loan, it's not going to get affected and we're going to be safe here. So that's the simplest one to look at. That's the easiest one to look at. So some of the harder ones are going to be these reentry attacks and these pump and arbitrage. So reentry at C attacks are really tricky. And luckily recently a lot of work has been done to kind of mitigate these and fix these.
+00:24:52.970 - 00:24:58.316, Speaker C: A reentry C attack is when you have a contract and then let's even.
+00:24:58.338 - 00:25:03.630, Speaker B: Just write it one. Let's actually keep some of the boilerplate here.
+00:25:07.120 - 00:26:43.148, Speaker C: It's going to be a little bit pseudocode here, guys. When you write a reentry of the attacks, or when you write a function that calls another external function and that external smart contract recalls or reenters your contract before that function completes. So you can think about this like asynchronously a little bit. So let's say this is our function called reentrance, and it's going to do we have like a balance equals ten and that's actually, let's call this withdraw, right? So this function is going to withdraw. What it's going to do, it's going to do token transfer or call to message sender. Let's say this is some token we don't understand. It's going to call this transfer function to this token contract that we don't know.
+00:26:43.148 - 00:27:23.720, Speaker C: And now we're going to do balance equals zero. So really simple function and it's just withdrawing our balance. The issue is really subtle and it's actually with this line right here. So using the transfer function makes it a little bit safer, actually a lot safer. But what can happen is we're calling this external contract that we don't control and we don't know what that contract is going to do. So let's say that contract actually calls our withdrawal function. Again, it's going to do token transfer, message sender, balance, balance.
+00:27:23.720 - 00:28:07.108, Speaker C: Let's say that this token contract recalls our withdrawal function. So what's it's going to do? It's going to do token transfer, message sender, balance, again, balance is still ten. Balance hasn't updated to be zero yet. So if we keep calling this, it's going to be very recursive and it's going to keep recursively calling this withdraw function until the balance, basically, until there's nothing else, until there's nothing more. And then after all these function calls return, they're all going to update to zero and you're going to be drained of whatever token was in here. So these are called reentrancy attacks. They're also called recursive attacks.
+00:28:07.108 - 00:28:37.990, Speaker C: They're the type of attacks that hit the dow. They've been hitting a lot recently. These are a little bit trickier to find because you have to look through the code and see where some of these vulnerabilities are. Hopefully, auditors are going to get better at this stuff. An easy way to fix this is just this. It seems really simple, but that's it. If we move the balance up to be updated to zero first, then.
+00:28:40.280 - 00:28:40.596, Speaker B: When.
+00:28:40.618 - 00:28:49.430, Speaker C: We do the token transfer, we're not going to do it with balance anymore. We're going to do it with like token amount or something.
+00:28:53.400 - 00:28:56.020, Speaker B: Equals balance. Balance.
+00:29:01.240 - 00:29:35.284, Speaker C: Excuse me, token amount equals balance. Then we reset the balance equals zero. Message us, sender token amount. And this is a little bit inefficient because we're setting it to another variable, but it's a really easy way to have this be a lot safer because we're going to call this function, we're going to run this line, we're going to run this line. And now balance is zero, but we still have token amount. And if this transfer function, if this token contract recalls or withdraw, well, balance has already been set to zero. So this is just going to be zero.
+00:29:35.284 - 00:30:10.940, Speaker C: So they're actually just going to end up wasting a ton of gas for themselves. So really simple fixes, but they can save you a ton. They can absolutely save you a ton. So the last one that I briefly wanted to talk about is these pump and arbitrage, these kind of like economy attacks. These ones are a lot trickier to find. You have to be a lot more economically savvy. And some people will argue that they are fine and that they're not actually attacks, that they are just the way the protocol was designed to behave.
+00:30:10.940 - 00:31:07.348, Speaker C: So a really simple example of kind of how this would work is you kind of do the same thing, but just instead of manipulating the price, manipulating oracles, you just manipulate the price. If you have like a decentralized protocol where it all depends on liquidity, you dump a bunch of liquidity in one side, it can ruin the price on the other side, and boom, you now have this arbitrage opportunity. So you're not actually manipulating the oracles, you're manipulating the liquidity and the pools themselves, and you're pumping and you build these artificial arbitrage opportunities. And like I said, some people argue that these are fine. These are how the protocols were designed to be. And so they're a little bit trickier and they're harder to find. But those are kind of the three types of tax we've seen.
+00:31:07.348 - 00:31:44.636, Speaker C: Obviously, the oracle tax are super easy to fix. Just get it. Use the decentralized price feeds. Using your price feed from the decentralized exchange that you're working on is not going to protect you at all. Thank you for digging the follow. Appreciate it. Using the price of the decentralized exchange isn't a defense against these attacks, because again, all these attacks we've seen, they're using dexes, which, dexs are great.
+00:31:44.636 - 00:32:29.144, Speaker C: We all use dexes, and dexes are great for what they are. They're these wonderful decentralized exchanges. But using them as your price feeds is going to hurt you. Using them as your price feeds is going to end up like some of these guys. So just kind of heed the warning, right? Don't do this. If you find yourself ever getting a price or ever getting any type of data, just think to yourself, really, okay, where am I getting this from? Is it from a single point? If it's from a Dex, answer is yes. You should probably swap it to chainlink decentralized price feeds, or chainlink decentralized oracle.
+00:32:29.144 - 00:33:04.132, Speaker C: So that's all I wanted to touch on, because, again, we've seen a lot of these attacks happening recently, and luckily, a lot of those in the chain link community have been fine, again, because they're using these price feeds. They're using these decentralized price feeds. But we as a defi community, we can't let this happen because we'll drive less adoption to defi in general, and we want people to be safe and reliable and secure. That's pretty much all I wanted to touch on. Apologies.
+00:33:04.276 - 00:33:05.240, Speaker B: I wasn't.
+00:33:08.140 - 00:33:34.556, Speaker C: Being competent with the call options. Smart contract. But yeah, go check out that blog. It'll show you how to do it, show you how to build your first defi protocol. We also have a ton of build defi project. We've also been putting up more articles on building your own defi apps. So we have this one on building your yield farming dap using chain link price feeds.
+00:33:34.556 - 00:34:04.376, Speaker C: It's really fantastic. A lot of people have been using it as a basis for a lot of their hackathon projects, which is great because it has a really clean interface inspired by DaP University. So thank him for that. Yeah, with that, just wanted to go over that. Are there any questions, any thoughts? Anybody feel like they're still vulnerable to attacks? And I know I'm a little bit delayed on the stream here, so I'll wait a quick minute for the stream.
+00:34:04.408 - 00:34:05.630, Speaker B: To catch up to me.
+00:34:35.740 - 00:34:56.764, Speaker C: If there's no questions, I'm happy to jump off a little early here. But yeah, if you guys have questions about anything, I guess we can probably branch off of d five flash on attacks. We can go into how to build something. If you're questioning about building something or.
+00:34:56.802 - 00:34:58.736, Speaker B: Anything of the sort, yeah, feel free.
+00:34:58.758 - 00:34:59.730, Speaker C: To let us know.
+00:35:08.480 - 00:35:09.308, Speaker B: Cool. Yeah.
+00:35:09.394 - 00:35:27.412, Speaker A: Thanks, Patrick. So you mentioned the blog with creating your own Defi application. I believe it's a farming one, right? If someone's just getting started as a developer, do you have other resources that you recommend they check out?
+00:35:27.546 - 00:35:32.644, Speaker C: Yeah, for sure, actually. And thanks guys for tuning in. For sure.
+00:35:32.842 - 00:35:34.820, Speaker B: Why is this saved? That's weird.
+00:35:35.800 - 00:35:44.264, Speaker C: So there's a ton of them, actually. So if you look up, are we talking about solidity in general or Defi? Yeah, I'd say both.
+00:35:44.302 - 00:35:46.104, Speaker B: If you can go through both.
+00:35:46.142 - 00:36:14.450, Speaker C: Yeah. Honestly, if you just type in learn solidity, you're going to get a ton of courses. I learned from a combination of sources. When I first was learning solidity, I took a udemy class, which I thought was really good, and I watched a lot of YouTube. I watched a lot of YouTube, I read a lot of guides. Just kind of like anytime I wanted to learn after I took kind of the basic course, I bounced around. DaP University is a great place.
+00:36:14.450 - 00:36:49.388, Speaker C: He's got great videos, his tutorials, his YouTube videos I think are the most thorough. And anybody from any kind of walk can kind of jump in and understand what he's doing. So they're very good. Solidity docs are very good. Crypto zombies is also a great place. So I would say those three places, udemy, DaP university, crypto zombies. We're working on trying to help other educators in the solidity space as well, so hopefully we'll have more answers for.
+00:36:49.394 - 00:36:50.430, Speaker B: You on that too.
+00:36:52.080 - 00:37:33.050, Speaker C: And then you said Defi protocols too. I don't think there's any courses for purely defi protocols. I think if you learn how to code solidity and then you do a little bit of a brushing up on your financial terminology, because all Defi really is. It's just the same financial tools just in this new space. I think that'll be really good. Obviously, with this new paradigm, because there's no company, they're run by these engineers, a lot of them are run by dows. But if you take a lot of the terminology and a lot of the core concepts, from traditional finance to Defi, it's going to be exactly the same.
+00:37:34.540 - 00:37:35.000, Speaker B: Cool.
+00:37:35.070 - 00:37:51.120, Speaker A: Yeah. Thanks for sharing. And again, everyone who's tuning in, if you have questions, definitely drop them into the chat. Whether related to this or other development related things that you're working on, now is a perfect time to get some feedback.
+00:37:54.180 - 00:37:57.556, Speaker C: Maybe we'll do another one of these and it'll be, well, obviously we're going.
+00:37:57.558 - 00:37:58.368, Speaker B: To do another one of these, but.
+00:37:58.374 - 00:38:03.504, Speaker C: Maybe the next one of these we'll do. We'll make it a little bit more, maybe we'll make it interactive.
+00:38:03.552 - 00:38:06.772, Speaker B: Maybe as a group, we'll build something. Maybe that will be fun.
+00:38:06.826 - 00:38:08.564, Speaker A: Yeah, I think that'd be really cool.
+00:38:08.682 - 00:38:11.864, Speaker B: Yeah, figure it out. Cool.
+00:38:11.982 - 00:38:16.808, Speaker C: Well, if that's it, I think we're all set here.
+00:38:16.974 - 00:38:17.448, Speaker B: Cool.
+00:38:17.534 - 00:38:50.070, Speaker A: Well, yeah, thanks a lot, everyone, for tuning in again. Join the Chainlink discord. Ask questions within the Chainlink discord. As mentioned yesterday, for developers, there's going to be some new cool things coming out, so keep an eye out and, yeah, definitely stay active and check out the chain link docs, too. There are some cool hidden features. So if you're just learning solidity, go through them, try them out, and walk through as.
+00:38:51.320 - 00:39:10.010, Speaker C: So, actually, just real quick, Eric, say, build an NFT using VRF. I actually just did this the other day. Eric, are you an engineer? Keenan, if you're game, I'm happy to do this right now.
+00:39:11.200 - 00:39:12.812, Speaker B: Yeah, okay.
+00:39:12.946 - 00:39:37.900, Speaker C: Eric, you an engineer? Are you looking to build an NFT using BRF? This delay, it makes it actually tricky to talk with anybody in the chat. I'm, like, watching myself. I think I just said it.
+00:39:42.130 - 00:39:43.120, Speaker B: Yeah, maybe.
+00:39:43.890 - 00:39:46.906, Speaker C: I am an engineer. I am an engineer.
+00:39:47.018 - 00:39:48.846, Speaker B: Okay, all right.
+00:39:48.868 - 00:40:34.240, Speaker C: Yeah, sure. I'll show that, actually, because I was just doing that. So we actually have an article on this, too, building an NFT with Chanel VRF. And I was literally just working on, like, a new version of that I was curious on. Yeah, I'm building a new version of doing that to make it a little bit, to make it viewable on Opensea. And for those of you here, actually, I'm going to drop the hint to watch some of the blogs and docs closely. That's all I'm going to say on that.
+00:40:36.290 - 00:40:38.766, Speaker B: There's some interesting stuff coming up in.
+00:40:38.788 - 00:40:48.930, Speaker C: The blogs and docs, but anyways, so here's a really simple code for making an NFT.
+00:40:49.830 - 00:40:51.090, Speaker B: I wonder if I can just.
+00:40:51.160 - 00:41:02.290, Speaker C: You guys want to see it from scratch, probably, right. I'm going to use this as my little cheat code that I'm going to refer back to. But yeah, sure, let's do one from scratch.
+00:41:04.550 - 00:41:12.006, Speaker B: Let's call this, ah, NfT sample soul.
+00:41:12.198 - 00:41:16.762, Speaker C: And then if we're good, hopefully we can build this in 20 minutes.
+00:41:16.816 - 00:41:17.420, Speaker B: Here.
+00:41:20.670 - 00:41:33.618, Speaker C: We'Ll call it random. Random. Random man. Random renew. What are we going to call it?
+00:41:33.624 - 00:41:35.090, Speaker B: Oh, this delay sucks.
+00:41:40.230 - 00:42:19.034, Speaker C: Random person, random NFT. We're going to call it random contract. Random NFT is ERc 721 vrf consumer base and honorable. So first thing, in order to make our random NFT, we need to inherit kind of the base standard for the ERC 721. Open Zeppelin has a ton of packages for building pretty much anything you want. And we're going to import from there and you'll see why in a second. We also want to import the Chainlink Vrf consumer base so we can interact with the VRF.
+00:42:19.034 - 00:42:25.906, Speaker C: We're also going to grab ownable and strings just because that's nice. We're going to do.
+00:42:26.088 - 00:42:42.360, Speaker B: I'm just going to flip for my cheat seas here. Yeah, we'll do constructor public because every NFT starts with.
+00:42:44.250 - 00:43:05.614, Speaker C: Or every contract starts with a constructor and with nfts. Since we're inheriting this ERc 721, we give it a name and a symbol. So let's call this random NFT and.
+00:43:05.652 - 00:43:08.266, Speaker B: We'Re going to call it RNFT.
+00:43:08.378 - 00:43:20.338, Speaker C: So the symbol is going to be this and this and to, since we're also importing the VRf consumer base, we need to give the piece of the VRF consumer base here.
+00:43:20.504 - 00:43:21.940, Speaker B: Hold on, let's go back.
+00:43:22.710 - 00:43:37.458, Speaker C: I'm just going to grab, I'm going to grab it from my little past code here. VRF coordinator, link token. And we need these for the VRF.
+00:43:37.634 - 00:43:38.070, Speaker B: Cool.
+00:43:38.140 - 00:43:52.346, Speaker C: So we have a constructor. We have the VRF consumer base. We have the ERc 721. This means that our NFT is going to be called random NFT symbol r nft. And we need this to interact with the VRF consumer.
+00:43:52.378 - 00:43:54.320, Speaker B: And we'll see that in a second.
+00:43:55.410 - 00:43:56.560, Speaker C: So cool.
+00:43:59.570 - 00:44:03.540, Speaker B: I'm actually just going to copy this because this is the main function.
+00:44:03.990 - 00:44:42.366, Speaker C: So now what we need to do is we need to make a function to kind of like get the random attributes for our NFT and we can kind of do whatever we want here. So let's say we want just something really simple. We want to give our NFT like a stat. We'll call it a u int 256 power or whatever your stead is.
+00:44:42.468 - 00:44:50.400, Speaker B: Excuse me, sorry about that.
+00:44:51.250 - 00:45:18.620, Speaker C: Whatever our random number is, right. So we're going to say un two six power. We're going to do power equals zero. We're going to initialize the power equals zero, but we're going to give it a bigger number. So we're going to do function request new random NFT. We always need to give it a un 256 seed. We'll give it a name.
+00:45:18.620 - 00:45:57.480, Speaker C: Oh wait, no, we don't need to give it a name. That's it. We just need to give it a seed. Actually, we're just going to call it request random stat. Yeah, we're going to call it request random stat. So we're going to give this random power, we're going to give our random NFT a random power step, right? So do this quick require, and this requires that we actually have link to make the call. And then we're going to do.
+00:46:01.610 - 00:46:01.878, Speaker B: We'Re.
+00:46:01.884 - 00:46:09.740, Speaker C: Going to call this request randomness with the key hash fee and.
+00:46:12.750 - 00:46:15.740, Speaker B: Seed. And we're going to have to.
+00:46:17.950 - 00:46:23.998, Speaker C: Request randomness is, I think that one's native, right?
+00:46:24.084 - 00:46:27.150, Speaker B: Like I don't need to define that. Yeah, I don't need to find it.
+00:46:27.220 - 00:46:37.730, Speaker C: So request randomness is a function that we're importing from the VRF consumer base and we're going to send it a key hash and fee, which we need to define, which it's specific for each network.
+00:46:38.070 - 00:46:41.086, Speaker B: So we're going to do, sorry, I'm.
+00:46:41.118 - 00:47:22.718, Speaker C: Kind of ripping around because I have ten minutes to do this. So key hash is going to be this and the fee is going to be that. So every oracle is going to have their key hash that you need in order to interact with their chainlink VRF. And the fee is obviously the amount of link that we're going to pay. So on the COVID network, which is what we're going to be doing here because again, I've already done this before, I'm blanking because we're charging 0.1 link on the COVID network here. So this is all the stuff we need to get set up and.
+00:47:22.804 - 00:47:23.102, Speaker B: Cool.
+00:47:23.156 - 00:47:29.250, Speaker C: So we're going to request this random number and if I'm jumping around, feel free to jump in.
+00:47:29.320 - 00:47:32.050, Speaker B: Sorry, in the delay here. That's kind of really annoying.
+00:47:32.630 - 00:47:36.754, Speaker C: We don't need to do any of that stuff. We don't need to do any of that stuff. So that's it.
+00:47:36.792 - 00:47:37.198, Speaker B: Boom.
+00:47:37.294 - 00:47:40.600, Speaker C: This is all the function needs to do. So what do we set up so far?
+00:47:41.210 - 00:47:44.578, Speaker B: And I don't need any of that's.
+00:47:44.674 - 00:47:51.814, Speaker C: Actually, we're going to make this a lot simpler. So we have our contract here. We have our NFT contract. It's a super simple NFT.
+00:47:51.942 - 00:47:53.580, Speaker B: We also don't need this.
+00:47:53.950 - 00:48:03.360, Speaker C: It's a super simple NfT contract. Once we deploy it, we're giving it a name right away in our constructor. We're calling it random NFT. And it's going to be.
+00:48:07.090 - 00:48:07.502, Speaker B: Even.
+00:48:07.556 - 00:48:10.510, Speaker C: Just let's even test it out. Let's make a quick script.
+00:48:14.950 - 00:48:25.800, Speaker B: Make a quick script. Shit. I should be on a different. Get checkout b. What is this? What are we doing?
+00:48:27.290 - 00:48:29.510, Speaker C: Builders session.
+00:48:31.530 - 00:48:34.434, Speaker B: Cool. This way I don't screw up any of my progress.
+00:48:34.482 - 00:48:58.650, Speaker C: I was doing before. New file. We're going to call it deploy Rnft js. And I'm just copying pasting from one of my other scripts here. I pretty much never start from scratch on any project moving forward because that's silly.
+00:48:58.730 - 00:49:00.080, Speaker B: Why would I ever do that?
+00:49:04.630 - 00:49:08.302, Speaker C: We're going to import. This should be capitalized.
+00:49:08.366 - 00:49:16.662, Speaker B: But actually, yeah, let's capitalize this. Rename Nft sample, actually.
+00:49:16.716 - 00:49:17.960, Speaker C: What did I call it here?
+00:49:20.410 - 00:49:24.582, Speaker B: Random Nft. Random Nft. That's all.
+00:49:24.636 - 00:49:26.360, Speaker C: Get the naming conventions down.
+00:49:28.270 - 00:49:32.330, Speaker B: Check it. Truffle. Compile. Compile.
+00:49:33.230 - 00:49:46.490, Speaker C: See if it even compiles. Would I have ten minutes to do this? I think I can do it. I have an issue. It's probably expected.
+00:49:48.750 - 00:50:05.954, Speaker B: What I do wrong. I it public. That's what I did wrong.
+00:50:05.992 - 00:50:08.486, Speaker C: Let's try again. I don't think my other contracts are.
+00:50:08.508 - 00:50:22.220, Speaker B: Going to compile either, actually, because I was messing with them. If they don't compile, I'll just delete them. Users, their issue here. What's the issue here?
+00:50:24.110 - 00:50:25.930, Speaker C: That needs a semicolon.
+00:50:31.810 - 00:50:33.582, Speaker B: What else? Yeah. Okay.
+00:50:33.636 - 00:50:39.082, Speaker C: And then now no visibility specified.
+00:50:39.146 - 00:51:12.700, Speaker B: Did you attend to add public? Yes, I did public. I think that that should be good. And then we can delete all these. I'm on a different branch so it's fine. Migrations. Great.
+00:51:14.910 - 00:51:19.014, Speaker C: Patrick, build a brand new random NFT from scratch.
+00:51:19.142 - 00:51:24.880, Speaker B: Yeah, I can do that. Hell yeah. In ten minutes. What is wrong now?
+00:51:25.730 - 00:51:30.080, Speaker C: Type error. Contract. Random NFC should be marked as abstract. Why?
+00:51:33.490 - 00:51:44.786, Speaker B: Relevant source parts spans across multiple lines. Missing implementation fulfill random. Okay, cool.
+00:51:44.888 - 00:52:03.746, Speaker C: Actually, so we're in a good spot so we need fulfill randomness. So request randomness is imported by this once we inherit it here. So we also need to define our function fulfill randomness because it's NFT airdrop.
+00:52:03.778 - 00:52:04.360, Speaker B: Sir.
+00:52:07.950 - 00:52:09.046, Speaker C: On the COVID network.
+00:52:09.078 - 00:52:09.660, Speaker B: Sure.
+00:52:10.670 - 00:52:13.680, Speaker C: So we need to bytes 32.
+00:52:16.130 - 00:52:16.880, Speaker A: Id.
+00:52:17.890 - 00:52:44.340, Speaker B: Un 256 randomness public. I think we actually do need to. Oh no, I just deleted everything, didn't I? Wall make this not public? Hold on.
+00:53:02.430 - 00:53:03.886, Speaker C: Sorry, I'm just checking a.
+00:53:03.908 - 00:53:16.030, Speaker B: Different branch contracts dungeons and dragons character.
+00:53:19.270 - 00:53:24.690, Speaker C: Internal override. That's right, this be internal override.
+00:53:26.630 - 00:53:26.994, Speaker B: And.
+00:53:27.032 - 00:54:01.920, Speaker C: This is important so that we can stay safe. Now we can do whatever we want here. So what we're going to do is we're going to take this power thing and we're going to have it equal to randomness. And this is what gets returned from our chain link VRF and we're going to mod it by, it should be between zero and 99. We should get a power number between zero and 99. And then what we can do.
+00:54:04.450 - 00:54:04.814, Speaker B: Is.
+00:54:04.852 - 00:54:06.530, Speaker C: We'Re going to safe Mint.
+00:54:11.110 - 00:54:24.310, Speaker B: Request to sender request ID. Oh no, we're not going to do that. Sorry. We're going to do that in the constructor.
+00:54:34.190 - 00:55:24.040, Speaker C: The NFT. This is a function also imported by the ERC 721. I have five minutes here and this actually mints the NFT. So safe mint. We can find out what these are in the open zeppelin docs. I believe this is going to be the token id which we're just going to keep it simple and we're going to have it be zero and request to sender and then this is going to just be message sender. So we're going to say the owner of this NFT is the sender and the token id.
+00:55:24.040 - 00:55:28.220, Speaker C: Yeah, the NFT id is going to be zero. So it's going to be the only one.
+00:55:29.230 - 00:55:30.874, Speaker B: It's going to be the only one.
+00:55:31.072 - 00:55:32.700, Speaker C: I believe I'm doing that right.
+00:55:33.250 - 00:55:33.614, Speaker B: Cool.
+00:55:33.652 - 00:55:35.310, Speaker C: Now if I run Truffle compile.
+00:55:39.980 - 00:55:42.170, Speaker B: See if it works. Doesn't work.
+00:55:42.620 - 00:55:44.388, Speaker C: Did you mean randomness?
+00:55:44.564 - 00:55:48.590, Speaker B: Yeah, I did. Thank you.
+00:55:49.520 - 00:55:51.150, Speaker C: Welcome to doing it live.
+00:55:54.960 - 00:55:58.670, Speaker B: Another issue. What's the issue?
+00:55:59.860 - 00:56:03.410, Speaker C: Function has override specified but it does not override anything.
+00:56:08.740 - 00:56:09.296, Speaker B: It.
+00:56:09.398 - 00:56:12.412, Speaker C: Am I spelling fulfill randomness wrong? I am.
+00:56:12.566 - 00:56:19.940, Speaker B: This should be lowercase. Cool.
+00:56:20.010 - 00:56:25.860, Speaker C: And we finally compiled yay. So now let's try to deploy it. I think we're like pretty much good.
+00:56:25.930 - 00:56:26.564, Speaker B: Is this it?
+00:56:26.602 - 00:56:28.340, Speaker C: Is this all we need to get a random NFT?
+00:56:28.420 - 00:56:29.690, Speaker B: I think this is it.
+00:56:31.260 - 00:56:39.630, Speaker C: So now let's do a quick deploy R Nft. So we're going to call this random NFT. Is that what I called this?
+00:56:43.200 - 00:56:48.280, Speaker B: Just close all this stuff equals require.
+00:56:48.360 - 00:56:59.680, Speaker C: So we're going to grab the artifact here. Module exports async callback. Const D equals we're going to await our NFt deployed.
+00:57:04.040 - 00:57:13.636, Speaker B: Does that deploy it? I think that deploys it. I forget. Get character now. Update character. No. Yeah, I think that deploys it.
+00:57:13.738 - 00:57:21.080, Speaker C: Wait. Random NFt deployed console log. Let's say deploying our nft.
+00:57:24.460 - 00:57:25.210, Speaker B: To.
+00:57:29.440 - 00:57:34.700, Speaker C: We'll get the address of the NFT. Await NFt.
+00:57:45.700 - 00:57:47.410, Speaker B: I think we need to give it.
+00:57:51.940 - 00:57:57.812, Speaker C: Constructor takes nothing, right? We're calling it this.
+00:57:57.946 - 00:57:58.630, Speaker B: Cool.
+00:57:59.720 - 00:58:09.856, Speaker C: And now we need to do this. Request random power function. Request random power. And we'll give it. That's the random seed.
+00:58:09.888 - 00:58:14.680, Speaker B: It doesn't take a second parameter callback, so cool. Let's try it.
+00:58:14.750 - 00:58:15.770, Speaker C: So we'll do.
+00:58:16.860 - 00:58:19.500, Speaker B: Do I have this in my migrations? Oh, crap.
+00:58:23.690 - 00:58:25.560, Speaker C: I need to migrate first.
+00:58:26.490 - 00:58:31.586, Speaker B: Let's do. So.
+00:58:31.628 - 00:58:33.686, Speaker C: We need to migrate first. Once we migrate.
+00:58:33.718 - 00:58:43.946, Speaker B: Am I already at time? I have two minutes left. Sorry. Kind of going quickly here.
+00:58:44.128 - 00:58:50.554, Speaker C: So our migrations is what we're going to run first equals rink B. Shit.
+00:58:50.602 - 00:59:00.610, Speaker B: We're going to do it on. We're just going to ignore rinkby for now. Ignore this. Wait.
+00:59:00.680 - 00:59:07.620, Speaker C: Deploy to deploy random NFt. Let NFT equals await deployed console log.
+00:59:08.070 - 00:59:11.794, Speaker B: NFT address. That should work. So cool.
+00:59:11.912 - 00:59:18.438, Speaker C: Let's try this. So now we'll do truffle then. What do I have for rink b?
+00:59:18.524 - 00:59:20.466, Speaker B: I only have rink b for networks.
+00:59:20.498 - 00:59:22.120, Speaker C: I got to add coven here.
+00:59:25.290 - 00:59:40.106, Speaker B: Coven. Can I do it in, like, one more minute? 42. Truffle.
+00:59:40.138 - 00:59:48.766, Speaker C: Compile migrate.
+00:59:48.958 - 00:59:53.330, Speaker B: Reset network. Coven.
+00:59:53.830 - 01:00:08.326, Speaker C: And this should deploy it to Covid. And then we should be able to run our script and pull a random number. And that'll be a random nft in 15 minutes.
+01:00:08.428 - 01:00:09.990, Speaker B: So that's pretty crazy.
+01:00:10.060 - 01:00:44.244, Speaker C: Unless I didn't do it. Random nft is not defined. Well, that makes sense because I didn't import it. So let's import it. Let's try over. I'm past time. I'm sorry, guys.
+01:00:44.282 - 01:00:45.380, Speaker B: I was too slow.
+01:00:46.440 - 01:00:49.096, Speaker C: Well, this is kind of fun. Anyways, we talked about Defi, and then.
+01:00:49.118 - 01:00:51.400, Speaker B: We switched to random nfts.
+01:00:53.260 - 01:00:54.548, Speaker C: I guess I was kind of itching.
+01:00:54.564 - 01:00:59.580, Speaker B: To do this because I kind of just hopped on Eric. Cool.
+01:00:59.650 - 01:01:11.600, Speaker C: And it looks like we have our random nft. Yeah, pretty much. It's pretty straightforward.
+01:01:13.540 - 01:01:14.272, Speaker B: So cool.
+01:01:14.326 - 01:01:17.810, Speaker C: We just deployed it. Now we'll fund it.
+01:01:20.260 - 01:01:27.060, Speaker B: Let's do this. Actually make it super easy for ourselves. Random.
+01:01:29.000 - 01:01:30.768, Speaker C: Quick replace.
+01:01:30.944 - 01:01:34.890, Speaker B: We can get rid of this battle stuff because I'm not doing this battle stuff.
+01:01:36.060 - 01:01:39.720, Speaker C: We're going to want to fund it. So do blah blah.
+01:01:41.580 - 01:01:52.750, Speaker B: Battles get wait. We're going to fund it the old fashioned way.
+01:01:53.920 - 01:01:56.670, Speaker C: I'm just going to send it some link just because I don't feel like.
+01:01:57.440 - 01:02:13.206, Speaker B: Writing a funding script. If my metamask will work, which it seems like it finally is.
+01:02:13.228 - 01:02:16.570, Speaker C: I know you guys can't see this but I'm sending.
+01:02:39.430 - 01:03:08.900, Speaker B: Come on buddy. Come. It should be enough you it to.
+01:03:15.830 - 01:03:19.374, Speaker C: Request a random power. So it's actually already deployed. So this is a bad name.
+01:03:19.432 - 01:03:27.720, Speaker B: We're going to rename this to request random and cool.
+01:03:28.250 - 01:03:37.050, Speaker C: And it looks like my link is still going through. It looks like it just finished. So now we do truffle exec.
+01:03:41.230 - 01:03:54.702, Speaker B: Scripts. Request random network coven see if this works. This is wrong.
+01:03:54.756 - 01:04:31.846, Speaker C: It should be requesting randomness from this thing. Once it pulls this we should be able to see the random power on Etherscan. So we can read it on Etherscan.
+01:04:31.878 - 01:04:32.890, Speaker B: A little bit easier.
+01:04:36.130 - 01:04:38.654, Speaker C: Going a little bit over. But we're doing something fun.
+01:04:38.692 - 01:04:39.680, Speaker B: So it's cool.
+01:04:47.000 - 01:04:51.240, Speaker C: It's it's pretty straightforward.
+01:04:55.820 - 01:05:06.030, Speaker B: Once it actually deploys random power.
+01:05:12.240 - 01:05:15.970, Speaker C: No worries. This was kind of fun. Appreciate the ask.
+01:05:18.260 - 01:05:19.650, Speaker B: I'm just trying to see.
+01:05:21.780 - 01:05:22.336, Speaker C: Why is.
+01:05:22.358 - 01:05:35.504, Speaker B: This function taking so long. Require link to bounce not a flank fill contract with faucet. I get stuck here on this request.
+01:05:35.552 - 01:05:49.950, Speaker C: Random power maybe went through already.
+01:05:57.540 - 01:05:59.840, Speaker B: Let's go check out ether scan.
+01:06:06.680 - 01:06:09.300, Speaker C: Yeah it looks like that errored.
+01:06:13.000 - 01:06:24.390, Speaker B: Let's try it again. Show you. Show you.
+01:06:26.520 - 01:06:28.470, Speaker C: What ether scan is showing me.
+01:06:31.240 - 01:06:33.470, Speaker B: Why me? Ah.
+01:06:38.640 - 01:06:47.584, Speaker C: Ether scan is telling me hey, I did something wrong. These are the last two that went in.
+01:06:47.702 - 01:06:49.280, Speaker B: They both failed.
+01:06:50.740 - 01:06:53.410, Speaker C: So that means I messed something up.
+01:06:58.260 - 01:07:01.612, Speaker B: Area the area.
+01:07:01.766 - 01:07:10.468, Speaker C: So we have some ten link in here which is great token tractor. It's called random nft rnft. We can see that on ether scan.
+01:07:10.484 - 01:07:16.330, Speaker B: Which is kind of cool but it looks like we messed something up.
+01:07:17.660 - 01:07:28.190, Speaker C: So it'll probably take me another couple of minutes to triage it but let me just take and I know I'm super over. I'm just going to quickly look at.
+01:07:30.160 - 01:07:32.300, Speaker B: The docs here to see if I messed something up.
+01:07:32.370 - 01:07:33.816, Speaker C: Oh, it's because of returns.
+01:07:33.928 - 01:07:42.416, Speaker B: Ooh, returns. Yeah.
+01:07:42.438 - 01:07:52.500, Speaker C: So I'll have to recompile and redeploy after doing a couple of changes. But that's basically it. And yeah you could have a random nft that simple.
+01:07:52.570 - 01:07:53.190, Speaker B: Just.
+01:07:56.600 - 01:08:05.044, Speaker C: Change the code so that it's not so that it's so that this.
+01:08:05.082 - 01:08:06.020, Speaker B: Function is actually correct.
+01:08:06.090 - 01:08:22.860, Speaker C: Well, but that's it. I know. I ran a little bit over. We ended up doing something kind of fun in addition to learning how to protect ourselves against defi attacks. But, yeah, that's it. If you guys have any other thoughts or questions or something that you want to see, let me know and be happy to demo. So awesome.
+01:08:22.860 - 01:08:23.800, Speaker C: Thanks, guys. Bye.
