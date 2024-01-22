@@ -5,7 +5,7 @@ import time
 import random
 from functools import partial
 
-from src.Llama_index_sandbox.utils.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory, timeit
 
 
 def format_time(ms):
@@ -97,7 +97,7 @@ def process_transcript(file_path, log, sentence_count=7):  # TODO 2023-10-05: th
         if log:
             print(f"Error processing {output_filename}: {e}")
 
-
+@timeit
 def run(log=True):
     data_directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
 
