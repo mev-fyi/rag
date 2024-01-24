@@ -1,6 +1,8 @@
 import logging
 import os
 import time
+from datetime import datetime, timedelta
+
 import tweepy
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.retrieve import ask_questions
@@ -46,6 +48,18 @@ class TwitterBot:
             authors_weights=CustomQueryEngine.authors_weights,
             recompute_weights=True
         )
+        self.last_reply_times = {}
+
+    def should_reply_to_user(self, user_id):
+        """
+        Determines if the bot should reply to a specific user based on rate limiting.
+        :param user_id: The user ID to check
+        :return: True if the bot should reply, False otherwise
+        """
+        if user_id not in self.last_reply_times:
+            return True
+        time_since_last_reply = datetime.now() - self.last_reply_times[user_id]
+        return time_since_last_reply > timedelta(seconds=30)  # Change the time limit as needed
 
     def process_webhook_data(self, data):
         """
@@ -56,26 +70,30 @@ class TwitterBot:
         if 'tweet_create_events' in data:
             for event in data['tweet_create_events']:
                 user_id = event['user']['id_str']
-                tweet_id = event['id_str']
-                tweet_text = event['text']
+                if self.should_reply_to_user(user_id):
+                    tweet_id = event['id_str']
+                    tweet_text = event['text']
 
-                # Check if the tweet is a reply or quote
-                if 'in_reply_to_status_id_str' in event or 'quoted_status' in event:
-                    command, _ = self.extract_command_and_message(tweet_text)
+                    # Check if the tweet is a reply or quote
+                    if 'in_reply_to_status_id_str' in event or 'quoted_status' in event:
+                        command, _ = self.extract_command_and_message(tweet_text)
 
-                    if command == "thread":
-                        message = self.fetch_thread(tweet_id)
-                    elif command == "tweet":
-                        message = tweet_text
-                    else:
-                        message = tweet_text  # Default behavior
+                        if command == "thread":
+                            message = self.fetch_thread(tweet_id)
+                        elif command == "tweet":
+                            message = tweet_text
+                        else:
+                            message = tweet_text  # Default behavior
 
-                    # Process the message
-                    response = self.process_chat_message(message)
-                    if response:
-                        self.reply_to_tweet(user_id, response, tweet_id)
-                    else:
-                        logging.error("No response generated for the tweet.")
+                        # Process the message
+                        response = self.process_chat_message(message)
+                        if response:
+                            self.reply_to_tweet(user_id, response, tweet_id)
+                            self.last_reply_times[user_id] = datetime.now()
+                        else:
+                            logging.error("No response generated for the tweet.")
+                else:
+                    logging.info(f"Rate limit: Not replying to {user_id}")
         else:
             logging.error("Webhook data does not contain tweet creation events.")
 
