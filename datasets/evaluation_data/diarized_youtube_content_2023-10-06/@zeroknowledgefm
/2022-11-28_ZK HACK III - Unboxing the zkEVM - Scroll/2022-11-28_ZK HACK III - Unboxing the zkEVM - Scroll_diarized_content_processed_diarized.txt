@@ -1,0 +1,234 @@
+00:00:09.290 - 00:00:13.550, Speaker A: Hi everyone. So my name is Orel from Scol.
+00:00:15.730 - 00:00:19.070, Speaker B: I'm joined today by Guillaume.
+00:00:20.130 - 00:00:25.058, Speaker A: Guillaume is a developer on Geth, the Ethereum node.
+00:00:25.194 - 00:00:33.110, Speaker B: So that has a regular EVM inside and here like you to learn about ZK EVM.
+00:00:37.770 - 00:01:22.534, Speaker A: So what is score? So score is a ZK wallup. So for scaling Ethereum, and it attempts to be EVM equivalent as much as possible. So that means it can read the bytecode from the solidity compiler and modifies and it even calculates the gas and as many details as possible. So vision of scroll and Vzkorap. So again, scaling. It's all in the open, everything open source and everything is meant to be decentralized. It's not easy to do so it will take time.
+00:01:22.534 - 00:01:26.710, Speaker A: But teams are working on decentralization.
+00:01:28.010 - 00:01:31.714, Speaker C: What about secrecy, is that also a norm?
+00:01:31.772 - 00:02:40.564, Speaker A: No, that's not in scope. The model of the EVM is really difficult to make private because it's an account model. And if you want to do a private protocol, let's say the other people, they need the state to make their own transaction, right? So if I send a private transaction that is kind of encrypted, other people are not going to be able to continue and spend their own money or do their own action contract. So it's pretty difficult to make a private EVM. You need another model basically of computation. It is possible, it's just very different. So how does roll up work? So we have Mainnet, so there's going to be a smart contract on Mainnet, but it's smart contract, it holds basically the state wood.
+00:02:40.564 - 00:03:32.410, Speaker A: So I hope you're familiar with Merkel trees and such. So it's the root of the current state of the roll up. And the smart contracts want the next state and just updates the next state like this. And that will commit all the transactions from the roll up player. So the roll up is another chain with a whole lot of transactions happening there on layer two. And we'll send a proof to the main net contract that all those transactions are correct, or that the side effects are correct. And the smart contract will just update this route, which is very small compared to the amount of computation that was happening there.
+00:03:32.410 - 00:04:42.080, Speaker A: The data of the transaction is still on Mainnet, on Ethereum Mainnet. So the decentralization of Ethereum will guarantee that this data is always available. So you can always connect to some Ethereum node and get a compressed form of all the transactions of the Europe. So it's much smaller than the transactions on Ethereum. For instance, they don't have signatures and they are compact in some way, but they are enough to reconstruct what's happening on the orap. So that's the contract improved. So in the architecture of score, there's a relayer that reads this data or updates it, the transaction data that I just mentioned, and it also synchronizes the contract, share the proofs with it and the sequencer.
+00:04:42.080 - 00:05:22.060, Speaker A: Sequencer, it means it's like gap, right? It's actually modified get. So it's what you connect your metamask to, and it can tell you what is your balance and it can accept your transfer transactions or your contract transactions and going to prepare them into a block. So from there it needs send it to approver. So approver is a separate component because it's very big. It's like a supercomputer that generates DK proofs, goes back to the sequencer and relayers to synchronize.
+00:05:23.840 - 00:05:31.970, Speaker C: Several things. So the prover does not basically blindly trust what the sequencer is doing.
+00:05:32.340 - 00:06:03.700, Speaker A: Yeah, it's a service for this sequencer. Right. Okay, here is my block and give me a proof. It's a big machine with a lot of gpus inside, okay. And right now, so in this version of score running on Testnet, it's basically altogether in a cloud. So that is same organization, but then not shown here. It's meant to be decentralized.
+00:06:03.700 - 00:06:25.068, Speaker A: So you will have everybody can run their own proof and be paid for it, and they just have to accept a block, run the proof, send the proof, and the proof is correct, they will be rewarded and the sequencer has something to satisfy the contract on Mainnet.
+00:06:25.244 - 00:06:38.100, Speaker C: And so if the sequencer is some kind of modified geth, what consensus algorithm does it use? And is that part of the thing that has been proven by the CKDM?
+00:06:38.840 - 00:07:03.900, Speaker A: Yeah. So again, that's two phases, right? That's the phase where it's not decentralized, it's not decentralized, but it's trustless in correctness, right? So the sequencer cannot cheat, cannot make fake transaction or something or steal someone's money, but it's centralized like you have to send information to it. And then in the decentralized phase.
+00:07:08.240 - 00:07:09.390, Speaker C: What kind of.
+00:07:13.620 - 00:07:21.732, Speaker A: I don't know, honestly, there is a team at core that does research about that. So it's in research.
+00:07:21.866 - 00:07:22.212, Speaker B: Right.
+00:07:22.266 - 00:07:31.860, Speaker C: But will the aspects of the consensus, will they also be proven or is it just the execution that gets proven by the proverb?
+00:07:35.340 - 00:08:14.710, Speaker A: However, the main net verifies the consensus of the roll up. I don't think so I would call it the first phase then, because it's even more difficult. But that's also possible. That's something. For instance, Mina, does that like the decay proof of consensus as well? No, but first you have a consensus of the world. And actually the goals and the constraints of the consensus of a warrant are different than this of a blockchain. So that's why it's an area of research.
+00:08:14.710 - 00:08:22.368, Speaker A: They doesn't have to do the same things. But that's not my experience.
+00:08:22.474 - 00:08:22.744, Speaker B: Right.
+00:08:22.782 - 00:08:29.480, Speaker C: I don't want to trail off too much, but in what respect? Okay, it's not your area of expertise.
+00:08:30.940 - 00:08:52.508, Speaker A: The important part, when we say we decentralize the sequencer, it's about censorship, resistance, right? So if a sequencer doesn't like you, you can always find another sequencer to include your transaction in some future block. So that's the decentralization of sequencer.
+00:08:52.604 - 00:09:14.196, Speaker C: And a quick question. If someone. Okay, you are a sequencer and I want to prevent you from. So you're a sequencer and you refuse to censor me, for example. But someone else doesn't want to build on top of your proof. Can they do this? Can they block you this way to.
+00:09:14.218 - 00:09:16.600, Speaker A: Build on top of your proof?
+00:09:17.020 - 00:09:26.168, Speaker C: Like you push your data, you push your proof to the roll up and somehow can they decide, I'm not going to build on top of that block on that?
+00:09:26.334 - 00:09:53.680, Speaker A: Well, that's the difference of consensus between Mainnet and roll up, right? Because really we rely on the consensus of the main net. So once this wall of contract says that there's a new block, you don't have like a rule of longest chain or something like you don't have another chain. Right. When the main net contract approved the block, then that's the top of the chain.
+00:09:53.760 - 00:09:54.390, Speaker C: Okay.
+00:09:55.080 - 00:09:57.284, Speaker A: So everybody builds on top of it.
+00:09:57.402 - 00:10:07.240, Speaker C: And the only thing that goes into the rule of contract is to say the proof is correct. You can't say the proof doesn't follow my consensus rules.
+00:10:10.460 - 00:10:15.924, Speaker A: Yeah, it's more the contract that will enforce the consensus rule.
+00:10:15.972 - 00:10:16.588, Speaker B: Right? Right.
+00:10:16.754 - 00:10:41.776, Speaker A: So in the not decentralized way, simple is just like an admin privileged account of its sequencer or multisig. And that's like consensus. So the contract sees from where it accepts it. And if we do. Decentralized consensus. Yeah. The mainnet contract has to verify that this comes from the contract protocol.
+00:10:41.776 - 00:11:20.110, Speaker A: So maybe it's not verified in ZK, but verified in smart contracts. I'm not completely sure. And this is in research, so I guess we'll have more communication about that in the future for sure. All right, so now let's focus on the ZKe EVM that this contract wants. Or maybe I can check for questions first if there's anything. I'm not sure.
+00:11:20.720 - 00:11:21.870, Speaker D: Not yet.
+00:11:22.320 - 00:11:25.376, Speaker A: Yeah, so just tell us if we.
+00:11:25.398 - 00:11:26.860, Speaker B: Should go to the chat.
+00:11:27.020 - 00:11:28.672, Speaker D: I will, I'll jump on.
+00:11:28.806 - 00:11:29.488, Speaker B: Thanks.
+00:11:29.654 - 00:11:31.170, Speaker A: Or if I need to show.
+00:11:31.480 - 00:11:35.910, Speaker D: No, it's cool. Just one thing, when you're talking, make sure you're in the screen.
+00:11:36.280 - 00:11:36.884, Speaker B: Okay?
+00:11:37.002 - 00:11:40.128, Speaker D: Yeah, exactly. Because you were a little bit off earlier.
+00:11:40.304 - 00:11:42.900, Speaker A: This is a directional microphone.
+00:11:45.240 - 00:11:46.710, Speaker B: Cool, keep going.
+00:11:47.080 - 00:12:37.130, Speaker A: So ZKVM, now, the particular one that we're talking about, it's a project of Ethereum foundation privacy and scaling, exploration and collaboration with skull. So APSC group is interested in that because it's to make proofs about validity of the mainnet block. So to make a kind of lighter node. Right. So eventually, maybe in some years we can have lighter nodes, but just verify the proof. Someone makes a proof and then you only verify the proofs of the blocks. And you don't have to have all those terabytes of data to verify it yourself, however big the node is these days.
+00:12:37.130 - 00:13:03.200, Speaker A: So that's the goal for Ethereum and for scroll if part of your work. But that's the same code base mostly. So what does EVM have to prove? So if people have ids, what does EVM do? Or if you have ids.
+00:13:05.060 - 00:13:07.600, Speaker C: It executes EVM contract.
+00:13:08.420 - 00:13:18.272, Speaker A: Yes. So it has to execute the contracts. So step by step. So first get the transactions.
+00:13:18.336 - 00:13:18.900, Speaker B: Right.
+00:13:19.050 - 00:13:24.452, Speaker A: That's verify the transactions like this encoded complex transactions.
+00:13:24.596 - 00:13:49.164, Speaker C: I mean execute the transactions first and then if you're on the producer end, then verify them if you're on the receiver end. But I assume if you're using ZK rollups, you don't really have to verify. I mean you're not going to verify directly like it's currently done in geth. You don't re execute the program.
+00:13:49.362 - 00:13:59.152, Speaker A: Oh yeah, it does. So VzkVm kind of executes the program when producing blocks. Yes.
+00:13:59.286 - 00:14:00.988, Speaker C: Not when verifying.
+00:14:01.164 - 00:14:42.480, Speaker A: Not when verifying. So the verifier is a kind of, verifying a proof is kind of like a compressed way of verifying the entire thing. When you make a proof, there's a circuit and you can think of the circuit of the computation inside of the proof as being the verifier, like virtually. Right. It's like a virtual verifier that you try to convince as approver. And this verifier is this virtual thing is executing the contract step by step. So when you have your solidity smart contract.
+00:14:42.480 - 00:15:06.890, Speaker A: So it's in bytecode starts at bytecode index zero and goes to the next one and the next one, sometimes it jumps and so on. Right. So it has to do this step by step execution. Well, it has to verify the bytecode also, because where does the bytecode come from?
+00:15:12.700 - 00:15:14.170, Speaker C: You're still asking me.
+00:15:14.560 - 00:15:49.590, Speaker A: Yeah. Prove the execution traits of the state transition. Yeah, that's good way. Yeah. The bytecode where comes from, the proverb gives the bytecode and the verifier wants to do what? Basically recalculate the hash of the bytecode. Because the account on Ethereum. So a contract account, it stores only the hash of its bytecode somewhere, right? Yeah.
+00:15:51.720 - 00:16:00.500, Speaker C: I'm talking about guest. You have to store the code, of course, but yes, the account only has a hash reference to the code that is stored.
+00:16:00.660 - 00:16:53.940, Speaker A: And when there is a call to it, you have to go to your database, load this bytecode. So if Hooga does the same load this bytecode, but then you have to also recalculate the hash because it's sort of like temporary in memory of ZKVM. So it recalculates the hash. To see that it's a question too high level. For now, we'll go back to it. What else does it need to do? It needs to recalculate the state woods yes, because when we go to viewer contract, we're only going to give a wood, right? Like 32 bytes. Well, the contract, it has the previous wood and the next wood.
+00:16:53.940 - 00:17:19.308, Speaker A: So that's like 32 bytes each. So the ZKVM has to, whatever it reads from storage, it has to check that it is included in the old state roots. It has to do merkel paths and the things that changes. It has to do a mercury path to renew state roots. So it has to verify all its storage access.
+00:17:19.494 - 00:17:52.988, Speaker C: So there's a lot of information associated with the execution of a contract. And the ZkAVM needs to validate outside of ZKVM, in the regular EVM, there's a lot of cryptographic primitives used, like, let's say classic cryptographic primitive used to validate that the data you are passed is correct. And you need to do the same thing in the ZKVM, the same kind of verification, but presumably in a more ZK way.
+00:17:53.154 - 00:18:16.980, Speaker A: Yeah. So ZK part it's cryptography. And inside there is cryptography. The actual thing you compute is cryptographic like hash function in the mercury, for instance, and verifying signatures from the transactions. So it has to do that as well. So it's also cryptography. It makes sense.
+00:18:16.980 - 00:18:41.740, Speaker A: Every time you have ZK circuit, what are you going to do inside? There is always going to be some cryptography inside, like, to communicate between the circuit and the outside. So there may be a lot of data inside of a circuit that is being proven, something about good English.
+00:18:43.600 - 00:18:43.964, Speaker B: But.
+00:18:44.002 - 00:18:48.496, Speaker A: It has to kind of calculate a hash of it. Some kind of commitment to the outside.
+00:18:48.598 - 00:18:49.152, Speaker B: Right.
+00:18:49.286 - 00:19:17.240, Speaker A: But the outside knows what the circuit was talking about all this time, like the state code or also the hash of the transactions. So it's always like this. But the ZK circuit is always about cryptography inside. And that's why we are so concerned about finding primitives that are efficient in ZK for hash functions. Everybody, like, they put the Eigen function, for instance.
+00:19:18.220 - 00:19:57.284, Speaker C: Yeah, because the problem with the current state of Ethereum is that we're relying on some cryptographic primitive, which is called the ketchack, which is one of the precursor to sha and Sha three. And this is something that really doesn't play nice with ZK circuits. So do you use other primitives inside because you have control over this sequencer, you could decide to change something while not changing the functionality. You could change the flavor of some hash function.
+00:19:57.482 - 00:20:10.888, Speaker A: Exactly. Yeah. And it goes back to what it means to be equivalent. So if we change the hash function of the state roots of the mercury tree, is it still equivalent or not? I think so.
+00:20:11.054 - 00:20:13.400, Speaker C: It's equivalent, but it's not compatible.
+00:20:14.220 - 00:20:18.888, Speaker A: It's not compatible on the byte, like serialization.
+00:20:18.984 - 00:20:19.340, Speaker B: Right?
+00:20:19.410 - 00:20:37.980, Speaker A: Yeah, but from the point of view of a smart contract, the contract doesn't care. It just says, I want to read and write into the storage. And it doesn't even have to know that there is a Merkel tree or passion. Absolutely. But there are other places where the smart contract explicitly wants a ketchup.
+00:20:38.060 - 00:20:38.400, Speaker B: Right.
+00:20:38.470 - 00:20:42.544, Speaker A: And if it's not a ketchup, it's a different value and it's going to be incompatible with something else.
+00:20:42.582 - 00:20:43.490, Speaker C: Yeah, that's true.
+00:20:44.260 - 00:21:01.720, Speaker A: There are both. So in ZKVM, there are both hash functions. There is the ketchup one, which is a bit more expensive, and the cheaper one, which is the Poseidon. So it has both. Depends on places. So solidity does a lot of catch track inside. Right.
+00:21:01.720 - 00:21:10.012, Speaker A: Every time you read, every time you use the storage, it does the ketchup to find the key of storage. And this we are going to do as well.
+00:21:10.146 - 00:21:11.710, Speaker C: You have a question?
+00:21:13.920 - 00:21:15.068, Speaker A: I have to move here.
+00:21:15.154 - 00:21:19.496, Speaker C: No, it was right here. Can you discuss scrolls, work on GPU?
+00:21:19.608 - 00:21:32.080, Speaker D: Yes, we have actually just one thing about the questions. You might want to start at the bottom. So if you look, there's some that were answered that was from the previous session, and then you might want to work your way up, just FYI.
+00:21:32.160 - 00:21:33.316, Speaker B: Oh, wow.
+00:21:33.498 - 00:21:35.236, Speaker D: No, five questions.
+00:21:35.338 - 00:21:40.784, Speaker A: There is a q and a tab, but this is still about the over. So here I'm in the chat tab.
+00:21:40.832 - 00:21:41.430, Speaker B: Right.
+00:21:41.880 - 00:21:51.208, Speaker D: You should say Q and a. If you click on Q and a. Q and a go sessions. Q and A. Oh, you have to.
+00:21:51.214 - 00:21:52.250, Speaker B: Go at the top.
+00:21:53.740 - 00:21:59.390, Speaker A: This is so confusing. This is the opposite of every other product.
+00:22:00.320 - 00:22:01.916, Speaker D: Well, we've been using it for a while, but.
+00:22:01.938 - 00:22:02.316, Speaker B: Yeah.
+00:22:02.418 - 00:22:03.564, Speaker D: Do you see it?
+00:22:03.762 - 00:22:04.750, Speaker C: Just like.
+00:22:11.140 - 00:22:16.560, Speaker A: So. Yeah, we have an entire team working on the poober here, which is the GPU.
+00:22:17.940 - 00:22:18.690, Speaker B: Yes.
+00:22:20.100 - 00:22:34.200, Speaker D: I need to interrupt you real quick. You do need to read out the question that you're answering, because video, we won't actually know what you're reading. So say the question, give the answer. And just to note, there's four of them there that you want to answer.
+00:22:34.350 - 00:22:37.384, Speaker B: Someone is asking about Cole's work on.
+00:22:37.422 - 00:23:08.556, Speaker A: GPU acceleration, and yes, there's an entire team working on that. So you have basically approver implementing in CUDA. And a lot of improving can be done in parallel. Not all of it. So we have still bottlenecks, but a lot of it can be in parallel. And on gpus. It's very effective.
+00:23:08.556 - 00:23:51.504, Speaker A: It's all arithmetic, so it's really important. And now if you move away from proof of work, we have a lot of gpus available, right? Yes, and we use ridiculously big GPU, whatever is available. Privacy feature. So does VM have privacy features? So we explained that, no, because of the account model of the EVM. It's very difficult. What are the security challenges you are facing or will face in ecommerce? So this is very actual. So we're running the security audits now.
+00:23:51.504 - 00:24:55.620, Speaker A: It's starting now. And there are so many. I have a lot of slides about that. So one of them is, you want to be deterministic, so you have the old statehood, and you have the transactions, and that implies the new statehood. So you have to be very careful. There are so many steps, and it has to be all deterministics into the new state, because otherwise, before I explained earlier that other people will not be able to make new transactions or to continue the warrant, because if you can generate another state that is not deterministic and that's different. What other people would want with the wholeness software, then other people will not know what is inside of the state and so they cannot make Merkel path anymore.
+00:24:55.620 - 00:25:56.040, Speaker A: So very important to be deterministic and then of course important to be correct. All the rules of this smart contract must be implemented. There are so many quirks. Then you have another security aspect, which is the security of smart contracts. So the solidity compiler and the smart contract developers, they make some assumptions about how the EVM works. So of course there is this spec, the yellow paper, but there are also other assumptions, a lot of details that they rely on, and they rely on the latest eips. So you want that when people deploy smart contracts on the wall up, that it is towards the same, it's as secure.
+00:25:56.040 - 00:26:37.092, Speaker A: For instance, if smart contract needs to run a big transaction sometimes, and that uses a lot of gas. Of course developers have to be careful that this big transaction fits into a main net block, but now they have to be careful also that it fits on a wallet block. So ideally it will be as big in capacity. But if it's not, they have to design this smart contract to have smaller functions. There are so many, that's the main thing.
+00:26:37.146 - 00:27:03.324, Speaker C: Right, sorry. You also have potentially, because if you're using Poseidon, most people trust it, but there's still some suspicion about the eventual security that Poseidon brings. Is that also something you, I mean, I assume you must look into that, into the safety of the core primitives you're using.
+00:27:03.442 - 00:27:38.360, Speaker A: Yes, and that's two things you need to believe in, the cryptography of the hash function and the cryptography of the proving system also. And you need to trust also the implementation. Yes, the implementation of it in circuit. And again, both PSE and School have teams of cryptographers looking into this. So lots of crypto, what else? Insecurity.
+00:27:41.420 - 00:27:43.930, Speaker C: Yeah, maybe we can get another question.
+00:27:45.120 - 00:27:54.300, Speaker A: But there are a lot of security questions. Any other question or maybe we move on to the next topic.
+00:27:55.360 - 00:27:56.990, Speaker C: There was a question at the top.
+00:27:58.640 - 00:28:07.090, Speaker A: Is the communication between sequencer and relayer real time or is it scheduled? I don't know. I don't know what to say.
+00:28:07.460 - 00:28:26.360, Speaker C: Well, I mean, it's got to be scheduled at least between the relayer and the sequencer, depending on how the sequencer works. But if it's like block based, it has to follow the clock of the block production. So somehow it's at least somewhat scheduled, I assume.
+00:28:27.180 - 00:29:03.760, Speaker A: Yeah, I'm not sure what is meant by scheduled, but I can show something. Yes. So presentation from year, you see the sequence, it's a pipeline, actually, of proof generation, like that. So t that's trace. So that's a block, that's all the mini steps inside of a block with all the transactions. Okay, you have here a block, right?
+00:29:03.830 - 00:29:10.256, Speaker C: So basically, if I understand correctly, the sequencer is really just like geth producing blocks.
+00:29:10.368 - 00:29:11.270, Speaker A: And then.
+00:29:13.320 - 00:29:31.740, Speaker C: Whatever you call it, the coordinator will generate, the prover, basically will follow the chain, maybe a bit behind, and produce proofs, possibly for a series of blocks to keep catching. So yeah, it looks like indeed.
+00:29:33.440 - 00:29:33.816, Speaker B: It'S.
+00:29:33.848 - 00:29:59.892, Speaker C: Both real time and scheduled in this way, I assume, because it's scheduled in the sense that blocks get produced with some regularity and then it's real time in the sense that you still need to be able to generate proofs. That requires a lot of computation. So it becomes available when it's ready?
+00:29:59.946 - 00:30:23.150, Speaker A: Basically, yes. And the provers, or we call them Wallace, they really work as a service. They're not the one communicating with chain, it's the sequencer request. Please make me a proof. And when it's there, then it can. Again, this is not my, so maybe I will say something wrong, but.
+00:30:27.840 - 00:30:28.156, Speaker B: I.
+00:30:28.178 - 00:31:02.570, Speaker A: Think they are like this. They are phases. So block is proposed, then you have the transaction data is committed, so it's available. Everybody can see the transaction data and it's finalized once you have proven what's the result of those transactions. So it's like a multi step like that. But I don't want to comment more on that because I'm so sure I'm working more on the inside of.
+00:31:06.160 - 00:31:11.180, Speaker C: All right, yeah, maybe you want to show some traces.
+00:31:13.040 - 00:31:56.760, Speaker A: Yeah, maybe. We were still talking about that. I think we said that. So then what's inside ZKVM? So the trace that comes in. So that's all the steps that every transaction does run, the smart contract read and write and transfer tokens and such. So that's all the steps that does. And this goes into a circuit, so the trace is sort of encoded in a way in a circuit.
+00:31:56.760 - 00:32:54.876, Speaker A: You call this the weakness. Now, ZKVM is not just this processor of bytecode, right? It's a full computer inside. It has a cpu kind of cpu, but it also has memory, it has a stack, and it has the permanent storage SSD compared to one that looks the same these days. And it has other things. So for instance, the cap shark and pose island and so on, those are separate circuits, so there are quite a lot of them and with different specialties. So it's like coprocessor in a computer that's specialized for hashing. This storage circuit is specialized to write those proofs and so on.
+00:32:54.978 - 00:32:56.190, Speaker C: You got a question?
+00:32:59.540 - 00:33:06.930, Speaker A: So what's the constraint size of the aggregation circuits? This is getting very specific.
+00:33:08.260 - 00:33:10.130, Speaker C: They're trying to steal your idea.
+00:33:10.500 - 00:34:13.428, Speaker A: Well, it's already open, right? So you can read the code. Yeah. What I didn't mention yet to go for this, is that those are the EVM circuits that makes a proof, or maybe we can think of it as multiple proofs and then there is an aggregation. So in problem of decades for this decay part like compresses a lot, it's a lot of computation that's compressed into a small proof, but even that is still too big for mainnet. Even verifying the proof is too much for this smart contract, or too expensive, and it's too big. So there's another circuit which verifies the ZKVM and then makes a proof that it has verified. It's a two layer thing, and this proof is smaller.
+00:34:13.428 - 00:35:07.444, Speaker A: And this is what goes to the main net contract. And then in the main net contract there is also verifier, but that verifies the small proof. And this aggregation here, this is also very big, probably maybe half in cost or such. Well, it can be tuned so we can change the parameter and change like which one has the most constraint. That's because we use halo tubes and hello tube is very flexible. So if you want, you have basically a kind of parameter that you can tune, that's what I call the whip. And you can choose if you want a faster prover or a faster verifier.
+00:35:07.572 - 00:35:08.250, Speaker B: Right?
+00:35:09.180 - 00:35:26.750, Speaker A: So the answer to this question is, depends. We tune it to optimize it. Like how big the aggregation is? No question.
+00:35:27.760 - 00:35:29.580, Speaker C: Yeah, you have to expand.
+00:35:30.820 - 00:36:05.304, Speaker A: So is there a checksum mechanism for the correctness of information sent? Sure, I understand the question. Checksum mechanism, I mean basically ZK secret, very big generalization of checksum. So yes, it verifies the correctness of everything. Full transactions there.
+00:36:05.422 - 00:36:30.000, Speaker C: But by the way, that's a question I had for you. Does it verify or does it leave it on the blockchain to let anybody else kind of an optimistic roll up kind of thing. Does the contract do the verification or does it actually just put the proof and someone else can come and say and flag the proof as invalid?
+00:36:30.740 - 00:37:29.510, Speaker A: No. So this is different with optimistic war apps. There is no someone comes to do something. If the smart contract sees approve, verifies, approve, and it goes to the next stage instantly because it has verified by cryptography rather than verified by someone else who would be watching. No, there's no such thing. Well, we could have, right, but like Vitalik's points about the training wheels and so on, and having multiple mechanisms, so you could say you have the proof, and plus fraud proof like this, someone that watches that has 1 hour to dispute. So we could do that.
+00:37:29.510 - 00:38:04.384, Speaker A: All right, that is, let's move on. So we were focusing, let's focus now on the processor part that executes the bytecode. So looks like this. So the steps, they are like cycles of a machine. It's like time basically. And at each time step you have an instruction come in. So you have to read it.
+00:38:04.384 - 00:38:52.944, Speaker A: So there's a program counter, and that tells you which instruction debt code you're supposed to execute now. And it loads, it verifies that it loaded correctly, and then execute it. So that's a trace, that's clear trace. Then for each step of the machine there is a subsurface, let's say that's going to verify its execution. So what does it do? What does it do? It has to apply the side effect of this instruction. For instance, if it's push here, that's going to change the stack, it's a side effect. And the second thing it has to do, it has to move to step two.
+00:38:52.944 - 00:39:45.920, Speaker A: So verify that it updates the states correctly between steps. And steps don't have all the same size. Some are more complex than others and take more space, more witness space in the circuit. What's inside of? Well, there are many more things. Um, what's inside? Yeah. So this step has to support the different type of instructions, but it could see at any cycle. So it's a sort of switch statement, right? Like looking at which opcode we have, and do something different for each opcode.
+00:39:45.920 - 00:41:04.520, Speaker A: And then there's some space for the witness, and depending which opcode it is, there will be some logic, and this area of witness will be used by the implementation of that one. That's what you have in the step. And this is really very similar to a regular cpu, right? So the pipeline of cpu, it's fetch instruction, decode instruction, execute instruction, and write back the result. So you can identify this. In the ZKVM, for instance, you have the program counter, you have a stack pointer. So all very similar, very familiar for people who know cpus. So there's the part which is like the state, as in a state machine, there's the part that looks at instructions, and there's the part that executes the instructions, including the side effect, like right to storage is a side effect, and it does calculate the gas, as well as part of the gas of its Opcode.
+00:41:04.520 - 00:41:10.590, Speaker A: Yeah, one question I had.
+00:41:15.760 - 00:41:33.876, Speaker C: Sorry, I lost my train of thought. But yes. What about immediates? You have some instructions? Well, actually there's very few of them, but there's push. For example, in Evm bytecode, push is followed by the value that should be.
+00:41:33.898 - 00:41:35.620, Speaker A: Pushed on the stack.
+00:41:36.520 - 00:41:40.068, Speaker C: How do you encode this in this case?
+00:41:40.154 - 00:42:09.790, Speaker A: Actually, that's something that makes our life easier. As you said, in the Evm, there is very little of that. Right? Yeah, like immediate. So immediate means that's an instruction. An instruction has an opcode that's family of instruction. And it might have an argument like this inside the bytecode that's inside of a bytecode. So that's basically the next byte and maybe next.
+00:42:09.790 - 00:42:21.600, Speaker A: But the EVM Isa, the instruction set, I think it's only push. I think all the others, they don't even have arguments. They don't have appearance.
+00:42:21.940 - 00:42:27.652, Speaker C: Yeah, there might be a jump, but I don't know if it was debated. I don't remember.
+00:42:27.706 - 00:42:31.750, Speaker A: But I think they jump reads from this pack also.
+00:42:32.600 - 00:42:33.664, Speaker C: Jump. I jump.
+00:42:33.712 - 00:43:00.744, Speaker A: There's a jump. Immediate maybe? Yeah, but mostly the instructions are just upcode, so most of them. So it's much easier to decode. It's basically the simplest isa before turing machine. Right. So that's really good. And your question was, so how do we actually handle.
+00:43:00.744 - 00:44:02.080, Speaker A: Because there are some like this, you have a push 16 or something with 16 bytes behind, and that's a separate circuit, actually. Was it on my list there? Well, it's. Yeah, there's a bytecode circuit that does this so that decodes the bytecode, and it recognizes that when the opcode expects an appearance, like push one next byte, it decodes this and puts it into a regular table with a regular form that is easier to read. So the EVM circuit can just say, give me this index. And it gets the proper bytes and it gets the information that this bytes is an opcode. Or it's an. Yeah, so there's a dedicated circuit to reformat the bytecode and also calculate the hash of the bytecode.
+00:44:05.160 - 00:44:06.630, Speaker C: You got another question.
+00:44:07.480 - 00:44:49.788, Speaker A: Let's see, how modular is your circuit arithmetization with every upcode of a circuit. So every opcode has an implementation in a big circuit. So the implementation is there as a module. Right. Maybe I could show somewhere I can look for some code just to show you how modular. Yeah, I was showing the white screen. So you see that leader.
+00:44:49.788 - 00:45:50.580, Speaker A: So this is a decoupled. So you have an implementation of each opcode here inside, and then each one is in a separate file. So it's pretty modular. And that's all one circuit? Well, that's the one circuit with the opcode implementation. But the implementations, they rely also on those separate circuits, for instance, bytecode one and some other helper circuits that's not per upcode. What else can I say about this? This is very modular design, and also it can be tuned, as I said, about performance of proverb versus verifier. So someone's asking how we run rust code on Nvidia gpus.
+00:45:50.580 - 00:46:16.830, Speaker A: It's not the implementation of a circuit like the valid. It might be fairly complicated to implement in the US, but really what we implement is the verifier, right? Not the proverb. There is of course an implementation of the proverb, but on GPU it's different.
+00:46:17.520 - 00:46:18.270, Speaker B: And.
+00:46:20.580 - 00:46:57.240, Speaker A: We program this in rust, and it might be fairly complicated to generate the witness, but after that, the circuits that we describe, it gets compiled into something much simpler. The form that it's compiled to is basically just a sequence of addition and multiplications. It's a long sequence of operations that are very simple and that then is implemented not in us, but in rust. CUDA.
+00:47:00.380 - 00:47:17.330, Speaker C: Yeah, because presumably there's an LLVM backend that compiles CUDA. I'm pretty sure, yeah. And so if you have rust, I mean, if you rust is based on LLVM, so you could potentially write rust code that calls the CuDA function.
+00:47:18.580 - 00:47:20.572, Speaker A: Yeah, it's a wrapper.
+00:47:20.636 - 00:47:20.912, Speaker B: Right.
+00:47:20.966 - 00:48:37.400, Speaker A: So you have a core or kernel that's implemented in CUDA, but then your application, you write it in rust and you call the kernels. But again, you don't have to implement all the complexity of making the witness for BZKVM in CuDA, this is all in rust. And once the witness is generated to go from witness to proof, that's much simpler operations, just sequence of addition and multiplications and connecting them together. So it doesn't have to implement EVM stuff inside of the GPU proverb. I believe someone from the proverb team on the chat to correct me, but I think that's how it works. Um, so are these sockets written by hand and how do you verify them? So, yes, they are written by hand. We use the hello, two crates.
+00:48:37.400 - 00:49:39.464, Speaker A: And one strategy to write circuits is a big community. They have written, first a circuit builder or constraint builder that has a lot of helper functions. For instance, it has a helper function for push to stack, let's say, in this circuit builder, and then the implementation of opcode, they can reuse that. So it's still regular software engineering, right. When you do not repeat yourself and so on, and split everything into components, how do you verify? So that's a big process. So that's mostly my job and other people's. And we are so involved with basically all security firms out there.
+00:49:39.464 - 00:49:59.430, Speaker A: Um, it's a big process. It's a whole new scale, actually, of audits because it's so many pieces to verify. So it's going to be lots of auditor teams, one after the other. So there's a timeline of that.
+00:50:00.200 - 00:50:05.430, Speaker C: Can you just give a couple examples of tasks that you do to verify them?
+00:50:07.340 - 00:50:24.040, Speaker A: Yeah, there are the puzzles. I made a video where I explore the code. I don't know if I found the right solution or not because I didn't go to the end, but. Yeah. What to verify?
+00:50:25.900 - 00:50:31.250, Speaker C: Yeah, just how do you say, for example, what would be an obvious example of something going wrong?
+00:50:35.540 - 00:50:49.990, Speaker A: Let's see. Don't even have this. I have 14 slides about that, and each one has like five bullet points of things that can go wrong.
+00:50:52.760 - 00:50:58.090, Speaker C: Okay, so for example, correct wiring would be an example.
+00:50:58.540 - 00:50:59.192, Speaker B: Yeah.
+00:50:59.326 - 00:51:00.250, Speaker A: For example.
+00:51:03.180 - 00:51:13.640, Speaker B: When you program it, you explain. So when you program this, you need witness.
+00:51:13.720 - 00:51:14.552, Speaker A: So witness.
+00:51:14.616 - 00:51:22.096, Speaker B: That would be like one of those cells, let's say. Right, let's say my task is I have program counter here, and I have.
+00:51:22.118 - 00:51:23.504, Speaker A: A program counter in the next one.
+00:51:23.542 - 00:51:35.264, Speaker B: And I want to check that they are like pc plus one. So that's two cells and everywhere.
+00:51:35.312 - 00:51:37.124, Speaker A: This pc and this pc is also.
+00:51:37.162 - 00:51:55.672, Speaker B: Involved in other things that is fetching the bytecode. So I need to make sure that it is the same variable, this pc that does the bytecode and the next step. But when you program it, it's very easy to write a function that some.
+00:51:55.726 - 00:51:58.216, Speaker A: Helper function, and it's very easy to.
+00:51:58.238 - 00:52:37.908, Speaker B: Use because it allocates everything it needs. But you probably that someone else wrote another function, which also allocates new cells. So you might have this problem that you end up with two different cells for this pc variable and they were supposed to be the same. So you have to make sure that you really use that everything is connected correctly or that something must be equal. You don't forget to say it's equal or use the same. You can forget range checks as well. Let's say one of those things needs to be boolean, needs to be zero one.
+00:52:37.908 - 00:52:43.210, Speaker B: Is it forget or it needs to be a byte zero to 56.
+00:52:44.540 - 00:52:52.264, Speaker A: Don't forget to wrench check determinism. As I mentioned, we want the entire thing to be deterministic.
+00:52:52.312 - 00:52:54.956, Speaker B: So if there is a way that.
+00:52:54.978 - 00:52:56.524, Speaker A: You could take two paths and they.
+00:52:56.562 - 00:52:59.630, Speaker B: Will both be valid, that's not good.
+00:53:02.400 - 00:53:17.510, Speaker D: Hey, I just want to jump on real quick because we only have a few minutes left in the hour. There were a few questions that were asked sort of back at the beginning of the session. I don't know if you want me to ask those or if you want to.
+00:53:17.880 - 00:53:19.428, Speaker A: Yeah, go for it.
+00:53:19.514 - 00:53:26.520, Speaker D: Okay. So one was, how do you see the efficiency of scroll ZKe evm change once eth sharding is implemented?
+00:53:30.620 - 00:53:31.370, Speaker B: So.
+00:53:33.180 - 00:53:36.484, Speaker A: Once you got all the hoover.
+00:53:36.612 - 00:53:50.152, Speaker B: Things like really optimized and fast, and it's cheap to make proofs versus the size of a block. So it's cheap per transaction or per gas.
+00:53:50.296 - 00:53:54.268, Speaker A: Then the bottleneck is storing the transaction.
+00:53:54.364 - 00:54:02.050, Speaker B: On Mainnet, storing the transaction data. It's much cheaper than executing transactions, but.
+00:54:02.500 - 00:54:03.910, Speaker A: Still has a cost.
+00:54:04.360 - 00:54:20.570, Speaker B: And I believe if sharding is about data. Right. It's about data sharding, yes. And that will make this cheaper. So you can have very large roll ups. Right.
+00:54:21.580 - 00:54:24.570, Speaker C: So if I may just add a quick question.
+00:54:26.060 - 00:54:29.070, Speaker B: You might have heard of EIP 4844.
+00:54:31.360 - 00:54:42.364, Speaker C: Basically, it's a way to reduce the cost, because I see you're pushing a lot of data. Kind of the same question, but with.
+00:54:42.402 - 00:54:46.656, Speaker B: EIP 44, namely, basically, do you need.
+00:54:46.678 - 00:54:48.448, Speaker C: This or do you not need this?
+00:54:48.614 - 00:54:51.984, Speaker A: Yes, it's an intermediary step to data shard. Right?
+00:54:52.022 - 00:54:58.560, Speaker B: Yeah. So, yes, same. Making the transaction data cheaper.
+00:55:01.960 - 00:55:05.316, Speaker A: Because we need the data to be available.
+00:55:05.418 - 00:55:06.070, Speaker B: Right.
+00:55:08.540 - 00:55:12.680, Speaker D: Another question was, what can a community do to improve scroll?
+00:55:15.820 - 00:55:17.770, Speaker A: What can a community do?
+00:55:21.180 - 00:55:22.170, Speaker B: Got with.
+00:55:24.540 - 00:55:26.410, Speaker A: You can try it.
+00:55:27.680 - 00:55:29.404, Speaker B: That's very useful. Try it.
+00:55:29.522 - 00:55:38.048, Speaker A: Try your smart contract and tell us if it works, if your metamask works. So, testing, right.
+00:55:38.134 - 00:55:54.692, Speaker B: Generally testing. That's great. And give feedback about how reliable that is. And you can join us also to work on it. Cool.
+00:55:54.746 - 00:55:55.510, Speaker A: Or you.
+00:55:57.400 - 00:56:06.730, Speaker D: One other question was, what does day to day work look like? Or what does the day to day work as a security engineer on an l two project look like?
+00:56:08.160 - 00:56:20.340, Speaker A: So that's reading a lot of code all day long, reading code and making checklists. And third is communicating.
+00:56:20.520 - 00:56:22.050, Speaker B: So I explain a lot.
+00:56:25.700 - 00:56:26.524, Speaker A: Of mistakes.
+00:56:26.572 - 00:56:31.904, Speaker B: That happen or could happen, or I.
+00:56:31.942 - 00:56:34.150, Speaker A: Make list of things to be careful about.
+00:56:38.280 - 00:56:41.110, Speaker D: All right. There was one last one.
+00:56:42.840 - 00:56:44.070, Speaker B: Very big list.
+00:56:46.360 - 00:56:54.410, Speaker D: There was one last one that was actually the first one. And it's very high level. What do you think is important for this project to survive for a long time.
+00:56:57.500 - 00:57:00.268, Speaker C: Money adoption, right?
+00:57:00.434 - 00:57:10.580, Speaker A: Yeah, that's adoption, that's join the testnet and then the main net and deploy an ecosystem with all the Defi.
+00:57:10.760 - 00:57:13.344, Speaker B: And that's what's great about the wall.
+00:57:13.382 - 00:57:16.816, Speaker A: Ups with EVM and compatibility is that.
+00:57:16.838 - 00:57:21.760, Speaker B: You can deploy a lot of ecosystem.
+00:57:22.420 - 00:57:23.800, Speaker A: That can be composed.
+00:57:23.980 - 00:57:32.336, Speaker B: This is what Ethereum is all about. And also VZK wall ups that you can compose with different kind of defi.
+00:57:32.448 - 00:57:36.024, Speaker A: With different nfts and all that.
+00:57:36.062 - 00:57:43.640, Speaker B: Right? So you need all those projects to be able to combine them on Vorap.
+00:57:45.420 - 00:57:52.010, Speaker C: And also maybe all those GPU miners, if they realize they can finally use those gpus again, that might make it.
+00:57:53.740 - 00:57:54.996, Speaker A: To make proofs.
+00:57:55.108 - 00:57:55.770, Speaker B: Yeah.
+00:57:56.780 - 00:58:05.920, Speaker D: Fantastic. Thank you both. Thank you. Thank you for this great presentation and workshop all about scroll.
+00:58:07.620 - 00:58:11.132, Speaker B: All right, thanks for having us. Thank you, Rifa.
+00:58:11.196 - 00:58:12.380, Speaker D: Yeah, cheers. Bye.

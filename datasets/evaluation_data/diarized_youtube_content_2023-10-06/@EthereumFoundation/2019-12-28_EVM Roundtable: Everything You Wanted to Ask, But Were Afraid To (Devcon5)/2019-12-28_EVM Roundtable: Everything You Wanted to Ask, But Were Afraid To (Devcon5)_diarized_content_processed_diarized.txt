@@ -1,0 +1,623 @@
+00:00:11.930 - 00:00:34.520, Speaker A: But we do have a bunch of questions they're going to try to go through. But if any of you have a question, you can just ask it. Or if you have a topic you're passionate about, you can also just walk up here, kick me out, sit down, and lead the topic. But if you don't even want to speak up, you can also submit a question on the slide over, and we'll try to take this in.
+00:00:35.210 - 00:00:45.260, Speaker B: I have to apologize in advance somehow. I've been scheduled for two different panels that overlap with each other, so whoever is noisiest would take my place.
+00:00:49.710 - 00:01:00.398, Speaker A: Even though I said that we shouldn't be special. I think you guys should just introduce yourself, like in one sentence, and whoever comes here should do the same. So, Leo, maybe you want to start?
+00:01:00.564 - 00:01:07.490, Speaker C: Everyone, my name is Leo. I work on certification and the solidity compiler with the Ethereum foundation.
+00:01:08.470 - 00:01:13.940, Speaker B: I'm Nick Johnson. Formerly get core development, now the lead of the ensure service.
+00:01:14.890 - 00:01:18.630, Speaker D: Hi, I'm Chuck, and I work on Piper.
+00:01:20.570 - 00:01:24.630, Speaker E: Hi, I'm Pablo. I work on mostly do EVM.
+00:01:25.610 - 00:01:31.206, Speaker A: And I'm Alex. I'm working on solidity. And ewasm. I'm Casey.
+00:01:31.238 - 00:01:33.450, Speaker F: I'm also working on ewasm.
+00:01:34.910 - 00:02:23.340, Speaker A: All right, let's jump in to some of these questions, maybe start with a big one, which is no pricing of computational and arithmetic upcodes that has been, I think you kick started panel today, the discussion with EVM one and optimization. I'm not sure if any of you guys have seen that talk earlier today, but there was also a paper out that some instructions may be mispriced. And in the Istanbul hard fork, you may have seen EIP 1884, which also suggests to reprice a couple of instructions. What do you guys think about instruction pricing? Is everything correct?
+00:02:27.870 - 00:03:07.510, Speaker B: It's kind of impossible for it to be correct across all the machines. The best we can do is try and target an average machine, but with different resource constraints, with different speed SSDs, different RAM architectures and so on, it's never going to be completely correct. We just have to try and derive a pricing scheme that isn't so far off base, that is subject to DOS tags. And that's why we have to do things like 184 in order to avoid those. Like, the disruption to existing smart contracts is a problem, but it's an unavoidable one, because the alternative is if we just sit with what we've got, and then somebody figures out a contract that's costly enough to actually dos is going to get, like, in Chiang Mai.
+00:03:09.950 - 00:03:11.882, Speaker D: Yeah, just to add to it.
+00:03:11.936 - 00:03:12.700, Speaker B: I think.
+00:03:14.430 - 00:03:49.780, Speaker D: Gas repricing is tough, but it has to happen. And I think it's also kind of where we want to go in the future of the project. I mean, depending on pre compiles and the adjustments we have to make that. But what I also want to highlight is we often say, well, we want neonated performance, of course, the goal, but we're also building blockchain. So we should keep that in mind that it's not always going to be near native performance. And that's why we will have certain functions that will be completely misplaced. But we want to do crypto in the event.
+00:03:52.810 - 00:04:26.834, Speaker E: So I think there are actually two problems here. Most of the repricing that happened, and the papers are about. And all of this is actually about accessing external data VVM. And this is actually external VVM at all. I mean, it's just a way to read something from the outside, let's say disk or something like memory. And I think this is what we mostly struggle with. On the other hand, the computational outputs are kind of highly priced, comparing to the actually time it takes to execute them.
+00:04:26.834 - 00:05:28.360, Speaker E: So we have like big safe margin here. And I actually have a claim that even if we price the computational outcodes by the same amount, all of them, it wouldn't matter because it's still so high comparing to the other cost, that actually it's not exploitable. The X opcode was exploited, but it's kind of algorithm instead of something more. So the worst case, I think we have quadratic opcode that do multiplication and division. But still, I think the margin is big enough. And we are bounded by the big decision that it's not a big deal from the security point of view. But I think they could be priced lower, if that helps, for example, to go more into stateless contract so you can compute more instead of storing more.
+00:05:32.010 - 00:05:46.182, Speaker A: The computational ones are highly overpriced today. And initially, I thought you were also really happy with that, because there's no risk. But now you say that you would be happy to maybe lower them to allow more computation.
+00:05:46.326 - 00:06:22.738, Speaker E: Yeah, I personally would be like to lower them. Well, we cannot price them accurately to each other, but they're not like. Well, this other thing is in terms of time they take to execute. And the prices, that's not also accurate at the moment, but somehow it's not exploitable from the security point of view. But yeah, if we want more fair prices, I think they should be definitely lowered by big margin.
+00:06:22.834 - 00:06:37.020, Speaker B: I mean, in the case of state qualifying opcodes, the reason for their cost isn't just execution time, it's also stateload concerns. We make it proportionally cheaper to store more data. So I think we need to balance that as well.
+00:06:38.510 - 00:06:41.946, Speaker F: We're talking about reducing the cost of just the computational ones, right?
+00:06:41.968 - 00:06:44.860, Speaker B: Not the reducing cost of.
+00:06:46.370 - 00:06:47.214, Speaker E: Exactly.
+00:06:47.412 - 00:06:49.294, Speaker D: We could have another question on that.
+00:06:49.332 - 00:06:54.942, Speaker A: Actually, we actually have one on the storage topics.
+00:06:55.006 - 00:07:10.790, Speaker C: Wouldn't you say that if you're moving towards stateless contracts, that you would actually have to decrease the price of the computational ones to make it reasonable? Yeah, otherwise it's going to be super expensive. Just going to stay expensive.
+00:07:11.290 - 00:07:18.680, Speaker E: Educate. You can ask them. I don't really know what the limit is.
+00:07:19.530 - 00:07:32.860, Speaker B: And of course the period is going to be different for each client. Lower the cost we make of computation opt codes which have very high dispatch over here for the naive interpreters and so on. The higher the bar for writing the clients. And.
+00:07:36.370 - 00:08:21.870, Speaker F: The main constraint is the price of call data. So luckily, and it's great progress, that the EIP for reducing the cost of call data is going into Istanbul. If it wasn't for that, I would be pretty pessimistic. But that was great progress, and it's like about halfway to where we want to go. So if we do that again in the next work, once the price proposed for Istanbul is the network is still stable. If that's the case, we can make progress and reduce it further, then we'll be well on the way. But I think the other difficult part is going to be versioning.
+00:08:21.870 - 00:08:59.030, Speaker F: And versioning will be necessary to prevent breaking existing contracts. But if we have versioning, then we can propose new costs and it will incentive. These new costs will actually be cheaper than the old costs. And existing contracts that are voting the state will eventually be phased out because people will be incentivized to move to the cheaper stateless contracts.
+00:08:59.690 - 00:09:04.294, Speaker D: Yeah, I think provisioning is a great idea also because it kind of solves.
+00:09:04.342 - 00:09:06.394, Speaker B: That problem of, oh, I have this.
+00:09:06.432 - 00:09:13.802, Speaker D: Contract and I need to migrate, but how am I going to do this? And I'm someone that believes in writing contracts that are not upgradable.
+00:09:13.946 - 00:09:16.030, Speaker B: And in that case, I really want version.
+00:09:18.210 - 00:09:20.766, Speaker A: The versioning itself. Is it a good idea or is.
+00:09:20.788 - 00:09:28.770, Speaker C: That version would also solve 63 with the swaps and dukes?
+00:09:29.190 - 00:09:47.094, Speaker A: So maybe before we jump in, are you guys DAP developers or are there any DAP developers here? And are you guys writing contracts? Are you happy with the prices? No.
+00:09:47.292 - 00:09:47.654, Speaker B: What?
+00:09:47.692 - 00:09:48.920, Speaker A: Are you not happy with.
+00:09:51.690 - 00:10:01.550, Speaker D: The gas price, as there's too many transactions and you paid too much for them or the specific if you had to wait. Different types. I guess it's that double question, right?
+00:10:01.620 - 00:10:12.430, Speaker A: Yeah. So are you storing a lot of data? Is that the main challenge or just trying to compute something huge contract.
+00:10:13.330 - 00:10:20.078, Speaker E: I've recently deployed contract, which they call first day signature and cost supply a lot of gas.
+00:10:20.254 - 00:10:24.810, Speaker C: I wasn't happy with that for deployment.
+00:10:24.990 - 00:10:25.720, Speaker E: Yeah.
+00:10:28.330 - 00:10:31.074, Speaker B: I think also the gas prices are very volatile.
+00:10:31.122 - 00:10:40.626, Speaker A: Sometimes it's like two grays. Fine. Sometimes you get 50 gray and you can't predict beforehand what is the right size. It's not that we can say cheaper.
+00:10:40.658 - 00:10:44.678, Speaker B: And that's very frustrating.
+00:10:44.854 - 00:10:48.140, Speaker F: Yeah, that's where EIP 1559 comes in.
+00:10:51.630 - 00:10:53.114, Speaker D: It's the gas market, right?
+00:10:53.152 - 00:11:13.810, Speaker B: Yeah, that's what I maintain. We can improve the efficiency of the gas market effectively, but it's always going to be highly inelastic, because when you below 100% capacity gets as cheap as the miners are willing to accept, and once it hits 100 capacity, it shoots up to like, the price that's high enough to make some people reconsider and not submit transactions.
+00:11:16.630 - 00:11:19.000, Speaker A: You can just get these guys in future.
+00:11:22.570 - 00:11:55.594, Speaker B: I hate gas. The problem is that because mining is permissionless, you can't really sell a future and then be guaranteed to be able to redeem it. The miner who's trying to redeem it might not be the miner that issued it, and they have no reason to sort of accept that promise. So nobody's come up with an incentive model that works for that. That's actually effective. Gas token works by exploiting an issue with the refund mechanics, where you can basically force the miners do twice as much work as you're paying them for. But it's not really scalable.
+00:11:55.594 - 00:12:07.566, Speaker B: I mean, I kind of wonder if we should introduce an opcode that does nothing but consume gas and then later return it to you, because it would be awful, but at least it wouldn't be wasting storage the way gas tokens are.
+00:12:07.608 - 00:12:35.950, Speaker F: Yeah, I wish I was wearing my gas token Orient today. But the funny thing is, it was warned about in 2015 in the lease authority report, like analysis before Ethereum launched. Well, the way they warned about it was minor versus minor storage bombs. And it's not exactly what gas token is, but it has the same effect of storage.
+00:12:39.250 - 00:12:46.260, Speaker B: Would it make sense to just do them away with catch? Are they effective at what they are designed for? Do they do more damage than they.
+00:12:47.350 - 00:12:53.380, Speaker D: What's the data on? Well, gas doesn't assess, we wouldn't know the natural use of.
+00:12:55.990 - 00:13:09.900, Speaker B: Yeah, I mean, broadly, the intention is to incentivize deletion of data. But I think it's a very, I don't have hard data, but I think it's very weak sense that it may be almost completely ineffective, in which case maybe it does more harm than.
+00:13:12.030 - 00:13:34.500, Speaker D: Also somewhat related is the question is, like we say that if we have stateless, so then yes, if we have a stateless mode, then sure, on that layer we can maybe price the gas differently. But whoever's doing the execution environment, it's going to have the same storage problem, pricing problem, correct. Well, he mentioned.
+00:13:36.310 - 00:13:46.990, Speaker E: I mentioned stateless contract. You can design your contract. It's trade off storage for computation.
+00:13:47.070 - 00:14:13.200, Speaker B: Right. A good example of that is unfair. State channel is they just store a single hash for each channel on chain, and anytime you want to make a change to the channel, you have to submit the entire structure and they save a great deal of gas. For that matter. ENs DNS set, Oracle does the same thing. We only store the hash of the DNS records because there's no reason to store the whole thing. And I think that cuts our gas consumption by more than half.
+00:14:14.050 - 00:14:40.840, Speaker D: Yeah, one of the contract note on that is you could also use incentives to do heavy calculations, kind of. If you have like a two party system that does trading or something, and you have a formula that derives the middle point, both parties on both sides actually have incentives to calculate the closest value. And you could actually cash that value in storage and then make them constantly submit transactions to get the actual value.
+00:14:41.610 - 00:14:44.790, Speaker G: So yeah, there's a few interesting stateless.
+00:14:45.690 - 00:14:46.774, Speaker D: Things you can do.
+00:14:46.892 - 00:14:58.006, Speaker A: So, Nick, in the DNS text, Oracle, you said that you submit all the data needed to just arrive at the hash. How big is the data you're submitting?
+00:14:58.198 - 00:15:36.390, Speaker B: On the order of probably less than a kilobyte per entry, basically. In fact, I'd say like 512 bytes makes the size for DNS entry. And so you submit a record that contains a public key and it verifies that against the thing that it's signed with and then stores the hash of that. And then when you want to submit the next one, sign with that key, you submit that and you submit the previous record, verifies the hash and then so on. So you sort of chain it in that case. But it's not a lot of data. But storage is very expensive, and it's a lot cheaper to pass it in twice via call data than it is once via call data and store it forever.
+00:15:38.010 - 00:15:54.958, Speaker A: We kind of hypothesize that if you do have a lot of data, you need to pass in, and you need to do a certain amount of computation on them to arrive to the state you store. There's like a trade off where it is way cheaper to store stuff on each one.
+00:15:55.044 - 00:16:18.010, Speaker B: I think it depends on the computation. So in this case, obviously. But in this case, when you're passing in the redundant data, the only computation you have to do is a single kick, act two soft code over it to verify that it's the same as we passed in and verified last time. So we're not repeating a lot of computation because that verification is only done once and therefore it works out cheaper.
+00:16:18.190 - 00:16:21.640, Speaker A: I guess. Too bad for a panel that your use case works well.
+00:16:24.490 - 00:16:24.854, Speaker G: Yeah.
+00:16:24.892 - 00:16:44.460, Speaker F: The issue is when it requires Merkel proofs, because then all that Merkel data is what makes the call data cost blow up. And it's interesting, you said currently just passing in just the DNS data, it's half the cost of.
+00:16:47.390 - 00:16:48.506, Speaker A: Half the cost.
+00:16:48.688 - 00:16:53.506, Speaker F: Then that's about to be four times cheaper after Istanbul. Right?
+00:16:53.688 - 00:16:59.060, Speaker B: I suspect most of the remaining cost is our computation cost may not have a bigger cost, but.
+00:17:04.230 - 00:17:09.030, Speaker A: Do we still need, erc, the code deposit limit, I think. Erc.
+00:17:12.730 - 00:17:15.346, Speaker E: Do you mean the contract size limit?
+00:17:15.378 - 00:17:27.274, Speaker A: Yes, exactly. Because I saw some discussion on the east magician forum that there is some debate, and I see more and more debunking into this limit, and this is really needed.
+00:17:27.392 - 00:17:55.082, Speaker B: So the problem is that when you start executing a smart contract, you have to load the whole thing off disk and also do some basic jump test analysis for the whole thing. And if the size of that is unbounded, then somebody can submit a very large contract that only executes, say, two op codes before exiting. And the VM has to do a great deal of work with very little gas. So that opens up a DOS vector. So until we have a better solution for that, I think some sort of limit is necessary. Maybe it could be increased.
+00:17:55.246 - 00:17:59.400, Speaker A: It is limited by the gas price anyway.
+00:18:00.890 - 00:18:20.280, Speaker B: No, because you pay a fixed amount of gas for a co op code, but that's the same amount of gas regardless of how large the contract you're calling is. But the amount of work we have to do at runtime when you call varies depending on the size of the contract. Even if you only.
+00:18:47.290 - 00:19:36.710, Speaker E: I know when I actually build my software that the code size will not be greater than that. And I can have some assumptions about that, because as Nick said, there's some analysis you have to do when you load the code and you're about to execute it. But I think that there are ways to kind of work around that. I mean, some of these analysis can be done lazily, but it's much more complicated than what we can do now. Like just count the code once. And also this analysis can be cached. But yeah, I'm actually hugely exploiting that, doing much more things during this analysis because I know the code size won't be super huge when I get it.
+00:19:36.710 - 00:20:24.580, Speaker E: So yeah, it's limited by the gas price. So you cannot deploy super big contracts because you pay for byte deploying that. But for me, it's not accurate information because this changes later on. So when I actually make design decisions during implementing EVM, this is not like strict grantee that I cannot guess what is the reasonable size. So that helps. Yeah, but I think if it's problem for you, I guess there might be the way to figure out solution, but it's not easy. There are some trade offs and we have to consider that.
+00:20:25.030 - 00:20:29.490, Speaker A: Is your stuff limited to 65k? Proton.
+00:20:31.370 - 00:20:37.474, Speaker E: The current limit is like 2024k, something like that.
+00:20:37.532 - 00:20:40.262, Speaker A: Yeah, but your software, your assumption.
+00:20:40.406 - 00:20:48.380, Speaker E: Yeah, I'm using that assumptions for like, I know that. For example, what was.
+00:20:50.370 - 00:20:51.166, Speaker B: It?
+00:20:51.348 - 00:21:16.514, Speaker E: For example, let's say you sum up of the cost of all the code. It will not exceed like 32 bit value because the maximum opcode cost is create, which is 32k multiplied by this code size, it's still within 32 bit limit.
+00:21:16.562 - 00:21:16.822, Speaker A: Right.
+00:21:16.876 - 00:21:59.460, Speaker E: So things like that. So I know I can store this information within 32 bit limit. That's many things like this. So you have at least, I also can actually generate the worst cases for this analysis and check how much time will it take. So this is some kind of security precaution. In the worst case, the worst possible order of instruction is that the analysis will take the longer time. It's still within the reasonable limit in terms of time spending on it.
+00:22:00.710 - 00:22:06.994, Speaker F: Is the recommendation to deal with the code size limit to deploy libraries and use double get call?
+00:22:07.112 - 00:22:09.460, Speaker D: Yeah, but that's actually one of my questions.
+00:22:10.630 - 00:22:32.998, Speaker A: At least two limits in your code, you may have two limits. One is this assumption for the gas counter of 60 32 bit, and then maybe you could also just use a 16 bit value for the code offset. Is it possible other implementations do the same? Yeah, Nick, you may be familiar with the implementation.
+00:22:33.094 - 00:23:34.720, Speaker B: Yeah, I mean, they definitely, one of their optimizations a while ago was making some of the things such as the gas counter 32 or 64 bit considered bigger, which is the main implementation. But that comes down more to total gas limit than it does to code size. But there are definitely optimizations of that sort but I think mostly they could support a much larger code size before these options started being invalid. There's nothing magic about 24k, but I think we need that order of magnitude, and I think we need to be quite cautious if we talk about expanding it. I mean, I feel also like large contracts that are too large to fit into twenty four k are kind of as a code smell. I'm not saying no use for contract is larger than that, because it's definitely not true. But it's often the case that it represents trying to make a contractor too much, or that you should be modularizing it more and doing less.
+00:23:35.510 - 00:23:36.798, Speaker F: So it's a valid complaint.
+00:23:36.814 - 00:23:37.780, Speaker G: Or is it?
+00:23:39.270 - 00:24:06.074, Speaker B: I think there are definitely contracts that run into this for collision reasons, but I think that your first reaction when you run into it should be to do a review of your code and say, am I trying to cram way too much stuff into the EVM or on chain? And it's stuff I can take off chain, stuff I can log instead of computing and storing things like that, or can I modularize it better? So in the case of the DNS set contracts, for instance, there's a bunch of DNS algorithms, and each of those.
+00:24:06.112 - 00:24:08.106, Speaker D: Is a set of contracts out to.
+00:24:08.208 - 00:24:13.150, Speaker B: Which makes it more flexible and also ensures that you're not trying to cram a wound to a single contract.
+00:24:14.050 - 00:24:23.434, Speaker A: One stupid follow up. Is the limit imposed on the inside code when I upload the steps, or is it imposed on the code deposit?
+00:24:23.482 - 00:24:39.314, Speaker B: Actually, the deployed by code is what it's imposed on. The latter, which also means that the gas limit isn't as much of a limit as you think, as you might think, because it doesn't all have to come from all data you could generate. You could write a contract that generates a shitload of data.
+00:24:39.432 - 00:24:59.146, Speaker A: But I'm talking about the block. Gas limit is the limiting factor for the code deposit anyway. Currently, when the limit was imposed, the blockast limit was like 4 million, and that was the mark. And now it's at 8 million or 10 million, and so it would just be double the size.
+00:24:59.248 - 00:25:10.346, Speaker B: But the amount of gas reward for calling a contract hasn't changed. So we'd still be trying to do more work for the same amount of gas. If we increase the gas, sorry, increase.
+00:25:10.378 - 00:25:11.360, Speaker D: The code size.
+00:25:14.230 - 00:25:17.762, Speaker A: Does modularizing it make it more expensive to run?
+00:25:17.896 - 00:25:21.060, Speaker F: Does EVM do inlining on the back end?
+00:25:21.510 - 00:25:40.870, Speaker B: What are the cost considerations so it can make. It will often make it more expensive to run, but it depends on how you do modularization and what you do like in some cases, maybe your model is a contract that you split into several different ones, entry points from the user, and then it actually can make it cheaper because there's smaller dispatch tables and so forth.
+00:25:40.950 - 00:25:44.730, Speaker A: Other tools that help with this kind of factoring.
+00:25:45.310 - 00:25:47.434, Speaker B: Not what I'm aware of, but actually.
+00:25:47.472 - 00:25:50.620, Speaker A: The dispatch table was optimized and it's a binary search.
+00:25:53.090 - 00:25:58.960, Speaker B: Login instead of a linear improvement. But I mean, there are definitely advantages to having smaller contracts to call.
+00:25:59.650 - 00:26:00.014, Speaker G: Yeah.
+00:26:00.052 - 00:26:16.200, Speaker D: So I also have my own theory about the idea that we were supposed to have actually a bunch of contracts that we can reuse repeatedly, kind of like a DLL or shared library. Can I go into that question?
+00:26:20.650 - 00:26:27.320, Speaker A: So if you look at the way it was split up, there was cold code, which turned out to be a better.
+00:26:28.810 - 00:27:12.662, Speaker D: Yeah, I still like that idea. If I think about how I use coders and stuff, and I think what I've been battling with is actually the fact that there's a static cost to making a call and it's like same amount of gas and it's quite high and it doesn't really reflect what you do when you're actually running. And so what I would like to see is something more like what your operating system does, which is it does the computation of loading. I don't know, your reg x library from disk. And once it's in memory, it can just recall it as you get that advantage in the transaction. The first call is priced as something and then maybe to someone in the SQL as you repeat it, use it.
+00:27:12.716 - 00:27:42.954, Speaker B: Well, this is the call opcode equivalent of net gas metering store opcodes. And I think it makes sense for the same reasons. The other option is that we could introduce a system to allow that people could propose well used contracts as sort of built ins. You can say, I mean, my own personal ens registry is now a built in and it costs 50 years to call instead of 700 because we expect it to be called a lot and held in memory by clients.
+00:27:43.082 - 00:27:49.186, Speaker D: My pet one is of course safe, which is like everybody uses it, and.
+00:27:49.208 - 00:27:53.540, Speaker B: If it was cheap enough, you could make it a pre compile instead.
+00:27:55.690 - 00:28:06.006, Speaker A: Are you suggesting to move this into like special contracts or are you suggesting some kind of advanced caching algorithm the.
+00:28:06.028 - 00:28:31.470, Speaker B: Way I'm proposing would in an EIP repose that this contract at this address is now considered a special contract and has special passenger enrollment and individual citations. Can choose to reinplet that, more advisors, they can load it into memory. It's kind of the wasm approach of recompiles are all now just code, except for the EDM.
+00:28:32.690 - 00:28:33.294, Speaker G: Yeah.
+00:28:33.412 - 00:28:38.894, Speaker D: If we start off just by doing the gas price, the clients can see.
+00:28:38.932 - 00:28:40.706, Speaker A: How it is used, so we can.
+00:28:40.728 - 00:29:00.698, Speaker D: Take a very safe approach. But to tie into the size, that's actually the problem. People don't want to pay that 700 gas repeatedly in a bulk fashion. And if we have that cost, that just decreases as it gets called, they will only pay the 700, and then maybe it gets stepped up and it will solve that problem.
+00:29:00.864 - 00:29:10.130, Speaker B: Today the main place we see delegate calls used is deployed properties outlined libraries.
+00:29:10.310 - 00:29:11.886, Speaker D: Which is what we actually want.
+00:29:11.988 - 00:29:13.120, Speaker B: That's the whole idea.
+00:29:16.530 - 00:29:17.630, Speaker A: So, Martin?
+00:29:21.330 - 00:29:35.410, Speaker G: Yeah, I'm Martin Sanders and I work with the guest client and security at the Ethereum foundation. But for the Ethereum infrastructure and the EVM. And I was at another panel.
+00:29:37.370 - 00:29:53.660, Speaker A: We were just discussing and pricing in general, and what we ended up with, I think Nick proposing that some regularly used contracts and libraries would benefit from a lower full cost.
+00:29:55.070 - 00:31:03.158, Speaker G: Right. I have a problem with. There is a general thinking sometimes that caching clients have caches, so we should make the things that are in the caches cheaper. And my problem with that is that caches allow a level of freedom to have whatever cache eviction policy we want. It can be least frequently used, less recently used caches, and if you have a big machine, you will have a large cache, and if you're running it on a raspberry PI, you have a very small cache and it will be slower. But if we say, well, the cache should be this and this should be cheaper, then we all of a sudden encode the cache eviction policy into a consensus engine, and we encode the cache size into the consensus engine, and we need to make sure that if something is put into this cache and it then reverted, we need to clean it up from this cache again so it's not sitting around. We need to have a journal covering this cache, and basically it's no longer a cache.
+00:31:03.158 - 00:31:39.900, Speaker G: But we've added a new consensus structure with very strict rules on what needs to be in there, what needs not been there. Yeah, and it's removed. So the whole cash has become just another consensus structure, which doesn't help the clients, it makes it more complicated. So the question is, if we want to make it cheaper, I don't think we should have anything executed in the last 10,000. It needs to be very clear about what should be cheaper and why and what kind of data structure do we need to maintain to.
+00:31:41.010 - 00:32:26.054, Speaker B: I agree, and I'm actually against caches in general on the EVM very easily attacked by an attacker who knows the eviction or the likely eviction policy. We saw this in Shanghai and elsewhere. All they need to do is make sure that every item they fetch is out of the cache so they work when you don't really need them, and they fail when you need them most. And you always have to assume the worst case, that everything is out of the cache and therefore you can't actually optimize your stuff further. The best you can do is when times are good, your sync is slightly faster when you're catching up, or maybe a lot faster. What I was proposing is there's one of two things. One is effectively an extension of net gas metering to apply to call operations.
+00:32:26.054 - 00:32:53.438, Speaker B: So if you call main frame repeatedly in a single transaction, it costs less than second and subsequent times. The other option is a way for eips to say the contract with bytecode S x at address y is considered a public good and is used regularly because it's say the safe math code or something. And executing the call off code to this will only cost 20 gas because we expect every client to load it into memory on startup. And it would be a very limited set of small contracts that were perceived.
+00:32:53.454 - 00:33:11.510, Speaker G: As basically, yeah, on the first idea I think it would make sense, but probably be of maybe limited usability. And on the second idea I think that would be. Yeah, really. That would probably be really cool and useful.
+00:33:11.850 - 00:33:26.270, Speaker B: Might be more useful than you think, because it would enable a library that has a series of utility functions that you call repeatedly from within your contract, whereas current gauge calls that cost you 700 gas. So you can defer a lot of documentation up to the library of Netgas.
+00:33:26.690 - 00:34:14.854, Speaker A: So the first one kind of sounds like Netgas catering for s four. And actually there are two eips in that direction, at least three, not for the SDR, but for the cold. There are already two out there. And the first one is actually by Jack and me. Regarding calling self, this was an issue in inviter. And another one is, well actually this one was discussed at an all codec call probably over a year ago. And there the exact same idea came up that maybe it should be a generic net gas metering for calls within an execution, but it hasn't progressed anywhere.
+00:34:14.854 - 00:34:23.066, Speaker A: And you guys are tiny bit afraid that it might fall into the same issue as the gas machine for SDR.
+00:34:23.258 - 00:34:40.950, Speaker B: Yes, I think Martin made a very good point earlier today about how the gas turbine is a broken way to achieve a long goal, and that maybe we should be looking at ways to replace that so we're not so fragile to fear issues every time we change gas prices.
+00:34:44.970 - 00:34:47.318, Speaker A: I think fear is really going on all directions to me.
+00:34:47.324 - 00:34:48.280, Speaker E: I wish you.
+00:34:50.090 - 00:35:42.214, Speaker G: Yeah, but just to tie back to that, if you get a cheaper call, the next time you call something that you've already called, that's like a more generic version of an Eve that Alex had for typical spell. And I took that Eve and I did an analysis. I don't know if we can get it on the screen there, but the analysis looked at if you have a somewhat malicious, well, a contract which repeatedly calls itself as many times as it can first. So that means it calls itself recursively to a limit where it can't do that any longer. And when it runs out of gas there, it will do it again. So it will be like a cold tree down. A cold tree down.
+00:35:42.214 - 00:35:43.974, Speaker G: A cold tree down. A cold tree down.
+00:35:44.092 - 00:35:45.222, Speaker A: What am I looking for?
+00:35:45.356 - 00:36:26.550, Speaker G: GitHub.com holyman. Gov it's one of the analysis, search for markdown files.
+00:36:28.570 - 00:36:31.830, Speaker E: Markdown GitHub by file.
+00:36:38.650 - 00:36:40.640, Speaker F: Better have GitHub it.
+00:36:49.810 - 00:36:54.702, Speaker E: Learning new things. Maybe you should like GitHub panel.
+00:36:54.766 - 00:37:43.986, Speaker G: So the contract will basically there's one contract which calls another contract. The first contract just calls the second one all the time. And what the second one does is it calls itself, in the case of reduced cost, to something that has already been installed. This would fall in the same general framework, and this is how it basically looks. So first you have a recursive voltry going to a certain depth. And this takes you around 7 million gas with a current. And in total there are 56 decorations where it goes to a depth of 344.
+00:37:43.986 - 00:37:58.886, Speaker G: And this total load is 13,000 qualities in a male and 10 million gas. And if the lexic implemented where the reduce will be to 14 700, there.
+00:37:58.908 - 00:38:01.254, Speaker A: Will be, well, obviously more into 405.
+00:38:01.292 - 00:38:20.186, Speaker G: Iterations and maximum depth of 503. And what we could see was that on get without any state or anything, only the pure get runtime, the execution time jumped up to 1.8 milliseconds. I'm not sure what it was before.
+00:38:20.368 - 00:38:24.750, Speaker A: But before it was almost 4000 calls in total.
+00:38:24.900 - 00:38:32.000, Speaker G: And then it became 171,000 poles in total. So that's pretty steep difference.
+00:38:35.970 - 00:38:42.126, Speaker D: But I mean, you could adjust the gas price, right? We have to decide what is.
+00:38:42.228 - 00:38:48.600, Speaker G: Yeah, the number 40, that's way too low.
+00:38:50.810 - 00:38:51.880, Speaker F: 64.
+00:38:56.890 - 00:38:58.070, Speaker A: Negotiation.
+00:39:01.630 - 00:39:18.240, Speaker G: That's what stops the recursion from reaching 1024. But when that recursion then unfolds, all those one hundred and sixty four s are returned and we can go one level down and do the recursion again. It will be a shorter recursion tree because what left to start with.
+00:39:18.850 - 00:39:25.760, Speaker F: Okay, so there's no way to use an explicit call that limit two does flow up here.
+00:39:27.270 - 00:39:28.580, Speaker E: Just have one.
+00:39:29.830 - 00:39:37.682, Speaker A: But just to be clear, the proposed 14 or whatever was the gas code. It was just starting number, which we just benchmark.
+00:39:37.746 - 00:39:38.406, Speaker B: Which is it?
+00:39:38.428 - 00:39:39.862, Speaker A: So we just need to adjust the number.
+00:39:39.916 - 00:39:53.420, Speaker C: But this is always good to have. So if you have this repricing, dynamic repricing for calls that you make more often, you're going to have more calls. You can make more calls, of course, yes.
+00:39:54.990 - 00:40:02.410, Speaker G: Even if we call something that already, there is an inherent overhead in the execution.
+00:40:03.490 - 00:40:05.760, Speaker C: The question is like how bad is this.
+00:40:07.970 - 00:40:10.346, Speaker A: Fundamental represent?
+00:40:10.378 - 00:40:17.760, Speaker B: The actual cost definitely doesn't cost as much to the end.
+00:40:20.850 - 00:40:27.142, Speaker G: Right. But it's, it's probably, I mean, 700 is pretty cheap if you compare it to an extra contract, but it's super.
+00:40:27.196 - 00:40:39.250, Speaker C: Expensive compared to a jump. Then you get into the incentive to actually write modular contracts instead of having like a huge contract where all the interval folder just jumps.
+00:40:39.330 - 00:40:39.670, Speaker A: Right.
+00:40:39.740 - 00:41:05.810, Speaker C: So because we were discussing before the repricing of all would affect that. So you should write more modular contracts which are easier to understand, like probably safer in general, but if you're very, extremely unsavory with gas, you would just write a huge contract and just do internal call to the functions and then you would just jump between them. But then there's incentive to write modular contracts against single contract.
+00:41:06.630 - 00:41:20.054, Speaker G: But that's inherent. I mean, jump is inherently cheaper for the EVM to execute. You take care of all the storage variables and stuff, whereas default, it's like the EVM takes care of all that.
+00:41:20.092 - 00:41:20.646, Speaker A: Yeah, of course.
+00:41:20.668 - 00:41:30.390, Speaker C: But I'm just, from the perspective of incentive for coders to write module, that's the perspective.
+00:41:30.730 - 00:42:27.850, Speaker A: Can we backtrack a tiny bit? You weren't here at the beginning, and I know that some people even have questions with the previous part. We haven't covered that, but we started off with one single question and the single question was why is the code size limited? Twenty four k and could be extended? And it has a lot of different topics we can discuss and we did quite a few of them. One, we suggested that it makes sense to break up contracts to make them more modular, but that has the issue of the cost of call and all these overheads. And we also explained that the code size limit is there because of an issue of analysis cost and it's a DOS factor. And I know there was a question probably there, which we never answered. Can we move the analysis earlier at deploy time? Do we want to cover that briefly?
+00:42:28.510 - 00:42:56.322, Speaker B: I mean, it's certainly possible to do the analysis at deploy time, and in that case the deployer is already paying gas proportional to the size of the contract, so in some sense they're paying for it. Or at least there's no discrepancy in Big O's there. I think it would be a matter of, it would be a significant change to all the contract, all the EBM implementations, to be able to serialize that analysis and then efficiently load it up again at execution time. But it doesn't seem like an intractable.
+00:42:56.386 - 00:43:05.750, Speaker A: Possibility even if you do that. We would incentivize people to create bigger contracts. We would create the limit.
+00:43:06.090 - 00:43:20.460, Speaker B: I don't know that you'd be incentivizing it, but you'd certainly be making it practical or possible. And there's still definitely some ono the headed loading of contract, but it's a lot lower when you don't step over all the bytecode and build jump tables and so forth.
+00:43:21.410 - 00:43:46.638, Speaker A: But let's assume we would make this easier and we would create a code size limit, but we wouldn't do anything on the call costs. Then we would be just expanding this to make more monolithic contracts. The alternative to that is maybe consider making modular contracts more attractive, and that's what we have been discussing right now.
+00:43:46.744 - 00:43:55.622, Speaker B: So for instance, make the cost of a four rock code depending on the size of the contract you call it. Okay?
+00:43:55.676 - 00:43:56.280, Speaker E: Yeah.
+00:43:58.270 - 00:43:59.386, Speaker A: I think the effect can be.
+00:43:59.408 - 00:44:00.620, Speaker C: Kind of similar to.
+00:44:02.510 - 00:44:03.578, Speaker F: Reducing the price.
+00:44:03.664 - 00:44:06.140, Speaker C: Every time we call it.
+00:44:08.430 - 00:44:13.486, Speaker A: Would it be possible to have in my contract the ability to indicate that.
+00:44:13.508 - 00:44:17.354, Speaker F: A call could be inline? So I can still write it modularly.
+00:44:17.402 - 00:44:19.406, Speaker A: But I'm not paying the price of.
+00:44:19.428 - 00:44:25.246, Speaker F: A full call, because at load time, there's some hint there saying this is.
+00:44:25.268 - 00:44:27.982, Speaker C: Going to be called eventually I'm going to load this external contract.
+00:44:28.046 - 00:44:30.898, Speaker A: Exactly. I want to write it modularly, but.
+00:44:30.904 - 00:44:34.100, Speaker F: I don't want to pay this cost of inline this call.
+00:44:34.550 - 00:44:37.010, Speaker B: That seems more like a compiler optimization.
+00:44:38.170 - 00:44:51.690, Speaker A: The difference would be that when I deploy my contract, okay, I'm not in line, the code is not inlined in the contract. It's an indication to the EVM at load time to do so. I don't pay the cost of this.
+00:44:51.760 - 00:44:53.706, Speaker G: Loaded contract, but then the address has.
+00:44:53.728 - 00:44:54.906, Speaker C: To be static, right?
+00:44:55.008 - 00:45:00.300, Speaker B: Yes, but then you're making the EVM pay the cost, so why wouldn't you be deducted it?
+00:45:00.750 - 00:45:05.390, Speaker A: I'm paying some overhead cost to indicate inline, but I'm not paying back cost.
+00:45:05.460 - 00:45:07.200, Speaker F: Every time I'm making a call.
+00:45:07.730 - 00:45:09.134, Speaker A: It's a one time.
+00:45:09.332 - 00:45:33.190, Speaker B: I think that works out equivalent to doing net gas metering. And that's probably the small change. If I can back up just 1 second. I was curious, you showed times there about 1.2 seconds for a block full of these return calls. What's our target like? What's the worst possible case at the moment for a bad contract? How long going to take to execute?
+00:45:35.930 - 00:45:37.702, Speaker D: 1.1 is pretty good, right?
+00:45:37.756 - 00:46:03.342, Speaker G: I mean, all of that is very dependent on the hardware you're running on. And in this case I just ran it off my laptop and I expect to be able to run through 10 million gas in two or 300 milliseconds. So in that context, yeah, I should have explained that of course, but in that context, well above 1 second is not good.
+00:46:03.476 - 00:46:07.106, Speaker B: But is that the worst case? Because if there are worse ones, you.
+00:46:07.128 - 00:46:09.060, Speaker G: Mean worst case in that particular.
+00:46:09.590 - 00:46:12.226, Speaker B: On that particular hardware, can you write.
+00:46:12.248 - 00:46:17.390, Speaker G: A contract that takes longer than that with any opcodes?
+00:46:17.470 - 00:46:18.002, Speaker B: Yes.
+00:46:18.136 - 00:46:22.918, Speaker G: So that's a very difficult question to answer because it naturally depends on the state side.
+00:46:23.004 - 00:46:27.382, Speaker B: I mean you can't say no, you can't. But I'm asking if you're aware that there is one thing.
+00:46:27.436 - 00:46:29.080, Speaker G: Am I going to tell that.
+00:46:31.850 - 00:46:39.500, Speaker B: What I'm saying is if there are worse ones, then we shouldn't really be thinking about this one because they could just do the other thing, which would be worse for us.
+00:46:40.370 - 00:46:52.846, Speaker G: Yeah, so if we have other worst cases, something just as long and not as bad as the worst case, more or less.
+00:46:52.948 - 00:47:01.220, Speaker C: I think if you have something that you can already do nowadays that is actually worse, then this one is okay.
+00:47:02.630 - 00:47:04.340, Speaker D: Settings are quite low.
+00:47:05.670 - 00:47:10.040, Speaker C: Like if you can already do more damage, then why is this one problem?
+00:47:11.050 - 00:47:12.758, Speaker G: I'm not saying it's really at the.
+00:47:12.764 - 00:47:14.438, Speaker A: Very least we wouldn't be introducing a.
+00:47:14.444 - 00:47:23.690, Speaker B: New DOS vector if that's the case. If we already have ones, we should be getting rid of those, but we wouldn't be making things worse.
+00:47:25.710 - 00:47:29.690, Speaker G: But once we get rid of those, then suddenly we fall back to that.
+00:47:29.760 - 00:47:34.640, Speaker B: No one asking how far away this is from a reasonable position.
+00:47:35.010 - 00:47:48.190, Speaker G: Well I think we can go in that general direction, but we can't pretend that a call is equivalent to a jump, because it isn't.
+00:47:48.270 - 00:47:53.506, Speaker D: No, it is, but I don't think a call to self is worth 700.
+00:47:53.608 - 00:48:00.486, Speaker F: So is this suggesting that it would be. This is using plus a 40, is that right?
+00:48:00.588 - 00:48:01.046, Speaker E: Yeah.
+00:48:01.148 - 00:48:06.440, Speaker F: So it'd be one fifth of that, or like a 200.
+00:48:11.550 - 00:48:15.690, Speaker A: I think you have actually two different. Does this have the precompass?
+00:48:16.510 - 00:48:18.314, Speaker G: I am one for the precompass as well.
+00:48:18.352 - 00:48:45.682, Speaker A: But anyway, this is only for call to self, which was motivated by viper. And Viper initially for every single function defined in Viper, it would do an external call so that to make those functions fully pure. And this has changed, I believe last year, end of last year, this year. And now wiper is also using jumps for internal calls because obviously it's not cheap.
+00:48:45.746 - 00:48:47.670, Speaker D: Well, we want people to use the language.
+00:48:50.090 - 00:49:02.986, Speaker A: So the motivation of this proposal was to reduce the call to self so that wiper could keep using this safer method of pure functions and also solidity could start using that.
+00:49:03.088 - 00:49:03.740, Speaker D: Exactly.
+00:49:04.510 - 00:49:19.230, Speaker B: I mean, I'm not a big fan of that because it requires you to serialize all your call arguments every time and then deserialize them. So even if all cell calls were cheaper, you'd probably be spending a lot of time on passing and generating specialist contracts.
+00:49:20.690 - 00:49:48.346, Speaker G: You would have to navigate the whole 63 64 rules, which would cause issues. So every time you make a call, you can only send along maximum 63 64 of the gaps that you have, which makes it practically impossible to reach recursion core depth of higher than, I don't know, couple of hundred, something like that.
+00:49:48.368 - 00:49:50.700, Speaker B: You have that 344?
+00:49:52.910 - 00:50:06.510, Speaker G: Yeah. A contract which is in a contract world where everything is based on calls instead of jumps, that can be problematic.
+00:50:08.770 - 00:50:21.634, Speaker A: On the note of serialization. So we do have like the ABI encoding across different contracts. But if you're calling yourself, you may not need to use it. You can use your own format, which.
+00:50:21.672 - 00:50:33.000, Speaker B: May match the map, but you do still need to flatten things a bit. Like if you've got a data structure that has pointers to other things, memories, silver, baking stuff.
+00:50:37.290 - 00:50:42.038, Speaker H: May I ask a question about execution environments in Ethereum too? Would that be on topic?
+00:50:42.214 - 00:50:46.470, Speaker A: No, we have another discussion on Friday.
+00:50:46.550 - 00:50:46.890, Speaker B: Okay.
+00:50:46.960 - 00:50:48.250, Speaker A: Where it would be a really good question.
+00:50:48.320 - 00:50:49.260, Speaker B: Cool, thanks.
+00:50:50.750 - 00:51:00.926, Speaker A: So we have a ton of questions on Slido. Now, do we still want to explore this net gas metering for calls a tiny bit more, or should we jump into some questions?
+00:51:00.948 - 00:51:11.374, Speaker G: I just have a question regarding it, which relates to what Martin was saying about 63 64. I mean, since this is a fairly.
+00:51:11.422 - 00:51:12.500, Speaker C: Special case.
+00:51:15.850 - 00:51:26.280, Speaker G: Did anybody consider making a new opcode? A quote self, like a quote self coat? Yeah, but that has a 63 64 through. Exactly.
+00:51:29.470 - 00:51:34.762, Speaker B: I feel like given the code space we used to work, that might be.
+00:51:34.816 - 00:51:37.740, Speaker E: Because it can go deeper into calls back there.
+00:51:40.210 - 00:51:44.560, Speaker B: I mean, what's becoming apparent is that 16 opcodes for call types was not enough.
+00:51:48.210 - 00:52:23.500, Speaker A: Okay, so that's one thing. Just focus on your call to self. And if we start introducing an upcode for that, we really made it a very specific case. But earlier on we also said that this could be more generalized outside of call to self, to, to discount calls to contracts which were already called in the given execution. And that's the one which would be useful if we want to have more modular contracts, to have libraries. But that wouldn't be called self, that wouldn't be called.
+00:52:24.110 - 00:52:29.594, Speaker B: But I think this analysis probably just had two very similar.
+00:52:29.712 - 00:52:38.560, Speaker A: Right. Do you guys see any issues considering this more generic case?
+00:52:39.730 - 00:53:13.420, Speaker B: I guess the question is, you need to do a bit of analysis on how much can you force a union implementation to load into memory. Like if you take the square root of the number of calls you can make, and you call that many contracts that many times, how much memory would that involve? How many calls would that involve? Would that be reached the point of being the problem, because the EVM implementation has to be able to hold the lowest memory for the whole transaction, because you can't rely on caching, the aforementioned attacker will just overrun your caching. But intuitively, to me it seems like if that's the same.
+00:53:14.750 - 00:53:36.446, Speaker A: So an interesting case there is. You have your contract to use a bunch of libraries, you keep calling them, you catch a ton of them, and now you call out to a brand new contract, and then you want to also cache stuff, which is happening there. You cannot just invalidate all stuff anymore.
+00:53:36.558 - 00:53:44.850, Speaker B: No, your cache needs to be relative to the current address, so you're maintaining potentially multiple caches.
+00:53:46.570 - 00:53:52.770, Speaker A: Should that be the case? Or shouldn't you be able to reuse the previous one as well because they've already loaded.
+00:53:52.850 - 00:53:55.880, Speaker B: Yeah, I was wrong.
+00:53:56.730 - 00:54:05.750, Speaker A: No, I really like the idea, but I'm really worried that it's going to fall into the same problems as the net gas feeder.
+00:54:05.910 - 00:54:08.780, Speaker B: Are you talking specifically about the rengement issue?
+00:54:10.270 - 00:54:38.802, Speaker A: Net gas feeder has the reintransity issue, but apart from the reintransity, it was just quite complex. And there were so many versions of net gas metering, it takes forever to. And even in the last hard work coming up to Istanbul with the net gas metering, it seems to be hard to get people to write a clear specification and clear test cases for them.
+00:54:38.856 - 00:55:04.350, Speaker B: And I mean, I wrote the very first version of gas metering. In retrospect, I wish I'd been less focused on trying to get the gas to exactly reflect what the actual costs are and more just to lowering the fruit simpler implementation that captures some of the efficiencies rather than a more complex one that tries to reflect all of it. So maybe that's the approach needs to be taken. I'm not actually up to date on the latest variant of the proposal.
+00:55:06.370 - 00:55:13.760, Speaker A: I think the latest one has some extra rules just to get around the statement issue.
+00:55:15.810 - 00:55:17.786, Speaker C: I would have a question to Martin.
+00:55:17.898 - 00:55:18.560, Speaker B: And.
+00:55:22.230 - 00:55:23.426, Speaker G: So I think there was like.
+00:55:23.448 - 00:56:03.150, Speaker C: An article or paper some time ago just showing that I remember percentage, but it was really high percentage of contracts that are actually the same. And I guess most of these are probably safe math and similar contracts. This whole thing that we're talking about, the repricing of call, would be to aid developers, not really to make it easier for the client, for the client, but what would be the difference for the client? Okay, one case right now have all these contracts being the same. Of course I don't assume that the client stores all of them separately.
+00:56:05.590 - 00:56:05.954, Speaker G: But.
+00:56:05.992 - 00:56:20.840, Speaker C: Then if you have people start writing more modular contracts and just delegating calls, then you're going to have a theory of them deployed. So what would look different in the client in that case? Or would it be basically the same.
+00:56:24.170 - 00:57:16.790, Speaker B: Already hashed by store it in a keyword address store. So multiple contracts already put the code for a new store once. So incidentally, I had reasons to look this up just the other day. The most popular contract on Ethereum, one is the most avoid properties, is gas token two, followed by a couple of proxy contracts, mostly for exchanges who use contract wallets, receive deposits, followed I think by one other. And then of course we shouldn't be rating on these ones because they're of course actually, the costs, they're actually occurring, they pay every time the contract stored as it was a brand new one. They're not using any more storage.
+00:57:18.650 - 00:58:15.882, Speaker G: Yeah, so the clients currently store the contracts only once, but that's not something which we should enshrine or assume because it might change over time. No, I was thinking primarily because right now they are deduplicated. And if they're unduplicated, that makes it possible to have another representation which is more amenable to things like lease syncing or accessing everything pertaining a specific account in one disk? I o or there can be things that are better representing it that way.
+00:58:16.016 - 00:58:21.850, Speaker B: I mean, presently it is enshrined because the sync protocol requires that you can fetch a contract.
+00:58:22.270 - 00:58:25.980, Speaker G: The current protocol, yes, but that's not the.
+00:58:29.490 - 00:58:48.390, Speaker B: Just as a data point, by my math, currently storing all the contracts in a client minus without counting for overhead accounts for about a megabyte. And we stored all the duplicate contracts, we unduplicated them. It would be about eight pegabytes. I know. Compared to the 250 estate. That's not enormous.
+00:58:50.730 - 00:59:01.086, Speaker G: Right? It's actually impossible to delete things from deduplicated unless you storage.
+00:59:01.138 - 00:59:08.170, Speaker B: Unless we start doing reference counting. Yeah, which should have been built into protocol.
+00:59:10.450 - 00:59:11.920, Speaker D: How does create two?
+00:59:15.250 - 00:59:45.480, Speaker B: I don't think it affects the end result. I mean, it probably makes your reference counting a little more complex, I guess. But since most clients I don't think are doing that now. I mean, contract storage is a lot cheaper than s store storage, and I don't think it's illegitimate to want to store frequently changed data there. But if people start doing that, then we are going to run into issues where we need to start garbage collecting old contracts and they need to start preference council and so on.
+00:59:48.570 - 01:00:08.670, Speaker A: On the garbage collecting old contract with the refricing coming up for SLO, there's this other discovery that it is cheaper if you have a lot of linear data, it is cheaper to store it as a contract and use Xcode copy.
+01:00:09.490 - 01:00:13.498, Speaker B: Or even to call it and ask it to return some of its own bytecode.
+01:00:13.594 - 01:00:20.210, Speaker A: Yeah, but assume the case when it's just pure data and you export copy it, then preference canting.
+01:00:22.710 - 01:00:51.950, Speaker B: Much like gas token waiting for somebody to exploit or use. Unlike gas token, I don't think it's a net bad, I think it's just that it reveals an area where nobody's bothered to optimize, because previously it hasn't been enough of an issue to spend time on. But I think that the costs of contract storage roughly reflects the actual costs incurred on clients. But it's cheaper because it actually consumes less resources than s store where you've got this massive merger Patricia tree.
+01:00:53.890 - 01:01:06.482, Speaker A: But this also opens up the question, why is the storage value not the key, but the storage value limited at 32 bytes? If you could have more linear data.
+01:01:06.536 - 01:01:48.474, Speaker B: There, storage should absolutely have been a page table type set up with large pages. So it would cost a lot to load the first value in a given page and very little to load subsequent ones, because that's how disk storage works. Cheap to load, like the trade off point on modern machines, is about 128k. That's when you're spending half your time waiting for the feature to return and half the time receiving the data, and that would be a much more sensible size than 4k. But I think retrofitting that now into EVM would be extremely difficult. You could probably do it without changing gulp codes. You just make a store a lot more expensive for the first feature on a page, and cheaper elsewise.
+01:01:48.474 - 01:02:00.450, Speaker B: But we've got thousands, hundreds of thousands of contracts deployed that rely on VNL to use contract storage as a massive hash table, and they would all become, overnight, ten times more expensive.
+01:02:01.430 - 01:02:07.518, Speaker A: Can you explain a tiny bit more what you mean by the page table method? How would that work on the level?
+01:02:07.624 - 01:02:53.090, Speaker B: Effectively, instead of treating contract storage, the big two six bit 32 bytes to 32 byte map, you would treat as a series of pages. And so when you do a fetch, you basically treat the last few bits as the position of the page and first bits as which page it is. And then the first time you fetch a given page, you charge them a lot of gas for that and the subsequent, like maybe two, three, five times what the current is load costs, but then the subsequent times, when that page is already in memory, you charge only comparable to m load costs to load it out waters and store it back, potentially. And so the op codes could be the same. It's still just s load and s store. It's just treating the semantically, it's treating the value differently.
+01:02:53.670 - 01:02:57.442, Speaker A: So it would still load 32 bytes at a time, it would still return.
+01:02:57.496 - 01:03:01.718, Speaker B: You 13 bytes, it would load under twenty eight k, and then just give you the 13 bytes you asked for.
+01:03:01.804 - 01:03:06.454, Speaker A: And as long as you go within the same page, you would only be charged much with the first.
+01:03:06.572 - 01:03:18.810, Speaker B: But that would radically change how languages needed to store data. Instead of using the entire storage, like hash table, they would need to start using things like red flag trees and so on in order to store stuff in contiguous ranges.
+01:03:19.470 - 01:03:38.930, Speaker A: A similar idea was explored to some, I guess limited extent by Alexia to bogat, at least on an idea level. And we discussed it similar, but definitely not the same. Instead of using s load to get pages, it would be memory mapping in higher storage.
+01:03:39.350 - 01:03:44.450, Speaker B: I think that would have similar effect. And maybe, I don't know whether it be better or worse API.
+01:03:47.850 - 01:03:58.838, Speaker A: But there's one trade off here. It pushes all the code to do hash tables to the language well, so.
+01:03:58.844 - 01:04:39.750, Speaker B: It definitely shouldn't be hash tables, because hash tables get amortized one, and every time you need to expand the hashtag, you have to do o n work, which means that every 10,000 or every thousand transactions, and then the next one needs to use more gas than the lot limit, and your contract falls over. So if you're going to do this, you have to use something that is fixed o log end time like a red flag tree. And it doesn't mean you need to do that in a language or in a pre compiled. You could do our cheap pre compile type of things, but this is far from unique. So does the Javascript library, so does everyone else unreasonable to use to do that?
+01:04:39.900 - 01:04:49.126, Speaker A: I mean, coming from a developer experience point of view, a lot of contracts really rely on a mapping. Yes, that's like the core data structure they use.
+01:04:49.228 - 01:04:54.394, Speaker B: They can still have that, it's just that the language would have to do more work behind the scenes to implement that.
+01:04:54.512 - 01:05:33.160, Speaker A: Yeah, I don't think it's an issue that the language would have to do that. It would be just an initial investment that all of these languages would have to write something, and then perhaps people would complain that it's slow and somebody would optimize it, somebody magically optimize it. But even then, as you mentioned, either it would be in the bytecode, in every single deployed bytecode, or you would have to generalize it out into some kind of library or pre compile. And we end up with the same issues as we discussed before, it seems to be all of these. You want to change a tiny thing and you have suddenly a bunch of other parameters that you have to think about.
+01:05:36.580 - 01:05:38.080, Speaker D: You may have guessed pricing.
+01:05:40.340 - 01:05:53.944, Speaker B: While we're at it, I'll just say that memory should also have been a page table. There's really no reason in the beginning and pay to expand it linearly. We could write much more natural compilers if we could have one end and a stack at the other.
+01:05:53.982 - 01:06:11.630, Speaker C: And so this was, I think I wish Pavel was here now, because Pavel was discussing it with Daniel like three weeks ago. So Daniel was like why is it not digits? And then just wondering if this was discussed before. And then I don't remember exactly.
+01:06:12.720 - 01:07:20.032, Speaker A: Maybe Dale, to give some background to you guys, this was a discussion on the solidity dev channel, which is open to anyone to join. It's mostly with the compiler, but it has some of these kind of interesting questions, and it originated from memory management, how memory is managed, the compiler, I mean in the contract, but it's written by the compiler and you can only expend the memory, you cannot do anything else. And in any given function you may want to just use temporary memory. And the issue was that we wanted to maybe reduce memory usage because memory is expensive and you want to throw away the temporary memory. But it's kind of a challenge if you want to do this in a generic way, because you have your starting memory or to a certain extent you get into a call, you want to use some temporary memory, but at some point you may also want to store data which wouldn't be temporary, and it becomes a challenge. But if you have page tables, then you can do that.
+01:07:20.166 - 01:07:42.980, Speaker B: It occurs to me for some reason only this very moment, that we could actually change that without big impact on existing contracts. Because if we'd be using page tables and we have the same gas cost for the total amount of memory you're using, rather than the first n bytes, then existing contracts would continue to operate the way they are. But new contracts could take advantage of the fact that something they could write to weigh the egg off somewhere.
+01:07:43.140 - 01:07:56.940, Speaker A: The proposal Daniel came up with during that discussion. So we're talking about memory page table, which you had an opinion on. The proposal was to maybe use some high bits of the offset to indicate the page table.
+01:07:57.620 - 01:08:00.652, Speaker E: So what's your opinion on that, about the hybrid?
+01:08:00.796 - 01:08:07.120, Speaker A: Well, just to have stage memory, you're concerned on the pricing.
+01:08:14.600 - 01:08:39.836, Speaker E: So actually I don't remember that. But anyway, in general, I think there will be a lot of nice features to have, but I'm sure it's practical actually to introduce that. So unless we find a way to do it in a way that it will not affect existing contracts, I think.
+01:08:39.858 - 01:08:40.716, Speaker B: I have a way to do that.
+01:08:40.738 - 01:08:42.316, Speaker E: Yeah, I understand that and I'll write.
+01:08:42.338 - 01:08:43.870, Speaker A: An e, but then you can tell me.
+01:08:44.880 - 01:09:50.880, Speaker E: But on the high bits. I don't like using high bits within the 256 values, because when you actually implement stuff, you actually can trim it to 32 bits in terms of memory access. And then I have to actually considering the upper part of the value. But maybe it's not so big deal. What I usually do when there's a proposal, I try to make a prototype implementation and then I can actually comment, how would this affect my implementation of EVM? So maybe there's a way to kind of work around that. But my first choice would be to use, even if we have some bit masking and differentiate addresses or everything else from each other within the same type or something, to use some high bits by, within this 64 bit range.
+01:09:53.140 - 01:09:57.120, Speaker B: I have to go around to this other panel. It's less interesting than this one, so don't.
+01:10:00.740 - 01:10:01.864, Speaker E: Mike, what do you think?
+01:10:01.942 - 01:10:18.010, Speaker G: This memory, I have not considered it before, and I don't think I have anything really to add. I need to read up on the e. If Nick writes one, maybe I can pick that.
+01:10:20.800 - 01:10:24.604, Speaker A: Do we want to cover some of the questions from the side of it? Is there a lot of questions there?
+01:10:24.642 - 01:10:30.128, Speaker F: We're still talking about the 32 kilowatt memory. All these issues are interrelated, right?
+01:10:30.214 - 01:10:30.850, Speaker D: Yeah.
+01:10:32.900 - 01:10:35.856, Speaker F: Contract size limit, that's what you want.
+01:10:35.958 - 01:10:42.400, Speaker A: Yeah, I think the number wasn't related to that anymore.
+01:10:42.480 - 01:10:45.110, Speaker F: Okay, that was first one. That was.
+01:10:47.240 - 01:10:47.990, Speaker C: Probably.
+01:10:51.820 - 01:11:05.188, Speaker A: So one of the questions we have here is, which still relates to the earlier discussion on status contracts. Why are zero bytes in the transaction data cheaper than non zero bytes?
+01:11:05.284 - 01:11:07.960, Speaker G: They're not. After they tumble.
+01:11:12.400 - 01:11:13.676, Speaker A: What are they priced now?
+01:11:13.778 - 01:11:15.836, Speaker G: They're priced equally alike, aren't they?
+01:11:15.858 - 01:11:16.044, Speaker B: No.
+01:11:16.082 - 01:11:17.676, Speaker G: Maybe they went down to 16 from.
+01:11:17.698 - 01:11:20.396, Speaker C: 68, but only for transaction data.
+01:11:20.498 - 01:11:25.490, Speaker G: Yeah. What are the types of data we're talking about? That's the only way they differ.
+01:11:25.940 - 01:11:28.988, Speaker C: But they differ, not general memory, just transaction.
+01:11:29.164 - 01:12:46.024, Speaker G: Yeah. Okay, so some context around this. When you send a transaction, it has historically been the case that the data that goes into the transaction, I think if it's a byte is zero, it costs four, and if it's non zero, it costs 68 gas. Now, for calls that happen within from a contract to another contract, there is no such distinction. What you pay for is memory expansion. If any memory expansion happens, you can send along megabytes of data, but not actually cost anything in the gas, if you have already expanded the memory to that megabyte with Istanbul, we're lowering this cost of 68, which concerns only the outermost transaction, lowering it to 60. And the initial reasoning to have a differentiation between zero and non zero is that zeros are more compressible.
+01:12:46.024 - 01:12:48.460, Speaker G: As far as I understand, that was the reasoning.
+01:12:49.040 - 01:12:59.180, Speaker F: It was assumed there would be a compression algorithm adopted of some sort, but it wasn't really adopted until snappy.
+01:13:00.960 - 01:13:09.090, Speaker G: Right. It was introduced on the e flare with the introduction of snappy around maybe one and a half years ago or something.
+01:13:11.300 - 01:13:23.888, Speaker A: Yeah. I don't get why here would be more compressible than any other number, but runs of the same numbers would be. I guess the assumption was that you would have more zeros.
+01:13:24.064 - 01:13:26.390, Speaker C: Yeah, I think the assumption that zeros happen.
+01:13:28.700 - 01:13:32.648, Speaker G: Otherwise it would have to be a more intricate scheme to figure out the problem.
+01:13:32.734 - 01:13:40.190, Speaker C: Also, when you have padded data, a bunch of zeros, you probably have that a lot.
+01:13:42.880 - 01:13:46.408, Speaker E: Yeah, but I think Abi iconic wasn't existing.
+01:13:46.584 - 01:13:46.984, Speaker G: Right.
+01:13:47.042 - 01:13:53.068, Speaker E: Actually, that decision was made. Really? Yeah, because it predates the solidity.
+01:13:53.244 - 01:13:56.108, Speaker A: Oh, really? Which, the transaction.
+01:13:56.284 - 01:13:57.010, Speaker E: Yeah.
+01:13:59.940 - 01:14:20.810, Speaker A: All right, we have another question still relating to opaque pricing. And we kind of exported, and I think somebody wanted to ask that question. But should offput pricing be updated every hard fork using some benchmarks? So should we always reprice things to what they are at that point of time.
+01:14:21.580 - 01:14:31.324, Speaker C: Be interesting to have like a set of benchmark that will always run and reevaluate also like always adding things to it as well.
+01:14:31.442 - 01:14:36.764, Speaker A: Would that mean we would need a fixed set of benchmarks first, which calculate everything.
+01:14:36.962 - 01:15:09.592, Speaker E: So I think still have to split state access opcodes and computational opcodes. I think that they should be addressed differently. I actually have some mind, some idea how to maybe try to evaluate all computational opcodes in more systematic way. To actually have some kind of benchmarks to run on it. This would have something like a script to reproduce that and check mean.
+01:15:09.726 - 01:15:34.844, Speaker F: That's what the hard part, right. The hard part is designing that benchmark analysis. Like the one Martin did. To determine that s load was way underpriced. Then the one that these guys did. The paper that came out 72 2nd block. Okay, once we have those, then yeah, we can start repeating and systematically running these benchmarks.
+01:15:34.844 - 01:15:43.440, Speaker F: But we haven't really had these analyses until quite recently.
+01:15:44.180 - 01:16:14.700, Speaker E: Systematic way. My ideal situation would be we have some kind of, let's say algorithm or program that actually we can run and then outputs numbers. And then we can discuss about the algorithm and the program. Not like the numbers themselves. Maybe we need to change the algorithm and stuff like that. But we mostly talk about the script that produce the numbers, not like the numbers. That would be, I think, ideal.
+01:16:14.700 - 01:16:29.970, Speaker E: I mean, the best we can have within the ADM. But whenever it's doable. I think nobody is working on that at this point.
+01:16:31.380 - 01:16:46.250, Speaker G: Yeah, I think technically it would be ideal to do repricings as often as we can. But then there's this social aspect that we actually do screw up for people when we do it. It needs to be done with a bit of.
+01:16:47.500 - 01:16:53.944, Speaker E: I didn't mean actually we should actually use that to reprice every hard work. But check what.
+01:16:54.062 - 01:16:56.872, Speaker G: Yeah, I'm bringing the question from the slide.
+01:16:56.936 - 01:17:10.000, Speaker E: Yeah, I'm also on this opinion. Unless we need it, I think it's not worth to do that. And for computational opcodes, we have like big marginalized, separate safety.
+01:17:12.180 - 01:17:41.130, Speaker A: On one side. Coming up to Istanbul. Probably mostly triggered by your EIP repricing s load. A lot of people were concerned that it's going to break their contracts or it's going to be way more expensive for them. So there seems to be a really big clash between those people who write the clients. And try to ensure that prices are somewhat reflective to what is happening. Compared to the people who use detail code.
+01:17:41.130 - 01:17:56.028, Speaker A: How can any of this resolver get any closer? Anyone with any should people just accept versioning, right?
+01:17:56.194 - 01:17:56.910, Speaker C: Yeah.
+01:17:59.280 - 01:18:11.600, Speaker G: But I don't think versioning wouldn't have solved anything. In case you can't really opt in to like. Yeah, I want to use the more expensive opcode.
+01:18:14.820 - 01:18:23.796, Speaker C: At least protect the older contract. If you want to deploy it after the new rules, then you have to.
+01:18:23.818 - 01:18:26.180, Speaker D: Adjust and then you can be responsible.
+01:18:26.260 - 01:18:30.136, Speaker C: But then you're responsible for whatever you're deploying. But then if you change something that.
+01:18:30.158 - 01:18:32.964, Speaker G: Affects what's deployed, it does get complicated.
+01:18:33.012 - 01:18:40.750, Speaker F: Too, when the new version is calling a contract that was deployed with the old version. So run an easy answer.
+01:18:44.080 - 01:18:58.480, Speaker G: And it's difficult, not it. Like if you deploy an old style deployer contract which can deploy any contract you throw at it, and then in the new world throw code at it, would it be deployed with the old rules?
+01:18:59.060 - 01:19:07.270, Speaker A: That's a good point, yeah. In Japan, though somehow, if it would be opt in, why would anybody opt in for higher gas price?
+01:19:08.200 - 01:19:16.332, Speaker F: They've opted for the lower gas price. Like all data, really cheap computations.
+01:19:16.416 - 01:19:28.380, Speaker A: I mean, you assume that, say, a new version which you can opt in would have things which are cheaper and things which are more expensive, and it would often be good. Some are cheaper. Right.
+01:19:28.450 - 01:19:40.016, Speaker F: But the things that are cheaper can accomplish the same thing as the things that are more expensive in the old version. Like instead of reading data from s load, you read it from call data.
+01:19:40.198 - 01:19:46.588, Speaker G: But I think they meant know it's not opt in, but it's mandatory. But it only applies to new contracts.
+01:19:46.684 - 01:20:23.310, Speaker A: Yeah. So there were a couple of different versions of these version interpreters, and one of them would say that you could select the version you're deploying. And Adam was saying that you could only deploy the new version, you cannot deploy the old one. The other complications were when you, within the contract, an already deployed contract. If you want to create another contract, can you define the version there, or should you take the version of the contract you are in? And then what happens when you call contracts of different versions? What kind of rules apply there?
+01:20:23.680 - 01:20:34.752, Speaker E: Yeah, but I think that was figured out. I mean, we selected one of these versions. We just decided not to actually enable that. But I think there is.
+01:20:34.806 - 01:20:58.728, Speaker A: I don't think it was fully resolved. What was probably resolved is that the current set of contracts deployed are version one, and then you have version two. And if you deploy something, that's only going to be version two, and if you create something, it's going to be the version you are in. But the question how you deal with calling another version that wasn't resolved, I.
+01:20:58.734 - 01:21:05.820, Speaker E: Don'T think it was because we had implementation of that. When you call version, you just execute the old version.
+01:21:08.880 - 01:21:12.750, Speaker G: I think that's because it was closed to be.
+01:21:15.840 - 01:21:20.204, Speaker E: Yeah, it was implemented. I'm not a big fan of versioning.
+01:21:20.252 - 01:21:25.296, Speaker F: In general, but what scares me about versioning is if we want to say.
+01:21:25.318 - 01:21:35.236, Speaker E: We have versioning version, there's more like versioning at this point. I mean, this one kind of winning now. That's what I wanted to say.
+01:21:35.338 - 01:21:35.604, Speaker G: Yeah.
+01:21:35.642 - 01:22:05.420, Speaker F: What scares me is if there would be a new version at every hard fork, and then all of a sudden we have five versions that can run concurrently. That's just way too complex. So rather do like one new version, and that's one where we continually update opcode. Guest so if anybody assumes it's constant, well, if you're on that new version, it'll break. Get rid of the 2300 gas subsidy, all that kind of stuff. Do that all in new version. Then we only have two versions.
+01:22:05.840 - 01:22:19.890, Speaker A: So you're saying that whatever is there today would be locked in in the states, and then from no one, everybody agrees that gas prices are going to change over time. So that would be.
+01:22:21.860 - 01:22:37.480, Speaker C: But then you see it end up basically writing a contract that has current new rules and Then negotiation rules because you opted in in advance to the new new rules.
+01:22:39.580 - 01:22:51.390, Speaker F: Yeah, that'd be usable. Ideal would be. I don't know if people can write things so that opcode gas cost changes aren't going to break them.
+01:22:55.920 - 01:23:25.290, Speaker A: There was this other aspect to it, that there might be two different kinds of gas changes. One set of gas changes is where you want to make some features better and compensate against some other things. But the other set of changes is fixing something against the US vector. So something pressing issue, which you cannot just do in version two and leave version one alone, because you can already exploit that in version one.
+01:23:25.740 - 01:23:26.490, Speaker G: And.
+01:23:28.220 - 01:23:37.492, Speaker A: People said that those kind of changes you can still apply in the old version. It's kind of confusing.
+01:23:37.636 - 01:23:44.220, Speaker C: One version per opcode. For each opcode, you can say, which version?
+01:23:48.560 - 01:23:49.870, Speaker A: Just help me.
+01:23:51.700 - 01:24:30.796, Speaker H: Do you anticipate it's possible that there are various opcodes whose gas prices could change by order of magnitudes in the future? Because in my opinion, in regards to this proposal, where a smart contract developer could opt into a gas system where gas prices do change, I think it would be like a code smell, if the code you write today is already close to hitting the blocked gas limit in any certain transaction. And so your transactions should be much smaller than that in general. So if the changes are marginal, I think that would be fine for most developers, but, I mean, is it possible that certain opcodes could have their gas prices change by words of magnitude, rather up or down?
+01:24:30.978 - 01:24:40.168, Speaker G: I think it's unlikely it happened, actually. I think escrow was at 50 and then rates 200. Right. It's not really an order of magnitude.
+01:24:40.344 - 01:24:41.816, Speaker E: Call was 40.
+01:24:41.938 - 01:24:47.488, Speaker G: Call was 40. Rates 700s load is going to go up to 800 from 200.
+01:24:47.574 - 01:25:03.764, Speaker F: Yeah, but still, that's an order of magnitude from the first 150 m one benchmarks this morning. Then you would see there's room for ordered magnitude price changes.
+01:25:03.962 - 01:25:05.240, Speaker G: Can I jump in here?
+01:25:05.310 - 01:25:05.544, Speaker E: Yeah.
+01:25:05.582 - 01:25:10.344, Speaker A: I just did some research recently, and just looking at execution times from zero.
+01:25:10.382 - 01:25:13.224, Speaker G: To 8 million instructions, and you can.
+01:25:13.262 - 01:25:17.160, Speaker D: See, like, all the size dependent instructions have been increasing.
+01:25:17.320 - 01:25:19.308, Speaker A: So I'd expect that the gas price.
+01:25:19.394 - 01:25:21.660, Speaker F: Over time will also increase linearly.
+01:25:23.840 - 01:25:25.230, Speaker G: Yeah, me too.
+01:25:27.380 - 01:25:48.710, Speaker E: But we can go down. I mean, it's like lowering the gas cost, so I'm not sure it's actually safer. I mean, it looks like. Because if you had some assumptions and everything else gets cheaper than the single opcode of states, it might be better way.
+01:25:50.680 - 01:25:52.550, Speaker A: Did that ever happen before?
+01:25:53.000 - 01:25:53.750, Speaker E: No.
+01:25:54.360 - 01:26:06.300, Speaker A: With metering it is. And that runs into this type condition.
+01:26:06.800 - 01:26:09.020, Speaker G: Frequent wires have been made cheaper.
+01:26:09.840 - 01:26:59.740, Speaker E: I'm mostly talking about not state access. If you want to lower the computational, there's two options, like write everything up, because we don't have actually a lot of space here, because they are like two, three, and something. This is the value. Write everything by ten. But then I think there will be lot of issues to the existing contract to handle that, because all of these cuts passing to different calls and so on. So actually we can lower them to something that is fractional value.
+01:26:59.810 - 01:27:00.430, Speaker A: Right.
+01:27:01.520 - 01:27:03.950, Speaker E: I guess there's a way to implement that.
+01:27:07.010 - 01:27:07.422, Speaker A: Yeah.
+01:27:07.476 - 01:27:09.326, Speaker G: Casey has a need about fractional.
+01:27:09.438 - 01:27:26.710, Speaker A: Yeah. And there was a discussion there about that. Why don't you just. So the problem is that a lot of the arithmetic of codes are priced at one or two or three, or is it five? Anyway, they're priced at one, and you cannot really reduce one anymore.
+01:27:32.330 - 01:27:41.158, Speaker E: I would actually consider an option to price everything at one and just leave it there. I mean, it's much easier than to go with fractional.
+01:27:41.254 - 01:27:43.994, Speaker G: But then someone's going to write a contract that has the one that actually.
+01:27:44.032 - 01:27:46.730, Speaker D: Does take more computation than like.
+01:27:46.800 - 01:27:48.410, Speaker A: I mean, you limit the computational.
+01:27:48.850 - 01:27:49.600, Speaker E: Yeah.
+01:27:49.970 - 01:27:53.658, Speaker D: So you think there's no way that if everything's priced as one, that someone's.
+01:27:53.674 - 01:27:55.594, Speaker C: Going to find some division?
+01:27:55.642 - 01:27:57.870, Speaker D: I mean, it's quite expensive on beginnings.
+01:27:58.230 - 01:28:03.282, Speaker E: Not if you're sure like it actually cost like zero one, right?
+01:28:03.336 - 01:28:03.794, Speaker G: Yeah.
+01:28:03.912 - 01:28:05.586, Speaker E: Even the worst case, you make sure.
+01:28:05.608 - 01:28:07.700, Speaker D: All the arithmetic is actually one.
+01:28:10.630 - 01:28:23.110, Speaker E: Save out a lot of work to increment fractional. Yeah, that's true, but I'm not sure the impact of that is good enough to actually, if it gets substantial cheaper.
+01:28:25.790 - 01:28:37.130, Speaker A: This may be a quick question to you guys, because we were quite deep into this and if you are left, do you have any questions or should we maybe call it today?
+01:28:37.280 - 01:29:05.590, Speaker E: I have a question it's more related about. So where are your thoughts about the storage layout? Because what I'm trying to do is how can I get the storage of a contract? Like inspect the storage very easily. And I think right now you need to go to the initial deployment, look for all the transactions, get all the traces of the contract and then you can do any computation or is there any work towards how to inspect easy of a contract?
+01:29:05.930 - 01:29:29.280, Speaker A: There is actually. I think it's not a working group yet, but there have been a bunch of proposals, at least on solidity, that the compiler would output the map of the storage and you would use that in debugging tools. There has been a proposal, nothing has been implemented yet, but this might happen at some point.
+01:29:30.690 - 01:29:40.818, Speaker F: There are some debug methods to dump the storage of a contract address, but I don't know, I can't remember if there's RPC calls for that.
+01:29:40.904 - 01:30:06.890, Speaker G: Yes there is, I think. And it's probably only on the guest client. I'm not sure. Storage range app storage range app allows you to iterate over the storage of a contract. I suspect that you won't get it from infuria, but on a local probably not. I don't think they expose.
+01:30:07.550 - 01:30:09.590, Speaker E: You cannot get traces from nuclear.
+01:30:09.670 - 01:30:13.450, Speaker G: No it's not traces, it's just storage slots.
+01:30:14.590 - 01:30:22.190, Speaker C: But you can via Mutriel which uses inferior by default.
+01:30:26.450 - 01:30:31.440, Speaker G: Yeah, it was implemented in gas for the use of rig to use.
+01:30:31.810 - 01:30:40.466, Speaker C: I'm pretty sure you can invite a myth address like the main app address and the slot that you want and it just needs to slot the value.
+01:30:40.568 - 01:30:45.640, Speaker G: I think the problem was you need to figure out the slots you want. Well I mean you want to dump all.
+01:30:46.330 - 01:30:48.790, Speaker A: I want to know the whole layout.
+01:30:49.930 - 01:30:51.586, Speaker E: But on the solidity.
+01:30:51.698 - 01:30:54.680, Speaker A: Well on any contract to visualize it.
+01:30:55.370 - 01:31:01.098, Speaker E: So it has to be the input is the contract address and I want to get.
+01:31:01.184 - 01:31:04.954, Speaker C: But you want to get the values that are there at the moment, yes.
+01:31:05.072 - 01:31:06.310, Speaker E: What is in the contract?
+01:31:06.390 - 01:31:06.682, Speaker G: Yeah.
+01:31:06.736 - 01:31:09.580, Speaker F: Storage range is the purpose you met.
+01:31:10.690 - 01:31:27.714, Speaker G: That won't solve the whole problem though, because you want to know what indices, balance, mapping, then you would need to know all of the selected locations that the map ends up hashing to. Yeah, you need both. You need both.
+01:31:27.752 - 01:31:29.570, Speaker C: You need like a static storage layout.
+01:31:30.070 - 01:31:33.010, Speaker F: Like what you wanted Remix has.
+01:31:33.080 - 01:31:41.640, Speaker C: And it does dynamic one to see what exactly is one to know what slot you're interested in, another one to know what's there.
+01:31:42.250 - 01:31:43.626, Speaker A: But then even if you have the.
+01:31:43.648 - 01:31:52.822, Speaker G: Method by which solidity deduces the key, you also need set access to history to know which ones have been written.
+01:31:52.886 - 01:31:53.210, Speaker E: Yes.
+01:31:53.280 - 01:32:01.310, Speaker G: No, not if you iterate the storage track. And I think that's what storage range does.
+01:32:01.380 - 01:32:07.470, Speaker D: But you can't, like for instance, get your original key, right, because you hash the key of a mapping.
+01:32:07.890 - 01:32:25.400, Speaker F: So there's a pre image dump as well. So it saves the pre image keys. And I'm remembering all this because that was something that was bugging me. And now it's a feature in remix. And I helped implement that feature with the storage mapping. So remix has this state.
+01:32:27.530 - 01:32:28.280, Speaker A: Yeah.
+01:32:32.170 - 01:32:41.622, Speaker F: To show the state mapper. So it maps the storage keys to the solidity variable names.
+01:32:41.766 - 01:32:44.940, Speaker D: Okay, that sounds like.
+01:32:48.130 - 01:33:13.080, Speaker E: I understand you need actually three things. Sorry, this storage map, what they call it, right. Storage layout, you need account range ads, storage range ads and also the pre image of the hash. If you combine all these after one year, you might get.
+01:33:16.090 - 01:33:16.726, Speaker B: You can get.
+01:33:16.748 - 01:33:27.882, Speaker G: The storage out, but you won't know the keys. Well, you could mine them, you could figure out which ones you are interested in. Maybe, I don't know.
+01:33:28.016 - 01:33:31.340, Speaker D: But go through the traces and see.
+01:33:32.270 - 01:33:34.826, Speaker F: I think remix automatically does that though.
+01:33:35.008 - 01:33:45.166, Speaker E: Yeah, remix does that. But just for one single, the current transaction, if you want to see the whole history, like aggregate the whole storage layout, I don't think you can do it.
+01:33:45.268 - 01:33:53.040, Speaker F: Probably because there's no git list of transactions that are pc methods that never.
+01:33:55.010 - 01:33:57.586, Speaker C: What did you mean with you can't know the keys or you don't know.
+01:33:57.608 - 01:34:07.560, Speaker G: The keys, because if you only look at storage, try and you iterate that what you get is not the key but the hash of the key. Right?
+01:34:11.690 - 01:34:12.150, Speaker C: Yeah.
+01:34:12.220 - 01:34:16.506, Speaker A: Any other question? I'm using Avi encoder V two for.
+01:34:16.528 - 01:34:20.620, Speaker B: My contract, but it's still experimental, right?
+01:34:22.110 - 01:34:23.834, Speaker G: What are the problems left?
+01:34:23.872 - 01:34:26.426, Speaker B: And do you have any thoughts, I.
+01:34:26.448 - 01:34:30.480, Speaker A: Guess when it'll be finalized? Do you want to go ahead?
+01:34:31.330 - 01:34:31.742, Speaker G: Yeah.
+01:34:31.796 - 01:34:40.754, Speaker C: So the main reason why DB encoder V two hasn't been properly released yet as non experimental is that we're still.
+01:34:40.792 - 01:34:42.130, Speaker G: Fuzzing it a lot.
+01:34:42.200 - 01:35:05.800, Speaker C: And the fuzzer wasn't prepared fully to fuzz all the complicated cases for the banker B two because there's a lot of scenarios. So that's the main reason basically. But for the next break and release 60, it's still going to be experimental, but at least not going to issue the warning anymore that it shouldn't use it because it's experimental and maybe.
+01:35:07.710 - 01:35:08.198, Speaker A: Stops.
+01:35:08.214 - 01:35:10.854, Speaker C: Being experimental and default.
+01:35:10.902 - 01:35:11.622, Speaker B: Hopefully.
+01:35:11.766 - 01:35:14.314, Speaker F: There was just a talk about that fuzzing effort too, right?
+01:35:14.352 - 01:35:27.994, Speaker A: Yeah, maybe it's 1.01.0. Is there any other questions? I would suggest maybe.
+01:35:28.192 - 01:35:29.866, Speaker E: Did we covered all the questions?
+01:35:29.968 - 01:35:38.990, Speaker A: Well, we can't cover all the questions, but are you guys interested in that or you guys want to have a coffee break and I'll talk afterwards?
+01:35:43.010 - 01:35:51.620, Speaker G: Since Nick Johnson isn't here, I feel like this is a safe space to talk about. Gap siphon actually a good idea.
+01:35:56.390 - 01:35:58.150, Speaker E: If it's a good idea to have it.
+01:35:58.220 - 01:35:59.590, Speaker A: I mean if it's a good idea.
+01:35:59.740 - 01:36:10.940, Speaker G: To by default have contract before to execute unknown code when they want to do a simple value transfer.
+01:36:16.260 - 01:36:50.568, Speaker E: From my perspective, I truly horribly hate this one and all the calls because whenever I implement calls in EVM, I do it wrong. And I did it like ten times already. And every time I do it because all the checks and all the conditions has to be precise in very strict order. And the stipend doubles all of these from inside EVM. I would be super happy if it can remove that, but I'm not sure we can actually.
+01:36:50.654 - 01:36:55.036, Speaker A: Where is the strict order defined? Can you go with your, I don't.
+01:36:55.058 - 01:36:57.884, Speaker E: Know, maybe yellow paper? But I never read yellow paper.
+01:36:57.922 - 01:37:00.284, Speaker A: Doesn't do everything in a strict order.
+01:37:00.402 - 01:37:07.600, Speaker E: It doesn't specify when dependent added and when you actually check the gas and if it's.
+01:37:08.740 - 01:37:20.390, Speaker A: There are a lot of conditions in the call. Yeah, and I think there were cases where you could do them in a different order and the test suite was going to get the same successful result.
+01:37:20.920 - 01:37:33.130, Speaker E: I think it's fixed by at least the test suite because it will generate out of one of the implementations and some of them actually adjust to that. I don't know, maybe that's the case, I'm not sure.
+01:37:33.980 - 01:38:40.060, Speaker G: But anyway, some context around this. So there's one group of people who thinks that there's a problem, that I cannot send money to a contract and prevent it from executing code. I cannot send it zero gas and some cash. And then there is another group of people who think that anytime you receive ether it's really awesome that you can execute code and it should always be given full gas to do whatever it wants. Right now it's being given 2300 if transfer is used. There's kind of a middle ground where people say it should be allowed to execute code, but it should not be able to do state modifications. And that's kind of where this 2300 comes from, the current gas data, because that was sufficient to do a log operation or two and maybe an s load, but not actually do a state modification.
+01:38:40.060 - 01:38:47.600, Speaker G: And right now, this 2300 thing is a kind of ugly hack.
+01:38:50.340 - 01:38:51.040, Speaker D: To allow.
+01:38:51.110 - 01:39:26.750, Speaker G: A bit of execution, but not too much execution, and not allow state modification. So there are different ways that this discussion goes. Like one group maybe wants to have a special call that only sends money and do nothing, static transfer. The middle group might want to have static call with value and log, so the receiver can consume infinite number of infinite gaps, but he can really only do like arithmetics and log operations, not modified state.
+01:39:28.240 - 01:39:45.168, Speaker A: I think that's before we discuss which 1 may have issues already. Good. What is the reason people want to have code executed when they receive? And there's two reasons people want that today.
+01:39:45.334 - 01:39:50.196, Speaker E: And the first one they want guaranteed to be possible, right?
+01:39:50.298 - 01:40:13.640, Speaker A: Yeah, to have the code executed. And one of the main reasons people want that, they want to reject incoming transfers if the contract is not supposed to store money, because if you don't do that and it stores money and you don't have a way to retrieve it, then it's just lost. The second thing people want to do is have a log and be able to catch that that the contract receives.
+01:40:15.520 - 01:40:22.800, Speaker G: But it's still possible to nuke people with money if you use the self destruction index.
+01:40:23.700 - 01:40:26.850, Speaker E: But it's very much explicit then. Right.
+01:40:28.260 - 01:41:01.080, Speaker G: But still you have the option of doing it through this method, then it's clearly now up to the calling contract to choose whether the contract you're calling in should have the ability to execute code or not. And then it seems like this gas stipend doesn't still serve a purpose because it doesn't enforce the invariant that the contract you're calling into can always execute code because this is case where it cannot.
+01:41:01.660 - 01:41:08.540, Speaker E: Yeah, that's okay to work around. Yeah, that's true, but it was just overlooked. I mean, nobody said EVM is consistent.
+01:41:10.080 - 01:41:30.900, Speaker F: So it's a safety feature and could probably analyze the chain history and see how many times that's kept people from burning their ether by sending it to a contract that attempting to send to contract that wasn't supposed to receive it. I wonder how much ether it saved.
+01:41:31.960 - 01:41:37.044, Speaker G: Probably quite a lot. But I mean, I'm arguing that this.
+01:41:37.082 - 01:41:37.830, Speaker F: Is like.
+01:41:40.780 - 01:41:44.824, Speaker G: Preventing people from doing stupid things is something that the compiler should do.
+01:41:44.862 - 01:41:45.416, Speaker A: Yeah, I agree.
+01:41:45.438 - 01:41:47.640, Speaker G: You always write stupid EVF code.
+01:41:47.710 - 01:42:01.752, Speaker E: Yeah. But that actually allows compilers to do that, to reject it, otherwise it couldn't prevent it in some of the cases which are actually doable.
+01:42:01.816 - 01:42:06.184, Speaker A: Now there's the payable feature.
+01:42:06.232 - 01:42:06.780, Speaker F: Yeah.
+01:42:06.930 - 01:42:08.990, Speaker A: Is it rejecting incoming trans.
+01:42:09.520 - 01:42:12.520, Speaker G: Yeah, on default.
+01:42:12.680 - 01:42:20.596, Speaker D: So if you don't have default function, it's specified by, I believe, or to fall back.
+01:42:20.618 - 01:42:21.750, Speaker B: It's written right.
+01:42:25.560 - 01:42:29.590, Speaker A: Today, maybe not gonna be fall back.
+01:42:34.540 - 01:42:55.084, Speaker H: I've heard in the past in regards to this, some people propose, I don't think this would happen at this point, but propose that ether, like the native ether, be re implemented as an ERC 20 so that we wouldn't have this kind of one asset. That's a special case from an EVM developer's perspective. Is there any reason that ether does.
+01:42:55.122 - 01:42:56.616, Speaker B: Have to be a special native thing?
+01:42:56.658 - 01:43:05.040, Speaker H: Or is it theoretically possible that it could be an ERC 20 contract without a crazy amount of changes to the ether?
+01:43:05.880 - 01:43:09.504, Speaker D: I only have a counterargument to that. We could also just implement the RC.
+01:43:09.552 - 01:43:11.060, Speaker A: 20 on the airflow.
+01:43:16.840 - 01:43:17.752, Speaker C: I think.
+01:43:17.886 - 01:43:19.044, Speaker B: Yeah, wrapped.
+01:43:19.172 - 01:43:20.360, Speaker G: Wrapped ether.
+01:43:21.980 - 01:43:23.144, Speaker D: I don't think there's a way around.
+01:43:23.182 - 01:43:24.090, Speaker B: It, to be honest.
+01:43:24.940 - 01:43:27.560, Speaker D: Not for what the original vision was for leaving.
+01:43:28.620 - 01:44:18.964, Speaker A: I would say there are like two very endpoints, two different parts to the discussion. One is the ERC 20 stuff. So what people do is wrapped eater. And you can actually write your contract in a way you only use the ERC 20 interface, reject all ether transfers, and then it's a UX issue that you require your users to use wrapped eater. On top of that, it also has an extra cost. And why do you want to pay that cost if ether is a built in token? So for that, there was one proposal that maybe the repeater should be kind of a standard system contract, or precompine if you want, and it would be practically free to deal with that. And users wouldn't need to manually transfer the eaters into this reptile contract.
+01:44:18.964 - 01:45:04.760, Speaker A: You could just, through this extra contract you could handle your eater as if it were ESC 20, but it wouldn't affect everything else. And I think that might be a good workaround. But the other end is the beginning of your question. Why is eter this native thing? Cannot you just make it more flexible and use other things? There was a proposal a long while ago for account abstraction to it was just the first step in the process to getting rid of ether as like this native thing where in theory you could use other things to pay for execution. But that is a really long process and it stopped at the first step and we never got any path.
+01:45:09.100 - 01:45:17.052, Speaker D: To be honest, I don't think it will happen. Focus on what we're building.
+01:45:17.186 - 01:45:21.048, Speaker B: It's basically the base layer and it's.
+01:45:21.064 - 01:45:38.260, Speaker D: Actually more of a UX issue. Like if you don't want your user to use wrapped end or whatever, you can build tools around it on a UX service. And with stuff like data transactions, all sorts of things you can get quite far with not even knowing.
+01:45:40.680 - 01:45:57.800, Speaker A: Martin, what do you think about this idea of having this special contract which gives an ERC 20 interface over e, but basically you wouldn't need to transfer your money into it because it could handle.
+01:46:03.100 - 01:46:07.630, Speaker G: I don't know, something. Think about it some more to have.
+01:46:11.360 - 01:46:30.516, Speaker E: I don't know. I don't like this idea of having special dresses. I mean like on technical point of view you need like a map of it somehow maintained and they will differ on different hardware. Right.
+01:46:30.698 - 01:46:32.180, Speaker D: Pecompal version.
+01:46:33.320 - 01:46:42.564, Speaker E: Yeah. At least pick on pipe has more or less known the address range 16.
+01:46:42.612 - 01:46:44.010, Speaker D: And higher on the.
+01:46:45.020 - 01:47:01.150, Speaker E: But I understand we will not like or you want deployed or given address or like you just deploy it regularly and just mark this one as a subsidized somehow it's like too technically current.
+01:47:03.060 - 01:47:12.396, Speaker A: This one would be probably a pre compiled because it has to have control over the user's more than a pre compile.
+01:47:12.508 - 01:47:18.390, Speaker F: It's a new thing. There was going to be a block hash. Right.
+01:47:24.600 - 01:47:29.050, Speaker D: I want to bring back a very old question. Why pre compile the mob code?
+01:47:31.820 - 01:47:35.784, Speaker A: Maybe just finish this. Sorry.
+01:47:35.902 - 01:47:37.050, Speaker F: No, I was done.
+01:47:40.780 - 01:47:41.800, Speaker A: We don't have to.
+01:47:41.870 - 01:47:48.732, Speaker H: You just reminded me of something. Why is it that inside the evm I can't look back more than 256.
+01:47:48.786 - 01:47:57.650, Speaker F: Block hashes because light clients wouldn't be able to execute. I think is the main reason.
+01:48:00.020 - 01:48:03.570, Speaker G: It's a pretty random number though.
+01:48:04.740 - 01:48:08.532, Speaker D: That wasn't really painful, but it had.
+01:48:08.586 - 01:48:17.430, Speaker G: Even light clients, as far as I know. Download all the headers. That doesn't verify everyone. Maybe like one. Every one.
+01:48:21.740 - 01:48:22.936, Speaker A: Just random number.
+01:48:23.038 - 01:48:24.616, Speaker G: Yeah. And it could have been a bit higher.
+01:48:24.718 - 01:48:28.120, Speaker D: Yeah, it could be a lot higher because it's very little data.
+01:48:28.190 - 01:48:28.616, Speaker A: Right?
+01:48:28.718 - 01:48:29.370, Speaker G: Yeah.
+01:48:31.820 - 01:49:02.436, Speaker A: So your question on why not outputs and why frequent types? I think even the initial set of frequent types, like the identity shared six. Right. Along with ketchup. All of those were uploads. And then those, except ketchup were moved out to this new concept of preconfine ketchak, I believe was left because it would be more often used. I don't think you were random, maybe.
+01:49:02.458 - 01:49:05.590, Speaker E: You were handed, I learned, but I really don't know.
+01:49:08.120 - 01:49:15.864, Speaker D: Except obviously the address based issue of the opcodes. But at the end, how many pre compiles we have now?
+01:49:15.902 - 01:49:19.800, Speaker A: Nine. So what would be the benefit having them as opcodes?
+01:49:21.820 - 01:49:27.550, Speaker D: Well, we only have all codes, we don't have to write additional call code.
+01:49:32.800 - 01:49:37.950, Speaker E: So for me like exhausting the opcode space.
+01:49:39.680 - 01:49:40.430, Speaker C: Maybe.
+01:49:42.400 - 01:49:51.684, Speaker E: It might be actually a deal. It might be very difficult to have two bytes later on.
+01:49:51.882 - 01:49:53.300, Speaker G: That would be painful.
+01:49:53.720 - 01:49:57.620, Speaker E: Yeah, there are serious problems with that.
+01:49:57.770 - 01:50:04.650, Speaker D: But it also brings. The question is like why do we increase our files and where do we draw that line?
+01:50:05.020 - 01:50:05.496, Speaker E: I don't know.
+01:50:05.518 - 01:50:07.544, Speaker A: I'll ask you as we on this.
+01:50:07.582 - 01:50:47.780, Speaker E: Point I'm not very much concerned, but so far I believe that's not the issue at all. But I think I will correct it. It's actually. So we still have one byte to use. Well there's a way to work around it's a bit ugly way, but from API point of view, I mean like VM implementation. So actually, it's actually easy for me to implement recompilet in VM because I don't have to do it at all because it's another call. So the client has to handle that somehow.
+01:50:47.780 - 01:51:08.620, Speaker E: I will just inform the client the call to handle and the client will figure out it's actually pre compiled. So the code of the pre compiled on the client side, not on the VM side in the API I'm using. And I actually need to have catch implementation shift with the EVM.
+01:51:15.760 - 01:51:25.244, Speaker D: And the advantages that you have to do it again is like you can ship a single C EVM and we can integrate it in multiple clients like EVMC would be just like a single module.
+01:51:25.292 - 01:51:25.792, Speaker A: Right.
+01:51:25.926 - 01:51:26.968, Speaker D: And we know we don't.
+01:51:27.004 - 01:51:36.550, Speaker E: Yeah, I actually prefer like smaller module, but I would like. Yeah, it's like strict boundary. We cannot cross that.
+01:51:38.600 - 01:51:45.816, Speaker D: Yeah, it's just a question. I wasn't 100% sure. How do we know we should make it mobcode? How do we know we should make it?
+01:51:45.838 - 01:51:46.410, Speaker E: This.
+01:51:48.380 - 01:52:09.330, Speaker F: About the opcode space, there's this interesting EIP old one from Gavin to. Instead of having like team call. Yeah, exactly. Instead of having 16 different types of calls, you have one and then it becomes a parameter of what kind of call you want to do. So that would reduce the.
+01:52:12.900 - 01:52:18.550, Speaker A: Space and it would go into the same problems with analysis, finding out what kind of a call is.
+01:52:20.520 - 01:52:33.400, Speaker E: Yeah, I'm kind of like. I'm okay with adding more call. It doesn't have the weird way of passing parameters.
+01:52:36.460 - 01:52:44.110, Speaker A: So, while you were talking about EVM one, there was a question whether there are any other optimizations you did apart from what you explained in the morning.
+01:52:46.880 - 01:53:42.110, Speaker E: Yeah, there are number of them, but they are kind of like regular engineering jobs. I don't know if I can even list that. But yeah, pre allocate stack up front. That is like obvious one. I think these are two things that is worth mentioning. And the rest is like playing with the code, doing benchmarks, micro benchmarks, like changing something and see if it's faster or not. You can actually read chat block, because I try to list them when they appear, so I cannot mention anything right now, like, out of my head.
+01:53:43.140 - 01:53:54.400, Speaker A: So, Martin, since you're here, I'm not sure if you have seen a tablet, cdm one, or EVM. Automation. Yeah. What is coiterium using from those techniques?
+01:53:55.620 - 01:54:07.216, Speaker G: So I think, as far as I understand, the main cool thing is that he does a bit of look ahead and walking in the past and calculating the gas.
+01:54:07.328 - 01:54:43.068, Speaker E: Yeah, you can simplify that. The graph goes with a block of instructions, but you can also precalculate the requirements. So I thought it's the most important one, but actually it's not. I think it's good news. Like the integer implementation. We actually changed the integer implementation in Alex from boost to intex, and it's like three times faster now. So think that's not controversial.
+01:54:43.068 - 01:54:49.910, Speaker E: Change. Right. Your work and. Go on that.
+01:54:51.080 - 01:54:53.728, Speaker F: Were you writing a new Biggins material?
+01:54:53.824 - 01:55:22.184, Speaker G: I did, yes. And this is definitely faster than the Biggins library. But in practice, it doesn't make any difference. No, because even if we make ten times faster, if the arithmetic contribution of the arithmetic ops to the actual execution time is only this portion, it doesn't matter. This is ten times faster.
+01:55:22.312 - 01:55:33.152, Speaker F: So you were benchmarking it against the pulsing. Right. But if you run a numerical benchmark, just in computational app codes, you would see a big speed up.
+01:55:33.206 - 01:55:33.712, Speaker G: Yes.
+01:55:33.846 - 01:55:48.840, Speaker A: Okay. If you would apply those changes, and hypothetically, we could reprice those as we discussed it a few times already of those, then could we get rid of some of the pre compiled.
+01:55:52.540 - 01:55:53.930, Speaker E: In the background way?
+01:55:54.940 - 01:55:58.440, Speaker G: Do we want to get rid of pre compiled? I didn't know that was a thing.
+01:55:58.510 - 01:56:02.270, Speaker A: Well, I guess you can actually get rid of them, but you could stop new ones.
+01:56:05.280 - 01:56:11.820, Speaker D: I thought not. Having pre compiles is quite a big thing that we discussed, I think.
+01:56:11.890 - 01:56:12.540, Speaker B: Lame.
+01:56:13.760 - 01:56:17.456, Speaker D: Not on this discussion. But over the last year or two.
+01:56:17.478 - 01:56:18.050, Speaker B: Years.
+01:56:20.740 - 01:56:29.940, Speaker D: Ideally, you want people to be able to write a new crypto function and not have to rely on the client lives to integrate it for you.
+01:56:30.090 - 01:56:30.404, Speaker B: Yeah.
+01:56:30.442 - 01:56:32.580, Speaker F: They're against the ethereum phosphate.
+01:56:33.960 - 01:56:34.710, Speaker G: Yeah.
+01:56:35.080 - 01:56:39.940, Speaker F: Let's face it, it's a carbon against what tree compiled. They go against the ethereum phosphate.
+01:56:43.640 - 01:56:44.452, Speaker A: Yes and no.
+01:56:44.506 - 01:56:46.810, Speaker F: Because it's a bailout for somebody's hash function.
+01:56:47.340 - 01:57:06.930, Speaker D: Yeah, it's unfortunately like that. But then I also sometimes feel like we're building almost like a cpu, and cpus have specific things that they're good at. Like you have some instructions which you make available. I have like a polarizing. Depends how you get the. On the day.
+01:57:11.380 - 01:57:57.576, Speaker A: One of the problems with pre compliance is people just want to have these features and now they have to wait. So they cannot do many of these things on the today. So now they have to wait for somebody to propose it and be lucky to be accepted, and then go into a hard fork at some point in time and be unsure whether it goes into the hard fork two weeks before the hard fork happened. Yes, but Casey, you made some benchmarks and I think you made some benchmarks for some existing precompis, maybe some proposed ones. But are there any one switch with like, EVM one? Are there any one switch could be just done on EVM with EVM one without having those preconfis? Were there any such cases? Oh, yeah. Blake.
+01:57:57.608 - 01:58:31.560, Speaker F: TB must definitely do it on EVM one. If it was. Well, I mean, the thing is, we have to be careful about how we're metering those new op codes. And so we don't have the studies done to show that we can safely meter them and get the full speed up. So it's going to depend on that. But if we're optimistic, then yeah, I think its metro and show would be sufficient to replace the precon file.
+01:58:33.180 - 01:58:57.350, Speaker G: But I don't know if I did a break it. But what I meant to ask was, in a way, did you check where the gas went in that implementing principle? If the gas went to computational ones, or if it went into the memory shuffling of data and the handling of it?
+01:58:57.880 - 01:59:27.870, Speaker F: No, we haven't done any gas analysis. We just did the runtime benchmark, the runtime on EVM one and said, okay, well, this is way less than 100 milliseconds, so it should cost less than 8 million gas or whatever. But that assumes we can optimistically price opcodes and that there are worst case runtimes in EVM one somewhere where we have to be more conservative with how we price them.
+01:59:33.810 - 01:59:49.682, Speaker A: I think the time limit actually you have a short question, very short question. Just like the benchmarking implementation, how do you guys have control for other things in the event performance. So things, let's say like just the machines power profile.
+01:59:49.746 - 01:59:54.534, Speaker D: So on windows you high performance like.
+01:59:54.572 - 02:00:00.054, Speaker A: OKCP or parking and things like that. And then other programs are ranked in.
+02:00:00.092 - 02:00:04.200, Speaker D: Time and all those things related to power.
+02:00:06.110 - 02:01:05.440, Speaker E: I can explain how I do it, but not actually. Short answer. I'm running on the same machine, right? And there is a way to actually I just restart machine then run only this one process of benchmarking. You can also pin some calls, I mean this is the Linux, you can separate some calls and run process only on these calls and ask kernel to move everything other tasks to other calls. And I think LlVN documentation and a patient documentation that describes many of these tricks. You can disable turbo turbo frequencies totally from the base one with formal apples make it like four times slower but still relevant. We're mostly interested in differences, right.
+02:01:05.440 - 02:01:54.510, Speaker E: There's many other things, but I also checked the variation or standard deviation of that which Mysore reports. And even if running with browser open it gets maybe around 1%. But with all these tricks and some of them actually doesn't matter. From my experience I have trouble of interpreting this standard variation. But it's like one. Well, it's 1000 times slower than the value. I think it's more or less pretty stable.
+02:01:54.510 - 02:02:18.870, Speaker E: Although EVM benchmarking is difficult. It's like a lot of going on. I think it's on the boundary of micro benchmarking. I think because there's memory usage and memory allocations happening. So that's some other different things. But in general if you have EVM code that runs long enough, I think it's good measurement.
+02:02:19.370 - 02:02:23.910, Speaker F: And that's the easy case. The hard case is when you start dealing with the I O operations.
+02:02:24.330 - 02:02:27.480, Speaker E: Yeah, I'm not like benchmarking at all.
+02:02:28.490 - 02:02:31.270, Speaker A: So thank you for all discussion.
+02:02:31.930 - 02:02:32.980, Speaker B: Finish this question.

@@ -1,0 +1,151 @@
+00:00:05.690 - 00:00:21.758, Speaker A: Hey, everyone. Thanks for the introduction there, Stephen. Yeah, I'm Alex. I am Chainlink engineer working at Chainlink Labs. My main focus at Chainlink Labs is.
+00:00:21.844 - 00:00:24.410, Speaker B: Our solidity smart contracts.
+00:00:24.570 - 00:00:41.130, Speaker A: And. And yeah, this is the hitchhiker's guide to the EVM. So for those who are unaware of the reference, the Hitchhiker's Guide to the Galaxy was a fictional book written as.
+00:00:41.200 - 00:00:45.926, Speaker B: An important guide for any interstellar hitchhiker.
+00:00:46.118 - 00:00:51.678, Speaker A: And in Hitchhiker's Guide to the EVM, I want to talk through some of.
+00:00:51.684 - 00:00:58.510, Speaker B: The most important things to know when writing smart contracts for solidity and the EVM.
+00:00:59.410 - 00:01:21.862, Speaker A: So I did consider quite a few topics for this. Security patterns, upgrade patterns, funky opcodes. But based on my experience building and shipping high throughput smart contracts, I found one of the most important and probably.
+00:01:21.916 - 00:01:30.182, Speaker B: Underserved topics out there is this concept of gas golfing. So what is gas golfing?
+00:01:30.246 - 00:01:33.306, Speaker A: Well, gas golfing is the process of.
+00:01:33.408 - 00:01:41.822, Speaker B: Optimizing the existing functionality of your contract to do the same things, to be able to perform the same functions, but.
+00:01:41.876 - 00:01:44.666, Speaker A: Just cheaper and more efficiently.
+00:01:44.778 - 00:01:46.830, Speaker B: So cheaper in terms of gas.
+00:01:47.730 - 00:01:49.614, Speaker A: And more specifically, I'm going to talk.
+00:01:49.652 - 00:02:10.258, Speaker B: About the use of storage in smart contracts. So what is storage? Storage is data that is persistent between transactions. It's stored in a contract for extended periods of time, and it can be accessed and changed in future transactions.
+00:02:10.434 - 00:02:11.958, Speaker A: So we've got an example of a.
+00:02:11.964 - 00:02:16.918, Speaker B: Storage variable on the left there. In other languages, we might call these.
+00:02:17.004 - 00:02:20.498, Speaker A: Instance variables or class variables, so programmers.
+00:02:20.514 - 00:02:25.210, Speaker B: Of other languages would know them by those terms. But in solidity, there is a catch.
+00:02:25.630 - 00:02:27.178, Speaker A: So it is one of the most.
+00:02:27.264 - 00:02:30.960, Speaker B: Gas intensive things that a contract can play around with.
+00:02:31.410 - 00:02:36.042, Speaker A: Accessing it, changing it is disproportionately expensive.
+00:02:36.186 - 00:02:50.782, Speaker B: In comparison with what we associate with normal disk storage. Why is that? Well, let's take this centralized world example. Data is stored in a single place. It is predictable.
+00:02:50.846 - 00:03:01.030, Speaker A: So in a centralized application running on a centralized server, we know that this many new users will amount to this.
+00:03:01.100 - 00:03:02.550, Speaker B: Much more storage being used.
+00:03:02.620 - 00:03:04.006, Speaker A: So we can predict how much we.
+00:03:04.028 - 00:03:29.086, Speaker B: Will need, and we can easily scale up in a single, or if there's a backup, two places translate that to the decentralized world, and all of a sudden, we have a very different problem. So that single piece of data that you store is no longer in one place, but it's on tens of thousands, potentially more disks across the entire network. It also has to be readily available.
+00:03:29.188 - 00:03:31.582, Speaker A: In case a future transaction comes along.
+00:03:31.716 - 00:03:37.314, Speaker B: To access or change it. So the overall cost equates to the.
+00:03:37.352 - 00:03:41.410, Speaker A: Sum of space that it consumes across the entire network.
+00:03:41.990 - 00:04:06.406, Speaker B: And because of this, the EVM has two intentionally expensive opcodes. So s store. And so s store basically means store this piece of data in this storage slot. And s load means read this data from this specific slot. Anytime that we set a storage variable in a function somewhere, we're incurring an s store on that slot.
+00:04:06.438 - 00:04:10.446, Speaker A: And anytime we read a variable from.
+00:04:10.468 - 00:04:37.094, Speaker B: A certain slot, we're incurring an S load. And these are both intentionally expensive. So what can we do about it? Well, here's five useful tips to help save gas when we're interacting with storage variables in smart contracts. So number one is don't store if you don't have to. Here's a really simple transfer function.
+00:04:37.292 - 00:04:45.254, Speaker A: And what it does, it performs some checks. It changes the balance values, it makes the transfer, and then it records a.
+00:04:45.292 - 00:05:14.034, Speaker B: Record of the transfer. In a mapping in storage we've got called s underscore transfers. And it's this last step that I want to focus on. So the transfer action is a significant event. So we do want to call it out somehow. But after we store this historical transfer record, the contract never actually uses that data again. In no future transaction will there ever.
+00:05:14.072 - 00:05:15.426, Speaker A: Be a time when it goes and.
+00:05:15.448 - 00:05:23.140, Speaker B: Retrieves some data from there. So in this scenario, instead of using storage, we should definitely emit an event.
+00:05:24.970 - 00:05:30.486, Speaker A: So instead of the declaration of the mapping, we've got this event declaration at.
+00:05:30.508 - 00:05:40.780, Speaker B: The top, and instead of s storing another value to that storage slot, we are emitting a transfer event.
+00:05:41.150 - 00:05:45.178, Speaker A: So instead of using that storage slot, we've saved it.
+00:05:45.264 - 00:05:48.438, Speaker B: We've saved using that expensive opcode.
+00:05:48.614 - 00:05:50.874, Speaker A: And this is actually what events are for.
+00:05:50.992 - 00:05:57.998, Speaker B: It's good practice to emit an event anytime the state or the storage in a contract changes.
+00:05:58.164 - 00:06:00.506, Speaker A: You'll notice this with ERC 20 transfers.
+00:06:00.538 - 00:06:03.922, Speaker B: Or 721 or any token that you use.
+00:06:03.976 - 00:06:09.250, Speaker A: Whenever ownership is transferred, then an event is emitted.
+00:06:10.630 - 00:06:12.066, Speaker B: So let's have a look on the.
+00:06:12.088 - 00:06:15.302, Speaker A: Impact of the gas on this specific function.
+00:06:15.356 - 00:06:21.074, Speaker B: So gas before using storage was actually 61,000 roughly.
+00:06:21.202 - 00:06:24.150, Speaker A: And after we changed that storage save.
+00:06:24.220 - 00:06:54.690, Speaker B: To an event emission, we saved 25,000 gas. That is a huge saving just for that small function. Okay, next up, use constants if you can. So if you have a storage variable that never changes, you can use specific keywords to get around the gas costs associated with the s load that you'll be doing when you're reading that variable in a function.
+00:06:54.840 - 00:06:57.586, Speaker A: So in this example, we've got the.
+00:06:57.608 - 00:07:02.754, Speaker B: Link token address that gets set in the constructor to the contract, but after.
+00:07:02.792 - 00:07:06.866, Speaker A: That, it's never going to change again. All we're doing for the rest of.
+00:07:06.888 - 00:07:19.530, Speaker B: That contract is reading that address from storage. And every time we do, we incur an s load, which is expensive, as we know. So one option is to make that variable immutable.
+00:07:20.270 - 00:07:22.874, Speaker A: So immutable means that we can set.
+00:07:22.912 - 00:07:52.606, Speaker B: It in the constructor. But as soon as that constructor is finished, that value that we set for link can never change again. Another option is to use constant. So a constant value must be hard coded into the declaration rather than set in the constructor. And neither of these constant or immutable, are burdened with the same gas costs of storage operations, s store and s load.
+00:07:52.718 - 00:07:54.978, Speaker A: So when you're writing smart contracts with.
+00:07:55.144 - 00:08:07.414, Speaker B: Many storage variables, go through each one and ask yourself, can this be immutable or can this be constant? And where it makes sense to do it, because the savings can be very large.
+00:08:07.612 - 00:08:08.826, Speaker A: And if we have a look at.
+00:08:08.848 - 00:08:22.926, Speaker B: This, so just reading from storage, that one variable before costed two and a half thousand gas, and afterwards, by making it constant or immutable, just 450. So every time a function reads that.
+00:08:23.028 - 00:08:25.482, Speaker A: We are saving a big ton of gas.
+00:08:25.546 - 00:08:36.866, Speaker B: There. Number three, make it obvious. So make it painfully obvious that a function is accessing storage. So how can we do this?
+00:08:36.968 - 00:08:38.882, Speaker A: Well, in this example on the left.
+00:08:38.936 - 00:09:04.998, Speaker B: We'Ve got five storage variables, three of which are in storage and two of which are immutable, so they're not in storage. But as far as the reader is concerned, it's hard to tell if we're 100 lines, 200 lines, 300 lines deep. Checking out a function somewhere. How do we know that that function is interacting with storage, which we know is expensive, or an immutable variable?
+00:09:05.174 - 00:09:09.066, Speaker A: We can't, unless we scroll all the way to the top, and that can.
+00:09:09.088 - 00:09:10.554, Speaker B: Break your flow a little bit.
+00:09:10.672 - 00:09:12.862, Speaker A: So at chainlink, we actually use an.
+00:09:12.916 - 00:09:29.378, Speaker B: S underscore prefix for anything in storage, so that when we're reviewing code or we're going through our own code, we can easily see that storage is being touched, how many times it's being touched, and we can make an estimate on.
+00:09:29.544 - 00:09:32.834, Speaker A: How expensive that transaction, a transaction using.
+00:09:32.872 - 00:09:36.434, Speaker B: That function will be, which follows nicely.
+00:09:36.482 - 00:09:38.246, Speaker A: Into the next one.
+00:09:38.428 - 00:09:40.840, Speaker B: Don't read and write too often.
+00:09:42.250 - 00:09:45.826, Speaker A: So here's an example function that touches.
+00:09:45.938 - 00:09:55.254, Speaker B: Storage, a variable called s underscore and index. Great name. It touches it multiple times, so it does checks on that variable.
+00:09:55.382 - 00:09:58.586, Speaker A: It performs some conditional statements manipulation in.
+00:09:58.608 - 00:10:20.100, Speaker B: Those conditionals, and then finally a read at the end to return it. In fact, it touches it seven times. So instead of this seven times touching storage, we can actually read the storage into a memory variable at the beginning and then set it again later.
+00:10:21.030 - 00:10:22.882, Speaker A: So here what we're doing on line.
+00:10:22.936 - 00:10:40.026, Speaker B: 13 of that code sample is we're doing an s load into current index. We're doing all of our checks, all of our manipulation, all of our conditionals on that in memory variable first, and then we're setting that back to the.
+00:10:40.048 - 00:10:42.826, Speaker A: State, to the storage variable at the end.
+00:10:42.928 - 00:11:08.526, Speaker B: So we end up only touching storage twice. So when you're writing functions, watch out for any functions that touch storage more than twice. Maybe use storage variables in loops, because every time that loop loops around, it's reading from that storage variable again, or any functions that have many conditionals with.
+00:11:08.548 - 00:11:10.160, Speaker A: Storage variables in there.
+00:11:10.610 - 00:11:19.906, Speaker B: And just try out and see if the overall gas cost is cheaper if you load it into memory first into a local variable.
+00:11:20.098 - 00:11:25.574, Speaker A: So this was actually worse prior to EIP 2929, which was introduced in the.
+00:11:25.612 - 00:11:59.838, Speaker B: Berlin hard fork earlier this year, and that introduced the concept of cold and warm storage. So during a transaction, the first time you touch a storage slot, it will be cold, but you will turn that slot from cold to warm. And warm touches are cheaper, and that slot will stay warm for the duration of the transaction, and then it will flip cold again. So while they are cheaper, touching warm slots still isn't as cheap as in memory operations.
+00:12:00.014 - 00:12:10.278, Speaker A: So depending on the use case, it may work for some functions, it may not work for other, but the key is to try out different methods and.
+00:12:10.364 - 00:12:22.170, Speaker B: Figure out what works for your function. So this particular function, we've only got a saving of 500 gas. Now, this might not seem like much.
+00:12:22.320 - 00:12:25.914, Speaker A: And it's probably due to EIP 2929.
+00:12:25.952 - 00:12:29.994, Speaker B: It might not seem like much, but in high throughput functions, if there are.
+00:12:30.032 - 00:12:32.270, Speaker A: Thousands of transactions going through that function.
+00:12:32.340 - 00:12:45.970, Speaker B: Every day, that amounts to a big deal over time. So it's definitely worth eking every little bit of efficiency out of your contract. And number five, pack your structs.
+00:12:46.390 - 00:12:47.938, Speaker A: Before we go here, I'm going to.
+00:12:47.944 - 00:12:50.210, Speaker B: Take a quick detour as a callback.
+00:12:51.030 - 00:12:59.598, Speaker A: To the title of the presentation. So, in the story of the hitchhiker's.
+00:12:59.614 - 00:13:08.646, Speaker B: Guides of the Galaxy, there's a species called the Magrathians, and they created a supercomputer called deep thought. And the reason they created it was.
+00:13:08.668 - 00:13:10.154, Speaker A: To calculate the answer to the great.
+00:13:10.192 - 00:13:16.166, Speaker B: Question of life, the universe and everything. And when asked, it told the Magratheans.
+00:13:16.198 - 00:13:18.940, Speaker A: To come back in 7.5 million years.
+00:13:20.370 - 00:13:45.794, Speaker B: To hear the answer. So 7.5 million years later, they came back to receive the news, and it was a doozy. 42. So my question is, would deep thought have come to that same conclusion if it was built and programmed to run on the EVM? It would not. It would most certainly be 32.
+00:13:45.992 - 00:13:48.166, Speaker A: Now, we already know that this is.
+00:13:48.188 - 00:13:53.798, Speaker B: An important number in computing, but for the EVM especially so.
+00:13:53.964 - 00:13:57.446, Speaker A: And let's keep that number in mind as we move on to this next.
+00:13:57.468 - 00:14:03.530, Speaker B: Bit, because it will come up quite a few times. So, back to packing our structs.
+00:14:04.670 - 00:14:17.102, Speaker A: Let's start with what the hell structs are. So, structs represent records with more than one data point. So take this example of a book.
+00:14:17.156 - 00:14:21.054, Speaker B: Record in a library. It's got an id, a title, an.
+00:14:21.092 - 00:14:23.790, Speaker A: Author, a subject might have an addition.
+00:14:23.870 - 00:14:27.090, Speaker B: Number, whether it's hardback or softback.
+00:14:27.910 - 00:14:29.186, Speaker A: And this is what it might look.
+00:14:29.208 - 00:14:35.526, Speaker B: Like in solidity on the left. So next up, let's dive a little.
+00:14:35.548 - 00:14:40.326, Speaker A: Deeper into storage itself and some of.
+00:14:40.348 - 00:15:17.490, Speaker B: The data types that we know about. So, in storage, it's really important to note that slots, individual storage slots that have these s store and s load opcodes on them, are 32 bytes each. There's that number. It's also important to know the sizes of value types that we have. So the integer types, both signed and unsigned, 32 bytes. Bytes 32 obviously 32 bytes. Address types are 20 bytes, interestingly, and booleans just take up the one byte.
+00:15:17.490 - 00:16:07.246, Speaker B: So let's take a look at this struct, which takes two slots as it stands. So in the first slot we have an address. 20 of the 32 available bytes are taken. Because addresses take 20 bytes, the EVM tries to squeeze the next variable into those twelve remaining bytes in slot one, but it can't because the next variable is a UN 256, which takes 32 bytes. So that gets its own slot and fills it entirely. So can this be optimized? Well, in solidity, value types can actually be resized. If we don't need a full 32 bytes, we can actually use a smaller version.
+00:16:07.246 - 00:16:19.698, Speaker B: This record takes two slots, but the first slot has twelve slots to spare. So can we squeeze number, the second variable into those remaining twelve bytes?
+00:16:19.874 - 00:16:22.040, Speaker A: Well, if we're certain that a number.
+00:16:22.490 - 00:16:40.330, Speaker B: Will never exceed a certain amount, we actually can. By making number a Uint 96 instead, which only uses twelve bytes, the EVM will actually squeeze that into slot one along with wallet.
+00:16:40.770 - 00:16:48.526, Speaker A: So instead of now, every time our contract reads or writes a record type.
+00:16:48.628 - 00:16:58.930, Speaker B: From storage, instead of using two slots which is two s loads or two s stores, it will only use one. So we've halved the gas costs of reading just this struct.
+00:16:59.270 - 00:17:02.274, Speaker A: And just for reference, the largest number.
+00:17:02.312 - 00:17:04.434, Speaker B: That can fit in a Uint 96.
+00:17:04.472 - 00:17:06.818, Speaker A: Is there along the bottom there's a.
+00:17:06.824 - 00:17:07.698, Speaker B: Bit of wiggle room.
+00:17:07.784 - 00:17:12.434, Speaker A: Obviously we have to be careful, and if we're performing a lot of arithmetic.
+00:17:12.482 - 00:17:14.854, Speaker B: On that number, we need to have.
+00:17:14.892 - 00:17:19.258, Speaker A: Checks in place to make sure there isn't any overloads. Although solidity eight does a lot of.
+00:17:19.264 - 00:17:20.620, Speaker B: That for us anyway.
+00:17:21.870 - 00:17:23.306, Speaker A: But yeah, we still have to be.
+00:17:23.328 - 00:17:33.920, Speaker B: Careful that we don't exceed that number. Okay, so as I mentioned, the compiler tries to fill one slot at a time.
+00:17:34.530 - 00:17:37.726, Speaker A: So using the last example, if we.
+00:17:37.748 - 00:17:56.840, Speaker B: Take a look at this struct where we have two address variables at the beginning, both 20 bytes each, then two un 96 variables after that, both twelve bytes each, we would assume that the EVM would be clever and squeeze all these into two slots because we know it can.
+00:17:58.570 - 00:17:59.986, Speaker A: Unfortunately, it doesn't.
+00:18:00.098 - 00:18:04.710, Speaker B: It goes top to bottom. So for the first variable.
+00:18:07.210 - 00:18:08.550, Speaker A: It goes into slot one.
+00:18:08.620 - 00:18:18.966, Speaker B: It then goes to the next one, tries to squeeze that into the twelve bytes remaining, but it can't, so it gets its own slot. First number squeezes into slot two prior.
+00:18:18.998 - 00:18:21.054, Speaker A: To the slot before it, and then.
+00:18:21.092 - 00:18:30.480, Speaker B: Finally second number gets its own slot, but only fills twelve bytes worth. The ordering actually matters. So how can we fix this?
+00:18:30.850 - 00:18:37.106, Speaker A: Well, it's pretty simple. We just move first number up, and.
+00:18:37.208 - 00:19:02.742, Speaker B: Now this struct uses two slots instead of three. So again, we've gone from incurring two s loads, sorry, three s loads and three s stores every time we read a record from memory to now just using two, which is a big gas saving. Okay, so recap, don't store if you don't have to use events.
+00:19:02.806 - 00:19:04.234, Speaker A: If you never need to use that.
+00:19:04.272 - 00:19:09.914, Speaker B: Data again, use constants and immutables for.
+00:19:09.952 - 00:19:12.000, Speaker A: Storage variables that don't ever change.
+00:19:12.450 - 00:19:14.494, Speaker B: Number three, make it obvious.
+00:19:14.692 - 00:19:16.734, Speaker A: Use a prefix or a suffix or.
+00:19:16.772 - 00:19:30.354, Speaker B: Anything else to distinguish storage variables so that it's obvious that they are being written to and read from. Don't read and write too often, so review functions that touch storage too many.
+00:19:30.392 - 00:19:33.426, Speaker A: Times and check whether it's cheaper to.
+00:19:33.448 - 00:19:40.466, Speaker B: Load it into memory and then set back again afterwards. And finally, number five, pack your structs.
+00:19:40.658 - 00:19:46.246, Speaker A: Use efficient type sizes, as we did by using a Un 96 instead of.
+00:19:46.268 - 00:19:54.938, Speaker B: A 256, and order the struct variables properly. And that's all I've got.
+00:19:55.024 - 00:20:07.630, Speaker A: That was the hitchhiker's guide to the EVM. I know we've got a QA after this, so feel free to ask questions. I'll be sticking around for 20 minutes, but you can get hold of me on Twitter or GitHub.
+00:20:09.650 - 00:20:11.086, Speaker B: At the same handle there.
+00:20:11.188 - 00:20:11.934, Speaker A: And that's it.
+00:20:11.972 - 00:20:12.560, Speaker B: Thanks.
+00:20:13.330 - 00:20:24.480, Speaker C: Awesome. Thank you so much. Alex. The chat was a huge, huge fan of this talk. They said it was interesting, they said it was useful. And I feel like they want you to make 30 or 40 more videos just like this one.

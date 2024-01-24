@@ -1,0 +1,553 @@
+00:00:08.580 - 00:01:04.856, Speaker A: Welcome to Zero Knowledge. I'm your host, Anna Rose. In this podcast, we will be exploring the latest in zero knowledge research and the decentralized web, as well as new paradigms that promise to change the way we interact and transact online. For this week's episode, we have something a little out of the ordinary. Recorded near the end of the Amsterdam dev Connect week, Guillermo Turun, Brendan and I jumped on the podcast for a spontaneous and pretty chaotic conversation. We do not stick to the script and manage to explore how blockchain and AI thinking differs, where it might intersect, how science could benefit from more adversarial testing, why peer review is broken math theory stuff, and lots of random ods and ends. We may or may not have been drinking while recording this episode, so you'll have to listen to find out.
+00:01:04.856 - 00:01:40.880, Speaker A: But before we kick off, I just want to highlight the ZK jobs board which is a spot where you could find a new gig working directly with ZK Tech and I specifically want to highlight one job post which would have you working with my team over at the ZK validator. We are right now looking for a junior researcher who is interested in exploring and writing about ZK proof of stake, general meta blockchain topics and ways these intersect with privacy. Ideally you'd have some technical background because we do want to go deep on these topics. So if this sounds like something you would be interested in, check out the job ad and get in touch. Now I'll let Tanya, the podcast producer, share a little bit about this week's sponsor.
+00:01:41.040 - 00:02:24.640, Speaker B: Today's episode is sponsored by Zcash Community Grants. Zcash Community Grants is a grants program within the zcash ecosystem that funds projects that advance the usability, security, privacy and adoption of Zcash. Their primary areas of focus include wallets, core and security, interoperability, zcash apps, ongoing services, education, ecosystem, and community. With that said, they also welcome novel ideas outside of these areas of focus. Zcash community grants are huge about inclusivity, and the grants committee will also consider grants of all sizes, from individual hobbyists to large organizations that build on or contribute to increased integration of zcash. Previously awarded grants have ranged in size and scope from a $3000 grant all the way to a $1.2 million grant.
+00:02:24.640 - 00:02:44.060, Speaker B: To apply for a Zcash community grant and contribute towards the development of the Zcash protocol, visit the Zcash grants hub@zcashgrants.org. That's zcashgrants.org. You can find the link in the show notes so thank you again. Zcash community grants. Now here's a devconnect chat with Anna, Tarun, Guillermo, and Brendan.
+00:02:47.200 - 00:02:51.372, Speaker A: We're here during a. Should we still call it blockchain weeks? I don't know what they are.
+00:02:51.426 - 00:02:51.740, Speaker C: Whatever.
+00:02:51.810 - 00:03:00.080, Speaker A: Weeks full of conferences in various cities. Currently, the city that we're in is Amsterdam. I think I'm actually on day seven or eight.
+00:03:00.150 - 00:03:00.608, Speaker D: Oh, nice.
+00:03:00.694 - 00:03:02.460, Speaker A: And it is a marathon, not a sprint.
+00:03:02.540 - 00:03:03.712, Speaker C: You went to the cosmos thing.
+00:03:03.766 - 00:03:25.912, Speaker A: I put on the cosmos thing on Friday. I feel like these weeks are incredibly fun. You meet a lot of people. It's great. But it's also like there's this battle for sleep and not losing your voice and trying. It's like you're trying to get around a city you're not familiar with. So there's, like, a lot of logistical thinking, and yet you're zoned out and it's really hard.
+00:03:25.912 - 00:03:41.260, Speaker A: So I do feel like every time I go on one of these adventures, it is an adventure and it is hard. Actually, there's a journey that we're going through. So I do wonder, Guillermo, at what point of the journey are you? Right long. You're six?
+00:03:41.410 - 00:03:54.448, Speaker D: Yeah. Yeah. Well, six days is like, kind of a weird lie, right? Because I feel like the flight here and with the delay, I feel like I don't know if time has gone faster or slower because of my brain being turned into a mush by the time zone change.
+00:03:54.534 - 00:03:57.292, Speaker A: That's the other thing that it gives you, is the jet lag.
+00:03:57.356 - 00:03:57.840, Speaker C: That's right.
+00:03:57.910 - 00:04:03.540, Speaker A: Add a little dollop of jet lag and much too much alcohol. What do you have, this bunch?
+00:04:04.440 - 00:04:07.028, Speaker D: Yeah, just to say the least. That's one way of putting it.
+00:04:07.194 - 00:04:10.000, Speaker A: What about you? Where are you at on your journey?
+00:04:10.160 - 00:04:36.120, Speaker C: I've been to too many of these lately, but one thing I will say that I think is maybe an observation that seems positive for the Ethereum ecosystem is. I say this in jest, but it does seem to be quite true, which is the more hackathons that happen, the more that actually, any protocol development gets done. It feels like people need to have hackathons to actually, and there's almost one every two weeks now, so they really want to get the merge done. This is quite spicy.
+00:04:36.200 - 00:04:37.644, Speaker A: Yeah, that's true, though.
+00:04:37.842 - 00:04:43.088, Speaker C: I feel like it's 100% true. They get everyone the same place. They're not like a company, and they.
+00:04:43.094 - 00:04:45.904, Speaker A: Get them building with the tools that are there.
+00:04:46.022 - 00:04:46.592, Speaker D: Fair enough.
+00:04:46.646 - 00:04:48.864, Speaker A: I mean, that's what was really missing, I think, over the last few years.
+00:04:48.902 - 00:05:05.016, Speaker C: Well, I think that's the difference between VC chains and organic chains, right. Is like, they have to keep having conferences, whereas more corporate blockchains end up not having to do that because they have OKR stuff. Right. It's like a normal company.
+00:05:05.198 - 00:05:06.730, Speaker E: Middle management for.
+00:05:08.860 - 00:05:10.900, Speaker C: Hackathons are a form of middleware.
+00:05:10.980 - 00:05:11.850, Speaker D: That's right.
+00:05:12.380 - 00:05:15.228, Speaker A: What about you? At what stage of the journey are you?
+00:05:15.394 - 00:05:28.080, Speaker E: So I had a bad week because I procrastinated preparing a talk that I had to do on the first day that I was here or the second day. And so I stayed up really late, and so I just never had a shot.
+00:05:28.500 - 00:05:30.770, Speaker D: It was good motor for you from the beginning. Sorry.
+00:05:32.820 - 00:05:34.850, Speaker E: It's been good, but also bad.
+00:05:37.300 - 00:05:55.860, Speaker A: Okay. So I think what I think we can start to explore is what have you been up to this week? What are the things that have happened? We can start easy. What are the events that you went to? You kind of remember those? Yeah. Let's start with, what are the events? Maybe some of the folks. And then let's go into some of the ideas.
+00:05:55.940 - 00:05:56.344, Speaker D: Oh, no.
+00:05:56.382 - 00:05:58.692, Speaker A: So what are the events that you've been to, Tareen?
+00:05:58.756 - 00:05:59.592, Speaker D: You want to. Want to go ahead.
+00:05:59.646 - 00:06:03.324, Speaker A: Spoken at or enjoyed making a face?
+00:06:03.362 - 00:06:07.576, Speaker D: Literally approximately, like, 70 events. And at each event, he's given, like, three topics.
+00:06:07.608 - 00:06:12.910, Speaker A: Is the face because you don't like the question or you can't remember?
+00:06:17.940 - 00:06:41.030, Speaker C: I think the events have been interesting. I didn't really actually go to the main event, like the actual hackathon, but I think the campus off, whatever. I don't know how to. Would it be chain events were pretty interesting. There's definitely a lot of people at them. I don't think I heard too many new ideas, to be honest. I feel like it was a lot more.
+00:06:41.030 - 00:06:58.844, Speaker C: I think a lot of stuff that was, like, coherent. I think if you're a new person in the space, it was probably really educational. You would have learned a lot. I think Mev Day was actually probably the best organized event I've gone to, perhaps ever, in crypto. I thought it was really well put, professionally put on.
+00:06:58.882 - 00:07:00.888, Speaker D: That's because you didn't go to ZK Summit.
+00:07:01.064 - 00:07:01.790, Speaker A: Yeah.
+00:07:05.760 - 00:07:16.256, Speaker C: I knew I was walking into this one. That's why I was like, oh, you're like, oh, what do you want to talk about? Oh, talk about every event other than the one related to this podcast so that we can lamb based you. That's right.
+00:07:16.278 - 00:07:18.496, Speaker D: That's how it is. I think that's actually exactly what it was.
+00:07:18.598 - 00:07:29.028, Speaker A: So Tarun didn't make it to the ZK summit. But I think the reason being is that there was another event on the same day that asked Tarun to speak, like, three times, which meant he could not leave that space.
+00:07:29.114 - 00:07:29.572, Speaker D: Oh, right.
+00:07:29.626 - 00:07:43.560, Speaker A: And my bad was I should have been way more communicative with you about the date. I think you knew it was happening, but I wasn't like, this is the date. You have to be here. And so I'm sorry, actually, because I really wanted you to be there.
+00:07:43.710 - 00:08:13.812, Speaker C: It's all right. Everything is chill. Like I said, I kind of feel like I didn't get, and maybe ZK Summit was the one place there was lots of new stuff. But I do feel like some of the other conferences, I feel like, were more about bringing in new developers than it was about, say, some new kind of crazy idea. The starkware thing today, I think, actually, I heard some cool projects coming out of that, so I'm kind of interested to hear. Go watch some of the talks from that.
+00:08:13.946 - 00:08:15.572, Speaker A: I think it's a hackathon, isn't it?
+00:08:15.626 - 00:08:48.450, Speaker C: It's a hackathon. Plus, people are kind of giving talks on stuff. I feel like the interesting thing, and I think you kind of pointed this out, too. And I was like, we went from maybe, like, ZK events being mainly like, hey, here's a paper for a new thing that I've worked on. And hopefully we find investors and or engineers who want to build it to like, hey, actually, we're building this thing on top of something. So that change, I think. I'm not sure exactly what precipitated it.
+00:08:48.450 - 00:09:19.784, Speaker C: Things I've seen that I thought were interesting were like, people who made tools for using a lot of kind of not so fun ZK software, like ides for, you know, a couple years ago, people would just be like, well, why aren't you hand wiring circuits? I think I literally remember once talking to Howard, and he was like, howard from familio? Just like 2018 or 19. He's like, yeah, I don't know why people complain so much. Everyone could just write the circuits manually. Why do you need tools to do it?
+00:09:19.822 - 00:09:21.496, Speaker D: Why don't just write the polynomial constraints by hand?
+00:09:21.518 - 00:09:30.428, Speaker C: It's fine. I think it's interesting to see that, hey, people are like, building dev tools for ZK stuff. I don't think people gave a shit as much about that before.
+00:09:30.594 - 00:09:31.868, Speaker A: Hey, what about you?
+00:09:32.034 - 00:09:42.432, Speaker E: So I went to the layer two, like the l two beat conference and ZK summit, which I thought was the best. That was probably the best produced event that I've been.
+00:09:42.486 - 00:09:43.392, Speaker A: He has to say that.
+00:09:43.446 - 00:09:48.770, Speaker D: No, I think he was paid to say that. Independent. I was not paid to say that. And actually, it's true.
+00:09:49.460 - 00:10:06.664, Speaker E: The only reason I'm actually on this episode is to say that. But that was super cool because the venue was excellent, the food was excellent, and I thought the talks were really good. I liked producer's talk on delegated proving, and my teammate Jacob's talk was awesome.
+00:10:06.782 - 00:10:08.760, Speaker D: You didn't come to my talk. I'm just disappointed in you.
+00:10:08.830 - 00:10:10.696, Speaker E: So I think it conflicted with something.
+00:10:10.798 - 00:10:14.490, Speaker D: Actually, no, it's because you didn't come to my talk. Actually, it's probably for the better, for your health.
+00:10:16.480 - 00:10:27.760, Speaker E: So Guillermo's, I'm sure, was excellent. It either conflicted with a polygon talk or with the time that I spent on an Adirondack chair, like, sleeping fully in the garden.
+00:10:28.100 - 00:10:28.736, Speaker C: Oh, I see.
+00:10:28.758 - 00:10:34.284, Speaker D: So you were sleeping in my talk. I get it. Fine. Completely understood.
+00:10:34.332 - 00:10:52.004, Speaker E: What struck out to me from layer two, and this might be kind of controversial, was how I think expectations were being dialed back a little bit in terms of roadmaps, and I think unnecessary dose of realism was refreshing to see.
+00:10:52.202 - 00:10:54.456, Speaker A: Are you talking about the l two? Beat that.
+00:10:54.638 - 00:10:55.416, Speaker E: Yeah.
+00:10:55.598 - 00:11:05.528, Speaker A: And you mean, like everyone had been saying, we are about to enter this full roll up world, and it's actually because I wasn't there, so maybe you can say more.
+00:11:05.614 - 00:11:05.864, Speaker C: Yeah.
+00:11:05.902 - 00:11:19.170, Speaker E: So I think at least some of the ZK teams were sort of candid about things taking a little bit longer than they'd anticipated. And, yeah, I mean, nothing, obviously, against those teams, but I think it was good to be realistic about when things are coming.
+00:11:19.540 - 00:11:20.348, Speaker A: Guillermo.
+00:11:20.444 - 00:11:28.972, Speaker D: Oh, yeah. What events was I I guess I was mostly just at ZK summit and the Celestia event, which actually don't even know the official title.
+00:11:29.036 - 00:11:29.804, Speaker C: Modular summit.
+00:11:29.852 - 00:11:38.820, Speaker D: Modular summit. There we go. That's the name. Which I think I found out I was speaking to that. Speaking at that one or in some panel or something because of a tweet thread.
+00:11:39.160 - 00:11:41.152, Speaker A: Everyone called you troon's alt.
+00:11:41.216 - 00:11:41.828, Speaker D: Yeah.
+00:11:41.994 - 00:11:44.784, Speaker A: How is Tarun and Troon's alt speaking on the same panel?
+00:11:44.832 - 00:11:45.204, Speaker D: That's right.
+00:11:45.242 - 00:11:45.408, Speaker C: Yeah.
+00:11:45.434 - 00:11:58.536, Speaker D: And I had no idea I was speaking. And afterwards, I was told, like, oh, yeah, it was Ongo's telegram group with, like, 150 messages. I'm like, I'm sorry, guys. I didn't mean it. I promise. And then afterwards, yeah, so those were the two.
+00:11:58.718 - 00:11:59.980, Speaker A: And those were on the same day.
+00:12:00.050 - 00:12:01.068, Speaker D: They were on the same day.
+00:12:01.154 - 00:12:02.044, Speaker A: Two on the same day.
+00:12:02.082 - 00:12:14.844, Speaker D: That's right. The reason Tarune couldn't come is because they were on the same day. I really struck it out. I actually went in to both and heroically showed up approximately like 20 minutes late to the other one and ran on stage.
+00:12:14.972 - 00:12:20.092, Speaker C: And everyone didn't know that. Honestly, though, it could have been a little more dramatic.
+00:12:20.156 - 00:12:22.884, Speaker D: I know. I was waiting for the background music.
+00:12:23.002 - 00:12:25.044, Speaker C: Yeah, you were kind of like, not rockying it.
+00:12:25.082 - 00:12:25.830, Speaker D: I know.
+00:12:26.600 - 00:12:27.236, Speaker A: What did you do?
+00:12:27.258 - 00:12:35.124, Speaker C: He was supposed to Rocky and he just kind of like. I just kind of like, hobbled off. He jogged like a 50 year old man in a neighborhood.
+00:12:35.252 - 00:12:35.688, Speaker D: Okay.
+00:12:35.774 - 00:12:37.380, Speaker C: In a neighborhood. In the suburb.
+00:12:37.540 - 00:12:39.528, Speaker E: You could have done like some crowd work.
+00:12:39.694 - 00:12:40.648, Speaker D: I could have got everyone.
+00:12:40.734 - 00:12:41.992, Speaker C: Yeah, you should have done that.
+00:12:42.046 - 00:12:52.844, Speaker D: I should have gone around clapping, been like, yeah, I was worried. Well, I was, first of all, hoping there was going to be some background music while I was hopping on. That would have been ideal, but I didn't get any of that.
+00:12:53.042 - 00:12:57.730, Speaker A: I feel like that day you had told me you were pretty tired, too. That was a rough day.
+00:12:59.380 - 00:13:02.512, Speaker D: I don't remember, actually, my ZK summit talk.
+00:13:02.566 - 00:13:02.832, Speaker A: Wow.
+00:13:02.886 - 00:13:03.264, Speaker C: At all.
+00:13:03.302 - 00:13:05.184, Speaker D: I just have no idea what happened. My brain is.
+00:13:05.222 - 00:13:06.016, Speaker A: It was really good.
+00:13:06.118 - 00:13:06.896, Speaker C: All good, was it?
+00:13:06.918 - 00:13:07.424, Speaker D: Actually, yes.
+00:13:07.462 - 00:13:08.220, Speaker A: There's recordings.
+00:13:08.300 - 00:13:13.488, Speaker D: Are you saying that just because you're on this podcast, I think that's the only reason you're on this podcast, because you had to say that, or you.
+00:13:13.494 - 00:13:19.552, Speaker A: Must say that by law, you brought me on this podcast, so that you said only that. No, I think we're good.
+00:13:19.606 - 00:13:19.992, Speaker D: Okay.
+00:13:20.086 - 00:13:20.712, Speaker A: You were good.
+00:13:20.766 - 00:13:21.544, Speaker D: Oh, thanks.
+00:13:21.662 - 00:13:26.440, Speaker A: It was really great. And people can actually now see it. I mean, it's already on the live stream. We're going to have videos soon.
+00:13:26.510 - 00:13:28.792, Speaker D: That's right. Because you're like, cropping them to the individual things.
+00:13:28.846 - 00:13:29.160, Speaker C: Yeah.
+00:13:29.230 - 00:13:38.488, Speaker A: I don't think you need to worry. You had a few people in the audience who, like, I could tell there was like a language that you were speaking to them about. Some kind of theorists.
+00:13:38.584 - 00:13:39.484, Speaker C: Oh, yeah.
+00:13:39.682 - 00:13:41.164, Speaker A: There was a few people going like.
+00:13:41.202 - 00:13:43.068, Speaker D: Yeah, he knows what he's saying.
+00:13:43.234 - 00:13:44.430, Speaker A: But it was very.
+00:13:46.880 - 00:13:47.208, Speaker D: Is.
+00:13:47.234 - 00:14:22.010, Speaker C: Guillermo loves shitting on this one particular type of math. There's a couple types of mathematicians. Guillermo likes a smoother version of the world than exists. And so one of the ways of doing that is to shit on people who have somewhat complicated mathematical theories that in practice you might be computing something that is related to this, but you actually never use the theory. But if you go talk to a math person, they're like, no, this is obviously the thing you're doing in production. You're obviously computing a little big integral. It's like, no, you're not.
+00:14:22.380 - 00:14:24.220, Speaker D: None of this actually matters.
+00:14:24.960 - 00:14:28.556, Speaker C: But, yeah, it does matter. Filtrations matter, man. They do not.
+00:14:28.658 - 00:14:30.332, Speaker A: What kind of math was that?
+00:14:30.386 - 00:14:47.676, Speaker D: It's called measure theory. I should be very careful because I suspect that there's a nonzero number of people who are going to listen to this and be like, oh, my God, this dude is either absolutely insane, which is true. I guess that's fair. But secondarily has no idea what he's talking about. No, I promise. I've studied measure theory. It's unfortunate for everyone involved.
+00:14:47.676 - 00:14:50.064, Speaker D: I'm sorry if you have as well. I would not recommend it.
+00:14:50.102 - 00:14:50.924, Speaker C: I love measure theory.
+00:14:50.972 - 00:14:54.688, Speaker D: I know. That's exactly why I would not recommend. I mean, imagine the kind of people that study it is like tarune.
+00:14:54.704 - 00:15:40.960, Speaker C: So I don't know. So there's a lot of very well known paradoxes in the formalism and formal logic of math, where math is not consistent in a lot of ways. The kind of basic rules of how you count, I don't know where numbers or proofs about the natural numbers don't work. And one of the most interesting set of these counterexamples that say that, hey, one plus one might not equal two in all scenarios that you might care about is usually these examples for measure theory. And so logicians really care about this stuff. Most people who are practitioners, who care about something in the real world don't. But if you care about the foundations of math, can math be logically consistent from a philosophy standpoint? Not like a practitioner standpoint.
+00:15:40.960 - 00:15:44.404, Speaker C: This is actually, like a very interesting form of.
+00:15:44.522 - 00:15:51.188, Speaker D: I still don't know what you're talking about. I think, monochtarsky, the fact that you can decompose a sphere into four spheres makes perfect sense. 100% makes.
+00:15:51.354 - 00:16:16.232, Speaker C: But these logical paradoxes teach you about the limits of your abstraction. So that's a worthwhile endeavor. Like philosophy. It's not like you're thinking of it from the perspective of, can I put it in a Turing machine? That's not the point. The point is, the epistemological foundations of a lot of stuff that we talk about has to somehow be consistent, but it's not. And these counterexamples are worth understanding from reality.
+00:16:16.296 - 00:16:35.504, Speaker D: I completely agree. I'm not saying that the term I have for this is, I believe, mental masturbation. I'm not saying that's necessarily a bad thing. It's a worthwhile mean. At some point, we were just talking about math as art or know, like, it's great I'm just know if someone tells you, Benktarsky and prod, you should run away immediately.
+00:16:35.552 - 00:16:39.700, Speaker E: Or even if we start talking about ZFC, I'm leaving.
+00:16:42.360 - 00:17:12.690, Speaker C: This is why I didn't mention any of the Sethi reactions. I just went straight to epistemology and philosophical arguments directly. But I think the mental masturbation aspect of it is, why do people like reading fiction? They like this imaginary notion. Like the notions of, like, I have some core abstractions. I can build up these complicated things, and I can run into conflicts, dilemmas that I would maybe myself never run into. And for mathematicians, this is the same thing.
+00:17:14.180 - 00:17:20.100, Speaker E: Even in crypto. People like thinking about things that are imaginary, like developing apps for Cardano.
+00:17:23.880 - 00:17:24.710, Speaker C: All right.
+00:17:25.320 - 00:17:27.140, Speaker D: Wow, what a spicy take.
+00:17:27.290 - 00:17:31.910, Speaker A: Shall we let our listeners know what we're drinking right now, or shall we not?
+00:17:33.160 - 00:17:39.770, Speaker D: We'd leave it as a surprise at the end of the episode. I don't think it's going to be that surprising, I mean, given our current state of being, but.
+00:17:40.220 - 00:18:51.136, Speaker C: All right, well, actually, a kind of related question to this, which is a debate I had with this old coworker of mine who, like, I guess maybe you actually, deep learning you worked with him, is my friend who works on sort of building these human level performance game bots at Facebook and DeepMind and the things that beat humans at StarCraft or go or whatever. And he's been working on this game called diplomacy, which is a really annoying. It's one of these games where you collude with other people playing by sending them text messages. So the game is like, you want to kind of control all the property in this virtual world, but you can't do it on your own, and you have to form these allegiances and then betray people at certain times. It's a form of game where it's like, it looks like a go board or stratego, but because of the spoken language thing, the state space of the game is way bigger because people can suddenly collude, and when they collude, they change how many moves are actually accessible to the different types of users, stuff like that from this kind of like, hey, how do we build automated bots that can beat humans at this, but.
+00:18:51.158 - 00:18:55.072, Speaker D: Also, like, predicting collusions, all these things, all the mechanics within it, too, right?
+00:18:55.126 - 00:19:52.096, Speaker C: And a lot of the success of being able to beat the humans comes from these large language models, like gpT-3 style stuff. And the problem with that, we were just having this argument at this bar in New York, and I was obviously drunkenly yelling, I was just like, the reason. He was just like, we don't have theory for this, but just make it bigger. Just make the model bigger. I don't really give a shit why it works. We had this interesting kind of philosophical argument of the difference between AI and crypto, where in crypto, because you actually care about the adversarial behavior existing against your model, you're not just like, oh, I don't care if my model is perfect in some sense, up to some very well controlled error, you basically need a lot more mathematical formalism. And my friend, he was just like, yeah, who cares if we don't know theory? If it works and it's, like, good enough? If it quacks like a duck, it looks.
+00:19:52.096 - 00:20:18.616, Speaker C: Works like a duck. It looks like a duck, then it must be a duck. And I was just like, yeah, but do you have any sort of, like, there's no epistemology for why this thing even behaved correctly. You're just like, okay, yeah, I was able to sort of predict that Anna, when she plays diplomacy, talks a lot about sparkling water. When she's trying to say that she makes these sparkling wine. You know those jokes that people write that are like, x is sparkling? I love that Joke.
+00:20:18.648 - 00:20:20.910, Speaker D: That's my favorite joke in the world.
+00:20:21.280 - 00:20:22.620, Speaker A: That is my favorite joke.
+00:20:23.040 - 00:20:24.252, Speaker D: Have you never seen that?
+00:20:24.386 - 00:20:25.224, Speaker C: You explained one?
+00:20:25.282 - 00:20:34.160, Speaker D: So the classic joke goes, it's only a Frankenstein if it's from the Frankenstein region of France. Otherwise it's just a sparkling monster.
+00:20:36.420 - 00:21:03.400, Speaker C: And then it's know. Yeah, sure, they're learning some pattern matching on this, but you don't actually understand why people are colluding or the strategy that's actually being learned of the different players in the game. And yes, it's effective, right? It somehow has worked, but yet you have absolutely no understanding how to transfer any of this knowledge, and you have to basically increasingly just throw more and more computation at it and less and less actual strategy.
+00:21:03.740 - 00:21:04.664, Speaker A: This is a game.
+00:21:04.782 - 00:21:05.864, Speaker C: This is a diplomacy game.
+00:21:05.902 - 00:21:13.724, Speaker A: And is the point of the game to show you that you're just throwing a lot of computation at it instead of being able to do this? Or is this more like, this is how this game, this is kind of the.
+00:21:13.762 - 00:21:16.796, Speaker C: No humans have played this game for almost a century.
+00:21:16.828 - 00:21:19.916, Speaker A: Oh, you mean diplomacy, like the concept of diplomacy?
+00:21:19.948 - 00:21:58.392, Speaker C: No, this is a game called diplomacy, okay? And it's like a board game that can last, like, 20 hours. It's like a really intense board game, and it can play up to, like, I think, eight players. And basically what happens is in the middle of the game, people will start colluding with each other and they kind of can communicate with each other in certain ways. And so a lot of the game strategy is not just like the pieces on the board. It's also like trying to figure out if two players are actually one now or if they're breaking up. And that opens up the state space, right. Because as you're playing the game, you might have gone from eight real players to only two, because there's two cartels.
+00:21:58.392 - 00:22:27.316, Speaker C: Right. And so that changes how you design, how you try to beat this versus something that's a go where it's. Yeah, it's like sort of partial information, but it's actually really a game of complete information. It's just that it's too big of a search space. So you're just trying to not pretend it's incomplete and try to learn as much as you can from a small number of moves here. It's actually incomplete because it depends on our spoken language. Like, we're talking to each other and communicating, and that changes the kind of action space we get.
+00:22:27.316 - 00:22:30.196, Speaker C: It's also quite imperfect, too, and it's almost emotional. Right.
+00:22:30.218 - 00:22:31.600, Speaker A: It's like you're going to collude.
+00:22:31.680 - 00:22:43.450, Speaker C: Right. That's why I made this kind of bad joke about like, hey, maybe when you make a joke to someone, when you're colluding with them, you say the sparkling France region joke. Maybe that was a little too.
+00:22:44.060 - 00:22:45.496, Speaker A: There's a lot of references there that.
+00:22:45.518 - 00:23:35.528, Speaker C: I may not have, but the reason I bring this up is there's some sort of notion of. One of the reasons I like crypto, even though this is not a reason Guillermo does, clearly, is that I believe in very strongly in the value of the epistemological foundations of whether you can reason about why something you just in AI were just like, completely went. We started the early days of AI, actually, were really focused on that, and we just threw it out of the water because we're just like, yeah, we're just going to throw more gpus at it. We're just going to use the energy consumption of Kenya to train this diplomacy model, but also not have any understanding of why certain strategies work or the reasons for anything. I think one thing about cryptos, I.
+00:23:35.534 - 00:23:37.844, Speaker A: Think you think it does do it. Okay.
+00:23:37.902 - 00:23:43.870, Speaker C: But this gets down to the one philosophy is you should care about epistemological foundations, including measure theory, which he has.
+00:23:44.560 - 00:24:04.052, Speaker D: I mean, no, I care about measure theory. I like measure theory. It's a very pretty thing. It's just irrelevant in a lot of cases. But I think the big thing is that unlike cryptographers, right, like AI machine learning, none of this has had to deal with the fact that North Korea is trying to screw with your system, right? Like, in order to do that, you have to.
+00:24:04.106 - 00:24:04.976, Speaker A: They're the hackers.
+00:24:05.088 - 00:24:20.724, Speaker D: Yeah, right. My point is, crypto has this daily attacks on it. Crypto, I mean, cryptography generally, although suspect crypto as well. But no one's going to be like, yes, I'm going to screw with your GPT-3 model in order to make you say something you didn't intend.
+00:24:20.772 - 00:24:20.984, Speaker C: Ha.
+00:24:21.022 - 00:24:21.976, Speaker D: Like, whatever you're going to do about.
+00:24:21.998 - 00:24:24.196, Speaker C: That, people do do that for these image models.
+00:24:24.228 - 00:24:29.692, Speaker D: No, people do do that. And this is great. I love, love, love adversarial. Not adversarial learning, but in fact, like, adversarial. Yes.
+00:24:29.746 - 00:25:06.296, Speaker C: Someone I do think actually we should get on this podcast is this guy who is. Fuck, I'm forgetting his name, but he's co advised by Bonet and someone in the theoretical computer science department of Stanford, okay? And his entire PhD has been. He actually did a bunch of Monero attacks in the beginning of his PhD, but the end of his PhD was just like adversarially breaking lots of AI things and trying to generate kind of treat it like a crypto problem and then destroying the facial recognition thing or turning hot dog into. Not hot dog with single stickers or.
+00:25:06.318 - 00:25:07.976, Speaker D: Single pixels or something like that. You can do that?
+00:25:07.998 - 00:25:18.060, Speaker C: Absolutely. The point is, if you don't understand how your model works, you can never actually make it adversity resistant. And I think that's like a fundamental truism of nature.
+00:25:18.560 - 00:25:20.604, Speaker D: Well, some people might tell you not, that's not true.
+00:25:20.642 - 00:25:20.796, Speaker C: Right?
+00:25:20.818 - 00:25:28.168, Speaker D: They might just be like, oh, it's just fine. It's train on the distribution of generated samples, generated serious samples, and afterwards retrain again until you reach effective.
+00:25:28.184 - 00:25:30.316, Speaker C: You don't even know if you have the right distribution.
+00:25:30.508 - 00:25:34.368, Speaker D: Look, I'm just giving you the argument. I'm not saying I. Yeah, look, a.
+00:25:34.374 - 00:25:51.316, Speaker C: Lot of people got very rich from convincing people that that was all you needed to do to do self driving cars. Yes, this is true, right? It has not happened yet. Let the point be known that there's no self driving cars. Really. There are not many. And most of it is still like.
+00:25:51.418 - 00:25:54.392, Speaker D: SFA area where it's always beautiful and sunny and there's no problem.
+00:25:54.446 - 00:25:55.560, Speaker C: Well, Phoenix really?
+00:25:55.630 - 00:25:56.056, Speaker D: Oh, yeah.
+00:25:56.078 - 00:26:06.350, Speaker C: Well, that's just Phoenix apparently. Really easy. No pedestrian traffic because it's like a suburban city. So even though they had one accident, one person killed myself driving car there.
+00:26:06.960 - 00:26:14.204, Speaker E: It's all a heuristics, right? It's not like this single model that knows how to drive a car. They're just like around edge cases, but.
+00:26:14.242 - 00:26:31.616, Speaker C: The investor pitch decks, it's all. They all say that it's that, right? And this is why my friends in AI, I feel like I'm just philosophically drifting further and further away from them because of this fact that none of them seem to give a shit about this anymore. They're just like, must just throw more data at it and prod.
+00:26:31.728 - 00:26:32.196, Speaker D: It's fine.
+00:26:32.218 - 00:26:33.670, Speaker C: It'll eventually fix itself.
+00:26:34.200 - 00:26:42.224, Speaker A: Is there a moment where these two fields merge enough that the attack surface is attractive so that it could be, like, adversarial?
+00:26:42.272 - 00:26:43.092, Speaker C: Oh, I really hope so.
+00:26:43.146 - 00:26:45.892, Speaker A: That would be interesting that you actually have to be serious.
+00:26:45.956 - 00:27:05.596, Speaker C: Well, I think maybe a good question is, like, what types of applications of AI do you think that wouldn't happen? The nation states fucking with facial detection so that someone else can't detect their spy is like a simple one. I'm sure that, look, given how many papers have been written on this in the last five years in the machine learning literature, I would not be surprised if there is some nation state that's tried to do that.
+00:27:05.618 - 00:27:21.796, Speaker D: Yeah, for sure. That's the easiest low hanging fruit. But you could imagine a number of other things, right? Like, you can imagine more complicated systems where you just, like, by putting in just the right input, like, congratulations, you're now in, or you do more interesting things, just end up being wrong at a structural level that are really hard to notice until way later. Yeah.
+00:27:21.818 - 00:27:30.084, Speaker C: And one of the problems, I think, philosophically, between something like classical optimal control, which is, like, what's used to do autopilot in planes where you do have.
+00:27:30.282 - 00:27:33.024, Speaker D: There are quite weird but quite strict.
+00:27:33.072 - 00:28:04.880, Speaker C: Guarantees about what it does, versus the self driving car doing reinforcement learning and trying to teach itself from its mistakes is like, you don't have any guarantees in the latter case. And in some ways, I just think people kind of underestimate. The more and more we have the Internet of shit. I mean, the Internet of things, the more and more of these ML attacks that will happen and the more that maybe crypto and AI have, like. But it's going to be AI having to eat some humble pie.
+00:28:04.950 - 00:28:06.496, Speaker D: I really hope Andre does not listen.
+00:28:06.518 - 00:28:21.480, Speaker C: To this podcast, which Andre Tesla. Oh, I mean, come on. The dude wrote a fucking blog post about writing a bitcoin note as if he's, like, paying attention to you in cryptography. Very recently, too.
+00:28:21.550 - 00:28:22.570, Speaker D: That's right. Yeah.
+00:28:23.660 - 00:28:24.890, Speaker E: Finish him.
+00:28:25.980 - 00:28:26.730, Speaker C: No.
+00:28:28.860 - 00:28:30.104, Speaker D: He'S really fucking smart, though.
+00:28:30.142 - 00:28:33.888, Speaker C: He's like the guillermo of the self driving car revolution.
+00:28:33.924 - 00:28:42.092, Speaker D: I can't tell whether this is an offensive statement or a really flattering one. Actually, I think it goes both. Hey. Well, thank you.
+00:28:42.146 - 00:28:51.440, Speaker A: But, hey, I am now wondering, though, what is the overlap of the AI community you were talking about? Your AI friends? Have some of them moved over?
+00:28:51.510 - 00:28:57.890, Speaker C: No. A lot of them just view me as the weird guy in crypto who has nfps. That's right.
+00:28:58.820 - 00:29:02.668, Speaker D: You're creating systems to attempt to topple governments yourself, personally.
+00:29:02.764 - 00:29:11.224, Speaker C: Well, they all still kind of only think of it in terms of this, like, whatever. Bitcoin, maximalism, everything about escaping a country and stuff like that.
+00:29:11.262 - 00:29:11.720, Speaker D: Oh, no.
+00:29:11.790 - 00:29:28.924, Speaker C: But I do think they've started to appreciate stablecoins, so, for instance, my mom has started sending stablecoins. I'm bucketing my mom in this because she's, like, statistician and she's more of, like, she AI. No, but she's, like, classical statistics, like, clinical trial stuff.
+00:29:28.962 - 00:29:31.452, Speaker D: Yeah, my mom sends me stablecoin stuff, but for a very different reason.
+00:29:31.506 - 00:29:32.584, Speaker C: Well, your mom's a djen.
+00:29:32.632 - 00:29:33.180, Speaker D: Yeah.
+00:29:33.330 - 00:29:36.012, Speaker C: Guerrero's mom is, like, farming alongside of.
+00:29:36.066 - 00:29:37.852, Speaker A: The big dog Ann on. Is she, then?
+00:29:37.906 - 00:29:38.860, Speaker C: I have no idea.
+00:29:38.930 - 00:29:40.530, Speaker A: She has not told me.
+00:29:41.220 - 00:29:48.576, Speaker C: I did get the privilege of finally meeting her recently at graduation, and she thought I wasn't real, so it's like. It's the same as the alt thing where people think she really did.
+00:29:48.598 - 00:29:50.348, Speaker D: Yeah, for the longest.
+00:29:50.444 - 00:29:54.770, Speaker A: Talking about this fictional character called he's telling him to do.
+00:29:55.480 - 00:29:56.208, Speaker D: No, it's this joke.
+00:29:56.224 - 00:29:56.660, Speaker C: It's like.
+00:29:56.730 - 00:30:10.440, Speaker D: It's definitely like, tarun's not real. Every time we're going to meet him, he just somehow dips at the last second. So he obviously can't be real. Even my girlfriend was thinking this, too, and she was like, are you serious? I've seen pictures, but clearly probably a paid actor.
+00:30:11.020 - 00:30:13.124, Speaker A: Wow, that's such a flip on the Twitter narrative.
+00:30:13.172 - 00:30:13.960, Speaker C: I know.
+00:30:14.110 - 00:30:15.348, Speaker D: It's exactly the opposite.
+00:30:15.444 - 00:30:18.350, Speaker C: Exactly. Irl and Twitter, not the same. Who would have.
+00:30:21.200 - 00:30:27.196, Speaker D: Right? And then you ate her arepas. Actually, that sounds weird, but I literally do mean, like, venezuela and are just.
+00:30:27.218 - 00:30:30.592, Speaker C: For my guillotine's mom's food. You got to eat it.
+00:30:30.646 - 00:30:31.600, Speaker D: All right, there you go.
+00:30:31.670 - 00:30:32.784, Speaker C: ConfirmatIon shout out.
+00:30:32.822 - 00:30:33.264, Speaker D: There you go.
+00:30:33.302 - 00:31:44.084, Speaker C: But I guess one thing that maybe the ZK stuff, I think, in general, maybe, and I don't know if you guys, I'm curious of whether you think this will be the way that AI and crypto actually merge is that there's just like a lot more complicated applications that are sort of closer to not the complexity of a GPT-3 style model, but simpler AI models that I think we're going to start seeing people make ZK proofs of validity for. So one way of saying, hey, this AI model was not manipulated by some adversarial example is it was trained on this particular data set. And you can verify, here's a proof of the data set, here's a proof of the training model, the inference. So one of the cooler examples this I saw was this topology, which is like this starkware game engine disclosure, tiny investor. But they made a neural net on starkware that only inference, so you had to train it elsewhere. But it would generate a proof that of, given a set of input data points, that it generated the right data point. And in crypto, that amount of computation, they were doing pretty dense matrix multiplies.
+00:31:44.084 - 00:32:08.392, Speaker C: The matrix sizes were like 1000 by 1000. It was something that you could never even imagine doing on a public chain right now. And somehow there's also this future world where the ZK stuff enables these adversarial things to somehow be more transparent. And I don't know who in the world is thinking about that, but there's got to be some genius somewhere in Russia, or maybe just left Russia. Think about that.
+00:32:08.546 - 00:32:11.570, Speaker E: I know of one I think Worldcoin is looking at.
+00:32:13.460 - 00:32:14.210, Speaker D: Actually.
+00:32:20.420 - 00:32:23.120, Speaker C: Yeah, I love Remco, though. Very smart.
+00:32:24.120 - 00:32:26.420, Speaker D: Although we had a weird Twitter thing.
+00:32:26.490 - 00:32:28.150, Speaker C: With what is it on?
+00:32:29.160 - 00:32:30.292, Speaker D: Right? That's right.
+00:32:30.426 - 00:32:56.716, Speaker C: But anyway, I guess my point is, I hope that maybe if I actually make it to the ZK summit, Anna lets me give a talk. I'm actually going to try to do a talk of zero knowledge proof for AI people and try to give these examples, because I actually think there is a lot of potential overlap if the ZK stuff gets to the point that you can help enforce some, hey, adversaries didn't do more than x well, but.
+00:32:56.738 - 00:33:06.640, Speaker D: That also yields really funny things. Right, where if you have an adversarial example for a fixed network, you could just put it in and have, like, a very nice little proof that says, I computed it. Right, I promise. Which you did.
+00:33:06.790 - 00:33:09.408, Speaker C: Well, the key, though, let's say you're.
+00:33:09.424 - 00:33:15.350, Speaker D: Doing, if you have a robust algorithm, we are pre assuming that.
+00:33:16.360 - 00:34:10.740, Speaker C: Here's one example that I have this friend who does research that I find very like. It kind of is always going to be an oroboros in some sense, but of sort of like ethics and AI. And how do you reduce bias stuff? Because it's actually quite hard to do. But imagine if you could actually say, like, I trained this algorithm on this data set, here's a public data set, and here's the proof that I did not edit the weights and I did not retrain or augment any of it. And you can see that, hey, this is, the sample has this much diversity of population sampling, right? And that way you can publicly verify that, hey, it's not biased in some way. And somehow the ethics and AI people aren't super technical, don't know a lot about crypto, and so they don't think about this type of stuff. It's the same for a lot of adversarial learning people, and someday there will be that, a different type of merge.
+00:34:11.320 - 00:34:27.436, Speaker A: I want to go back to the topology one. The thing is, with that example that you were giving when it says, is the validity proof, this idea of using validity, is it in the protocol itself or is it just the fact that it's on a ZK roll up? The fact that it's no.
+00:34:27.538 - 00:34:35.004, Speaker C: Yeah, the contract actually does generate a proof of each constraint on each matrix on each multiply fuse, multiply add text.
+00:34:35.042 - 00:34:38.830, Speaker D: I mean, they also did like integrators on chain and stuff, right? Like RK four.
+00:34:39.140 - 00:35:04.840, Speaker C: They're definitely like, of all the ZK crazy, they're like the only ones where I'm like, wow, you're really trying to do something that's going to take ten years, because it's kind of crazy to try to do a full game engine this way. But if you can do that, then this AI type of stuff is going to be similar. It's going to have a similar. So there's like a whole world of these things people don't think about. And I guess open end episode is a good time to pose that question.
+00:35:04.910 - 00:35:09.640, Speaker A: Yeah, that's good. If you have a plan for that talk, I'm so down.
+00:35:09.710 - 00:35:17.196, Speaker C: I mean, I'd probably do it with my friend. I'd basically be like, he was a skeptic and I'd try to basically bring him and be like, we're going to.
+00:35:17.218 - 00:35:18.892, Speaker D: Show you some stuff, kid.
+00:35:19.026 - 00:35:35.372, Speaker C: No, we're going to have a dual talk. We're going to have, I present the crypto side, he presents the AI side, and it's like one of those thesis, antithesis, synthesis type of talks. And I do the first thing, he does the second thing, and then we kind of merge. And so where could they merge?
+00:35:35.436 - 00:35:41.120, Speaker D: You have not been drinking enough mescal to not be able to say antithesis yet. Oh, shit. I already gave it away.
+00:35:41.190 - 00:35:41.580, Speaker C: Damn.
+00:35:41.660 - 00:35:42.112, Speaker A: Damn it.
+00:35:42.166 - 00:35:44.630, Speaker D: Well, if people are listening, we'll know that. Okay, there you go.
+00:35:45.400 - 00:35:49.856, Speaker C: Are there any other types of technologies you guys are like, oh, I wish. Like, crypto interface?
+00:35:49.888 - 00:36:14.088, Speaker A: That was exactly the question I was just about to ask you. I kid you not. You just literally, we just had, like, a. Was. What I was going to say is, like, I know this episode is about us being in Amsterdam, but are there any other fields, basically, that we should be having adversarial models in? Like, why aren't we using a lot of this stuff? And you go to AI because it's so super technical, a lot of data. It's very exciting.
+00:36:14.184 - 00:36:16.812, Speaker C: Also influences, like, everyone on Earth's life now at this.
+00:36:16.866 - 00:36:17.724, Speaker D: Oh, yeah, right.
+00:36:17.842 - 00:36:20.700, Speaker C: In a weird way, that is terrifying Internet.
+00:36:22.400 - 00:36:28.252, Speaker D: I don't know what has told me, and I have no idea to raspberry the story, but apparently, like, autolan on planes now actually uses neural networks.
+00:36:28.316 - 00:36:28.930, Speaker A: Really?
+00:36:30.360 - 00:36:30.980, Speaker C: That's right.
+00:36:31.050 - 00:36:49.956, Speaker A: Maybe the challenge is every other time you're trying to mix crypto with something, you end up with these sort of, like, we're going to tokenize Dentacoin. We know Dentacoin fees, and it's just very boring. Dentacoin maximalist?
+00:36:49.988 - 00:36:50.936, Speaker D: Is that what you just said?
+00:36:51.038 - 00:36:51.636, Speaker E: No dental.
+00:36:51.668 - 00:36:53.080, Speaker D: What even is Dentacoin?
+00:36:53.580 - 00:37:11.360, Speaker C: Dentacoin was a really bad ICO in 2017. That was, like, legend. It was, like, the oldest hit, like, a billion dollar market cap, and its entire pitch was a coin for dentists to use with each other. Didn't even have, like, a good pitch.
+00:37:13.380 - 00:37:28.432, Speaker E: I guess. Full disclosure. Like a crypto investment idiot. Yeah, but if you had something like Dentacoin that was just notorious, wouldn't it sort of make sense to just accumulate a large position when it was at the bottom? Because you know that people will always be talking about Dentacoin.
+00:37:28.496 - 00:37:36.840, Speaker A: Oh, it might just be the next dog coin. Why not? From dogs to dentists.
+00:37:38.620 - 00:37:46.124, Speaker C: I agree, but it depends on whether you're an anon crypto investor, financial advice, or whether you're a self respecting one.
+00:37:46.162 - 00:37:47.976, Speaker E: And you put it in your ens.
+00:37:48.088 - 00:37:48.780, Speaker D: Oh, no.
+00:37:48.850 - 00:38:19.568, Speaker C: Yeah, exactly. Well, I think if we're thinking about other technologies or at least things in science, there's kind of this funny, weird thing where crypto and AI, maybe that's the reason they keep popping up. And you see really bad icos that don't really make any sense around this, is that they both are, like, the ultimate narrative storytelling right. They both have these different versions of the world. They're easy to tell a lot of people. There's been a lot of advancement. You can be like, I can impact people's lives more directly.
+00:38:19.744 - 00:38:24.820, Speaker D: Those are point to specific things too, right? That have happened in these things, in these fields, right?
+00:38:24.890 - 00:38:37.100, Speaker C: Yeah, exactly. You can point to some impact that maybe not every person on earth can see exactly what they're doing, but you're like, okay, I kind of can get a large portion of the planet's population to appreciate them.
+00:38:37.170 - 00:38:37.740, Speaker D: Right.
+00:38:37.890 - 00:38:42.990, Speaker C: But one thing that's interesting is like, adversarial models don't exist in science in some ways.
+00:38:44.080 - 00:38:47.144, Speaker D: Adversarial. God, just fucking with your experiments.
+00:38:47.192 - 00:38:50.720, Speaker A: I mean, that's honestly what is adversary in this case. Like, what would it look like?
+00:38:50.790 - 00:38:55.200, Speaker C: Peer review system is adversarial. Guillermo can tell you lots about it.
+00:38:55.270 - 00:39:01.590, Speaker A: Wait, could that be then. But you don't want to, do you want tokenize it?
+00:39:02.760 - 00:39:09.430, Speaker C: You don't want to be the deci stuff. That stuff is like half decisive, decentralized science. There you go.
+00:39:10.200 - 00:39:11.416, Speaker D: Learn you anything?
+00:39:11.598 - 00:39:12.824, Speaker A: Is it cool?
+00:39:13.022 - 00:39:13.528, Speaker C: No.
+00:39:13.614 - 00:39:14.250, Speaker A: Okay.
+00:39:14.700 - 00:39:22.664, Speaker C: But decentralized peer review, or like, having a way of paying people who do peer review somehow would maybe that might be interesting. Yeah.
+00:39:22.702 - 00:39:23.428, Speaker D: The question is, how do you align.
+00:39:23.444 - 00:39:32.092, Speaker C: In second, you as the only actual PhD in this room? Oh, God, you don't have one either. Right. Okay. You as only actual PhD in this room.
+00:39:32.226 - 00:39:32.764, Speaker D: What?
+00:39:32.882 - 00:39:42.236, Speaker C: You should explain the problems and pitfalls of peer review. The pros and cons. Explain how it works. Because people might not. Okay. That's right. Because in crypto, a lot of people never publish their papers.
+00:39:42.236 - 00:39:44.080, Speaker C: They just, like, they just put an archive. Archive.
+00:39:45.940 - 00:39:54.300, Speaker D: So the peer review process is you submit a paper, usually to some cranky old people who are a conference tenured.
+00:39:54.380 - 00:39:56.668, Speaker C: Crankiness and tenure are very correlated.
+00:39:56.764 - 00:40:16.456, Speaker D: That's right. Indeed. And what happens usually is you get some pretty good comments back. So often people are actually quite nice and they're like, oh, this is good, or interesting. And then every once in a while, you get one reviewer who just absolutely shits on your paper and says, sorry, it doesn't matter what you do, but there's no way you could ever get this in because, like, x, y or z reasons. This is not always true. Often people are generally nice.
+00:40:16.456 - 00:40:45.696, Speaker D: But the point is, there's this weird system. Also, by the way, the fact that I'm going to go on a little side rant here is that peer review is the golden standard. It's a standard. It is a shit standard. And I'm not saying there are necessarily better standards I can think of immediately, but it is a garbage standard. And if anyone tells you it's not a peer reviewed study, you should tell them. Any number of things are not peer reviewed that are useful, like, jumping out of an airplane probably causes death with high probability is a particularly useful thing that we have not peer reviewed.
+00:40:45.808 - 00:40:53.936, Speaker C: Well, an interesting thing is that we've actually developed these kind of, like, meta adversarial things against peer reviews, like p value hacking.
+00:40:54.048 - 00:40:54.804, Speaker D: It's beautiful.
+00:40:54.922 - 00:41:06.712, Speaker C: So p values are just, like, under a lot of very stringent assumptions, a way of measuring, like, hey, I did a hypothesis test that says, is it possible for the opposite of my conclusion to be true?
+00:41:06.766 - 00:41:12.270, Speaker D: I still don't think most people can define what a p value is who use p values in their papers. That's my hot take of the day, actually.
+00:41:13.680 - 00:41:40.804, Speaker C: Yeah. But the idea of a p value is it tells you sort of an estimation of the probability that your prediction of your solution to hypothesis is incorrect, and people interpret it as a percentage. So if I say p equals 5%, that means that I have 95% confidence that the hypothesis is true. But the problem is, the definition of a p value assumes a certain model for how you generate the data, how you actually compute what the error probability is.
+00:41:40.842 - 00:41:43.836, Speaker D: It's just central limit theorem, dude. It's obviously a gaussian.
+00:41:43.888 - 00:41:44.970, Speaker C: Everything's everything.
+00:41:45.740 - 00:41:47.620, Speaker D: Independent Id CLT.
+00:41:47.700 - 00:41:53.228, Speaker C: Humans exist because all their molecules are independent. That's exactly right. Okay, that's a good one.
+00:41:53.314 - 00:42:01.320, Speaker A: Here's a small question. Has anyone explored, like, peer reviewing the peer reviewers? Has there been an evaluation technique on peer reviewers?
+00:42:01.400 - 00:42:25.716, Speaker D: The answer attempted, maybe not evaluation on peer reviewers, but often, like, open peer review is a thing that happens, for example, in AI a lot, right, where peer reviewers, when they post their review. So you have to post your paper online, publicly accessible for everyone to see. And reviewers have to post their reviews online, also publicly accessible, even though they are pseudonymous. So they do have an identity. But it's like, no, the point is.
+00:42:25.738 - 00:42:29.776, Speaker A: That often you can't track thumbs up, thumbs down, roughly.
+00:42:29.808 - 00:42:32.920, Speaker C: Yeah, you get the wisdom of the crowd.
+00:42:35.020 - 00:42:38.100, Speaker A: Don't you worry about that a little bit? Because then that's gamble.
+00:42:38.180 - 00:42:39.240, Speaker D: That's just hilarious.
+00:42:39.580 - 00:42:45.896, Speaker C: This is exactly why there has to be some weird solution that maybe it's not like crypto.
+00:42:45.928 - 00:42:47.550, Speaker D: Tokenize it.
+00:42:48.400 - 00:42:49.932, Speaker A: Tokenize it.
+00:42:49.986 - 00:42:50.910, Speaker D: There you go.
+00:42:51.360 - 00:42:52.300, Speaker A: Terrible idea.
+00:42:52.370 - 00:42:52.796, Speaker D: Nailed it.
+00:42:52.818 - 00:42:53.992, Speaker A: But we should make the jingle.
+00:42:54.056 - 00:42:54.588, Speaker D: Oh, no.
+00:42:54.674 - 00:42:56.350, Speaker A: Just come in once in a while.
+00:42:58.740 - 00:43:09.036, Speaker C: The craziest thing about peer review is there's a lot of labor abuse that exists in a lot of established, very high garbage fields.
+00:43:09.068 - 00:43:09.964, Speaker D: Sorry, I didn't say that.
+00:43:10.022 - 00:43:37.240, Speaker C: No, not that. I mean, more like high sort of societal value fields, even though they might not be like a large part of the economy. So in fashion, in music, in art, there's tons of unpaid internship intern. I'm putting the air quotes on it. There's a lot of these unpaid jobs, or people even pay for them in some cases, and they basically effectively are jobs where it's like, hey, I get to say I like status work. It's a status thing, right?
+00:43:37.310 - 00:43:38.312, Speaker A: You're paid in status.
+00:43:38.376 - 00:43:51.820, Speaker C: But the weird thing is, usually that happens to people early in their career. The peer review system is actually kind of the opposite. People later in their career don't get paid to review all these papers for free. And then Elsevier and publishers are the ones who sell it back to the university.
+00:43:51.980 - 00:43:55.808, Speaker A: Is it status there, though? Are they status, peer reviewing? Why do they do it?
+00:43:55.974 - 00:43:57.776, Speaker D: In part, do they have.
+00:43:57.878 - 00:44:05.796, Speaker C: No, no, there's a collusion effect. You actually want other people to basically be saying that your papers are good, and there's kind of like a.
+00:44:05.818 - 00:44:09.680, Speaker A: Like, wait, are you saying, like, you don't become a peer reviewer?
+00:44:09.760 - 00:44:22.696, Speaker C: By reviewing, you're able to express your preferences, not necessarily objective, about your own papers. Yeah, you might say things like, hey, cite me in a peer review. People say that all the time.
+00:44:22.798 - 00:44:28.030, Speaker A: But do you get to shape the narrative in a weird way? Do you get to direct ideas towards your idea?
+00:44:28.640 - 00:44:31.196, Speaker C: It's like the difference between producer and director in a movie. That's right.
+00:44:31.218 - 00:44:33.768, Speaker A: But you also get producer.
+00:44:33.864 - 00:44:35.912, Speaker C: I think they're kind of the producer.
+00:44:35.976 - 00:44:36.796, Speaker A: Right, okay.
+00:44:36.898 - 00:44:37.164, Speaker C: Yeah.
+00:44:37.202 - 00:44:43.376, Speaker A: They don't create the art, they don't create the world, but they're like, I want you to give it a little.
+00:44:43.398 - 00:44:58.272, Speaker C: Bit more superhero for this conference. The sort of essence of this conference is x, and this paper does not meet the essence of this. Right. Well, what does the fucking essence of the conference mean? Well, it's like whatever that reviewer thinks.
+00:44:58.336 - 00:45:01.440, Speaker A: Wants, whatever their work may represent.
+00:45:01.520 - 00:45:10.408, Speaker D: Exactly. You also get to do it via kind of quasi censorship effect. Right. You also get to vote down on papers that you don't think should make it independent of. There might be many reasons why this.
+00:45:10.414 - 00:45:11.064, Speaker C: Is true, of course.
+00:45:11.102 - 00:45:32.748, Speaker D: Many papers are usually garbage, even those that are published. But generally speaking, right, there is a censorship idea of someone tries to publish something that you kind of don't think is interesting or doesn't fit the narrative, even though it might be interesting in a very general sense. But of course, we only have our own weird subjective things, right? And you just get to downvote it and be like, sorry, actually, this is not that interesting at the end of the day, even though it might be a very interesting topic.
+00:45:32.844 - 00:45:35.036, Speaker C: And again, this is always, there's like these voting.
+00:45:35.068 - 00:45:39.890, Speaker A: You're voting recall. There's something.
+00:45:40.900 - 00:46:21.600, Speaker C: This is why a lot of the crypto stuff somehow should intersect here and also get rid of a lot of labor abuse. Because in my mind, there's this huge labor abuse going on. Yes, it's for status, but also someone is making money off this, right? And it's fucking crazy. When you're a professor at a university, you're reviewing, and then you go to a publisher like Elsevier or nature or science, and then the publisher is the one who's like, hey, give us reviews for free. And then the publisher sells that back to your institution. That is the ultimate scam. They're taking free labor and it's all based on the brand of the journal and the impact factor and some fucking metrics that are game.
+00:46:21.670 - 00:46:24.112, Speaker A: I mean, okay, one, are they making us a lot?
+00:46:24.166 - 00:46:28.784, Speaker D: Yes, their margins are like, they're like over 50%. Yeah, okay, there you go. 80%.
+00:46:28.902 - 00:46:32.256, Speaker C: I mean, it's not like they're not like big growing businesses, but they're like $10 billion businesses.
+00:46:32.288 - 00:46:36.084, Speaker A: They're like stable riah businesses who have.
+00:46:36.122 - 00:46:47.272, Speaker C: Tons of very high skilled labor. In fact, the medium skilled labor, the ones who are like distributing in the sales and whatever they're getting paid. But the highest skilled labor isn't. It's the opposite of the art, music.
+00:46:47.326 - 00:46:49.064, Speaker A: And owns them, though.
+00:46:49.262 - 00:46:50.250, Speaker C: They're public.
+00:46:50.860 - 00:46:51.512, Speaker A: They're okay.
+00:46:51.566 - 00:46:52.532, Speaker C: They're huge public companies.
+00:46:52.606 - 00:46:53.390, Speaker D: Are they?
+00:46:53.760 - 00:46:56.364, Speaker C: Yeah, we're in the Netherlands, actually.
+00:46:56.402 - 00:46:57.372, Speaker D: You're totally right.
+00:46:57.506 - 00:46:58.216, Speaker A: Journals.
+00:46:58.328 - 00:46:58.990, Speaker C: Yeah.
+00:46:59.600 - 00:47:06.030, Speaker A: Aggregation companies about this journal world. I mean, I know they exist. I know that.
+00:47:06.560 - 00:47:16.800, Speaker C: Do you get why the labor thing is kind of an abusive labor thing, right? It's like, why are the professors and grad students doing this for free? And then their institution is paying to buy back their labor at the same time?
+00:47:16.950 - 00:47:26.950, Speaker A: Right. Now, as you describe this, all I can think is it's going to go out the door. Like, there's no way. And how annoyed will they be when that happens?
+00:47:28.760 - 00:47:41.400, Speaker C: AI and high energy physics and math have basically moved off the journalism. They do everything in preprints. There are journals, but only when it's like really seminal. Like Terrence Tal proves some weird kind of crazy.
+00:47:41.470 - 00:47:42.890, Speaker A: Wait, who's on it then?
+00:47:44.080 - 00:47:48.104, Speaker C: Well, no, everything is just done on the Internet more publicly and then afterwards.
+00:47:48.152 - 00:47:49.260, Speaker D: Submitted to journals.
+00:47:51.120 - 00:47:52.556, Speaker A: Review first. Okay.
+00:47:52.658 - 00:48:06.496, Speaker C: But only certain fields. Like, if you go to biology, it's like, no, you didn't publish in nature. What are you doing? Your career is shit. There's a lot of this status game stuff that you see in art music finance, or art music. Sort of like, the crazy part, though.
+00:48:06.518 - 00:48:31.096, Speaker D: Is it's not just the reviews, though. It's literally like the papers themselves are essentially done for free. Right. A lot of the work that goes into not just reviews, but also the papers just gets done for these publishers for free, and then they go and sell it back. In a lot of cases, in math and computer science and physics, it's very, very common to upload your preprints first. So it's always available publicly online. But in some cases, it's actually not.
+00:48:31.096 - 00:48:38.236, Speaker D: You will get sued if you publish your papers online for free and then try to publish it afterwards and stuff.
+00:48:38.258 - 00:48:41.052, Speaker A: Like, wait, you just said a bunch of fields moved off it.
+00:48:41.106 - 00:48:41.436, Speaker D: That's right.
+00:48:41.458 - 00:48:42.044, Speaker A: How does that work?
+00:48:42.082 - 00:49:12.760, Speaker C: Then they just started publishing on the Internet. So archive, which is sort of the main print archive, was created by Paul Ginsburg, who is a physics professor at Cornell. Yeah. Who famously, I remember when I was an undergrad there, they built a new physics building. And he's kind of a true hippie. And he was like, in his office. I guess he passed out in his office, and then the police came and were like, oh, this homeless guy, like, sleeping.
+00:49:12.760 - 00:49:45.916, Speaker C: I remember that was like one of the funniest things that happened. This is like 2007 or eight or something. I was dying. That's really funny. But he's an interesting character. And so the idea was that a lot of high energy physics research, a little bit like AI at that time, obviously in a different scale, was stuff where there was stuff that was done in empirical stuff. So people at particle accelerators were kind of writing technical reports on things they saw that were sort of like the way Guillermo and I started writing papers.
+00:49:45.916 - 00:49:58.480, Speaker C: We just post them online. We see what feedback is before we refine them. People would just post those, and they'd usually only share them within each accelerators, like CERN, particle CERN, Switzerland. They would have their own technical.
+00:49:58.560 - 00:49:59.652, Speaker D: That's a mailing list.
+00:49:59.706 - 00:50:00.404, Speaker C: That's right.
+00:50:00.522 - 00:50:01.872, Speaker A: Peer review. Because peers.
+00:50:01.936 - 00:50:12.632, Speaker C: Yeah, peer. But it's huge, right? It's sort of like push, not pull, or vice versa. Pull, not push. Like, you just post it. And then if people review, it's not like a thing where you're forcing people to.
+00:50:12.686 - 00:50:14.036, Speaker A: People will comment.
+00:50:14.148 - 00:50:29.456, Speaker C: Exactly. And so then a bunch of the different particle accelerators started realizing, like, hey, we actually should be sharing our technical reports. Yeah, they're not finished, but if we shared some of that, we would probably save someone some dead ends that they couldn't go to.
+00:50:29.558 - 00:50:30.896, Speaker D: Also catch early mistakes, too.
+00:50:30.918 - 00:50:31.712, Speaker C: A lot catch early.
+00:50:31.766 - 00:50:36.352, Speaker D: Yeah, I mean, like, whatever. Super luminol neutrinos and all this stuff. Right, right.
+00:50:36.406 - 00:50:40.820, Speaker C: Well, we were at a time where baryons were still not classified.
+00:50:42.840 - 00:50:47.236, Speaker D: This is jumping ahead on the timeline. But my point is, like, this was caught before it went out.
+00:50:47.338 - 00:51:44.484, Speaker C: I think people who are at the boundary of theory and production, like, people who are trying to take theory and do really hard experiments to validate really complicated theory, they oftentimes need. It's not true that other people don't have this, but for some reason, that ends up being the space where people want to make these kind of very quick intellectual works that they share quickly, rather than have to go through the whole full peer review process. And so that was where it started. And that sort of formation, the genesis of archive. But then, of course, the most famous thing was Perilman, who won Steel's medal and kind of went to go live in Siberia. And whatever true goat none of us are, he posted this proof of this very famous conjecture on archive, never got peer reviewed. And then it turned out it was right.
+00:51:44.484 - 00:51:51.796, Speaker C: And he won this million dollar prize, and he hated society for giving him a million dollars. So then he went to go live as a recluse with his mother in Siberia.
+00:51:51.828 - 00:51:52.376, Speaker D: That's right.
+00:51:52.478 - 00:52:03.992, Speaker E: I thought he was working on the. No, no. So I know that he proved the point conjecture, but I thought that people speculated that he hadn't actually retired entirely.
+00:52:04.056 - 00:52:40.532, Speaker C: Oh, I'm sure he's not retired, but he hates institutions. He basically was like, why does it matter that I am an academic institution if I publish something that was correct and there's truth and there's both good things and bad things, institutions are a heuristic. They let you assume a lot of things without having to actually spend years figuring them out. At the same time, he has a good point of, he was able to kind of do a lot of stuff on his own, but I don't know if he would be doing remount heaven with this, because his background is more in Richie flows and, like, probability stuff. Measure theory. All the shit that Guillermo hates.
+00:52:40.596 - 00:52:41.112, Speaker D: Hey.
+00:52:41.246 - 00:53:02.880, Speaker C: No, it's true. It's like, literally. Literally, one of my undergrad advisors proved this measure theory inequality that was used in that paper. And when I looked at the proof of that. I was like, this is all, like, in reality, no fucking thing that's really homotopia equivalent to three sphere would ever fucking look like this edge case. And that's like the Guillermo like, measure theory is useless thing.
+00:53:02.950 - 00:53:09.248, Speaker D: Okay, now I'm on the measure theory thing. I want to set the record straight. I don't hate measure theory. I actually find it quite beautiful.
+00:53:09.334 - 00:53:09.584, Speaker C: Right?
+00:53:09.622 - 00:53:41.644, Speaker D: Like, I have studied measure theory, whatever processes, stochastic differential equations, the whole thing, right? But my point is, what I'm pushing back against a lot, and I do this a lot, is in papers, it's very easy to go down a fucking rabbit hole of just, like, proving a bunch of shit that turns out to kind of be irrelevant and is really obvious if you know, basic real analysis or basic measure theory. But reviewers will come back to you and be like, oh, but how do you know this thing covers? Like, dude, it's literally three lines. If you took an undergrad class in this thing, you would know what.
+00:53:41.762 - 00:53:50.610, Speaker C: One place I will disagree with this is that there's a lot of counterexamples that generally come up from you not stating the correct.
+00:53:51.060 - 00:53:58.160, Speaker D: But. But, like, okay, so being very clear here in our papers, we state the exact assumptions.
+00:53:58.820 - 00:54:07.412, Speaker C: Ours are not, like, real, right? I mean, like, actual aesthetically pretty math is even, whatever.
+00:54:07.466 - 00:54:13.332, Speaker D: Like, the Jordan curve theorem, right, is really easy to prove in the case where you assume that everything is differentiable or, like, point wise.
+00:54:13.396 - 00:54:15.528, Speaker C: I mean, it's a homework problem, but.
+00:54:15.534 - 00:54:16.584, Speaker D: It'S not a homework problem now.
+00:54:16.622 - 00:54:16.824, Speaker A: Right?
+00:54:16.862 - 00:54:20.810, Speaker D: The general case is pretty hard. The general case isn't even true.
+00:54:22.060 - 00:54:25.416, Speaker A: Can I actually bring us back to peer review? Because I was so down.
+00:54:25.518 - 00:54:46.352, Speaker C: Yeah, Guillermo just doesn't like me making fun of this. But this is actually something I have personally faced in peer review, where usually people are just like, oh, you didn't mention this complicated example. And I usually am like, oh, yeah, you're right. Guillermo, on the other hand, is. No, no, my definition should have restricted it so that you never had that fucking. But that's a philosophical difference.
+00:54:46.406 - 00:55:12.004, Speaker D: No, but my point is, it's not that I don't think that people shouldn't be careful, is that I think people should be extremely careful. But in the paper, it does not matter if you knew the thing you needed, if you knew the exact. For example, in one of our cases, we have something that is technically not necessarily even integrable in a usual sense. It is like lebag integrable, but not like normal Riemann integrable.
+00:55:12.052 - 00:55:13.768, Speaker C: Oh, you mean the optimal fees paper.
+00:55:13.854 - 00:55:16.904, Speaker A: No, I love that we've fed you this much mascal.
+00:55:16.952 - 00:55:17.212, Speaker C: Sorry.
+00:55:17.266 - 00:55:20.110, Speaker A: And you're arguing right now about a very specific.
+00:55:21.840 - 00:55:23.612, Speaker C: You may have to cut this, because this is like.
+00:55:23.666 - 00:55:28.608, Speaker A: So I know we're going to leave it, but I think I might bring us back.
+00:55:28.694 - 00:55:29.920, Speaker C: All right, fine.
+00:55:30.070 - 00:55:37.232, Speaker A: Because actually it sounds like what you were actually proposed. I don't think we've proposed a solution. I think we.
+00:55:37.286 - 00:55:37.872, Speaker C: To the peer review.
+00:55:37.926 - 00:55:38.580, Speaker A: Yeah, a problem.
+00:55:38.650 - 00:55:39.028, Speaker D: Right.
+00:55:39.114 - 00:55:44.388, Speaker A: I think we've said, hey, there's a problem. It's a problem for ZK papers as well.
+00:55:44.474 - 00:55:44.820, Speaker D: Yes.
+00:55:44.890 - 00:55:47.590, Speaker E: It's a problem we've actually run into.
+00:55:51.080 - 00:56:04.772, Speaker C: No, I'm not going to. But even if he's not going to say one, I think the planck thing is a really great example. Right, where a mistake in the paper was never verified until later by an auditor.
+00:56:04.836 - 00:56:06.360, Speaker A: Trail of bits the recent.
+00:56:06.700 - 00:56:27.916, Speaker C: And to some extent, I remember when I first convinced Guillermo that crypto wasn't a scam. I was like, hey. He was like, what's the cool thing? I was like, there's all these papers. They use a lot of algebra, so you're not going to like it, but it's like zero knowledge stuff. And he was just like, yeah, I can't even fucking verify any other fucking proofs. Their standard of proof is like, weird.
+00:56:28.028 - 00:56:29.312, Speaker E: Even the notation is.
+00:56:29.366 - 00:56:38.384, Speaker D: No, yeah, there's the whole of the subscripts and superscripts, and you have functions that depend on eight different things, even though seven of those are completely irrelevant.
+00:56:38.512 - 00:56:38.852, Speaker C: Sorry.
+00:56:38.906 - 00:56:40.116, Speaker D: Anyways, but besides the point.
+00:56:40.138 - 00:56:49.480, Speaker C: Sorry. Because everyone likes to write out the proof as, like, they write out the full algorithm instead of analyzing the components, which. It's like a cryptographer style difference between.
+00:56:49.630 - 00:56:52.308, Speaker D: Math people, between normal people and cryptographers.
+00:56:52.404 - 00:56:59.272, Speaker E: You should just teach one cryptographer, Einstein, summation notation. It'll spread like a virus.
+00:56:59.336 - 00:57:05.340, Speaker C: Actually, I don't think it would, though. I feel like they like writing like 5 million.
+00:57:05.410 - 00:57:15.744, Speaker D: Okay, my hottest take is that I think teaching cryptographers, like a normal linear algebra course would do, like, wonders for humanity, where you don't actually have to write out the sums for 90% of these things.
+00:57:15.782 - 00:58:15.712, Speaker C: You just define them as linear operators. Anyways, another thing I think that's kind of a stylistic difference you oftentimes see when you read applied math papers from different fields is some people like writing papers in a sense of like, oh, here is actually the most general possible mathematical thing that sort of correlates to this scenario, even though if I look at the set of all possible things you defined less than one 1,000,000th of a basis point of the possible things is actually like what you think that you care about. And the other type of people are like people who define things too narrowly and they. It's too to my use case and then you can't use it somewhere else. There's always this kind of trade off in applied research of like, do I make the most general thing or do I make the specific thing? And you kind of have to learn that in some ways. And I just feel like ZK people haven't figured out their sweet spot for that. And AI people were the same.
+00:58:15.712 - 00:58:22.728, Speaker C: It took them a fucking long. They have it 20 years. I would say they don't, but it's much better than it was in the.
+00:58:22.734 - 00:58:32.168, Speaker D: Quite true, even. I wouldn't even say the early two thousand s. I mean, some of like, look, you read a lot of the papers, like, even random kitchen sinks, there's like a pretty simple paper. It's kind of legible the original time around.
+00:58:32.254 - 00:58:40.252, Speaker A: I feel like there's two things happening here, though. It's like one question here is like, how do we better peer review ZK paper? And the other question is, how do we fix peer review?
+00:58:40.306 - 00:58:41.310, Speaker C: Sorry, this is how we.
+00:58:44.240 - 00:58:47.884, Speaker A: Slowly but surely, do we use zkps to fix peer review?
+00:58:48.002 - 00:58:48.764, Speaker D: No.
+00:58:48.962 - 00:58:50.384, Speaker C: Well, you didn't have a shit post.
+00:58:50.422 - 00:58:51.570, Speaker D: On this, didn't you?
+00:58:52.580 - 00:58:58.732, Speaker C: I wrote that making fun of the DSI people, though, really. But it was a subtweet. I don't think anyone really got it, unfortunately.
+00:58:58.796 - 00:58:59.136, Speaker D: It's fine.
+00:58:59.158 - 00:59:01.568, Speaker C: It's fine. I got it. Yeah, you're alt understood.
+00:59:01.664 - 00:59:02.404, Speaker D: Really? I was pretty.
+00:59:02.442 - 00:59:05.424, Speaker C: I think I retweeted the alt harem alt cartel.
+00:59:05.472 - 00:59:06.132, Speaker D: Cheers to that.
+00:59:06.186 - 00:59:20.388, Speaker C: Alt cartel. I guess the main thing of these stylistic differences, though, for things that have to be very precise.
+00:59:20.484 - 00:59:25.000, Speaker A: Which part are we talking about, by the way? We're talking about like ZK being peer reviewed.
+00:59:25.900 - 00:59:59.700, Speaker C: We're getting back to that. But we're kind of talking about this idea that what is written in the paper, how do you actually verify the proof is like Guillermo's philosophy, is that the implementation is the actual proof. Like if the implementation works, which is definitely true, that's the most true form. But there's also a sense in which the style in which things are written can also be adversarial to the reader. And then peer reviewers just go, LGTM looks good to me. Plus one lazy thumbs up. Like Code review has the same problem.
+00:59:59.850 - 01:00:19.048, Speaker E: For the record, I think this is actually really important because especially in fry. There's a lot of sort of ambiguity and soundness, and there's some conjectures, and I feel like there could have been more attention placed on that if it was a little bit more clear that those existed and how they functioned and real protocols.
+01:00:19.224 - 01:00:23.100, Speaker A: Is this you finding this out because of actually trying to implement?
+01:00:24.320 - 01:00:37.360, Speaker E: So. So we rely on a soundness conjecture that has not been formally proven, I believe. Really starquare does as well. But it would be nice if there were more attention and formal proofs.
+01:00:39.620 - 01:00:39.948, Speaker C: Because.
+01:00:39.974 - 01:00:46.084, Speaker A: We'Re just pouring more. He asked us at the beginning of this interview, actually, do I have to?
+01:00:46.282 - 01:00:55.160, Speaker D: And the answer, drink all of it. The answer was always yes, because as of now, there is a bottle of mescal that is officially empty.
+01:00:55.740 - 01:01:10.670, Speaker A: Very nice. Just to the listener. This is not the future of the CK podcast. We will have normal CK podcast episodes soon. But this week, it's a week of Amsterdam. And honestly, there's a lot happening here.
+01:01:12.160 - 01:01:46.596, Speaker C: I guess one other thing that's kind of interesting about the trailer bits report is just. It kind of says like, oh, well, the peer review for these ZK things was this auditing firm deciding to go read the implementation, right. And so that's where I think there's kind of a notion of peer review that we haven't figured out. Push versus pull. And it's like the academic version of the world is push. Like you send a centralized authority. The journal, which is some institution with some cultural definition for itself, very much like NFT dows, but hopefully smarter.
+01:01:46.596 - 01:01:48.948, Speaker C: But not usually. They're still humans.
+01:01:49.124 - 01:01:49.720, Speaker A: Too early.
+01:01:49.790 - 01:02:03.864, Speaker C: Okay, go. And then usually then they are like, push. Here are the papers to review. Here's what we think is cool. Here's whatever the program committee type of thing. And then people review. And then you have the opposite.
+01:02:03.864 - 01:02:16.540, Speaker C: Like the ZK world or the high energy physics world was like this before, where there was a lot more like pull. Like we just shoved the shit online. And the problem is in the else, posting content, Internet.
+01:02:16.620 - 01:02:21.264, Speaker A: But in the case of an auditing firm doing it. Were they hired to do an audit and then found it?
+01:02:21.382 - 01:02:26.310, Speaker C: Oh, I think they were hired to do one of the audits and then they started doing the rest. Yeah, there's no way this was like.
+01:02:26.680 - 01:02:33.290, Speaker D: Just like, oh, we got hired to do this, and therefore we went into this. It had to be like an internal thing, right? I don't know.
+01:02:34.540 - 01:03:01.744, Speaker E: I believe that they were hired. I think another wrinkle that's sort of interesting in this case is that this bug didn't exist everywhere. So certain teams had fixed it because they spotted it. No, I think trail of bits spotted it. I think there's like a deeper, maybe structural problem in ZK where there's not always that level of collaboration. Right here. Yeah.
+01:03:01.744 - 01:03:10.980, Speaker E: And so I think that's like, interesting thing because the bug was fairly straightforward. It was just not including public inputs in Fiatromere.
+01:03:13.640 - 01:03:41.560, Speaker A: Basic. But actually, just a question on that. What you just said was, I just asked, was it that some teams had implemented it and then found that problem and changed something? To me, the bug was in some overarching research paper that was implemented in the way it was supposed to be. But like you just said, not everyone had the bug. I actually don't understand why they didn't.
+01:03:41.640 - 01:04:03.316, Speaker E: Yeah. So I think my understanding I could be wrong is that in the Planck paper, it wasn't explicitly hashed into some input for Fiat Mir. It wasn't included as part of the input. And that was true in both bulletproofs and in plonk. But there were a number of teams that just knew to do that.
+01:04:03.338 - 01:04:04.070, Speaker D: Yeah, right.
+01:04:05.720 - 01:04:10.180, Speaker A: That's what I thought it was implementation. But did they not notice the problem?
+01:04:10.250 - 01:04:16.884, Speaker C: No, the problem is people just open the paper and these crypto papers are written as like, here is the algorithm. Algorithm.
+01:04:16.932 - 01:04:17.736, Speaker D: But it's not enough.
+01:04:17.838 - 01:04:22.360, Speaker C: Exactly. But I don't have to think about it because I assume the one in the paper is correct.
+01:04:22.510 - 01:04:32.984, Speaker A: No, I get that. But what I don't get is why did somebody implement it correctly and fix that and not disclose? But why was that not communicated somehow?
+01:04:33.032 - 01:04:52.036, Speaker D: It's common that people have a lot of context when they read these papers. Right. It's not like, in a lot of cases, the paper is supposed to represent like a fairly high level but reasonable idea of how one might implement this concretely. And in a lot of cases, if you have enough context on the paper, it's very obvious to you that this is a thing you have to do. But one might call it an implementation detail. Right.
+01:04:52.138 - 01:05:14.692, Speaker A: Is it almost like because of who's actually making the changes, they're just not super tapped into the comms team? They're not going to be the people who are raising, why would you isolating it up? They're just like, we're going to, oh, this incident doesn't work, I'm going to fix it. But then it doesn't go higher that people who have decided to use the paper, they're not aware.
+01:05:14.756 - 01:05:55.450, Speaker D: So in some sense, when you read the paper and you have enough context, it's like almost an obvious thing, right? It's a thing you just read and you're like, yeah, I mean, of course they didn't do this check in the paper because it's like, why would you do it? You should already know to do it. Right? But in general, this is not true. I mean, as we found, clearly, if you just implement straight algorithms in the paper in the same way as if you implement a lot of mathematical papers by just reading the thing kind of front to back and being like, all right, here's what I need to do. It's not immediately obvious that you have to do these extra checks. Even in a lot of cases, you're doing kind of a lot of reductions down into something that you can actually use. So I think it's a lot of contextual questions that are not easy to answer.
+01:05:56.140 - 01:06:01.880, Speaker A: This is a bit of a left field, but coming back to Amsterdam, where we are right now.
+01:06:01.950 - 01:06:02.824, Speaker D: Oh, no.
+01:06:03.022 - 01:06:11.436, Speaker A: There were a few topics we had meant to talk about that we have not because we've kind of run out of time, but we've also had a.
+01:06:11.458 - 01:06:12.392, Speaker D: Whole bottle of mascal.
+01:06:12.456 - 01:06:35.750, Speaker A: I also think the conversation we had was pretty amazing. But I am wondering what are, in a short moment, like, what are the takeaways from this week? What are the ideas you had sort of said earlier on idea wise, you didn't feel, like, necessarily inspired. But what do you think are the topics at least that are being discussed right now or something that you're thinking about?
+01:06:36.840 - 01:07:01.768, Speaker C: I think Emmy V day, again, not to harp on it being what I thought was a really great event. Congratulations to Tina also, I want to give her a clap and shout out because that was. Tina's been putting out events for a long time, just like you, Anna. And I feel like she had started by being renegade and ragtag and would do these free events and then, what the fuck?
+01:07:01.864 - 01:07:06.216, Speaker A: D five. What the fuck? What was the other one? Wtf?
+01:07:06.408 - 01:07:07.332, Speaker C: Mev.
+01:07:07.496 - 01:07:08.320, Speaker D: Mev.
+01:07:09.060 - 01:07:40.808, Speaker C: So she did these kind of very grassroots events that to see it grow to something is actually like. I just feel like, as her friend, I just feel like she has clearly built this institution around it. And also just like, I do think they got a lot of interesting talks. I don't think anyone answered the question that I care about personally and guerma cares about, which is just like, how do you actually write down some type of mathematical theory about Mev that actually combines things that we know about?
+01:07:40.894 - 01:07:43.144, Speaker D: I mean, as we found. It's a hard question to answer.
+01:07:43.182 - 01:08:17.620, Speaker C: Very hard to answer because there's some notion of subjectivity of value. But there's also some notion of optimality when you have many parties, like, defining the social welfare of all the participants is actually quite hard. It might actually be in some cases. And I think this is something I really kind of felt a lot from that Mev day is like, the existence of MeV for a lot of chains, actually is a good thing. It drives volume there. And it actually has these weird ironic effects of, like, oh, volume increased because people are getting sandwiched. Oh, people add more liquidity because they're like, oh, there's more volume here.
+01:08:17.620 - 01:08:20.888, Speaker C: And it has this weird growth hacking bootstrap effect.
+01:08:20.974 - 01:08:22.344, Speaker D: Bad metrics. But also interesting.
+01:08:22.382 - 01:08:25.252, Speaker A: Are you an. What is an accelerationist?
+01:08:25.396 - 01:08:41.740, Speaker C: As kept saying, I am not per se. I do think Dean had a very funny comment, which is like, I would never use a chain that I make money. Like, he's like, they're all centralized. That was like a very harsh.
+01:08:42.720 - 01:08:44.156, Speaker D: I will not mention them.
+01:08:44.338 - 01:08:50.720, Speaker C: But then he just said bSc, almost like the neck. He's like, there's 21 validators, and eleven of them are owned by an exchange.
+01:08:51.780 - 01:08:54.432, Speaker A: He actually said that on the episode we did with him.
+01:08:54.486 - 01:08:55.072, Speaker D: Oh, did he?
+01:08:55.126 - 01:08:56.050, Speaker A: That's all clear.
+01:08:57.540 - 01:08:58.540, Speaker C: He loves shipping.
+01:08:58.700 - 01:09:04.932, Speaker D: I feel like it's the MeV chain, though. As far as I know, there's, like several people on it, and everyone is just, like, there just to make money.
+01:09:05.066 - 01:09:10.464, Speaker C: But it's not just that. It's also just there's a lot of retail usage in South America and Asia.
+01:09:10.592 - 01:09:11.856, Speaker D: Is there on BSC?
+01:09:11.968 - 01:09:33.580, Speaker C: Yeah, I mean, binance has extremely high in South America. So in South America, BUSD is actually. People basically do remittances by just sending busd between binance. Not ust, no, apparently, because most of them, their only gateway is like binance. Binance is a huge penetration in South America. Wow. Holy shit.
+01:09:33.580 - 01:09:57.344, Speaker C: Not Central America proper. Definitely south per se, because bitso and stuff definitely own Mexico and diarrhea. But it is actually quite interesting that a lot of the capital inflows are basically Latin America and Asia. And the reason there's so much busd demand comes from people who are basically using finance as their bank.
+01:09:57.472 - 01:10:05.088, Speaker D: You mean you don't like, whatever, 5000% inflation in Venezuela, there's better inflationary, non inflationary tools.
+01:10:05.104 - 01:10:09.588, Speaker C: Guillermo is venezuelan, so he has first hand experience with ohm. Like inflation.
+01:10:09.684 - 01:10:15.310, Speaker D: That's right. And it did not have provable bounds on our read most recent paper or whatever.
+01:10:15.920 - 01:11:15.550, Speaker C: The thing that was interesting is, I think one thing that has been kind of the narrative around MeV is generally like, it's predatory, it's bad, it's whatever. But I think there are conditions, and if you could understand the theory, you can actually understand a little more of like, when it actually is useful for a network, it's not necessarily always bad, which I think maybe is like a contrarian thing to say, but it actually is useful for in some cases it is extracting value from users, no doubt. But in some cases it's actually increasing liquidity for users. So, interesting, if the amount that's taken from them versus the decrease in transaction costs is different, it actually can be positive. And listening to a lot of the people talking, especially the traders, I was actually more surprised at some of the things they're saying where they effectively increase their participation in certain networks because they were doing MeV on them, which improves user quality.
+01:11:16.240 - 01:11:18.496, Speaker D: It certainly improves, like, with the bad.
+01:11:18.598 - 01:11:19.952, Speaker A: Comes the good, right?
+01:11:20.006 - 01:11:24.736, Speaker C: So I just don't like this kind of like, look, everyone, humans still put.
+01:11:24.758 - 01:11:26.690, Speaker A: Them in the category of bad.
+01:11:27.220 - 01:11:43.812, Speaker C: Humans love false dichotomies. They love this idea of this binary classifier that you can just always just, you rely on as the ultimate heuristic. The worst one of the Internet has produced is the word cell and shape rotator one. No, you're not mentioning this in this episode.
+01:11:43.876 - 01:11:48.680, Speaker D: No, you're not. You are not bringing up the other tarun. In this episode.
+01:11:49.340 - 01:12:05.772, Speaker C: I'd say the worst binary sort of classification dichotomy that humans have that have made on the Internet in this last year is the word cell versus shape rotator. Word cell versus shape rotator.
+01:12:05.836 - 01:12:06.924, Speaker A: Shape rotator.
+01:12:06.972 - 01:12:11.708, Speaker D: God help us. All I cannot believe is Tarun, don't.
+01:12:11.724 - 01:12:20.420, Speaker C: Worry, I'm not going to vibe camp. I'm sorry. I'm sorry, everyone. I promise I'm not in the center for Applied Rationality.
+01:12:21.240 - 01:12:25.316, Speaker D: Well, I think there's everyone who is like X Center for applied rationality, right?
+01:12:25.498 - 01:13:11.344, Speaker C: Yeah. So I guess the point I want to kind of maybe put across is like, mev Day as a really interesting event. Having worked in high frequency trading before, is like, you would never have that type of conference and people would never be that honest about kind of like what they do. And you would also not get the feeling that there were a lot of people there who are like, oh, yeah, actually, there's some positives to it for certain networks and certain types of applications do do better when you have that. And as application and base protocol security start getting more intertwined, we are going to inevitably see that there's going to be good Mev and bad Mev, and it's kind of going to be too much of a catch all phrase that doesn't actually capture the nuances.
+01:13:11.472 - 01:13:18.800, Speaker A: I did actually notice just generally this week, the use of the word mev, kind of constantly being confused.
+01:13:18.880 - 01:13:23.864, Speaker C: It's even like, ZK and Mev both get used when they're not. They're, like, supposed to.
+01:13:23.982 - 01:13:36.664, Speaker A: Mev equals sandwiching equal, and that's the only way. And it's always bad, and it's kind of ruthless. And then someone's like, no, it's more complicated. And then it's complicated to actually describe why it's more nuanced.
+01:13:36.792 - 01:13:43.660, Speaker C: My favorite kind know of the, like, six or seven whatever panels and talks I did.
+01:13:43.810 - 01:13:48.640, Speaker A: The one that was not attended was on and moderated.
+01:13:49.300 - 01:14:28.524, Speaker C: Intense was one where Phil, Diane, was a moderator, and he brought Eric Boudish, who is a famous academic from Uchicago, who invented this concept of the batch auction, which was supposed to kind of destroy HFT. And of course, it's turned out it didn't work. In fact, didn't work, but fully. I think the theory has a lot of merit. But one interesting thing I learned from this talk, I've had a lot of respect for Buddhist's work. But interestingly, I learned Phil, first of all, was quite inspired by Buddhist, and that's sort of how he got into thinking about flashbots, because he was like, how do we make a batch auction for this stuff? Because of. I know, I know.
+01:14:28.524 - 01:15:27.392, Speaker C: But look, that's just someone's life, their story. And then I basically was kind of, we were on this panel, and it's very interesting because you have me and Lev and Felix from cowswap, and the three of us are way more in the weeds and thinking about the kind of transaction level details, technical details. And then we have Phil, who's kind of like the philosopher King moderator. And then we have Eric Bootish, who's like, economist, who probably couldn't tell you anything about Ethereum transaction ordering to save his life. But he clearly had this kind of view that he's like, yes, we're going to implement all my ideas. And then we had Lev and me and Felix giving a lot of interesting counterexamples. And one thing that was very clear at the end of this was that Buddhist left this thing thinking that he came in thinking that flashbots was just his idea kind of implemented, and it provided the same benefits.
+01:15:27.392 - 01:15:50.948, Speaker C: And I think he left feeling like, oh, fuck. Actually, it's more complicated. It's not always bad. There was all these. And so that's kind of where I think sometimes being able to kind of have the dialectic, ironically, given Dean, the dialectic and multilectic perspective on these things is actually extremely important.
+01:15:51.034 - 01:15:51.492, Speaker D: Fair enough.
+01:15:51.546 - 01:15:57.796, Speaker A: Cool. I think this may bring us to the end of our episode. I feel like we could continue forever.
+01:15:57.908 - 01:15:59.240, Speaker D: If we're not careful. We might.
+01:15:59.310 - 01:15:59.896, Speaker A: We might.
+01:15:59.998 - 01:16:01.304, Speaker C: Alcohol dilates time.
+01:16:01.342 - 01:16:02.456, Speaker D: Yes, that's fair enough.
+01:16:02.558 - 01:16:16.768, Speaker A: But it was an incredibly fun time, and I'm so glad we had this conversation. And even though we went a little off the ZK podcast track a little bit, I think it's good. Why not?
+01:16:16.854 - 01:16:17.836, Speaker D: No, I think it's phenomenal.
+01:16:17.868 - 01:16:31.680, Speaker A: I also feel like, isn't it time for this show to also expand and evolve and allow for more spontaneity and more spicy take? Yeah. Thank you, Ms. Gal.
+01:16:32.200 - 01:16:33.220, Speaker D: Cheers to you.
+01:16:33.290 - 01:16:46.692, Speaker A: Anyways, thank you guys for doing this interview. It was fun, and it went completely off what we had planned. But I think it's better this think.
+01:16:46.826 - 01:17:04.348, Speaker C: You know, if you've never actually gone drinks with me, the number one thing you've hopefully learned from this episode is I love saying the word epistemology. The more alcohol, the more I drink. I say, like, philosophy, for better or worse. Very nice.
+01:17:04.514 - 01:17:06.872, Speaker D: Well, thank you for having me. It's been lovely.
+01:17:07.016 - 01:17:13.692, Speaker A: Thank you for coming back. And, Brendan, thanks for coming on for this very spontaneous interview.
+01:17:13.836 - 01:17:15.088, Speaker E: Yeah, thanks, Anna, for having me.
+01:17:15.094 - 01:17:21.152, Speaker C: It was a lot of fun in the process. We did anoint the polygon polynomials, which is.
+01:17:21.206 - 01:17:27.570, Speaker A: Which is good. I heard that happened on Twitter. And now Tarun, I heard the head of marketing at.
+01:17:29.540 - 01:17:33.000, Speaker C: JD. Congratulations. Congratulations on a new position. Tarun.
+01:17:33.420 - 01:17:41.140, Speaker A: One tweet. All it took. All right, I want to say thank you to the podcast team and to our listeners. Thanks for listening.

@@ -1,0 +1,228 @@
+00:00:11.890 - 00:00:39.162, Speaker A: Hey, everyone, welcome to another episode of the ZK whiteboard series presented by Zkhack. I'm Brendan. I work on ZK Stuff at Polygon, and I'm really excited to be joined by Ying Tong, who is a very talented cryptographer and engineer who currently works at the electric point company. She also collaborates with the EF Zero X park and is involved in a lot of cool things in the ZK crypto ecosystem. So welcome, Ying Tong.
+00:00:39.306 - 00:01:26.666, Speaker B: Thanks, Brandon. Hi, everyone. So today we're going to talk about Halo two, which is a proof system that allows for recursive composition without a trusted setup. So the first thing we're going to do is a high level overview of halo two. And then we'll zoom in on sort of the back end part of it, which is the inner product argument and the accumulation scheme. So Halo two starts out at the front end with what is called arithmetization. And this is the process of taking a bunch of values and constraints on these values and encoding them as low degree polynomials.
+00:01:26.666 - 00:02:49.174, Speaker B: So for halo two, we've chosen the Planck arithmetization. And this is a highly expressive and flexible way to express things like custom constraints, equality constraints, and even lookup arguments. So Planck gives us our circuit in the form of low degree polynomials. And this is then input into what we call the multipoint opening argument. So the multipoint opening argument involves committing to these polynomials, evaluating them at all the required points, and then constructing a polynomial that checks the consistency between the commitments and the evaluations. So it is the polynomial produced by the multipoint opening argument that we then input into the inner product argument. So the inner product argument is a polynomial commitment scheme, and it's a particularly good one for the purpose of building an accumulation scheme.
+00:02:49.174 - 00:03:47.354, Speaker B: And the reason is because the inner product argument has a succinct accumulation verifier. And we'll see what this means later on. But you can think of it as a verifier that has both a succinct part and an expensive linear time part. So in the context of recursion, we perform the succinct check at every recursive step, and we delay the linear time expensive check so that it's amortized across a batch of recursive proofs. Basically, what I just described was an accumulation scheme. Right now we're using what's called an atomic accumulation scheme. Yeah.
+00:03:47.354 - 00:03:59.662, Speaker B: So we're going to focus on numbers three and four, because I think Planck has been covered very well in another session already.
+00:03:59.796 - 00:04:43.482, Speaker A: Yeah, we've looked at Planck that sounds good. If we think about what halo two is, we start with our program, or the thing that we want us to prove. Arithmetize it, commit to it, arithmetize it, perform an iop that depends on the opening of some limited set of polynomials, prove that those polynomials can be opened, and are sort of being evaluated correctly. And then when we want to do recursion, we have this really cool approach that I think we'll obviously get into this later, but it was like this really groundbreaking step forward for recursive proof.
+00:04:43.546 - 00:05:40.640, Speaker B: Yes, definitely. So the inner product argument is a polynomial commitment scheme, and we should first start with looking at its API. So what it takes in is some commitment to a polynomial. So purportedly, C is a commitment to some degree n, polynomial p. And then it also takes in some challenge point at which this commitment is opened. And lastly, it takes in v, which is the value that we're claiming the commitment opens to at x. So we're claiming that px equals v.
+00:05:40.640 - 00:06:14.650, Speaker B: And we are also claiming that c is the commitment to. And in halo two, we use the Pedersen commitment. So we're claiming that C is the result of an inner product between the coefficients of p and some fixed bases g, which are part of the public parameters.
+00:06:15.710 - 00:06:38.542, Speaker A: So you give me a group element, and you say, I claim that this is the commitment to this particular polynomial. And I say, okay, prove it. I'm going to give you some random x. And if it is in fact this polynomial, or if it bears this relation to these other polynomials, it should evaluate to. So the IPA just allows us to prove.
+00:06:38.606 - 00:08:02.830, Speaker B: Exactly. And in particular, the proof of the IPA is succinct in the sense that it's logarithmic in the size of the polynomial we're committing to. So to give you a preview, the proof consists of a vector of group elements l, a vector of group elements r, and each of these are lengths k, where k equals log n, and it further consists of a group element g zero, as well as a field element p zero. And we'll learn more about how this proof was produced as we go through the rounds of the inner product argument. So, yeah, I think we're ready to get into the inner product argument. The inner product argument is trying to convince us of these two statements, and we can rewrite them slightly. So we've written c as an inner product of the coefficients of p with our fixed basis g.
+00:08:02.830 - 00:08:11.620, Speaker B: And similarly, we can write p as an inner product between the polynomial p.
+00:08:14.550 - 00:08:15.538, Speaker C: Oh, sorry.
+00:08:15.704 - 00:08:50.720, Speaker B: This should have been v over here. Whoops. The polynomial p and some polynomial b. And b here is simply the powers of our challenge point x. So yeah, you can see that the inner product of the coefficients of p with b is the same as just evaluating p at x. Right.
+00:08:51.730 - 00:08:57.514, Speaker A: Because recall with the inner product we multiply like sort of element or entry wise or element wise.
+00:08:57.562 - 00:08:59.054, Speaker B: Yes, exactly. A dot product.
+00:08:59.172 - 00:08:59.840, Speaker C: Yeah.
+00:09:00.450 - 00:09:38.170, Speaker B: Okay, so these are the two statements of interest, the two inner products of interest, and we can sort of combine these two expressions into a single one. Let's call it ck. So reminder, k is log n. And we're going to proceed the inner product argument in k rounds. In the case round, we start at the kth round with ck equals c plus vu.
+00:09:40.910 - 00:09:41.660, Speaker C: Yeah.
+00:09:44.290 - 00:10:23.610, Speaker B: Now we start, let's start with our polynomial p, which has n terms. And I'm going to index it k. We're in the k round here. All right. And then I'm also going to put here the polynomial b, which is just the powers of x bk. And we also actually have gk, which is the vector of our fixed basis. But I don't have space for it here.
+00:10:23.610 - 00:10:50.980, Speaker B: And furthermore, it behaves very similarly to b. They're both publicly known and we're going to treat them very similarly. So in the case round. So our strategy for each round is to gradually try and shrink the size of the polynomials until at the zero th round we're left with constant polynomials. So single terms.
+00:10:51.430 - 00:10:52.274, Speaker C: Yeah.
+00:10:52.472 - 00:11:18.460, Speaker B: So I'm sneakily just reindexing zero indexing things. So how we're going to do this is through the use of a challenge. So at round k minus one, we're going to derive a challenge UK minus one. And we can derive this from the commitment C.
+00:11:20.210 - 00:11:20.960, Speaker C: Yeah.
+00:11:21.490 - 00:11:55.240, Speaker B: And so the purpose of uk minus one is to separate the high and low halves of our original polynomials. So what I mean by this is that I'm going to cut p into p low and p high, and then I'm going to put a factor of u k minus one here and then uk minus one inverse here.
+00:11:57.450 - 00:12:12.334, Speaker A: So we have these coefficients that we have sort of an order of the degree of the monomial that they multiply. And so we take the top half and put it here and then the bottom half and put it there.
+00:12:12.452 - 00:12:14.270, Speaker C: Yes. Okay. Yeah.
+00:12:14.340 - 00:12:41.110, Speaker B: So what we're going to do is we're simply going to add them up. It's a linear combination of the low and high halves. So we're going to in fact define p for our next round of the IPA, pk minus two. And pk minus two is just going to be the sum of these two degree n over two polynomials.
+00:12:41.770 - 00:12:42.182, Speaker C: Yeah.
+00:12:42.236 - 00:12:55.500, Speaker B: So p two equals uk minus one, pk low plus uk minus one inverse pk high.
+00:12:57.150 - 00:13:03.502, Speaker A: Crucially, they're only because we're like folding them together, they're half the number of terms.
+00:13:03.636 - 00:13:58.480, Speaker B: Exactly, yeah. And similarly we're going to shrink b, but over here we're going to flip our use, we're going to flip the power of the challenge that we're using. So we'll put uk minus one inverse here for below and then UK minus one without the inverse for b high. And then again this gives us bk minus two for, for the next round of the IPA, just a sum of these two halves separated by the challenge. Uk minus one.
+00:14:00.450 - 00:14:06.900, Speaker C: So B-I-K.
+00:14:09.030 - 00:14:29.610, Speaker B: And G is going to be exactly the same as B. So g, k minus two, except the elements of G are group elements, so we have to write them. These are scalar multiplications.
+00:14:31.630 - 00:14:34.170, Speaker C: G low.
+00:14:34.320 - 00:14:37.062, Speaker A: So we're using the brackets to denote scalar multiplication.
+00:14:37.126 - 00:14:37.354, Speaker C: Yes.
+00:14:37.392 - 00:14:38.778, Speaker B: Of additive notation.
+00:14:38.874 - 00:14:39.520, Speaker C: Yeah.
+00:14:42.210 - 00:15:12.120, Speaker B: And then you can fill us in now. So if you see here, we started at round k minus one with the ck minus one equals c plus vu, aka it equals pk minus one g k minus one.
+00:15:14.570 - 00:15:17.180, Speaker C: Let's see, plus.
+00:15:20.270 - 00:15:25.900, Speaker B: P and b k minus one.
+00:15:28.450 - 00:15:29.962, Speaker A: So just using gates.
+00:15:30.106 - 00:16:11.034, Speaker B: Exactly, yeah. We initialize the k minus one indices to the input vectors. So that was the c that we started with in round k minus one. Now in round k minus two, we can define ck minus two in a similar way, but using these new sort of folded vectors. Right, so this will now be p k minus two, which has only n over two terms now.
+00:16:11.232 - 00:16:11.930, Speaker C: Yeah.
+00:16:12.080 - 00:16:14.614, Speaker A: So we're having the degree at every round.
+00:16:14.742 - 00:17:24.790, Speaker B: Yes, exactly. And then plus the corresponding p and b inner product k minus two. So another interesting thing to note is actually, and I'm just going to assert this now, and we can show that later, ck minus two can be also written as ck minus one plus some terms with the factor uk minus two times some group element, plus some terms with the factor uk minus two inverse squared plus another group element.
+00:17:26.410 - 00:17:28.346, Speaker A: Do you want to write that out?
+00:17:28.528 - 00:17:34.060, Speaker B: Yes, I do want to write that out. Yeah, let's write that out.
+00:17:35.330 - 00:17:39.182, Speaker A: Erase everything. Okay. Everything except the set.
+00:17:39.236 - 00:17:41.134, Speaker C: Okay. Yeah.
+00:17:41.172 - 00:17:43.886, Speaker A: Because I thought it was cool how you did it in the first one.
+00:17:43.988 - 00:17:44.640, Speaker C: Yeah.
+00:17:45.250 - 00:18:05.160, Speaker B: So just to remind ourselves, the inner product arguments opening proof consists of these terms and we're going to see how we got them.
+00:18:08.170 - 00:18:08.920, Speaker C: Right.
+00:18:12.010 - 00:18:33.840, Speaker B: So we were saying just now that ck minus two can be written as the inner product between pk minus two and gk minus two.
+00:18:34.370 - 00:18:35.120, Speaker C: Sorry.
+00:18:35.890 - 00:18:43.470, Speaker A: Don't we need like minus, no, I think that's.
+00:18:45.910 - 00:18:46.660, Speaker C: Yeah.
+00:18:48.550 - 00:18:50.434, Speaker B: I think this, no.
+00:18:50.552 - 00:18:51.654, Speaker A: Wouldn'T it be minus one?
+00:18:51.692 - 00:18:53.158, Speaker B: Yeah, I think this is minus one.
+00:18:53.244 - 00:18:53.734, Speaker C: Yeah.
+00:18:53.852 - 00:18:58.600, Speaker B: And then gk minus one plus.
+00:19:03.130 - 00:19:03.880, Speaker C: Yeah.
+00:19:06.090 - 00:19:16.300, Speaker B: Inner product. So this scalar here is the result of an inner product between pk minus one and bk minus one.
+00:19:17.890 - 00:19:18.640, Speaker C: Yeah.
+00:19:22.370 - 00:19:25.520, Speaker B: Actually no, it's k minus two, I think.
+00:19:26.290 - 00:19:39.678, Speaker A: Well, no, but aren't you then going in and then substituting this? Yeah, sorry. So it's ky two and then you do Ky.
+00:19:39.774 - 00:20:46.460, Speaker B: Right, okay, this indexing got confusing because indexed, yeah, we zero indexed everything. Sort of. The punchline of this is that I claim that after we expand all this out, we'll get ck minus one and ck minus two in the following form. So it'll be ck minus one plus some term with the factor u, k minus two inverse squared multiplied by some group element. Lk minus two.
+00:20:48.830 - 00:20:49.580, Speaker C: Yeah.
+00:20:51.550 - 00:21:15.518, Speaker B: And the point here is that these two terms are what's interesting and what we have to retain from the k minus first round. So we need to retain lk minus. I'm actually really confused about the indices.
+00:21:15.694 - 00:21:16.690, Speaker C: Let's see.
+00:21:16.840 - 00:21:20.610, Speaker A: I think that that's right, given how, because we're on the next round.
+00:21:21.370 - 00:21:23.880, Speaker B: So this should be lk minus one here.
+00:21:25.690 - 00:21:29.080, Speaker A: No, because aren't we on the k minus two?
+00:21:32.650 - 00:21:33.400, Speaker B: Right.
+00:21:37.150 - 00:21:37.818, Speaker A: It's fine.
+00:21:37.904 - 00:22:06.210, Speaker B: Okay, it's off by one indices, but maybe, possibly, yeah. The spirit of it is that at each of these k rounds we're collecting two group elements, the Lk and rk. And these have to go into our proof. And that's how in our proof we get a vector of Kl elements and a vector of kr elements.
+00:22:06.710 - 00:22:07.460, Speaker C: Yeah.
+00:22:08.470 - 00:22:10.658, Speaker A: Can we see how that works?
+00:22:10.744 - 00:22:11.294, Speaker C: Yes.
+00:22:11.432 - 00:22:34.810, Speaker B: To see how we get from here to here, all we have to do is expand. So if you recall what pk minus two is, really, it's just pk minus one low multiplied by some effector, uk.
+00:22:35.710 - 00:22:36.940, Speaker C: Minus one.
+00:22:39.310 - 00:23:22.950, Speaker B: Plus two, k minus two by some challenge, and then the high half of it is multiplied by the inverse of that challenge. So when I say PK minus two, I mean the folded version of pk minus one. And it's folded using this, using different powers of this challenge, and then similarly for g, except if you recall.
+00:23:25.530 - 00:23:25.942, Speaker C: We.
+00:23:25.996 - 00:23:39.500, Speaker B: Flipped the powers of the challenges. So this is UK minus two plus Uk minus two inverse g high, gk minus one high.
+00:23:44.210 - 00:23:46.958, Speaker A: I think we want to flip these.
+00:23:47.044 - 00:23:49.114, Speaker B: Right, which is, oh yeah, flipped.
+00:23:49.162 - 00:23:50.430, Speaker C: Flipped, yeah.
+00:23:50.500 - 00:23:58.670, Speaker B: So the powers of the challenges are flipped from those used to compress the p vector.
+00:23:58.830 - 00:23:59.940, Speaker C: Cool. Yes.
+00:24:00.390 - 00:24:21.162, Speaker B: And then since B is a very. We use it in a very similar way. It would be tedious to write it out and it's an exercise for the viewer. Yeah. But if we try to multiply these terms. Let's see. So we'll notice that some terms cancel out.
+00:24:21.162 - 00:25:04.178, Speaker B: So this term has a UK minus two. This term has a UK minus two inverse. So that's going to cancel out and give us just p low dot product g low. Right. Whereas there's some terms with the same factor, the same power of uk. So these two terms multiplied together, it would give us something with a vector of Uk minus two inverse squared.
+00:25:04.354 - 00:25:04.694, Speaker C: Yeah.
+00:25:04.732 - 00:25:11.766, Speaker B: So over here it'd be p high and g low, which is a cross term.
+00:25:11.958 - 00:25:12.700, Speaker C: Yeah.
+00:25:16.270 - 00:25:43.874, Speaker B: And similarly, let's see, these two terms are both uk minus two without the inverse. So if I multiply those together, I would get something with a factor of uk minus two squared, p low and g high, which is again a cross term. So I'm pretty sure I left out.
+00:25:43.912 - 00:25:47.626, Speaker A: Some, just the remaining non.
+00:25:47.678 - 00:25:48.246, Speaker C: Oh, yeah.
+00:25:48.348 - 00:25:52.006, Speaker B: So this one, p high and g high.
+00:25:52.188 - 00:25:52.534, Speaker C: Yeah.
+00:25:52.572 - 00:26:09.126, Speaker B: P high and g high. So you can see that for those terms whose challenges cancelled out, we're left with basically p low, g low plus p high. G high is the same as saying png.
+00:26:09.238 - 00:26:09.802, Speaker C: Yeah.
+00:26:09.936 - 00:26:35.842, Speaker B: Right. And I think if we did pb in this way as well, we would get back pbu. So in other words, we get back pg plus pbu, which is ck minus one, and then we're just left with those terms with actually some factor of the challenge in front. In other words, our cross terms.
+00:26:35.976 - 00:26:45.270, Speaker A: Yeah. So the l and the r are just like the cross terms from that round that are kind of like these leftover things we have to account for.
+00:26:45.340 - 00:26:45.814, Speaker B: Exactly.
+00:26:45.932 - 00:26:46.550, Speaker C: Yeah.
+00:26:46.700 - 00:26:54.890, Speaker B: So you can see that at each round we're really just accumulating cross terms and challenges.
+00:26:55.310 - 00:26:56.060, Speaker C: Yeah.
+00:26:56.990 - 00:28:11.300, Speaker B: So that was our first sort of round of compression. And if we keep going, we'll start round k minus two with a vector that's already like n over two, with n over two terms. Right. And then we'll fold it again and that will give us two more cross terms there that we're accumulating and so on, until at the zero th round, we are left with constant polynomials, meaning we are left with just a single term. And by which I mean p zero is a single field element, g zero is a single group element and b zero is a single field element. Right, and if we write out c zero again, c zero is, um.
+00:28:14.310 - 00:28:14.626, Speaker C: C.
+00:28:14.648 - 00:28:35.100, Speaker B: Zero can be expressed using like the, basically the terms we have left at the end of round zero. So it can be expressed as p zero g zero plus p zero b zero scalar multiplied u.
+00:28:35.790 - 00:28:36.298, Speaker C: Right.
+00:28:36.384 - 00:29:03.220, Speaker B: But as we saw just now, it can also be expressed as c one plus u. I don't know what the index is here. Squared l zero one. Okay, forgive the indexing. Plus u zero inverse square.
+00:29:08.570 - 00:29:09.320, Speaker C: Yeah.
+00:29:10.250 - 00:30:12.220, Speaker B: Right. And then if we keep going, actually we take c one, we can express it as a c two plus something like that, plus the cross terms from round one. And if we keep on going, we'll end up with something like c zero equals c k minus one plus the sum of all the cross terms from all krams with their challenges. So, ui squared li plus ui inverse squared ri. And these lis and r eyes are precisely what we've been collecting and putting in the proofs here. Li ri. Now, so the verifier at the end of k rounds, and looking at the proof, the verifier has access to all the allies and all the ris.
+00:30:12.220 - 00:30:22.540, Speaker B: So the verifier is trying to check the equivalence between this expression of c zero and this.
+00:30:23.970 - 00:30:32.446, Speaker A: Yeah, so we've shown that these two things are equal, and this equality will only hold if in fact, the prover has been honest.
+00:30:32.548 - 00:30:33.520, Speaker B: Yes, exactly.
+00:30:35.030 - 00:30:36.962, Speaker A: Evaluated the problem in the middle to reach up.
+00:30:37.016 - 00:30:37.940, Speaker C: Right, okay.
+00:30:39.110 - 00:30:39.860, Speaker B: Exactly.
+00:30:40.870 - 00:30:46.162, Speaker A: The verifier has, this has lis and r. Yeah.
+00:30:46.296 - 00:31:47.682, Speaker B: So using lis and ris, the verifier can derive the round challenges, the Uis. Now, the verifier has ck minus one, because this was the original c that we started with. This was the c that purportedly committed to the polynomial that we input into this IPA. Now, the verifier also has p zero, because we put it in the proof. The verifier also has g zero, and the verifier does not have b zero. Right, but something to note about g zero and b zero. Basically, these are the results of folding the gnb vectors over k rounds.
+00:31:47.682 - 00:32:50.090, Speaker B: And the gnb vectors to begin with were publicly known already. So what the verifier has to do, what's left for the verifier to do is firstly, compute b zero. And the verifier is completely capable of doing that, because again, b is just the powers of x, and this was known to everybody. And secondly, the verifier needs to check that g zero had been correctly constructed given the starting g vector, and given what the verifier knows about the round challenges. So check g zero. And yeah, this is what's left for the verifier to do. So remember we said that the IPA has a succinct check and an expensive check.
+00:32:50.090 - 00:33:47.950, Speaker B: So this number one is a sucksync check. The verifier can compute b zero in log n time. And whereas number two here, that's the linear time check. This is a multiscalar multiplication involving n terms. And this check is the one that we're trying to delay at every step of the recursive verifier and amortize across the batch of proofs. So we'll go now into how the verifier does these two steps. So if you recall, the verifier had to compute b zero, where b is just the powers of x, and the verifier had to check that g zero was correctly constructed.
+00:33:47.950 - 00:35:09.350, Speaker B: So now it turns out that basically all the extra information encoded in b zero and g zero, all that information, is basically the challenges, the round challenges, because that's what's been used to produce b zero and g zero, given the starting b and g vectors. So we can in fact rewrite b zero s, an inner product between some vector s and the starting b vector. And similarly we can do this for g zero. Now, an s here, the terms of s is a length n vector whose terms are made up of the round challenges arranged in a binary counting order. So what this means is s is made up of s is made up of n terms, and each term is some product of the round challenges.
+00:35:11.150 - 00:35:13.340, Speaker C: U k minus one.
+00:35:14.590 - 00:35:49.702, Speaker B: And how we're going to construct each term is that. So for the first column, we're going to alternate this power of the challenge at every row. And so this, and this binary counting order is intuitive because of the way we folded things in half at each round. And for a more rigorous and for a proof of this, you should see the halo paper.
+00:35:49.836 - 00:35:50.614, Speaker C: Yeah.
+00:35:50.812 - 00:36:57.946, Speaker B: But for now, how we construct s is so we alternate the power for u zero at every row, for u one at every two rows, and for u two every four rows, and so on. And for uk minus one, every k minus two rows. And in this way we construct the vector s. That encodes the round challenges and also retains the structure of the folding that happened at each round. So I claim that the inner product of s and b can be computed in logarithmic time, and I'm not going to prove it here, but just to sketch it out. The inner product of s and b, that's the same thing as saying evaluating s at x, right?
+00:36:58.128 - 00:37:02.198, Speaker A: Yeah. Because these are both field elements. Vectors of field elements.
+00:37:02.294 - 00:37:02.854, Speaker B: Exactly.
+00:37:02.992 - 00:37:03.680, Speaker C: Yes.
+00:37:06.450 - 00:37:19.874, Speaker B: So, yeah. So it turns out that we can do this computation in log n time.
+00:37:19.992 - 00:37:20.658, Speaker C: Yeah.
+00:37:20.824 - 00:37:49.100, Speaker B: And you can see the halo paper to see how we do that. However, this inner product, which is between a field, it's a multiscalar multiplication here. There's no shortcut around it. N expensive. It's expensive. In fact, it's n operations, because this is n terms. N terms.
+00:37:49.100 - 00:38:14.382, Speaker B: So this is the linear time check that we're going to delay at each recursive step. So I think with this in mind, if you took away nothing else from the inner product argument, just remember that it has a succinct check and an expensive check, and this is enough for us to go on to the accumulation scheme.
+00:38:14.526 - 00:38:37.990, Speaker A: Yeah. I think the explanation of the IPO is really cool. I think what I would take away is just the mechanism by which we reduce something into a logarithmic number of terms. Because obviously, if you're the prover and you're just handing me all the coefficients to the polynomial, that doesn't really help us if we want succinct proofs.
+00:38:38.070 - 00:38:38.700, Speaker B: Exactly.
+00:38:39.630 - 00:38:40.090, Speaker C: Yeah.
+00:38:40.160 - 00:38:57.970, Speaker B: Our proof is only log n number of terms, whereas for the Patterson commitment, for example, to fully evaluate a proof, you would need just the coefficients of the polynomial.
+00:38:58.390 - 00:38:59.234, Speaker C: Yeah.
+00:38:59.432 - 00:39:13.330, Speaker B: So the atomic accumulation scheme here, we're instantiating it over the inner product argument as the predicate and sort of the structure.
+00:39:13.490 - 00:39:13.958, Speaker C: Yeah.
+00:39:14.044 - 00:40:28.346, Speaker B: The diagrams are going to get a lot prettier. Now, the structure of this is basically, let's start with sort of the classical recursion, right? For classical recursion, by which I mean full recursion, you have some application f, such that f x zero equals x one. Right. And then you bundle it together with some recursive verifier v. And you call these two circuits together the recursive circuit. So the recursive verifier additionally takes in some proof that proves a previous instance of itself. And this whole recursive circuit in turn outputs the next proof for the next instance.
+00:40:28.346 - 00:41:01.020, Speaker B: So you will notice that to fully include a recursive verifier in the recursive circuit, you need the verifier of your proof to be sublinear, because if, let's say your verifier were linear, the next verifier would be the size of this circuit. Right. And then you just get blow up. So we don't want that.
+00:41:02.110 - 00:41:09.990, Speaker A: And also, just for practical proving times, we would love to have a succinct verifier.
+00:41:10.070 - 00:41:19.486, Speaker B: Exactly. No, the IPA verifier is not sublinear. So if you recall those g terms.
+00:41:19.588 - 00:41:23.790, Speaker C: Yeah. What is it?
+00:41:23.860 - 00:41:34.370, Speaker B: There was like this SB, which is sublinear, and then there is this SG, which is definitely linear.
+00:41:35.830 - 00:41:36.290, Speaker C: Right.
+00:41:36.360 - 00:41:57.370, Speaker B: So we can't just do this with the IPA verifier. Instead, we're going to call this the accumulation verifier. And in the accumulation verifier, we are only going to do the succinct checks.
+00:41:58.830 - 00:41:59.674, Speaker C: Right.
+00:41:59.872 - 00:42:31.910, Speaker B: And what about the linear check? That's what we are accumulating. So that's what we are constantly delaying at each step to the next instance. So the accumulation verifier has to in addition, take in some accumulator from the previous instance and output the updated accumulator for the next instance.
+00:42:33.370 - 00:42:34.118, Speaker C: Yeah.
+00:42:34.284 - 00:42:43.770, Speaker B: So I think what we should do now is go into exactly how we update the accumulator.
+00:42:44.190 - 00:42:44.940, Speaker C: Yeah.
+00:42:45.870 - 00:43:29.590, Speaker B: So if you notice here what the accumulation verifier is doing is taking two instances and combining them into one. So what I mean by this. So PI zero and the previous accumulator, x zero are things that have the same shape. They're both instances. So I'll call them qis. So where q zero is PI zero and q one is x zero. So an instance has the following shape.
+00:43:29.590 - 00:44:00.900, Speaker B: It's basically an IPA proof shape. So it has some commitment, some challenge point and some evaluation. And then it has the IPA proof that we saw just now. So the l's, r's, g zero, p zero.
+00:44:03.590 - 00:44:04.340, Speaker C: Yeah.
+00:44:05.350 - 00:44:14.038, Speaker B: So both, both of these instances have this shape, right?
+00:44:14.124 - 00:44:14.760, Speaker A: Yeah.
+00:44:15.770 - 00:44:24.140, Speaker B: So now what the accumulation verifier is going to do is.
+00:44:27.150 - 00:44:27.900, Speaker C: See.
+00:44:30.110 - 00:45:27.850, Speaker B: First of all, okay, this is the ac verifier. So first of all, it's going to do the succinct check on each of these instances. So for I n one succinct check on qi. Yeah, I definitely need to refer to my notes here because this gets mind boggling. And then secondly, so now that it's done, the succinct checks, it's now concerned with accumulating these two instances into one new instance.
+00:45:28.010 - 00:45:28.334, Speaker C: Yeah.
+00:45:28.372 - 00:46:06.380, Speaker B: And how it's going to do that is a random linear combination. So we sample some randomness alpha. That's using, let's see. Yeah, we sample some randomness alpha. Let's not fear Shamir this random. So using this alpha, we can now accumulate our two instances into one new instance. So what we're going to do is we're going to define a c.
+00:46:06.380 - 00:46:16.410, Speaker B: So we're going to basically make an inner product argument for this s polynomial that we're not checking.
+00:46:17.150 - 00:46:17.754, Speaker C: Yeah.
+00:46:17.872 - 00:46:39.880, Speaker B: So we'll define a C as a linear combination of the g's that we didn't check. So g plus alpha g 10 here.
+00:46:41.130 - 00:46:41.638, Speaker C: Right.
+00:46:41.724 - 00:46:59.080, Speaker B: And then this is a commitment to the polynomial s, which is our challenges.
+00:46:59.900 - 00:47:00.312, Speaker C: Yeah.
+00:47:00.366 - 00:47:19.250, Speaker B: Because if you recall, g zero is the inner product of s and g. In other words, it is a commitment, a Patterson commitment to s. Right. So c here is a commitment to.
+00:47:20.420 - 00:47:25.088, Speaker C: S zero plus alpha s one.
+00:47:25.254 - 00:47:25.970, Speaker A: Sure.
+00:47:26.420 - 00:47:27.170, Speaker C: Right.
+00:47:29.620 - 00:47:36.800, Speaker A: This is what we mean when we say like we're accumulating all of the challenges from that round of ip.
+00:47:36.960 - 00:47:55.024, Speaker B: Yeah, we're accumulating these two instances into a new instance. So we're basically instantiating an inner product argument for this new instance.
+00:47:55.172 - 00:47:55.628, Speaker C: Yeah.
+00:47:55.714 - 00:48:14.816, Speaker B: So we sample some x. Yeah. Let me subscript all these as well. So we sample some x, some random x at which to evaluate this new.
+00:48:14.998 - 00:48:15.730, Speaker C: S.
+00:48:19.220 - 00:49:07.090, Speaker B: And then we define. Okay, I'm going to put stars on all the terms that go into our new accumulator and our new accumulator. Let me just write out what it should look like. It should look like C star, X star, V star. And it should also have an IPA proof. L-R-G zero star, p zero star.
+00:49:09.140 - 00:49:09.890, Speaker C: Yeah.
+00:49:10.200 - 00:49:11.190, Speaker A: Very cool.
+00:49:11.800 - 00:49:51.244, Speaker B: So V star is just s evaluated at X star. So we have that and then the prover, the accumulation verifier, now has C star, X star and V star. And proceeds to run an IPA for C star, X star and vstar, at the end of which it gets this new IPA proof.
+00:49:51.372 - 00:49:56.240, Speaker C: Cool. Yeah. Run IPA.
+00:49:58.260 - 00:50:10.310, Speaker B: For C star, B Star, X star and output this thing.
+00:50:11.640 - 00:50:12.390, Speaker C: Yeah.
+00:50:13.180 - 00:50:24.584, Speaker B: So you see that we put in two instances and accumulated them into one new one.
+00:50:24.702 - 00:50:25.080, Speaker A: Okay.
+00:50:25.150 - 00:50:25.528, Speaker C: Yes.
+00:50:25.614 - 00:50:33.112, Speaker A: And we can also generalize that for more instances. Right now we sort of have this chain of recursive proofs.
+00:50:33.176 - 00:50:33.452, Speaker B: Right.
+00:50:33.506 - 00:50:40.636, Speaker A: We can imagine that if we wanted to batch a lot of proofs, we could take multiple instances and just have a longer linear combination.
+00:50:40.748 - 00:50:43.250, Speaker C: Yes, absolutely. Yes. Cool.
+00:50:44.980 - 00:51:21.470, Speaker B: In this way, we keep delaying, having to do this on this length and MSM, but eventually we have to do it. And when we do it, that's called the accumulation decider. That's doing it. So let's imagine we've had like a long chain of accumulation verifiers and now we are finally ready to do that expensive check. So what this is going to look like is the accumulator here.
+00:51:22.480 - 00:51:23.550, Speaker C: Let's see.
+00:51:27.300 - 00:51:58.212, Speaker B: So we've chained together a bunch of IVC provers and IVC here stands for incrementally verifiable computation. It's what you said. Basically this linear shape that just doesn't deal with, like, n inputs, but rather just chains one after the other. At the end of this chain, we have the IBC verifier that actually tells us whether or not this whole chain has been valid.
+00:51:58.356 - 00:51:59.050, Speaker C: Yeah.
+00:52:00.060 - 00:52:16.780, Speaker B: Now, in the IBC verifier, the accumulator is given to the act decider. And what the act decider does is checks this.
+00:52:16.930 - 00:52:19.432, Speaker A: Yeah. So, so it finally checks.
+00:52:19.576 - 00:52:20.844, Speaker B: Yes, exactly.
+00:52:21.042 - 00:52:29.852, Speaker A: But like the nice. Not to preempt you, but, but the, the nice thing is that we can do this check outside the circuit.
+00:52:29.916 - 00:52:32.192, Speaker B: Right, right. Yeah, we can do that.
+00:52:32.246 - 00:52:43.430, Speaker A: And so it's like, even though it's linear time, not only have we amortized the cost over all of the proofs that we've recursed over, but it's linear time, like on the CPU, which is.
+00:52:44.220 - 00:52:49.032, Speaker B: Yes, exactly. And then we also need to deal.
+00:52:49.086 - 00:52:49.690, Speaker C: With.
+00:52:52.220 - 00:53:09.950, Speaker B: The last new instance and the last sort of output from our application circuit. And so this will be input to the full snark verifier, which will also do all checks, like, even the expensive ones.
+00:53:10.900 - 00:53:13.664, Speaker C: Yeah. Cool. Yeah.
+00:53:13.862 - 00:53:21.464, Speaker B: So that's how we get atomic accumulation from the inner product argument.
+00:53:21.612 - 00:53:22.310, Speaker C: Cool.
+00:53:23.080 - 00:54:20.870, Speaker B: So atomic accumulation is when we consider this whole accumulator as a single thing, whereas more recently there has been a scheme called split accumulation that actually allows us to only make a short part of the accumulator public. So we can call this accumulator x is public and then have a longer part of the accumulator that's private. So if we do split accumulation for the inner product argument. So now we're forgetting the IPA. For now, the witness would be literally the polynomial that is committed to by C.
+00:54:26.060 - 00:54:26.520, Speaker C: Right.
+00:54:26.590 - 00:55:28.520, Speaker B: And then sort of at each step of split accumulation, at each step of the accumulation verifier, we are verifying that. Basically we're accumulating two polynomials that evaluate to the correct values at the correct challenges. But we are not verifying that these are the polynomials committed to by the CIS. Because again, that verification is a Patterson commitment. It's an MSM with n terms. So this final verification is delayed to the decider once again. But I think the point of split accumulation is that basically you no longer need a succinct argument.
+00:55:28.520 - 00:56:03.648, Speaker B: So the inner product argument was succinct, it was login, and therefore we could input the whole argument into the accumulation verifier. Whereas if you had a super long argument like this, that's like n terms plus a few, then all is not lost and you can split up your accumulator and still be able to have a succinct split accumulation verifier.
+00:56:03.824 - 00:56:50.416, Speaker A: Yeah, because even though the proof is linear, the incremental verifier is still succinct. So you don't have this problem with the proof circuit complexity blowing up. We don't have to do like when we just give the verifier this polynomial. It's cheaper from the prover time perspective because we don't have to do like the folding and the IPA reduction. We just have this Peterson commitment to the polynomial, which we would have to do in both cases, both the IPA case and this. So it's strictly better from the proverbial.
+00:56:50.448 - 00:57:00.328, Speaker B: Yes, yes. I think where it's worse is that the argument size at the end is larger. Yeah, but there are also ways around that.
+00:57:00.414 - 00:57:03.592, Speaker A: Well, we can just do the IPA at the end, right?
+00:57:03.646 - 00:57:04.970, Speaker B: Exactly. Yes.
+00:57:06.080 - 00:57:06.830, Speaker C: Cool.
+00:57:08.560 - 00:57:16.776, Speaker A: Well, great. This has been really interesting. Do you want to talk a little bit about how this is used in Zcash?
+00:57:16.968 - 00:58:22.160, Speaker B: Yeah. So right now, the halo two proof system has been deployed in zcash without recursion. So it enter the IPA and we're doing the full verifier every time for every proof. Now, when we have recursion implemented, what we're going to do is compose proofs. So in zcash, every sort of action, which means every group of spent and outputs, produces a proof of the validity of that action. And within a transaction and within a block, there are multiple actions. So we can aggregate multiple proofs, multiple action proofs such that we end up with only one proof per block.
+00:58:22.160 - 00:58:46.570, Speaker B: And this reduces Zcash's chain state because we don't have to keep so many proofs on chain. So that's batching action proofs within a block. We can also batch block proofs such that the whole chain history can be verified with just one single proof. And that's what Mina is already doing.
+00:58:46.940 - 00:58:47.640, Speaker C: Yeah.
+00:58:47.790 - 00:58:51.944, Speaker A: Very cool. Well, thank you so much for joining. And this has been really interesting.
+00:58:52.062 - 00:58:53.510, Speaker B: Yeah, thank you for having me.

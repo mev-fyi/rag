@@ -1,0 +1,356 @@
+00:00:05.450 - 00:00:55.742, Speaker A: Welcome to Zero Knowledge. I'm your host, Anna Rose. In this podcast, we will be exploring the latest in zero knowledge research and the decentralized web, as well as new paradigms that promise to change the way we interact and transact online. You this week I chat with Juan Sab Lim, an applied developer in the privacy and scaling exploration team at the Ethereum foundation. He is also one of the authors of the Zcopru protocol. In our conversation, we explore Zcopru and how it uses optimistic rollups and ZK proofs to create an optimistic private l two but before we start in, I want to say hello to all new subscribers and welcome. This is a new year for the ZK podcast, and it's actually the start of our fifth year as a weekly show.
+00:00:55.742 - 00:01:20.502, Speaker A: There are a lot of exciting events and initiatives on the horizon, and sometimes it's a little hard to keep track. I try to mention as much as I can at the beginning of each episode, but if you do want to keep track of what's going on, be sure to join some of our channels. Maybe follow us on twitter. Definitely subscribe to the show wherever you do get your podcast. Here are some additional highlight channels you might want to check out. We have a Telegram group. It's currently on fire.
+00:01:20.502 - 00:01:49.518, Speaker A: Some of the best ZK researchers in the space are debating all of these really cool kind of nuances of different protocols. It's definitely worth checking out. There's also the ZK community board. This is where we can actually do kind of deeper dives into the research in the space. There's also a ZK jobs board, so if you are looking to jump into the space professionally, that's where a lot of ZK teams are actually posting their jobs. It would be a great place for you to start on your job searching journey. So we're shaking up the format a little bit.
+00:01:49.518 - 00:02:09.570, Speaker A: And starting this month, I'll be inviting my producer Tanya to start reading the ads for the show. We realized when she was a guest on the ZK hack wrap up episode last month that she has a fantastic voice for podcasting and that we should definitely use this for our show. So I want to say hi, Tanya, and yeah, so tell us a little bit about this week's sponsor.
+00:02:09.730 - 00:02:36.666, Speaker B: So for this week's sponsor, we want to thank our friends over at Aztec. Aztec aims to be the privacy layer for Ethereum. They believe that unlocking programmable privacy is the next frontier for blockchains. Aztec is also the first zero knowledge roll up built from the ground up for anonymous payments and Defi transactions, you can already start sending funds privately on Zkmoney. That's ZK money. So thanks again, Aztec. And back to you, Anna.
+00:02:36.778 - 00:02:37.294, Speaker C: Cool.
+00:02:37.412 - 00:02:57.458, Speaker A: So now here's our episode all about Zcoproo. Today I'm here with one sub, Lim, an applied ZKP developer who is part of the privacy and scaling exploration team at the EF. He's one of the authors of the Ziko proof protocol. One sub. Welcome to the show.
+00:02:57.624 - 00:03:01.160, Speaker D: Thank you so much. Thank you so much for having me on the show.
+00:03:01.770 - 00:03:26.206, Speaker A: Now, this project has been one of those projects that I've been chasing for a little while. Wansab, I've been asking you to come on the show for, I think, almost a year to talk about the project. I'm very glad that you have come on. You actually spoke. You gave like a short, I think it was a lightning talk back at ZK summit six. This was at the end of 2020. So that was sort of my first introduction to this project.
+00:03:26.206 - 00:03:29.198, Speaker A: Tell us a little bit about what Zcoprru is.
+00:03:29.364 - 00:03:29.838, Speaker E: Yeah.
+00:03:29.924 - 00:03:43.966, Speaker D: Okay, so Zicopru is a private transaction protocol that uses Zksnark to preserve the privacy and also uses optimistic roll up for the scaling.
+00:03:44.158 - 00:03:44.802, Speaker A: Cool.
+00:03:44.936 - 00:03:53.142, Speaker D: Yeah, so you can send some ERC 20 and ER 71 and ether privately in a cheap way.
+00:03:53.276 - 00:04:19.630, Speaker A: In a cheap way. That's really cool. Before we jump into the project, because I think that's going to be the bulk of the episode, I actually wanted to talk to you a little bit about your work at the EF. So you're part of the applied zero knowledge proof working group, I guess, which is this privacy? And then the subgroup is this privacy and scaling exploration team? What is that team? What are you guys doing? What's it like to work there? I'm just very curious about what you're doing there.
+00:04:19.780 - 00:04:48.770, Speaker D: Yeah, actually, in the privacy and scaling exploration team, we have a lot of people there. So some of them are developing some BLS wallet, or some of them are developing some peer to peer finding protocol using some ZKP in a private way. And also some of them are developing this kind of private transaction protocol, like Zika Pro, and we are one of them.
+00:04:48.940 - 00:04:59.066, Speaker A: I've always been curious about the applied zero knowledge working group. Is it quite large at this point? Are you talking like 60 people, or is it like more?
+00:04:59.248 - 00:05:14.574, Speaker D: Actually, I can tell that how many people are in the team because we work very separately. I don't know the total number of the team members, but actually there are a lot, maybe, I guess, more than 50.
+00:05:14.692 - 00:05:15.082, Speaker C: Wow.
+00:05:15.156 - 00:05:18.066, Speaker D: I'm not sure, but yeah, a lot of people are working.
+00:05:18.248 - 00:05:23.394, Speaker A: What about your team? What about the privacy and scaling exploration team? How big is that?
+00:05:23.592 - 00:05:29.622, Speaker D: So my team is Zikopro team in the privacy and scaling exploration team.
+00:05:29.756 - 00:05:30.358, Speaker C: I see.
+00:05:30.444 - 00:05:32.470, Speaker A: Okay, so how big is your team then? Let's find that.
+00:05:32.540 - 00:05:37.286, Speaker D: Yeah, Zikopro team is. We are a including me.
+00:05:37.388 - 00:05:38.246, Speaker C: Okay, cool.
+00:05:38.348 - 00:05:38.998, Speaker E: Yeah.
+00:05:39.164 - 00:06:13.170, Speaker A: One last question about the sort of EFS applied working group. I mean actually is the ZKP applied working group, which is what I've always understood the group to be. Is it the same thing as this privacy and scaling exploration team or is it, okay, you've probably changed the name and I have. Sorry about that. Okay, cool. Is there a philosophy? From what I've seen, it's often been like research projects, research papers, early implementations, and then they're kind of like spun out. Like they're kind of like a team will run with it and start to implement it.
+00:06:13.170 - 00:06:20.006, Speaker A: So what is the philosophy around creating some of these ideas? How does an idea come to a team and what happens with it?
+00:06:20.188 - 00:07:08.098, Speaker D: So actually I think that we usually try to do some discussions between us as much as possible. And actually the key philosophy of the team is that we are developing a public good. So we do some projects with a good wall and we are not trying to commercialize the projects because all projects are funded by EF. Actually that means these are the public goods. So we are focusing on the research and just trying to spread these research outputs to the whole developers in the ecosystem.
+00:07:08.274 - 00:07:08.998, Speaker C: Very cool.
+00:07:09.084 - 00:07:09.766, Speaker E: Yeah.
+00:07:09.948 - 00:07:15.320, Speaker A: So let's dive into Zcoproo. Zcoproo is a protocol or is it a product?
+00:07:16.490 - 00:07:25.770, Speaker D: Actually this is a protocol and maybe we are thinking this is a reference implementation.
+00:07:26.110 - 00:07:34.160, Speaker A: I see. And maybe let's go back to the start of this. How did the project start? What is the paper like? What was that whole process?
+00:07:34.610 - 00:08:29.754, Speaker D: Yeah, so actually this project started from 2019. And at that time I just traveling around the world with some friends and just was shocked a lot because my friends were following my Ethereum wallet because before actually I just sent them some thai because we just shared some dinner. So actually some of my friends were tracking my Ethereum wallet and a year later, maybe a few months later, I just get some liquidated at the maker Dow and they just told me that, I saw that you got liquidated at the maker dow like that. So I just felt that, oh my God, actually we have really no privacy.
+00:08:29.882 - 00:08:30.606, Speaker A: No.
+00:08:30.788 - 00:08:31.520, Speaker E: Yeah.
+00:08:32.290 - 00:08:40.370, Speaker A: Wow. Oh man, that's so personal though. That's such a personal story of your friends being like, saw you got liquidated.
+00:08:40.710 - 00:09:33.762, Speaker D: Yeah, right. So that was the reason why I started the privacy solution. So I just started to build it from the 2019 around June and had a talk at the DefcoN at Osaka. So Defcon five and Barry Whitehead, he just saw my paper on the 8th research and also the Devcon talk. And we just started the talk that actually my first project was also using some CKP for the privacy and also using optimistic role for the scaling. But Barry had a better idea for about the protocol. So we had a lot of discussions, and we started to improve the protocol itself.
+00:09:33.762 - 00:09:41.080, Speaker D: So maybe Barry's idea improved the protocol about five times.
+00:09:42.890 - 00:09:58.506, Speaker A: I guess. So what you're saying is you already had the mix. You had the idea of doing an optimistic roll up, plus zero knowledge proofs, kind of as the privacy component, but I guess you remade it. How did you change it? What was it before, and what is it now?
+00:09:58.688 - 00:10:26.370, Speaker D: At first, actually, I tried to use mimblewimble protocol. Mimblewimble is also SDKP, but actually, the problem of the mimblewimble is that we can just keep track of the transaction. I mean, actually, mimblewimble is not a full private protocol. So I need to add some kind of commitment nullifier scheme to membomble. So it's a modified mimble.
+00:10:26.710 - 00:10:27.170, Speaker C: Okay.
+00:10:27.240 - 00:10:46.106, Speaker D: But actually, Membombu is kind of a multiparty computation. But Barry's idea was that, oh, we don't need to do that multiparty computation for the transaction. I mean, that mimblewimble always need the sender, and the receiver communicates at the.
+00:10:46.128 - 00:10:48.860, Speaker A: Same time to be online at the same time.
+00:10:49.230 - 00:10:53.226, Speaker D: And that is a big problem for the user experience.
+00:10:53.408 - 00:10:53.894, Speaker C: Totally.
+00:10:53.942 - 00:11:00.602, Speaker D: So Berzo suggests me that, oh, we need to change it just like Zcash.
+00:11:00.746 - 00:11:05.618, Speaker A: To make it more like this shielded account kind of model. We're just using snarks, I guess.
+00:11:05.704 - 00:11:12.782, Speaker D: Yeah. Right. So, actually, our Zika pro design is kind of implementing zcash on ethereum.
+00:11:12.926 - 00:11:20.018, Speaker A: Oh, wow. Okay, when you say zcash, you do actually mean the shielded, unshielded.
+00:11:20.114 - 00:11:20.326, Speaker E: Yeah.
+00:11:20.348 - 00:11:28.070, Speaker D: Right. So we have a viewing key, and we have spending key. It ensures the compliance.
+00:11:28.570 - 00:11:46.526, Speaker A: The compliance makes sense, but I mean, like, do you have. So as a user, I'm going to try to picture this. Would I go main chain over an optimistic roll up bridge kind of thing to a new chain, which is public, but then you go into shielded, or do you automatically when you go over that?
+00:11:46.628 - 00:11:49.066, Speaker D: Actually, every transactions are shielded.
+00:11:49.178 - 00:12:08.494, Speaker A: Okay, so it's a fully shielded l, two for some reason I had in my own notes, sort of this idea of like, ZK roll ups and optimistic roll ups blended into one. But would you say that it's quite distinct? Like, the actual l two mechanism is just an optimistic roll up as we understand it? Fraud proofs.
+00:12:08.622 - 00:12:09.010, Speaker E: Yeah.
+00:12:09.080 - 00:12:19.366, Speaker D: So actually, this is not a mixed roll up. So it only uses ZKP for the privacy. And the ll two solution is just run by optimistic roll up.
+00:12:19.468 - 00:12:20.038, Speaker C: I see.
+00:12:20.124 - 00:12:31.580, Speaker A: And is it like, what kind of fraud proofs is it based on? Because I know that there's the camp or the school of thought that optimism came up with, and the school of thought of arbitrum, what's it closest to?
+00:12:32.030 - 00:12:59.890, Speaker D: Actually, optimism and arbitrum are made for general purpose, general state l two. But actually, our Zucopro is a special purpose layer two. Special purpose, optimistic roll up. So we have a lot of some challenges code. So for example, the challenge code number one is that the coordinator submits an invalid transaction route.
+00:13:00.050 - 00:13:00.470, Speaker C: Okay.
+00:13:00.540 - 00:13:12.774, Speaker D: In the header, I just guess that we have 40 types of challenging transactions. So we are just covering all kind of some possible situations.
+00:13:12.902 - 00:13:32.206, Speaker A: We did do episodes with optimism and arbitrarium, but how are they doing it differently? Do they also have that kind of thing? Are the codes different? Are they four different edge cases? Or is it like, yeah, maybe just flesh out a little bit that difference between the two? Because I kind of don't remember how they do it. So I'm having trouble totally seeing why.
+00:13:32.228 - 00:13:43.070, Speaker D: This is different, actually. I also don't know exactly the difference with optimism, our protocol.
+00:13:43.230 - 00:13:44.002, Speaker C: I see. Okay.
+00:13:44.056 - 00:13:55.094, Speaker A: Yeah, but you just know how you're doing it. You come up with ways that people could produce some fraud, and then you have checks for that, I guess.
+00:13:55.212 - 00:13:56.070, Speaker E: Yeah, right.
+00:13:56.220 - 00:14:21.482, Speaker D: Because it's like implementing fraud proof is just like implementing the protocol itself. I mean that in the protocol, we have a lot of statements like, maybe the protocol statement is like, the state root should be changed like this if we have these kinds of transactions.
+00:14:21.626 - 00:14:22.320, Speaker E: Right.
+00:14:23.010 - 00:14:29.482, Speaker D: So just fraud proof implementation is just implementing this protocol itself.
+00:14:29.636 - 00:14:41.334, Speaker A: I see. But do you also have this seven day waiting period, or is it the same as that? It's like the sort of, one could challenge that and then what would happen?
+00:14:41.372 - 00:14:41.670, Speaker C: Exactly.
+00:14:41.740 - 00:14:51.542, Speaker A: Or it's rather like transactions going between main chain and the l two will need to be delayed because there needs to be a period when fraud proofs could be submitted.
+00:14:51.686 - 00:14:52.042, Speaker E: Yeah.
+00:14:52.096 - 00:14:55.270, Speaker D: So we wait seven days for the fraud proof.
+00:14:55.350 - 00:15:06.560, Speaker A: Cool. I feel like in this conversation, I'm realizing, man, I got to revisit the optimistic roll up because I can tell I'm a little fuzzy on exactly how they're working.
+00:15:07.250 - 00:15:07.710, Speaker C: Okay.
+00:15:07.780 - 00:15:30.840, Speaker A: But I see some similarities there. I guess what I'm trying to understand is is there any part where the zero knowledge proofs change in any way the way the optimistic roll up is implemented? Or would you say it doesn't need to? The optimistic roll up does its thing. Whatever's happening underneath the hood, if there's zero knowledge proofs or if there isn't, it's kind of acting the same way.
+00:15:32.570 - 00:15:55.918, Speaker D: I think in the optimistic rollout, the most important thing is only the core data size. So if the ZKP needs a big size of proof, then it is very unbeneficial for the protocol because it caused a lot of call data. Yeah, actually, it depends on how ZKP works.
+00:15:56.004 - 00:16:04.462, Speaker A: Okay, well, let's move on to that side. Did you have to implement your zero knowledge proofs in a very specific way for them to work within an optimistic roll up?
+00:16:04.596 - 00:16:19.380, Speaker D: I don't think so, because our conduction itself should be valid by the CKP and actually it does not depend on the roll up. Technology is optimistic roll up or.
+00:16:20.870 - 00:16:21.582, Speaker E: Yeah.
+00:16:21.736 - 00:16:38.730, Speaker A: Cool. And then you mentioned that it was like the zcash model. So basically, if you're doing transactions on this roll up, you'd be also attaching to it like a snark proof, I believe. And that's kind of what proves the validity of each transaction.
+00:16:39.070 - 00:16:44.878, Speaker D: Yeah, actually we gather all the transactions, including the CKP together.
+00:16:45.044 - 00:16:45.470, Speaker C: Okay.
+00:16:45.540 - 00:17:06.274, Speaker D: And we just pack that as a one block and submit it to layer one. And we do not run the execution of the validity of each transaction. But we can just submit a challenge that, oh, the 7th transaction of that blog is not valid.
+00:17:06.402 - 00:17:17.442, Speaker A: How would you do that, though? How would someone identify. So let's say that again in zcash, each transaction was like, there's a proof attached to each transaction.
+00:17:17.506 - 00:17:18.182, Speaker D: Yeah, right.
+00:17:18.316 - 00:17:22.854, Speaker A: What you're describing is it also each transaction has a proof.
+00:17:22.982 - 00:17:23.658, Speaker D: Yeah, right.
+00:17:23.744 - 00:17:24.282, Speaker A: It does.
+00:17:24.336 - 00:17:24.650, Speaker C: Okay.
+00:17:24.720 - 00:17:35.358, Speaker A: But then you batch them together and these are written to mainchain through this Optimistic, like the way that most optimistic roll ups are. So there's a sequencer, I guess.
+00:17:35.524 - 00:17:40.282, Speaker D: Yeah, we have a coordinator. It's like a sequencer.
+00:17:40.426 - 00:17:40.734, Speaker C: Okay.
+00:17:40.772 - 00:18:02.550, Speaker A: So you have the coordinator that is basically putting. And maybe tell me. I think it's putting together these blocks. What do you use to kind of compress them into something that would go on the main chain? Like in ZK roll ups, you often will have the proof and then a verification in the smart contract. Here. What is the sequencer doing exactly? Or the coordinator in your case?
+00:18:02.620 - 00:18:02.854, Speaker E: Yeah.
+00:18:02.892 - 00:18:08.486, Speaker D: So the coordinator receives the transactions from the client and the transaction in a.
+00:18:08.508 - 00:18:09.718, Speaker A: Batch, I guess, right?
+00:18:09.804 - 00:18:10.102, Speaker C: Okay.
+00:18:10.156 - 00:18:10.518, Speaker E: Yeah.
+00:18:10.604 - 00:18:14.070, Speaker D: So receives the transactions and create a batch.
+00:18:14.150 - 00:18:15.126, Speaker A: Oh, they create the batch.
+00:18:15.158 - 00:18:15.402, Speaker C: Okay.
+00:18:15.456 - 00:18:20.566, Speaker D: Yeah, they create a batch and submit that to the layer one. Smart contract.
+00:18:20.678 - 00:18:25.150, Speaker A: So they have a batch. How do they make it? A small thing that you could put onto the main chain.
+00:18:25.650 - 00:18:40.398, Speaker D: So actually, we just submit this batch itself to the layer one. Actually, this is our next step to just compress all the proofs into one secure roll up. So you know this is kind of a recursion.
+00:18:40.494 - 00:18:41.138, Speaker E: Right?
+00:18:41.304 - 00:18:55.590, Speaker A: Okay, so what you're saying is, let me see if I can map this. So you have a ZKP attached to every transaction. It's then batched together. But then do you then take a snark to make that into one proof?
+00:18:56.090 - 00:18:59.960, Speaker D: No, we are not compressing the proofs into one.
+00:19:01.310 - 00:19:03.910, Speaker A: You're not doing that. So you're not using recursion.
+00:19:03.990 - 00:19:06.070, Speaker D: Yeah, right. We are not using recursion.
+00:19:06.230 - 00:19:06.746, Speaker C: Okay.
+00:19:06.848 - 00:19:09.354, Speaker D: Actually, recursion is our next step.
+00:19:09.472 - 00:19:09.706, Speaker C: Okay.
+00:19:09.728 - 00:19:10.678, Speaker A: So recursion might come.
+00:19:10.704 - 00:19:11.038, Speaker C: Okay.
+00:19:11.124 - 00:19:37.522, Speaker A: We'll leave that for future. Then we'll revisit that one. Okay. But I still don't really understand how, to me it would seem like a lot of data. This is where I might also my fuzzy understanding of optimistic roll ups as I'm just realizing I have, I kind of forget how they compress it into something that's small. Do you hash it? You must be making it into something smaller, I imagine.
+00:19:37.666 - 00:19:48.726, Speaker D: Actually we are not just compressing. So you just think that a one transaction has a data about 256 bytes.
+00:19:48.838 - 00:19:49.402, Speaker C: Okay.
+00:19:49.536 - 00:20:30.146, Speaker D: And also because we are using growth 16, so its proof size is 250 16. So one transaction has a data around 512 bytes of data and its cold data gas price is around 8000 gas for one transaction. For one transaction. And we do not execute the verify function in the smart contract because the verify consumes around maybe 200 to 300,000 gas per one transaction.
+00:20:30.178 - 00:20:30.982, Speaker A: Expensive part.
+00:20:31.036 - 00:20:31.398, Speaker C: Okay.
+00:20:31.484 - 00:20:33.560, Speaker D: Yeah. So we just skip this.
+00:20:33.930 - 00:20:34.390, Speaker C: Okay.
+00:20:34.460 - 00:21:07.362, Speaker A: Another question about this that might help me to understand. Does this actual roll up have a state? Are you basically like doing a checkpoint of the state of the roll up? Is that what you're actually writing to the main net when you talk about batching and you're putting these things together? Because I guess what I started to imagine was like, if you have individual transactions and you're trying to write them to the main net, then I'm thinking like, well, that's still a lot of gas. But if you're just showing the latest state at checkpoints, is that kind of what you're doing?
+00:21:07.496 - 00:21:16.226, Speaker D: Yeah, you're just storing the latest checkpoint, the block hash on the smart contract, you don't do anything and you're not.
+00:21:16.248 - 00:21:24.886, Speaker A: Doing the verification, which would be very gas intensive. And just storing that small hash of the latest state is not that expensive either, I guess.
+00:21:24.908 - 00:21:25.766, Speaker D: Yeah, right.
+00:21:25.948 - 00:21:26.534, Speaker C: Okay.
+00:21:26.652 - 00:21:43.146, Speaker A: And then you have the seven day window. So there, it's like if someone submitted a fraud proof, proof of fraud, basically, would it be like a bad transaction or would it have been the bad behavior of a coordinator? What are you testing for with this fraud proof?
+00:21:43.258 - 00:21:55.582, Speaker D: It's a bad behavior of the coordinator because if the coordinator accepts an invalid transaction, then it's a bad behavior.
+00:21:55.726 - 00:21:58.882, Speaker A: I see. Yeah, because that's what they're supposed to be checking for.
+00:21:58.936 - 00:22:15.458, Speaker D: Yeah, right. Okay, so actually we have an episode about that. We are now running testnet on the quality network and our previous coordinator software was accepting invalid transactions. So the testing coordinator was got slashed.
+00:22:15.634 - 00:22:21.186, Speaker A: Wow. Did you do that on purpose or did you find you found it afterwards?
+00:22:21.298 - 00:22:24.678, Speaker D: Yeah right. We just found that it's on the testnet.
+00:22:24.854 - 00:22:25.382, Speaker C: Damn.
+00:22:25.446 - 00:22:28.054, Speaker A: So you actually got to see the fraud proof in action.
+00:22:28.182 - 00:22:28.874, Speaker D: Yeah, right.
+00:22:28.992 - 00:22:38.974, Speaker A: I feel like the fraud proof is always kind of like this theoretical future thing that you don't get to see because it wouldn't make sense for anyone to do. It'd be so dumb. But that's cool.
+00:22:39.012 - 00:22:48.830, Speaker D: You actually see we are just encountering a lot of some slashing conditions we've never expected in our development progress. Development stage.
+00:22:48.910 - 00:22:49.538, Speaker E: Yeah.
+00:22:49.704 - 00:23:18.970, Speaker A: Okay, so I think I'm following this more clearly now. And this is what you mean where I think the non verification on chain actually helps me to understand why this is not gas intensive. I do wonder. We talked about sort of transactions, but is Zcoproo only for transactions or does it also deal with any sort of programming? Is it purely like I want to send privately or is it also like I want to compute privately?
+00:23:19.390 - 00:24:11.118, Speaker D: Actually this is only for the transaction. Like bitcoin, we are supporting some few features like automatic swap and maybe the only special feature of the protocol will be the atomic swap. So I have a ERC 71 and you have a ten die of ERC 20. Okay, then we want to exchange these each other on Zika pro network. Then we can exchange in a private way. So anyone does not know that I suspend my. I have a ERC 71 and you have a ten die of ERC 20.
+00:24:11.118 - 00:24:31.998, Speaker D: Okay, then we want to exchange these each other on Zika pro network. Then we can exchange in a private way. So anyone does not know that I sent my ER system to one to you and you sent your attendai to me. Anyone does not know this is a private atomic swap.
+00:24:32.094 - 00:24:49.100, Speaker A: How are you doing that, though? Because I know that's been like, sort of, that's the Shangrila that everyone's trying to sign. I think that's the wrong metaphor, but that's the sort of goal of so many of these private dexes. Are you not susceptible to the same kind of leakage of information?
+00:24:50.190 - 00:25:51.946, Speaker D: Actually, we just thought that there are two kind of approaches to achieve this goal, and the first one is using MPC multiparty computation, and the second one is just using a memo field. Using a memo field, actually, we can just declare that I need a paired transaction which gives this note to me. So when we try to do a private exchange between us, then I just tell you that, oh, Anna, please create a note which amount is ten and the currency is die, and the owner is one sub. Then I'm going to create a new note which includes a year 71, and the owner is Anna. And let's make these two transactions and submit this pair to the coordinator. This is how the atomic swap works in Zika pro.
+00:25:52.048 - 00:25:57.438, Speaker A: Is atomic swap. Is this a concept? Is this a dap? Is this a part of the protocol itself?
+00:25:57.524 - 00:25:59.470, Speaker D: Is this like a protocol itself?
+00:25:59.620 - 00:26:28.138, Speaker A: Oh, wow. Okay, so you have this built into the entire thing. So it's the optimistic roll up, the zkps on the inside kind of being generated and then making everything private. And then you have this memo field phenomenon. Is that something that any protocol could easily do, or is that very interwoven in what you're doing? I'm also wondering, is that memo field also hidden? Is it also hidden by a snark, or is it public?
+00:26:28.304 - 00:26:55.074, Speaker D: It's a public. So actually using the body party computation is using snark. And we can just make the automix swap part as hidden. But we just chose the public way. Actually, in the private transaction, we generate outputs of the transaction. We have inputs and outputs of the transaction. Right.
+00:26:55.074 - 00:27:19.674, Speaker D: CK transaction and automix swap is just having a, we have a swap field of a transaction, and it means that we need a transaction of at least one transaction in the batch which have an output which is exactly same with my swap field.
+00:27:19.872 - 00:27:41.040, Speaker A: Oh, okay, so you're kind of like you're doing both sides. Would one account kind of do? I'm trying to picture. Can you actually walk us through how this would actually look like for each? So say there's two accounts, there's two users, and they're doing it with each other. Right? Is that how it's usually happening?
+00:27:41.410 - 00:27:42.990, Speaker D: Yeah, Ni and what's up?
+00:27:43.060 - 00:27:53.022, Speaker A: Okay, so, yeah, why don't you just say what each of us is doing exactly? Because I didn't quite follow how the memo. Like what exactly? We'd put each into our memo fields.
+00:27:53.166 - 00:27:53.714, Speaker E: Yeah.
+00:27:53.832 - 00:28:03.574, Speaker D: Okay, let me clarify a little bit. So our Zuko pro transaction has a memo field and also swap field. Oh, I see you created a memo field.
+00:28:03.612 - 00:28:03.862, Speaker E: Yeah.
+00:28:03.916 - 00:28:04.182, Speaker C: Okay.
+00:28:04.236 - 00:28:09.542, Speaker D: Actually, the memo field is out of protocol, but swap field is a part of the protocol.
+00:28:09.686 - 00:28:10.186, Speaker C: Okay.
+00:28:10.288 - 00:28:10.698, Speaker E: Yeah.
+00:28:10.784 - 00:28:32.090, Speaker D: By the way, usually when I create a Zk transaction, then I spend my node and create two outputs. And the two outputs are the hash of the node. And the data of the note will be like the amount is ten and the owner is Anna.
+00:28:32.250 - 00:28:32.874, Speaker C: Okay.
+00:28:33.012 - 00:28:40.318, Speaker D: And if I use a swap field, then actually this is a kind of paired transaction.
+00:28:40.414 - 00:28:49.830, Speaker A: But I'm not putting both sides in, right, I'm just putting one. Say I have ten die, you have ten either. Wow.
+00:28:49.900 - 00:28:50.182, Speaker C: Okay.
+00:28:50.236 - 00:28:51.350, Speaker A: Weird trade.
+00:28:54.090 - 00:28:55.190, Speaker D: Let's trade.
+00:28:56.330 - 00:29:07.718, Speaker A: You're a bad trader. Okay, so you have ten ether, I have ten die. So what am I putting into the memo field if I have ten die?
+00:29:07.814 - 00:29:13.710, Speaker D: So let's say that we are trying to trade five die to five either.
+00:29:13.860 - 00:29:14.462, Speaker C: Okay.
+00:29:14.596 - 00:29:23.630, Speaker D: Then I spend my ten either node and create two notes. I see. One is five either for me.
+00:29:23.780 - 00:29:24.094, Speaker A: Yes.
+00:29:24.132 - 00:29:26.334, Speaker D: And one is five there for you.
+00:29:26.452 - 00:29:27.406, Speaker A: Okay, cool.
+00:29:27.508 - 00:29:28.122, Speaker C: Okay.
+00:29:28.276 - 00:29:32.722, Speaker D: But actually I have to get the five die from you, right?
+00:29:32.856 - 00:29:33.490, Speaker C: Yeah.
+00:29:33.640 - 00:29:44.582, Speaker D: Then I just use a swap field and just fill in the data with the hash of the desired note that I want.
+00:29:44.716 - 00:29:45.560, Speaker A: Oh, wow.
+00:29:46.010 - 00:30:06.894, Speaker D: Okay, so you also spend your ten die and create two notes. And one is five die for you. And one is five die for me. And the five die for me. The note for me should be equal, should have the hash equal of the swap field.
+00:30:07.012 - 00:30:13.314, Speaker A: And what is public then is the hash. Could one view the hash on the l two?
+00:30:13.432 - 00:30:23.586, Speaker D: Yeah, anyone can view the hash. I mean, anyone can see the hash of the outputs. Okay, so swap field is just a.
+00:30:23.608 - 00:30:26.418, Speaker E: Hash of the output that I want from you.
+00:30:26.504 - 00:30:30.982, Speaker A: So you see that? Is that visible? Like, if you had an explorer, could you actually see it?
+00:30:31.036 - 00:30:31.398, Speaker E: Yeah.
+00:30:31.484 - 00:30:32.022, Speaker C: Okay.
+00:30:32.156 - 00:30:34.754, Speaker A: What could I learn from seeing this hash?
+00:30:34.882 - 00:30:38.698, Speaker D: What you can learn from that is that it is paired or not.
+00:30:38.864 - 00:30:39.386, Speaker C: Okay.
+00:30:39.488 - 00:30:43.130, Speaker A: You could tell that two hashes had been made and somehow swapped together.
+00:30:43.200 - 00:30:43.722, Speaker E: Yeah. Right.
+00:30:43.776 - 00:30:55.230, Speaker D: So your Transaction and my transaction should have each swap field, and each swap field should be one of the output of the opposite transaction.
+00:30:55.890 - 00:31:02.638, Speaker A: If you knew the hashing algorithm you're using, could you not decipher how much it was or something else about it?
+00:31:02.804 - 00:31:09.042, Speaker D: Actually, we also have a salt value inside the node, so actually, that is not possible.
+00:31:09.176 - 00:31:09.666, Speaker C: Okay.
+00:31:09.768 - 00:31:13.730, Speaker D: If you want to decipher that, actually, you need the salt value.
+00:31:13.880 - 00:31:15.874, Speaker A: What's salt? Okay, I don't know about this.
+00:31:15.912 - 00:31:16.222, Speaker E: Yeah.
+00:31:16.296 - 00:31:19.080, Speaker A: Is that something you guys came up with, or is it a common.
+00:31:21.450 - 00:31:37.014, Speaker D: Terminology? By the way, let's say that we are using catch up to 256 and we are using catch up and we are hashing a data which is zero, then we will have always same hash.
+00:31:37.062 - 00:31:37.660, Speaker E: Right.
+00:31:38.110 - 00:31:44.654, Speaker D: But if we put another data with it, then we can just randomize that.
+00:31:44.772 - 00:31:48.814, Speaker A: I see. So the salt is an extra random number.
+00:31:48.932 - 00:31:49.646, Speaker E: Yeah. Right.
+00:31:49.748 - 00:31:55.502, Speaker A: But then if you're making that on both sides, how would you get the same salt? Because you still need the same hash.
+00:31:55.646 - 00:31:59.922, Speaker D: So for the exchange, we need to communicate with each other.
+00:32:00.056 - 00:32:00.450, Speaker C: Yeah.
+00:32:00.520 - 00:32:03.042, Speaker D: So we should share the same salt together.
+00:32:03.176 - 00:32:05.426, Speaker A: But you do share salt. Oh, I see.
+00:32:05.528 - 00:32:05.842, Speaker C: Okay.
+00:32:05.896 - 00:32:25.830, Speaker A: So even though. Okay, actually, this helps me understand why it's especially impossible. The leak is if you knew for some reason, someone's account number and chose a few different kinds of amounts, kept hashing that without the salt, could you accidentally run into the same hash?
+00:32:25.990 - 00:32:27.210, Speaker D: I don't think so.
+00:32:27.360 - 00:32:34.426, Speaker A: Still would be too hard. Because the account number that they share with you is maybe not the one that's being hashed behind the scene.
+00:32:34.458 - 00:32:38.960, Speaker D: If it's possible, then maybe. I already hacked Vitalik's account.
+00:32:41.970 - 00:33:01.830, Speaker A: Here. Everyone can hear that. Anna's knowledge of hashing is rusty as well, apparently. Well, it's the new year anyway. Okay, so I guess I think I understand now. This atomic swap idea, though, is that built, or is that still a conceptual thing?
+00:33:01.980 - 00:33:05.010, Speaker D: It is already built in the current protocol.
+00:33:05.170 - 00:33:05.542, Speaker C: Okay.
+00:33:05.596 - 00:33:40.980, Speaker A: And you also mentioned, though, that these ERC 20s. But how do you have ERC 20s if it's only transactions? To me, an ERC 20 is a smart contract that uses a specific kind of formula to create itself, which is the ERC 20 part of it. So it's a new token, but it's usually done as a smart contract. And this actually leads to another question. Does Zcop proo have, like, is it EVM compatible? Does it have an EVM? Does it have smart contracts on its side? It sounds like not.
+00:33:41.430 - 00:33:55.442, Speaker D: It doesn't. So actually, you can deposit your years 20 or years 71 or ether into the Ziko Pro smart contract. Then it automatically converts it to a Ziko proof node.
+00:33:55.586 - 00:34:09.930, Speaker A: Got it. So will each of these have its own unique code within the roll up? The ERC 721 will mean something else in there. So it will have like the Zicopru version of itself on the Zicoperu side of things.
+00:34:10.000 - 00:34:10.378, Speaker C: Okay.
+00:34:10.464 - 00:34:11.100, Speaker E: Yeah.
+00:34:12.350 - 00:34:31.870, Speaker A: And this is what you mean when you're doing these kinds of swaps, you're going to have internally a different, like in your roll up, there's a different code name for what these are. I guess you're going to have a unique type of token that represents that ERC 20. But actually, how do you do it with ERC 721, since each one of those are unique?
+00:34:32.030 - 00:34:38.206, Speaker D: Yeah, actually, ER 721 is one. Erm 21 becomes one node.
+00:34:38.398 - 00:34:38.946, Speaker C: Okay.
+00:34:39.048 - 00:34:40.994, Speaker D: Yeah, every node is unique.
+00:34:41.122 - 00:34:42.040, Speaker A: Oh, wait.
+00:34:42.970 - 00:34:43.974, Speaker C: Okay, sorry.
+00:34:44.012 - 00:35:02.734, Speaker A: Let's take a step back. Say you have 20 die and somebody else has 100 die, and they both want to move on to the roll up. They deposit it in the smart contract. But do you create, on the Zico proof side, very different notes for both of those, even though it's the same ERC 20 type?
+00:35:02.932 - 00:35:03.342, Speaker E: Yeah.
+00:35:03.396 - 00:35:16.730, Speaker D: So if then we can have two nodes, and because they have same address, ERC 20 address, we can merge them into one note.
+00:35:16.810 - 00:35:17.438, Speaker C: Okay.
+00:35:17.604 - 00:35:42.058, Speaker A: And then would they get, like. I forget what number I used, like 21 hundred or whatever. But it's like the person who put in 20, would they get 20 of these notes, or would they have one note that says they have 20 of this thing? When you say note, is there 20 notes plus 20 notes or 100 notes that go out, or is there one note that has a new value to it? That's sort of what I'm not clear on.
+00:35:42.144 - 00:35:42.442, Speaker E: Yeah.
+00:35:42.496 - 00:35:44.426, Speaker D: One note that has a value.
+00:35:44.608 - 00:35:45.002, Speaker C: Okay.
+00:35:45.056 - 00:35:58.702, Speaker A: And so there's one note created on the roll up. There's values underneath that, in that. And 20 of that note type will go to one person and 100 would go to the other person on the roll up.
+00:35:58.756 - 00:35:59.262, Speaker E: Right.
+00:35:59.396 - 00:36:29.210, Speaker A: And what if later someone came with another 50 die? I'm basically trying to understand. When you say note, do you mean type? Is that like a currency type would all dies on the. Because it's all the same contract, right? So it's like the same ERC 20 contract on the main net. Would that reflect a single note type on your side? And then there's only one of those notes, and what you have underneath the note is kind of like the balances.
+00:36:30.110 - 00:36:46.302, Speaker D: Actually, we have only one type of note, and each note have some field. And the first field is amount, and the second field is the address. And the third field is like, is it an NFT or now like that.
+00:36:46.356 - 00:36:50.926, Speaker A: Okay, but how do you decide between different ERC 20s?
+00:36:51.028 - 00:36:51.294, Speaker E: Yeah.
+00:36:51.332 - 00:36:54.426, Speaker D: So we have address field inside the note.
+00:36:54.538 - 00:36:57.362, Speaker A: And when you say address field, you mean the contract address.
+00:36:57.496 - 00:36:58.226, Speaker E: Yeah. Right.
+00:36:58.328 - 00:37:01.314, Speaker A: Contract. Okay, got it.
+00:37:01.352 - 00:37:01.554, Speaker C: Okay.
+00:37:01.592 - 00:37:01.842, Speaker E: Yeah.
+00:37:01.896 - 00:37:05.810, Speaker A: I think when you said address, I thought maybe it was the address of the owners.
+00:37:06.150 - 00:37:11.626, Speaker D: Yeah. Address of also the owner and the address of the year's Jenny.
+00:37:11.758 - 00:37:38.746, Speaker A: Okay, so you have amount. So the person who had put in 20 to the smart contract on main net now has 20. Like, it has this note that says you have 20 with the contract for Dai. Like the address of the Dai contract. So it tells you what type of currency it is or what it reflects. And then their own address number as well as like this is the owner of this note.
+00:37:38.858 - 00:37:39.662, Speaker E: Yeah. Right.
+00:37:39.796 - 00:37:43.226, Speaker D: Actually the public key of the owner.
+00:37:43.418 - 00:37:46.866, Speaker A: So you'd have the private and the public on the note or not?
+00:37:46.968 - 00:37:58.870, Speaker D: Yeah. Actually, to use ZK transaction on Zika pro, you need to create your own Zika pro account using a private key. Then it'll give you a public key.
+00:37:59.020 - 00:37:59.526, Speaker C: Okay.
+00:37:59.628 - 00:38:00.134, Speaker E: Yeah.
+00:38:00.252 - 00:38:07.702, Speaker A: Where are the snarks created? Are they created by the person making the transaction? Yeah, they are.
+00:38:07.756 - 00:38:07.974, Speaker C: Okay.
+00:38:08.012 - 00:38:12.534, Speaker A: So each time you send something, you're also going to be generating a snark.
+00:38:12.662 - 00:38:13.162, Speaker E: All right.
+00:38:13.216 - 00:38:17.334, Speaker D: So if you want to send some transaction, then you need to create a snark.
+00:38:17.462 - 00:38:20.182, Speaker A: Okay. And you said it's graph 16.
+00:38:20.326 - 00:38:20.778, Speaker E: Yeah.
+00:38:20.864 - 00:38:30.640, Speaker A: But it must not be too big if people are generating their own. Yeah. Tell me a little bit about what the snark looks like. What is it similar to?
+00:38:32.310 - 00:38:50.802, Speaker D: Actually, our snark circuit is not that big. It only contains a logic about the mercury proof and the ownership proof and a little bit of some protocol implementation inside, like range proof. So actually not that heavy.
+00:38:50.866 - 00:38:51.782, Speaker A: Not that big.
+00:38:51.916 - 00:38:52.598, Speaker E: Yeah.
+00:38:52.764 - 00:38:56.886, Speaker A: Is it similar in size to what tornado cache used? Because I know theirs was pretty.
+00:38:56.908 - 00:39:13.706, Speaker D: Yeah, maybe pretty similar. But the difference with the tornado cache is that tornado caches have different pool for different ERC 20s for each TRC 20. But we have a one integrated pool.
+00:39:13.818 - 00:39:24.638, Speaker A: What if somebody had a really weird ERC 20 that isn't well known? Have you chosen which ones have been able to be replicated? Or is it, like, free for all? Anyone can send any token.
+00:39:24.814 - 00:39:43.638, Speaker D: Anyone can register their own token, and anyone can use secret pro. And actually very uncommon es 20 also can be protected. But maybe because of the small set of that ERC ten users, it sort.
+00:39:43.644 - 00:39:45.350, Speaker A: Of reveals the privacy.
+00:39:47.690 - 00:39:54.246, Speaker D: There is a little bit of privacy leak, but protocol itself protects every kinds of ERC.
+00:39:54.358 - 00:40:05.710, Speaker A: Okay, but in that case, wouldn't the ERC 720 ones also leak because they are unique and each one would be. Is there any way that each one would be traceable?
+00:40:06.050 - 00:40:23.954, Speaker D: Yeah, but let's say that I deposited cryptokitty and I just transferred to you, and you transferred to your friend, and your friend transferred to some other, and that guy withdraw that.
+00:40:24.072 - 00:40:32.706, Speaker A: You'll see these two. But you would see that on the main net, you'd see like, it's almost like flipped over here without a trade.
+00:40:32.898 - 00:40:47.900, Speaker D: Yeah, we just can see that I deposited and whose name is call withdrew the cryptokitty, but actually we don't know the trace of the transfers throughout it.
+00:40:48.590 - 00:41:27.480, Speaker A: Are there any uis or interfaces already for would. I'm trying to kind of picture how I know how ZK sync looks so far. I mean, I don't know how the new versions will look, but I kind of know how often these l two s will build sort of interfaces so that you can actually understand that you're locking something and you hit like, I'm locking it. You accept the transaction or signature or whatever on metamask. Then you have this new interface, this new place where you can do things like trade things. Have you built out any of those interfaces or started to think about.
+00:41:28.350 - 00:41:42.270, Speaker D: Actually, we have a UI that supports transfer right now, but we are currently building the private exchange and also we are building a merchandising.
+00:41:42.770 - 00:41:44.446, Speaker A: Oh, what's that like?
+00:41:44.628 - 00:41:58.226, Speaker D: So I just said that we support private exchange. So it means that you can open your own store and you can sell your own nfts. Adapting your 20s.
+00:41:58.328 - 00:41:58.642, Speaker C: Wow.
+00:41:58.696 - 00:42:02.370, Speaker D: In a private way that also ensures the compliance.
+00:42:02.710 - 00:42:03.170, Speaker C: Wow.
+00:42:03.240 - 00:42:11.734, Speaker A: So I've been trying to find the ZK NFT projects, but it sounds like you have sort of a potential model there.
+00:42:11.852 - 00:42:15.154, Speaker D: Yeah. Right. So it's like a web three PayPal.
+00:42:15.282 - 00:42:15.862, Speaker E: Wow.
+00:42:15.996 - 00:42:20.906, Speaker A: Is this part of Zcopru's goal? Is this the team that's actually building it, too?
+00:42:21.008 - 00:42:21.274, Speaker E: Yeah.
+00:42:21.312 - 00:42:34.010, Speaker D: Right. So as Takamiche in the team is building the private exchange, and Robbie is also building the merchandising tool that uses this private exchange.
+00:42:34.430 - 00:42:57.960, Speaker A: Wow, that's exciting. That's an amazing use case. That's actually one of my questions, because one of the things I did want to ask is there's a lot of roll ups and there are texts doing privacy on SNL two, but with private computation, and then you have a lot of the ZK roll ups, even if they're not private right now, definitely have like a play for privacy. So how are you seeing yourselves? Kind of being different?
+00:42:58.410 - 00:42:58.918, Speaker E: Yes.
+00:42:59.004 - 00:43:42.210, Speaker D: Actually, I think the final goal of this project is giving the merchandising tool to the ecosystem, I mean, to the people. And to achieve this goal, what you have to do is implement the private exchange. Actually, the private exchange is also a little bit difficult because it also uses blind find to find the peers to trade together. And also it uses a socialist millionaire protocol to find the exact matched order between the seller and the buyer. Just like this. We need to implement a private exchange. Also we need to implement the merchandising tool.
+00:43:42.210 - 00:43:48.226, Speaker D: So there are a lot of. Some milestones for the team that we have to do.
+00:43:48.328 - 00:44:13.322, Speaker A: Yeah, that sounds awesome, though. I just realized I wanted to double check something because earlier in the episode I asked you if the state was written to the chain. But now I'm realizing, and it's kind of remembering Zcash is like a Utxo model. And the word state, I don't know if it. Maybe there's a different term for this. I always think of state as like state versus state model.
+00:44:13.376 - 00:44:13.606, Speaker C: Yeah.
+00:44:13.648 - 00:44:28.242, Speaker A: Anyway, maybe we should just clarify that, because now I'm realizing, just so I also walk away a bit more understanding. What's written to the main chain. Is it a UtxO type state? I don't know what you call it. Or is it like an EVM type state?
+00:44:28.376 - 00:44:38.338, Speaker D: What we store on the main chain, what we store on the layer one is the root of the merkel tree of the whole output.
+00:44:38.514 - 00:44:40.678, Speaker A: Okay, so what does that mean though?
+00:44:40.764 - 00:44:43.666, Speaker D: I mean, this is a root hash.
+00:44:43.698 - 00:44:59.594, Speaker A: Of the anonymity pool of the anonymous pool. This is actually kind of also might be interesting for me to understand if ccash ever wanted to connect to another. But what is the output of a UTX? Is it a Utxo? Actually, that's the question.
+00:44:59.712 - 00:45:00.490, Speaker E: Is it?
+00:45:00.640 - 00:45:20.158, Speaker D: Yeah, it is. And in the Utxo model we have inputs and we have outputs. But in the ZK transaction, actually, we have nullifiers instead of the inputs. So we can just cut the link between the inputs and the outputs by using the nullifier.
+00:45:20.254 - 00:45:26.886, Speaker A: And the thing that you're merking and then writing to chain is the outputs of a Utxo type model.
+00:45:27.068 - 00:45:27.654, Speaker E: Yeah.
+00:45:27.772 - 00:45:30.360, Speaker A: Not state. State was like probably the wrong.
+00:45:30.890 - 00:45:31.846, Speaker C: Cool, cool.
+00:45:31.948 - 00:45:43.638, Speaker D: So what we prove using the ZKP is that, oh, this nullifier is actually one of the leaf of the mockle tree.
+00:45:43.814 - 00:46:07.282, Speaker A: Got it. Thanks for that. Sorry it took me like, talking about use cases to remember that? Oh, maybe I did want to ask you. There is one other project that I'm aware of that's doing something similar, which is a roll up and an optimistic combined. And that's ey's nightfall. Is it similar or different to what you're doing? Have you seen what they're working on?
+00:46:07.416 - 00:46:46.314, Speaker D: Yeah, I have seen what they're working and how they're working, and I really like that project. I think maybe their approach and our approach have a very similar approach. But I think what I found that the difference between knifefall and our protocol is they're supporting ERC 1155 too, and I think that should be our next step too. And very thankfully, the owners of the nightfall just credited us the SQL Pro protocol.
+00:46:46.442 - 00:46:46.830, Speaker C: Cool.
+00:46:46.900 - 00:46:47.566, Speaker D: Yeah.
+00:46:47.748 - 00:46:50.746, Speaker A: So there's a link there. There's a connection between these two orgs.
+00:46:50.778 - 00:46:51.214, Speaker C: Okay, cool.
+00:46:51.252 - 00:46:51.742, Speaker E: Yeah, right.
+00:46:51.796 - 00:46:57.346, Speaker D: So maybe I think we are just giving some good influence together.
+00:46:57.528 - 00:47:32.714, Speaker A: Nice. How do you imagine this l two working with other l two s? Because we've talked to some of the other l two s about bridging between themselves, like, not only needing to go to the main net main chain and then off. I've sort of been thinking about it a little bit that way, where it's like the main chain in this regard becomes the bridge, where it's like you go from your l two to the l one, back to another l two. And that's like the bridge. But you could do a more direct bridge. Does that actually not work in your system because it's so private because of the way it's built, or do you think you could bridge?
+00:47:32.842 - 00:48:31.534, Speaker D: Yeah, to be honest, at first, in the privacy and scaling exploration team, actually, we have a lot of teams that handles the roll ups, like secure roll up and optimistic roll up. So actually, from 2019, we've discussed how to bridge between the roll ups together. But actually, currently, we are suddenly focusing on each roll up itself for now. So what I think in the future is that I don't think that every transactions in the Ethereum should be private. So maybe some of the transactions should be private. And so I just imagine that Ziko Pro will be on Ethereum and also will be on arbitrum and also on optimism. Or we will also own another ZK EVM roll up.
+00:48:31.652 - 00:48:48.430, Speaker A: Do you almost picture it then, like a roll up of a roll up? Is it like it would be working because they're EVM compatible? So you could basically deploy Zcopru on the Zcoproo smart contract on their EVM on the l two S eVm?
+00:48:48.510 - 00:48:49.318, Speaker E: Yeah, sure.
+00:48:49.404 - 00:48:55.094, Speaker A: Wow. Would it all link back to the same place, though? Would it all be like into a single l two? Or would there be like.
+00:48:55.132 - 00:48:55.574, Speaker E: Maybe.
+00:48:55.692 - 00:49:25.102, Speaker D: Yeah, they will be all separated because I just believe that Zucchapru is built for the privacy itself, so it can be used for this kind of merchandising or just transfers between some friends like that. So if I am using optimism, then I think there should be another merchandising tool on optimism. And I think we can use Ziko proof for that.
+00:49:25.236 - 00:49:43.846, Speaker A: Would it not be easier to make, like a private Dap on there? Kind of. How would you compare this type of project to a tornado cache? I know that their model is different, but I mean, could you not build this model as a DAP using smart contracts? Or do you feel like it needs to live as an l two?
+00:49:43.948 - 00:49:48.414, Speaker D: Actually, I always think that every layer two are a Dap.
+00:49:48.562 - 00:49:51.722, Speaker A: Really? I guess they're smart contracts, right?
+00:49:51.776 - 00:49:52.042, Speaker E: Yeah.
+00:49:52.096 - 00:50:02.778, Speaker D: Right. Because layer two is a blockchain which is implemented on smart contract. So actually, definitely they are adapts.
+00:50:02.954 - 00:50:16.766, Speaker A: Wow. Actually this is the first time that someone said that on the show. I think maybe I'm forgetting somebody else saying it, but first time it's landing for me. But that's true. Yeah. Smart contracts.
+00:50:16.798 - 00:50:17.618, Speaker B: That's cool.
+00:50:17.784 - 00:50:21.182, Speaker E: That's what I'm thinking about the future of the Sikh approved.
+00:50:21.246 - 00:50:38.366, Speaker A: And that's why you think of like, you could then anywhere there's EVM compatibility because it's written. I'm guessing the smart contracts, I mean, they're solidity smart contracts. So you have them already. You could just redeploy this. And since the entire logic of the roll up is in those smart contracts.
+00:50:38.418 - 00:50:38.874, Speaker B: Right.
+00:50:38.992 - 00:50:39.610, Speaker E: Yeah.
+00:50:39.760 - 00:50:51.774, Speaker A: So then you could just redeploy it. And the only trouble would potentially be like adoption or having enough people using it so that the privacy is preserved. But, yeah, that's interesting.
+00:50:51.972 - 00:50:53.120, Speaker E: Yeah, definitely.
+00:50:53.570 - 00:51:20.466, Speaker D: And I don't think that we need to use optimistic roll up for the scaling forever. I mean, we are just developing the protocol. So at the end, maybe there will be a possibility to use SQL log and also we can use recursion and maybe other protocol, maybe other technologies, techniques to improve the protocol.
+00:51:20.578 - 00:51:21.094, Speaker C: Cool.
+00:51:21.212 - 00:51:33.420, Speaker A: Yeah, I mean, that was a question I had. We kind of pushed that off. This idea of future work and what you have planned, are you also thinking potentially of ever changing your circuit or do you think for now that's going to stay as it is?
+00:51:33.790 - 00:51:58.900, Speaker D: Actually, maybe for now we don't have any plan to have any modifications about the circuits, because we just did the trustee setup, and writing a new circuit needs a lot of some security investigations. But definitely, we are trying to.
+00:51:59.270 - 00:52:02.558, Speaker A: Do you think you'd ever use something like plonk instead of graph 16?
+00:52:02.654 - 00:52:19.290, Speaker D: Yeah, for the recursion, maybe we need to use plonk. And also. Actually, we also want to support us 1155, too. And for about there, we need to get some modifications for about the circuit.
+00:52:21.390 - 00:52:24.138, Speaker A: Sorry, you said ERC one one five.
+00:52:24.304 - 00:52:25.946, Speaker D: Yeah, 1155.
+00:52:26.128 - 00:52:27.754, Speaker C: Okay, cool.
+00:52:27.872 - 00:52:38.320, Speaker A: Nice. Well, Juanzob, thank you so much for coming on the Zero Knowledge podcast. Finally. I'm so glad you sat down with me to go through all this.
+00:52:38.690 - 00:52:54.318, Speaker D: Yeah, I'm also really happy to be on the show and. Yeah, actually, I was really nervous, but I think you just let me. I just can just say what I'm thinking.
+00:52:54.484 - 00:52:55.750, Speaker C: Yeah, don't. Totally.
+00:52:56.410 - 00:53:00.630, Speaker A: You're always welcome to come on the show and tell us what you're up to, what you're thinking about.
+00:53:00.700 - 00:53:01.558, Speaker D: Thank you so much.
+00:53:01.644 - 00:53:09.490, Speaker A: Well, thanks again. And I want to say thank you to the podcast producer, Tanya, the podcast editor, Henrik, and to our listeners. Thanks for listening.

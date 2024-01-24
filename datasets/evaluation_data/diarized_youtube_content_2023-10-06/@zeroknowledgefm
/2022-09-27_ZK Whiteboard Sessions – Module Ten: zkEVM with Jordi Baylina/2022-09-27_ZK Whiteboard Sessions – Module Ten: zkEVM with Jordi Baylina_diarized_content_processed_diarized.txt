@@ -1,0 +1,461 @@
+00:00:12.370 - 00:00:31.182, Speaker A: Hello everyone, I'm Bobin. And we're here today recording another session of the ZK whiteboard sessions. And today I'm here with Jordy, who is the technical lead of Polygon Hermis. And our topic today is Zke EVM. So Jordy, first question. What is Zkavm exactly?
+00:00:31.316 - 00:01:02.520, Speaker B: Well, ZkvM is EBM, which is ethereum virtual machine. But ZK means for zero knowledge. But actually we are not interested in the zero knowledge, we're interested in the computational proving of the EVM. Zero knowledge have these properties. So that's why we use this term of zero knowledge. But actually we are not hiding anything, we are just computing. We want to prove that.
+00:01:02.520 - 00:01:11.050, Speaker B: Let's see what we want to do. Actually, let's just start maybe what's actually define the problem, what problem we want to solve.
+00:01:11.470 - 00:01:12.778, Speaker A: Why do we need it?
+00:01:12.944 - 00:02:13.666, Speaker B: Why would we need it? Okay, so the idea is that we want to prove that some ethereum transactions are okay and are valid, but without having to process all that transactions. Actually, we want to process that transactions and create a proof that anybody can verify that those transactions are valid, without having to run to all the transactions and one test them again. This is what makes scalability in the consensus layer. If you have to just check this proof, instead of having to check all the transactions, that means that, well, you can check many transactions at the same time, so the consensus are faster. And that's why everything scales. Of course there is data availability and there is other things that you need to be aware to scale. But this is one of the important pieces in order to scale.
+00:02:13.718 - 00:02:18.894, Speaker A: And I'm imagining also because you would have this proof, you can post this proof on like Ethereum l one.
+00:02:19.012 - 00:02:43.906, Speaker B: Exactly. So this is when we are saying go to consensus. Mainly what we are doing is just sending this proof to smart contract in Ethereum. And Ethereum has this, you can verify this proof in Ethereum. Okay, so. And when we are building a proof, a zero knowledge proof, if you want what it is. So actually what you need to define is what we call it a deterministic circuit.
+00:02:43.906 - 00:03:16.254, Speaker B: Deterministic program. Sometimes a deterministic circuit at the end is the same a stanmen. Maybe if we go to the more traditional zero knowledge literature. But at the end is the best way that you can understand is just a single program. Just a single program. It's a deterministic program that has some inputs and some outputs. Given the specific inputs, you get that specific outputs.
+00:03:16.302 - 00:03:16.900, Speaker C: Okay.
+00:03:18.870 - 00:03:29.186, Speaker B: You need to build that. This is the first thing that you need to build. But the problem is that when you want to prove that, it's not just taking c and. Okay, let's write the program, the domestic.
+00:03:29.218 - 00:03:34.790, Speaker A: Program in c, and the program here, what exactly is the program? It's EVM bytecode, is that right?
+00:03:34.940 - 00:03:35.254, Speaker C: Yes.
+00:03:35.292 - 00:04:01.860, Speaker B: Well, the program actually. Exactly. Let's see what the program is. It is, okay, so mainly the inputs of this program is the current state of the, let's say state I. This should be a Merkel root of a full state, but actually it's the state. Okay, you have a set of transactions. Let's put DX one.
+00:04:02.390 - 00:04:05.140, Speaker A: You can probably make those boxes a bit bigger. So that.
+00:04:08.950 - 00:04:26.550, Speaker B: Just put here TX one, maybe TX two. So a set of transactions and the output would be state box, which is state I plus one.
+00:04:26.700 - 00:04:27.830, Speaker A: Yes, makes sense.
+00:04:27.900 - 00:04:38.838, Speaker B: So you want to prove that if you have this estate and you have these transactions, you get this new estate and you don't get other. So you are proving that these transactions will go to this estate from this estate.
+00:04:38.934 - 00:04:39.354, Speaker C: Makes sense.
+00:04:39.392 - 00:05:11.362, Speaker B: Okay, so this is a deterministic program. Actually here in this program, what you are doing, you are checking that those transactions are valid, that you have the valid signature, that they then do a double spend if it's an EVM. If they are deploying a smart contract, that means that they are putting this smart contract in the state. If you are executing a smart contract, that means that you would run to the opcode. So this is Ethereum, this is state transition function. Is the Ethereum state transition function. This is the eport of the ABM.
+00:05:11.426 - 00:05:12.280, Speaker A: Makes sense.
+00:05:13.130 - 00:05:31.390, Speaker B: So the definition is that this is the circuit deterministic program Ui. So this is what we want to define. But you can see this circuit is a complex circuit. So it's not that you are adding to inputs.
+00:05:31.730 - 00:05:36.490, Speaker A: I think EVM instruction said it's pretty complicated and it's also not very zero knowledge friendly.
+00:05:36.650 - 00:05:41.822, Speaker B: Exactly. So it was not designed at that. So this is a really complex system.
+00:05:41.876 - 00:05:42.306, Speaker C: Okay. Yeah.
+00:05:42.328 - 00:05:47.010, Speaker B: So the difficulty here is how you build these circuits in the zero knowledge base.
+00:05:47.080 - 00:05:47.458, Speaker C: Okay.
+00:05:47.544 - 00:06:28.522, Speaker B: Why can we then use c plus plus or python to break these circuits? This is important because in general, we need a relationship, a mathematical relationship between the inputs and the outputs. That's why we call it circuits or sometimes a constraint systems. You have here that. So let's start with a simple circuit, okay? If I start, for example, a single circuit that just takes two inputs and just multiply them and you get the output. Let's call this input a, this input b, and the output c. Okay? You have a way to compute a plus b, and then you compute c. But actually what you want is a relationship between the output and the input.
+00:06:28.522 - 00:06:59.186, Speaker B: In this case would be quite easy. You just see c must be equal to a times b. This is the relationship of this circuit. But imagine thousands, millions of multiplications, additions and things. This is complex, but we need to convert. So we need to bright circuits that fulfill this kind of relationships.
+00:06:59.298 - 00:07:06.006, Speaker A: And also in zoologic proof systems, we usually work a, b and c are not just numbers, they're field elements. And that adds another layer of complexity.
+00:07:06.118 - 00:07:49.734, Speaker B: Exactly. I like the word cirques because this comes from the electronics works, but it has a lot of similarities. In electronics. We are working with binary signals, which are also a field, by the way, but it's binary and you are working with real hardware and so on. Here we have a little bit more flexibility because we can work with these finite fields, so we can work with three, four. In general, we work with much bigger prime numbers, but we need to build these sort of relationships. Okay, so this is like the first section.
+00:07:49.734 - 00:08:02.974, Speaker B: It's important to understand what we want to build. We are trying to build this circuit and we are trying to do this well, we can go maybe to this later.
+00:08:03.012 - 00:08:03.214, Speaker C: Okay.
+00:08:03.252 - 00:08:16.798, Speaker B: But the problem is that this is big. Sometimes, a lot of times we have a lot of transactions. And this is huge. So what we call the public input here, we can distinguish between the public inputs and the private inputs.
+00:08:16.814 - 00:08:18.130, Speaker A: Yeah, let's talk about that.
+00:08:18.200 - 00:08:19.634, Speaker B: Let's talk about that a little bit.
+00:08:19.672 - 00:08:19.874, Speaker C: Okay.
+00:08:19.912 - 00:08:24.642, Speaker B: For example, for the state, the state is clearly, it's a public input.
+00:08:24.706 - 00:08:25.174, Speaker C: Okay.
+00:08:25.292 - 00:08:30.226, Speaker B: But you cannot put the full estate as an input.
+00:08:30.258 - 00:08:30.502, Speaker C: Okay.
+00:08:30.556 - 00:08:40.106, Speaker B: You just want to specific pieces. You want to put some specific pieces of the state and you probably want.
+00:08:40.128 - 00:08:42.762, Speaker A: To make the public inputs as small as possible as well.
+00:08:42.816 - 00:08:59.034, Speaker B: Exactly. We want to be the public input small because all this public part needs to be checked by the verifier. So you need to be used by the verifier. So if you have a lot of public inputs, then the verifier is going to be quite complex just to process these public inputs.
+00:08:59.082 - 00:08:59.198, Speaker C: Yeah.
+00:08:59.204 - 00:09:06.114, Speaker A: And in the context of l two system, that actually implies a lot of costs on l one if you need to put a bunch of public input there.
+00:09:06.232 - 00:09:32.406, Speaker B: So the technique that we are using here is we are like hashing all the inputs. We are just taking a hash. So we create like a kind, we are doing a circuit where actually, let's put this bigger. So the circuit is here. Here what we do is all this with. This is our private. What we call it private inputs.
+00:09:32.406 - 00:09:46.826, Speaker B: But here what we do is we compute a hash of all this together. So we hash all the inputs of the state inputs, and then we just have a single public input. A single input, which is the hash of all these inputs.
+00:09:46.858 - 00:09:47.440, Speaker C: Okay.
+00:09:48.130 - 00:10:06.754, Speaker B: And then in the circuit, we just check that these two are the same. So we are computing the hash inside the circuit from private inputs, which are free or cheap or are part, like, intermediary signals. So they're cheap for the verifier.
+00:10:06.802 - 00:10:06.966, Speaker C: Right.
+00:10:06.988 - 00:10:08.310, Speaker A: The proverb still needs to do that.
+00:10:08.380 - 00:10:29.482, Speaker B: Exactly. But you don't need to use it in the verifier. In this circuit, the private inputs and the intermediary signals. So the intermediary values that you need to build here are more or less the same at the end, because you have a full system, and then the only thing you want to prove is that you have a set of variables that fulfill this constraint system.
+00:10:29.536 - 00:10:30.202, Speaker C: Exactly. Okay.
+00:10:30.256 - 00:10:36.010, Speaker A: And this is like, you can think about this as you are inverting the hash or doing unhashing of the public input.
+00:10:36.090 - 00:10:42.110, Speaker B: So with a single public input, this is a single hash. What I want to prove that this hash is.
+00:10:42.260 - 00:10:43.390, Speaker C: Okay. Yes.
+00:10:43.460 - 00:10:44.014, Speaker B: And that's it.
+00:10:44.052 - 00:10:44.206, Speaker C: Okay.
+00:10:44.228 - 00:10:51.826, Speaker B: So this is a circuit that has a single public input, and then you verify all that together. But all this is a public input, if you want.
+00:10:51.848 - 00:10:52.082, Speaker C: Okay.
+00:10:52.136 - 00:10:57.126, Speaker B: It's just that we are doing this trick of hashing everything inside.
+00:10:57.228 - 00:10:57.830, Speaker A: Okay.
+00:10:57.980 - 00:10:58.246, Speaker C: Yeah.
+00:10:58.268 - 00:11:10.266, Speaker A: So the first part is unhashing the public input to get this set of inputs into this. And this is the logic of the Zke Evm, which actually.
+00:11:10.368 - 00:11:19.138, Speaker B: Okay, well, if I explain that we just put a hash, it's difficult to see what this hash is like. The hash of the public input.
+00:11:19.174 - 00:11:20.238, Speaker A: Makes sense. Makes sense.
+00:11:20.324 - 00:11:25.610, Speaker B: Okay, so let's deep how we build this circuit.
+00:11:25.770 - 00:11:30.206, Speaker A: I imagine it's a very complex task, so you need to break it down in multiple ways.
+00:11:30.308 - 00:11:59.142, Speaker B: We'll start with the low level, and we will start with the very basic things. What's the circuit and how we are doing that with clock like this, iiop, I think it's called model, which is star model. And we will start building small circuits, and then we will end up building the ZKVi. Okay, so this is the path for today. Okay, so let's just start from this beginning.
+00:11:59.206 - 00:11:59.578, Speaker C: Okay.
+00:11:59.664 - 00:12:22.018, Speaker B: So in traditional circuits, when we started to do zero knowledge, well, star people already did this IOP. But the snark world, they work mainly with circuits and arithmetic circuits. That's what we were talking a little bit with the multiplication we put before. Maybe I can delete that.
+00:12:22.104 - 00:12:23.042, Speaker A: We can erase this.
+00:12:23.096 - 00:12:23.700, Speaker C: Yeah.
+00:12:31.910 - 00:12:57.900, Speaker B: So this is a circuit that we pined before. It's a very simple circuit. Okay, just imagine just a multiplication. Then you just get a b, and here c. Okay, this circuit can be much bigger. Okay, so it can be, I don't know, maybe three signals, two of them that get added, and this one, one that get multiplied by this one. Let's just put it this way.
+00:12:57.900 - 00:13:15.018, Speaker B: It can be complex circuit, but these circuits, you see that the relationship is always with value. So we have an output has an input, and we have a value. This is like gates. In electronics, you have many gates.
+00:13:15.114 - 00:13:17.426, Speaker A: The signal propagates through the circuit and you get the result.
+00:13:17.528 - 00:13:48.830, Speaker B: Exactly. That's what you have. When we go to the IOP, it's a little bit like when we are adding a clock to the system. So it's like, imagine a circuit like this, but we have like this output just gets back to the input, maybe with a latch or something like that. And then you get back to the input. And maybe you have also some inputs that enters directly. Okay, so here is, you see, this is a state transition function.
+00:13:48.830 - 00:13:51.150, Speaker B: So it's like we have a circuit.
+00:13:52.130 - 00:13:53.710, Speaker A: But you repeat it many times.
+00:13:53.780 - 00:13:59.550, Speaker B: You repeat it many times. The same circuit.
+00:14:00.130 - 00:14:05.194, Speaker A: As you draw here, the outputs become the inputs into the next iteration.
+00:14:05.242 - 00:14:21.986, Speaker B: The outputs can become into the inputs in the next state. Okay, this is the basic of the state machine. So here, actually, we don't have one value. Actually, we don't have one value for every clock. So we have many. We compute the windness. And the windness here is just these values.
+00:14:21.986 - 00:15:06.070, Speaker B: A is this, b is this, and c is this. But here, if we do that, it's like we have a, b, and c. And maybe in the first clock, this may be one 10, but maybe in the second clock, this is 0101. Then in the third clock, this is one, one, whatever. But you see, it's not a single value for a signal. Each clock has a value, and we have a state transition function. This case is this circuit, this program that actually, from the current state and maybe some inputs, it computes a new state.
+00:15:06.140 - 00:15:06.920, Speaker A: Makes sense.
+00:15:07.530 - 00:15:25.020, Speaker B: This is the basic of electronics processors. Processors are done this way. Okay? So of course, this is algebraic. This is not the way we are building circuits. We are building algebraic. We are trying to build this relationship.
+00:15:25.790 - 00:15:29.646, Speaker A: So in our case, these are not zeros and ones. It's like much bigger numbers.
+00:15:29.748 - 00:15:58.214, Speaker B: Exactly. So instead of building constraint system, where you have signals. Actually, what we do is we have a constraint system where we have polynomials. Why polynomials? Because polynomial is the same thing, the same signals. Okay, just to a reminder, I think this was explained somewhere. Ace. But a polynomial, we can represent a polynomial in what we call the evaluation way.
+00:15:58.214 - 00:16:23.102, Speaker B: So we can select some specific domain, some specific values. And then this is b one, this is b two, the evaluation. So the evaluation of which polynomial. So in this case, we have five values. That means that would be a polynomial of degree four, so degree less than five.
+00:16:23.156 - 00:16:33.598, Speaker A: And this is because basically you need n minus one points to uniquely determine a polynomial. Exactly two points determine a line, three points is a parabola, and so forth.
+00:16:33.694 - 00:16:58.022, Speaker B: Exactly. So a polynomial is a synonym of an array of values. The thing is that if I'm adding two polynomials, it's like I'm adding the values. Imagine what polynomial is, and I have another polynomial. I can add all the values at the same time. So I'm adding in parallel. So instead of working with signals, I work with polynomials.
+00:16:58.022 - 00:17:09.562, Speaker B: So I do operations in batch. And the relationships should be fulfilled because we have one state transition function.
+00:17:09.696 - 00:17:14.490, Speaker A: So in this case, this would be like evaluations of one polynomial. This would be evaluations of another polynomial.
+00:17:14.570 - 00:17:51.946, Speaker B: Exactly. So you have this state, this is the state transition. So we are moving, and of course we have the evaluations of the polynomials. This will be a polynomial, this will be a polynomial, this will be a polynomial, and this will be the valuations of this polynomial at these points, at these roots of unity, just for naming. But this is just a specific points in the domain where we evaluate. Okay, here is a detail, because the relationship here, we can say that c is b times a, but we don't want to say that. We want to say that the next state.
+00:17:51.946 - 00:18:27.654, Speaker B: So how we define this state. So imagine that this is, we have, if we see if we find this function, this state transition function. If these were signals, this would be, we call it this a, this, we call it b, and this, we call it c. This would be, well, the next state. Let's imagine that this, we just put it here to c, just to put, okay, and this is just free inputs. Just to put something that we can say. Okay, so here, this is c.
+00:18:27.654 - 00:18:38.454, Speaker B: So this is c. I'm going to put c prime here, just to say that the next estate, the next estate here is, this would be a plus b.
+00:18:38.652 - 00:18:45.514, Speaker A: Times c. Okay, so basically, this is how we compute the next c. We do this. This is a current value of c.
+00:18:45.552 - 00:19:02.738, Speaker B: Okay, but how we put that in polynomial. In a polynomial form. This is, we are putting here in like a signal form. Okay, but what's the relationship in polynomials that we put you here? Okay, here is the next one. So actually, here we put w x.
+00:19:02.824 - 00:19:03.170, Speaker C: Okay.
+00:19:03.240 - 00:19:12.274, Speaker B: And this is, let me put the formula first. A of x plus b of x. This is times c of x.
+00:19:12.472 - 00:19:13.134, Speaker C: Okay.
+00:19:13.272 - 00:19:15.080, Speaker A: So you see what is the w?
+00:19:15.610 - 00:19:18.962, Speaker B: That w means that you are shifting the polynomial.
+00:19:19.026 - 00:19:19.640, Speaker C: Okay.
+00:19:20.330 - 00:19:27.434, Speaker B: Actually, just to understand, because this is important, so let's maybe just deep a little bit on that.
+00:19:27.472 - 00:19:27.866, Speaker C: Okay?
+00:19:27.968 - 00:20:26.410, Speaker B: So when I say that a polynomial is evaluated to a specific elements, we are using what we call it roots of unity. Roots of unity are, well, square roots of one is one minus one squared thirds of one. One is one is one times one times one is one. So one is cubic root of one. There are two more. There are complex numbers, but they are also, when you multiply by themselves three times, they give you one. Okay? If I ask you for the 30 root of unity of one, there are 30 possible values in the complex numbers.
+00:20:26.410 - 00:20:30.430, Speaker B: We are working here in the finite fields, but the ideas apply exactly the same.
+00:20:30.500 - 00:20:34.574, Speaker A: Okay, so basically they define kind of the domain. Am I thinking about it right?
+00:20:34.612 - 00:20:48.738, Speaker B: Yeah. They define domain, which is these roots of unity, the fields, the way that we are building the fields and the way that the construction is that a way that it works exactly the same way that works with the complex numbers.
+00:20:48.824 - 00:20:49.074, Speaker C: Okay?
+00:20:49.112 - 00:21:16.422, Speaker B: So there is a mathematical theory in the background, but the idea is that everything that works in complex, because it's a field, then you can have the polynomials, you can have roots and the roots of unity. And actually we are working generally in roots of a power of two. So roots of four, so fourth root, the 8th root, the 16th root, or two to the 20 eigth root.
+00:21:16.486 - 00:21:16.714, Speaker C: Okay?
+00:21:16.752 - 00:21:35.106, Speaker B: So we are working with the two to the 20 eigth root. That means that we have two to the 28 w points. So this is going to be w. This is going to be w squared. It's going to be w to the third, and the last one is going to be w to the two, to the 28, which is actually one.
+00:21:35.288 - 00:21:36.020, Speaker C: Okay.
+00:21:37.750 - 00:21:40.978, Speaker A: Because of the properties of the field, they kind of like cycle around.
+00:21:41.064 - 00:21:41.314, Speaker C: Yeah.
+00:21:41.352 - 00:21:48.210, Speaker B: All the roots of unity, for example, in the complex, if you find that in the complex numbers, they are in the circle.
+00:21:48.290 - 00:21:49.160, Speaker C: Okay? So.
+00:21:52.730 - 00:21:56.262, Speaker B: The fourth square is clearly these numbers.
+00:21:56.316 - 00:21:56.534, Speaker C: Okay?
+00:21:56.572 - 00:22:14.160, Speaker B: But you go to the 8th square is these numbers. And when you multiply them together, it's like adding the angle. So you have this makes sense rotation thing. You get this and you elevate to the eight, then you get one.
+00:22:16.450 - 00:22:16.718, Speaker C: You.
+00:22:16.724 - 00:22:36.102, Speaker B: Can build all the numbers. Okay, so that means that if I here, the roots of unity are built just by just multiplying by themselves. So I can generate all the square roots by just getting one and just multiplying by it and getting all of them.
+00:22:36.156 - 00:22:36.662, Speaker A: Makes sense.
+00:22:36.716 - 00:23:16.570, Speaker B: Okay, so if I'm evaluating if f of x is this. If I evaluate. Let me just get another color. If I evaluate f of wx, that means that when. So when x is w, this is going to get a value of w squared. So that means that I'm just shifting this polynomial just one point forward. Yeah, actually, it's one point backwards.
+00:23:16.650 - 00:23:17.280, Speaker C: Okay.
+00:23:17.910 - 00:23:26.354, Speaker B: I'm just shifting the polynomial some way. The polynomial of F-W-S is the same polynomial, but shifted one w. Makes sense.
+00:23:26.392 - 00:23:31.846, Speaker A: Because x's here are just like some values of w here. So if you multiply by another w, you just shift it.
+00:23:31.868 - 00:23:35.638, Speaker B: So I'm just taking the next value and shifting to the current value.
+00:23:35.724 - 00:23:36.118, Speaker C: Okay?
+00:23:36.204 - 00:23:49.422, Speaker B: So that's why when I want to work with the next value, then instead of working with the c of x polynomial, I'm just working with the c of Wx, because I'm taking the next value.
+00:23:49.476 - 00:23:53.886, Speaker A: Makes sense. Okay, so now I think this expression makes total sense to me.
+00:23:54.068 - 00:24:06.598, Speaker B: So, that's the way that we express relationships of many values in parallel inside the safety.
+00:24:06.634 - 00:24:14.350, Speaker A: So, as you said, this is a fairly simple example, and I'm assuming in Zkevm, there is hundreds, maybe thousands of such polynomials.
+00:24:14.430 - 00:24:14.962, Speaker B: Exactly.
+00:24:15.096 - 00:24:19.400, Speaker A: So I'm assuming, like, writing them out is super tedious and difficult.
+00:24:20.090 - 00:25:03.426, Speaker B: Well, this is why, in order to build that, we built all this tooling for doing these things in an easier way. Okay, so for this tooling, what we are going to do now, maybe, is start with what we could say, the hello world of this tooling. The hello world here. Traditionally, and this comes very much from the stark literature, the hello world is standardized to the Fibonacci series. So I think it's a good point to start, maybe just. Okay, how we will be the Fibonacci series, just to give you a little bit of. Just to not lose the track.
+00:25:03.528 - 00:25:04.180, Speaker C: Okay.
+00:25:05.670 - 00:25:26.890, Speaker B: We have a state transition. So we have state machines. If we have state machines, that means that we have processors. If we have processors, we can build a program that runs on the processors. And actually, what we will do is build a program that emulates ethereum in order to process the transactions. Okay, so that's the path that we are running here.
+00:25:26.960 - 00:25:28.060, Speaker A: Okay, awesome.
+00:25:29.470 - 00:25:31.526, Speaker B: Let's start with fibonacci.
+00:25:31.558 - 00:25:32.758, Speaker A: Fibonacci sequence.
+00:25:32.934 - 00:25:54.680, Speaker B: Okay, boys, let's start doing this example, this Fibonacci series. Okay, so we need to define what variables we have. What's this? And what's this state machine. This state function. This state transition function for this state. For this state machine. Okay, so I'm going to keep.
+00:25:56.810 - 00:25:58.518, Speaker A: We can probably get rid of this part.
+00:25:58.604 - 00:26:26.206, Speaker B: Yeah, jess, we can delete this one. Okay, here. Well, I can keep maybe the circuit here, because at the end of Fibonacci series, it looks like something like this. So actually it's even easier than what we painted here. Okay, so if these are the two values, what we want is the next value is going to be the addition of the last values. It's the finishing of the Fibonacci series. So here is.
+00:26:26.206 - 00:26:59.610, Speaker B: I'm here, but here, what I want to put here is actually the addition I'm going to put to a, but also I'm going to put a to b. Okay, so let me write the formulas here. Okay, so I want that b prime. So I want set b prime. Yeah. B prime is equal to a plus b, and a is equal to a prime is equal to b.
+00:26:59.760 - 00:27:02.442, Speaker A: Okay, so we're using two variables here, right?
+00:27:02.496 - 00:27:09.786, Speaker B: Here we are using, we define two variables. Okay, let's write here how we would write it in pill.
+00:27:09.818 - 00:27:13.694, Speaker A: Okay, well, what is pill exactly? Because people may not have heard.
+00:27:13.732 - 00:27:34.866, Speaker B: Yeah. Pill is. Okay, we are writing these relationships. Okay, it's going to be relationship of polynomials. Here we are writing this estate transition function with the relationship of these polynomials. So we need to express these polynomial entities. Some way we could write, I don't know, there are many ways to define it.
+00:27:34.866 - 00:27:38.934, Speaker B: We can have, I don't know, a rust piece of code that somehow do that.
+00:27:38.972 - 00:27:39.270, Speaker C: Okay.
+00:27:39.340 - 00:28:09.530, Speaker B: But it's good to have a language where you have all the identities in the same place with the exact relationship. And this is what's pill. And it's very useful because once you have the pill, once you have this relationship, then from the pill, we will be able to automatically generate the stark or generate the proof without having to do. But in order to generate the proof, you need what you want to verify. So what polynomial identities you want to verify.
+00:28:09.610 - 00:28:17.966, Speaker A: So basically, pill is a language of sorts that you guys develop to make writing these constraints out simpler. And like exactly when you are developing.
+00:28:17.998 - 00:28:20.386, Speaker B: Impill, mainly you need to write three things.
+00:28:20.488 - 00:28:20.802, Speaker C: Okay.
+00:28:20.856 - 00:28:47.450, Speaker B: We call it the polynomial identity language. This is what we are writing here. And then you need to write the code that, well, it's two pieces of code, one that computes what we call the pre compute polynomials, the constant polynomials, if you want some polynomials that are fixed and the execution traits, actually the polynomials. And the other is that it computes the polynomials for a specific instance of this circuit, actually executes all the values.
+00:28:48.270 - 00:28:54.426, Speaker A: Of everything and then these polynomial identities enforce those relationships on the execution trace and those colors.
+00:28:54.458 - 00:29:29.338, Speaker B: Exactly. So that's only three pieces. The pill, which is the relationship, and then a piece of software to write the constant polynomials or the precompute polynomials and a piece of software to write the polynomials for a specific proof. Okay, so that's it. And once you have that, when you have the constants that you do that once per circuit, these constant polynomials or these precompute polynomials, you have this piece and you have the pill. And then with that automatically you would generate the proof pillar stark. Mainly it does that.
+00:29:29.338 - 00:29:59.902, Speaker B: It just takes the pill. It just takes these computed polynomials and it generates everything. The proverb, the verifier, the circus for, verify all the machinery on that. Okay, but we need to define that. This is the language what we want to prove. Okay, in this case we want to prove a Fibonacci series. Okay, so let's write, appeal to write a fibonacci.
+00:29:59.966 - 00:30:00.482, Speaker C: Let's do it.
+00:30:00.536 - 00:30:10.120, Speaker B: Okay, well, at the beginning, first we say name. Well this is, maybe it's going to be very small. Let me put.
+00:30:16.190 - 00:30:20.314, Speaker C: It here.
+00:30:20.352 - 00:30:39.482, Speaker B: I put eight, means that we will have eight clocks. Okay, maybe we can put here 2048, or we can put some power of two in general. Okay, so we define this state machine. So this is namespace. Maybe we could put the name state machine, but we use namespace.
+00:30:39.546 - 00:30:40.160, Speaker C: Okay.
+00:30:40.950 - 00:31:16.380, Speaker B: Then we need to define the committed polynomials. In this case are this a and b. Okay, so here is going to be whole polynomial.com. Meet here we have a and b. I think it's, don't want to mess this up with this. Okay, and now we need to write this relationship. Okay, so we just write this relationship very much as it is.
+00:31:16.380 - 00:31:26.254, Speaker B: Actually. This is pill. This is b prime equal a plus b and a prime equals b.
+00:31:26.452 - 00:31:28.062, Speaker A: Okay, that was simple enough.
+00:31:28.116 - 00:31:32.820, Speaker B: Simple, right. We are done. Okay, well at least it looks like we are done.
+00:31:38.070 - 00:31:38.386, Speaker C: Here.
+00:31:38.408 - 00:31:42.738, Speaker B: We define it, the state transition function. So that's it.
+00:31:42.904 - 00:31:43.570, Speaker C: Okay.
+00:31:43.720 - 00:31:44.850, Speaker B: Looks easy, right?
+00:31:44.920 - 00:31:47.480, Speaker A: I mean, I'm sure there is much more complexity to it.
+00:31:48.410 - 00:32:01.434, Speaker B: Let's see what complexities. But we're done. So this is actually, that's unique. If you are able to build something that fulfills, you will be able to generate a start that verifies that. And that's everything you need.
+00:32:01.472 - 00:32:10.730, Speaker A: Okay, and by the way, to clarify, to generate a verifier, not the proverb, but the verifier, actually all you need is these expressions. You don't need the expressions.
+00:32:10.810 - 00:32:28.914, Speaker B: In this case there is no precompute polynomials. We will ask no someone, but you need to build a piece of code that writes a set of a and b. It's actually piece of code that writes the specific values. Okay, so imagine here, let me put.
+00:32:28.952 - 00:32:39.570, Speaker A: Here, but that piece of code we only need for the prover. Not for the verifier, only for the prover. Yeah, but verifier is basically defined by these expressions.
+00:32:39.730 - 00:32:46.822, Speaker B: The verifier just verifies that what you are building, that you hold some polynomials that fulfill these expressions.
+00:32:46.886 - 00:32:47.258, Speaker C: Yes.
+00:32:47.344 - 00:33:33.414, Speaker B: Okay, but here, well, yeah, you are proving that you have some polynomials that fulfill the expressions. But what are the public inputs? What values are you proving? It's very stupid. Proof this. Okay, so you need to prove at least, I don't know, let's say a proof that you now imagine that you want to prove that you know two numbers, that when you do the Fibonacci series eight times, it gives you a specific number. That's a more thing. Okay, so let's imagine that we have here two numbers. Imagine here we have one, two, and then we know, well, we can do the Fibonacci just following this.
+00:33:33.414 - 00:33:43.100, Speaker B: A, in this case a prime is b. So that means that this is two and here is the addition of them. So this is going to be three. So this is going to be.
+00:33:45.550 - 00:33:45.926, Speaker C: I'm.
+00:33:45.958 - 00:34:13.922, Speaker B: Saying yes, this is three and this is going to be five. This is five and this is going to be eight. Let's put four here, just two kp, just short whiteboard. Okay, so actually imagine that the result is this one. Okay, this is a public input and you want to prove that, well, that you know two numbers, that when you do the Fibonacci series of these two numbers, you get eight.
+00:34:14.056 - 00:34:14.546, Speaker C: Yes.
+00:34:14.648 - 00:34:18.054, Speaker A: And you could also say like this is your public input as well. So you can prove that.
+00:34:18.092 - 00:34:37.334, Speaker B: Exactly. You can define whatever you want. We just define it a random problem just for this. Okay, so here actually we collect this public, this is a public input and this is going to be the private.
+00:34:37.382 - 00:34:39.546, Speaker A: Do you write public input as part of the pill or is it?
+00:34:39.568 - 00:35:09.622, Speaker B: Yes, let's write this public input, actually. Okay, so let's define this public input. Okay, so in this case, so let's call this public input. So this is what I'm going to define here is public. Let's call this public input R. Okay. And this is going to be what's r? R is b at position four.
+00:35:09.676 - 00:35:09.990, Speaker C: Right.
+00:35:10.060 - 00:35:20.186, Speaker B: So here it's just b at position four. Sorry, position four. Okay, so we define r here.
+00:35:20.288 - 00:35:20.554, Speaker C: Okay.
+00:35:20.592 - 00:35:22.138, Speaker A: So is it zero based or.
+00:35:22.144 - 00:35:22.314, Speaker C: No.
+00:35:22.352 - 00:35:23.706, Speaker A: So should it be three, actually, or.
+00:35:23.728 - 00:35:40.410, Speaker B: Should it should be three? Yeah, you're absolutely right. Okay, so we define it that this r, but we didn't define any relationship yet. So we are saying this, that this is going to be a public input.
+00:35:40.490 - 00:35:40.782, Speaker A: Okay.
+00:35:40.836 - 00:35:45.662, Speaker B: But we are not forcing anything yet.
+00:35:45.796 - 00:35:46.190, Speaker A: Okay.
+00:35:46.260 - 00:35:48.686, Speaker B: So we need to force something.
+00:35:48.788 - 00:35:49.054, Speaker C: Okay.
+00:35:49.092 - 00:35:58.054, Speaker B: So we need to force that r is eight. So that, that these are at eight some point.
+00:35:58.092 - 00:35:58.822, Speaker A: Okay, makes sense.
+00:35:58.876 - 00:36:33.790, Speaker B: So we need to add this another relationship, another polynomial relationship. Let me write the expression, and then we talk. So actually, what I want to say is that this is, say l one. L one times ll. Let's call it ll times. This is b minus r is equal zero.
+00:36:33.940 - 00:36:34.446, Speaker C: Okay.
+00:36:34.548 - 00:36:38.894, Speaker A: Okay, so what is ll actually is not defined.
+00:36:38.942 - 00:37:25.266, Speaker B: Ll is one of those precomputed polynomials. Okay, so what I'm doing in this case, I'm just defining here this, I could, here in the top, I'm defining here in the bottom, it could be in the top. But this is pol. Okay, so this is, from the pure perspective, this is a constant. It's a precomputed polynomial. What's the value of this precomputed polynomial? Okay, where it's going to be fixed, it's going to be zero for everything except for, well, actually it's going to be zero for everything but one in the last one.
+00:37:25.368 - 00:37:29.314, Speaker A: Okay, and does the verifier needs to know this polynomial as well?
+00:37:29.352 - 00:37:29.746, Speaker C: Right?
+00:37:29.848 - 00:38:17.140, Speaker B: Yes, but this is why I'm telling you that when you're writing a circle like that, you need two pieces, one that's like a setup that actually what it does is pre computes all these polynomials. In this case, just generate a file with all the constant polynomials where you fill everything with zero except the one that's one. It's very easy code to write. And here is the definition of the pill. Okay, so that means that when ll is zero, then of course, this equation, so for all the values is going to fulfill, because if this is zero, this is going to be zero. But when this is one here, I'm forcing when this ll is one. So that means in the last line I'm forcing that b must be equal to r in order for this to be zero.
+00:38:18.070 - 00:38:19.282, Speaker A: Okay, that makes sense.
+00:38:19.336 - 00:38:27.590, Speaker B: So with this, we define like the last piece that we missed it. That's how we just forcing this.
+00:38:27.660 - 00:38:38.026, Speaker A: Okay, makes sense. So one question I have is that we've kind of hard coded these numbers here. Is it possible in pill to make them parametric? So sometimes I can say it's four, sometimes I can say eight.
+00:38:38.128 - 00:38:58.638, Speaker B: Yeah, absolutely. Sometimes you put here thing, you call it constant n equals four. And then here you can put n. I see here you can put n minus one. N minus one.
+00:38:58.724 - 00:38:59.360, Speaker C: Okay.
+00:39:00.450 - 00:39:08.530, Speaker B: And this just changing one place. Or maybe you can even include files. So you can put maybe the configuration file. And then you just include the configuration file.
+00:39:09.030 - 00:39:09.586, Speaker A: You can play.
+00:39:09.608 - 00:39:38.010, Speaker B: And actually, we are evolving this language and generating very cool. That's it. So we just generated Fibonacci. This is the hello world. But you can see how we can define state machines once we have a fibonacci. State machine, we can define any state machines. So actually we can build processors.
+00:39:38.010 - 00:39:40.506, Speaker B: And this is the next step.
+00:39:40.608 - 00:39:40.922, Speaker C: Okay.
+00:39:40.976 - 00:39:45.994, Speaker B: Because this is Fibonacci is quite easy. That's what happened if I want to build a real processor.
+00:39:46.042 - 00:39:46.254, Speaker C: Yeah.
+00:39:46.292 - 00:39:47.294, Speaker A: Well, let's go into that.
+00:39:47.332 - 00:39:50.982, Speaker B: Let's go into and see what pieces. Let's go to the processor.
+00:39:51.066 - 00:39:51.700, Speaker C: Okay.
+00:39:53.430 - 00:40:02.430, Speaker B: Now that we know how to build state machines, basic estate machines, let's build a little bit more complex estate machine.
+00:40:02.510 - 00:40:03.170, Speaker A: Let's do it.
+00:40:03.240 - 00:40:11.922, Speaker B: Let's do a processor. Okay, let's release this. Okay, well, actually, processor is this piece, but bigger.
+00:40:11.986 - 00:40:12.600, Speaker A: Okay.
+00:40:14.970 - 00:40:51.490, Speaker B: Let'S define a processor. If you know how a processor, electronic processor works. In general, there are different kinds of processors, but typical processors, they used to have registers. They used to have instructions. Instructions. They read it from some ROM or some Ram. Regional processors, they would read from a ROM, and they used to have a ram, of course.
+00:40:51.490 - 00:41:22.494, Speaker B: But there is a processor, the state machine. The idea of the state machine, of the processor, you have the registers state and the instruction. Somehow the registers states. Together with the instruction, you get the next state of the registers. Okay, so if we find the processor here, we have registers. Let's do a processor of two registers, just to make it easy at the beginning. So we have register a, and let's have register b.
+00:41:22.692 - 00:41:24.000, Speaker C: Okay. Yeah.
+00:41:25.090 - 00:41:52.550, Speaker B: All the processors, they have, one thing that's important is the program counter. I'm going to put here, PC. It's actually PCMich. Which line of code are you executing? So that means that this will point to some ROM. Okay, let me point it. So this prom contour. So here we put the ROM.
+00:41:52.550 - 00:42:08.970, Speaker B: This will point to some place on the ROM to the actual instruction that you will get here. In the ROM you have some instruction that somehow you are loaded. Okay, so here we put here instruction.
+00:42:09.810 - 00:42:11.790, Speaker A: That'S another register, right?
+00:42:11.940 - 00:43:05.514, Speaker B: Well yeah, it's just a set of registers in general, but altogether it's the instruction that, what are you executing here? What are you doing in this step? So that's the thing, that's very much that. Okay, and this you need to define the straight transition for the next register. So here I'm going to put a prime, which is the same register but in the next clock. Okay, so here it is b prime. Okay, so this is a little bit the structure what we have, okay, so, and we need to define this impill, this state transition that goes from one state resistors to another registers to some set of instructions.
+00:43:05.642 - 00:43:05.982, Speaker C: Okay.
+00:43:06.036 - 00:43:15.246, Speaker B: Okay, so let's start with the easy instructions, which is just move instructions. So just let's say how we manipulate.
+00:43:15.278 - 00:43:16.786, Speaker A: Value from a to b or something.
+00:43:16.888 - 00:44:04.500, Speaker B: From a to b or from e to a or something like that. Okay, so here we are going to define two polynomials, two specific polynomials, the same two committed polynomials, the same way that we have a and b. In the Fibonacci series, we'll have two polynomials that are going to be part of the instruction. So instruction, I'm going to call it here in a, let's call this indie, okay? And I'm going to find also two more then that are going to be, let's say oat a or set a. Let me put set a and set b.
+00:44:07.510 - 00:44:08.260, Speaker C: Okay.
+00:44:10.630 - 00:44:21.986, Speaker B: Imagine that the instruction, if we find, we should find some place. Let me find the instruction. Let me just extend the instruction. Okay, so the instruction, actually the instruction.
+00:44:22.018 - 00:44:26.360, Speaker A: Is going to be, let's take a blue one.
+00:44:27.370 - 00:44:52.974, Speaker B: The blue one works better. Until now the instruction have, let's say in, let me put it in lowercase just in a we have in b and we have set a and set b. Okay, I'm going to just reserve because we will need another.
+00:44:53.092 - 00:44:57.234, Speaker A: And these are basically kind of like binary values, right? It's zero, one.
+00:44:57.352 - 00:44:57.634, Speaker C: Yes.
+00:44:57.672 - 00:45:25.402, Speaker B: Well actually we will see that they can be any value, but we can force them to zero one just to start. Okay. Okay, imagine that I want to impeal, I want to force this to be zero or one. I can always put in a times in a minus one equals zero. So if I add this to the pill, then I'm forcing that in a can only be zero or one, okay?
+00:45:25.456 - 00:45:28.578, Speaker A: Right, because this will evaluate to zero only under these conditions.
+00:45:28.694 - 00:45:45.280, Speaker B: Exactly. So in pill here I can commit. So pill commit in a, in b, in set a and set b.
+00:45:46.370 - 00:45:47.022, Speaker C: Okay.
+00:45:47.156 - 00:45:59.666, Speaker B: Yes, of course. Also I will have a and b as a register, so I can define already here just a and b.
+00:45:59.768 - 00:46:00.420, Speaker C: Okay.
+00:46:01.930 - 00:46:23.754, Speaker B: One thing are the registers, other is the instruction, actually. Well, we'll see how we match that with the Rom. Okay, but this is just, let's assume at the beginning that in this state machine, in each step the instructions are fixed. Actually, if this, instead of being committed polynomials, these are constant polynomials, put constant.
+00:46:23.802 - 00:46:27.214, Speaker A: Here, you're kind of hard coding the problem.
+00:46:27.252 - 00:46:28.206, Speaker B: You hard code the program.
+00:46:28.308 - 00:46:31.394, Speaker A: Okay, yes, that makes sense.
+00:46:31.432 - 00:46:32.020, Speaker C: Okay.
+00:46:33.430 - 00:46:36.734, Speaker B: Just to realize actually it's committed because you will want jumps.
+00:46:36.782 - 00:46:36.994, Speaker C: Okay.
+00:46:37.032 - 00:47:08.154, Speaker B: And then you cannot recall that, but let's move this way. Okay, so the idea here is, the next setup is that I'm going to define here. I want to define something like an intermediary value here, which is a selected value. Okay, so here, let's define here. It's Paul, I'm not putting nothing else. So it's not neither commit nor constant. I'm just saying Paul, op.
+00:47:08.154 - 00:47:36.598, Speaker B: So it's this intermediary value, okay. And this is going to be equal to in a times a plus, in b times b, okay. Okay, so if the instruction is this is one and this is zero, then op e is going to be a, makes sense. And in the other way around. So if this is zero and this one, then of b is going to.
+00:47:36.604 - 00:47:37.670, Speaker A: Be b, makes sense.
+00:47:37.740 - 00:47:47.090, Speaker B: Okay, if I remove this here, I could have maybe a linear combination of a and b. The instruction would be just put here, some linear combination to a and b.
+00:47:47.180 - 00:47:48.138, Speaker A: Makes sense.
+00:47:48.304 - 00:47:56.806, Speaker B: And the next thing that I'm going to, and I'm gonna let me just delete this just to make it a little bit even more flexible.
+00:47:56.918 - 00:47:57.926, Speaker C: Okay? Yep.
+00:47:58.038 - 00:48:20.194, Speaker B: And the next thing is, okay, what's the a prime? Okay, so in this case I would put that a prime is equal to op times set a. Okay, I'm forcing that a prime is if it's set, it's set a.
+00:48:20.232 - 00:48:20.530, Speaker C: Okay.
+00:48:20.600 - 00:48:41.178, Speaker B: And I'm going to say also that B prime is op times set b. Okay, so if I have an instruction where in a is one and set b is one and in b and set a is zero, then, okay, we'll select the a and we'll set it to b.
+00:48:41.264 - 00:48:42.586, Speaker A: Makes sense. Makes sense.
+00:48:42.688 - 00:48:43.340, Speaker C: Okay.
+00:48:45.710 - 00:48:50.086, Speaker A: Set a and set b are defined as committed polynomials.
+00:48:50.118 - 00:48:55.162, Speaker B: If I are committed polynomials, then I can do set of instructions.
+00:48:55.226 - 00:49:08.014, Speaker A: Okay, makes sense. But now, so how is each instruction represented I'm curious, because here you have multiple values. Do you somehow, like if you say there is a move instruction, is it decoded into this value somehow?
+00:49:08.142 - 00:49:44.878, Speaker B: The instruction is set of values. I could encode to a single value, but actually we don't necessarily, you just have many values and all these values, they compose the instruction. We already have it in the decoded. It's better. We will see why. Okay, okay, but you see that here, I define it a state machine that actually is doing, you can do moves, you can even do a little bit more because you can even do additions here because just if you see just different, if you set a and set b is one one, you can set the addition to a. So you're going to start being able.
+00:49:44.878 - 00:49:50.042, Speaker B: But this starts looking like, very much like start looking very much as a processor.
+00:49:50.106 - 00:49:50.478, Speaker C: Yes.
+00:49:50.564 - 00:50:17.500, Speaker B: Okay, let's add here another part of the instruction. I'm going to call it here const. Let me put this part of the instruction. So here pl constant, because at this point we're working with programs that do not have jumps. Okay, so programs that are just previous constant defined. Okay, so that's const. And I'm going to call it here const.
+00:50:20.190 - 00:50:20.938, Speaker C: Okay.
+00:50:21.104 - 00:50:53.650, Speaker B: And the idea is that here is in a times a plus, in b times D plus. Const is part of the instruction. So this is what we call the mediate value. If you want to put, for example, a four in register a, the const will be four and then set a is going to be one. The other registers are going to be zero. And this will force that the next set is going to be a four in register a. So here we have another, we are adding functionalities.
+00:50:53.650 - 00:51:02.002, Speaker B: We can move registers and we can do these immediate values.
+00:51:02.066 - 00:51:02.678, Speaker C: Nice.
+00:51:02.844 - 00:51:04.966, Speaker A: So it's very extensible this way.
+00:51:05.068 - 00:51:09.290, Speaker B: Yeah, this is the basic, this is the basic.
+00:51:12.590 - 00:51:17.740, Speaker A: I'm curious, in real evm, how many of such values do we decode each instruction into?
+00:51:18.110 - 00:51:54.600, Speaker B: In the real there is, I need to check, but something like about 30 or 40 here in the real EBM we need to work with 256 bits. So actually it's a one to 88. We're working with chunks of 32 bits. Okay, makes sense. And we don't have two registers, we have five. And we have some other special registers for specific Ethereum EVM stuff. But basically this is exactly the same.
+00:51:55.050 - 00:52:01.402, Speaker A: Should we go into more specifics about the EVM implementation that you've built or is there more stuff we want to cover here?
+00:52:01.456 - 00:52:25.170, Speaker B: Well, I would like to cover maybe because this is constant. So I think it's interesting to see how we do conditional jumps and then we can move to the, let's do it to the specific EVM. Okay, so here, of course, this is instructions. Okay, here you have instructions. We can do additions here. Not very much, but it's additions. But I want to cover these two things.
+00:52:25.170 - 00:52:42.360, Speaker B: It's like, okay, how I'm forcing. Well, first is, can we do a conditional jump? Okay, actually, yes, because we have this PC, we forget about this program counter in our case, in this case, PC is going to be, PC is going to be pc plus one.
+00:52:44.330 - 00:52:46.022, Speaker A: This one should be a prime, right?
+00:52:46.156 - 00:52:54.090, Speaker B: Exactly. Okay, so the next program counter is the next line. So when you are jigging a program in general, you good. One after the other.
+00:52:54.160 - 00:52:55.066, Speaker A: Okay, makes sense.
+00:52:55.168 - 00:53:14.750, Speaker B: What happened that sometimes you want to do a conditional jump, sometimes you don't want to go to the next line, you want to go to another line or another line according to some condition. So actually we can code that inside the AVM.
+00:53:15.270 - 00:53:16.370, Speaker A: How do we do it?
+00:53:16.440 - 00:53:31.442, Speaker B: Okay, so the first trick is we need to detect, for example, let's start with a basic jump.
+00:53:31.506 - 00:53:31.926, Speaker C: Okay.
+00:53:32.028 - 00:54:05.618, Speaker B: Basic jump would be here we can have like an instruction, we call it jump, that can be zero or one. And here I can have, let's say an offset. Okay, so then this program contour, instead of being the next one, it's going to be the next one. If the jump is zero. But if the jump is one, I want to be offset. Okay, so how I would encode this in pill? Well, it's quite easy. Let me just, well, I'm here.
+00:54:05.618 - 00:54:37.786, Speaker B: What I do is PC prime is equal to the jump instruction. When I want to jump, this is going to be offset. If it's not offset, it's going to be pc plus one. Okay, so minus pc plus one. And this is plus pc plus one. Okay, you see this equation that if offset is zero, then this term is going to be zero. So then we have the expression we have before.
+00:54:37.808 - 00:54:38.678, Speaker A: So if we don't have a jump.
+00:54:38.694 - 00:54:51.534, Speaker B: We just go to the next instruction. If jump is one, then this is going to be cancelled with this. So the next one is going to be the offset, the next value, okay.
+00:54:51.572 - 00:54:53.394, Speaker A: And this is basically an absolute offset, right?
+00:54:53.432 - 00:54:56.990, Speaker B: Absolute offset. In this case it's a single jump.
+00:54:57.070 - 00:54:57.746, Speaker A: Makes sense.
+00:54:57.848 - 00:55:17.350, Speaker B: Okay, what happened if you want to do a conditional jump? Well, first we need to, how we compute this condition. So what's this condition? Could be one condition. Could be, okay, maybe a is, okay. That would be, for example, on a normal way to do this jump.
+00:55:18.430 - 00:55:19.034, Speaker C: Okay.
+00:55:19.152 - 00:55:28.790, Speaker B: In order to do these conditional jumps, we need to know if op is zero. So we need to calculate if op is zero. We will jump.
+00:55:28.870 - 00:55:31.350, Speaker A: Op, in this case, is condition.
+00:55:31.430 - 00:56:03.142, Speaker B: Yeah, we are checking. So we want to do a jump if op is zero. And if not, we continue with the same. So we need to compute some hole in a polynomial way that something that is one if it's zero and zero if it's not zero. Okay, so let's write here to declare the two tables. If we have op, let's define this variable is zero. Okay, so we have here zero, one, two.
+00:56:03.142 - 00:56:10.538, Speaker B: So for zero, this wants to be one. And if it's different than zero, then we want this to be zero. Okay, 30 and so on.
+00:56:10.624 - 00:56:11.018, Speaker C: Yes.
+00:56:11.104 - 00:56:19.246, Speaker B: Okay, so how would we do that in polynomial equations in pill. Okay, let me write the questions, and then we check that they are okay.
+00:56:19.348 - 00:56:20.094, Speaker A: Sounds good.
+00:56:20.212 - 00:56:59.130, Speaker B: So here is, Paul, here is zero equals to one minus op times. It's another polynomial. Let's define it here. Poly. See that this imp should be the inverse of op in case that op is different than zero. But it's very important questions. And then we have that is zero times op equals zero.
+00:56:59.130 - 00:57:12.062, Speaker B: Okay, let's check if this works. In the case that op is zero, then op is zero. Then op zero times whatever is going to be zero. So one minus zero is one. So e zero is one.
+00:57:12.116 - 00:57:13.214, Speaker A: Okay, makes sense.
+00:57:13.332 - 00:57:37.862, Speaker B: This fulfills actually the second equation, because op is zero. It also works. Okay, let's go to a different value. We mentioned that op is two or three or different value. Okay, if op is two or three, that means that is zero must be zero. Okay, so we are. Okay, but what happened with the first equation? Well, the first equation is, okay, if zero is zero, op is different than zero.
+00:57:37.862 - 00:57:48.426, Speaker B: So this means that zero is equal to one minus this. So that means that distance means needs to be one. So that means that inverse needs to be the inverse of op.
+00:57:48.528 - 00:57:49.082, Speaker A: Makes sense.
+00:57:49.136 - 00:58:16.350, Speaker B: And we will always be able to find an inverse that fulfills this. So with this, we have. This case is a collate a polynomial that's called e zero. Makes sense how we plug that into our system. Well, in this case, we have this jump. Okay, but imagine that this jump, instead of being. Let's call this do jump.
+00:58:16.350 - 00:59:00.480, Speaker B: And do jump is. So when we have to do a jump. Okay, so here we can have another polynomial do jump. It is a calculated polynomial. That's actually. So when we have to do jump, if it's a jump or it's conditional jump, or if it's a conditional jump, and the polynomial is zero so that we can put it here if it's a jump or it's a conditional jump. Conditional jump times is zero.
+00:59:00.850 - 00:59:01.600, Speaker C: Okay.
+00:59:03.670 - 00:59:28.742, Speaker B: So that means that do jump when we'll have to jump. If it's a jump here, of course, we'll have two instructions, jump and jump conditional. Okay, so we have two instructions. Okay, so if it's jump, we will have to jump. If it's a conditional jump, then, and it's zero, then we will jump. Okay, makes sense here. If we jump, then we'll go to the offset.
+00:59:28.742 - 00:59:32.934, Speaker B: So here you see that we can do conditional jump.
+00:59:33.062 - 00:59:34.922, Speaker C: Okay? Yeah.
+00:59:34.976 - 01:00:13.670, Speaker B: When you do a conditional jump, then that means that you are moving the program counter. So this program cannot be constant anymore. So actually we need to define what we call it a rom. Okay, so let's define a rom, and let's see how we connect that. Okay, so in our case, this instruction. So we coded. The idea is that this is the namespace, like Main, the main processor.
+01:00:13.670 - 01:00:22.214, Speaker B: I don't know. This is two times 23. Just to put something two to 23 clocks.
+01:00:22.262 - 01:00:22.810, Speaker C: Okay.
+01:00:22.960 - 01:00:24.940, Speaker A: Sometimes into the power, right?
+01:00:26.030 - 01:00:28.662, Speaker B: Yeah. This is a double, it's a double asterisk.
+01:00:28.726 - 01:00:29.340, Speaker C: Okay.
+01:00:31.890 - 01:00:55.026, Speaker B: And now let's define another, it's like another state machine, actually, we could put it in the same state machine, but just to be more similar. How a DBM works is a namespace Rom. It's a different namespace. Imagine namespace. We could be the same namespace with different names.
+01:00:55.058 - 01:00:55.302, Speaker C: Okay.
+01:00:55.356 - 01:01:05.510, Speaker B: Yeah, but here. So this is going to be, not going to be constant. This is going to be committed. Committed.
+01:01:05.930 - 01:01:06.680, Speaker C: Okay.
+01:01:08.810 - 01:01:54.642, Speaker B: And in this Rom, we are going to mimic that. So we are going to have the instructions. So actually, what's the instruction? Well, we have pill commit. We'll have in a, in b, set a. Set b, we have a jump. We have the jump conditional or jump if zero, whatever, what else we have? Well, that's it, right? I think that the constant, the instruction somehow.
+01:01:54.706 - 01:01:55.270, Speaker C: Okay.
+01:01:55.420 - 01:02:09.646, Speaker B: And in this case, this is going to be constant. Okay, so we will have a roM, which means a polynomial, where we have the lines. Actually, here we'll add the line.
+01:02:09.748 - 01:02:10.400, Speaker C: Okay.
+01:02:12.770 - 01:02:34.946, Speaker B: Line is also constant. Polynomial that in the first line. So this is line zero. And imagine that it's a jump between a and b. Then it's going to be, was one in a, one in. So this is, if this is in a, this is in b, maybe it's zero. One set a, set b.
+01:02:34.946 - 01:02:36.690, Speaker B: This is 10.
+01:02:36.760 - 01:02:36.994, Speaker C: Okay.
+01:02:37.032 - 01:02:41.654, Speaker A: And the other zeros could you explain line again, is it like a free.
+01:02:41.692 - 01:02:51.242, Speaker B: Input or line is just the number, it's just the column, the program line.
+01:02:51.376 - 01:02:51.914, Speaker A: Got it.
+01:02:51.952 - 01:03:18.194, Speaker B: So the next one is going to be the line one, line two, line three, line four. And here I have the program, but the program, of course, maybe there is, here we have some jump conditional where the jump is going to be one. Here the offset is going to be, maybe just jump to two. Okay, so this is going to be a two, but here we have the program embedded in the polynomials. So here it's what we call it the rOm, okay? And the ROM is constant, it's precompiled, it's a precomputed thing.
+01:03:18.392 - 01:03:19.380, Speaker A: Makes sense.
+01:03:20.390 - 01:03:55.770, Speaker B: Now we have in the main, we have equivalent. Here is the Rom na, and this is the main na. This polynomial is a different polynomial that the Rom one is actually what we are executing. This is the program, but in this case, because it's committed, that means that's free. You can put any value you want. Okay, but we want this program to be, so we don't want this state machine that you can put any instruction you want if the program counter says that you are in the line three, that you are actually executing the line three of the ROM.
+01:03:55.850 - 01:03:56.334, Speaker C: Okay?
+01:03:56.452 - 01:03:58.254, Speaker A: So you need to link this somehow to that.
+01:03:58.292 - 01:04:37.782, Speaker B: You need to link that with that. Okay, how you do that, and this is the trick and one of the most powerful things that we have in pill. Okay? So we do it via a lockup. So how we do that, actually what we are doing is let me just move this rom here. Let me write the line of code of pill that's going to be in that state machine. Well, you can put it in both sides, but you can put it that in the state machine. Okay, so actually what you want to do is, well, you want to link that instruction.
+01:04:37.782 - 01:05:06.280, Speaker B: So in a, in b, set a, set b const, all instruction jump, jump c. Okay, and the program counter, I'm continuing here in.
+01:05:09.130 - 01:05:11.094, Speaker A: So in is kind of like a keyword, right?
+01:05:11.132 - 01:05:57.590, Speaker B: It's a keyword. Here is drum. In a, drum. In b, drum set a till Rom. Let me just write all of them. So drum set b. Here is drum const, comma, drum, jump, drum, jump c, comma, the line.
+01:05:57.740 - 01:06:02.134, Speaker A: Okay, so basically this pc is equal the line.
+01:06:02.172 - 01:06:02.374, Speaker C: Yeah.
+01:06:02.412 - 01:06:05.398, Speaker B: Okay, so here is it must match.
+01:06:05.564 - 01:06:06.038, Speaker C: Yeah.
+01:06:06.124 - 01:06:36.078, Speaker B: Okay, so it must match. What's saying is that it must match. It must match the line that I'm executing with the line that's in the ROM. If I'm executing, if the state machine is telling that I'm executing the line five. That means that the instruction, all these polynomials, all the instruction polynomials are forced to be what's in the ROM. Why? Because there is only one line five here. What it means is that this number must be included in this polynomial.
+01:06:36.078 - 01:06:39.442, Speaker B: This is the PLO cup, the pillowcup function.
+01:06:39.576 - 01:06:48.758, Speaker A: And basically you express it like this, and the pill compiler will automatically do all the stuff. Okay, awesome. This is very cool.
+01:06:48.844 - 01:07:08.570, Speaker B: Yeah, exactly. This is how we are forced to execute a specific program, a program that have jumps. You don't have jumps. You can do it with constants as we did before. But if you want to do a real program that you need conditional jumps and do things, then you go to this way.
+01:07:08.640 - 01:07:09.706, Speaker A: Makes sense. Very cool.
+01:07:09.728 - 01:07:21.466, Speaker B: Okay, so here we have a processor. Here we already have a processor where we have a specific program that's executing. We can put whatever program and it's going to be fixed.
+01:07:21.658 - 01:07:22.400, Speaker C: Okay.
+01:07:23.350 - 01:07:27.650, Speaker B: And, well, we have the system, everything, put it in pill.
+01:07:27.990 - 01:07:30.500, Speaker A: These are all the building pieces that you need to build.
+01:07:31.510 - 01:07:33.374, Speaker B: We don't need many more pieces, but.
+01:07:33.432 - 01:07:34.582, Speaker A: We need some of them.
+01:07:34.636 - 01:07:39.686, Speaker B: So let's move to maybe a couple of more pieces and then we move forward.
+01:07:39.788 - 01:07:40.374, Speaker C: Sounds good.
+01:07:40.412 - 01:08:26.294, Speaker B: Okay, perfect. Okay, so now that we have a processor, let's do a zoom out and see all the pieces. Okay, so we have the processor with his ROM, but with this here we have some missing pieces. Okay, so for example, we have binary operations, arithmetic operations. We even have a Ram processor used to have, it's good to have a ram where you can store intermediate values. So let's find a little bit the components, the devices that are around the processor. Okay, we have here the main processor here.
+01:08:26.294 - 01:08:44.954, Speaker B: If you want to have the ROM, we already cover it. It's like different state machine here we need a ram here we can have, I'm just pointing here in the ZKVM, we have the binary state machine, which.
+01:08:44.992 - 01:08:50.270, Speaker A: May 1 question, why do you need this binary state machine? Why can't we just do everything in the main processor?
+01:08:51.090 - 01:09:40.998, Speaker B: Well, because, well, this binary, we will see that this binary are expensive. If you want to do in the main processor, this would take like many clocks and a lot of logic and a lot of polynomial that in general, you are not going to use because not all instructions are going to be binary. So it's better to have a specific processor that it's just computing all the binary operations and in the processor. Just check that. So just check or connect this binary processor with the processor. So you are consuming only one clock in the main state machine and all the clocks in the secondary state machine are fully used and are compact and fully used for that specific.
+01:09:41.104 - 01:09:51.962, Speaker A: For that specific. Basically, it's a way to accelerate certain operations, kind of like in regular cpus. We also sometimes accelerate certain operations by creating specialized circuits. So this is the purpose.
+01:09:52.026 - 01:10:37.534, Speaker B: Exactly. So you are building things like in parallel if we want to put them the same processor. Imagine I could have all the possible instructions that I can do for a single clock should be repeated many, many times, and it's going to be wasted most of the times because you can do only one thing in the instruction in this thing. We are not wasting all this value. We can pack that on the other side. Okay, so that's why it's interesting, this concept of having different state machines here, binary, we have arithmetic, we have some hashing stuff, not going to cover no today. But here is, we can add ketchup, we can add other state machines here makes sense.
+01:10:37.534 - 01:11:08.702, Speaker B: But let's focus on maybe the most important one. Okay, so let's deep a little bit in this binary state machine. I don't want to go deep, but the idea is that we have a state machine where when we are computing this, so we have a state machine where at some point of this state machine, we will have the results. We will have the results of this amb.
+01:11:08.786 - 01:11:09.420, Speaker C: Okay.
+01:11:12.350 - 01:11:46.200, Speaker B: How we do that, we do mainly with plookup tables. So Anand is very easy to do it in a lookup table. So I have two inputs, half an input a and half an input b. Imagine that I have all the options for a. So imagine that it's a byte, okay? So a, the byte can be something from binary. So if you want from zero to 253, 55, and b, all the possible values from zero to 255. So I can easily define a constant polynomial, which is the and of both.
+01:11:46.200 - 01:12:10.714, Speaker B: So I can compute byte to byte. So I can set up easily a state machine where at some point, so I have the tables, and at some points, at a specific point, I will have that here, I don't know a specific number. One, two, three, and zero is going to be zero.
+01:12:10.832 - 01:12:11.258, Speaker C: Yes.
+01:12:11.344 - 01:12:19.518, Speaker A: Okay, so basically, for each combination of these two values, you have a result. And I guess the table here will be like two to the 16 in size.
+01:12:19.604 - 01:12:20.094, Speaker B: Exactly.
+01:12:20.212 - 01:12:20.686, Speaker C: Okay.
+01:12:20.788 - 01:12:44.050, Speaker B: Two to 16. If you want to do ants in eight bits. Of course, if we want to do ants in 16 bits, then maybe we can split in two steps and have a state machine that compute that in two steps. But at some point I'm going to have like results of the numbers. Which numbers? The ones that I choose. Which are you going to choose? The ones that I'm going to use in the main state machine.
+01:12:44.130 - 01:12:44.710, Speaker A: Makes sense.
+01:12:44.780 - 01:13:23.122, Speaker B: Okay, and then who I do the plockup. Well, I would do something, the plug up would look like something like the instruction bin. So in this case I will have like one instruction the same way that I had jump or jump c. I will have an instruction that's going to be binary. Okay, it's going to be bin. And then I want to do from, well, here is binary. Here it's going to take a, sorry, I'm going to put a register c.
+01:13:23.122 - 01:13:53.290, Speaker B: We've just defined it to registers. But here for doing ternary operations it's good to have three registers. Okay, this must be in, and this is the binary state machine selector or latch if you want. Sometimes we call it latches. Now this is latch is going to be one. When we have a result, we can have some intention that are not there. Okay, so this is with latch.
+01:13:53.290 - 01:14:24.438, Speaker B: And then here we will have bin a, bin B and bin C. So we have a plug up, actually. So we have a plug up. At some point we warranty. So if this bin, we warranty that whatever is in C must be a and b.
+01:14:24.604 - 01:14:28.486, Speaker A: Makes sense. And this is pre computed table that you use.
+01:14:28.668 - 01:14:59.586, Speaker B: Exactly. But, well, this is the pre computed, so here at some point we'll have something in the binary, this is the main state machine. If we go to the binary state machine, at some point I will have something like ABC in this is the precomputed table. K-A-K-B-K-C-K-A-K-B-K-C as a precomputed table. So a, B and C can be any value, but must fulfill this.
+01:14:59.688 - 01:15:00.098, Speaker C: Okay.
+01:15:00.184 - 01:15:04.914, Speaker B: And if this will fill this, then it must match the makes sense.
+01:15:05.032 - 01:15:10.306, Speaker A: And again, this works on like single bytes. And then this gets aggregated with single bytes.
+01:15:10.338 - 01:15:21.094, Speaker B: But in this same machine you can do it maybe multiple lines, multiple bytes. So here that's why you have the latch. Maybe. Do you have like four steps before where you are doing byte byte.
+01:15:21.142 - 01:15:21.562, Speaker A: I see.
+01:15:21.616 - 01:15:27.110, Speaker B: And then in the last one you latch it and you have the final result of actually what you want to compute.
+01:15:27.190 - 01:15:27.722, Speaker A: Got it?
+01:15:27.776 - 01:15:27.946, Speaker C: Yeah.
+01:15:27.968 - 01:15:39.866, Speaker A: So basically you use pre computed values on a byte level, but then you have this logic here in this table that aggregates them and computes. Because in EVM you need to do it on 32 byte values.
+01:15:39.898 - 01:15:40.480, Speaker C: Right.
+01:15:42.610 - 01:15:45.346, Speaker B: In the evm it's 32 bytes. Yes, exactly.
+01:15:45.528 - 01:15:45.874, Speaker C: Okay.
+01:15:45.912 - 01:15:57.958, Speaker B: But the idea here is that we can compute that separately in this state machine. And then the AP lookup. We do this much.
+01:15:58.044 - 01:15:58.486, Speaker C: Okay.
+01:15:58.588 - 01:16:05.590, Speaker A: And you mentioned in your case this binary does xsource and you also mentioned it does comparisons as well.
+01:16:05.660 - 01:16:23.786, Speaker B: Yeah. Here is this, we have a kind of a curry. So we are doing the composing in bytes. Then we have a curry and we can do an addition. Actually in the evm, it's 32 steps. And we are doing byte to byte because this is what we are doing. And here we do additions multiplications less than, greater than XoR.
+01:16:23.978 - 01:16:25.646, Speaker A: And what does arithmetic do?
+01:16:25.668 - 01:16:38.210, Speaker B: That arithmetic is more for multiplications. Many is for doing 256 with multiplications. We're also using the arithmetic for the elliptic curve operations embedded in there.
+01:16:38.280 - 01:16:51.270, Speaker A: Okay, so basically we have this state machine that handles most of the logic and arithmetic and bitwise functions. And then this one handles multiplications. And additionally like elliptic curve, something that helps with.
+01:16:51.340 - 01:17:05.514, Speaker B: Yeah, that's very specific for the CDSA. But actually you can add there more operations that know, for example for paddings, we could add the operations in the bn corp. Makes sense.
+01:17:05.632 - 01:17:07.894, Speaker A: And then hashing, I'm guessing it's ketchup.
+01:17:08.022 - 01:17:15.406, Speaker B: Mainly ketchup. We are also using here we have also for example, storage. We have not talked about the storage. It's important thing here.
+01:17:15.508 - 01:17:16.160, Speaker A: Okay.
+01:17:18.130 - 01:17:24.610, Speaker B: That we are using Poseidon, just because it's much more efficient to write that.
+01:17:24.680 - 01:17:29.554, Speaker A: Okay, got it. So, storage, hashing. Any other big state machines that are missing from.
+01:17:29.592 - 01:17:43.400, Speaker B: Overall, I think these are the main one. There are some specifics for the EBM, but these are the big ones at least.
+01:17:43.930 - 01:17:44.680, Speaker C: Okay.
+01:17:46.490 - 01:18:24.660, Speaker B: Clearly, just to summarize a little bit, we have this plocap. We connect one to the other. Important to see why this works. And then another important one is how we set c in the main state machine. Okay, with here we are checking that c is okay, but how we set c if you want this to be a and b, actually what we do is we have like a special. So when we had the processor, remember that you had the register a, the register b. In this state machine we have the register c.
+01:18:24.660 - 01:18:45.062, Speaker B: Here we had in a instruction. So the part of instruction in a, in b and in C here, actually what we have is we have another register. We call it free. It's not really a register, it's just a free input. So it's a value that in each instruction you can put whatever you want there. So it's a free input. It's a free input.
+01:18:45.062 - 01:18:47.580, Speaker B: But here we have in free.
+01:18:49.630 - 01:18:49.946, Speaker C: I.
+01:18:49.968 - 01:18:55.018, Speaker A: Think in terminology of zero, this is called non deterministic input.
+01:18:55.114 - 01:18:55.950, Speaker C: Exactly. Okay.
+01:18:56.020 - 01:19:23.362, Speaker B: So actually you can put a non deterministic. So there are some instructions that allows you to put a nondeterministic input. In this case, if you are doing, actually this is not would be c. This maybe would be the op. And actually you can put the free input, you can put whatever value you are checking that this value that you put actually is the end. And then you store whatever you want. Okay, but this is a free input.
+01:19:23.362 - 01:19:38.934, Speaker B: Actually you use this free input in this specific instruction to put whatever you want. You put whatever you want. Because later on you are going to check via this proof app that what you are putting is not what you wanted, it's what the result that actually it is.
+01:19:39.072 - 01:19:40.414, Speaker A: Makes sense. Makes sense.
+01:19:40.532 - 01:20:18.006, Speaker B: So this, of course, Ram is also full story inside the ram. But the idea is that in one clock you can read some writes. The big idea, just to mention here is that the idea is that we have like another state machine, we call it rum. That's all the reads and writes that we do it in the rum. But the idea is that we resort, we resort it. We put it in a different order. We put in order that we order by address.
+01:20:18.006 - 01:20:38.858, Speaker B: Instead of ordering by appearance. We order them by address. And then appearance. That means that all the reads and writes that you are doing to a specific address, you are packed them together so you can do it in a register. So you are doing all the registers. And then here be a lookup. Actually it's not a lookup, it's a permutation check, which is more restrictive.
+01:20:38.858 - 01:20:45.426, Speaker B: In pill instead of being in is for a permutation check.
+01:20:45.528 - 01:20:46.274, Speaker A: Okay.
+01:20:46.472 - 01:20:46.834, Speaker C: Yeah.
+01:20:46.872 - 01:20:54.430, Speaker A: Basically this is ordered by kind of like space ordered while this is like time ordered.
+01:20:54.510 - 01:20:55.218, Speaker B: Yeah, exactly.
+01:20:55.304 - 01:20:55.902, Speaker C: Okay.
+01:20:56.056 - 01:21:13.098, Speaker B: And with this, of course, you need to force how you force that are ordered that way. That, well, that means we use this kind of increasing things via rain check. So it's like you are increasing the address so you cannot go back.
+01:21:13.184 - 01:21:13.578, Speaker C: Okay.
+01:21:13.664 - 01:21:25.710, Speaker B: Of course at the end there is exception. You go to the end, but you can check in the code, in the rhyme. It's not a difficult state machine to follow if you understand this idea.
+01:21:25.860 - 01:21:31.614, Speaker A: And by the way, you mentioned something about range checks. Is there a separate state machine to do range checks or is it because.
+01:21:31.652 - 01:21:36.574, Speaker B: A range check is just, if you want to have a range check at the end, it's a pillowcap.
+01:21:36.702 - 01:21:37.186, Speaker C: Okay.
+01:21:37.288 - 01:21:42.402, Speaker A: So you have a set of kind of pre computed columns that enforce 01234.
+01:21:42.456 - 01:22:05.174, Speaker B: And then you are checking that these are in 01234. Got it. I know that there is some techniques to optimize a little bit. These range x, when they are some specific, maybe in the future we detect that or we do something special for that. But at this point it's just a normal pillow cap. If you have pillowcap, you have much more than rain checks.
+01:22:05.222 - 01:22:06.780, Speaker A: Yes, makes sense.
+01:22:07.710 - 01:22:43.240, Speaker B: So this is a basic state machine. We just cover the basics of the state machine. And in order to build a ZKBM, well we have all the pieces. So it's mainly this, what we are doing. Of course we have more resistors. These resistors are wider, we have some extra resistors. We have some, some specific EVM things.
+01:22:43.240 - 01:23:16.274, Speaker B: Just to go fast. We have a bunch of operations. We have some other steel machines for doing some specific things of the EVM. For example, the alignment of the memory. Sometimes in the memory in the EVM, it's byte alignment, so you can read bytes alignment, but actually you're reading words. So how you structure the memory, well, you need to do some extraneous things there. Of course, all the hashing, all the padding, the storage storage is an important part that's in there.
+01:23:16.274 - 01:24:01.070, Speaker B: We then cover here, but it's like a full three machines on the storage. Okay, but at the end we have a processor that's running a program. Which program? Well, it's a huge program that's actually ethereum. It just takes these free inputs that we say in these free inputs we are putting the transactions with the code RLP. We get all the values, we check that the signature is valid. If it's a call, we recover from the ROM and the hash, the program, we execute and we decode all the opcodes. And at the end we end up computing the new hash value.
+01:24:01.070 - 01:24:17.400, Speaker B: So the new state machine, and with this we have the full, this is how we build the full EVM. All the code is available, all the gold is free. So you are free to check there, to contribute there. So it's a huge effort, but.
+01:24:19.370 - 01:24:19.746, Speaker C: That'S.
+01:24:19.778 - 01:24:52.814, Speaker B: The work that we are doing. And that's why this is how we are able to build. Going to the origin, going to the beginning. This is how we are able to build this program, this deterministic program, this circuit that takes some transactions as an input. It takes another state and computes this new estate so checks that the newest state is forced to. This one, it's a full stack, but it's a full stack, but it works. We can prove that in a very efficient way.
+01:24:52.852 - 01:24:58.782, Speaker A: It's very cool. And the fact that you have this pill construction that does a lot of work for you automatically.
+01:24:58.926 - 01:25:14.722, Speaker B: Exactly. You have to build this. You can build this just directly. In this case, the approach is build this tooling. In this case, it's the peel and the assembly. Mainly these tools. Actually, it's two assemblies because we have the storage.
+01:25:14.722 - 01:25:48.658, Speaker B: It's a processor itself with Rom and with instructions altogether. So we can build that quite fast and quite easily once we have this tooling. And then, of course, this connected to all this logic, once we have this pill, then automatically we go to this stark. We generate all this stark and generate this proof, and then we go to recursive stark to reduce this stark and aggregate these proofs. Here is all the.
+01:25:48.744 - 01:25:50.994, Speaker A: There is a lot of complexity and a lot of.
+01:25:51.032 - 01:26:01.880, Speaker B: Well, yeah, it's a lot of layers, and it's a lot of fast, but each layer is quite clear what does. And here, we just cover this part, which is probably the most specific.
+01:26:03.290 - 01:26:15.290, Speaker A: Breaking it up in this way is the only way to do it. You can't do it. Everything in one go. It's too complex. So, like, breaking it up into logical pieces that you can handle on its own, I think, is the way to go.
+01:26:15.440 - 01:26:16.698, Speaker B: Exactly, yeah.
+01:26:16.864 - 01:26:17.690, Speaker C: All right.
+01:26:17.840 - 01:26:23.840, Speaker A: Well, thank you so much, Jordi. This was awesome, and I'm sure we all learned a lot.
+01:26:25.010 - 01:26:33.774, Speaker B: Thank you. You're welcome. And, yeah, just, you see, this is amazing. It's very cool stuff.
+01:26:33.892 - 01:26:34.940, Speaker C: Thank you. Thank you.
