@@ -166,3 +166,24 @@ class TwitterBot:
             command = "thread"
         return command, message
 
+    def simulate_webhook_event(self, user_id, tweet_id, tweet_text, command_type="tweet"):
+        """
+        Simulates a webhook event for testing purposes.
+
+        :param user_id: The user ID of the tweet author
+        :param tweet_id: The tweet ID
+        :param tweet_text: The text of the tweet
+        :param command_type: The command type ('tweet' or 'thread')
+        """
+        print(f"Simulating webhook event for tweet: {tweet_id}, user: {user_id}, command: {command_type}")
+        if command_type == "thread":
+            message = self.fetch_thread(tweet_id)
+        else:
+            message = tweet_text
+
+        # Process the message
+        response = self.process_chat_message(message)
+        if response:
+            print(f"Response: {response}")
+        else:
+            print("No response generated for the simulated event.")

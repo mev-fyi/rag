@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import hashlib
 import hmac
 import base64
-from twitter_bot import TwitterBot  # Assuming TwitterBot is your class
+from src.Llama_index_sandbox.twitter_bot import TwitterBot
 import os
 from dotenv import load_dotenv
 load_dotenv()
