@@ -14,7 +14,7 @@ import logging
 
 from src.Llama_index_sandbox import root_directory, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.data_ingestion_youtube.load.utils import get_videos_from_playlist, get_channel_id, get_playlist_title, get_video_info
-from src.Llama_index_sandbox.utils.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs, clean_fullwidth_characters, merge_directories, delete_mp3_if_text_or_json_exists, start_logging
+from src.Llama_index_sandbox.utils.utils import authenticate_service_account, move_remaining_mp3_to_their_subdirs, clean_fullwidth_characters, merge_directories, delete_mp3_if_text_or_json_exists, start_logging, copy_and_verify_files
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -251,7 +251,14 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
     delete_mp3_if_text_or_json_exists(directory)
 
 
+def get_youtube_channels_from_file(file_path):
+    with open(file_path, 'r') as file:
+        channels = file.read().split(',')
+    return channels
+
+
 if __name__ == '__main__':
+    copy_and_verify_files()  # make sure to copy files to get the latest youtube_csv
     parser = argparse.ArgumentParser(description='Fetch YouTube video transcripts.')
     parser.add_argument('--api_key', type=str, help='YouTube Data API key')
     parser.add_argument('--channels', nargs='+', type=str, help='YouTube channel names or IDs')
@@ -263,9 +270,10 @@ if __name__ == '__main__':
     if not api_key:
         raise ValueError("No API key provided. Please provide an API key via command line argument or .env file.")
 
-    yt_channels = args.channels or os.environ.get('YOUTUBE_CHANNELS')
-    if yt_channels:
-        yt_channels = [channel.strip() for channel in yt_channels.split(',')]
+    yt_channels_file = os.path.join(root_directory(), 'datasets/evaluation_data/youtube_channel_handles.txt')
+
+    # Fetch the yt_channels from the file
+    yt_channels = get_youtube_channels_from_file(yt_channels_file)
 
     yt_playlists = args.playlists or os.environ.get('YOUTUBE_PLAYLISTS')
     if yt_playlists:

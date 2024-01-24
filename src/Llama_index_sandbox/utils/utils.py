@@ -702,17 +702,18 @@ def copy_and_verify_files():
     # Define the destination directories
     csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
     articles_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_2023-12-05/")
-    # articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
-    # papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
-    articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
-    papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
+    articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
+    papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
+    # articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
+    # papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
 
     # List of CSV files to copy
     csv_files_to_copy = [
         "paper_details.csv",
         "links/articles_updated.csv",
-        "links/youtube/youtube_videos.csv"
+        "links/youtube/youtube_videos.csv",
+        "links/youtube/youtube_channel_handles.txt"
     ]
 
     # Create the destination directories if they do not exist
@@ -731,7 +732,7 @@ def copy_and_verify_files():
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
     copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
-    # copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
+    copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
     copy_and_rename_website_docs_pdfs()
     print("File copying completed.")
@@ -818,6 +819,7 @@ if __name__ == '__main__':
     copy_and_verify_files()
 
     # copy_and_rename_website_docs_pdfs()
+
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # clean_fullwidth_characters(directory)
     # move_remaining_mp3_to_their_subdirs()
