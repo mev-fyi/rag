@@ -2,10 +2,10 @@
 FROM python:3.10
 
 # Use a build argument to specify the context
-ARG DOCKERIGNORE_CONTEXT=twitter_bot
+ARG DOCKERIGNORE_CONTEXT=twitter_bot_app
 
 # Set the working directory in the container
-WORKDIR /twitter_bot
+WORKDIR /twitter_bot_app
 
 # Copy the requirements file to the working directory in the container
 COPY requirements.txt .
@@ -23,21 +23,21 @@ COPY . .
 COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
 
 # Append src directory to PYTHONPATH
-ENV PYTHONPATH "${PYTHONPATH}:/twitter_bot/src"
+ENV PYTHONPATH "${PYTHONPATH}:/twitter_bot_app/src"
 
 # Set the Flask environment to production
 ENV FLASK_ENV=production
 
-# Set the Flask twitter_bot to the correct file
-ENV FLASK_APP=src/Llama_index_sandbox/twitter_bot.py
+# Set the Flask twitter_bot_app to the correct file
+ENV FLASK_APP=src/Llama_index_sandbox/twitter_bot_app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=8080
 
-# Expose the port the twitter_bot runs on
+# Expose the port the twitter_bot_app runs on
 EXPOSE 8080
 
 # Command to run the application
-CMD ["gunicorn", "--timeout", "3600", "-w", "4", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.twitter_bot:twitter_bot"]
+CMD ["gunicorn", "--timeout", "3600", "-w", "4", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.twitter_bot_app:twitter_bot_app"]
 
 # NOTE on number of gunicorn workers: If you're deploying your container on Google Cloud Platform and you've configured each instance to have 2 vCPUs, then
 # you effectively have 2 cores available for each instance. This information is crucial for configuring the number of Gunicorn workers optimally.
