@@ -147,7 +147,8 @@ If several files are matched across several years of release dates, favor most r
 Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
 
 TWITTER_QUERY_ENGINE_PROMPT_FORMATTER = """The current date is {current_date}. Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
-To quote the source, quote it at the very bottom using the format "<title>: <https://example.com> - <authors> - <release date>".
+To quote the source, only quote the URL as-is and wherever it is relevant e.g. at the end of the paragraph or at the bottom of the whole reply. 
+Do not use markdown notation, only directly input the URL in parentheses at the end, do not specify 'Source', just write (URL).
 If the cited content is from the same source, cite the source once in a new line after that paragraph.
 If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
 Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
