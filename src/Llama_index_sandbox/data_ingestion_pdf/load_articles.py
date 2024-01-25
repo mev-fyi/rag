@@ -90,6 +90,7 @@ def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
     return all_documents
 
 
-# Example usage
-pdf_directory = f"{root_dir}/datasets/evaluation_data/articles_2023-12-05"
-load_pdfs(pdf_directory)
+if __name__ == '__main__':
+    # Example usage
+    pdf_directory = f"{root_dir}/datasets/evaluation_data/articles_2023-12-05"
+    load_pdfs(pdf_directory)
