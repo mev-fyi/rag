@@ -73,6 +73,7 @@ def split_response_into_tweets(response, username):
     """
     chunks = []
     current_chunk = ""
+    is_first_chunk = True
 
     bullet_point_pattern = re.compile(r'^\d+\.')
     source_url_pattern = re.compile(r'\((?i)source: <(https?://[^\s]+)>\)')
@@ -80,14 +81,28 @@ def split_response_into_tweets(response, username):
     # Replace source URL pattern
     response = source_url_pattern.sub(r'(\1)', response)
 
+    def split_long_bullet_point(line):
+        """Splits a long bullet point into two at a sentence boundary."""
+        sentences = re.split(r'(?<=[.!?]) +', line)
+        mid_point = len(sentences) // 2
+        return ' '.join(sentences[:mid_point]), ' '.join(sentences[mid_point:])
+
     # Split the response by newlines to respect paragraph/bullet points
     lines = response.split('\n')
     for i, line in enumerate(lines):
+        if bullet_point_pattern.match(line.strip()):
+            # Handle long bullet points
+            if len(line) > TWEET_CHAR_LENGTH - (len(username) + 2 if is_first_chunk else 0):
+                first_half, second_half = split_long_bullet_point(line)
+                lines.insert(i + 1, second_half)
+                line = first_half
+
         # Check if adding the line exceeds the character limit
-        if len(current_chunk + line) + 2 > TWEET_CHAR_LENGTH - len(username):
+        if len(current_chunk + line) + 2 > TWEET_CHAR_LENGTH - (len(username) + 2 if is_first_chunk else 0):
             if current_chunk.strip():  # Add chunk if it's not empty
                 chunks.append(current_chunk.strip())
                 current_chunk = ""
+                is_first_chunk = False
 
         current_chunk += line + "\n"
 
@@ -97,8 +112,8 @@ def split_response_into_tweets(response, username):
                 chunks.append(current_chunk.strip())
                 current_chunk = ""
 
-    # Cleanup: Remove any empty chunks
-    chunks = [chunk.lower().replace('source: ', '') for chunk in chunks if chunk]
+    # Cleanup: Remove any empty chunks and source mentions
+    chunks = [re.sub(r'source:\s+', '', chunk, flags=re.IGNORECASE) for chunk in chunks if chunk]
 
     return chunks
 

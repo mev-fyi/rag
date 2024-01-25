@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route('/webhook/twitter', methods=['POST'])
 def twitter_webhook():
     twitter_data = request.json
-    bot.process_webhook_data(twitter_data, test=True)
+    bot.process_webhook_data(twitter_data, test=True, test_http_request=False)
     return "200 OK"
 
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
     simulation_thread_thread = threading.Thread(target=simulate_thread_event)
 
     flask_thread.start()
-    simulation_single_tweet_thread.start()
-    # simulation_thread_thread.start()
+    # simulation_single_tweet_thread.start()
+    simulation_thread_thread.start()
 
     flask_thread.join()
     # simulation_single_tweet_thread.join()
