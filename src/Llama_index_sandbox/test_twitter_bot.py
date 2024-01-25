@@ -26,7 +26,7 @@ def simulate_single_tweet_event():
             {
                 'user': {'id_str': '123456'},
                 'id_str': actual_tweet_id,
-                'text': "Explain the tweet",
+                'text': "Explain tweet",
                 'in_reply_to_status_id_str': None,  # Assuming this is not a reply for the simulation
                 'quoted_status': None
             }
@@ -40,13 +40,13 @@ def simulate_single_tweet_event():
 # Function to simulate a webhook event for a whole thread
 def simulate_thread_event():
     time.sleep(4)  # Delay to ensure the Flask app is up and running after the first event
-    actual_tweet_id = '1741190501263462817'  # Actual tweet ID extracted from the URL
+    actual_tweet_id = '1741190516341973354' # '1750534894319497324'  # '1741192495155884123'#'1750534894319497324'  # Actual tweet ID extracted from the URL
     sample_data_thread = {
         'tweet_create_events': [
             {
                 'user': {'id_str': '123456'},
                 'id_str': actual_tweet_id,
-                'text': "Explain the whole thread please.",
+                'text': "Explain thread",
                 'in_reply_to_status_id_str': None,  # Assuming this is the start of a thread for the simulation
                 'quoted_status': None
             }
@@ -65,8 +65,8 @@ if __name__ == '__main__':
 
     flask_thread.start()
     simulation_single_tweet_thread.start()
-    simulation_thread_thread.start()
+    # simulation_thread_thread.start()
 
     flask_thread.join()
-    simulation_single_tweet_thread.join()
-    simulation_thread_thread.join()
+    # simulation_single_tweet_thread.join()
+    # simulation_thread_thread.join()

@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timedelta
 
 import requests
+from requests_oauthlib import OAuth1
 import tweepy
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
@@ -59,10 +60,14 @@ class TwitterBot:
         :param user_id: The user ID to check
         :return: True if the bot should reply, False otherwise
         """
+        # Check if the user_id is the bot's own user_id to avoid self-reply loop
+        my_user_id = self.api.verify_credentials().id_str
+        if user_id == my_user_id:
+            return False
         if user_id not in self.last_reply_times:
             return True
         time_since_last_reply = datetime.now() - self.last_reply_times[user_id]
-        return time_since_last_reply > timedelta(seconds=30)  # Change the time limit as needed
+        return time_since_last_reply > timedelta(seconds=30)  # Change the time limit
 
     def process_webhook_data(self, data, test=False):
         """
@@ -90,11 +95,12 @@ class TwitterBot:
 
                         chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
                         # TODO 2024-01-25: if the thread or tweet is referring to document existing in the database, fetch their content too.
+                        # TODO 2024-01-25: if there is one or more images to each tweet, add them.
 
                         # Process the message
                         response = self.process_chat_message(chat_input)
                         if response:
-                            self.reply_to_tweet(user_id, response, tweet_id)
+                            self.reply_to_tweet(user_id, response, tweet_id, test)
                             self.last_reply_times[user_id] = datetime.now()
                         else:
                             logging.error("No response generated for the tweet.")
@@ -103,7 +109,7 @@ class TwitterBot:
         else:
             logging.error("Webhook data does not contain tweet creation events.")
 
-    def reply_to_tweet(self, user_id, response, tweet_id):
+    def reply_to_tweet(self, user_id, response, tweet_id, test):
         """
         Posts a reply to a tweet using Tweepy, with a fallback to direct Twitter API call.
         :param user_id: The user ID to whom the reply should be addressed
@@ -111,16 +117,17 @@ class TwitterBot:
         :param tweet_id: The ID of the tweet being replied to
         """
         try:
-            username = self.api.get_user(user_id=user_id).screen_name
-            reply_text = f"@{username} {response}"
-            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
-        except Exception as e:
-            logging.error(f"Error posting reply with Tweepy: {e}")
-            # Fallback to fetch username directly and then reply
-            username = self.fetch_username_directly(user_id)
+            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
             if username:
                 reply_text = f"@{username} {response}"
                 self.direct_reply_to_tweet(tweet_id, reply_text)
+
+        except Exception as e:
+            logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
+            # Fallback to fetch username directly and then reply
+            username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
+            reply_text = f"@{username} {response}"
+            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
 
     def fetch_username_directly(self, user_id):
         """
@@ -145,7 +152,7 @@ class TwitterBot:
 
     def direct_reply_to_tweet(self, tweet_id, reply_text):
         """
-        Fallback method to post a reply using a direct Twitter API call.
+        Fallback method to post a reply using a direct Twitter API call with OAuth 1.0a.
         :param tweet_id: The ID of the tweet being replied to
         :param reply_text: The reply message to be posted
         """
@@ -156,12 +163,21 @@ class TwitterBot:
                 "in_reply_to_tweet_id": tweet_id
             }
         }
+
+        # Create an OAuth1 object
+        auth = OAuth1(
+            client_key=self.consumer_key,
+            client_secret=self.consumer_secret,
+            resource_owner_key=self.access_token,
+            resource_owner_secret=self.access_token_secret
+        )
+
         headers = {
-            "Authorization": f"Bearer {self.bearer_token}",
             "Content-Type": "application/json"
         }
+
         try:
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(url, headers=headers, json=payload, auth=auth)
             if response.status_code == 201:
                 logging.info("Reply posted successfully with direct API call.")
             else:

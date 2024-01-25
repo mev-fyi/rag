@@ -11,19 +11,12 @@ dist/
 .gitignore
 Dockerfile
 *.md
-logs/
+logs/  # Ignore the entire logs directory
 data/
 experiments/
 migrations/
 notebooks/
 src/anyscale_sandbox/
 src/blog_example/
-datasets/*
-.mp3
-datasets/evaluation_data/articles_2023-12-05/*
-datasets/evaluation_data/baseline_evaluation_research_papers_2023-09-28/*
-datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05/*
-datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/*
-datasets/evaluation_data/diarized_youtube_content_2023-10-06/*
-datasets/evaluation_data/ethereum_org_content_2024_01_07/*
-datasets/evaluation_data/flashbots_docs_2024_01_07/*
+datasets/  # Ignore the entire datasets directory
+*.mp3
