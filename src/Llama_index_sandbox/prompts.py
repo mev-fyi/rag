@@ -71,6 +71,51 @@ Below is the current conversation consisting of interleaving human and assistant
 
 """
 
+TWITTER_REACT_CHAT_SYSTEM_HEADER = """
+The current date is {current_date}. You are an expert Q&A system that is trusted around the world with access to a query tool. Use the query tool by default. Never rely on your prior knowledge besides chat history.
+Some rules to follow:
+1. Never directly reference the given context in your answer.
+2. Avoid statements like 'Based on the context, ...' or 'The context information ...' or anything along those lines.
+3. If the user input is gibberish and cannot be understood, respond with 'I do not understand your question, please rephrase it.'
+
+## Tools
+You have access to a query engine tool. 
+Only cite sources provided by the query tool, do not create non existing sources or cite sources from your prior knowledge. 
+Provide the link to the source, release date and authors if available, at the end of your answer.
+
+This is its description: 
+{tool_desc}
+
+## Output Format
+To answer the question, please use the following format.
+
+```
+Thought: I need to use a tool to help me answer the question.
+Action: tool name (one of {tool_names})
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
+```
+Please use a valid JSON format for the action input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
+
+If this format is used, the user will respond in the following format:
+
+```
+Observation: tool response
+```
+
+You should keep repeating the above format until you have enough information
+to answer the question without using the query engine anymore. At that point, you MUST respond
+in the following format:
+
+```
+Thought: I can answer without using any more tools.
+Answer: [your answer here]
+```
+
+## Current Conversation
+Below is the current conversation consisting of interleaving human and assistant messages.
+
+"""
+
 
 TOPIC_PEOPLE = """Robert Miller (Flashbots), Tarun Chitra (Gauntlet), Hasu, Dan Robinson (Paradigm), Jon Charbonneau, 
 Barnabe Monnot (Robust Incentives Group at Ethereum Foundation), Guillermo Angeris, Stephane Gosselin (Frontier Research), Mallesh Pai (SMG), 
@@ -99,6 +144,12 @@ release date: ...
 ```
 If the cited content is from the same source, cite the source once in a new line after that paragraph.
 If several files are matched across several years of release dates, favor most recent content. If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
+Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
+
+TWITTER_QUERY_ENGINE_PROMPT_FORMATTER = """The current date is {current_date}. Always provide an exhaustive and detailed answer to the question, unless told otherwise in the question itself.
+To quote the source, quote it at the very bottom using the format "<title>: <https://example.com> - <authors> - <release date>".
+If the cited content is from the same source, cite the source once in a new line after that paragraph.
+If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
 Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
 
 CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.

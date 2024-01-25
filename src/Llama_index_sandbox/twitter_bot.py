@@ -1,7 +1,9 @@
 import logging
 import os
+import textwrap
 import time
 from datetime import datetime, timedelta
+import backoff
 
 import requests
 from requests_oauthlib import OAuth1
@@ -13,6 +15,23 @@ from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engi
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
 load_dotenv()
+
+
+@backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
+def safe_request(url, headers):
+    """
+    Safely make an HTTP request with retries on failures.
+    """
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"HTTP Error: {e.response.status_code} - {e.response.text}")
+        return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Request Exception: {e}")
+        return None
 
 
 class TwitterBot:
@@ -93,12 +112,16 @@ class TwitterBot:
                         else:
                             message = tweet_text  # Default behavior
 
+                        if message is None:
+                            logging.error("Could not fetch tweet")
+                            return
+
                         chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
                         # TODO 2024-01-25: if the thread or tweet is referring to document existing in the database, fetch their content too.
                         # TODO 2024-01-25: if there is one or more images to each tweet, add them.
 
                         # Process the message
-                        response = self.process_chat_message(chat_input)
+                        response = self.process_chat_message(chat_input).response
                         if response:
                             self.reply_to_tweet(user_id, response, tweet_id, test)
                             self.last_reply_times[user_id] = datetime.now()
@@ -108,26 +131,6 @@ class TwitterBot:
                     logging.info(f"Rate limit: Not replying to {user_id}")
         else:
             logging.error("Webhook data does not contain tweet creation events.")
-
-    def reply_to_tweet(self, user_id, response, tweet_id, test):
-        """
-        Posts a reply to a tweet using Tweepy, with a fallback to direct Twitter API call.
-        :param user_id: The user ID to whom the reply should be addressed
-        :param response: The response message to be posted
-        :param tweet_id: The ID of the tweet being replied to
-        """
-        try:
-            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
-            if username:
-                reply_text = f"@{username} {response}"
-                self.direct_reply_to_tweet(tweet_id, reply_text)
-
-        except Exception as e:
-            logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
-            # Fallback to fetch username directly and then reply
-            username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
-            reply_text = f"@{username} {response}"
-            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
 
     def fetch_username_directly(self, user_id):
         """
@@ -150,17 +153,66 @@ class TwitterBot:
             logging.error(f"Exception in fetch_username_directly: {e}")
         return None
 
-    def direct_reply_to_tweet(self, tweet_id, reply_text):
+    def reply_to_tweet(self, user_id, response, tweet_id, test, is_paid_account=False):
         """
-        Fallback method to post a reply using a direct Twitter API call with OAuth 1.0a.
+        Posts a reply to a tweet. If the account is not paid, splits the response into multiple tweets.
+        :param user_id: The user ID to whom the reply should be addressed
+        :param response: The response message to be posted
+        :param tweet_id: The ID of the tweet being replied to
+        :param test: Boolean flag for testing
+        :param is_paid_account: Boolean flag indicating if the account is a paid subscription
+        """
+        try:
+            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
+            if username:
+                reply_text = f"@{username} {response}"
+                if is_paid_account or len(reply_text) <= 240:
+                    self.direct_reply_to_tweet(tweet_id, reply_text)
+                else:
+                    self.post_thread_reply(username, response, tweet_id)
+        except Exception as e:
+            logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
+            # Fallback to fetch username directly and then reply
+            username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
+            reply_text = f"@{username} {response}"
+            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
+
+    def post_thread_reply(self, username, response, tweet_id):
+        """
+        Posts a reply as a thread of tweets.
+        :param username: The username to whom the reply should be addressed
+        :param response: The response message to be posted
+        :param tweet_id: The ID of the tweet being replied to
+        """
+        sentences = textwrap.wrap(response, 240 - len(username) - 2, break_long_words=False, break_on_hyphens=False)
+        previous_tweet_id = None
+        for i, sentence in enumerate(sentences):
+
+            if i == 0:
+                reply_text = f"@{username} {sentence}"
+                previous_tweet_id = self.direct_reply_to_tweet(tweet_id, reply_text)
+                time.sleep(1)
+            else:
+                reply_text = sentence
+                previous_tweet_id = self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=i, in_thread=True, previous_tweet_id=previous_tweet_id)
+                time.sleep(1)
+
+    def direct_reply_to_tweet(self, tweet_id, reply_text, tweet_number, in_thread=False, previous_tweet_id=None):
+        """
+        Posts a reply using a direct Twitter API call with OAuth 1.0a.
+        Can also be used to post a thread by linking tweets.
         :param tweet_id: The ID of the tweet being replied to
         :param reply_text: The reply message to be posted
+        :param in_thread: Boolean flag indicating if this is part of a thread
+        :param previous_tweet_id: The ID of the previous tweet in the thread (if applicable)
+        :return: The ID of the new tweet
         """
         url = 'https://api.twitter.com/2/tweets'
+        reply_to_id = previous_tweet_id if in_thread and previous_tweet_id else tweet_id
         payload = {
             "text": reply_text,
             "reply": {
-                "in_reply_to_tweet_id": tweet_id
+                "in_reply_to_tweet_id": reply_to_id
             }
         }
 
@@ -179,11 +231,15 @@ class TwitterBot:
         try:
             response = requests.post(url, headers=headers, json=payload, auth=auth)
             if response.status_code == 201:
-                logging.info("Reply posted successfully with direct API call.")
+                logging.info(f"Reply posted tweet # [{tweet_number}] successfully with direct API call.")
+                new_tweet_id = response.json()['data']['id']
+                return new_tweet_id
             else:
                 logging.error(f"Error posting reply with direct API call: {response.status_code} - {response.text}")
         except Exception as e:
             logging.error(f"Error with direct API call: {e}")
+
+        return None
 
     def process_chat_message(self, message):
         """
@@ -222,7 +278,10 @@ class TwitterBot:
                 tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
                 url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
                 headers = {"Authorization": f"Bearer {self.bearer_token}"}
-                response = requests.get(url, headers=headers)
+                response = safe_request(url, headers)
+                if not response:
+                    logging.error(f"Failed to fetch tweet with ID: {tweet_id}")
+                    return None
                 response.raise_for_status()
                 tweet_data = response.json().get('data', {})
                 tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
@@ -254,7 +313,10 @@ class TwitterBot:
             tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
             url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
             headers = {"Authorization": f"Bearer {self.bearer_token}"}
-            response = requests.get(url, headers=headers)
+            response = safe_request(url, headers)
+            if not response:
+                logging.error(f"Failed to fetch tweet with ID: {tweet_id}")
+                return None
             response.raise_for_status()
             tweet_data = response.json().get('data', {})
 

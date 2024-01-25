@@ -1,3 +1,6 @@
+import os
+import dotenv
+dotenv.load_dotenv()
 from typing import Optional, List
 from datetime import datetime
 
@@ -5,14 +8,15 @@ from llama_index.agent.react.formatter import ReActChatFormatter, get_react_tool
 from llama_index.agent.react.types import ObservationReasoningStep, BaseReasoningStep
 from llama_index.llms import ChatMessage, MessageRole
 
-from src.Llama_index_sandbox.prompts import REACT_CHAT_SYSTEM_HEADER
+from src.Llama_index_sandbox.prompts import REACT_CHAT_SYSTEM_HEADER, TWITTER_REACT_CHAT_SYSTEM_HEADER
 
 
 class CustomReActChatFormatter(ReActChatFormatter):
     """Custom ReAct chat formatter with an updated system header."""
 
     # Override the system_header attribute with your custom value
-    system_header = REACT_CHAT_SYSTEM_HEADER
+    is_twitter = True if os.environ.get('TWITTER_BOT', 'FALSE') == 'TRUE' else False
+    system_header = REACT_CHAT_SYSTEM_HEADER if not is_twitter else TWITTER_REACT_CHAT_SYSTEM_HEADER
 
     def format(
         self,

@@ -15,7 +15,7 @@ from llama_index.utils import print_text
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import AVOID_CITING_CONTEXT
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
-from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER, CONFIRM_FINAL_ANSWER
+from src.Llama_index_sandbox.prompts import QUERY_ENGINE_PROMPT_FORMATTER, QUERY_ENGINE_TOOL_DESCRIPTION, QUERY_ENGINE_TOOL_ROUTER, CONFIRM_FINAL_ANSWER, TWITTER_QUERY_ENGINE_PROMPT_FORMATTER
 from src.Llama_index_sandbox.utils.utils import timeit
 
 
@@ -81,7 +81,11 @@ class CustomReActAgent(ReActAgent):
 
                     # Get the current date in the format yyyy-mm-dd
                     current_date = datetime.now().strftime('%Y-%m-%d')
-                    augmented_message = QUERY_ENGINE_PROMPT_FORMATTER.format(current_date=current_date, user_raw_input=message, llm_reasoning_on_user_input=action_input_json['input'])
+
+                    is_twitter = True if os.environ.get('TWITTER_BOT', 'FALSE') == 'TRUE' else False
+                    QUERY_ENGINE_PROMPT = QUERY_ENGINE_PROMPT_FORMATTER if not is_twitter else TWITTER_QUERY_ENGINE_PROMPT_FORMATTER
+                    augmented_message = QUERY_ENGINE_PROMPT.format(current_date=current_date, user_raw_input=message, llm_reasoning_on_user_input=action_input_json['input'])
+
                     action_input_json['input'] = augmented_message
 
                     # Replace the old part with the modified one
