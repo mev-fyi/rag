@@ -3,8 +3,10 @@ import os
 import time
 from datetime import datetime, timedelta
 
+import requests
 import tweepy
 from src.Llama_index_sandbox.main import initialise_chatbot
+from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
@@ -30,6 +32,7 @@ class TwitterBot:
         self.consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')
         self.access_token = os.environ.get('TWITTER_ACCESS_TOKEN')
         self.access_token_secret = os.environ.get('TWITTER_ACCESS_TOKEN_SECRET')
+        self.bearer_token = os.environ.get('TWITTER_BEARER_TOKEN')
         self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
@@ -61,7 +64,7 @@ class TwitterBot:
         time_since_last_reply = datetime.now() - self.last_reply_times[user_id]
         return time_since_last_reply > timedelta(seconds=30)  # Change the time limit as needed
 
-    def process_webhook_data(self, data):
+    def process_webhook_data(self, data, test=False):
         """
         Processes incoming data from the webhook.
         :param data: The data received from the webhook
@@ -79,14 +82,16 @@ class TwitterBot:
                         command, _ = self.extract_command_and_message(tweet_text)
 
                         if command == "thread":
-                            message = self.fetch_thread(tweet_id)
+                            message = self.fetch_thread(tweet_id, test=test)
                         elif command == "tweet":
-                            message = tweet_text
+                            message = self.fetch_tweet(tweet_id, test=test)
                         else:
                             message = tweet_text  # Default behavior
 
+                        chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
+
                         # Process the message
-                        response = self.process_chat_message(message)
+                        response = self.process_chat_message(chat_input)
                         if response:
                             self.reply_to_tweet(user_id, response, tweet_id)
                             self.last_reply_times[user_id] = datetime.now()
@@ -135,23 +140,79 @@ class TwitterBot:
             logging.error(f"Error processing chat message: {e}")
             return None
 
-    def fetch_thread(self, tweet_id):
-        """
-        Fetches the entire thread of tweets leading up to the given tweet ID.
+    import requests
 
-        :param tweet_id: The tweet ID from which to start fetching the thread
-        :return: The fetched thread as a single concatenated string
+    def fetch_thread(self, tweet_id, test):
+        """
+        Fetches the parent tweets of the given tweet ID, walking up the conversation tree.
+        :param tweet_id: The tweet ID to fetch the thread for
+        :return: The fetched thread as a list of tweet texts
         """
         thread = []
-        while tweet_id:
-            try:
-                tweet = self.api.get_status(tweet_id, tweet_mode='extended')
-                thread.append(tweet.full_text)
-                tweet_id = tweet.in_reply_to_status_id
-            except tweepy.TweepError as e:
-                logging.error(f"Error fetching tweet: {e}")
-                break
-        return " ".join(reversed(thread))
+        try:
+            while tweet_id:
+                # Fetch the tweet with the given ID, including note_tweet for long tweets
+                tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
+                url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
+                headers = {"Authorization": f"Bearer {self.bearer_token}"}
+                response = requests.get(url, headers=headers)
+                response.raise_for_status()
+                tweet_data = response.json().get('data', {})
+                tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
+                thread.append(tweet_text)
+
+                # Check if this tweet is in reply to another and get the parent tweet ID
+                referenced_tweets = tweet_data.get('referenced_tweets', [])
+                parent_tweet = next((ref for ref in referenced_tweets if ref['type'] == 'replied_to'), None)
+                tweet_id = parent_tweet['id'] if parent_tweet else None
+
+        except requests.exceptions.HTTPError as e:
+            logging.error(f"Error fetching tweet: {e.response.text}")
+            return None
+
+        thread = thread[::-1]  # Reverse to maintain the chronological order
+        return '\n'.join(thread)
+
+    # Additional method within the TwitterBot class
+
+    def fetch_tweet(self, tweet_id, test):
+        """
+        Fetches the tweet with the given tweet ID, attempting to retrieve the full content.
+        :param tweet_id: The tweet ID to fetch
+        :param test: A test flag to return early with the tweet data for debugging
+        :return: The text of the tweet
+        """
+        try:
+            # Fetch the tweet with the given ID, requesting full text and note_tweet for long tweets
+            tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
+            url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
+            headers = {"Authorization": f"Bearer {self.bearer_token}"}
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            tweet_data = response.json().get('data', {})
+
+            # Use the note_tweet text if available, otherwise use the standard text
+            tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
+
+            if test:
+                return tweet_text
+
+            # If the tweet is in reply to or quoting another tweet, fetch its details
+            referenced_tweets = tweet_data.get('referenced_tweets', [])
+            parent_tweet = next((ref for ref in referenced_tweets if ref['type'] in ['replied_to', 'quoted']), None)
+            if parent_tweet:
+                parent_tweet_id = parent_tweet['id']
+                parent_tweet_url = f"https://api.twitter.com/2/tweets/{parent_tweet_id}?{tweet_fields}"
+                parent_response = requests.get(parent_tweet_url, headers=headers)
+                parent_response.raise_for_status()
+                parent_tweet_data = parent_response.json().get('data', {})
+                return parent_tweet_data.get('note_tweet', {}).get('text') or parent_tweet_data.get('text')
+
+        except requests.exceptions.HTTPError as e:
+            logging.error(f"Error fetching tweet: {e.response.text}")
+            return None
+
+        return None  # Return None if it's an original tweet or in case of an error
 
     @staticmethod
     def extract_command_and_message(message):
