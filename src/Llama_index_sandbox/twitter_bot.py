@@ -89,6 +89,7 @@ class TwitterBot:
                             message = tweet_text  # Default behavior
 
                         chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
+                        # TODO 2024-01-25: if the thread or tweet is referring to document existing in the database, fetch their content too.
 
                         # Process the message
                         response = self.process_chat_message(chat_input)
@@ -104,17 +105,69 @@ class TwitterBot:
 
     def reply_to_tweet(self, user_id, response, tweet_id):
         """
-        Posts a reply to a tweet.
+        Posts a reply to a tweet using Tweepy, with a fallback to direct Twitter API call.
         :param user_id: The user ID to whom the reply should be addressed
         :param response: The response message to be posted
         :param tweet_id: The ID of the tweet being replied to
         """
         try:
-            username = self.api.get_user(user_id).screen_name
+            username = self.api.get_user(user_id=user_id).screen_name
             reply_text = f"@{username} {response}"
             self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
         except Exception as e:
-            logging.error(f"Error posting reply: {e}")
+            logging.error(f"Error posting reply with Tweepy: {e}")
+            # Fallback to fetch username directly and then reply
+            username = self.fetch_username_directly(user_id)
+            if username:
+                reply_text = f"@{username} {response}"
+                self.direct_reply_to_tweet(tweet_id, reply_text)
+
+    def fetch_username_directly(self, user_id):
+        """
+        Fetches the username of a user directly using the Twitter API v2.
+        :param user_id: The user ID
+        :return: The username of the user
+        """
+        url = f"https://api.twitter.com/2/users/{user_id}"
+        headers = {
+            "Authorization": f"Bearer {self.bearer_token}"
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                user_data = response.json().get('data', {})
+                return user_data.get('username')
+            else:
+                logging.error(f"Error fetching username directly: {response.status_code} - {response.text}")
+        except Exception as e:
+            logging.error(f"Exception in fetch_username_directly: {e}")
+        return None
+
+    def direct_reply_to_tweet(self, tweet_id, reply_text):
+        """
+        Fallback method to post a reply using a direct Twitter API call.
+        :param tweet_id: The ID of the tweet being replied to
+        :param reply_text: The reply message to be posted
+        """
+        url = 'https://api.twitter.com/2/tweets'
+        payload = {
+            "text": reply_text,
+            "reply": {
+                "in_reply_to_tweet_id": tweet_id
+            }
+        }
+        headers = {
+            "Authorization": f"Bearer {self.bearer_token}",
+            "Content-Type": "application/json"
+        }
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code == 201:
+                logging.info("Reply posted successfully with direct API call.")
+            else:
+                logging.error(f"Error posting reply with direct API call: {response.status_code} - {response.text}")
+        except Exception as e:
+            logging.error(f"Error with direct API call: {e}")
 
     def process_chat_message(self, message):
         """
@@ -139,8 +192,6 @@ class TwitterBot:
         except Exception as e:
             logging.error(f"Error processing chat message: {e}")
             return None
-
-    import requests
 
     def fetch_thread(self, tweet_id, test):
         """
