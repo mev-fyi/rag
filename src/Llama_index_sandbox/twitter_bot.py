@@ -444,6 +444,54 @@ class TwitterBot:
 
         return None  # Return None if it's an original tweet or in case of an error
 
+    def process_mention(self, mention, test=False, test_http_request=False, is_paid_account=False):
+        """
+        Processes a single mention from the Twitter mentions timeline.
+        :param mention: The tweet data (mention) to be processed
+        :param test: Flag for testing
+        :param is_paid_account: Flag to indicate if it's a paid account
+
+        Args:
+            test_http_request:
+        """
+        user_id = mention['user']['id_str']
+        tweet_id = mention['id_str']
+
+        if tweet_id in self.last_reply_times:
+            first_reply_id = self.last_reply_times[user_id]
+            already_processed_reply = f"Already processed this mention. See first reply: {first_reply_id}"
+            self.api.update_status(status=already_processed_reply, in_reply_to_status_id=tweet_id)
+            logging.info(f"Mention already processed: {tweet_id}")
+            return
+
+        tweet_text = mention['text']
+
+        if self.should_reply_to_user(user_id):
+            # Check if the mention is a reply or a quote
+            command, _ = self.extract_command_and_message(tweet_text)
+
+            if command == "thread":
+                message = self.fetch_thread(tweet_id, test=test, test_http_request=test_http_request)
+            elif command == "tweet":
+                message = self.fetch_tweet(tweet_id, test=test, test_http_request=test_http_request)
+            else:
+                message = tweet_text  # Default behavior for standalone mentions
+
+            if message is None:
+                logging.error("Could not fetch tweet")
+                return
+
+            chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
+            # Process the message
+            response = self.process_chat_message(chat_input).response
+            if response:
+                self.reply_to_tweet(user_id, response, tweet_id, test, is_paid_account)
+                self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
+            else:
+                logging.error("No response generated for the mention.")
+        else:
+            logging.info(f"Rate limit: Not replying to {user_id}")
+
     @staticmethod
     def extract_command_and_message(message):
         """
@@ -457,24 +505,3 @@ class TwitterBot:
             command = "thread"
         return command, message
 
-    def simulate_webhook_event(self, user_id, tweet_id, tweet_text, command_type="tweet"):
-        """
-        Simulates a webhook event for testing purposes.
-
-        :param user_id: The user ID of the tweet author
-        :param tweet_id: The tweet ID
-        :param tweet_text: The text of the tweet
-        :param command_type: The command type ('tweet' or 'thread')
-        """
-        print(f"Simulating webhook event for tweet: {tweet_id}, user: {user_id}, command: {command_type}")
-        if command_type == "thread":
-            message = self.fetch_thread(tweet_id)
-        else:
-            message = tweet_text
-
-        # Process the message
-        response = self.process_chat_message(message)
-        if response:
-            print(f"Response: {response}")
-        else:
-            print("No response generated for the simulated event.")
