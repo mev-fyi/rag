@@ -5,6 +5,7 @@ import assemblyai as aai
 import os
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+import re
 
 from src.Llama_index_sandbox import YOUTUBE_VIDEO_DIRECTORY
 
@@ -15,6 +16,11 @@ if not api_key:
     raise EnvironmentError("ASSEMBLY_AI_API_KEY environment variable not found. Please set it before running the script.")
 
 aai.settings.api_key = api_key
+
+
+def is_valid_filename(filename):
+    """Check if the filename starts with 'yyyy-mm-dd_' format."""
+    return re.match(r'^\d{4}-\d{2}-\d{2}_', filename)
 
 
 def utterance_to_dict(utterance) -> dict:
@@ -67,14 +73,16 @@ def transcribe_and_save(file_path):
     except Exception as e:
         logging.error(f"Error transcribing {file_path}: {e}")
 
+
 def main():
+    """Main function to transcribe files."""
     try:
         data_path = YOUTUBE_VIDEO_DIRECTORY
         mp3_files = []
 
         for root, dirs, files in os.walk(data_path):
             for file in files:
-                if file.endswith(".mp3"):
+                if file.endswith(".mp3") and is_valid_filename(file):
                     mp3_files.append(os.path.join(root, file))
 
         if not mp3_files:
@@ -87,6 +95,7 @@ def main():
 
     except Exception as e:
         logging.error(f"An error occurred in main: {e}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
