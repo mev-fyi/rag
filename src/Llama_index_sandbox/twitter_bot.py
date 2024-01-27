@@ -8,6 +8,7 @@ import backoff
 import requests
 from requests_oauthlib import OAuth1
 import tweepy
+from tweepy import OAuth1UserHandler
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
@@ -92,13 +93,13 @@ def split_response_into_tweets(response, username):
     for i, line in enumerate(lines):
         if bullet_point_pattern.match(line.strip()):
             # Handle long bullet points
-            if len(line) > TWEET_CHAR_LENGTH - (len(username) + 2 if is_first_chunk else 0):
+            if len(line) > TWEET_CHAR_LENGTH - (2 + len(username) if is_first_chunk else 0):
                 first_half, second_half = split_long_bullet_point(line)
                 lines.insert(i + 1, second_half)
                 line = first_half
 
         # Check if adding the line exceeds the character limit
-        if len(current_chunk + line) + 2 > TWEET_CHAR_LENGTH - (len(username) + 2 if is_first_chunk else 0):
+        if len(current_chunk + line) + 2 > TWEET_CHAR_LENGTH - (2 + len(username) if is_first_chunk else 0):
             if current_chunk.strip():  # Add chunk if it's not empty
                 chunks.append(current_chunk.strip())
                 current_chunk = ""
@@ -137,7 +138,7 @@ class TwitterBot:
         self.access_token = os.environ.get('TWITTER_ACCESS_TOKEN')
         self.access_token_secret = os.environ.get('TWITTER_ACCESS_TOKEN_SECRET')
         self.bearer_token = os.environ.get('TWITTER_BEARER_TOKEN')
-        self.auth = tweepy.OAuthHandler(self.consumer_key, self.consumer_secret)
+        self.auth = OAuth1UserHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
 
@@ -241,29 +242,33 @@ class TwitterBot:
             logging.error(f"Exception in fetch_username_directly: {e}")
         return None
 
-    def reply_to_tweet(self, user_id, response, tweet_id, test, is_paid_account=False):
+    def reply_to_tweet(self, user_id, response, tweet_id, test, post_reply_in_prod=True, is_paid_account=False):
         """
         Posts a reply to a tweet. If the account is not paid, splits the response into multiple tweets.
         :param user_id: The user ID to whom the reply should be addressed
         :param response: The response message to be posted
         :param tweet_id: The ID of the tweet being replied to
         :param test: Boolean flag for testing
+        :param post_reply_in_prod:
         :param is_paid_account: Boolean flag indicating if the account is a paid subscription
         """
-        try:
-            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
-            if username:
+        if post_reply_in_prod:
+            try:
+                username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
+                if username:
+                    reply_text = f"@{username} {response}"
+                    if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
+                        self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0)
+                    else:
+                        self.post_thread_reply(username, response, tweet_id)
+            except Exception as e:
+                logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
+                # Fallback to fetch username directly and then reply
+                username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
                 reply_text = f"@{username} {response}"
-                if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
-                    self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0)
-                else:
-                    self.post_thread_reply(username, response, tweet_id)
-        except Exception as e:
-            logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
-            # Fallback to fetch username directly and then reply
-            username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
-            reply_text = f"@{username} {response}"
-            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
+                self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
+        else:
+            logging.info("Not posting replies in PROD")
 
     def post_thread_reply(self, username, response, tweet_id):
         """
@@ -444,7 +449,7 @@ class TwitterBot:
 
         return None  # Return None if it's an original tweet or in case of an error
 
-    def process_mention(self, mention, test=False, test_http_request=False, is_paid_account=False):
+    def process_mention(self, mention, test=False, test_http_request=False, post_reply_in_prod=True, is_paid_account=False):
         """
         Processes a single mention from the Twitter mentions timeline.
         :param mention: The tweet data (mention) to be processed
@@ -485,7 +490,7 @@ class TwitterBot:
             # Process the message
             response = self.process_chat_message(chat_input).response
             if response:
-                self.reply_to_tweet(user_id, response, tweet_id, test, is_paid_account)
+                self.reply_to_tweet(user_id, response, tweet_id, test, post_reply_in_prod, is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
                 logging.error("No response generated for the mention.")

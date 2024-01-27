@@ -21,19 +21,9 @@ USER_AGENTS = [
     # Add more user agents if desired...
 ]
 
-def return_driver():
-    # set up Chrome driver options
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--disable-blink-features=AutomationControlled")
-    # options.add_argument("--start-maximized")
-    # options.add_argument("--no-sandbox")
-    # options.add_argument("--disable-dev-shm-usage")
-    # options.add_argument("--remote-debugging-port=9222")
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--disable-features=IsolateOrigins,site-per-process")
-    # options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    # NOTE 2024-01-10: hack: use mev.fyi's chrome drivers and all
+def return_driver():
+
     CHROME_BINARY_PATH = f'{root_directory()}/../mev.fyi/src/chromium/chrome-linux64/chrome'
     CHROMEDRIVER_PATH = f'{root_directory()}/../mev.fyi/src/chromium/chromedriver-linux64/chromedriver'
 
