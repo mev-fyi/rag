@@ -1,0 +1,353 @@
+00:00:04.090 - 00:00:14.782, Speaker A: Hi, everybody. We have Isaac here from coda, and he'll tell us more about how to succinctly validate the chain. Introduce yourself a little bit and then we can dive in.
+00:00:14.836 - 00:00:52.030, Speaker B: Sure. Yeah. I don't know. Okay, so I'm Isaac. I work on a project called coda. I guess the cool thing about it is, existing blockchains, it's pretty much impossible for most devices to actually verify the chain because the amount of data that you need to verify is proportional to number of transactions which happen on the chain in coda, somehow we use snarks to kind of compress the whole blockchain down to one little proof. So any device basically can verify super easily by just downloading this one proof.
+00:00:52.030 - 00:00:53.310, Speaker B: Cool.
+00:00:53.460 - 00:00:56.318, Speaker C: So let's get a quick overview of how that all works.
+00:00:56.404 - 00:01:31.186, Speaker B: Sure. Maybe I can start by kind of explaining it at a high level and then we can dig into any particular details. So I guess if you can imagine sort of a blockchain, it looks like this. There's some blocks, they go forever. And. Yeah, in order to verify the chain, you go down, you look at this block, you say, okay, is it good? Does it match up with the previous state? And so on. Oh, look at this block.
+00:01:31.186 - 00:02:07.350, Speaker B: Oh, is it good? Does it match up with the previous state? And so on? And you march down that way. So, as I kind of alluded to, this is pretty crappy because it means if you want to verify the chain, you need to look at all the blocks. Right. Okay, so for example, if you're on a phone or something, that's a no go. So what people do in practice is you basically look at a third party server and just look at whatever they say. The blockchain hash is like on metamask or something like that. Right.
+00:02:07.350 - 00:02:12.950, Speaker B: Okay, so what snarks let you do? Okay, so should I explain what's the deal with snarks?
+00:02:13.450 - 00:02:14.054, Speaker A: High level.
+00:02:14.092 - 00:02:31.934, Speaker B: Yeah. Okay, so snarks. So basically the idea is, right, okay. So you do some computation. Let me try and give a succeed example. Yeah. Okay.
+00:02:31.934 - 00:02:49.058, Speaker B: So imagine there's like, oh crap. Okay, I should have done this beforehand. Okay, so imagine you have some computer. It's like a big powerful computer. This is a computer, and it runs for like 1000 years. So time goes by 1000 years. Okay.
+00:02:49.058 - 00:02:56.966, Speaker B: So at the end you're going to get some output. It says like the answer, I don't know equals 42.
+00:02:57.148 - 00:02:58.280, Speaker C: 42.
+00:02:59.050 - 00:03:24.414, Speaker B: I don't know what you're talking about. So it says like the, the answer, for example, equals three. And you say, okay, well, that's all well and good, but how am I supposed to believe you that the answer equals three? That's not my computer. I didn't run that computer for a thousand years. I don't know. And imagine, furthermore, that doing this computation required computing on a lot of data. So data.
+00:03:24.414 - 00:04:01.946, Speaker B: Okay, so what snarks let you do is they allow you to create a very small amount of data so you can think of it somehow. Maybe. Sometimes I like to think about it like a snapshot, like a photograph of this computation happening. Okay? And it's like a polaroid, and someone wrote three on the bottom, and you just send that to someone instead. And the cool thing is, this is like a snark. Snark. So it's very small.
+00:04:01.946 - 00:04:31.550, Speaker B: So it's small. It's like, concretely, it's like, I don't know, kilobyte ish. And it's easy to verify. Okay, so how easy? On the order of like tens of milliseconds. Okay, so pretty easy to verify. And this took a thousand years, so not bad. Okay, so that's synarx.
+00:04:31.550 - 00:05:06.880, Speaker B: So cool. That's like general principle. Now, how can we use this to solve our problem of, like, let's not have to download every transaction which ever happened to verify the blockchain, you do it in the following way. Basically. Let's see how to best explain it. Okay, so if you think about this, what it said is any computation that you have, no matter how long it takes and how much data it operates on, you can make this little proof, which is small and easy to verify, which convinces someone that you ran that computation, and really the output was really what it was supposed to be, what you claim it is.
+00:05:07.890 - 00:05:09.840, Speaker A: They also need to know input data.
+00:05:10.850 - 00:05:16.318, Speaker B: Well, maybe you don't. Right, so you don't need to know the input data.
+00:05:16.484 - 00:05:17.978, Speaker C: It just says there is some input data.
+00:05:18.004 - 00:05:44.614, Speaker B: It says there is some input data. So that if you were to run this program on that input data, this would be the output. Yeah, exactly. Thanks for clarifying. Okay, so verifying a blockchain, that's an algorithm. That's a computation, which means we can use snarks to certify its execution. Now, we need to be sort of careful about how exactly we do it, because if you do it in an naive way, it's not going to be efficient, it's not going to really be feasible.
+00:05:44.614 - 00:06:12.786, Speaker B: But snarks are still sort of cutting edge technology. You need to make sure you treat them nicely. You can't throw anything at them. Let me kind of explain a little bit more in depth, how it actually works. Okay, so we have this idea that snarks can sort of. Oh, this one, we have this idea that snarks can sort of certify some computation so that you can be committed to the answer without having to redo it yourself. Okay.
+00:06:12.786 - 00:06:33.820, Speaker B: That's the idea. We need to keep this technology in our mind. Well, can I use this? I guess I can use this. So this is a bad whiteboard work. So how do we use this in a blockchain context? And by the way, this technique that I'm about to. Now I'm looking at this. Oh, I'm still looking at this.
+00:06:33.820 - 00:06:57.550, Speaker B: Okay. Overall. Okay. So this technique that I'm about to describe, it has really nothing to do with block. I mean, it doesn't have anything in particular to do with blockchains. It's very generic. And any sort of state machine, really, you can certify its execution in the way that we're going to describe using snarks and blockchains are some kind of state machine.
+00:06:57.550 - 00:07:32.330, Speaker B: So how does it work so well, yeah, in a blockchain, we have a state blockchain state. Okay. And what's in the state? Well, okay, for example, let me talk about coda. There's the Merkel root. Merkel root. Oops. Of the database of accounts.
+00:07:32.330 - 00:08:15.020, Speaker B: And there's some consensus related information. Essentially, there's maybe a little bit more than this, but so this is essentially information that you need to make progress in consensus to propose a new block and also to do chain selection. So this has things in it like length and then a bunch of more sort of oroboros specific stuff. Uro, I'm always bad at spelling this oroboro specific stuff, which we can get into later if there's interest. Okay.
+00:08:15.630 - 00:08:19.206, Speaker C: But if it was proof of work, that, for example, could be the overall.
+00:08:19.318 - 00:08:44.418, Speaker B: Complexity, if it was proof of work, this, for example, could be the strength of the chain. The expected number of hashes. Right. This would have like, the expected number of hashes that were needed to compute in this chain. The strength and also the last few difficulties and block times so that you could do difficulty adjustment. But don't use proof of work. It's bad.
+00:08:44.418 - 00:08:57.080, Speaker B: Seriously, like we're in a climate catastrophe. Okay, hopefully everyone knows that by now. Turn off your bitcoin miner. Let's see.
+00:08:57.390 - 00:09:01.098, Speaker A: People just started turning them on, the electricity price going down.
+00:09:01.184 - 00:09:54.034, Speaker B: Okay, well, anyway, right, okay, maybe I'll come back here. So we have this blockchain state, and then we sort of have like an update blockchain function. Okay. Update function. Okay. And basically, what does this do? So the input is like the previous state and say a block, whatever that is, and the output is the new state. Okay.
+00:09:54.034 - 00:11:00.466, Speaker B: So what we want to do is basically make a snark which somehow says, I know some sequence of blocks, so that if you call this update function with that sequence of blocks starting on the genesis state, you'll end up in state s. Okay, so yeah, we have some snark which says, this will be my diagram for snark. It's a photo it says you can get from genesis to state s. And it says something about the update function and so on, update, blah, blah, blah. So then if I want to convince you, for example, oh yeah, here's how much money you have in the current blockchain, for example, or like, I really sent this payment to you or whatever, I keep looking the wrong camera. I just send you this proof that convinces you. You see all the proofs floating out there on the network.
+00:11:00.466 - 00:11:26.782, Speaker B: You pick the strongest one that convinces you about what the current state is, state s. Then you would know from that, you would know the Merkel route of the database of accounts. Then you have to get from somewhere, you ask another node of the network for Merkel path into your account. And then you see your balance. $17 or whatever. $42. Yeah.
+00:11:26.782 - 00:11:40.978, Speaker B: Anyway, so that's the basic idea. Okay, so now how do you actually do this snark? That's this technique of recursive composition. And I can explain that, or we can go on to something else.
+00:11:41.064 - 00:11:42.338, Speaker A: No, I mean, this is.
+00:11:42.504 - 00:11:43.426, Speaker C: That's the core, right?
+00:11:43.448 - 00:11:44.530, Speaker A: Yeah, that's the core.
+00:11:45.110 - 00:11:46.580, Speaker B: Yeah, we can talk about that.
+00:11:47.350 - 00:11:53.462, Speaker A: I think the interesting part here is that snarks itself, you can only apply it to a specific function.
+00:11:53.516 - 00:11:53.782, Speaker B: Right.
+00:11:53.836 - 00:12:02.186, Speaker A: So when you have this photo, you actually need to know kind of what computation was done ahead of time. So that foot approves you.
+00:12:02.208 - 00:12:37.430, Speaker B: Yeah. So snarks, natively or whatever, only work with fixed size computations. So the naive thing would be you'd have to sort of say ahead of time. Yeah, this. But for ten blocks or for 1000 blocks, you'd have to fix the number of blocks that you wanted to sort of compress into one snark. And so the technique of recursive composition makes it possible to not have to do that, to certify the execution of an unbounded number of iterations of this update function. This is a general technique.
+00:12:37.430 - 00:13:38.424, Speaker B: So first I'll talk about the general technique, which you can apply to any snark and then I will talk about some snark specific things that so, right. So usually you wouldn't want to use this general technique because it's really slow. But then there's some kind of magic that is true about some snark constructions which let you to make this technique much more efficient than you would naively expect. Okay, so let me explain first the general technique. It's a very interesting technique. Basically, it's the following. Oh, let's see, what's the best way to explain it? Okay, so before we talked about this update function, maybe I'll still talk about it in those terms, even though it's really a bit more abstract.
+00:13:38.424 - 00:15:09.724, Speaker B: But let's say we have some function u, okay? And this is like our update function, function u from some state to some state, okay? And what we want to prove is basically, let's say like this, okay, maybe I can say this about snarks. With snarks, there's always this sort of public thing that's like what I wrote on the bottom of the Polaroid. You call it like the instance or the public input, maybe. So whenever you want to define a specific snark construction, you say, okay, what is the input? What is the instance, and what are you proving about the instance? Okay, so here's what we want to do. We'll have our input, or our instance will be a state, okay? Yeah, maybe two states, s zero and s one. Okay. And we'll prove, ah, okay, I'm not going to explain in full generality because it doesn't matter for the main idea.
+00:15:09.724 - 00:16:19.360, Speaker B: Okay, so we want to prove basically, okay, instance, this. This, yes, there exists some number n. Maybe I won't use that. I don't know who's watching, but let me try not to use any mathematical notation that I don't need to. There is some n, some number n, so that if you do un times on s zero, it's equal to s one. Okay, just abstractly, really, if you want to talk in full generality, then there's also some sort of input or whatever, like the blocks, the transitions, the state transitions. But let's think about this trivial case because it still illustrates the general concept without having to write more notation.
+00:16:19.360 - 00:17:53.010, Speaker B: So it's clear what we would like to do. We would like to have a snark, which lets us prove statements of this form. Okay, so how are we going to do it? Okay, here's the idea. Yes. So instead, this is one thing, but instead, how about we do this instead? Prove s zero is equal to s one. Or there is a proof PI and a state s. So that PI proves the statement as zero s and u of s is equal to s one.
+00:17:53.010 - 00:18:01.520, Speaker B: Okay. So will you interrogate, ask me some questions? So that to clarify what I said?
+00:18:01.590 - 00:18:12.612, Speaker A: Yeah, I mean, pretty much, you define a recursive function, right, where you have the base condition and then a step decomposing it into.
+00:18:12.666 - 00:18:13.792, Speaker B: Right. Yeah. It's like induction.
+00:18:13.856 - 00:18:16.470, Speaker A: Yeah, it's induction step.
+00:18:17.400 - 00:18:35.548, Speaker B: So you want to prove that if you do this some number of times, you can get from SEO to s one. What you prove is either, oh, you're already there. S zero is equal to s one. Or somehow I already know that I can get from s zero to s some intermediate state. And if I can just take one step from s, I get to s one.
+00:18:35.714 - 00:18:40.876, Speaker A: And you just care that that proof exists? You don't really care what that proof is.
+00:18:40.898 - 00:18:41.576, Speaker B: Yeah, it doesn't matter what.
+00:18:41.618 - 00:18:42.204, Speaker A: It's not an input.
+00:18:42.252 - 00:19:03.492, Speaker B: Yeah. Yes. It's part of the witness. And so the tricky part here is, what is meant by PI proves s zero, comma s one. Right. I mean, what does that mean? Well, it means if you run the snark verifier on PI with inputs s zero and s, you'll get true. Right.
+00:19:03.492 - 00:19:35.104, Speaker B: So we need to make this more explicit so that snark verify. Yes, snark verify on PI with s zero and s equals true. But even this is not enough, because snark verify, it doesn't just take the proof and the instance. It also takes another argument, which is called the verification key. Okay. Do you know what I'm talking about?
+00:19:35.302 - 00:19:38.432, Speaker A: Is that the program itself pretty much.
+00:19:38.486 - 00:20:13.596, Speaker B: It's sort of the program itself. Yeah. So people might know with snarks, it doesn't make sense to just say snark verify. Well, let me say it like this. For any particular program that you want to certify the execution of, you can generate parameters for that program. And probably many people know that there's this MPC that you have to do when you're using pairing based snarks, which is, like, to generate good randomness to use. Right.
+00:20:13.596 - 00:20:27.312, Speaker B: And so that good randomness is for generating a proving key and a verification key. And that verification key. Yeah, it's sort of like a description of the program. It's an additional input to the snark verify function. Does that make sense?
+00:20:27.366 - 00:20:31.250, Speaker A: Yeah, I mean, that's what toxic waste pretty much is when they generate it.
+00:20:32.420 - 00:20:50.504, Speaker B: Yeah. Right. So the toxic waste is like a byproduct of generating the verification. So you have to pass in the VK. Okay, but which VK? This is a bit of a problem because it's supposed to be the verification key for the program that we're right now defining. Right. You see what I'm saying? Yeah.
+00:20:50.542 - 00:21:05.676, Speaker A: So, I mean, you're pretty much saying, so you have u from u from U. Right. And you decompose this part out, and you're saying, hey, there is a PI without this part. Yes, but the PI itself proves this part.
+00:21:05.778 - 00:21:06.716, Speaker B: Right? Yeah.
+00:21:06.818 - 00:21:15.324, Speaker A: So pretty much you need a VK. That proves, I mean, depends on how PI is structured.
+00:21:15.372 - 00:21:15.632, Speaker B: Right.
+00:21:15.686 - 00:21:16.432, Speaker A: That's what.
+00:21:16.566 - 00:21:24.512, Speaker B: Right. So what I'm saying is what we would want is that VK is the verification key corresponding to the statement that we're right now defining. Right.
+00:21:24.646 - 00:21:27.812, Speaker C: So there's a chicken and a neck problem to the step itself.
+00:21:27.866 - 00:21:28.436, Speaker B: Pretty much.
+00:21:28.538 - 00:21:31.748, Speaker A: Well, to the induction step. Not.
+00:21:31.914 - 00:21:36.308, Speaker C: No, VK is not an induction step. VK is the full induction to the.
+00:21:36.314 - 00:22:05.952, Speaker B: Whole statement that says either base case or you take one step. Right. So that seems a bit problematic. Right. Because, well, we didn't finish defining the program yet. How are we supposed to do a parameter generation and get the verification key? Well, I don't know. How about we just make the verification key part of the input? Yeah, so, right.
+00:22:05.952 - 00:22:17.040, Speaker B: So we just say, snark, verify on. Oh, right. So this isn't. Yeah, well, that's not going to quite work. Sorry. Okay, so some. Sorry.
+00:22:17.040 - 00:22:31.664, Speaker B: Let's not make a part of the input yet. So somehow we're going to have to get this VK. Right. So here's what you do. You say, right? Yeah, I guess you could make it part of the input so you can think it's like a binder, like in a programming language. Right. It's not in scope.
+00:22:31.664 - 00:22:51.996, Speaker B: VK is not in scope. So we need to bring it to scope somehow. In the snark, there's two ways that you can, I mean it literally, there's two ways that you can bring something into scope. One is you have it be part of the instance. Okay? This binds the variables s zero and s one by saying, declaring that they're part of the instance. Or you can do this. There is.
+00:22:51.996 - 00:23:10.992, Speaker B: You can do this nondeterministic choice. That's the other binder. So you can say there is a proof PI. And now I can nsate s. And now I can talk about PI and s and what follows. Okay? So I can either bind it here, or I can bind it in there is the most obvious thing to try is to bind it here. So to say, okay, part of the instance is also Vk.
+00:23:10.992 - 00:23:35.896, Speaker B: So when you verify the proof, you actually sort of pass in the verification key as part of the input. It's sort of like a function that calls a function. You can kind of think about it like you're passing in a function as an argument and it calls itself. It's like if anyone ever implemented like a fixed point function or something, or y combinator, it's kind of like that. What? Nothing. Yes. Okay.
+00:23:35.896 - 00:24:00.148, Speaker B: But actually it's very interesting. You can do this. Why can you not do this? This is a great trick. You can't do this because actually the size of the verification key depends on the size of the instance. So let's say the instance has size. Let's say the instance would have to have some size. Let's say it has size k.
+00:24:00.148 - 00:24:18.424, Speaker B: All right. For example, well, it can't actually have size k, because if it has size k, then it's a verification key has size, basically k plus one. Then your instance has two k, for example. Right. At least k plus one. Okay, so that's contradiction. So it can't have any size.
+00:24:18.424 - 00:24:29.630, Speaker B: So that doesn't make sense. So that's actually a no go. So. Oh, that's too bad. But it's kind of funny. Okay, so what's our only other choice? We only have one other binder. This marker died too.
+00:24:29.630 - 00:24:57.264, Speaker B: We only have one other binder, which is there is. Okay, so that's where we need to bind it. So there is a proof PI and a state s and a verification key such that this, okay, so now we've bound it. So that's good. Okay, so now we take a look at what we've done so far. Is this going to work? No, it's not. Why? Because we said it's just an arbitrary verification key, so that's totally useless.
+00:24:57.312 - 00:24:58.548, Speaker C: It's going to always return true.
+00:24:58.634 - 00:24:59.236, Speaker B: For example.
+00:24:59.338 - 00:25:01.316, Speaker A: Well, you can always find such a key that.
+00:25:01.418 - 00:25:29.168, Speaker B: Exactly. You can always find a key that returns true. So that's no good. So now we think, and now here is the amazing thing. Now we look back at our instance and we say, okay, what was the problem? The problem was that in order for the verification key to have sort of a fixed size or whatever, the instance needed to have a size that didn't depend on a verification key.
+00:25:29.254 - 00:25:31.504, Speaker C: So do we hash the key and just pass the hash of the key?
+00:25:31.542 - 00:25:57.304, Speaker B: Yes, exactly. So instead of having the instance be a pair s zero and s one, you can have it be just a single value, which is a hash. So it's just hash, hash h. And then what you do is you say we use our other binder. So now s zero and s one aren't in scope anymore, but that's okay, because we have this other binder, which is. There is. Yes.
+00:25:57.304 - 00:26:25.410, Speaker B: So we say there is s zero. S one is using script s zero, s one, vk. So that, first of all, this is the right s zero, s one, and vk. So hash of s zero s one vk is equal to h and everything else that we said before.
+00:26:26.180 - 00:26:27.732, Speaker C: But that doesn't work, right?
+00:26:27.866 - 00:26:28.868, Speaker B: Oh, why not?
+00:26:29.034 - 00:26:33.172, Speaker C: Because you will naturally have to pass this hash in here. But s doesn't match.
+00:26:33.226 - 00:26:53.580, Speaker B: Right. Okay. Right. That's a good point. So now we need to just change this. So instead of saying, snark verify vk, and this, we say, snark verify vk with hash of s zero s and vk. Okay.
+00:26:53.730 - 00:27:00.156, Speaker C: But also, are you implying that can I snarkify snark verify function?
+00:27:00.338 - 00:27:01.020, Speaker B: Yes.
+00:27:01.170 - 00:27:02.500, Speaker A: That's the whole point of recursive.
+00:27:02.600 - 00:27:15.344, Speaker B: That's the point of recursive composition. So the snark verify function is defined regardless of what the verification key is, and it's small. It's quite simple. So this is just some computation.
+00:27:15.472 - 00:27:17.030, Speaker A: How many gates is that?
+00:27:58.670 - 00:27:59.754, Speaker C: So which one do you use?
+00:27:59.792 - 00:28:03.340, Speaker B: So you use, like, the Sean and Dara's Peterson hash function.
+00:28:04.750 - 00:28:10.350, Speaker C: And so this, in practice, is this recursive snark applied to every block or to every transaction?
+00:28:11.730 - 00:28:55.782, Speaker B: Yes, that's a good question. So what I described was talking about it for every block. But you need to do something with the transactions, and in particular, in order to decouple, it's important in coda, for example, that the block time is short. This is important for orboros. So you want to decouple the block time from the proving time as much as you can, and the snark proving time, because it's pretty long. Right. So if all the transactions that you wanted to include in the block, you had to do at the same time as you produce the block, that would not be so good, because you could only do very few transactions in the short block time that you want to do.
+00:28:55.782 - 00:29:22.120, Speaker B: So in coda, there's this kind of pipelining that goes on where there's really actually kind of a buffer of transactions which have yet to be snarked yet, but are also kind of part of the state. And when you win a block, you essentially in queue things onto this buffer and also compress some things that have been compressed in the meantime, from the beginning, to clear more space.
+00:29:23.290 - 00:29:26.770, Speaker C: So every block contains some transactions yet to be snarkified.
+00:29:26.850 - 00:29:36.902, Speaker B: Yes. In addition to some transactions that had been previously included that have now been snarkified, that you sort of pop off this queue.
+00:29:37.046 - 00:29:44.234, Speaker C: But in reality, is it the case that you like, let's say I have two transactions, right? TX one and TX two.
+00:29:44.272 - 00:29:44.860, Speaker B: Yeah.
+00:29:45.470 - 00:29:59.466, Speaker C: Is it the case that I'm first going to prove that TX one is valid, and then I'm going to prove that I have the snark of TX one and TX two is valid, like recursively? Or is it the case that I will prove TX one separately, TX two separately, TX three separately, and then somehow.
+00:29:59.498 - 00:30:07.620, Speaker B: Aggregate merge them together? Yes. Actually, that's how you do it. And that's important because otherwise things are going to be really slow and you're going to have a really crappy throughput. Right.
+00:30:10.550 - 00:30:27.498, Speaker C: But then it becomes interesting, right? Because you have state, because imagine that Ilya has ten tokens and I have transaction TX one which sends them to me, and transaction TX two that sends them to you. Then you can naturally prove both of them. So the aggregation step is in a smart way, rules that.
+00:30:27.584 - 00:30:28.090, Speaker B: Let me explain.
+00:30:28.160 - 00:30:31.820, Speaker A: Yeah, it proves them when you applied the state.
+00:30:32.670 - 00:30:44.160, Speaker B: Yeah, right. As you said, we have these transactions, let's say there's four. Oh, I see.
+00:30:46.530 - 00:30:48.942, Speaker A: Like you prove a state transition. Not.
+00:30:49.076 - 00:31:00.354, Speaker B: Right, because these are sitting in a buffer, they've been linearized, there is a definite order on them. And so we can do it without worrying about what you said, basically.
+00:31:00.472 - 00:31:06.870, Speaker C: So factor, there was like some state zero here, state one, state two. Those can be computed very quickly compared to snark computation, right?
+00:31:06.940 - 00:31:07.526, Speaker B: Yes, exactly.
+00:31:07.628 - 00:31:11.330, Speaker A: And you store them with a buffer of transactions.
+00:31:11.490 - 00:31:28.746, Speaker B: Yeah, exactly. And then what you do is instead of here, we had once called a snark verify, but you can imagine having two, and that's just what you do. So you have a proof that verifies two proofs, and so you sort of go up a tree, and it's also.
+00:31:28.768 - 00:31:32.058, Speaker C: Going to prove that the output state of one of the transactions equals to the input.
+00:31:32.074 - 00:31:37.006, Speaker B: Yes, exactly. So it verifies two proofs and it checks that they match up, and then.
+00:31:37.028 - 00:31:38.442, Speaker C: It'S like some logarithmic ascend.
+00:31:38.506 - 00:32:01.894, Speaker B: Yeah, right. So let's say you do two once. So here it's like s zero to s one, s one to s two. So you just merge these together, and then you can get from s zero to s two. Similarly, you merge these together, and you can get from s two to s four. And then you merge everything together. Right.
+00:32:01.894 - 00:32:08.134, Speaker B: And so the total wall clock time taken to do this is logarithmic in the number of transactions instead of being linear in the number of transactions.
+00:32:08.182 - 00:32:13.786, Speaker C: So you're happy, but you need number of workers, which is linear in number.
+00:32:13.808 - 00:32:18.542, Speaker B: Of transactions, which is linear in the number of transactions. Yeah. The total amount of work that you do is. Yeah.
+00:32:18.596 - 00:32:27.038, Speaker A: And also, I mean, all the workers need to have pretty much a somewhat sophisticated data structure to contain the chopped up state.
+00:32:27.124 - 00:32:46.360, Speaker B: Yes. There's some data structure which if you go on GitHub and look at our code, it's in a file called parallel scan. I didn't name it. I don't love this name. But anyway, it's a tree that has all sort of the intermediate states of all these computations and holds on to all the data. It's sort of complicated. Yeah.
+00:32:46.890 - 00:32:54.406, Speaker C: What does ML stand for? Camel, as obvious from the abbreviation. Oh yeah, that just has ML.
+00:32:54.438 - 00:32:54.682, Speaker B: Yeah.
+00:32:54.736 - 00:32:55.894, Speaker C: Okay. The suffix.
+00:32:55.942 - 00:33:04.220, Speaker B: Yeah, it's part of the ML family of languages like SML. Anyway.
+00:33:06.690 - 00:33:14.782, Speaker A: All right, so usually one snark, how long? Like for one state transition, it's something.
+00:33:14.836 - 00:33:18.106, Speaker B: Like 30 seconds on a cpu. Right. On a cpu.
+00:33:18.138 - 00:33:25.260, Speaker C: So on a gpu it will be faster. Matterlabs.
+00:33:27.440 - 00:33:27.804, Speaker B: Yeah.
+00:33:27.842 - 00:33:28.936, Speaker A: So you have 30 seconds.
+00:33:28.968 - 00:33:29.550, Speaker B: Right.
+00:33:30.000 - 00:33:32.140, Speaker A: And then you have a height of it.
+00:33:32.290 - 00:33:35.676, Speaker C: But this is also 30 seconds because this is a different proof.
+00:33:35.708 - 00:33:37.084, Speaker B: Right, roughly. Roughly.
+00:33:37.212 - 00:33:38.290, Speaker C: So they're all the same.
+00:33:38.900 - 00:33:40.064, Speaker A: Well, they're different.
+00:33:40.262 - 00:33:42.256, Speaker B: Same order magnitude, let's say. Yeah.
+00:33:42.358 - 00:33:47.120, Speaker A: So logarithmic transaction. So how many transactions do you have in the block?
+00:33:47.700 - 00:33:53.524, Speaker B: I don't remember the exact number, but let's say you want to do like 1000 transactions or something, but transaction is.
+00:33:53.562 - 00:33:55.604, Speaker C: Final when it is included into the buffer, right?
+00:33:55.642 - 00:33:55.796, Speaker B: Yes.
+00:33:55.818 - 00:33:56.996, Speaker C: So we really don't care how long.
+00:33:57.018 - 00:33:59.140, Speaker B: This takes in some sense. Yeah.
+00:33:59.290 - 00:34:03.432, Speaker A: But that's your, pretty much. How soon do you have a snark for this?
+00:34:03.486 - 00:34:12.670, Speaker C: For the whole, right, yeah, let's say it's next day, but then as a mobile phone you're downloading the snark. One day worth of blocks, which is still a lot.
+00:34:13.920 - 00:34:15.070, Speaker B: Yeah, it is.
+00:34:16.480 - 00:34:21.068, Speaker A: How often do you produce blocks? Maybe that's a good segue into.
+00:34:21.154 - 00:34:23.228, Speaker B: Yeah. So we haven't went into consensus and.
+00:34:23.234 - 00:34:25.230, Speaker A: Stuff well into the chain itself.
+00:34:26.800 - 00:34:42.230, Speaker B: We haven't totally set the parameters. Hopefully we have to get the proving time a little lower, but hopefully it'll be somewhere around 10 seconds for one block. That's the hope. For the block time, it might be a bit more. I don't know, I don't want to commit. It's not on a board.
+00:34:44.280 - 00:34:59.316, Speaker C: You cannot erase things from blockchain. There's already a ZK somewhere, but also in practice. So once these proofs were proven for one block. Right, and we're moving up the tree, are you already starting proving the lowest level for the next block?
+00:34:59.348 - 00:35:03.790, Speaker B: Yeah. There's some kind of smart thing where there's multiple trees that are in progress at the same time.
+00:35:04.960 - 00:35:10.600, Speaker C: And the orchestration of this process, is it also on the blockchain, or is it independent?
+00:35:10.680 - 00:35:15.296, Speaker B: Sort of. So, like, is it certified itself certified within the snark? Is that what you mean?
+00:35:15.478 - 00:35:21.724, Speaker C: No. My question is, is the information about which parts are computed already on the blockage?
+00:35:21.772 - 00:35:40.360, Speaker B: Yes, that information is in the blockchain. But this is actually worth mentioning. Who is actually producing these proofs? It can be anyone. So there's actually a mechanism. Let me say there's kind of two kinds of nodes. Two kinds of nodes who are not just verifying. So two kinds of nodes who are computing.
+00:35:40.360 - 00:36:12.140, Speaker B: There's, like, staking nodes, people who are actually proposing new blocks, and there's, like, snarking nodes, and they may be the same people, and basically snarking nodes, they produce proofs which somehow have attached to them. I would like to receive this fee for this proof. And those are gossiped around the network. And then staking nodes can use those proofs when building their blocks to work on the tree that's in progress.
+00:36:12.220 - 00:36:17.504, Speaker A: So, in theory, they can screw up snarking node by just computing them themselves and including it.
+00:36:17.622 - 00:36:18.908, Speaker B: Yeah. If they want to. Yeah.
+00:36:19.014 - 00:36:24.544, Speaker C: And so the only damage a staking node can do is waste some snark computational resources.
+00:36:24.592 - 00:36:27.764, Speaker B: Right. They may not select this person's proofs. Yeah.
+00:36:27.802 - 00:36:29.236, Speaker C: Oh, they can also do reworks, I guess.
+00:36:29.258 - 00:36:29.684, Speaker B: Right.
+00:36:29.802 - 00:36:33.908, Speaker C: They can also do reworks. Like, they can fork out the chain. The staking nodes.
+00:36:34.004 - 00:36:35.428, Speaker B: Oh, yeah. We can talk about consensus.
+00:36:35.524 - 00:36:43.752, Speaker A: So, one question just to be clear. So this is really, like, 30 seconds for a money transfer transaction.
+00:36:43.816 - 00:36:53.150, Speaker B: Yeah, but it would be similar. There's techniques that you could do that would make it similar for more general kinds of computation, too.
+00:36:53.680 - 00:36:54.864, Speaker A: Like during complete.
+00:36:54.982 - 00:37:02.960, Speaker B: Well, probably not. I mean, in some sense. So you can imagine doing a Zexi style.
+00:37:04.660 - 00:37:10.870, Speaker A: System where you pretty much need to check in the type of program you want ahead of time.
+00:37:11.240 - 00:37:38.552, Speaker B: This verifies. Yeah. So the off chain computation would be more depending on the complexity of this program. But the on chain computation, the snark work or whatever, would still be small because you can just sort of recursively do recurse composition, basically. So if you have any computation, you make a snark for it. And then the way Zexi works is like, all you're doing is certifying snarks on chain. So you're not certifying the computation itself, but just a snark that itself certifies the computation.
+00:37:38.616 - 00:37:42.504, Speaker A: So, like, your transaction is a snark. Pretty much. That's what hits the blockchain.
+00:37:42.552 - 00:37:46.044, Speaker B: Yeah. Right. Instead of a signature, you have a snark. That's kind of the idea.
+00:37:46.162 - 00:37:49.040, Speaker C: Zax only requires one trusted setup.
+00:37:50.660 - 00:37:51.776, Speaker B: I guess it depends what you mean.
+00:37:51.798 - 00:37:56.628, Speaker C: By one setup, but, yeah, only one mass, one toxic waste left.
+00:37:56.714 - 00:38:01.110, Speaker B: Yes. I mean, if you did Zaxi with something like Sonic, for example.
+00:38:03.320 - 00:38:06.964, Speaker C: But then why not use sonics for everything?
+00:38:07.082 - 00:38:22.504, Speaker B: I mean, I guess the problem with Sonic as it currently is, it's slow, but I've heard that there ought to be similar systems which should be much faster, but they're not public yet, so this is the only one that I know how to talk to.
+00:38:22.542 - 00:38:31.932, Speaker C: But my question was about Zexi and snarks because. So, for example, in your case, right, you will do one trusted setup for your circuit that I guess for like, multiple circuits, right? You have a circuit for the payment.
+00:38:31.986 - 00:38:36.732, Speaker B: Circuit, for the merger, for the wrapping. Yeah. Oh, I didn't talk about the wrap. Whatever. I won't talk about that. It's cool.
+00:38:36.866 - 00:38:47.200, Speaker C: In Zixie, if I create a new, let's call it smart contract, do I do trusted setup per smart contract, or do I do one smart with snarks? Not with sonics. Or I do one at the beginning.
+00:38:47.540 - 00:38:50.256, Speaker B: Oh, sorry, Zexie. With snarks. Not with sonic.
+00:38:50.288 - 00:38:50.768, Speaker C: With snarks.
+00:38:50.784 - 00:38:53.460, Speaker B: Yes. Yeah, you'd have to do it once per contract. Per program.
+00:38:53.530 - 00:38:54.784, Speaker C: Per contract. Unfortunate.
+00:38:54.832 - 00:38:56.260, Speaker B: Yeah. But you can use Sonic.
+00:38:58.300 - 00:38:59.944, Speaker A: Or stark or anything, right?
+00:38:59.982 - 00:39:03.864, Speaker B: Well, stark is a little bit. Those other ones are more difficult to do.
+00:39:03.902 - 00:39:11.956, Speaker A: Yeah, because you need composition. So you mentioned wrapping. That's for the whole block.
+00:39:11.988 - 00:39:55.370, Speaker B: Pretty much. Well, sort of. We talked about the general technique of recursive composition, but if you try and do it in a naive way, all that we just described, you're in for a lot of pain, because that snark verify function is going to be millions of constraints, actually, probably even more how to not experience that pain. And that's what I was just talking about with the wrapping. But we can talk about that, or we can talk about consensus. I don't know. It's up to you how much time we got.
+00:39:55.370 - 00:39:56.970, Speaker B: All right.
+00:39:57.900 - 00:40:01.160, Speaker A: Yeah, we can talk about consensus a little bit more? I think that's okay.
+00:40:01.230 - 00:40:01.896, Speaker B: Yeah.
+00:40:02.078 - 00:40:04.564, Speaker A: It's interesting how this all builds into a chain.
+00:40:04.692 - 00:40:24.252, Speaker B: Oh, wait, one more thing. While I'm on the video, I just want to say it that we were talking about those matter guys. We're also going to be doing a contest for improving the snark prover and in particular GPU implementations. So stay tuned for that. Follow us on Twitter. We'll tweet about it. Okay, so consensus.
+00:40:24.252 - 00:40:24.930, Speaker B: Yeah.
+00:40:25.940 - 00:40:29.288, Speaker C: So can you actually give a high level overview of Roboros?
+00:40:29.324 - 00:40:29.732, Speaker B: Yeah, sure.
+00:40:29.786 - 00:40:32.564, Speaker C: Because I think most of the people cannot really process that paper.
+00:40:32.602 - 00:40:44.410, Speaker B: Right. It's well known that if you mention this paper to someone, there's pretty much one thing they will say about it, which I won't say. Okay.
+00:40:46.220 - 00:40:49.384, Speaker A: First of all, nobody can spell it, so it's really hard to find it.
+00:40:49.422 - 00:41:35.364, Speaker B: Yeah, I think that's spelled correctly. Okay, so what's the basic idea of Orboro? So it's proof of stakehold and it's, I guess, by Iohk people, which is Cardano, right? Yeah. The first favorite is from like 2000, I want to say 2017 or something like that. 2016. But they've done a series of improvements, so it's a lot better than the original thing. But let me explain everything. Okay, so Uberverse, how does it work? Basically, how it works is the following.
+00:41:35.364 - 00:42:03.530, Speaker B: You have time. Is it continuous? Is it discrete? I don't know, but you discretize time and first you chop up time, let's say. Yeah, into slots. So this isn't that important, but you discretize time into slots.
+00:42:10.770 - 00:42:12.282, Speaker C: How long is one slot?
+00:42:12.426 - 00:42:17.550, Speaker B: So this is like the block time. So this is what you would want to be like 10 seconds ish.
+00:42:20.770 - 00:42:24.894, Speaker C: Do all the nodes assume to have give or take synchronous clocks?
+00:42:24.942 - 00:42:25.540, Speaker B: Yes.
+00:42:27.990 - 00:42:29.534, Speaker C: Like, up to that precision?
+00:42:29.662 - 00:42:36.806, Speaker B: Yes. Less than that. Well, you'd want it to be more precise than that. Yeah.
+00:42:36.828 - 00:42:39.080, Speaker A: They need to communicate right within that.
+00:42:40.490 - 00:42:48.150, Speaker B: Okay. And then once you've broken up time into slots, you break it up further into what are called epochs.
+00:42:50.910 - 00:42:52.730, Speaker A: Just expand one slot.
+00:42:54.750 - 00:42:58.774, Speaker B: Sorry, you break up like this. Epochs are bigger than slots.
+00:42:58.822 - 00:43:02.942, Speaker A: Okay. That's just like how validated rotation stuff.
+00:43:02.996 - 00:44:02.934, Speaker B: It's something like that, except not exactly, but yeah, something like that. So these are epochs. This is epoch zero, epoch one, and so on. And then the idea is basically at the beginning of each epoch, sort of, you have some randomness which somehow was given to you by nice people in the past, and you use that randomness to randomly sample in some sense, who are going to be the winners in each of the slots in the subsequent epoch. Now, how you actually do that randomness, how you actually accumulate the randomness, and how you actually select the winners, it depends based on, well, in the original oriboros, it's one way. In Oribor's prowess, it's another way. And we use the techniques in Oribor's prowess.
+00:44:02.934 - 00:45:01.550, Speaker B: They're much more conducive to being smart and also, I think, just simpler. And then what orboros prowess ends up giving you is somehow some kind of security. Okay, so this gives you sort of the ability to sort of select or prefer a chain to distinguish an attacker chain. Distinguish an attacker chain, assuming it did not fork too long ago from the chains that you know. And how long is too long? Basically, it's a fraction of an epoch. It's a fraction of an epoch. Or maybe it's a full epoch.
+00:45:01.550 - 00:45:27.580, Speaker B: I don't remember. Maybe it's a fraction of one. I think it's a fraction of an epoch. Up to. Up to sort of recent forks. Okay, so that's no good. What that means is this is a good way to go, so long as you're online frequently, or if a snapshot or if you put on mybitcoinblockchainhash.com
+00:45:27.580 - 00:46:13.606, Speaker B: or whatever. Right? And so they wrote this other paper called Orboros genesis. And this lets you distinguish for long forks, actually arbitrarily long forks. But it's not really snarkable because it requires sort of looking. If you have a fork, it requires looking at the point where they forked and then making some judgment about that. And this is not a snarkable thing to say. To say, oh, go look.
+00:46:13.606 - 00:46:42.130, Speaker B: In an arbitrary point in the past, all you have is current state. So we have some modification, and I think Vanishree, who works with us, is writing a blog post about it. And so we'll write something up about this soon, which makes it snarkable, which involves somehow computing some summary statistic that somehow approximates what you were doing by looking at the point where they forked.
+00:46:45.850 - 00:46:47.654, Speaker C: But in essence, it's the same.
+00:46:47.852 - 00:46:49.960, Speaker B: It's a similar idea. Yeah.
+00:46:51.770 - 00:46:55.682, Speaker A: So what happens within a slot? Just block proposes.
+00:46:55.826 - 00:47:25.422, Speaker B: Yeah. How do you win? Right. So here's how you win, and let me talk about prowess. And it's exactly the same in Genesis. The only thing that changes in Genesis is the chain selection rule. So how do you win? So here's what you do. So at the beginning of an epoch, I have some randomness that was given to me by the very kind people from epoch, n minus one, called r.
+00:47:25.422 - 00:48:08.800, Speaker B: I think in the paper they call it a nonce. Okay. So it's some random bits that were somehow generated by these people in such a way that an adversary sort of can't mess with it and say, I'm here, and I'm like, hey, I wonder if I won epoch or slot number three or 20, because I'm coming from 0012, I wonder if I won slot number two and let's say my public key. I have a public key. U. My balance, my account balance is like a or something or b for balance. And the total amount of stake in the system is like.
+00:48:10.850 - 00:48:17.890, Speaker C: T. I'm assumed to stake my entire balance, or balance specifically how much is staked.
+00:48:20.150 - 00:48:22.002, Speaker B: You're staking your entire balance, I see. Yeah.
+00:48:22.056 - 00:48:22.660, Speaker C: Awesome.
+00:48:24.790 - 00:48:52.330, Speaker B: Right. So what you do is there's something called a vRf, which is like a verifiable random function. And it's actually really simple and I can explain it, but basically you somehow run your own private lottery and it's somehow associated to your public key. You have some personal random function which is somehow associated to your public key, and you evaluate it on basically the input.
+00:48:52.690 - 00:48:53.550, Speaker A: The slot id.
+00:48:53.620 - 00:49:01.390, Speaker B: Yes, the slot id, exactly. So like basically two comma, you know, or one comma, two, like epoch number, comma, slot number, say, oh, and then with the randomness.
+00:49:02.210 - 00:49:06.210, Speaker C: So would a hash of a signature be a viable VRF?
+00:49:06.950 - 00:49:26.440, Speaker B: That's basically it. That's almost exactly what you do. Yeah, pretty much. It can't be a hash of signature because signatures have randomness in them. But you want to be able to grind. But that's almost exactly the idea. So what you do is basically you take the message and you raise it to your private key.
+00:49:26.440 - 00:49:34.380, Speaker B: You take the message, you interpret it as a group element somehow, and you raise it to your private key and then you hash it. And then. Yeah, so.
+00:49:38.190 - 00:49:41.546, Speaker C: But then I don't know if I want, right. I just know if my number is.
+00:49:41.568 - 00:49:59.118, Speaker B: Big, I sort of, and then you, and then you compare this number to some function of B and t, and you basically check. There's some threshold function which, say, takes B and t as inputs and returns.
+00:49:59.134 - 00:50:01.986, Speaker A: Some pretty much says you should try or you shouldn't try.
+00:50:02.168 - 00:50:05.666, Speaker B: Well, it will just be a real number and you can compare, you can.
+00:50:05.688 - 00:50:15.778, Speaker C: Compare with others, right? Like you're not going to know immediately that you want. That sounds like magic. No, because I don't know others. Others will have different vrfs.
+00:50:15.794 - 00:50:15.926, Speaker B: Right.
+00:50:15.948 - 00:50:17.080, Speaker C: Which I do not know.
+00:50:17.450 - 00:50:18.470, Speaker B: Is that what you're asking? Yeah.
+00:50:18.540 - 00:50:20.098, Speaker C: I see. Multiple people can win.
+00:50:20.124 - 00:50:21.020, Speaker B: Okay. Yes.
+00:50:33.570 - 00:50:37.038, Speaker A: So they all produce blocks. Pretty much all of the, everyone who.
+00:50:37.044 - 00:50:37.914, Speaker B: Won produces a block.
+00:50:37.962 - 00:50:43.982, Speaker A: Produces a block with the transaction they have so far. They post it and then everybody else pretty much does a chain rule.
+00:50:44.046 - 00:50:55.750, Speaker B: Yes. And there's a parameter in the system which is like basically what percentage of the slots do you want to be full? And that also implicitly determines how often will there be multiple blocks per slot.
+00:50:58.170 - 00:51:02.226, Speaker C: But for example, so let's say like four people won here and they all produce blocks.
+00:51:02.258 - 00:51:03.160, Speaker B: Right? Yeah.
+00:51:04.650 - 00:51:06.342, Speaker C: And let's say just me, who won here?
+00:51:06.396 - 00:51:06.662, Speaker B: Okay.
+00:51:06.716 - 00:51:07.642, Speaker C: Nobody else won.
+00:51:07.696 - 00:51:09.354, Speaker B: Okay. Yeah.
+00:51:09.392 - 00:51:12.726, Speaker C: There is some algorithm which tells me which one to choose, but I can choose arbitrarily steal.
+00:51:12.758 - 00:51:12.906, Speaker B: Right.
+00:51:12.928 - 00:51:13.786, Speaker C: It's up to me.
+00:51:13.888 - 00:51:15.260, Speaker B: That's true. Yeah. Okay.
+00:51:16.110 - 00:51:16.886, Speaker A: You're an adversary.
+00:51:16.918 - 00:51:17.514, Speaker B: Yeah. It's up to you.
+00:51:17.552 - 00:51:22.190, Speaker C: Right. But then when I produced my block, right. So I said, I'm actually going to choose this one.
+00:51:22.260 - 00:51:22.830, Speaker B: Okay.
+00:51:22.980 - 00:51:28.106, Speaker C: Even though this one was higher, I will just pretend I didn't see it. The next person will always prefer mine.
+00:51:28.138 - 00:51:28.286, Speaker B: Right.
+00:51:28.308 - 00:51:29.070, Speaker C: Because mine is longer.
+00:51:29.140 - 00:51:29.760, Speaker B: Okay.
+00:51:31.750 - 00:51:33.620, Speaker C: So we can attack up to.
+00:51:34.630 - 00:51:44.820, Speaker B: There's some complicated analysis in Herberos. I encourage you to read it. It says if you don't have.
+00:51:46.650 - 00:51:47.058, Speaker C: It'S.
+00:51:47.074 - 00:51:58.358, Speaker B: Not 50%, it's a little bit less, actually, it's like 40 something percent, then you can't do this often enough to win eventually.
+00:51:58.534 - 00:52:03.334, Speaker C: And do people stake explicitly or everyone who has any balance is staking?
+00:52:03.382 - 00:52:25.714, Speaker B: Yes. And there's also delegation. So you can say, actually there's basically a bit in your account, or it's not a bit, actually, it's a public key. There's a field in your account which is like, who do I want to delegate to? By default, it's you. It's the same as the public key of the account. But if you want, I can say, hey, I don't really feel like sticking. I'm going to set it to be your public key.
+00:52:25.752 - 00:52:28.590, Speaker C: And then is there a slashing in the roborous?
+00:52:28.670 - 00:52:32.758, Speaker B: No, actually. So that's, I guess, open.
+00:52:32.844 - 00:52:39.240, Speaker A: So what if I propose two different blocks? Like, I won't propose two different blocks and propagate them.
+00:52:42.010 - 00:53:35.320, Speaker B: I think if there's some explicit misbehavior, you ignore both of those person's blocks or something like that because they're adversarial blocks. I don't remember exactly, but I'm pretty sure if there's multiple blocks with the same proposer in one slot, you ignore all of the blocks.
+00:53:35.400 - 00:53:39.660, Speaker C: I think that's, that's a factor. You're slashing because you're losing your reward effectively.
+00:53:40.400 - 00:53:42.690, Speaker B: I guess so. I don't know how to say it in those terms.
+00:53:44.820 - 00:54:31.550, Speaker A: Yeah. The problem is with this kind of ignoring is that because you're getting more reward, especially if you're a bigger delegator, you're actually depriving them from reward long term, which means the people who delegate to them will lose the income and will see this other guy who has bigger income, and they'll go to him. So you're actually like centralizing everything by censoring other people. This is true about proof of work as well, right? As a mining pool, you can actually start censoring other mining pools. And if it's a small mining pool, their revenue drop is way higher than yours. And you can start bringing people, hey. Like, hey, I have a better income anyway, I'm writing a blog post about that.
+00:54:32.260 - 00:54:34.130, Speaker B: Yeah, that's cool. I never thought about that.
+00:54:35.700 - 00:54:57.892, Speaker A: Yeah, it's interesting. So what's happening if pretty much randomness happens? Like randomness being generated from previous one, right? Assuming it's like some random SVDF or something that cannot be tangled with.
+00:54:57.946 - 00:55:06.600, Speaker B: Yeah, I forget exactly how it works out. But basically the middle third of each epoch is like when the generation of this randomness takes place.
+00:55:06.670 - 00:55:12.044, Speaker A: So you actually know ahead of time who. Yeah, you know, randomness kind of ahead of time.
+00:55:12.082 - 00:55:17.420, Speaker B: Yes. It's frozen here.
+00:55:17.490 - 00:55:37.088, Speaker A: And so what happens is these guys are progressing and then people like here, they got kicked out for whatever reason, so they start building like a longer chain. That's pretty much where, well, the validators here, right, that produce these blocks, they are not validators anymore.
+00:55:37.184 - 00:55:39.168, Speaker B: Oh, they might be, no, but let's.
+00:55:39.184 - 00:55:41.876, Speaker C: Say effectively describing long range attack.
+00:55:41.898 - 00:55:43.380, Speaker A: Yeah, long range attack.
+00:55:43.450 - 00:55:45.748, Speaker C: But that's what genesis, I guess, is.
+00:55:45.914 - 00:55:56.600, Speaker B: The number of blocks that. Sorry. In each epoch, the number of blocks that you would win is roughly proportional to, well, or at least this threshold function.
+00:55:56.670 - 00:56:02.540, Speaker A: Yeah, because it's not selecting a subset, right? It's actually like a full. Everybody can participate.
+00:56:04.480 - 00:56:13.612, Speaker C: But I guess another question is. So my VRF only depends on the randomness here, right? It does not depend on the random, it does not depend on the previous block, for example.
+00:56:13.666 - 00:56:14.220, Speaker B: No.
+00:56:14.370 - 00:56:14.876, Speaker C: Right.
+00:56:14.978 - 00:56:15.888, Speaker B: You know, at the beginning of the.
+00:56:15.894 - 00:56:38.232, Speaker C: Epoch, so immediately after the epoch has ended, no matter how much stake actually was in the system, right. I know exactly how much stake participated in this epoch, right? Like, I can add up the stake of every. So this is the blockchain. So I don't really need to wait for them to unstake. If I want to corrupt them, I can immediately pay them more than that and immediately fork out.
+00:56:38.286 - 00:56:40.568, Speaker B: Right? Can you explain again?
+00:56:40.734 - 00:56:57.548, Speaker C: So let's say I'm an adversary, okay? But I guess it sort of breaks if people are actually online and see the network. But effectively what I'm saying is that because I know everything, let's say I have a way to reach out to each of these people.
+00:56:57.634 - 00:56:58.284, Speaker B: Okay? Right?
+00:56:58.322 - 00:57:06.960, Speaker C: And so at any moment, the moment this block was produced, I can already reach out to that person and say, I will pay you a little more than your stake.
+00:57:08.180 - 00:57:10.016, Speaker A: Not your stake, your reward, because there.
+00:57:10.038 - 00:57:13.132, Speaker C: Is no splashing, right? I will just pay you a little more than your reward.
+00:57:13.196 - 00:57:15.040, Speaker A: Yeah, for your private key.
+00:57:15.110 - 00:57:16.900, Speaker C: But they need to get the private key.
+00:57:17.050 - 00:57:31.752, Speaker A: No, you're just saying, hey, rewrite the block without this transaction, right? You had the transaction here. It's like, yeah, no transaction, awesome. And then you just pay everybody else, right? And in reality, you just needed to do like at the end of the.
+00:57:31.806 - 00:57:46.110, Speaker C: Epoch, but they do not promise you more than one part of the epoch. They're assuming that if something was like a fraction of an epoch in the past, then everybody already agreed on it. But here it seems like you can.
+00:57:46.960 - 00:58:06.390, Speaker A: Next guy can rewrite it pretty much. This guy decides which of these two chains to propose forward, right? This guy, if he includes this, then this chain is orphaned. I don't know if there's what happens.
+00:58:06.760 - 00:59:00.096, Speaker C: Let's say actually there's 40%, right? Malicious. So there's a decent chance that I will have like, let's say two first blocks, it's like 20%, right? So if I manage to corrupt some people here, which is very cheap to do, right? So let's say that the person staked like 50 corruption doesn't matter, whatever the reward for the block is. So reward could not be more than like a negligible percentage of that, right? Like if you think about 5% or like, let's say even 50% annual yield, your per block reward is going to be miserably small, right? So let's say you get like 0.1 of cardano or coda tokens. That means that for anything that is more than zero one, like zero two. For them, it's actually very meaningful to rewrite the block because I already paid them zero two. It's okay that they will not get any reward because it will be detected, right? But they will produce the block.
+00:59:00.096 - 00:59:06.260, Speaker C: And then I have these two slots. I will just approve this chain that I built by corrupting them. Does that make sense?
+00:59:06.330 - 00:59:08.516, Speaker A: So there's no finality within an app book.
+00:59:08.538 - 00:59:09.270, Speaker B: Pretty much.
+00:59:10.360 - 00:59:11.268, Speaker C: I can build it.
+00:59:11.354 - 00:59:20.936, Speaker B: Yeah, basically. I don't know. I mean, that's true. Yeah, I guess what you say is true. I'd have to think more about exactly what this stack is. Cool.
+00:59:21.038 - 00:59:32.030, Speaker C: But is it something that genesis sort of solves? Because you're saying Genesis actually has protection from any long range attacks. Right. So here the range is not even that long.
+00:59:36.500 - 00:59:42.624, Speaker B: I think in their security arguments, they assume 50% not corruptible. Something like that, yeah.
+00:59:42.662 - 00:59:46.624, Speaker C: I see. So I called it algorithm security. They have the same assumption.
+00:59:46.672 - 00:59:47.828, Speaker B: Sure. Something like that.
+00:59:47.914 - 00:59:51.380, Speaker C: It might be reasonable, but knowing people, I think it's.
+00:59:52.040 - 00:59:54.304, Speaker A: Yeah, it's like post factum, not corruptible.
+00:59:54.352 - 00:59:54.564, Speaker B: Right.
+00:59:54.602 - 00:59:58.760, Speaker A: Which is like economically decentivizable.
+01:00:01.580 - 01:00:05.130, Speaker B: Bought in. I don't know. Ideologically bought in. I don't know. Yeah.
+01:00:06.460 - 01:00:19.310, Speaker A: All right, cool. And then, so pretty much in quota, you run this. And then with some lag while you're building this block, you have like a snark for this block, which kind of proves from Genesis till this.
+01:00:20.960 - 01:00:28.636, Speaker C: But the light node. The light node, it is not as easy as actually just downloading a snark and a merkel path.
+01:00:28.668 - 01:00:32.240, Speaker B: Right. Because if they want to know something that happened recently. Is that what you're talking about?
+01:00:32.310 - 01:00:34.716, Speaker C: Right. So effectively, I do need to download a few blocks.
+01:00:34.748 - 01:00:37.664, Speaker B: Right. If you want to know something that just happened. Yeah. Then you would have to.
+01:00:37.782 - 01:00:40.304, Speaker C: Yeah, but I want to know my balance.
+01:00:40.352 - 01:00:40.950, Speaker B: Right.
+01:00:41.320 - 01:00:44.196, Speaker C: But I would know if I spent it. Sort of.
+01:00:44.218 - 01:00:48.276, Speaker A: But you don't know if you received money. That's what usually you want to check.
+01:00:48.458 - 01:01:02.620, Speaker C: So effective, what you're saying. Let's say I want to check my balance, right. So if I know I wasn't spending anything and I check something that was like 2 hours ago, I sort of know it's still up to date. Maybe someone sent me money in the last 2 hours. I will just know 2 hours later.
+01:01:02.690 - 01:01:14.332, Speaker B: Yeah. And actually there is sort of a. Well, they can also show you some parts of this buffer to also convince you that they send you money.
+01:01:14.386 - 01:01:18.220, Speaker C: Right. Because there is a Merkel proof on top of the buffer.
+01:01:18.380 - 01:01:24.732, Speaker B: Yeah. The hash of the buffer is also sort of in the state, and some information about that is actually certified.
+01:01:24.876 - 01:01:25.776, Speaker C: I see.
+01:01:25.958 - 01:01:26.690, Speaker B: Cool.
+01:01:27.300 - 01:01:29.264, Speaker C: Okay. We covered everything.
+01:01:29.382 - 01:01:30.944, Speaker B: Yeah, I guess so. Roughly. Yeah.
+01:01:30.982 - 01:01:31.328, Speaker C: Awesome.
+01:01:31.414 - 01:01:33.952, Speaker A: Awesome. Yeah, that's super cool. All right.
+01:01:34.006 - 01:01:34.224, Speaker B: Yeah.
+01:01:34.262 - 01:01:38.004, Speaker A: Check out Koda Twitter web website, GitHub.
+01:01:38.132 - 01:01:38.836, Speaker C: Competition.
+01:01:38.948 - 01:01:40.372, Speaker A: Competition upcoming.
+01:01:40.436 - 01:01:41.144, Speaker B: Yeah.
+01:01:41.342 - 01:01:43.684, Speaker A: Leave comments and tweets.
+01:01:43.812 - 01:01:44.950, Speaker B: Thanks. Okay. Thanks, guys.

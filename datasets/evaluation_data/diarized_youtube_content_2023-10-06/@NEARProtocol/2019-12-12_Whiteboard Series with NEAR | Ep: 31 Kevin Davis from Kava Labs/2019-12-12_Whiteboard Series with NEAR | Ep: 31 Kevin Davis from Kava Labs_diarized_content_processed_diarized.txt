@@ -1,0 +1,276 @@
+00:00:00.250 - 00:00:13.182, Speaker A: You. Hey, everyone, this is Ilya from near and we're here with Kevin from Kava. We're going to dive deep into how stablecoins work and learn more.
+00:00:13.236 - 00:00:52.190, Speaker B: Yeah, we're going to talk about cross chain DFI. That's what I'm building at Kava. So I'm an engineer there. I've been working on this project for about twelve months and before that I was doing stuff related to interledger. So that's sort how I got started and take it from there. All right, so I think the place to start is sort of what is the fundamental unit of DeFi right now, and that is the over collateralized loan. And so I'm going to go through the story of an over collateralized loan and then we'll see if we can sort of get to all the technical details and dive into where these things break and how they work.
+00:00:52.260 - 00:00:52.910, Speaker A: Sounds good.
+00:00:52.980 - 00:01:37.240, Speaker B: All right, so fundamentally, someone controls an address here with some amount x coins. And it would be nice, right, if we could put our coins to work. And sort of a lot of people think of various different ways that we could do that. And one of the ones that's very hot right now is DeFi or over collateralized loans. And what I like to think of this is just an automated loan facility that sort of can be run relatively autonomously and we'll get into where it's not autonomous and how that's difficult. All right, so we move our coins to a new box and this box is a special box, so I'm going to draw it as a circle.
+00:01:38.220 - 00:01:38.904, Speaker A: Special box?
+00:01:38.942 - 00:02:05.490, Speaker B: If this is a circle, yeah. And in some protocols you need to convert your coins into a pool of coins. In other protocols you don't. The one we work on, you don't. So I can imagine I can just transfer my coins X into, we'll call it my coins in CDP. And I'm just going to use the CDP term. Apparently we're doing like rebranding and we're calling them like safes now or something.
+00:02:05.490 - 00:02:43.870, Speaker B: But I think a collateralized deposition is a reasonable description of what we're trying to do here. And so we have balance x in here and it's still controlled by me, so I didn't change ownership. But this box here is now capable of creating a bunch of financial contracts that can be run on a blockchain. And so the first sort of thing we want to be able to do with this is to take my balance x and to create a coin off of x. And so I can't probably create more x. It would be surprising, right, if the protocol just let me create more x. Probably X would have an inflationary problem.
+00:02:43.870 - 00:03:28.990, Speaker B: So instead we're going to allow me to create a debt that is denominated in something that is widely used. So I could imagine, right, I could be like, this is going to be apple stock. I'm going to draw Apple stock off of my debt, X here, but not that many things are denominated in Apple stock. And so turns out the thing that almost everything is denominated in is USD. So we're not really creating USD, and we're not guaranteeing that this debt is going to be USD at this point, but we're just going to say, somehow I can denominate it in us, create a dollar denominated debt. Dollar debt. First we have to figure out how much debt can I draw off of x and then Y.
+00:03:28.990 - 00:04:17.144, Speaker B: Anyone would do this. So first question has to be, I need to know the value of x in dollars to USD, and I need to be able to get there with high frequency. It can't be like, if this value is changing a lot, I need it to change a lot in here. And then, because typically x is a very illiquid, super highly volatile asset, we're going to require that the value of x in USD is large relative to the debt that I am drawing. So if X equals 100, we typically limit the dollar debt to something like 66. And this is the parameter of the.
+00:04:17.182 - 00:04:17.964, Speaker A: Yeah, 1.5.
+00:04:18.002 - 00:04:27.548, Speaker B: Yeah. And people, people say 1.5 has become the sort of gold standard here, mostly because maker hasn't broken yet. Right. So 1.5 works and nobody wants to.
+00:04:27.554 - 00:04:28.480, Speaker A: Drive it down because.
+00:04:28.550 - 00:04:59.848, Speaker B: Yeah, nobody wants to drive it down. Nobody wants to drive it up because it's already super economically inefficient. This is not a common setup in financial things. And I think one thing that's worth pointing out is like, the traditional thing you do with collateral is you post highly liquid collateral to draw an illiquid debt, or, sorry, you take illiquid assets and draw a highly liquid debt. Here we have two illiquid assets, and so we're not in a traditional setup. And I think that's sort of the first thing to like when you look at this box here, you're like, that's a weird box.
+00:05:00.014 - 00:05:04.380, Speaker A: This dollar debt, even more traditional setup is that you don't have any collateral.
+00:05:05.040 - 00:05:31.556, Speaker B: Or you have a very small amount collateral. X is ten, and I can use x to make many different loans. Right. All right, so we've agreed that I can draw some amount of x here. And we're going to allow this system to be replicated both across the asset, x and then across any other assets. So it's going to go deep and wide in terms of many assets. That's what multicolateral die is.
+00:05:31.556 - 00:06:02.344, Speaker B: That's what sort of the premise of these systems is. So we're going to have x, we're going to have y, we're going to have z, and they're all going to map into dollar debt, these structures. Yes. And then very importantly, we're going to always draw a dollar debt that's fungible. So the total sum of all debt will be these fungible coins. And the total sum of all this is the collateral backing those fungible coins. And that's what gives us the expectation of dollar parity.
+00:06:02.344 - 00:06:39.864, Speaker B: And I say expectation because I cannot take dollar coin, dollar debt, coin, turn it back into collateral. There's no in protocol thing that just swaps those around. And there is no guarantee that this thing will ever settle. So maker has sort of what they call emergency settlement. Yeah, we can unwind the system, but it's not guaranteed to during normal protocol. So the expectation of sort of value is mostly based on market expectations. And right now the collateral ratios we see are even higher than 1.5.
+00:06:39.864 - 00:06:52.220, Speaker B: Everybody's like overclocked five to one. Because if there's a run on the price of whatever your collateral is, you don't want to have to spend time, effort and money in transaction fees to recolateralize your positions.
+00:06:53.920 - 00:06:56.060, Speaker A: Also, people just have way too much eth.
+00:06:56.800 - 00:07:05.744, Speaker B: Yes. So then we can get into the like, who is the person that's doing this? And it's probably someone who has way too much eth. They literally have a problem of I have too much eth and this is something I can do with it.
+00:07:05.782 - 00:07:06.370, Speaker A: Yeah.
+00:07:07.140 - 00:07:40.920, Speaker B: And so what I sort of like to look at this system here is this thing that is controlled by the. The debt ceiling is going to be pretty hard to scale. Right. With a single asset. And finding good x, y and z candidates is very difficult. I think a lot of the work that I do is focused on sort of what is the best way to get even candidates for x, y and z into a system like this. And if it's all east and ERc 20s, I'm skeptical.
+00:07:40.920 - 00:08:06.244, Speaker B: And if you claim that you're going to do it sort of with new x, y and z that I haven't heard of, or that assets that are trusted, I'm questioning why you need a blockchain. And so that's sort of where we step in and we're like, I think that this setup is actually a good candidate for an application specific blockchain. And I know that Zachie's been here before, so we've talked plenty about sort of cosmos on the whiteboard series, so I won't go too deep into that.
+00:08:06.282 - 00:08:14.208, Speaker A: We also had panel yesterday, on Thursday with Zaki about application specific chains versus building dapps.
+00:08:14.224 - 00:08:50.230, Speaker B: Sure. Versus dapps versus shared chains, this composability argument. So let's erase this and sort of look at the specifics of an application specific blockchain for Defi. So first off, we have gov token in any blockchain, right, that wants to do on chain governance, or that wants to sort of govern a set of parameters. We have a gov token, we have a security token. Security in the sense of, literally the token is providing security. I'm not with the SEC.
+00:08:53.400 - 00:08:54.628, Speaker A: We may need to figure out a.
+00:08:54.634 - 00:09:46.420, Speaker B: Different name for this. Yeah, stable token. And what maker does, right, is we have MKR, we have etH, we have die. What kava does is it takes these out, replaces them with a single token. And this token is providing security in the form of staking, using tendermint, and governance in the form of sort of tendermint weights. So then we have sort of this dynamic token economic model, which is like the gov token is inflationary in protocol, and then it is deflationary relative to fees.
+00:09:51.320 - 00:09:52.708, Speaker A: You mean you burn your fees?
+00:09:52.804 - 00:10:32.932, Speaker B: Yes. Okay, so users interact with the system, they create these collateralized loans. Loans accumulate fees which are controlled. The fees themselves are controlled by governance. When users close positions, they pay those fees in the governance token. So you have both inflationary and deflationary, and then we have lender of last resort. So in the bad times, when collateral goes, either collateral goes very quickly down in price, or people sort of lose faith in the underlying system.
+00:10:32.932 - 00:10:51.880, Speaker B: You can expect that the global collateral ratio will be below whatever the minimum is. In that case, we're going to mint a bunch of kava and try and reflate the system by minting kava and basically recapitalizing. And so this is like hyperinflationary pressure.
+00:10:55.980 - 00:11:00.876, Speaker A: This is literally how central bank would do it. That's pretty much money to fix the problem.
+00:11:00.978 - 00:11:21.990, Speaker B: Yes, only sort of the, the permission to print money is much more less defined. You can do it whenever you need to, which is nice. And so the daily operation of this system probably looks something more like this. And then this is your edge case. When the bad times happen. So let's go into.
+00:11:26.200 - 00:11:28.772, Speaker A: What'S your stable token's name?
+00:11:28.906 - 00:12:12.204, Speaker B: USDX axe. Got to add an x on things. So what we want to do, or want to think about is that x, y and z should come from outside the system, and they should port into this loan facility. Just call kada. And so today, we can do this via IBC. We can do this via something like TBTC. Have you had these people on yet? So we can over collateralize and Defcon.
+00:12:12.204 - 00:12:30.936, Speaker B: Yeah, so we can over collateralize assets like bitcoin and try and create a fungible bitcoin. And then we need to overlaterize that, which kind of. That's what I mean. Like collateral. Collateral ratios here are 150%. Collateral ratio here, 150%. Some people like that.
+00:12:30.936 - 00:12:34.708, Speaker B: That is a thing. And then you can do these sort of federated pegs, right?
+00:12:34.814 - 00:12:35.470, Speaker A: Yeah.
+00:12:39.600 - 00:13:30.904, Speaker B: And sort of you go from a trust model of, like, pretty trusted, pretty cool, but pretty inefficient, maybe lower trust. And then here, sort of what I would call, like, amortized trust, like IBC, you're still going through places that require you to trust the federation itself. The sort of relayer. There has to be one honest relayer, but we're much less than sort of. There's three signers on my bitcoin. And so we think this is a really cool construct right here that if I can take an application specific blockchain and could be a Dex, could be a sort of. I would be skeptical if there are money tokens in application specific blockchains, but dexes, things that are useful and tradable, could be on application specific blockchains.
+00:13:30.904 - 00:13:47.616, Speaker B: I can use IBC to issue them into kava and then have cdps inside of that system. And the user experience there can be pretty slick. Right. So this probably round trip on the order of seconds, I could imagine sort.
+00:13:47.638 - 00:13:49.132, Speaker A: Of you can on tendermint chains.
+00:13:49.196 - 00:13:59.348, Speaker B: On tendermint chains and on anything that's doing IBC, I would say, well, you can have. Unless you're doing, like, eth through a smart contract or whatever that's bridging. And I would say that, yeah, that's another option.
+00:13:59.434 - 00:14:04.020, Speaker A: Well, we're actually figuring out client bridge.
+00:14:04.600 - 00:14:34.764, Speaker B: Yeah. So maybe bridges are another option because they don't have to use IBC. And sort of the design space here, a little bit nicer than the design space you can have in ETh. And I think that's sort of where we want to be. Sort of. I can imagine applications built on top of this that don't look anything like the way makerdao looks, because I can do things a lot faster. I can sort of cater my experience to what users want versus sort of the tools of the CDP.
+00:14:34.764 - 00:15:11.210, Speaker B: So when we think about cdps today, it's like you open a dashboard and it looks like a finance dashboard and you open a position and then you way over collateralize it because you're worried about the fees and how long it's going to take, and you don't want to worry about it. If it's just a button that's like, lever up whatever you're doing right here in the background. Like CDP gets opened, a stable deck gets drawn, an automatic conversion happens through something like uniswap, and boom, you just have more of x. That's a pretty sort of slick thing to do versus constantly managing, holding the very fragile CDP and hoping that the blockchain is around when you need.
+00:15:13.260 - 00:15:18.288, Speaker A: Mean. Yeah, that's a limitation more on the current infrastructure that it runs on, right.
+00:15:18.374 - 00:15:26.016, Speaker B: Yeah. As well as sort of, I would say, kind of constrains the design space, the way that we think about it.
+00:15:26.038 - 00:15:26.272, Speaker A: Sure.
+00:15:26.326 - 00:15:26.930, Speaker B: Yes.
+00:15:29.700 - 00:15:54.216, Speaker A: So the interesting questions that I have for any multicoloral stuff. Right. So you're saying you have like x, y and z here, and then you kind of issue the debt, which is USDX. Now, is it true that this actually is fungible because it kind of relies on.
+00:15:54.238 - 00:15:55.652, Speaker B: It really depends on the risk profile.
+00:15:55.716 - 00:15:56.200, Speaker A: Yeah, exactly.
+00:15:56.270 - 00:16:11.404, Speaker B: Right. And this is something we're already starting to get into, is like, if there's only one axe, it is nice, but you're totally capped on how much you can do. You need lots and lots of eth whales to participate in your system. But if y has a default risk that is completely outside the blockchain.
+00:16:11.452 - 00:16:11.712, Speaker A: Right.
+00:16:11.766 - 00:16:35.350, Speaker B: That y can be seized by some outside authority, then how do I sort of judge this debt here if I really don't want to be exposed to y? Or at least I don't want my users to have to think about sort of exposure to why, if y isn't pretty trusted. And then I would argue, or at least our philosophy is like, you should really avoid these.
+00:16:35.740 - 00:16:55.372, Speaker A: Well, so my question is, in the world of, let's say, IBc or any kind of cross chain stuff as a, like, I need to at least have some understanding where the origin of. If it's just like, I'm using the example we use like a cryptokitty. Right. On my chain, but it actually was from another chain, right?
+00:16:55.426 - 00:16:55.784, Speaker B: Yep.
+00:16:55.832 - 00:16:59.996, Speaker A: Like, using it here kind of requires me to understand a little bit about.
+00:17:00.098 - 00:17:07.488, Speaker B: Especially an NFT, but that's not even specific. Right. If this is, well, it's a piece of information.
+00:17:07.574 - 00:17:08.688, Speaker A: Right. That has value.
+00:17:08.774 - 00:17:09.410, Speaker B: Yeah.
+00:17:11.320 - 00:17:28.644, Speaker A: Here, like you're saying, well, we have a multiple of this, which are pretty much lever up one thing. So that's why I'm like, how are you guys thinking of risk profile? And I think we kind of skipped a few steps.
+00:17:28.692 - 00:17:51.680, Speaker B: Yeah. So we need to go back and talk about oracles. Let's do that. Actually gets in here because there's a great question, which is like, we want to denominate this in USD and I want to control the collateral ratio here. Well, how do I know if it actually goes below? Somebody feeds in prices. The gods of the oracle feed in prices.
+00:17:53.140 - 00:17:54.850, Speaker A: Oracles are not gods themselves.
+00:17:57.300 - 00:18:25.790, Speaker B: This is what we want to do here. And so our approach to prices is the same as staking, which is that the people who govern the token should be subject to slashing conditions both for the security of the chain and for the prices that are fed into the chain. And so the conditions for slashing in atom is like double signing and liveness, although very. So this is like big, big slash.
+00:18:26.390 - 00:18:27.378, Speaker A: Liveness is small.
+00:18:27.464 - 00:19:07.606, Speaker B: This is like tiny, tiny slash. In kava, you have these two, and then you get plus price deviation and then plus like failure for quorum to post. So price liveness. And so rather than n of m sort of trusted oracles posting prices, you at least get. I know that the oracle here are posting a bond in the governance module token and are subject to slashing should they fall outside of some deviation of the median of prices posted.
+00:19:07.638 - 00:19:13.374, Speaker A: So pretty much, yes. Are they posting what they think is the price? You find a median and then you.
+00:19:13.412 - 00:19:47.046, Speaker B: Have some kind of, yeah, standard deviations or 1.5 standard deviations away, and then you figure out sort of over time, what are the actual incidences here and how hard do you need to punish them? Sort of. Our first guess is that price deviation should be a plus, like pretty large slash, and price liveness should be like a really big slash because the oracle is going down. It's a bad time for everyone. As well as suggests that there was either coordination or correlation amongst these oracles. That was so tight that you barely.
+00:19:47.078 - 00:20:06.394, Speaker A: Have 1, though is right now everybody draws prices from the same place. So at the end it's like, well, I mean, that's just kind of the way I think of it. I've been thinking about using validators to post prices.
+00:20:06.522 - 00:20:09.954, Speaker B: Sure. This is like sort of the first.
+00:20:09.992 - 00:20:18.770, Speaker A: Whiteboard idea that you get to the problem that I have is that everybody knows and probably validators running default code and kind of things like that.
+00:20:18.840 - 00:20:22.210, Speaker B: Yes. Although they probably shouldn't post how they're getting their prices.
+00:20:22.290 - 00:20:23.074, Speaker A: They probably shouldn't.
+00:20:23.122 - 00:20:37.446, Speaker B: But right now it's like everyone's running the medianizer and it's like cool, great. But I would say, yeah, in equilibrium that this should really actually be proprietary and you wouldn't want people to know how you're deriving your prices.
+00:20:37.558 - 00:20:49.602, Speaker A: Yeah, I agree with that. Main is a problem is if people do know, attacking on APIs that are actually providing this price is actually not that expensive.
+00:20:49.766 - 00:20:52.334, Speaker B: APIs are really not, that's not what they're written for.
+00:20:52.372 - 00:21:00.942, Speaker A: Yeah. They're not actually protected and secured. Yeah. So you can actually mess it up by just attacking the kind of the source.
+00:21:01.006 - 00:21:06.146, Speaker B: Yeah, I mean, I think exchange infrastructure would have to change and have to be sort of like have a security.
+00:21:06.248 - 00:21:09.326, Speaker A: Model around price derivation.
+00:21:09.438 - 00:21:24.540, Speaker B: And you see exchanges sort of interested in this area of defi. So I don't think there's no interest in this. I just think that the movement towards here will require things to break and right now nothing has broken and no one has ever lost money.
+00:21:26.430 - 00:21:28.074, Speaker A: Terra got attacked recently, right?
+00:21:28.112 - 00:21:28.326, Speaker B: Yep.
+00:21:28.358 - 00:21:29.114, Speaker A: On the oracle side.
+00:21:29.152 - 00:21:41.614, Speaker B: Yep. Terra has been attacked or sort of like messed around with incentive incompatible oracle design and. But I just mean like in terms of cascading failure, posting bad prices. Yeah, we haven't seen that yet.
+00:21:41.812 - 00:21:45.886, Speaker A: The interesting question is, if you do have a decentralized exchange here, which you.
+00:21:45.908 - 00:21:50.978, Speaker B: Have connection to already, can I endogenously get my prices, for example, or at.
+00:21:50.984 - 00:22:00.322, Speaker A: Least use that as kind of to do market making from the prices at this? Like, anyway, there's some things too.
+00:22:00.376 - 00:22:05.794, Speaker B: Something will come of that for sure because you even see that with Uniswap, right. You can sort of get an oracle.
+00:22:05.842 - 00:22:10.022, Speaker A: From Uniswap, except don't rely on it.
+00:22:10.076 - 00:22:28.846, Speaker B: Yeah, exactly. Like the dog is eating the dog food. I'm not sure that it will work indefinitely, but yeah. And sort of the marrying of exchange data with decentralized exchange data with a security model related to prices being important and the APIs that protect them being valuable is sort of very immature right now.
+00:22:28.868 - 00:22:29.054, Speaker A: Yeah.
+00:22:29.092 - 00:22:33.578, Speaker B: And so coin market cap curl, coin.
+00:22:33.594 - 00:22:37.460, Speaker A: Market cap grab grab post price.
+00:22:40.150 - 00:22:42.642, Speaker B: Yes. So that's the thing that holds these systems together today.
+00:22:42.696 - 00:22:52.760, Speaker A: And that's sort of just practically when these guys are producing blocks, does it just include. So I'm a leader right now, I post a block, I post my price.
+00:22:53.530 - 00:22:55.586, Speaker B: Or everybody gathered in the block.
+00:22:55.698 - 00:23:02.258, Speaker A: So how does that work practically? So it's message transactions that everybody accepts per block oracles.
+00:23:02.354 - 00:23:18.078, Speaker B: So you have to be in consensus, you have to be in the top 100 power, and then you post prices. And if your price is included in a block, you're subject to these slashing conditions. There should potentially be reward withholding if you don't. Right.
+00:23:18.164 - 00:23:22.206, Speaker A: So as a block producer, I can actually censor people from including their price.
+00:23:22.228 - 00:23:30.610, Speaker B: And this is true of all. You can censor pre commits and transactions if you have a one third coalition and tenorant.
+00:23:31.430 - 00:23:35.060, Speaker A: The idea is you can censor even when you don't have.
+00:23:37.510 - 00:23:56.278, Speaker B: Definitely with one third, you can censor per block. The idea is that it's supposed to be attributable. And so if you note that every time you post a price and this producer has a block and they're censoring you, you might have some sort of out of protocol ways.
+00:23:56.364 - 00:23:58.246, Speaker A: You find them on discord, get angry.
+00:23:58.278 - 00:24:07.646, Speaker B: At them, propose forking them out of the chain. Like those are your options there. Did you get that? We posted messages, yeah.
+00:24:07.668 - 00:24:13.870, Speaker A: So you pretty much in a block. Yeah. You add a bunch of messages. At the state transition, you have like a prize.
+00:24:14.370 - 00:24:22.740, Speaker B: We just medianize right here and then assign slashing. And then after that run through the CDPs and see who's been.
+00:24:23.590 - 00:24:25.746, Speaker A: Do you pretty much poke automatically? Pretty much, yeah.
+00:24:25.768 - 00:24:58.666, Speaker B: So that was the other thing because we get this nice begin block here. We can poke automatically. We do not auction automatically. So what happens is you poke or bite and then the CDP gets bitten. We have some bad debt in the system. Collateral gets seized and sent to the auction module and it accumulates until it has a lot of collateral. And then anyone can kick an auction off once there's a lot.
+00:24:58.768 - 00:24:59.980, Speaker A: What is a lot?
+00:25:01.230 - 00:25:35.702, Speaker B: An amount of collateral equal to x basically in the current price feed. So it's just a parameter you can set. You're like, if I have $10 worth of collateral, I'm not going to call that a lot. Maybe if I have $10,000 worth of collateral, I'll call that a lot. And then the idea is because I don't have to spend transaction fees biting, I don't really need to pay my keepers here, I don't need to incentivize here. So what actually happens is you kick an auction off and this will almost certainly present arbitrage opportunities. So rational value of the collateral is say 100, I bid 95.
+00:25:35.702 - 00:26:01.566, Speaker B: I might find that I have made all the other bidders irrational or indifferent to that five. And sort of like this is just an arbitrage producing machine as well as, because you can run it from a light client, doesn't require really anything to participate in other than collateral. And so this is where the keeper notion comes in, is these people can participate in auctions and presumably win them at a rate below market.
+00:26:01.588 - 00:26:22.450, Speaker A: All right, so just to walk through this, okay, so we have a bad CDP, right? So let's say it's 100 x. Right. The price went down. So it's actually not collateralizing enough of 66 of USDX. So this gets put here. So you have 100 x in auction.
+00:26:22.530 - 00:26:26.050, Speaker B: Let's have 66 x in bad debt. It's 66 USDX.
+00:26:26.130 - 00:26:38.010, Speaker A: Yeah. Let's just say this is enough to kick out an auction. So how's the process here works?
+00:26:38.160 - 00:27:12.878, Speaker B: Yes. So we're imagining that 100 x is, say, now worth 50 50. Well, that. Wouldn't that be too low? No, 50 would be too much, but either way, so there's going to be a rational value of x and they're just going to bid. And then if that does not cross out the 66 debt, then we have a really bad auction and that accumulates to the inflationary kava. So let's imagine that this auction raises 50 USDX.
+00:27:12.974 - 00:27:13.620, Speaker A: Yeah.
+00:27:13.930 - 00:27:24.114, Speaker B: I now have 16 that is uncovered. USDX that is uncovered. And now I'm going to auction kava for that. So here I'm auctioning collateral. Here I'm auctioning kava.
+00:27:24.162 - 00:27:35.142, Speaker A: So pretty much what this means is the people who are participating in auction, they need to have ideally set of assets, collateral they can do. I'm assuming you're not having a uniswap.
+00:27:35.206 - 00:27:39.982, Speaker B: Or some form of swap on kava? Not on day one.
+00:27:40.116 - 00:27:49.546, Speaker A: Yeah. So pretty much as a market maker or whatever participant, I need to bring a bunch of assets to here to be able to participate.
+00:27:49.578 - 00:27:55.778, Speaker B: Yeah. And ideally I would say that lots should be larger than smaller because of that.
+00:27:55.864 - 00:28:04.594, Speaker A: Yeah. But then while you wait, pretty much lot is waiting to be accumulated. Right. The prices can keep going down, right?
+00:28:04.632 - 00:28:05.380, Speaker B: Of course.
+00:28:07.850 - 00:28:09.606, Speaker A: Pretty much. You need to find a balance between, like.
+00:28:09.628 - 00:28:16.898, Speaker B: Yeah, you need to find. Yeah, I would say you don't want your lot to be so big. That's anywhere near a percentage of your debt limit, right?
+00:28:16.924 - 00:28:17.306, Speaker A: Yeah.
+00:28:17.408 - 00:28:23.980, Speaker B: If your debt limit is a million, you wouldn't want your lot to be 100,000. That's scary. But maybe 10,000.
+00:28:24.910 - 00:28:30.442, Speaker A: So it should be probably capped at a percentage of the current debt limit.
+00:28:30.506 - 00:28:35.898, Speaker B: Yes. And then you also, in this system, need a pretty liquid governance token.
+00:28:35.994 - 00:28:36.350, Speaker A: Yeah.
+00:28:36.420 - 00:28:46.578, Speaker B: So if I'm minting this and there's just absolutely no way to sell it or to determine its price very accurately of the governance token, then you also have problems because no one's going to.
+00:28:46.584 - 00:29:07.954, Speaker A: Participate in these auctions. Yeah. So let's say there's an auction, pretty much to sell kava for 16 USDX. So I'm here. I mean, you also need somebody who is. Let's just. As an arbitrator.
+00:29:07.954 - 00:29:13.754, Speaker A: Right. What I want to. I want to have a bunch of USDX that I can buy this cow with and then go to.
+00:29:13.872 - 00:29:20.990, Speaker B: Yeah. I need to be able to exchange it. In order for this to present actual arbitrage opportunities, there needs to be a liquid market.
+00:29:21.060 - 00:29:25.054, Speaker A: Yeah. All right, cool. Makes sense. All right.
+00:29:25.092 - 00:29:30.030, Speaker B: And this is why I assume that multicolored die did not launch first. Right?
+00:29:30.100 - 00:29:30.430, Speaker A: Yeah.
+00:29:30.500 - 00:29:51.880, Speaker B: Maker is here in 2016. That's not happening. 2017. Right now, no one's going to participate in these auctions. And so that's why we saw that maker was not inflationary in single collateral die. Now that there's a more mature market around these things, you can do this. But you want to control your debt limit, right?
+00:29:54.650 - 00:29:56.866, Speaker A: Yeah. I mean, you always want to control your debt limit.
+00:29:56.898 - 00:30:03.542, Speaker B: Yeah, of course. You always want to control your debt limit. And you want to make sure that X, Y and Z are actually credible assets that people have some amount of faith in.
+00:30:03.596 - 00:30:11.534, Speaker A: Yeah. So that goes back into, like. Yeah, so let's just say there is multiple assets. They will have different risk profile, both.
+00:30:11.572 - 00:30:13.774, Speaker B: In the way that they are moving into the system.
+00:30:13.972 - 00:30:17.646, Speaker A: The security, whatever weight is different.
+00:30:17.748 - 00:30:21.300, Speaker B: Exactly. As well as the way that they're moving into the system. Right.
+00:30:23.510 - 00:30:39.878, Speaker A: Let's say I am market participant. I do need to validate both which portfolio to hold to actually do this, as well as if I'm holding USDX when I want to close a position. Oh, yeah. So one thing we didn't talk about is when I want to pay it back, right?
+00:30:39.964 - 00:30:40.262, Speaker B: Yes.
+00:30:40.316 - 00:30:45.078, Speaker A: So I paid back. I can only close my own CDP or.
+00:30:45.164 - 00:30:58.010, Speaker B: Correct. We do not have repayment. Yeah, repayment from other addresses. You could delegate it, perhaps, like, you could assign a delegation. That's something you could do. I don't think you could have anyone pay off your CDP.
+00:30:58.510 - 00:31:04.606, Speaker A: So let's just say if I open a CDP, got a bunch of use, you expand it on something, presumably more.
+00:31:04.628 - 00:31:06.814, Speaker B: Of whatever you opened your cdp or.
+00:31:06.852 - 00:31:14.034, Speaker A: Actually used it for stuff questionable. I mean, we have seen some use.
+00:31:14.072 - 00:31:17.940, Speaker B: Cases, people that are 0.5. That was a legitimate thing to do.
+00:31:22.410 - 00:31:30.774, Speaker A: Then when I repay. Right. So I need to repay the debt. So like 66 plus fees. Plus fees in Kava, right?
+00:31:30.812 - 00:31:39.210, Speaker B: Yes. And ideally this can be abstracted, right. We don't really want users to have to purchase kava.
+00:31:39.790 - 00:31:43.818, Speaker A: It'll go to exchange and uniswap your.
+00:31:43.904 - 00:31:59.200, Speaker B: Dex that underlies this ecosystem. So today that's binance Dex. I don't know how cypherpunk that is, but that would be the sort of user experience.
+00:32:02.470 - 00:32:03.646, Speaker A: Like, how does this fee.
+00:32:03.678 - 00:32:09.614, Speaker B: Determine, determines by which collateral you opened with. So x can have a stability fee.
+00:32:09.662 - 00:32:13.670, Speaker A: Of per collateral stability fee.
+00:32:15.850 - 00:32:19.650, Speaker B: As well as per collateralization ratio.
+00:32:19.730 - 00:32:34.460, Speaker A: Okay. And then does this gets an effect here as well? I'm assuming here it will be with a discount, right?
+00:32:36.030 - 00:32:37.162, Speaker B: Well, the clearing price. Yes.
+00:32:37.216 - 00:32:45.118, Speaker A: Yeah. The clearing price was a discount. I'm assuming that will affect, like, this percentage will affect the discount because we used. Okay.
+00:32:45.284 - 00:32:49.398, Speaker B: As well as the supply of bad collateral.
+00:32:49.514 - 00:33:02.402, Speaker A: Yeah. Okay. Yeah. So going back to how to evaluate risk pretty much on the whole, when you have like a mixed bag of different assets.
+00:33:02.466 - 00:33:03.298, Speaker B: A grab bag.
+00:33:03.394 - 00:33:14.850, Speaker A: A grab bag of different assets. Yeah. With different risk profiles. Different. Like you may get, like IBC may get stalled because something happened that chain can.
+00:33:14.940 - 00:33:37.920, Speaker B: Yeah. The hub here could go away. That's a bad time for everybody. Yeah. I think it mostly comes down to at this point, being super selective and not having these be permissionless. Right. So it would be od if the governors were like, anyone can put an asset into this system.
+00:33:37.920 - 00:34:05.490, Speaker B: And so I would say you want to do things that generally are bilateral. So if you're doing like, kava to Adam. Well, these hubs are sort of like, well known to one another. It's not kava to Adam to. I've never heard of this chain over here. Okay. And so there's that option and then anything that is sort of independent of that system.
+00:34:05.490 - 00:34:16.780, Speaker B: So I may not love the security model of binance chain, but I may trust that it will exist or have sort of an independent risk parameter of atom. Right.
+00:34:18.770 - 00:34:21.600, Speaker A: But how does that value into the. Pretty much.
+00:34:23.570 - 00:34:35.630, Speaker B: Yeah, it should value into the governance of the system. So, Adam, assets that are lower risk should have a higher debt ceiling and then it should be on the governors to adjust that relative to risk.
+00:34:35.790 - 00:34:40.526, Speaker A: And you expect your validators to be pretty much decisions.
+00:34:40.558 - 00:35:03.382, Speaker B: Yeah. Over time, I would say what you want to start with is a smaller debt limit than sort of the risk tolerance of all of these assets. You don't want to be fully exposed. But yes, over time, I think the actual value or the actual alpha generated by any of these systems. Having governors who know what they're doing, having governors who are pricing risk properly.
+00:35:03.446 - 00:35:04.058, Speaker A: Yeah.
+00:35:04.224 - 00:35:08.346, Speaker B: And so you want to work with organizations who are thinking about that, how.
+00:35:08.368 - 00:35:14.858, Speaker A: To do risk profile. It needs to be pretty security is mine. Mine need to be dynamic as it adjusts.
+00:35:14.954 - 00:35:20.430, Speaker B: It should be. Yeah. The sort of inputs to the system should be dynamic and multivariable.
+00:35:20.870 - 00:35:41.318, Speaker A: Yeah. So let's just say for whatever there is some aggregate security value of each chain. Right. That like how much we're willing to tolerate the risk on this. Let's just say it actually going like in the heads of models that governance uses. It's going down for x.
+00:35:41.484 - 00:35:43.430, Speaker B: Risk is going up or down.
+00:35:43.580 - 00:35:44.374, Speaker A: Risk is going up.
+00:35:44.412 - 00:35:45.400, Speaker B: Risk is going up.
+00:35:45.770 - 00:35:55.370, Speaker A: The tolerance. So at this point, let's just say they actually want to increase overclock.
+00:35:56.110 - 00:36:17.860, Speaker B: So your options are to increase the collateralization ratio, which that requires forward messaging. Right. It's a bad time if exactly. My CDP required 150 and it turns out it requires 200 and no one told me. So that's a problem. The other, though is to increase the relative debt limits of other ones. And so this becomes less tied to that.
+00:36:17.860 - 00:36:28.534, Speaker B: You can also imagine that cdps could rebalance. If you allowed one CDP to hold.
+00:36:28.572 - 00:36:34.120, Speaker A: Multiple asset types, then you have your own portfolios. Pretty much.
+00:36:34.970 - 00:36:45.290, Speaker B: So then that would kick the problem to users, which maybe isn't guaranteed to be any better than governors. I think these are really hard systems to parameterize in terms of.
+00:36:45.360 - 00:36:47.414, Speaker A: Yeah, I mean, that's kind of figuring.
+00:36:47.462 - 00:36:52.300, Speaker B: Out where we actually are today and how the changes in the system.
+00:36:53.890 - 00:36:57.450, Speaker A: Yeah. Especially how it changes as the systems evolve.
+00:36:57.530 - 00:36:58.062, Speaker B: Yeah.
+00:36:58.196 - 00:37:09.730, Speaker A: Even though we want what is the permissionless systems at the end, they are still like live changing systems, which interesting are you guys doing like multicoloral cdps?
+00:37:10.070 - 00:37:27.402, Speaker B: We're starting with one CDP per collateral type, but this is not a hard to change, actually, in the SDK. Yeah. We mostly did it as a convenience. It's simpler to think about uis and things when it's like one to one to one. But managing the basket actually could be a useful thing.
+00:37:27.456 - 00:37:30.314, Speaker A: I mean, for more professional, I guess.
+00:37:30.432 - 00:37:31.100, Speaker B: Yeah.
+00:37:31.950 - 00:37:45.966, Speaker A: Because I think also whoever's doing this right might need a basket to offset whatever, because they're holding like bunch in a liquid form so they can participate here. They may need to actually lever up here.
+00:37:46.068 - 00:37:46.720, Speaker B: Exactly.
+00:37:48.050 - 00:38:03.860, Speaker A: To create a thing and they can balance it with the basket, actually. Yeah. I mean, the baskets are interesting because you can have multiple baskets across different baskets and pretty much see how they perform.
+00:38:04.890 - 00:38:14.840, Speaker B: It's kind of a financial instrument. This is a system for generating dynamic equilibriums and super complex financial instruments, and we'll see how that goes.
+00:38:15.690 - 00:38:26.140, Speaker A: So one thing that I've been thinking a lot is how to use. Because you have kava here, too. Right? Are you using kava as well for cdps? For cdps, no.
+00:38:27.550 - 00:38:29.198, Speaker B: Do people want to do that?
+00:38:29.364 - 00:38:39.994, Speaker A: Well, I can tell you what I was thinking, because if you think, let's just say there's some market cap of kava, which large percentage of it is staked.
+00:38:40.042 - 00:38:45.886, Speaker B: Staked, correct. So let's just say, like, people want to create staking derivatives and put those in cdps.
+00:38:45.998 - 00:38:51.406, Speaker A: That's a of. You have all the tools.
+00:38:51.518 - 00:39:04.742, Speaker B: The tools are here. People have talked about doing that with Adam more than with kava, because this is sort of already subject to many different types of token economics, whereas Adam's a little bit easier to understand what it's doing.
+00:39:04.876 - 00:39:35.502, Speaker A: Yeah, we were thinking about it because that's the easiest in maker. It's the same idea. Like, you have maker, you have ether, but joining them into one makes sense. But then you also have this ton of liquid asset that is sitting there, which does have security. It does have some risk on it being staked, but at the same time, at least from practice, we've seen what this risk is, and we at least don't have liveness slashing.
+00:39:35.646 - 00:39:37.090, Speaker B: It's unclear if you need it, even.
+00:39:37.160 - 00:39:41.490, Speaker A: Yeah, I mean, I believe it's not because we just don't give you rewards.
+00:39:42.390 - 00:39:46.854, Speaker B: The downside is roughly the same, just like you didn't participate, and it looks.
+00:39:46.892 - 00:39:48.760, Speaker A: Way better on books for anybody.
+00:39:50.170 - 00:39:50.870, Speaker B: What do you mean?
+00:39:50.940 - 00:40:03.030, Speaker A: Well, if you're doing reporting and you're saying this week we have this many tokens, and next week we have this many tokens versus, like, we have this many tokens, we just didn't get any rewards.
+00:40:03.110 - 00:40:03.740, Speaker B: Okay.
+00:40:04.350 - 00:40:05.802, Speaker A: For anybody who is, like, extra.
+00:40:05.856 - 00:40:07.530, Speaker B: For anyone who's not paying attention.
+00:40:07.610 - 00:40:11.514, Speaker A: Yeah. Even though the base increased.
+00:40:11.642 - 00:40:14.010, Speaker B: Yeah, exactly. A little money illusion.
+00:40:14.090 - 00:40:19.834, Speaker A: Yeah. But at the end, accounting right now does not account for total supply.
+00:40:19.962 - 00:40:22.418, Speaker B: Correct. As well as the modern world.
+00:40:22.504 - 00:40:28.260, Speaker A: Yeah, modern world does not account for total supply. Otherwise, we would need to say, like, oh, yeah. Have $1 out of.
+00:40:29.430 - 00:40:33.000, Speaker B: What is that? This is guaranteed, my friend.
+00:40:33.530 - 00:40:34.694, Speaker A: Yeah. It was gold, right?
+00:40:34.732 - 00:40:35.560, Speaker B: Oh, wait.
+00:40:38.890 - 00:40:45.420, Speaker A: Cool. Yeah, no, that's pretty cool. Anything else interesting that we have not talked about?
+00:40:49.310 - 00:40:55.850, Speaker B: I think we've hit on the real good stuff, the open questions that Kabul will be a guinea pig in solving.
+00:40:56.830 - 00:40:57.530, Speaker A: How are you guys?
+00:40:57.600 - 00:41:22.414, Speaker B: I think actually, yeah, sort of the long tail of this that is super interesting to me is governance. And I think that, so one thing that we think about a lot is that security as a validating.org is kind of a commodity. Very hard to differentiate yourself. It's easy to set up a system that doesn't double sign. Liveness isn't really that important as well as it's really easy to be live with servers on the Internet. Governance is an area where you can see differentiation amongst orgs.
+00:41:22.414 - 00:41:34.406, Speaker B: And I do think that that is sort of an actual interesting property of this system that orgs who find themselves unable to differentiate in this category can find themselves able to differentiate in all of these areas of risk just because.
+00:41:34.428 - 00:41:36.130, Speaker A: They'Re doing better risk management.
+00:41:36.210 - 00:41:44.646, Speaker B: Yeah. And it's more like you're going to do financial modeling, you're going to get into actual areas of economics that are hard and uncertain versus running a server.
+00:41:44.838 - 00:42:01.598, Speaker A: But let's just say, I mean there's like many participants, right, in the governance as one of the participants, even if I have the best model, how's that actually helps me with, I only have whatever some percentage of vote at the end.
+00:42:01.684 - 00:42:06.046, Speaker B: You should be able to charge higher commission for your vote if it is proven.
+00:42:06.078 - 00:42:08.866, Speaker A: You mean for your delegation, people delegating to you?
+00:42:08.888 - 00:42:13.486, Speaker B: Yes, that's what all the main bed differentiation. I don't mean necessarily that you're sort.
+00:42:13.528 - 00:42:16.614, Speaker A: Of have actually make money out of it.
+00:42:16.652 - 00:42:19.698, Speaker B: Yeah. Or your alpha essentially comes in from setting your delegation.
+00:42:19.874 - 00:42:30.166, Speaker A: Well, the thing, I mean, the interesting part here now actually as we were talking about it, I thought is that as a validator you're actually in the best position to do market maintenance.
+00:42:30.198 - 00:42:30.826, Speaker B: Yeah.
+00:42:31.008 - 00:42:41.200, Speaker A: Because you actually can plug in some of your transactions front. So actually, have you guys thought at all about front running and stuff like this?
+00:42:42.210 - 00:43:01.042, Speaker B: Not to the degree that we need to. Basically this works and we'll figure it out when it doesn't work. And I think there's a lot of work in the deck space that will be sort of applicable here. And so we're kind of like waiting to piggyback off.
+00:43:01.176 - 00:43:19.670, Speaker A: Yeah, I'm just thinking like if I'm a validator with some weight, so I produce blocks one every n times. So I can actually in theory like front run some people and make some money on this. I have more information. I am influencing price even slightly.
+00:43:19.750 - 00:43:23.180, Speaker B: All you can do though is get the first bid. Yeah.
+00:43:24.270 - 00:43:26.150, Speaker A: How long do you run an auction?
+00:43:26.310 - 00:43:30.650, Speaker B: I think the default is 24 hours. And then each bid kicks the auction for 10 minutes.
+00:43:30.800 - 00:43:32.282, Speaker A: Oh, it's 24 hours auction.
+00:43:32.346 - 00:43:33.774, Speaker B: Yeah, I see.
+00:43:33.972 - 00:43:35.438, Speaker A: That's kind of long for.
+00:43:35.524 - 00:43:46.018, Speaker B: It might be 1 hour. I have to go look at the code. It's some set time and then it gets kicked by 10 minutes. And the expectation is sort of the first bid is worth money but it's not worth all of the money.
+00:43:46.104 - 00:43:46.562, Speaker A: I see.
+00:43:46.616 - 00:43:47.940, Speaker B: And that's sort of the.
+00:43:49.350 - 00:44:01.766, Speaker A: I've been thinking, can we have a prefilled book with orders like some of these market makers can just prefill book and then when you have something to auction off, you just kind of put.
+00:44:01.788 - 00:44:02.998, Speaker B: It in, match it and then you.
+00:44:03.004 - 00:44:04.974, Speaker A: Match it if there is something matching.
+00:44:05.122 - 00:44:09.174, Speaker B: That sounds reasonable as a first order protection.
+00:44:09.302 - 00:44:19.306, Speaker A: Well, it's first order protection. It also speeds up things. Yeah. As well. My problem, if there's any kind of additional issues in the system, but you.
+00:44:19.328 - 00:44:24.846, Speaker B: Have multiple auctions going at the same time. But you're correct, if you're like cascading, then you would want auctions to clear quickly.
+00:44:24.948 - 00:44:32.474, Speaker A: Yeah. It's also like doing this, you actually have price discovery which competing with whatever is Oracle.
+00:44:32.522 - 00:44:34.542, Speaker B: Are you imagining this book is on chain?
+00:44:34.686 - 00:44:35.902, Speaker A: I was thinking on chain.
+00:44:35.966 - 00:44:36.290, Speaker B: Okay.
+00:44:36.360 - 00:44:38.606, Speaker A: Yeah, but I mean, it all depends.
+00:44:38.638 - 00:44:42.770, Speaker B: On the architecture because it does seem like the block producer could inspect the book too.
+00:44:42.840 - 00:44:49.800, Speaker A: Yeah, I mean, it's fine if he inspects. I mean, if somebody fills a book, they're actually willing to take those positions. Right. So that's fine if it's there.
+00:44:50.810 - 00:44:54.200, Speaker B: Yeah, I guess knowing openishness doesn't give you that.
+00:44:54.650 - 00:44:56.454, Speaker A: You can go to Coinbase and see that.
+00:44:56.492 - 00:44:57.080, Speaker B: Right.
+00:45:00.330 - 00:45:14.686, Speaker A: I mean, it's just mostly like the problem with this is that block producers can. If people want to remove this, which you kind of need to as the price moves, block producers can actually temper with that a little bit.
+00:45:14.788 - 00:45:17.134, Speaker B: Yeah. As well as sensor transactions that alter that.
+00:45:17.172 - 00:45:17.566, Speaker A: Yeah.
+00:45:17.668 - 00:45:19.338, Speaker B: Even for one block that could be valuable.
+00:45:19.354 - 00:45:27.970, Speaker A: Yeah, that can be a change. Yeah. So maybe it should be like if it's on another decks or something, but then clearing through IBC, that will take.
+00:45:28.040 - 00:45:31.134, Speaker B: Sounds complicated as well as slow.
+00:45:31.262 - 00:45:35.380, Speaker A: Yeah. All right. Yeah, that's interesting.
+00:45:36.070 - 00:45:36.722, Speaker B: Cool.
+00:45:36.856 - 00:45:51.202, Speaker A: All right, well, thanks a lot. Yeah, I hope that was, I mean, I had fun. Yeah, I had fun as well. Yeah. Learn some more things about cdps. Check out kava kava IO. Kava IO.
+00:45:51.202 - 00:45:52.500, Speaker A: Yeah. For more information and.

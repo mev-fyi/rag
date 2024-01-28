@@ -1,0 +1,456 @@
+00:00:03.290 - 00:00:20.734, Speaker A: Hi, this is Alex from near and we are at Stanford campus with this whiteboard. The place is provided by the Stanford Blockchain Club, which we're very thankful to. And with me today is Justin Drake from Ethereum foundation. Thanks for coming.
+00:00:20.852 - 00:00:21.630, Speaker B: Thank you.
+00:00:21.780 - 00:00:31.400, Speaker A: And we're going to talk today about Ethereum sharding. We're going to go into a lot of technical details. And to start off, can you please describe in high level how Ethereum sharding will work?
+00:00:32.250 - 00:00:36.914, Speaker B: Okay, so I guess before talking about sharding, maybe you should talk about the beacon chain.
+00:00:36.962 - 00:00:37.560, Speaker A: Absolutely.
+00:00:38.670 - 00:01:01.406, Speaker B: So actually, maybe you should talk about Ethereum 2.0 as the whole design space. So it's a new system that is somewhat separate from Ethereum 1.01. Of the main links between Ethereum 1.0 and 2.0 is the economic layer. So the e, the tokens that are valuable in 1.0
+00:01:01.406 - 00:02:00.322, Speaker B: will be used to bootstrap Ethereum 2.0. And I guess the high level diagram is that you have 1.0 here and then you have the 2.0 chain here, where Eve can travel from here to here. And then can it travel back maybe at some point in the future? Yes, it might be able to travel back, not necessarily at the consensus layer, but using exchanges and other things. And you have a hub and spoke model where this is the hub and then you have all these shards all around it. And the idea is that each of these shards is the equivalent in terms of throughput of one Ethereum 1.0.
+00:02:00.322 - 00:02:27.770, Speaker B: And there would be a thousand shards. So you get 1000 times the scalability. And the idea of this beacon chain is to basically be a central coordination point. I like to call it a system chain, which handles all the non user transactions. So all the transactions that will happen in user land would happen here and here. You mostly have system level transactions.
+00:02:29.230 - 00:02:29.980, Speaker C: Cool.
+00:02:30.370 - 00:02:42.510, Speaker A: And so what sort of consensus and civil resistance and what are the properties of those system chain and the shard chains, how they operate?
+00:02:43.830 - 00:03:24.510, Speaker B: Okay, so the 2.0 chain is a proof of stake chain. So you become a validator by making these deposits. To become a validator, you need 32 e. And you basically the way that the chain advances is by basically randomly selecting block proposals. So you have the pool of validators. And at every time increment, which we call a slot, you would select a new block proposer.
+00:03:24.510 - 00:03:49.628, Speaker B: And in addition to blocks, the block creation is like the weakest way that the chain can progress. That's the beacon chain. But we also have a notion of attestations.
+00:03:49.724 - 00:03:54.080, Speaker A: And so without attestation that would be just depos, effectively.
+00:03:55.860 - 00:03:56.988, Speaker B: Delegated proof of stake.
+00:03:57.004 - 00:03:57.184, Speaker C: Yeah.
+00:03:57.222 - 00:03:58.930, Speaker B: So who's delegating to who?
+00:03:59.460 - 00:03:59.824, Speaker C: Yeah.
+00:03:59.862 - 00:04:04.084, Speaker A: That's not quite delegated proof of stake but that would be like the most vanilla proof of stake system.
+00:04:04.122 - 00:04:04.276, Speaker C: Right.
+00:04:04.298 - 00:04:09.712, Speaker A: There's one person proposing a block every time sampled from the pool of validators.
+00:04:09.856 - 00:04:19.940, Speaker B: So I mean at this point I haven't specified a folk choice rule, but if we had for example the longest chain folks choice rule then it would look somewhat similar like a proof of work chain.
+00:04:20.100 - 00:04:21.050, Speaker A: I see.
+00:04:21.900 - 00:05:02.004, Speaker B: But one of the things that we want to do is that we want to accelerate the process of confirmations. So instead of having to wait for 100 confirmations, we get the 100 confirmations as soon as possible. And the way that it works is that in addition to having a single block proposal per slot, you also have a committee. And this committee is invited to make attestations for this block to vote on it. And each of these votes basically acts as the equivalent of one confirmation.
+00:05:02.172 - 00:05:05.524, Speaker A: And committee is also sampled.
+00:05:05.652 - 00:05:07.684, Speaker B: Yeah. The committee is also randomly sampled.
+00:05:07.732 - 00:05:08.040, Speaker C: Yes.
+00:05:08.110 - 00:05:09.800, Speaker A: And how big is the committee?
+00:05:11.020 - 00:05:28.732, Speaker B: So you actually have 1000 committees and each committee will be of size, the number of validators divided by 1000. So basically you have one committee per shard and we have 1000 shards.
+00:05:28.796 - 00:05:29.650, Speaker C: Makes sense.
+00:05:31.540 - 00:05:39.920, Speaker A: But which committee do all committees attest to? Every beacon chain block or they also rotating in some way on the beacon chain?
+00:05:40.680 - 00:06:14.652, Speaker B: Okay, so the way that it works is that we have a notion of epoch. And so an epoch is going to be 64 slots. And in each slot we try and put an equal amount of committees. So of the 1000, 1000 divided by 64 will be kind of assigned a slot.
+00:06:14.796 - 00:06:18.984, Speaker A: So it's like 16 committees per slot.
+00:06:19.052 - 00:06:19.670, Speaker B: Yes.
+00:06:22.920 - 00:06:31.296, Speaker A: So let's say that every committee is like 128 validators and we would get like 2000 validators of testing.
+00:06:31.328 - 00:06:31.908, Speaker C: Right.
+00:06:32.074 - 00:06:33.140, Speaker A: Per slot.
+00:06:33.820 - 00:07:45.800, Speaker B: Right. So the attestations when they get included on chain can come with a delay. But the basic forklows rule is basically to look at all the attestations that have been made. And one of the ideas is that in every epoch every validator is invited to make an attestation. And the folk choice rule that we have is what we call LMD Ghost, last message driven, greediest, heaviest observed subtree. And basically the idea is that if you have a tree instead of having blockchain, you have a block tree and you want to choose where you build. You basically look at the last message that every validator has made and then you pick the subtree which has the highest weight where one attestation corresponds to one unit of weight.
+00:07:45.960 - 00:07:51.952, Speaker A: And if certain validator maliciously created multiple for the same slot, you're just discarding all of them.
+00:07:52.086 - 00:07:59.760, Speaker B: Effectively, yeah. So it's actually on a per epoch basis. Per epoch, yeah, it's slightly stronger.
+00:08:00.580 - 00:08:04.948, Speaker A: And within the epoch fortunes rule is the same.
+00:08:05.034 - 00:08:10.260, Speaker B: Yeah, we could use Ghost everywhere.
+00:08:10.680 - 00:08:20.344, Speaker A: But effectively, you will first invoke fork choice rule on per epoch level. And then when you find the epoch within the epoch, there are also blocks for each.
+00:08:20.382 - 00:08:40.720, Speaker B: No, the fork choice rule that we have is actually a hybrid fork choice rule, but one of it involves the finality gadget, and part of it involves the LMD ghost. Right now, I only describe the LMD ghost, and that's on a slot by slot basis.
+00:08:41.300 - 00:08:42.624, Speaker A: On slot by slot, I see.
+00:08:42.662 - 00:08:42.816, Speaker C: Yes.
+00:08:42.838 - 00:09:04.388, Speaker B: And finality gadget is so the finality gadget. So the LMD ghost, you can think of it as more of the local folk choice rule. And the finality gadget is more high level. And that one works on so called checkpoints. And the checkpoints are going to be epoch boundaries. And so that works on an epoch by epoc boundary.
+00:09:04.404 - 00:09:23.548, Speaker A: And like, effectively, let's say that this is the epoch boundary. So let's say there is an epoch boundary here. And let's say that the finality gadget finalized this block. So we'll invoke LMD Ghost from here and like.
+00:09:23.634 - 00:10:10.636, Speaker B: Yes, so I kind of like to think as the finality gadget, as an optional thing, we could just go with a ghost, LMD ghost. And that would be kind of our forklift rule, and that would kind of be our consensus algorithm. But having finality is useful for various things. One is that it gives us certain strong guarantees about the beacon chain. And I guess number two is that it is really helpful in the context of cross shard communication, because basically the beacon chain is aware of the various shards. And so if one shard wants to talk to another, it has to do it via the beacon chain. And so you want these communication paths between the shards to be really strong.
+00:10:10.636 - 00:10:18.104, Speaker B: And from the consensus layer, they're maximally strong once you have finality of the beacon chain.
+00:10:18.232 - 00:10:40.630, Speaker A: Right. And so for the crosshard communication, ideally, you would wait for the finality gadget to finalize the block where they. Well, we didn't talk about cross links yet, so let's get back to it. So for LMD ghost. So after I look at the last attestation that was, by last we mean the highest slot number, right?
+00:10:42.040 - 00:10:42.548, Speaker B: Yes.
+00:10:42.634 - 00:10:42.836, Speaker C: Right.
+00:10:42.858 - 00:10:50.360, Speaker A: So once I identified all the highest slot numbers, attestations. How do I proceed next with choosing the canonical chain?
+00:10:50.700 - 00:11:04.670, Speaker B: So, basically, you have a weight everywhere. So let's say three people voted here and then five people voted here and seven one, two.
+00:11:05.040 - 00:11:27.780, Speaker A: And those are votes on the entire chain all the way down to the. It's actually a number of the latest messages from our testers, starting from this block all the way down to the genesis. Effectively, let's say someone had their last message here. Someone had here. Someone went offline a while back and had here.
+00:11:27.850 - 00:11:28.564, Speaker C: Yes.
+00:11:28.762 - 00:11:32.724, Speaker A: And we will use this one, even if it's in the past.
+00:11:32.842 - 00:11:33.460, Speaker B: Yes.
+00:11:33.610 - 00:11:36.280, Speaker A: I guess it doesn't matter because everyone.
+00:11:36.350 - 00:11:44.410, Speaker B: So that you're right, there could be someone here who. This is his last message. He went offline and. Yeah, he didn't have any messages here.
+00:11:45.500 - 00:11:46.904, Speaker A: And then the highest score wins.
+00:11:46.952 - 00:11:48.088, Speaker B: The highest score wins.
+00:11:48.184 - 00:11:48.828, Speaker C: Yeah.
+00:11:48.994 - 00:12:05.760, Speaker B: So basically, you take the sum of these two, you have eight and then eight, and then you take the sum of these 210. Well, actually, of all these. So here you have eight and then ten plus 18.
+00:12:09.080 - 00:12:26.324, Speaker A: And it seems like vanilla LMD. Even if you see every single tester having their latest attestation in a given chain, that chain, even though very unlikely, but in principle, can still lose to another chain.
+00:12:26.372 - 00:12:26.970, Speaker C: Right?
+00:12:28.220 - 00:12:28.970, Speaker B: Yes.
+00:12:31.820 - 00:12:46.908, Speaker A: But then once you have finalization gadget finalizing, then depending on its properties, you might require at least some percentage of. Or like, specifically, if it's casper f of g, which it is. Right. Then you need at least 33% of validators to collude.
+00:12:46.924 - 00:12:47.490, Speaker C: Right?
+00:12:49.540 - 00:13:03.760, Speaker B: Right. So if you have a finalized checkpoint and then you have an inconsistent other finalized checkpoint, then you need one third of the validators to get slashed. So it's an economic guarantee.
+00:13:03.840 - 00:13:05.124, Speaker A: At least one third.
+00:13:05.322 - 00:13:06.516, Speaker B: At least one third, yeah.
+00:13:06.618 - 00:13:08.736, Speaker A: Probabilistically, that would be super unlikely.
+00:13:08.768 - 00:13:09.012, Speaker C: Right.
+00:13:09.066 - 00:13:14.436, Speaker A: Like, most likely, you're going to be closer to two thirds in terms of how many validators get slashed.
+00:13:14.548 - 00:13:33.272, Speaker B: Well, we don't know. I mean, we're making honesty assumption or rationality assumptions. For example, we might assume that two thirds are honest. And basically what we're saying is that two thirds of the efer that has made the deposit is honest. But that's just an assumption. We don't know if it will be true in practice.
+00:13:33.336 - 00:13:49.340, Speaker A: Makes sense. So, effectively, what you're saying is that even if the third honesty assumption is not correct, at least someone will lose a lot of money.
+00:13:49.510 - 00:13:57.620, Speaker B: Right. So in a way, you can think of it as being more of a rationality assumption than an honesty assumption.
+00:13:58.840 - 00:13:59.348, Speaker C: Cool.
+00:13:59.434 - 00:14:11.704, Speaker A: Okay, so let's get back to attestations. So the beacon chain is the only effectively source of information that is global to the system, right?
+00:14:11.822 - 00:14:12.104, Speaker B: Yes.
+00:14:12.142 - 00:14:23.180, Speaker A: So the information about attestations has to live on the beacon chain. And you're saying that attestations can arrive late. So at which point and where attestations get stored.
+00:14:24.560 - 00:15:02.344, Speaker B: So the attestations get put into blocks. They don't necessarily get stored. I mean they get stored for a short period of time, but then we discard them. And the specific rule that we have is that you have one epoch to include attestations on chain. And one thing that I did mention is that these attestations are actually aggregated attestations. So each individual validator will make his own attestation and then you can aggregate the attestations. And we use BLS signatures for that.
+00:15:02.344 - 00:15:35.712, Speaker B: And one of the nice things is that because the attestation from a data standpoint is the same message for all the validators within the committee, the aggregation works really well. So from the point of view of the beacon chain, in every epoch you could have a million validators who've each made a vote. But from the point of view of verifying the attestations, you only have 1000 different messages. And so the overhead for the beacon chain is only verifying on the order of 1000 messages.
+00:15:35.776 - 00:15:36.100, Speaker C: Right.
+00:15:36.170 - 00:15:40.870, Speaker A: And each message would be the BLS signature and a bitmask, right?
+00:15:41.820 - 00:16:07.280, Speaker B: Right. So we have an aggregation bit mask which specifies which. So once you have a well defined committee, you can have one bit per validator, and the ones would basically specify who is being aggregated in the current BLS aggregated signature.
+00:16:07.940 - 00:16:25.060, Speaker A: And so by the end of the epoch, do we use all those attestations as sort of casper votes or Casper happens separately?
+00:16:25.480 - 00:17:16.596, Speaker B: Yes. So we use attestations for many, many things. So this is where part of the power of defame design comes in, is that we have a single message which we call an attestation, which does many, many different things. On the one hand, it participates in the LMD forkswoice rule. The other thing that it does is that it participates in the Casper friendly finality gadget. But the other thing that it does is that once you have attestations which meet a certain vote threshold. So for example, two thirds of a given committee have made the same attestation, then that attestation becomes a so called.
+00:17:16.618 - 00:17:38.824, Speaker A: Cross link, but that attestation. So before we go to the shard chains, yes. Attestation also is an endorsement for Casper. Right. I don't remember the terminology of Casper but the, like you're testing. And Casper operates on the epoch level, right? So that would be your attestation to this specific epoch.
+00:17:38.952 - 00:17:39.388, Speaker B: Yeah.
+00:17:39.474 - 00:17:50.960, Speaker A: And in Casper, am I allowed to provide attestations for two different blocks in the same epoch? Is it flashable behavior or is it.
+00:17:51.030 - 00:18:00.400, Speaker B: Right. So the way that it works is that in Casper, when you make. So you have a notion of epoch.
+00:18:01.140 - 00:18:05.700, Speaker A: And that epoch coincides with the epoch. Like, that's the same epoch, right?
+00:18:05.770 - 00:18:06.484, Speaker C: Yeah.
+00:18:06.682 - 00:18:57.780, Speaker B: And basically for the purpose of coordinating all the validators, we have them vote on these boundaries. And these boundaries happen roughly every six minutes. And what it means to make a vote in the context of Casper FFG is basically to specify a so called source and then a target, and then to make a vote like this. And we have slashing conditions, one of which is that you're not allowed to have one vote surrounding the other vote, and you're not allowed to have two votes with the same target.
+00:18:58.520 - 00:19:00.788, Speaker A: And when I'm attesting to a particular.
+00:19:00.874 - 00:19:01.620, Speaker C: Block.
+00:19:04.120 - 00:19:09.720, Speaker A: Like for the sake of Cusper, is it effectively endorsing the previous boundary?
+00:19:13.680 - 00:19:35.628, Speaker B: Yeah. So if you're making an attestation for the block at this lot, then the target would be the closest boundary, and then the source would be the last justified.
+00:19:35.804 - 00:19:52.372, Speaker A: Makes sense. So question. Let's say that effectively this is the last justified block. This one so far is far from being justified. And let's say there's 100 validators, and this one happens to have score of 51, let's say.
+00:19:52.506 - 00:19:52.804, Speaker C: Right.
+00:19:52.842 - 00:20:04.040, Speaker A: So there's 51 validator who attested to this block, best known to me. And there's another block competing also at the epoch boundary, which is like, let's say 49.
+00:20:04.190 - 00:20:04.612, Speaker C: Right.
+00:20:04.686 - 00:20:10.536, Speaker A: So there's a decent chance that at some point it's almost metastable.
+00:20:10.568 - 00:20:10.716, Speaker C: Right.
+00:20:10.738 - 00:20:13.752, Speaker A: And so there's a decent chance that right now I think this chain is canonical.
+00:20:13.816 - 00:20:26.288, Speaker B: So the threshold to having this vote be meaningful on a global basis is two thirds, not one half.
+00:20:26.454 - 00:20:31.884, Speaker A: Right, but let's say. But this is not Casper score. This is the LMD.
+00:20:31.932 - 00:20:32.828, Speaker B: LMD goes right?
+00:20:32.854 - 00:20:36.020, Speaker A: LMD goes score. Here is 51. Here it's 49. So it's very close.
+00:20:36.090 - 00:20:36.372, Speaker C: Okay.
+00:20:36.426 - 00:20:44.100, Speaker A: But like, 51 is still bigger from my perspective, this is the canonical chain right now. And let's say I'm an attestor.
+00:20:47.420 - 00:20:47.736, Speaker C: But.
+00:20:47.758 - 00:20:51.508, Speaker A: I only have one slot. Every tester has exactly one slot.
+00:20:51.524 - 00:20:51.816, Speaker C: I see.
+00:20:51.838 - 00:20:55.896, Speaker A: So I only have one vote through one per epoch.
+00:20:55.928 - 00:20:56.172, Speaker C: Yeah.
+00:20:56.226 - 00:21:12.480, Speaker A: Okay. That sort of makes sense. Now, you said that one epoch is 64 slots. And in Casper, one epoch is every six minutes. Does it imply that one slot is like every 10 seconds?
+00:21:13.860 - 00:21:14.780, Speaker B: 6 seconds.
+00:21:14.860 - 00:21:17.280, Speaker A: 6 seconds. That doesn't seem to work out.
+00:21:17.430 - 00:21:33.640, Speaker B: Okay, so 64 times 6 seconds. We haven't finalized the numbers, but it's on the order of, each slot is on the order of seconds, and each epoch is on the order of minutes.
+00:21:33.710 - 00:21:34.730, Speaker A: Okay, makes sense.
+00:21:35.660 - 00:21:36.216, Speaker C: Cool.
+00:21:36.318 - 00:21:43.050, Speaker A: So now back to the, now I guess we can start introducing short chains to the.
+00:21:43.420 - 00:21:48.972, Speaker B: It does make sense. If you have 6 seconds, then that's 6.4 minutes.
+00:21:49.026 - 00:21:52.190, Speaker A: No, is it?
+00:21:52.880 - 00:21:53.630, Speaker B: Yeah.
+00:21:54.720 - 00:21:56.030, Speaker A: Oh yeah, it is.
+00:21:57.540 - 00:21:57.904, Speaker C: Yeah.
+00:21:57.942 - 00:21:59.970, Speaker B: So 6.4 minutes, not six minutes.
+00:22:03.220 - 00:22:32.052, Speaker A: Sounds like. Yeah, it is. Okay. My math is a bit rusty today. Okay. So short chains, the attester, when they attest and they accumulate the BLS signatures, what is the input to what they sign on? Is it the latest? So you call the hash of the block block root, right? It's not called block hash anymore.
+00:22:32.116 - 00:22:34.292, Speaker B: Yes, it's called block root.
+00:22:34.356 - 00:22:34.756, Speaker A: Block root.
+00:22:34.788 - 00:22:34.984, Speaker C: Okay.
+00:22:35.022 - 00:22:38.396, Speaker A: And is the same terminology on the bicken chain, on the shard chain, yes.
+00:22:38.418 - 00:23:29.432, Speaker B: And the reason is that traditionally when you have a block, what you do is that you hash it and you get a number. But actually we can do something a bit more clever because each block has structure in it. It will have a header, and the header will itself have lots of fields. And so what we do is that we basically build a hash tree of the various fields. And so what this allows you to do is to very succinctly prove that this field has this specific value in this block. So this is actually a Merkel root. We will identify blocks by the Merkel root, not by a hash.
+00:23:29.576 - 00:23:30.316, Speaker C: I see.
+00:23:30.418 - 00:23:31.736, Speaker A: Which is sort of still a hash.
+00:23:31.768 - 00:23:32.012, Speaker C: Right.
+00:23:32.066 - 00:23:34.376, Speaker B: It's still a hash, but it's more powerful.
+00:23:34.488 - 00:23:35.004, Speaker C: Right.
+00:23:35.122 - 00:23:50.364, Speaker A: And so I'm, as an attestor, or like rather the committee as a whole is specific to a particular shard. And so in that shard, we're also producing blocks, presumably also using LMD ghost, but without Casper.
+00:23:50.412 - 00:23:50.912, Speaker B: Right.
+00:23:51.046 - 00:23:51.788, Speaker C: Yeah.
+00:23:51.974 - 00:24:01.484, Speaker A: And when I'm creating this attestation, it is both conditioned on the last block in my shard.
+00:24:01.552 - 00:24:02.264, Speaker C: Right.
+00:24:02.462 - 00:24:09.464, Speaker A: And on the last block that I endorse, or rather, what is the input to the like, what am I computing the signature on?
+00:24:09.582 - 00:24:09.864, Speaker C: Okay.
+00:24:09.902 - 00:24:22.620, Speaker B: Yeah. So also for coordination purposes, we will have the committee's vote on epoch boundaries in the shot.
+00:24:23.040 - 00:24:25.580, Speaker A: And it's the same 64 slots.
+00:24:28.180 - 00:25:02.356, Speaker B: And they will basically take the block route at that epoch boundary. And part the other, the other method, the other data that's included is going to be basically the shard block route at which the committee is assigned here. And it will also include the closest boundary and it will all include the previous justified checkpoint on the beacon chain. On the beacon.
+00:25:02.388 - 00:25:03.632, Speaker A: So there are three hashes?
+00:25:03.796 - 00:25:30.448, Speaker B: At least three hashes, yeah. Other things that are done at the individual level is going to be what we call a proof of custody. So not only are you voting for a block route, but you're vouching that you've actually downloaded the data that's underneath this block route as well as the data in the recent blocks.
+00:25:30.624 - 00:25:31.510, Speaker C: I see.
+00:25:32.440 - 00:25:42.224, Speaker A: Now the aggregation is only possible if what was input to my signature is exactly matches someone else's.
+00:25:42.272 - 00:25:42.532, Speaker C: Right.
+00:25:42.586 - 00:25:50.596, Speaker A: So that works well if we all agree on the previous, on the boundary, on the short chain block, and on the last justified block.
+00:25:50.628 - 00:25:51.160, Speaker C: Right.
+00:25:51.310 - 00:26:00.540, Speaker A: So do we somehow communicate in advance to make sure that we're all on the same page? Or is it believed that most of the time we will see a consistent.
+00:26:00.960 - 00:26:08.108, Speaker B: So the forkress rule has these nice convergence properties. So we basically use the forkress rule as our coordination mechanism.
+00:26:08.124 - 00:26:08.336, Speaker C: I see.
+00:26:08.358 - 00:26:23.696, Speaker A: So, for example, if we are two attesters in the same committee and our state is not consistent effectively as we are aggregating it, you will just discard my, like, let's say you're aggregating your and my signature will just discard mine.
+00:26:23.728 - 00:26:24.310, Speaker C: Right.
+00:26:25.320 - 00:26:33.556, Speaker B: So it's okay that if there's inconsistent attestations and they can all get included.
+00:26:33.748 - 00:26:37.284, Speaker A: On chain, but that cannot be now a single signature.
+00:26:37.332 - 00:26:37.688, Speaker C: Right.
+00:26:37.774 - 00:26:40.472, Speaker A: You cannot aggregate signatures if the input was different.
+00:26:40.526 - 00:26:40.984, Speaker C: Right.
+00:26:41.102 - 00:27:15.860, Speaker B: So BLS does allow for aggregation of the signature at the data layer. Even if the message is different, what becomes suboptimal is that the verification cost is going to be one pairing per distinct message. So even though you've aggregated the signatures at the data layer and you've saved a few bytes, the bulk of the cost is going to be verifying that pairing. So yeah, it is suboptimal. It's possible that every shard will lead to multiple attestations, but how is it stored?
+00:27:18.920 - 00:27:57.776, Speaker A: The way I see where the compression is coming from is that you're saying, so let's say it's committed from shard five, and you're saying in the block, you can say, here's the hash, or like block root of the last boundary of our shard and that's 32 bytes. And then you say this is the last justified message and this is the last beacon boundary. Right, last beacon root. And that's combined like 100 bytes, give or take. And then there is an aggregated signature, right?
+00:27:57.958 - 00:27:58.400, Speaker C: Yeah.
+00:27:58.470 - 00:28:08.310, Speaker A: And the bitmask, now, if they different messages, isn't this exploding and starts occupying a lot of space.
+00:28:12.840 - 00:28:52.580, Speaker B: Right. So all of this would have to be communicated several times per shard on the beacon chain. So one of the things that we have is that in each block you can only put so many attestations and there's some buffer so that we allow for duplicates per shard. We also have a micro incentivization scheme which basically incentivizes the block producers to pick attestations, which maximize the number of voters that are being aggregated and specifically new voters that haven't been seen before. So basically, we're trying to incentivize.
+00:28:55.080 - 00:28:55.396, Speaker C: The.
+00:28:55.418 - 00:29:01.350, Speaker B: Beacon chain being aware of more voters that it wasn't previously aware of.
+00:29:02.120 - 00:29:38.860, Speaker A: So one question is, so let's say that everyone actually does have a consistent view, and so the signature is aggregated on exact and everybody had the same message that they designed on. And there's like 100 attestations. Will it be just one sort of in the block? Will it be stored once or will it be stored 100 times? Let's say this is 64 bytes, right? And this is 100. Is it going to be 164 bytes total or is it going to be 164 bytes multiplied by 100?
+00:29:39.010 - 00:29:42.068, Speaker B: If we're looking at a single shot, then it's going to be times one.
+00:29:42.154 - 00:29:44.228, Speaker A: And on the beacon chain it's going.
+00:29:44.234 - 00:29:46.004, Speaker B: To be times one times one as well.
+00:29:46.042 - 00:29:46.484, Speaker C: Yeah.
+00:29:46.602 - 00:29:52.148, Speaker A: But now let's say that the testers were split 50 of them.
+00:29:52.314 - 00:29:53.572, Speaker B: Yeah. Then there's times two.
+00:29:53.626 - 00:30:00.468, Speaker A: I see. And the limit that you have that says the number of attestations is on number of unique messages, effectively.
+00:30:00.644 - 00:30:01.464, Speaker B: Right.
+00:30:01.662 - 00:30:06.520, Speaker A: And the ones that will be stored are those that have the highest number of attestors.
+00:30:08.300 - 00:30:25.250, Speaker B: So we do have a notion of short term storage. So we do put the attestations in the state, and the reason why we keep them for some period of amount of time is that we want to see if they eventually reach the threshold of two thirds, because once, if they do, then they become special.
+00:30:26.580 - 00:30:28.188, Speaker A: For the finality gadget.
+00:30:28.364 - 00:30:29.090, Speaker B: Yes.
+00:30:30.340 - 00:30:31.392, Speaker A: And for the cross link.
+00:30:31.446 - 00:30:33.416, Speaker B: Yeah. More for the cross links than for the finality gadget.
+00:30:33.468 - 00:30:34.070, Speaker C: Yeah.
+00:30:34.760 - 00:30:55.530, Speaker A: And let's say I'm here, I'm the tester, and I see something that is being justified, that is justified at this point by the FFG. And I'm attesting to that. And I, as an attestor, I want to maximize my chance of attesting to the same message as the majority of the people in the future.
+00:30:56.060 - 00:30:56.568, Speaker C: Right.
+00:30:56.654 - 00:31:07.192, Speaker A: So I'm that tester for the very first slot and you're saying I have an incentive to attest to what the majority of the people in the epoch will attest.
+00:31:07.256 - 00:31:08.708, Speaker B: Yes, because you only have one vote.
+00:31:08.824 - 00:31:09.490, Speaker C: Right.
+00:31:09.940 - 00:31:19.532, Speaker A: But isn't it expected that throughout the epoch, Casper for G can make progress or Casper for G can only make progress when the epoch is finalized?
+00:31:19.676 - 00:31:23.860, Speaker B: Only when the epoch is only at epoch boundaries.
+00:31:24.600 - 00:31:25.012, Speaker C: Right.
+00:31:25.066 - 00:31:29.424, Speaker A: But it can still make progress once messages from the previous slots arrive.
+00:31:29.472 - 00:31:30.070, Speaker C: Right.
+00:31:30.920 - 00:31:34.840, Speaker A: Because there is some time for the attestations to arrive.
+00:31:35.180 - 00:32:09.900, Speaker B: Okay, so we break down time in epochs. In each epoch you have slots and you have attestations coming in possibly duplicate per shard. And then here we do basically all the accounting. We'll just tally up all the votes and see which ones have reached the two third threshold. Those become cross links. And we also do a tally across all the attestations and we see if that reaches the two third threshold so that you can advance justification and finality.
+00:32:09.980 - 00:32:14.240, Speaker A: And that would do before we move to the first slot of the next epoch.
+00:32:14.400 - 00:32:21.168, Speaker B: Yeah, it's like at the end of this epoch, the last slot of this epoch.
+00:32:21.344 - 00:32:26.152, Speaker A: Right. So let's say we are not at the boundary yet, we're somewhere in the middle.
+00:32:26.206 - 00:32:26.472, Speaker C: Yes.
+00:32:26.526 - 00:32:33.956, Speaker A: And I'm attesting to something. My destination does not have to be included in the next block to be considered for the LMD Ghost rule.
+00:32:33.988 - 00:32:34.570, Speaker C: Right?
+00:32:35.500 - 00:32:39.624, Speaker B: So it doesn't have to be included at all to be considered for LMD Ghost.
+00:32:39.672 - 00:32:40.972, Speaker A: Oh, you just need to be seen.
+00:32:41.106 - 00:32:43.736, Speaker B: LMD Ghost includes off chain messages.
+00:32:43.928 - 00:32:44.924, Speaker A: I see.
+00:32:45.122 - 00:33:23.320, Speaker B: For the purposes of including on chain, we have two things going on which are kind of just implementation details. Number one is that we don't allow attestations to come in before four slots after they were made. And the reason is that we want to allow for at least four slots for the attestation to have time to aggregate so that we don't have lots of fragmentation. And the other rule is that an attestation needs to come in one epoch after that on chain. Otherwise it won't go on chain.
+00:33:28.320 - 00:33:33.152, Speaker A: Can you elaborate on the one epoch after that? The second point?
+00:33:33.286 - 00:33:55.380, Speaker B: So basically, we want to include the attestations on chain for the purposes of cross links and for purposes of finality. But cross links and finality is the way we do the accounting. We only do it for the recent past. So if your attestation is stale, it's very old, then we don't allow you to include it on chain.
+00:33:55.460 - 00:33:56.250, Speaker C: I see.
+00:33:57.100 - 00:34:11.912, Speaker A: That makes sense. Now going back to my previous question. So I'm an attestor, I'm attesting to something. For that to be considered by someone for the LMD ghost rule that needs to arrive within four slots.
+00:34:11.976 - 00:34:17.916, Speaker B: No, the LMD ghost also takes into account off chain as a like they.
+00:34:17.938 - 00:34:22.672, Speaker A: Need to see my attestation. They need to see before they move to slot that plus five.
+00:34:22.726 - 00:34:23.330, Speaker C: Right.
+00:34:23.940 - 00:34:33.328, Speaker A: So like if that was slot zero and then here is slot five. If someone is at slot five already and my attestation arrives, they will not consider it.
+00:34:33.414 - 00:34:40.900, Speaker B: No, you consider it immediately. So if you make an attestation for this block, you'll broadcast it off chain and everyone who's received it must consider.
+00:34:40.970 - 00:34:42.464, Speaker A: It within four slots.
+00:34:42.512 - 00:34:43.264, Speaker B: No, immediately.
+00:34:43.312 - 00:34:43.732, Speaker C: I see.
+00:34:43.786 - 00:34:44.244, Speaker B: Yes.
+00:34:44.362 - 00:34:47.296, Speaker A: No, what I'm saying is that, let's say my message was delayed by four slots.
+00:34:47.328 - 00:34:57.950, Speaker B: Oh, if it was delayed 24 seconds. Okay, delayed. Well, let's avoid four because four is the parameter we used on chain. Let's say five. Yeah. Then it will only be considered when it's received. Of course.
+00:35:01.760 - 00:35:04.860, Speaker A: Then I probably don't understand what is the force slot.
+00:35:05.840 - 00:35:56.140, Speaker B: So in addition to attestations being broadcast and aggregated off chain, they need to be included on chain. But we only want kind of very well aggregated attestations to come on chain. Otherwise we'd have fragmentation. So we'd have, let's say we have a committee of 500 people and then they get batched in batches of 100. And so we'd have five different attestations that would go on chain. And so that's five times the overhead on the beacon chain in terms of verifying the aggregate signature. So instead what we do is that we say there needs to be at least four slots of aggregation so that the aggregate attestations that go on chain will be very well aggregated.
+00:35:56.720 - 00:36:27.610, Speaker A: I see. So assuming that everybody has consistent state and everybody's signing on the same message, we would get four x overhead. In the worst case in terms of storage and verification, because the first block will have some attesters aggregated, second will have some 3rd, fourth and fifth cannot have anyone. No. So let me try to rephrase the way I understand it and you tell me if that's correct. So there's 100 people here and.
+00:36:30.940 - 00:36:31.268, Speaker C: They'Re.
+00:36:31.284 - 00:36:35.450, Speaker A: Aggregating their attestations and so some of them will be included in the next block, right?
+00:36:36.300 - 00:36:39.320, Speaker B: No, at the very least you need to wait for four slots.
+00:36:39.740 - 00:36:44.712, Speaker A: Oh, four slot is, it's not the maximum number of blocks it's the minimum number of blocks.
+00:36:44.776 - 00:36:45.144, Speaker B: Minimum?
+00:36:45.192 - 00:36:45.644, Speaker A: Yes, I see.
+00:36:45.682 - 00:36:46.104, Speaker B: Minimum.
+00:36:46.152 - 00:36:46.364, Speaker C: Yes.
+00:36:46.402 - 00:36:47.132, Speaker A: Okay, makes sense.
+00:36:47.186 - 00:36:49.432, Speaker B: The maximum is going to be four plus one epoch.
+00:36:49.496 - 00:37:01.836, Speaker A: Four plus one epoch. So in the worst case, which is probably not really achievable, you will have some signatures in the block. T plus four, some in t plus five. All the way up to t plus 68.
+00:37:01.958 - 00:37:03.108, Speaker B: Yes, exactly.
+00:37:03.194 - 00:37:04.070, Speaker A: I see.
+00:37:05.160 - 00:37:05.910, Speaker C: Cool.
+00:37:06.920 - 00:37:20.068, Speaker A: But if the attestations, and for the purpose of the finality gadget, are we using attestations that we do we include off chain attestations or we only include attestations that in the blocks?
+00:37:20.244 - 00:37:29.900, Speaker B: No. So I guess Casper FFG finality is objective. So the beacon chain is aware of the attestations and we only consider those that have been included on chain.
+00:37:30.480 - 00:37:39.676, Speaker A: But the attestations that happened in the last slot, by the time the boundary happens, they are not included on chain yet.
+00:37:39.698 - 00:37:39.836, Speaker C: Right.
+00:37:39.858 - 00:37:43.896, Speaker A: They only been included in four blocks.
+00:37:43.928 - 00:37:43.989, Speaker C: Right.
+00:37:43.989 - 00:37:44.288, Speaker B: Right.
+00:37:44.374 - 00:37:51.232, Speaker A: So is Casper finalizing the one even before that? Yes, I see.
+00:37:51.286 - 00:37:51.660, Speaker C: Exactly.
+00:37:51.750 - 00:38:02.992, Speaker A: Okay, so Casper is like one full epoch and one partial epoch behind always. If we're in this epoch right now, then Casper.
+00:38:03.136 - 00:38:04.368, Speaker B: Oh, I see what you mean.
+00:38:04.474 - 00:38:05.764, Speaker A: Is finalizing this boundary.
+00:38:05.812 - 00:38:15.348, Speaker B: Yeah, but in the best case, the first 64 slots are sufficient to finalize the previous.
+00:38:15.444 - 00:38:17.432, Speaker A: So we don't need to wait for the next boundary.
+00:38:17.496 - 00:38:27.708, Speaker B: No, like effectively we only do processing at boundaries and we progress justification and fanaticity as much as we can.
+00:38:27.794 - 00:38:36.752, Speaker A: Oh, what you're saying is that even though some of the signatures are delayed. Yes, by this time we probably already have two thirds of them.
+00:38:36.806 - 00:38:37.650, Speaker B: Yeah, exactly.
+00:38:39.300 - 00:38:40.050, Speaker C: Cool.
+00:38:45.410 - 00:38:51.610, Speaker A: And the verification. But then the signatures, there is 1000 shards.
+00:38:51.690 - 00:38:51.934, Speaker C: Right.
+00:38:51.972 - 00:39:06.494, Speaker A: And so the message that a tester is signing on is different, obviously between shards per shard. So the verification for the purpose of the FFG will be 1000 times slower.
+00:39:06.542 - 00:39:06.898, Speaker C: Right.
+00:39:06.984 - 00:39:10.690, Speaker A: Because you're saying it's linear, right. In the number of different messages.
+00:39:11.110 - 00:39:27.194, Speaker B: Right. So the thing is that we process the attestations and we verify the signatures on a start by start basis. And then we include them in the state, the recent attestations. And then when we reach the end, you don't need to check the signatures anymore because you already checked them previously. Oh yeah.
+00:39:27.232 - 00:39:30.490, Speaker A: So we don't need to aggregate across shards.
+00:39:32.350 - 00:39:35.600, Speaker B: No, in theory you could do it, but we don't do it.
+00:39:39.650 - 00:39:52.290, Speaker A: Awesome. And I guess we can as well. While we talking about aggregation, talk about proof of custody. How does that work and what it's trying to achieve? And how does it affect the signatures?
+00:39:52.630 - 00:41:39.430, Speaker B: Yes. So if you look at an attestation you have fixed data here and then you have your signature and then you have aggregation bit field and then we have another bit field which is going to be the custody bit field. And so the idea is that for every validator in a given committee they're going to commit to one bit. And the idea is this one bit, statistically speaking, will be zero or 150 percent of the time. And if they were to choose the bit at random and not do their homework, which is to download the block, then 50% of the time they will be wrong. And being wrong is something that can be verified at some point in the future and something for which they can be slashed. So with very little data, basically one bit per validator, we're able to enforce in terms of incentives that validators that create these attestations have actually downloaded the data in the shards that they're voting for.
+00:41:42.600 - 00:41:54.984, Speaker A: And how does it affect the signature verification? Or rather what is the message they sign on now? It includes their bit, right? Or it includes bits of others as well.
+00:41:55.022 - 00:42:31.220, Speaker B: Yes you're right. So if you take an individual attestation you won't have the aggregation bit field and you won't have the custody bit field. You will have a signature which is non aggregated and then there'll be an extra bit here which is zero or one. And now what you do is that you do two aggregations. You do aggregation over all the messages where the first bit is zero, one where the first bit is two. And then what you can do is you can further aggregate these two. So you have a single aggregate signature, but from the point of view of verification it will be two x because there's two distinct messages.
+00:42:36.040 - 00:42:45.572, Speaker A: And then aggregator Bitfield and the custody bitfield. The custody bitfield, the bits at the positions where aggregator's bitfield is zero, they're meaningless.
+00:42:45.636 - 00:42:46.008, Speaker C: Right.
+00:42:46.094 - 00:42:54.040, Speaker A: So you can sort of. Oh no, if the aggregator bitfield is zero that means the validator.
+00:42:55.360 - 00:43:01.550, Speaker B: So if you have a zero at position I, we enforce you to have a zero at position I here as well.
+00:43:03.380 - 00:43:08.956, Speaker A: But if we get too concerned about space that can be compressed into ternary mask.
+00:43:08.988 - 00:43:09.280, Speaker C: Right?
+00:43:09.350 - 00:43:15.680, Speaker B: Yeah. So at the networking layer there's actually just one trit.
+00:43:16.180 - 00:43:18.820, Speaker A: Okay, so that's already how it works.
+00:43:18.970 - 00:43:29.480, Speaker B: Well the networking layer is kind of independent of the spec. The implementers do whatever they want and if they want they can't compress it forever. But this is so small anyway, it's not the bottleneck.
+00:43:31.900 - 00:43:40.810, Speaker A: So you're saying implementers can implement the networking layer compression, compression but aren't protocols built by different implementers supposed to talk to each other.
+00:43:41.420 - 00:43:43.976, Speaker B: So there needs to be standardization across the implementers.
+00:43:44.008 - 00:43:51.004, Speaker A: Yeah, I see. Oh, you're just saying this is not enforced by the spec. It's something they need to figure out among themselves.
+00:43:51.122 - 00:43:51.790, Speaker B: Right.
+00:43:52.100 - 00:43:53.090, Speaker A: Makes sense.
+00:43:54.260 - 00:43:55.010, Speaker C: Cool.
+00:43:57.540 - 00:44:09.110, Speaker A: Now I guess let's talk about how exactly are validators chosen? How does sampling happen?
+00:44:10.360 - 00:45:12.920, Speaker B: Okay, so there's kind of three parts to choosing a validator. First, you need to have a validator pool, which is going to be part of your input. We call it actually a registry. And you're going to need a shuffling function, which takes the pool and then a seed, and then you need a way to generate a seed, which is random or close to random. And then the shuffling function will basically permute the registry, and then based on the permutation, assign roles to the validators. So for example, if we look at the cross link committees and there's 1000, let's say validators per crosslink committee, then it just takes the first thousand, second thousand, third thousand, et cetera, of the shuffled function. So there's a little bit of subtlety in which shuffling function you use.
+00:45:12.920 - 00:45:54.868, Speaker B: So specifically, we want a shuffling function, which is number one, a permutation, and number two, which allows you to, in constant time compute where a given index in the registry gets shuffled to. And the reason is that it's an optimization for light clients. So as a light client, I don't want to know the whole validator set. There could be a million of them. And when I shuffle, I don't want to be required to have to know this information and compute the shuffling over every validator. So instead, we want this special shuffling function, which allows you to take a single validator and see what they've been assigned to. That's a detail.
+00:45:54.868 - 00:45:58.624, Speaker B: The most of the complexity is in the randomness.
+00:45:58.672 - 00:46:06.356, Speaker A: So, quick question, don't we instead want to know the opposite? Which validator was assigned to a specific slot?
+00:46:06.548 - 00:46:07.704, Speaker B: Yeah, you want to know both?
+00:46:07.742 - 00:46:07.896, Speaker C: Yeah.
+00:46:07.918 - 00:46:31.804, Speaker B: So you want to also compute the reverse from. A few days ago, from the reset workshop at Stanford, Dan Bonet suggested a shuffle algorithm called swap or not. And it seems to have most of the properties that we want, including being able to compute the inverse permutation.
+00:46:31.932 - 00:46:34.352, Speaker C: Nice. Cool.
+00:46:34.486 - 00:46:36.550, Speaker A: And so where's the biggest problem?
+00:46:36.920 - 00:47:54.750, Speaker B: So, most of the subtlety is in the randomness, and it turns out that we have a pretty neat solution, which is called randal. So the idea of Randall is that in a given epoch, the 64 proposers that are assigned to the 64 blocks will be invited to reveal a piece of entropy that is local to them. And the piece of entropy is deterministic. So the only choice that they have is either to reveal or not reveal a thing that they and only they are meant to know. And at the end of the epoch, you take all the randall reveals and you export them, and that's going to be your random number. And the idea is that if within a single epoch there's at least one honest participant who reveals that randomness without having communicated it to everyone else, then the final random number will be unpredictable from the point of view of everyone else.
+00:47:59.070 - 00:48:02.726, Speaker A: But then we're revealing them like we cannot also simultaneously reveal.
+00:48:02.758 - 00:48:02.906, Speaker C: Right.
+00:48:02.928 - 00:48:06.834, Speaker A: So if I reveal my number, then someone else might see the number I reveal.
+00:48:06.902 - 00:48:52.090, Speaker B: So we reveal them on a sequential basis. So at slot one, the proposed invite to reveal, let's say he does reveal, fine. Then at slot two, which is 6 seconds later invited to reveal, he might not reveal. And then basically the more you progress, the more you have information about what has been revealed and not revealed. And so this kind of points to one of the weakness of Randall, which is the very last revealer. Here they've already seen what has been revealed or not revealed. And so they can basically choose between two different, completely different random numbers based on whether they reveal or not reveal at this very last slot.
+00:48:52.430 - 00:48:55.606, Speaker A: And the last ten proposers have 1000.
+00:48:55.648 - 00:49:17.220, Speaker B: Bits of yes if they collude. So if within the ten it's one of them that's on this kind of halfway through, then that kind of negates everyone who's before them. But if you have an attacker who controls the last three, then suddenly they can choose, basically they have three bits of attack surface, so they can choose between eight different random numbers, right?
+00:49:18.970 - 00:49:20.600, Speaker A: Well that's a problem, right?
+00:49:22.650 - 00:49:41.770, Speaker B: Yes and no. So it's definitely a problem in terms of having a source of entropy, which is unbiaseable, but it is not a problem if you want your source of randomness to be unpredictable and the bias is limited.
+00:49:42.510 - 00:49:54.970, Speaker A: And so from perspective of validator rotation, right, let's say we assume honest majority. We assume that majority of people are honest, or even more than majority.
+00:49:55.050 - 00:49:55.914, Speaker B: Let's say two thirds.
+00:49:55.962 - 00:50:17.030, Speaker A: Let's say two thirds. Or let's say that we assume that sufficient number of people are honest so that if you sample, actually we don't need to. Right, because everybody attests per epoch. Yeah. So we assume that two thirds plus one of people are honest, then we probably, like we do some math.
+00:50:19.370 - 00:50:19.686, Speaker C: And.
+00:50:19.708 - 00:50:26.282, Speaker A: We want to ensure effectively that we want to lower the chance of a particular committee in a short being corrupted, right?
+00:50:26.336 - 00:50:26.554, Speaker C: Yes.
+00:50:26.592 - 00:50:45.858, Speaker A: So we do some math and we get relatively certain that with the given assumption of the number of honest participants and the given size of the committee, that the probability of ever getting a corrupted committee in like ten years is very low. So at that point, controlling one bit doesn't give you much.
+00:50:45.944 - 00:50:46.194, Speaker C: Right.
+00:50:46.232 - 00:50:55.666, Speaker A: Because it was already so unlikely that, yeah, even if you have two attempts, you're still not going to corrupt the shard. Right?
+00:50:55.848 - 00:51:40.610, Speaker B: Right. So there's three things going on here. There's the assumption that you're making, which will be generally like an honesty assumption or rationality assumption. There's the quality of the randomness, which may be perfect or biasable. And then you have the sampling mechanism, which the main parameter is going to be the size of the committee. There's ever considerations such as how close to a random permutation is your shuffling function. But let's assume that it's a perfect permutation, then the main parameter here is going to be the size of committee.
+00:51:40.610 - 00:52:37.540, Speaker B: So if we have a really bad randomness, then you need to compensate in at least one of these two things. Either you need to have a greater honesty assumption, which is not great, because it means that your protocol isn't as robust, or you need to increase the size of the committee, in which case your protocol is not as performant, because now you have more overhead per committee. And so one of the things that I've been working to do is to try and make the randomness here essentially perfect, so that we can have an optimal assumption, and so optimal robustness and optimal performance.
+00:52:37.700 - 00:52:38.504, Speaker C: Right?
+00:52:38.702 - 00:52:41.280, Speaker A: And obviously there is a perfect randomness.
+00:52:41.300 - 00:52:41.436, Speaker C: Right?
+00:52:41.458 - 00:52:48.296, Speaker A: It's called bls, like threshold signatures, right? So why not threshold signatures?
+00:52:48.408 - 00:54:01.300, Speaker B: Okay, so there's generally three key properties that you care about, decentralized randomness beacons. One is unpredictable, two is unbiaseable, and three is the idea of liveness, which is that if most of your validators go offline, you still want the randomness beacon to progress. Otherwise you might have to store the blockchain, and that might be something that you don't want. Definity's BLS scheme has two of these three properties. It has unpredictability on manipulative, but it doesn't have strong liveness depending on how many. So one of the assumptions that they make is that two thirds of the validators are honest, so one third are dishonest. And so one way to be dishonest is just to be offline and so if even, let's say, 15% of the honest validators are offline, then you get really, really close to the 50% threshold that they need for liveness.
+00:54:03.560 - 00:54:11.940, Speaker A: The threshold delay has 50%, not 66, to get liveness. I mean, 66 would be even worse.
+00:54:12.020 - 00:54:20.520, Speaker B: So definity is basically assuming that two thirds are honest and online. And that's a very strong assumption.
+00:54:22.140 - 00:54:32.056, Speaker A: But what do you think is an expected number of people who will be offline? Because if you don't have one third of online, you also cannot finalize blocks.
+00:54:32.088 - 00:54:32.380, Speaker C: Right.
+00:54:32.450 - 00:54:57.220, Speaker B: Right. So one of the design goals for Ethereum is to try and survive world war three. And that's very extreme. But there could be cases where less extreme things happen, and you have half the validators that go offline. There could be software bugs. You could have a staking pool that goes offline. You could have network partitions.
+00:54:57.220 - 00:55:02.170, Speaker B: All sorts of bad things can happen.
+00:55:06.300 - 00:55:13.228, Speaker A: So let's say the staking pool goes offline, then Casper effectively goes offline as well.
+00:55:13.394 - 00:55:13.916, Speaker B: Yes.
+00:55:14.018 - 00:55:19.996, Speaker A: Will Casper ever wake up again if the pool doesn't get back?
+00:55:20.098 - 00:55:29.436, Speaker B: So we have this graceful degradation where even though the financing gadget is no longer operational, the chain still progresses.
+00:55:29.628 - 00:55:30.832, Speaker A: Because of LMD. Right?
+00:55:30.886 - 00:55:32.448, Speaker B: Because of the LMD, yes.
+00:55:32.614 - 00:55:40.412, Speaker A: But then Casper will never. The question is, will Casper ever wake up? So pool is gone. So let's say for good it will never come back.
+00:55:40.486 - 00:55:44.404, Speaker B: Okay, so there's an atomic bomb that just destroyed the whole continent. Let's say.
+00:55:44.442 - 00:55:44.692, Speaker C: Yes.
+00:55:44.746 - 00:56:32.720, Speaker B: And these people will never come back online. So what we have is a mechanism called inactivity penalty. So if you don't show up for extended periods of time, then your balance starts eroding away. And once you reach 16 e, which is half of the 32 e that you need to register, you're forcefully ejected from the validator set. So you have the LMD ghost that progresses with those who are online, and the balance of those that are online will stay roughly constant. Those who are offline will decay. And so eventually, those who are online will be able to become the two thirds that are required for Casper to progress.
+00:56:32.880 - 00:56:38.710, Speaker A: And if I see two inconsistent justified blocks, what is the fork choice rule then?
+00:56:40.700 - 00:56:51.740, Speaker B: So you build on the highest justified block. Highest in terms of the epoch number.
+00:56:51.890 - 00:57:15.568, Speaker A: So could the following happen? Let's say I'm a validator. I'm the one that use honest validator. Everybody else is perfectly honest, and I just keep on creating blocks, right? So each block has exactly one signature, and I do it for a year. And through the graceful decay. Everybody else in my chain is kicked out.
+00:57:15.654 - 00:57:15.904, Speaker C: Yes.
+00:57:15.942 - 00:57:35.364, Speaker A: So at some point I'm actually the only validator, but I'm also 100% of validators. At which point I can start doing Casper justified blocks in my chain. And all I need is to create a Casper justified block for a epoch higher. And naturally my blocks will be justified faster.
+00:57:35.492 - 00:57:35.832, Speaker B: Yes.
+00:57:35.886 - 00:57:41.412, Speaker A: Like I can justify the block immediately. Like the very first slot, my previous block is justified.
+00:57:41.476 - 00:57:41.704, Speaker C: Right?
+00:57:41.742 - 00:57:46.476, Speaker A: Or like, I guess two before. For justified block, you need one more on top of it.
+00:57:46.498 - 00:57:46.876, Speaker C: Right?
+00:57:46.978 - 00:57:54.620, Speaker A: So wouldn't fork choose rule choose my block naturally, because it's for a higher. For a higher epoch.
+00:57:55.620 - 00:57:57.568, Speaker B: No, that's good.
+00:57:57.654 - 00:57:58.290, Speaker C: Why?
+00:58:03.620 - 00:58:21.412, Speaker B: So the reason is that you have the great majority of people who are going here, and then suddenly you've decided to fork off as an individual. Well, the great majority is going to continue thinking that, but will their software.
+00:58:21.476 - 00:58:41.390, Speaker A: Not pick up on my block? Is the client smart enough to not say, oh, look at this, this block is a justified block by Casper for a higher epoch number. I will continue building on that. And then the next thing you know is that 6 seconds later, every single validator produces a block on top of it.
+00:58:42.480 - 00:59:17.080, Speaker B: So we have certain guarantees in terms of how much the validator pool changes. So, for example, we have a cap on the churn in terms of validators that come in and that come out. And so that means that, roughly speaking, on the short to medium term, you have a relatively well defined notion of who's a validator. And so you can apply waiting.
+00:59:18.860 - 00:59:19.176, Speaker C: On.
+00:59:19.198 - 00:59:21.800, Speaker B: A short to medium term basis.
+00:59:26.080 - 00:59:31.256, Speaker A: You're saying, like, it will be applied retroactively. What happens when the client sees both chains?
+00:59:31.288 - 01:00:00.020, Speaker B: Well, the thing is that this guy will only be able to finalize blocks in his solo chain after, let's say, four months. But four months is too long a period. The chain will have finalized here independently.
+01:00:00.360 - 01:00:04.040, Speaker A: So there's like some sort of a checkpoint, which is even stronger than Casper.
+01:00:04.380 - 01:00:52.632, Speaker B: Right. So there's two types of nodes, right? There's the lite clients and the full nodes. The full nodes that are regularly online. This chain will just have no weight, and they'll just continue progressing here. Okay, this is your answer. So the thing is that the weighting of the LMD ghost is based on the validator registry. At this point in time, the way that the LMD goes works is that you start at Genesis and then you move forward.
+01:00:52.632 - 01:01:03.672, Speaker B: And anytime you have a branching point, you select the heaviest. That's the way it's defined. And so here you want to select the heaviest based on the validator set at this point.
+01:01:03.726 - 01:01:21.232, Speaker A: But you only do lmdgos from the last Casper justified block, right? So by the time we're here, four months in the future. So the chain we were building, all of us, has some latest justified block, like somewhere here.
+01:01:21.366 - 01:01:27.408, Speaker B: And then the fake chain is justified relative to this. Relative to the validator registry here.
+01:01:27.494 - 01:02:31.040, Speaker A: So here, it wouldn't be counted as justified by that logic. On the main chain, it. So let's say there is no fork, right? Let's say there is a nuclear winter, and so people naturally get kicked out from the validator pool. Then again, we cannot justify blocks, right? Because you see what I'm saying here? How can we distinguish two cases? One where one third of people maliciously forked out in the past, and one where two thirds of people actually are extinct, right? Or due to software bugs or some other reason, right? Let's say that this chain doesn't. So first of all, let's say it's not one person. It's actually like 25% of people. And it could be that either it's everybody who's left, or it's a malicious fork.
+01:02:31.040 - 01:02:40.048, Speaker A: There are two scenarios. One scenario is that is the actual chain. That's the chain that is being built. And this one does not exist in principle. In which case, Casper needs to finalize blocks.
+01:02:40.064 - 01:02:40.244, Speaker C: Right?
+01:02:40.282 - 01:02:41.270, Speaker A: At some point.
+01:02:43.160 - 01:03:00.010, Speaker B: That's an interesting question. I guess the chain that has the most liveness. So let's say this one has only one guy and this one has 25% will justify first. But you're right.
+01:03:03.420 - 01:03:11.090, Speaker A: But I think this is followable. Like, you can have snapshots every two months sort of stored on the. On Vitalik's GitHub, and everybody agrees on them.
+01:03:12.980 - 01:03:39.764, Speaker B: I mean, you could have a rule which says that if there's been no justification for two months, then LMD starts taking precedence over the finality in perpetuity. No, but at least you'll stick to this chain. You won't just suddenly flip.
+01:03:39.812 - 01:03:41.892, Speaker A: Oh, you're saying when you choose between two different chains.
+01:03:41.956 - 01:03:42.280, Speaker C: Yes.
+01:03:42.350 - 01:03:52.428, Speaker A: If you have two justifications but their common ancestors is long ago, then you're ignoring justifications and using LMD, right? Yeah.
+01:03:52.514 - 01:03:54.700, Speaker B: That's an interesting edge case. I guess we need to.
+01:03:54.850 - 01:03:55.950, Speaker A: That would work.
+01:03:56.560 - 01:03:58.110, Speaker B: Specify in the spec.
+01:03:59.220 - 01:04:04.850, Speaker A: Awesome. What other interesting parts of Ethereum we didn't cover yet?
+01:04:08.980 - 01:04:17.856, Speaker B: So I guess we didn't talk too much about the state layer in the shot.
+01:04:17.968 - 01:04:18.388, Speaker C: Yeah.
+01:04:18.474 - 01:04:58.204, Speaker B: So I guess the EVM 2.0, which will be the new virtual machine, will be very different from Ethereum, the EVM 1.0. So it will be based on Webassembly, which seems to be a standard that many blockchains are using. It will have things like sustainable storage. So in Ethereum 1.0, the dynamic is that the state grows linearly over time, and that's not very sustainable. And the reason it's even less sustainable in Ethereum 2.0
+01:04:58.204 - 01:05:38.920, Speaker B: is that the shard committees will. So basically, these are people who are meant to extend the blockchain. Each shard over, let's say a period of weeks. They will be shuffled from one shard to another over time. And every time they're shuffled, they need to download the state of that shard to sync up. And so they're only given a certain amount of look ahead to shuffle. So let's say they have one day to sync up, but it's possible that at some point in the future, one day is not even sufficient to sync up to your new shard.
+01:05:38.920 - 01:05:54.844, Speaker B: And so that's why we want to have a sustainable storage model. And one way of doing that is simply whenever you own a piece of storage, you're meant to pay for it on a regular basis. And if you don't pay, then you lose that storage slot.
+01:05:54.892 - 01:06:02.950, Speaker A: And so an example of ERC 20 token. Is it going to be the contract owner who pays for the storage of my account, or is it going to be me?
+01:06:03.500 - 01:07:03.124, Speaker B: So I guess that's going to be an implementation detail for the DAP designer. But I guess both could work depending on whether or not there's some sort of central coordinator who has an incentive to subsidize basically storage for everyone else. So for example, in the case of cryptokitties, you have these tokens which are owned by individuals, but at the same time you have some sort of DAP operator who has some sort of financial incentive to have the whole thing running. So if they want to simplify things for users, they can just subsidize it. In the fully decentralized model where everyone's on their own, what will happen is that most likely the user will have to pay for it. But that's not necessarily a big deal. And the reason is that if they don't pay for their storage slot, then their storage slot gets canceled, it gets removed.
+01:07:03.124 - 01:07:25.360, Speaker B: But you still have cryptographic trace that this storage slot did exist in the past. So you still have the route and you can still provide witnesses. And so at some point in the future, assuming that you've remembered that you own this and you know where it was, then you can revive your token and you can spend it, right?
+01:07:25.510 - 01:08:24.900, Speaker A: But that assumes clearly this is needed. Without that blockchain, like long term, no blockchain can probably exist, but it has a lot of interesting problems. One of them is contract development becomes way more complex if you actually don't plan to pay for users. If you plan to pay for users, nothing changes, right? You can build the same way. But now if you don't plan to pay for users, your contract needs to be prepared that the data will be gone, right? And moreover, it's pretty common on Ethereum for people to have proxy contracts, right? So that they can upgrade in the future. So if you upgrade, let's say you have some sort of code which changes the way state is stored, like you used to store in JSON, you realize it's super inefficient, so now you want to store it in a binary format. And then suddenly one of the old users comes and says, oh, I want to revive my state, right? So there's a lot of layers of extra complexity now for the app developer.
+01:08:27.560 - 01:08:52.856, Speaker B: So one kind of interesting design space is what I call state minimized, decentralized applications. So where you don't necessarily require state or a lot of state, and there are mechanisms where all the state that a single DAP requires is just a hash.
+01:08:53.048 - 01:08:57.390, Speaker A: So it would be like a Merkel route, and users have to prove their state.
+01:08:58.100 - 01:09:41.116, Speaker B: Like a stateless approach. Yes, that's one way. I mean, you can also think of plasma as being fitting within this design space. Yeah, there is quite a design space where you don't actually use the state. Like a lot of the power of blockchains turns out to be to lie in the data availability layer. Like the execution layer is mostly a convenience thing. You can have what I call alternative execution engines, which don't require any state whatsoever, at least no notion of enshrined state.
+01:09:41.116 - 01:10:40.604, Speaker B: So let's imagine that in the shards, there's no EVM whatsoever, there's only data. Well, you can still have an execution engine such as Truebit. So the way that Truebit works is that you make transactions instead of running the transaction through the EVM, some sort of naive execution. What you do is that you say, just don't execute it, just put it on the blockchain. And for each transaction you have a crypto economic commitment that the corresponding state change will be this. So you're going from this state route to this state route. And if someone wants to challenge you, then they can do that with an interactive game, which is very cheap.
+01:10:40.604 - 01:10:51.990, Speaker B: But in the default case, it's not your advantage to put the wrong answer because you will be caught and you will lose a lot of money.
+01:10:52.680 - 01:11:01.780, Speaker A: And people who use blockchain don't need to validate transactions, they only need to validate those games effectively.
+01:11:03.100 - 01:11:38.050, Speaker B: Right? So that's like a really nice model, because if as a user I only care about a specific DAP, then I only have to execute the transactions in that DAP and I can ignore everything else. I can kind of be a full node for my Dap. And so one thing that you can do is that you can have the challenge game for Truebit live in Ethereum 1.0, and you can use 2.0 for all your transactions with no EVM. And that would still be a scalable execution model.
+01:11:39.780 - 01:11:49.412, Speaker A: Unless you submit like invalid transaction, no shards. Well, I guess the game doesn't have to happen quickly, right?
+01:11:49.466 - 01:12:10.620, Speaker B: It doesn't challenge, period. Right? It doesn't necessarily have to happen quickly, but another execution model which doesn't require states here would be to use snarks or stocks. So all the data goes in the shard, and then the only thing you put on 1.0 is a snark every time you want to make a state change.
+01:12:10.770 - 01:12:28.240, Speaker A: Yeah, snarks would be awesome when they fast. So for the VM 2.0, will solidity compile to the new virtual machine? Like how much extra work will it be for people who have contracts on Ethereum 1.0 to transition?
+01:12:29.540 - 01:13:26.756, Speaker B: Right. So very likely someone in the community will make the effort of having solidity compiled to WaSm. One of the nice things of Wasm is that you already have a vibrant ecosystem and lots of tooling, and so you can make use of that. But I guess from the point of view of an application developer, you don't really care about the individual instructions, you only care about the more high level code. I guess there's several changes from the point of view of an application developer. So in terms of good news, you're going to have more scalability, so the transaction fees will be lower. You also have faster block times and more consistent block times instead of having the price on distribution that you have with proof of work.
+01:13:26.756 - 01:13:39.064, Speaker B: In terms of the bad news, one, you're going to have storage rent, and two, you're going to have crosshair communication, right?
+01:13:39.102 - 01:13:50.956, Speaker A: And so now every time I want to depend on another contract, I can never assume that the contract will be on the same shard, right? Or rather like, do I have the control over where my contract ends up.
+01:13:50.978 - 01:14:34.532, Speaker B: Being, yeah, you have full control. So when you launch a DaP, you want to make sure that at the time of launch, it's kind of optimal choice in terms of avidaps. You want to interact with, you want to try and maximize the avidaps that are useful to your Dap. You might also choose your shard based on the gas market. So another complexity is that every shard will have a different gas market. So if you have a really successful Dap on one shard, that will push the price up. And so that will be kind of a natural incentive for people to be able to move their dapps to Avashard.
+01:14:34.532 - 01:14:44.280, Speaker B: So one of the design space that we're exploring is the idea of yanking, which is basically a way to take a Dap in one shard and put it into another shard.
+01:14:44.360 - 01:14:51.756, Speaker A: Yeah, that was my next question. And that's separate from yanking, which is the way to do synchronous crosshard calls.
+01:14:51.788 - 01:14:52.370, Speaker C: Right.
+01:14:53.460 - 01:15:07.328, Speaker A: There's this old idea of like, let's say you want to, it's to solve a train and hotel problem where you're locking the train, but you're also yanking it to the hotel shard so that the rest of the execution you can actually. On the Single shard.
+01:15:07.504 - 01:15:08.676, Speaker B: Oh, I see.
+01:15:08.858 - 01:15:10.710, Speaker A: It was posted on it research.
+01:15:11.080 - 01:15:30.184, Speaker B: So you want to use yanking. So basically the problem is that across shards you have asynchronicity, but within a shard, you have synchronicity. So I guess the idea is that step one, you put all the shards, all the contracts in the same shard, and then you execute synchronously within that, and then you put them back out.
+01:15:30.222 - 01:16:05.588, Speaker A: First of all, it's not my idea. I think it was Vitalix. I'm not sure who posted it, but the idea was not to bring the entire state of another contract. That would be extreme. The idea was that if you want to do some synchronous operation on, let's say, two entities, like two small parts of the storage in two different contracts on two different shards. And so one way naive way to do that would be you have to lock it effectively. You lock it on one shard and then you do a series of cross shard communications to figure, like to do the actual execution, because you need to check availability on both.
+01:16:05.588 - 01:16:34.930, Speaker A: Then let's say you need to put them both on hold a couple of more steps. And that would require a synchronous communication every single time, while instead, as you lock the object, like, let's say I'm locking a particular train ticket. I'm also yanking just that little part of the state to another shard. Do everything in a single shard. Because it's locked, nobody can change it. It's okay if I'm processing it here and then I'm sending it back with some sort of evidence that it was done properly. But it's also called yanking, right.
+01:16:37.220 - 01:16:47.056, Speaker B: Even though you've managed atomicity with the synchronicity, you still have to pay the cost of asynchronicity because the yanking itself is asynchronous.
+01:16:47.088 - 01:16:47.332, Speaker C: Right?
+01:16:47.386 - 01:16:47.990, Speaker A: Yes.
+01:16:49.160 - 01:16:49.910, Speaker C: Okay.
+01:16:53.400 - 01:17:09.704, Speaker A: Actually, one question which is unrelated to the shark chains is when I post 32 e on the ethereum 1.0 chain, ethereum 2.0 chain will wait for some number of blocks, right, before honoring my stake.
+01:17:09.752 - 01:17:10.350, Speaker C: Right.
+01:17:13.600 - 01:17:27.330, Speaker A: Then let's say that something very bad happened and the history was rewritten even after many, many blocks. Will the 2.0 chain also work out?
+01:17:28.340 - 01:17:34.900, Speaker B: Yes. So that's one way to attack the 2.0 chain, is to attack the 1.0 chain.
+01:17:35.240 - 01:17:38.390, Speaker A: But is there a plan at some point to remove that link?
+01:17:40.360 - 01:18:21.584, Speaker B: Yes. So it's kind of a multistage, I guess, roadmap. One intermediate stage would be to try and provide greater security to 1.0, to kind of have a tighter coupling of the security between the two. And one way to do that, which is quite neat, is that you change the fork choice rule of the Ethereum one chain to take into account finalization in the 2.0 chain. So the way that this links work, works in practice, is that you have these Ethereum 1.0
+01:18:21.584 - 01:19:08.064, Speaker B: voting periods in here where you have, let's say 1000 validators in the period, and they're going to be voting on a recent block route, block hash from here. And if you meet the threshold, let's say two thirds, then all the deposits up to that block hash will be processed. And, and I guess what we could do is we could take this block hash and finalize the Ethereum 1.0 chain from there before, once the 2.0 chain is finalized. The main complexity here is that every single Ethereum 1.0 chain now needs to be aware of the 2.0
+01:19:08.064 - 01:19:42.204, Speaker B: chain. Now that's not necessarily a problem for the full node, because being a full node of the beacon chain is not that expensive. But it is a problem for light clients, because if you're in 1.0 light clients, they can be running in your phone or whatever. So we need to have a light client protocol implemented for 2.0 before we can even start doing that. So my guess is that it will take some time before we have the infrastructure necessary to start finalizing the 10 chain using 2.0.
+01:19:42.402 - 01:20:03.856, Speaker A: But isn't that a concern that once 2.0 launches and it's fully operational, the incentive to mine on 1.0 will be slowly decreasing, right? Because, like, for example, transaction fees are going to be going down because contracts are moving to the chain, to the shard chain.
+01:20:03.968 - 01:20:05.008, Speaker B: Yeah, possibly.
+01:20:05.184 - 01:20:09.940, Speaker A: And so the security of the 1.0 might start degrading.
+01:20:11.720 - 01:20:33.740, Speaker B: So I guess most of the security is not from the transaction fees, it's from the coinbase, the minting. And I guess a lot of the security comes of the one o chain comes from how valuable ETH is. And the ETH here and the ETH here should be roughly the same thing.
+01:20:33.890 - 01:20:52.950, Speaker A: And for the time being, while the link exists, there are going to be two independent sort of minting authorities, right? Because 1.0 will be still minting the same two ETH per block, or three, I don't remember if that happened. And then 2.0 will be minting for the validators, right?
+01:20:55.400 - 01:21:33.424, Speaker B: The 1.0 chain is really inefficient. It's like an old car that's burning tons of gas and is being one expense unintended, expensive to the owner, but also expensive for the planet. And we might have inflation on the order of 5%, 10% per year here, the inflation will be on the order of half a percent, less than 1%. So once we have the 2.0 chain providing security for the 1.0 chain, we can reduce the minting in the 1.0
+01:21:33.424 - 01:22:17.004, Speaker B: chain by a factor of ten or 20. So if we do reduce it by a factor of 20, then we basically go down roughly to the security of an Ethereum classic. So Ethereum classic's proof of work security is not perfect because we've seen there was this 51% attack, but it's still good enough on a short term basis. And I guess what the 2.0 chain would provide is that it would provide frequent finality. So you could do a 51% attack, but only up to the last finalized point, so that you're only basically using proof of work for reasonably convergent progression of the blockchain, not for its security.
+01:22:17.202 - 01:22:29.084, Speaker A: And once the link is removed, is ether. That is still an Ethereum 1.0 gone, or like, I will always be able to transfer it. Or I guess if the link is gone, there's no miners, I cannot transfer it, possibly.
+01:22:29.132 - 01:22:29.728, Speaker C: Right?
+01:22:29.894 - 01:23:07.870, Speaker B: So I think at this point, it's very likely that the 1.0 chain will live for a very long time, like on the order of decades. And there's two models where this is sustainable. Model number one, we basically include 1.0 as a contract within one of the shards in 2.0. So this is kind of in theory, possible, but in practice, possibly quite difficult, or at least not worth the effort. The much simpler solution is just to have very minimal or no minting whatsoever of new eth in 1.0
+01:23:07.870 - 01:23:13.088, Speaker B: and just rely on the security of 2.0 and just leave this chain as it is.
+01:23:13.174 - 01:23:13.810, Speaker C: Right.
+01:23:16.500 - 01:23:44.570, Speaker A: Well, we're almost running out of time. Let's spend a couple of minutes talking about crosshard transactions, because I think that's pretty interesting topic. So in order to initiate a cross shard transaction, or like in general, how does that work? So if a transaction wants to asynchronously call another transaction, how is it going to look from the perspective of the contract, and how is it roughly work? How will it roughly work?
+01:23:45.100 - 01:23:58.088, Speaker B: So, one thing to mention is that crossroad communication is not like a thing. It's more of a design space. It's a bit like plasma. There isn't one plasma chain. You have a lot of options as to how you do your crosshair communication.
+01:23:58.184 - 01:24:00.352, Speaker A: It's not going to be hard coded in the protocol in any way.
+01:24:00.406 - 01:25:30.220, Speaker B: Well, in practice, at the application layer, you'll have tons of options, and you'll be able to rely upon very basic infrastructure at the consensus layer. And it's possible that the more we progress, the more fancy the infrastructure will provide. But I guess we can talk about the basic infrastructure that we will provide. So we have the various shards here, and we have the beacon chain, and the shards include these cross links we, which get finalized eventually. And so if you want to make a call from here to here, at the most basic level, at the consensus layer, what you do is that within each shard, you'd have like a special address which would, where you could basically take some efer and burn it. And in the process of burning it, you will generate a witness. And then once the cross link has been seen by the destination shot and that cross link has been finalized, then you can take that witness and you can consume it in that average shot.
+01:25:30.880 - 01:25:31.836, Speaker C: I see.
+01:25:32.018 - 01:26:07.120, Speaker A: Now, the question is, the most interesting question of crosshard transactions is, what happens if we end up actually having one shot corrupted and they finalize a cross link of an invalid block? So two questions here. First one is, is there a procedure to revert the cross link in the future? Or is the shard chain doomed to keep on building on top of that invalid block for life? And the second is if some other shard builds something, depending on that cross link, will they get reverted in this case?
+01:26:07.210 - 01:26:38.400, Speaker B: So if one of the shards somehow manages to cross link either unavailable data or invalid data, then that's very bad and that can pollute the whole system. So if we do have one of these failures, which in theory should not happen, but they might happen in practice, if the assumptions are not met, then we will basically have to roll back to the previous known good state in that particular short. In the whole system.
+01:26:38.470 - 01:26:40.300, Speaker A: In the whole system, yes, I see.
+01:26:40.470 - 01:27:21.824, Speaker B: Now there's two ways to roll back. The best way is to roll back automatically. And it turns out that you can do that for data availability. And the reason is that even though the beacon chain might not be aware that some cross link is unavailable, the clients, they know about it kind of subjectively. And so you can have an enforcement of the rule that cross links need to be available be done at the client level, not at the beacon chain level.
+01:27:21.862 - 01:27:24.224, Speaker A: And so the client themselves will roll back.
+01:27:24.262 - 01:28:01.020, Speaker B: Exactly. Yeah. And so the idea that we're exploring here is using erasure coding so that you can have very good probabilistic guarantees that with very little bandwidth. So let's say you want to check that 100 megabytes of data is available instead of. One dumb way of doing that is just to download the 100 megabytes. But you can use erasure coding and statistical methods to basically download, let's say, only 1% of that 1 have very strong guarantees that the 100 megabyte is indeed available.
+01:28:01.170 - 01:28:03.950, Speaker A: And that's the fraud proofs paper, right?
+01:28:04.640 - 01:28:05.950, Speaker B: Yes, exactly.
+01:28:07.200 - 01:28:11.468, Speaker A: Okay, I think we have to finish here.
+01:28:11.634 - 01:28:12.300, Speaker B: Okay.
+01:28:12.450 - 01:28:14.540, Speaker A: The room is only hours until now.
+01:28:14.610 - 01:28:14.892, Speaker B: Okay.
+01:28:14.946 - 01:28:19.100, Speaker A: So thanks a lot for coming and thank you explaining Ethereum.

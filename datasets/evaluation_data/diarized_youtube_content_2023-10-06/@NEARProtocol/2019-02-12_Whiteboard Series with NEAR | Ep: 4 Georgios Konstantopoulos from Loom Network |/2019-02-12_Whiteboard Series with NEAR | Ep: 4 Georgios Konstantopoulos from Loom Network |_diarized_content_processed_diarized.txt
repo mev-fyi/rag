@@ -1,0 +1,543 @@
+00:00:03.450 - 00:00:14.094, Speaker A: Alex and Ilya here from Nier. We're here with Georgius from plasma. We're going to talk more in depth how plasma works. Georges, do you want to introduce yourself? Talk about what you're working on.
+00:00:14.132 - 00:00:36.982, Speaker B: Hi, everyone. So I work on plasma, specifically the variant called plasma cache, which is a technique for creating more secure side chains. And let's get to it. So the side chains, they're used for, basically, if the original chain is very congested, you can offload computation to a side chain, do whatever you want there, and then get your funds back. So, shall we?
+00:00:37.036 - 00:00:37.458, Speaker A: Sure.
+00:00:37.564 - 00:00:38.220, Speaker C: Yeah.
+00:00:38.830 - 00:00:50.794, Speaker B: So normally you have like a chain which has some blocks. So I will use the arrow to the left to show that we point the previous block the right direction.
+00:00:50.842 - 00:00:51.440, Speaker A: Yeah.
+00:00:53.810 - 00:01:34.006, Speaker B: To the left, because you point to the previous block. Yeah. And so what would happen is that you have some transactions happening here, but let's say that you want to deposit your funds on a side chain, so you have another chain over here. And let's say that this chain has like ten minute block time, like maybe bitcoin, and this has like 1 second block time. And so what you can do is that you can create a special transaction which it will actually lock up some tokens here. So you lock, lock five BTC, let's.
+00:01:34.038 - 00:01:34.620, Speaker C: Say.
+00:01:37.510 - 00:01:55.960, Speaker B: And then this locked five BTC after a few blocks, which are used to prevent reorganizations on the original chain, they will appear on the side chain. And now let's say that you have now five, and here now you have like five BTC 20, for example.
+00:01:56.410 - 00:02:01.114, Speaker A: So when you say lock, I mean BTC is kind of bad example, right? Because you can, right?
+00:02:01.152 - 00:02:52.154, Speaker B: So let's consider that maybe you can call this maybe Ethereum or something else. So you put your funds in an escrow, where the escrow, it can be a smart contract, it can be some utxo script with certain spending conditions, because we do not want this to be specific for Ethereum. And it would be very interesting, like, to see something which can be also applied to bitcoin for this. You have your funds locked here, you lock your funds here, the funds appear here, then you can start transacting. So like you spend from here to here and so on. And then if you want to take your funds out, you make another special transaction and you get them out like this. So maybe this has, because they have very different block times, maybe this has like five blocks, but this can be a million blocks in between.
+00:02:52.154 - 00:03:58.846, Speaker B: And so this withdrawal, it will burn, it will burn the five BTC 20, and it will unlock the five BTC here. So this is like the very overview of how a side chain works. You lock, you create new ones, you transact, and then you burn and you unlock the original ones. But this has the assumption that firstly, after you lock them, this will appear here, and then that the chain will allow you to burn them here. Because what you will do is that you will go to the third chain and you will present proof of the burden on the side chain, and it will allow you to unlock based on the spending conditions that you had originally. And you cannot always have this guarantee, because if you want to use this to scale this chain, it will have some inherent trade offs with respect to its security. So if it's not, for example, you cannot have a proof of work.
+00:03:58.846 - 00:04:17.430, Speaker B: If this is a proof of work chain, this can be used for interoperability if both chains are very secure, if they both have honest majority assumption, or the 51% like enough hash power. But if you use, for example, some proof of stake, which is much more limited with a limited validator set.
+00:04:17.500 - 00:04:18.870, Speaker A: Or just a one guy.
+00:04:18.940 - 00:04:54.174, Speaker B: Yeah, or just one guy. Exactly. Or just one guy maintaining the chain, you cannot exactly get these security guarantees. And so what the plasma technique does is that along with this process, whenever all side chain blocks, they get committed to the original chain. And so when I say committed, I mean that the merkel root of the blockchain, not the state, the transactions. So I will talk about Utxo based plasma. And so there are two variants.
+00:04:54.174 - 00:05:39.130, Speaker B: Like, you can either have account based or Utxo based, where in the account based, you have accounts, and in the UtxO based, you have Utxos. But in the account based, you commit state routes. In the Utxo based, you commit transaction routes. And the difference is that with the account based, we currently do not have a good scheme for maintaining safety. So this is why we go with the Utxo based for now. And so every block gets committed to the original chain. And this shows that the plasma chain, it must have like the same block time, at least the same block time as the original chain.
+00:05:39.130 - 00:06:12.966, Speaker B: Why is that? Because if you commit multiple blocks, let's say you do this, for example, you commit multiple blocks in the same block. In the parent chain, if there is an orphan block here, an attacker can simply orphan one block while kicking multiple blocks out. And this could be used essentially in an attack where the plasma chain database manager, essentially, they collude with the miners and they choose to commit multiple blocks. They do a bunch of double spends in this chain, and then they orphan.
+00:06:12.998 - 00:06:15.242, Speaker A: One block and commit and different.
+00:06:15.296 - 00:06:17.274, Speaker B: Yeah, exactly. Okay.
+00:06:17.472 - 00:06:21.310, Speaker A: But that also means the finality for the side chain is also.
+00:06:21.460 - 00:06:21.966, Speaker C: Exactly.
+00:06:22.068 - 00:06:24.766, Speaker B: So the finality of question.
+00:06:24.868 - 00:06:25.230, Speaker C: Yes.
+00:06:25.300 - 00:06:32.122, Speaker D: Why is it different from, like, let's say it's the same, right? Yes, they still can collude and revert one block.
+00:06:32.186 - 00:07:11.382, Speaker B: Yes, they can collude to revert one block, which means that alternatively, if you want to make this more safe, you can commit less often. So the goal of plasma is not to improve finality, to improve capacity, because you still have the same or worse finality. But instead of having you essentially finalize a bunch of transactions with 32 bytes, because you just commit like one hash Merkel hash, one merkel root, while this block, it can have like any number of transactions. So you have this separation of the state where the state of the side chain, just like a very small commitment of it gets put.
+00:07:11.456 - 00:07:22.130, Speaker D: But in practice, it could have been 100 blocks, which got committed in 32 bytes. It's just that I, as a user of plasma, will still wait for ten more blocks on top of the.
+00:07:22.200 - 00:07:28.722, Speaker B: Okay, yes. Alternatively, you could do that. You could just wait as a user for the finality. That's true.
+00:07:28.776 - 00:07:33.794, Speaker A: Smaller blocks, but the finality still depends on the time of the parent chain.
+00:07:33.842 - 00:08:14.122, Speaker B: Yeah, exactly. And obviously, the more secure the parent chain, the less likely you can stretch this on. Okay, so that's the basic approach. And the difference with the side chain withdrawal is that instead of burning, we call this process an exit, which essentially the exit, it's a bit different. So let me just erase this so that to make this more clear. In the exit, you make an attestation about the validity of your state, and you have a dispute, period. So that if somebody wants to say that this is not the current state, your attestation gets canceled.
+00:08:14.122 - 00:08:38.412, Speaker B: So what you do is that, for example, I'll do another chain and I'll show you how the exit would be. So, so let's say that you want to exit a Utxo, which happened at this block. So you make the exit request here with whatever information are required.
+00:08:38.476 - 00:08:44.356, Speaker A: So is exit request in a Utxo model, you just span your Utxo into some specific address.
+00:08:44.458 - 00:08:44.772, Speaker C: No.
+00:08:44.826 - 00:09:23.840, Speaker B: So you claim ownership of the UTxO, and then, so what you do is that essentially you go to the parent chain. So this is the parent chain, and you go to the parent chain. Smart contract. And you say, I have some funds from the plasma chain, and this is the latest state that I own them at. And you make that station here, and then you wait some dispute, period. So this is the dispute, period, which is some number of blocks, which is a security parameter. And then after this time has passed, you can finalize the exit and withdraw your funds.
+00:09:23.840 - 00:10:31.648, Speaker B: So if you do the finalize, then you can take your funds out of the escrow. But in the alternative case that somebody comes here and challenges, can I use the blue one? Somebody can come in between, like maybe at this block, and they can challenge. And what the challenge does is it simply is a contradictory statement which says that you exited here, and I present proof which shows that your exit request is invalid. And basically what you do is that when you exit, you need to enforce somehow this good behavior. And how do you do this? Because what's the cost, essentially, of an attack? It's basically, firstly, the transaction costs. But what you do is that you also add some fidelity bond, like some security deposit, so that when you do the initial request, if nobody challenges you, you also get the bond back. But if somebody challenges you, firstly, your exit gets canceled and the challenger gets the bond.
+00:10:31.648 - 00:10:45.820, Speaker B: So it has, like, this very nice property that you're both disincentivized from doing the cheat. And also people are incentivized to look at you. And this is pretty standard. This is used also in proof of stake with validator deposits in payment channels for disputes. This is the typical.
+00:10:46.560 - 00:10:48.264, Speaker A: Challenger also posts a bond.
+00:10:48.312 - 00:10:48.716, Speaker C: Right.
+00:10:48.818 - 00:10:50.536, Speaker A: To back up the challenge.
+00:10:50.648 - 00:10:51.260, Speaker B: Excuse me.
+00:10:51.330 - 00:10:53.624, Speaker A: Challenger also posts a bond.
+00:10:53.752 - 00:11:02.432, Speaker B: No. Okay, so there are different types of challenges. So if the challenge is non interactive. So if it's like, I see something, I challenge it. Done.
+00:11:02.486 - 00:11:03.260, Speaker D: Here's a proof.
+00:11:03.340 - 00:11:03.728, Speaker C: Yes.
+00:11:03.814 - 00:11:24.340, Speaker B: The challenger doesn't need to put up a bond. In the cases, which I will explain in a bit, there is a type of challenge which can be interactive. And this means that somebody exits, somebody challenges, and somebody can also respond. And so the interactive challenge, it needs to be bonded because essentially the responder cancels the challenge.
+00:11:24.420 - 00:11:26.008, Speaker C: Yeah. All right.
+00:11:26.174 - 00:12:05.408, Speaker B: So in plasma cash, now, specifically, what happens is that it is a utxo based plasma chain. So we have shown how the high level overview is for depositing and withdrawing and how you can use exits and challenges to basically enforce the good behavior. So now we'll check the protocol, specifically how it is. And so in plasma crash, what happens is that, let's say you have five. I'll use eth now. And what you do is that you deposit them. You deposit them in a smart contract.
+00:12:05.408 - 00:12:14.564, Speaker B: So this is the contract. The contract then emits some event to notify the other chain.
+00:12:14.612 - 00:12:15.236, Speaker A: The side chain.
+00:12:15.268 - 00:12:15.850, Speaker C: Yeah.
+00:12:16.300 - 00:12:56.452, Speaker B: Emit deposit and then this is the plasma chain. And the plasma chain then creates a new block which gives you the funds. So in plasma cash, specifically, when you deposit a coin, you get a unique id. So it's almost like, yeah, it's almost like cash in a sense that this is like a five e bill. So if I deposited another bill, if I deposited two eth, I would get a two eth bill. And much like cash, I cannot tear it in half because the moment you tear it in half, it has no value in plasma. You simply cannot tear it in half.
+00:12:56.452 - 00:13:32.320, Speaker B: And so this means that you have a Utxo model, which has one input. And so after this, you get the coin. Get this. And so you have a Utxo model, which is one input and one output. One output. Thank you. And so if you have a Utxo model, which is with one input and one output, you cannot make arbitrary payments, which at the end of this session, we will show how you can do it through some interesting techniques.
+00:13:32.320 - 00:13:50.276, Speaker B: And so how does this look like in the chain? So now we will show, one, how to transact, two, how to exit, three, how to challenge. This is the process we will follow now.
+00:13:50.458 - 00:13:52.116, Speaker D: So I have a quick question here.
+00:13:52.218 - 00:13:52.580, Speaker B: Yes.
+00:13:52.650 - 00:13:54.712, Speaker D: What happens if I deposit five p.
+00:13:54.846 - 00:13:56.792, Speaker B: To the contract and this doesn't happen?
+00:13:56.846 - 00:13:57.016, Speaker C: Yeah.
+00:13:57.038 - 00:13:58.490, Speaker A: And plasma doesn't pick it up.
+00:13:59.100 - 00:14:30.130, Speaker B: Okay. So what you can do is that you can initiate an exit of a deposit. So essentially, if this part doesn't happen, so if this thing doesn't happen, you can directly go to the contract and exit the deposit. And somebody can then show proof of a spend of the deposit. So you deposit your coins, but you don't get any here. If you exit a deposit, this will only be chargeable by showing a spend.
+00:14:31.000 - 00:14:32.756, Speaker A: A Utxo on plasma, right?
+00:14:32.778 - 00:14:33.060, Speaker C: Yeah.
+00:14:33.130 - 00:14:41.940, Speaker B: They have to show a utxo of it on plasma. But because you never signed a Utxo on plasma because you never got the funds in the first place, there is no such challenge.
+00:14:42.020 - 00:14:45.370, Speaker A: So is deposit generating the unique id for this thing.
+00:14:47.180 - 00:15:11.552, Speaker B: In the smart contract, to be perfectly accurate, you get some coin id, which is whatever, unique identifier. So it's like the serial number in cash. So this would be like zero, x, one, two, three. So it has the dollar bill that you get when you deposit the funds. It has some additional metadata. So it has the block at which you deposited in. It has the owner, like, it has some necessary metadata to do this.
+00:15:11.552 - 00:15:21.670, Speaker B: If you are depositing some ERC 20 token, for example, it would also need to have the contract address. Because when you want to withdraw, you would need to have that stored transferred to from before. Exactly.
+00:15:22.920 - 00:15:31.780, Speaker D: So if I just deposited but never, ever transacted, there are two ways for me to exit. I can exit the deposit and I can exit the regular way.
+00:15:31.850 - 00:15:32.084, Speaker C: Yes.
+00:15:32.122 - 00:15:32.820, Speaker D: Okay, I see.
+00:15:32.890 - 00:15:33.328, Speaker C: Yeah.
+00:15:33.434 - 00:15:58.720, Speaker B: Which in the code, it is like one function. It's one function. You just specify where you want to exit. I'll show this right now. So now we'll do like a graph where we show that you deposit the coin you transact and how you can exit. So we'll take the usual suspect, like Alice and Bob. So let's say like this arrow, it indicates that you deposit.
+00:15:58.720 - 00:16:24.424, Speaker B: So this is the plasma chain. And this is block one, block two, block three, block four. So in this block, you get it. Like, this is Alice. Alice right here. She can choose to exit. So this is essentially the state here, what we just said.
+00:16:24.424 - 00:16:55.596, Speaker B: Like, it doesn't matter if you got it on plasma or not. You can just say I exited this block that I just deposited, and for somebody to challenge, they would need to reveal a spend over it. So let's say that this doesn't happen right now. And let's say that Alice indeed got her funds on the plasma chain and she wants to spend them to somebody. So in order to spend a coin, you do this, obviously. So you have the coin. And what you do is that essentially you create a transaction which refers to a parent block.
+00:16:55.596 - 00:17:09.664, Speaker B: So essentially the transaction, it is the slot, the parent block, parent block, the new owner, the new owner, and some signature.
+00:17:09.792 - 00:17:11.864, Speaker A: The parent block on the plasma chain, right?
+00:17:11.902 - 00:17:12.200, Speaker C: Yes.
+00:17:12.270 - 00:17:30.030, Speaker B: So in this case, we're signing, let's say it's zero xa. So in this case, it would be zero xa, the slot. The parent block would be block one. The new owner would be Bob. And the signature is some. Whatever. Yeah, it's the signature on this data.
+00:17:30.030 - 00:18:14.380, Speaker B: Why do we do this? Why do we need the parent block? Because Alice could also do this. And if Alice does this, she gets another transaction included to, let's say, a prime, which is also Alice on the other account, she wants double spend. We want some way for Bob, the actual owner, to challenge. And essentially, this is a challenge of a double spend by which you show that you have a transaction in between. And how do you know that it's in between? Because you reveal a transaction which has the same parent block with a later transaction, but it happened before the other transaction. And this is like, by definition, a double spend. You have the same place which gets spent in two other places.
+00:18:14.380 - 00:18:19.070, Speaker B: Okay, but let's take the honest case. So how does Bob know?
+00:18:19.600 - 00:18:23.112, Speaker A: So what if Alice includes another transaction in this block?
+00:18:23.176 - 00:19:03.776, Speaker B: This cannot happen by definition because. Yeah, I didn't say that. So we use a structure called sparse Merkel tree. So the sparse Merkel tree, it is an ordered tree where the, I think I'm in front. So the index here, it's like 0123. The coins at each index, rather, each index is actually the value of the coin. So the zero xa, let's say it's zero x one, it would appear like in this index.
+00:19:03.828 - 00:19:04.140, Speaker C: Yeah.
+00:19:04.210 - 00:19:20.048, Speaker B: So you have some eth here, which means that if you try to include two transactions, you cannot do it simply. Either one or the other will get included for the same transaction route, because otherwise this is already full. Is this clear?
+00:19:20.134 - 00:19:20.384, Speaker C: Yeah.
+00:19:20.422 - 00:19:22.444, Speaker A: So there's like one slot for transaction.
+00:19:22.492 - 00:19:36.084, Speaker B: In the is that you could say that Alice could overwrite and say, like I give it to Bob, and then she overwrites it and then does to a prime. But Bob needs to wait and check.
+00:19:36.122 - 00:19:37.984, Speaker A: That this block was posted.
+00:19:38.032 - 00:20:02.584, Speaker B: Yeah, exactly. And when that block is posted, he checks that. Oh, I don't have that transaction. So I will not give you the product that you just paid for. All right, so let's take the honest case and see how this evolves. So, is it clear? So maybe, can I have the blue.
+00:20:02.632 - 00:20:03.230, Speaker C: One.
+00:20:06.560 - 00:20:33.560, Speaker B: Now that Bob has the coin? Let's say that in this block, nothing happens. Like some other coin gets spent, but this coin doesn't happen. So right now we're looking at the sequence of blocks which are only specific to this coin. And this is like how plasma cash gets its security, because each coin is unique and you have this separation for each coin. And so nothing happens here. Now block. And now he wants to spend it like this.
+00:20:33.560 - 00:21:12.276, Speaker B: So this is Charlie, let's say. So when Bob receives the coin, he needs to check that it was included in block one and in block two. And if the merkle proofs are valid, he will say, okay, the coin is good. I will give you the product that you paid for. Now that Bob sends the coin to Charlie, he must send him inclusion proof, inclusion proof and exclusion proof. So every time you make a transaction, you need to pass the full utxo history of that specific coin. And the bad thing about this is that it grows linearly with the history.
+00:21:12.276 - 00:21:14.964, Speaker B: Because what happens is that, let's say.
+00:21:15.002 - 00:21:17.264, Speaker A: That you had like maybe a million transactions.
+00:21:17.312 - 00:21:22.824, Speaker B: Exactly. But no, the thing is that you don't need to have a million transactions. You have no spends here.
+00:21:22.862 - 00:21:28.020, Speaker A: So let's say 1 million blocks without transaction.
+00:21:28.100 - 00:21:51.996, Speaker B: I still need to send you all the 1 million blocks, even though I didn't touch the coin. Right, which doesn't exactly make sense. And this is the main pain point of the plasma cache that when I send you. So let's say that Bob wants to send to Charlie, they would need to send him 1 million proofs of exclusion.
+00:21:52.108 - 00:21:52.432, Speaker C: Where?
+00:21:52.486 - 00:22:04.404, Speaker B: A proof of exclusion. In the sparse mercury, it's simply a path. But the path that nothing exists from two neighbors. No, it would be like this.
+00:22:04.602 - 00:22:04.964, Speaker C: Yeah.
+00:22:05.002 - 00:22:07.540, Speaker A: Just a path that this is zero. Pretty much, yeah.
+00:22:07.690 - 00:22:11.104, Speaker B: You prove inclusion of zero instead of proving inclusion of some element.
+00:22:11.152 - 00:22:19.128, Speaker D: And so, quick question. So let's say my coin is one and it belongs to Alice. When Alice sends it to Bob, is it still one? Or that creates a new.
+00:22:19.214 - 00:22:28.636, Speaker B: It's still one. It's still one. So what happens that the owner of a coin per block gets updated? Or rather you have a transaction which has the owner inside.
+00:22:28.818 - 00:22:29.116, Speaker C: Yeah.
+00:22:29.138 - 00:22:36.620, Speaker B: So you always have like a coin only cares about its specific index. It's totally separate from all other coins.
+00:22:37.360 - 00:22:44.992, Speaker D: I assume every block contains the transaction route. And what is the value that is stored in the leaves? Is it the owner or is it zero?
+00:22:45.046 - 00:22:46.700, Speaker B: It's the hash of the transaction.
+00:22:46.860 - 00:22:49.376, Speaker D: Is the transaction for that you check so happened in the block.
+00:22:49.408 - 00:22:53.750, Speaker B: Yes. Otherwise it's the hash of zero, zero, x 29 something.
+00:22:55.000 - 00:23:00.368, Speaker A: That's why you need to send all of it, because there is no state in the blocks.
+00:23:00.464 - 00:23:16.268, Speaker B: It's actually like, I need to prove to you that in the ten blocks that passed, this was indeed zero and nothing else happened. Because if it wasn't like, you would have the previous attack that we showed. So in this case, for example, if there was another transaction, let's say.
+00:23:16.354 - 00:23:18.396, Speaker A: So pretty much if there was a.
+00:23:18.418 - 00:23:35.308, Speaker B: Transaction here, Charlie would check that there was a spend in between and he would reject the coin. And by reject the coin, like the chain, it could show that Charlie owns the coin, but Charlie wouldn't use it, and they wouldn't give you the product because they cannot exit the coin.
+00:23:35.404 - 00:23:35.712, Speaker C: Why?
+00:23:35.766 - 00:23:37.744, Speaker B: Because this guy would be able to challenge it.
+00:23:37.782 - 00:23:38.224, Speaker C: Yeah.
+00:23:38.342 - 00:23:48.596, Speaker A: So it's not like a straightforward, at least the way I think of JTX. So it's more of like an account model of this coins, pretty much.
+00:23:48.618 - 00:23:50.588, Speaker B: You have like you can have a mapping.
+00:23:50.784 - 00:23:55.624, Speaker A: You have one x owner. Yeah. That's your state. And then you just.
+00:23:55.662 - 00:23:56.570, Speaker B: That's the state.
+00:23:58.540 - 00:24:00.024, Speaker A: But blocks are diffs of the state.
+00:24:00.062 - 00:24:00.264, Speaker C: Yeah.
+00:24:00.302 - 00:24:02.952, Speaker B: Essentially the full node, it maintains that.
+00:24:03.006 - 00:24:04.010, Speaker C: Yeah. Right.
+00:24:04.880 - 00:24:07.580, Speaker B: If you run like a full node, exactly.
+00:24:07.730 - 00:24:12.216, Speaker D: What breaks if the Merkel route is actually Merkel route of the owners.
+00:24:12.408 - 00:24:16.632, Speaker B: So if you have a Merkle route of the state, you mean.
+00:24:16.706 - 00:24:16.944, Speaker C: Yeah.
+00:24:16.982 - 00:24:27.068, Speaker B: So you have attacks where you cannot know who is the valid owner. You need to prove somehow that, no, the merkel root is still the owner.
+00:24:27.164 - 00:24:30.580, Speaker D: Because the plasma owner can fabricate the tree.
+00:24:31.160 - 00:24:44.744, Speaker B: Because when I'm doing this, like, when I'm checking the history, I'm also checking signatures. You're checking that essentially, Bob here, he checks, is the signature of the transaction valid for this one? And you do that for.
+00:24:44.782 - 00:24:46.168, Speaker C: All right.
+00:24:46.254 - 00:24:50.132, Speaker B: And for the empty ones, you just check the Merkel path because there is no transaction.
+00:24:50.276 - 00:24:55.192, Speaker D: And are you about to reveal some magic way to avoid including million blocks?
+00:24:55.256 - 00:25:31.320, Speaker B: Yeah, we will do that towards the end. Exactly. So this is how transactions happen. If I want to exit, if I want to withdraw, you need to provide, essentially the block that you got the transaction and the parent block. So an exit, it looks like this. So it's like you give the transaction here and the parent transaction here, and you need to do this in order to do the challenges properly, which we're getting to now. So you start an exit, you wait seven days or some amount of time.
+00:25:31.320 - 00:25:42.784, Speaker B: If nobody challenges, you can withdraw the funds from the original contract. If somebody challenges, you cannot withdraw the funds and you lost your deposit. Your deposit.
+00:25:42.932 - 00:25:43.630, Speaker C: Right.
+00:25:44.240 - 00:26:34.280, Speaker B: So now we'll show the three types of challenges that exist on the plasma. So instead of exiting here, what if Bob sends the coin to Charlie and Bob decides to exit here? It is valid. The smart contract doesn't know that this transaction has happened. It has a mercury route, but it doesn't know that per se, the transaction has happened. And so Bob exits here. He waits some time, but Charlie reveals a spend of it and has to be a direct spend. So it has to be exactly a transaction which spends from this block, because otherwise you could have an attack, for example, where how to say, maybe like Charlie gives it to Bob again and Bob gives it again.
+00:26:34.280 - 00:26:42.540, Speaker B: And you can have this case where Bob exits here, but Charlie challenges with this and you don't want to have this. So it has to be.
+00:26:42.610 - 00:26:45.628, Speaker D: But the slot is lower, right? Sorry, the slot would be lower.
+00:26:45.714 - 00:26:48.812, Speaker B: No, the slot is always the same. Like it's always about the same coin.
+00:26:48.876 - 00:26:51.052, Speaker D: Oh, a slot is not the slot of the block.
+00:26:51.116 - 00:27:00.160, Speaker B: No, I use it as coin id. Yeah, I think like slot in the mercantry. So it's index. Coin index.
+00:27:00.240 - 00:27:02.852, Speaker C: Yeah. Right.
+00:27:02.906 - 00:27:05.360, Speaker B: So this is the challenge of a spent coin.
+00:27:05.520 - 00:27:05.844, Speaker C: Right.
+00:27:05.882 - 00:27:08.208, Speaker B: So there are three types of challenges.
+00:27:08.304 - 00:27:18.872, Speaker A: But it's possible that this happened. Yes, but you still challenge with this. But it's not his coin. Why would he care?
+00:27:19.006 - 00:27:19.448, Speaker C: Right.
+00:27:19.534 - 00:27:27.128, Speaker B: This guy, when this guy got the coin, he got all the coin history. So he uses this proof.
+00:27:27.224 - 00:27:27.870, Speaker A: Okay.
+00:27:28.480 - 00:27:29.230, Speaker C: Right.
+00:27:29.600 - 00:27:34.750, Speaker B: So in the other case, you can have a double spend. So the double spend, it would look like this.
+00:27:35.120 - 00:27:36.652, Speaker A: In general, anybody can.
+00:27:36.786 - 00:27:38.872, Speaker B: Anybody can challenge. Anybody can challenge.
+00:27:38.936 - 00:27:39.116, Speaker C: Yeah.
+00:27:39.138 - 00:27:41.552, Speaker A: So you don't get to sign with any of this.
+00:27:41.606 - 00:27:51.860, Speaker B: Yeah, but the party who is most incentivized to challenge is the owner of the coin. Exactly. So let me just clean this up a little bit. From the millions of arrows.
+00:27:58.200 - 00:27:58.612, Speaker C: Right.
+00:27:58.666 - 00:28:36.130, Speaker B: So now let's say that Alice has the coin here, she sends it here, and she also sends it here. Let's say, like to Charlie, Bob receives the coin. Everything's good. But Charlie, now he exits by referencing the coin and a parent. And this, again, it looks like a valid exit to the smart contract because you reveal a transaction and its parent, but this guy doesn't like it because it's his coin, because he got it first. And so you challenge by providing a transaction which has the same parent, but has happened before this one.
+00:28:36.660 - 00:28:37.072, Speaker C: Right.
+00:28:37.126 - 00:28:43.936, Speaker B: So this is, like, fairly straightforward. So, so far we have shown, and these are both, like, these two challenges, they are instant.
+00:28:44.048 - 00:28:46.832, Speaker D: How do you define before, how do you prove that it's.
+00:28:46.896 - 00:28:59.400, Speaker B: You prove that it is before by showing that the coin you're revealing has been included after the parent block, before the exit block, and that it has the same parent block as this transaction.
+00:29:01.500 - 00:29:02.916, Speaker D: How do you prove that your block.
+00:29:02.948 - 00:29:05.568, Speaker A: Was earlier the parent index in the transaction?
+00:29:05.684 - 00:29:13.928, Speaker B: Because on the plasma contract, you have, like, block one, hash, zero x, one, two, three, block two, some other hash.
+00:29:13.944 - 00:29:15.320, Speaker D: It has a history of all the blocks.
+00:29:15.400 - 00:29:33.108, Speaker B: Yes, the plasma contract. So every block route, it gets committed to the plasma chain. So essentially, you reveal a miracle proof that this coin was included. And when he exits, he reveals a miracle proof here. When you exit, you reveal a miracle proof. Here you have a notion of time.
+00:29:33.194 - 00:29:43.392, Speaker D: So what happens is Bob receives transaction. Receives money from Ellis. Bob knows that until the block where the transaction was included, it was not spent.
+00:29:43.456 - 00:29:43.984, Speaker B: Yes.
+00:29:44.122 - 00:29:52.676, Speaker D: Then Bob observes that the block is included in the plasma chain, that all the previous blocks are consistent with the proof. He waits for ten blocks.
+00:29:52.708 - 00:29:53.208, Speaker C: I see.
+00:29:53.294 - 00:29:58.812, Speaker D: And so Carol or Charlie has no.
+00:29:58.866 - 00:30:04.590, Speaker B: Way Charlie receives it, and he knows that he cannot exit it.
+00:30:04.960 - 00:30:07.116, Speaker D: Charlie's block is always going to be later than.
+00:30:07.298 - 00:30:14.336, Speaker B: Yes, yes. And to be clear, like Charlie here they know that this is invalid because.
+00:30:14.358 - 00:30:15.984, Speaker D: They can know the proof of exclusion, right?
+00:30:16.022 - 00:30:33.888, Speaker B: Yeah, exactly. They know they're cheating. So if this guy accepts the coin, it's only because they're trying to cheat. Like there's no way for them to spend it or exit it. Because if they send it to somebody else, somebody else, they will see this transaction and they will say, I reject. And they will reject.
+00:30:34.064 - 00:30:35.816, Speaker C: Right? Yeah.
+00:30:35.838 - 00:30:59.744, Speaker B: So there is this thing you need to always validate the Utxo history, right. And if you're a full client, this is easy because you have all the nodes already. But if you're a light client, this is better than the other alternatives because you always only need to care just about the coins that you own. Because if you own like three coins, this isn't that much data to verify. The main problem is the bandwidth, like.
+00:30:59.782 - 00:31:01.664, Speaker A: When you need to send a million.
+00:31:01.782 - 00:31:08.832, Speaker D: But at the beginning, we sort of concluded that the plasma network doesn't have any incentive to generate blocks faster than.
+00:31:08.966 - 00:31:09.810, Speaker B: Yeah, exactly.
+00:31:12.040 - 00:31:14.304, Speaker D: Faster than the parent network.
+00:31:14.352 - 00:31:14.980, Speaker C: Right. Yeah.
+00:31:15.050 - 00:31:18.944, Speaker D: So if it's bitcoin, it's once every, though. If it's ethereum, it's every 10 seconds.
+00:31:18.992 - 00:31:19.590, Speaker C: Right.
+00:31:19.960 - 00:31:21.830, Speaker D: That's quite a few, yeah.
+00:31:23.740 - 00:31:47.132, Speaker B: I will approach this towards the end. Like, how can we make the history smaller? There are multiple approaches. So this is the challenge between. So you can imagine them. Like, the first one is the challenge after, where you challenge with a spend. The one is the challenge between, because you give a challenge in between, and the final one is the challenge of an invalid history. And the challenge with an invalid history, it's an interactive challenge.
+00:31:47.132 - 00:31:48.528, Speaker B: What do I mean by that?
+00:31:48.614 - 00:31:50.300, Speaker A: That's when the plasma.
+00:31:50.460 - 00:31:52.812, Speaker B: That requires collusion with the plasma.
+00:31:52.876 - 00:31:54.492, Speaker A: Yeah, plasma runners.
+00:31:54.556 - 00:31:55.170, Speaker C: Yeah.
+00:32:02.040 - 00:32:50.340, Speaker B: So Alice has received the coin, and somehow the operator in his state that you showed there, they allow this transaction to happen, like from Bob to Charlie somehow, because they are the database manager and they say in their state that this guy owns the coin. And now Bob makes a transaction with Charlie. Charlie obviously sees that there is no spend from here to here, so he shouldn't accept the coin. But let's say that they're all together and they're trying to steal this coin because that is their attack, effectively. And they do that again to, let's say Dylan and Dylan again, they're all trying to cheat. So what they do is that they try to exit here, or you could try to exit here. This also works.
+00:32:50.340 - 00:33:13.780, Speaker B: So you exit here. And what happens is that this one, they do this, they challenge with invalid history. So they reveal essentially a merkel proof, which shows that they own the coin before the parent block. And this, it is an interactive challenge. So this one is exit plus bond. And this is also challenge plus bond.
+00:33:13.860 - 00:33:14.490, Speaker C: Yes.
+00:33:14.880 - 00:33:18.780, Speaker A: Because these guys need to know if it's true. They need to provide this link.
+00:33:18.850 - 00:33:51.076, Speaker B: Exactly, because this can be true. But this may also have happened. So if this has happened, you do respond. You do respond to challenge. And the idea is that you can have multiple of these challenges in the whole history. And in order to finalize an exit, it must have zero pending challenges which haven't been responded to. And this happens like if you have a long chain and you have an operator who starts like to do trying.
+00:33:51.098 - 00:33:51.940, Speaker A: To moving things around.
+00:33:52.010 - 00:33:52.340, Speaker C: Yeah.
+00:33:52.410 - 00:34:14.636, Speaker B: But still, this shows that the attack, as long as there is somebody watching it, still maintains safety. Because you try to exit here, somebody challenges in the past and you can try to reveal a spend if you have one or you cannot. And if you notice it, this is essentially almost like the first challenge of a spend where you try to exit here and somebody responds with a spend.
+00:34:14.738 - 00:34:15.196, Speaker C: Yeah.
+00:34:15.298 - 00:34:17.728, Speaker D: So the challenge period is pretty long, right? It's like few days.
+00:34:17.814 - 00:34:18.450, Speaker B: Yes.
+00:34:20.020 - 00:34:30.004, Speaker D: So effectively, what could happen is this block from Ellis here, and she sends it. Let's say the coin was actually traveling quite a bit.
+00:34:30.042 - 00:34:30.532, Speaker C: Right.
+00:34:30.666 - 00:34:35.988, Speaker D: Then it went to Carol, maybe back to Alice every 10 seconds. Let's say it was moving.
+00:34:36.154 - 00:34:37.270, Speaker C: Right? Yeah.
+00:34:38.840 - 00:35:07.968, Speaker D: And that has been happening for quite a while. So let's say these 100 transactions here, and then it stopped. And then at some point later, Bob, who does not possess the coin anymore, sends it to Dave. What happens now is that Dave tries to exit. He says, I'm exiting. And Alice challenges it.
+00:35:07.974 - 00:35:08.096, Speaker C: Right.
+00:35:08.118 - 00:35:13.120, Speaker A: So Alice says, look, you can challenge it with whatever, though.
+00:35:13.270 - 00:35:15.184, Speaker D: The Alice will use the last one. Yeah.
+00:35:15.382 - 00:35:17.328, Speaker A: But it's still. I mean, it could have been like.
+00:35:17.414 - 00:35:18.800, Speaker B: This is an engineering.
+00:35:19.220 - 00:35:43.272, Speaker D: I actually. No, that's not what I wanted. Let's say Dave tries to exit here and he legitimately possesses the coin, and then Alice doesn't want him to exit. And she says, you know, I actually own it here. For Dave to prove that Alice is lying, he will send a challenge saying that. No, look like you sent it to.
+00:35:43.326 - 00:35:43.496, Speaker C: Yeah.
+00:35:43.518 - 00:35:45.800, Speaker B: They reveal a spend of the challenge.
+00:35:46.460 - 00:35:49.396, Speaker D: To which Alice says, oh, you know, no more.
+00:35:49.438 - 00:35:51.068, Speaker B: There's no more. There's no more.
+00:35:51.154 - 00:35:51.724, Speaker D: Oh, that's it.
+00:35:51.762 - 00:36:04.930, Speaker B: You do one round, there's one round. It's not end steps. You don't search because the moment you reveal a spend, that's it. Alternatively, Alice could challenge again with here.
+00:36:07.700 - 00:36:12.964, Speaker D: But if you challenge the exit, challenge period does not extend, right?
+00:36:13.002 - 00:36:44.670, Speaker B: No. So there is a trick here that you do because when you allow multiple challenges, what an attacker could do. So these are the three challenges. It's clear how they work. Let's say some timing, like attacks, like how depending on when you challenge, how the challenge period behaves. And anything that we talk about, challenges, responses, bonds and all that. It's all generalizable to any type of crypto economic protocol you want to build.
+00:36:44.670 - 00:36:53.020, Speaker B: How you manage basically the safety of the protocol by adding challenges and disputes.
+00:36:53.100 - 00:36:58.290, Speaker A: But all this does require pretty sophisticated, smart contract platform, right? You can. Yes.
+00:36:59.380 - 00:37:14.090, Speaker B: On bitcoin, this is unlikely to be possible. It may be possible on bitcoin cash. With the addition of a few opcodes which are being discussed right now, as far as I know, but I haven't looked into it in depth. It would be very exciting if it's possible, though.
+00:37:14.780 - 00:37:16.330, Speaker A: Cash and bitcoin cash.
+00:37:17.020 - 00:37:18.010, Speaker B: Yeah, exactly.
+00:37:22.780 - 00:37:23.572, Speaker D: Nothing works.
+00:37:23.646 - 00:37:46.880, Speaker B: That's unfortunate. Okay, so this is the dispute period, let's say. So at t zero. This is the exit. Exit time. And we have like some t zero plus t capital t, which is the end of the challenge period. And if nothing happens, you can finalize here.
+00:37:46.880 - 00:38:18.830, Speaker B: So you call finalize here. And t is a security parameter. Like the longer the t, the more time there is for somebody to do challenge. So the less the liveness requirements for the network. But the user experience drops because you need to wait longer to get your coins out. And after I describe this, I will also show a way with how you can basically avoid this delay. So you exit here.
+00:38:18.830 - 00:38:45.476, Speaker B: And what you do is that you split the challenge period in half. So this is zero plus t over two. Or you basically split it in like some parts, some partition that you want. And only during this period can you do an interactive challenge. Because you want to give enough time for people to respond. Because otherwise, if you allowed somebody to make an interactive challenge here.
+00:38:45.498 - 00:38:45.684, Speaker C: Yeah.
+00:38:45.722 - 00:38:47.872, Speaker B: Then nobody would be able to respond.
+00:38:48.016 - 00:38:48.468, Speaker C: Right.
+00:38:48.554 - 00:38:57.432, Speaker B: So what you do is essentially you allow instant challenges during the whole period. But you allow interactive challenges only during the first half. Or like.
+00:38:57.486 - 00:38:59.732, Speaker A: Okay, yeah, whatever security parameter.
+00:38:59.796 - 00:39:31.540, Speaker B: Exactly. So essentially, the closer this is to here, the more dangerous it is for the responders. And the closer it is to here, the less time there is to actually challenge. So essentially you want this somewhere. It's a heuristic, like pick whatever you want. Okay, so this is how we split the challenge period. And essentially you can think of a coin as a state machine, which it basically goes from like a few states from deposit.
+00:39:31.540 - 00:39:33.510, Speaker B: Let's see.
+00:39:34.680 - 00:39:38.000, Speaker A: First deposit on the smart contract the moment you deposited.
+00:39:38.080 - 00:40:02.828, Speaker B: It's a state, let's call it like q zero. When you exit, it goes to Q one. When somebody challenges, it goes back with a non interactive challenge, it goes back to the default state. It cancels the exit when nobody challenges. After a week, you can finalize the exit, which goes to Q two.
+00:40:02.914 - 00:40:04.984, Speaker A: Do you need to send a transaction to finalize?
+00:40:05.032 - 00:40:17.730, Speaker B: Yes, you need to send a transaction. And what you can do is that you can create a batch finalized transaction, which just takes all the coins and finalizes them. Or like, you can give it a list of coins. But this is an engineering, like, how you want to do it.
+00:40:18.180 - 00:40:19.312, Speaker A: Somebody needs to pay for it.
+00:40:19.366 - 00:40:26.448, Speaker B: Yeah, exactly. And you can additionally, if you want, you can add a q three, which is like the state from which you withdraw.
+00:40:26.544 - 00:40:28.148, Speaker A: Yeah, that's like for your c 20.
+00:40:28.234 - 00:40:28.580, Speaker C: Yeah.
+00:40:28.650 - 00:40:51.868, Speaker B: But these two, they can be combined. This is literally because if you want to, from an engineering perspective, if you do finalize and withdraw in one step, and you want to do many, many, and you want to finalize many coins, the withdrawal, it costs much more than just setting the state to finalized. And then each user on their own, they can withdraw their coin. So it's useful because you can do this to finalize many coins together.
+00:40:51.954 - 00:40:58.844, Speaker A: So the plasma own runner can be like, when they checkpoint things, they can also finalize. Everything needs to be finalized.
+00:40:58.892 - 00:40:59.490, Speaker B: Exactly.
+00:41:00.020 - 00:41:04.000, Speaker D: Why not auto finalize if it's been 500 blocks?
+00:41:04.420 - 00:41:10.748, Speaker B: This is literally like how you can add the cron job, which literally just keeps calling finalize every block.
+00:41:10.844 - 00:41:14.564, Speaker D: My question is, why not, like in the smart contract, why not to consider.
+00:41:14.682 - 00:41:16.720, Speaker A: There is no auto in smart contract.
+00:41:16.800 - 00:41:17.812, Speaker B: There's no automatic function.
+00:41:17.866 - 00:41:24.410, Speaker D: No. When they call for withdraw, why don't withdraw? Just check how many blocks it's been since.
+00:41:25.740 - 00:41:34.520, Speaker B: Okay, so you can make it directly do withdraw. Sure. As a user, you can essentially code it so that withdraw calls finalized first. Sure, exactly.
+00:41:34.590 - 00:41:34.872, Speaker C: Sure.
+00:41:34.926 - 00:41:40.892, Speaker B: But we want essentially a way to safely, instantly finalize everything, and then people can withdraw whenever they want.
+00:41:41.026 - 00:42:11.140, Speaker D: So do you mind if I quickly jump back to the sure, sure. So scenario? Imagine that. So this is a block in which a coin belongs to Alice, and Alice is the only honest person in this scenario. At some point, Alice decides to send money to Bob, and so she submits a transaction that is like from Alice to Bob. And this is the parent. Right. So effectively, this is the block she sends it to Bob.
+00:42:11.140 - 00:42:46.690, Speaker D: Bob doesn't have to be malicious. At some point later, Carol, who is malicious, initiates transaction to Dave with the same coin. Dave tries to exit. Exit with a caveat that starting from this moment in time, this plasma owner, who is also malicious, stops completely revealing blocks. So it would snapshot to the main chain, to the parent chain. It will snapshot all the hashes, all the header, all the.
+00:42:47.540 - 00:42:49.424, Speaker B: But the data about the blocks are not available.
+00:42:49.462 - 00:42:55.876, Speaker D: But the data is not available. So now when Dave exits, Alice is like, well, I want to challenge, but the last state that it won't be.
+00:42:55.898 - 00:42:57.712, Speaker B: Alice to challenge, it will be Bob.
+00:42:57.776 - 00:42:59.220, Speaker D: Let's say Bob is malicious.
+00:42:59.560 - 00:43:07.588, Speaker B: Well, if Bob is malicious, Alice no longer owns the coin. Alice doesn't care. Bob is the latest valid owner of the coin.
+00:43:07.764 - 00:43:12.456, Speaker D: Bob is the latest valid owner. But Bob also cannot challenge, right?
+00:43:12.638 - 00:43:14.420, Speaker B: Well, yeah, he cannot.
+00:43:14.580 - 00:43:24.204, Speaker D: So the thing is that imagine Alice is sending money to Bob. As that transaction goes to the plasma owner, plasma owner completely stops showing blocks to anyone. So between Alice and Bob, then, this.
+00:43:24.322 - 00:43:39.292, Speaker B: Does not know if he received the coin or not. What happens? I got you. So what will happen here? This is an in flight transaction, essentially. So Bob is honest. In our case, Alice and Bob are honest. They want to do. They want to make a transaction.
+00:43:39.292 - 00:44:13.452, Speaker B: And really, this doesn't matter what happens. We want to check. I agree that then an attack can happen, and you want to reveal a parent. And how do we challenge this? How do we get this rule? So, firstly, let's see how you can do like this inflight transaction, how you can settle it. There are two approaches to this. The one is that this, we name it a griefing attack, where you just say that essentially, the operator, by withholding data, they force you to exit, because.
+00:44:13.506 - 00:44:15.004, Speaker D: Alice can attempt to exit, right?
+00:44:15.042 - 00:44:15.292, Speaker C: Yes.
+00:44:15.346 - 00:44:30.800, Speaker B: So what you can do, the steps are Alice exits. So the scenario is the following. Step one, Alice wants to buy a product from Bob. Like, let's take a real world scenario. So Alice to Bob, transaction withheld.
+00:44:31.880 - 00:44:33.716, Speaker A: So Bob doesn't give her.
+00:44:33.898 - 00:45:00.412, Speaker B: They see that a new block is committed, but they do not know if the transaction was or was not. They need to force the operator to give them the information somehow. So what Alice can do is Alice does an exit. Alice exit. They exit here. And the operator, they reveal a spend. They reveal the spend.
+00:45:00.412 - 00:45:45.144, Speaker B: So they challenge the exit. So Alice, so exit plus bond. Three operator challenge challenges. So Alice loses her bond, which is a constant griefing factor. Constant griefing vector, which is like this means that Alice minus bond. But the transaction was revealed, and the operator, as a business, they made it clear that they're against their customers if you want. So in a sense that if this is a payment processor and they do this process, indeed, Alice does have a griefing vector of like one bond.
+00:45:45.144 - 00:46:02.480, Speaker B: But the transaction settles because you now have all the information about the transaction and you essentially lose all your customer base. So on the one hand, you call this a griefing attack, which means that you lose some funds, but the safety of your funds is still not lost.
+00:46:03.140 - 00:46:04.748, Speaker D: That's a little weak.
+00:46:04.924 - 00:46:17.700, Speaker A: But it's also like if I went to a store, right? I did this, this got this held. I exit right away because we didn't see it within 10 seconds. This happened in seven days?
+00:46:17.850 - 00:46:18.404, Speaker C: Yes.
+00:46:18.522 - 00:46:21.428, Speaker A: So Bob got the money, I didn't get the product.
+00:46:21.594 - 00:46:22.404, Speaker C: Right. Okay.
+00:46:22.442 - 00:46:25.136, Speaker A: So it's not just bond, it's bond plus whatever the coin.
+00:46:25.248 - 00:46:32.376, Speaker D: But the thing, seven days is, that's something you accept. When you use plasma, you accept that you're waiting for seven days for security.
+00:46:32.558 - 00:46:32.856, Speaker C: No.
+00:46:32.878 - 00:46:35.140, Speaker B: You don't wait for transaction finality.
+00:46:35.220 - 00:46:35.740, Speaker D: I see.
+00:46:35.810 - 00:46:41.404, Speaker B: No, the transaction finality. So you consider a transaction has happened when you see the mercury route and.
+00:46:41.442 - 00:46:44.350, Speaker A: You get the witness in.
+00:46:45.600 - 00:46:53.936, Speaker D: But in my scenario, so when Dave is saying, or Dylan, I guess we agreed. When Dylan says, I want to exit, who will challenge him?
+00:46:54.038 - 00:46:54.496, Speaker C: Yeah.
+00:46:54.598 - 00:46:58.128, Speaker B: So let's see, who will challenge him? Alice will challenge him.
+00:46:58.214 - 00:46:59.564, Speaker D: And Dylan just sends.
+00:46:59.692 - 00:47:05.216, Speaker B: And then the operator reveals. So let's say that this all is withheld.
+00:47:05.248 - 00:47:05.588, Speaker C: Right.
+00:47:05.674 - 00:47:09.104, Speaker D: But not quite, because let's say Dylan challenges Alice. Right. So the timeline.
+00:47:09.152 - 00:47:09.316, Speaker C: Right.
+00:47:09.338 - 00:47:12.260, Speaker D: So this is when Dylan says, I want to exit.
+00:47:12.340 - 00:47:12.970, Speaker B: Yes.
+00:47:13.820 - 00:47:28.296, Speaker D: And the non interactive challenge I can send until the last moment. Right. So the very last moment operator sends a B. Yeah. So I try to exit.
+00:47:28.488 - 00:47:29.230, Speaker B: Who.
+00:47:36.180 - 00:47:37.824, Speaker D: Initiates her interactive proof here?
+00:47:37.862 - 00:47:38.450, Speaker C: Yes.
+00:47:40.180 - 00:47:43.890, Speaker D: An operator here provides Bob's transaction, like 1 second before.
+00:47:44.420 - 00:47:45.724, Speaker A: And Dylan exits.
+00:47:45.852 - 00:47:47.104, Speaker D: And then exit happens.
+00:47:47.222 - 00:47:48.668, Speaker B: No, it doesn't happen.
+00:47:48.854 - 00:47:50.912, Speaker D: But he challenged Alice's exit.
+00:47:50.976 - 00:47:52.790, Speaker B: Alice's challenge, yeah.
+00:47:55.320 - 00:47:56.070, Speaker C: Wait.
+00:47:59.160 - 00:48:10.888, Speaker B: Right, I see. Okay. Yeah, this is a good attack. So what you can do, and you want to somehow have Bob, then Bob cannot challenge yet.
+00:48:10.974 - 00:48:17.852, Speaker D: So the moment they challenge, then it is revealed. Now Bob can challenge, but the time is very little for him.
+00:48:17.906 - 00:48:18.364, Speaker C: Right.
+00:48:18.482 - 00:48:24.824, Speaker B: So what you can do is that you can make it so that when somebody responds, you may extend the time, may extend the challenge.
+00:48:24.952 - 00:48:27.470, Speaker D: And then we're getting back to example where there.
+00:48:30.740 - 00:48:40.364, Speaker B: But every time you challenge and respond, what do you call it? There's a bond. Let's say, keep attacking.
+00:48:40.412 - 00:48:42.672, Speaker D: I have a lot of money but I don't want someone to exit.
+00:48:42.736 - 00:48:53.190, Speaker B: Yeah, but this is like a griefing vector where you have infinite funds. Like, you're losing. There is no, like, from a perspective of gaining profits, you're not gaining anything. I agree.
+00:48:54.060 - 00:48:58.296, Speaker D: My competitor who tries to get their money that they need to.
+00:48:58.478 - 00:49:43.780, Speaker B: This is a valid concern. Like, this is why I didn't describe the extension of the period of time of the period of time earlier. But yeah, this is a valid attack that can happen. But wait a second. So how can we prevent this in the first place? So there is a way that you can do what we call an inflight, essentially exit of a fund, where you add, like when you exit, you also reveal the transaction that we held and somebody. So essentially you're saying, I exit, but the exit is not just block plus parent block. You also reveal a transaction and for somebody to challenge you, they would have to reveal either another transaction at this block or a spend of this transaction.
+00:49:43.940 - 00:49:44.456, Speaker C: Right.
+00:49:44.558 - 00:49:50.890, Speaker B: So by doing this, you essentially skip away over the whole withholding by attesting that you know this data.
+00:49:51.500 - 00:49:53.156, Speaker D: Oh, so you're exiting for Bob.
+00:49:53.268 - 00:49:53.448, Speaker C: Yeah.
+00:49:53.454 - 00:49:56.232, Speaker A: You're exiting shares into Bob's pretty much account.
+00:49:56.286 - 00:49:56.633, Speaker C: Yeah, exactly.
+00:49:56.633 - 00:49:58.910, Speaker B: Exactly. The exit, it settles to.
+00:50:00.880 - 00:50:03.404, Speaker D: Say. And that would be something that Bob will do.
+00:50:03.522 - 00:50:11.090, Speaker B: No. Either Bob. No, not necessarily. Bob can do it or Alice can do it. Anybody can do it. The whole point is that Bob will get the fund.
+00:50:11.460 - 00:50:17.440, Speaker D: And the challenge to that will be saying there was another transaction which wasn't either.
+00:50:17.510 - 00:50:21.510, Speaker B: It wasn't Bob. Either it's somebody else, or there is this.
+00:50:23.720 - 00:50:28.292, Speaker A: Either you prove a Merkle route here that goes to zero, for example, or goes to somebody else.
+00:50:28.346 - 00:50:28.660, Speaker B: Exactly.
+00:50:28.730 - 00:50:29.860, Speaker A: In this block.
+00:50:30.440 - 00:50:32.660, Speaker D: So for Alice, that would be a dangerous.
+00:50:33.080 - 00:50:34.256, Speaker B: What do you describe?
+00:50:34.448 - 00:50:42.648, Speaker D: No, I'm saying that in flight exit for Alice will be dangerous because Alice will say, I want to exit for Bob and Bob concurrently will send money to someone else.
+00:50:42.734 - 00:50:46.190, Speaker B: So it won't be Alice doing anything. Yeah, it will be true. That's true.
+00:50:48.640 - 00:50:50.750, Speaker A: So can Bob do this?
+00:50:52.480 - 00:50:53.772, Speaker C: Right? Yeah. Okay.
+00:50:53.826 - 00:51:05.756, Speaker B: And to be clear, to do this type of limbo access, you need to add an additional parameter because you need to show that the transaction you'revealing where it was included. You need to show that it was included in this block, but you cannot.
+00:51:05.788 - 00:51:06.956, Speaker D: You never saw the block.
+00:51:07.068 - 00:51:17.776, Speaker B: Yeah, that's what I'm saying. That you claim that it was included in this block when you make transactions.
+00:51:17.888 - 00:51:18.870, Speaker A: This happened.
+00:51:20.360 - 00:51:21.380, Speaker B: What if this happened?
+00:51:21.450 - 00:51:29.912, Speaker D: Or rather the question is Ellie said she doesn't know if the transaction to Bob was included. Because the block was never revealed. She doesn't know. Maybe plasma operator decided not to.
+00:51:29.966 - 00:51:39.356, Speaker B: That's what I'm saying. That to do this type of exit and challenge, you need to add an additional parameter in the actual transaction, which.
+00:51:39.378 - 00:51:42.092, Speaker A: We call target block, which block to include into.
+00:51:42.146 - 00:51:48.540, Speaker B: And you say that I consider this transaction valid only if it gets included in this block.
+00:51:48.700 - 00:51:49.616, Speaker D: That makes sense.
+00:51:49.718 - 00:51:50.370, Speaker C: Right?
+00:51:50.900 - 00:52:02.230, Speaker B: So if this is block one, and I don't know if this will happen or that I say include it in block two, if it's not included in block two, then it doesn't matter.
+00:52:05.480 - 00:52:07.270, Speaker A: So, yeah, in this case.
+00:52:09.960 - 00:52:10.596, Speaker B: If the.
+00:52:10.618 - 00:52:18.324, Speaker A: Operator withheld, it's not a malicious operator, just slow operator. Like something went slow.
+00:52:18.372 - 00:52:18.776, Speaker C: Right.
+00:52:18.878 - 00:52:36.252, Speaker A: They didn't include it in two. Alice is like, wait, nothing's happened. Or Bob, like, hey, I should have received it in two. Let me push the money. Yeah, I mean, it's here just, I didn't include it. It's not, it was malicious. It's just slow, actually.
+00:52:36.306 - 00:53:24.670, Speaker B: And the target block approach, it has this thing that if it doesn't get included in the block, you essentially gets dropped and you need to resubmit it with a new target block. But it's the current way to mitigate this. Or you can add a data availability challenge, which is not exactly like the best approach, in my opinion, because essentially you say that you do a blind challenge. You say operator is withholding here, and the operator has to reveal some data that proves that there is no more data being withheld. But this doesn't really scale because you can keep challenging the operator and you can do what you said, you're a competitor and you start griefing them. And how you do is if they don't respond, you slash a massive deposit that they have. But this also imposes like capital lockup requirements for the operator, which this design doesn't have.
+00:53:25.360 - 00:53:28.188, Speaker D: Yeah, but to an extent, and to.
+00:53:28.194 - 00:53:55.210, Speaker B: Be clear, these are all one off attacks, because if the operator does such an attack, they can at most attack like one or a few coins. They cannot attack the whole chain. And if they do it, everybody, I agree that it's kind of a weak assumption, like from a security perspective, but you already base yourself that somebody will come watch and challenge. And if people are already watching, they notice this fraud, and this becomes like it has some social consensus if this type of happens.
+00:53:58.140 - 00:54:01.924, Speaker D: So let's say transactions do not include the target block.
+00:54:02.052 - 00:54:04.584, Speaker B: If they do not, this attack is possible.
+00:54:04.782 - 00:54:10.284, Speaker D: My question is rather the transaction also includes all the proofs for all the blocks in the past, right.
+00:54:10.322 - 00:54:12.376, Speaker A: You say not transactions. No, not when you exit.
+00:54:12.488 - 00:54:26.092, Speaker B: Not when you exit. So all the past transactions, they do not touch the chain. It's only ad hoc. So when I send you some funds, I give you out of bound all the proofs. But when you exit, you just show two proofs.
+00:54:26.236 - 00:54:37.860, Speaker D: And so, to an extent, when I'm sending money to Ilya, there is sort of a target block, because I'm sending him the proof up to some block, right?
+00:54:37.930 - 00:54:39.110, Speaker B: Oh, yeah, that's true.
+00:54:39.960 - 00:54:41.940, Speaker A: But it's not inside the transaction.
+00:54:43.560 - 00:54:46.312, Speaker B: You're convinced that things up to here are good.
+00:54:46.366 - 00:54:47.016, Speaker C: Yeah. Good.
+00:54:47.118 - 00:54:52.884, Speaker D: So I guess the protocol will be, I'm sending money to Ilya, I'm initiating the transaction, I'm waiting for transaction to get into the block.
+00:54:52.932 - 00:54:53.336, Speaker C: Yes.
+00:54:53.438 - 00:54:55.480, Speaker D: And then I'm sending the proof of all the.
+00:54:55.550 - 00:55:08.290, Speaker B: Yes, of course, the transaction. The foolproof history that you're sending is that you make the transaction, the transaction gets included, you get the witness data about the transaction, and then you send the whole thing.
+00:55:09.300 - 00:55:11.772, Speaker A: You wait for checkpoint on parent chain.
+00:55:11.836 - 00:55:12.160, Speaker C: Yes.
+00:55:12.230 - 00:55:22.652, Speaker A: And for whatever six blocks or hour of blocks before chain reorganization can happen in the parent chain. And then you can actually send the things, right, because otherwise.
+00:55:22.716 - 00:55:23.330, Speaker C: Correct.
+00:55:24.020 - 00:55:26.916, Speaker D: But do I need to send him all the proofs? Can he get.
+00:55:27.098 - 00:55:41.160, Speaker B: Or they can get them directly from the operator. So if the operator, you need to send them ad hoc. Only if the operator is malicious. If the operator is complicit, they can get them directly from the operator. So this is like, you need to have the worst case.
+00:55:41.230 - 00:55:44.056, Speaker D: But if operator is malicious, I will not have the proofs either, right?
+00:55:44.158 - 00:55:47.876, Speaker B: No, you have them because you received them from the previous guy.
+00:55:47.918 - 00:56:15.668, Speaker D: But I don't know the proofs of exclusion from the block where I received it until the moment where I'm sending it. This is the block where I received money. So I'm Alex or Ellis. I received them from somewhere in the past. I have the proofs of exclusion or inclusion into the. Then, you know, sometime later, I want to send it to Ilya. I need to include proofs of exclusion here.
+00:56:15.668 - 00:56:21.360, Speaker D: Those. I do not have those. I need to request. Yeah, but it's a smaller request, right? In essence, from the operator.
+00:56:21.440 - 00:56:23.992, Speaker B: Yeah, that's true. You need to have, like your client needs to.
+00:56:24.046 - 00:56:27.288, Speaker A: Well, I mean, if it's your token, you know, it's not there, but I.
+00:56:27.294 - 00:56:28.570, Speaker D: Need to send the proof of.
+00:56:32.220 - 00:56:35.656, Speaker B: So this is kind of like, unfortunate that you need to do this whole process.
+00:56:35.758 - 00:56:37.352, Speaker A: So you said there's a way to.
+00:56:37.486 - 00:56:37.784, Speaker C: Yeah.
+00:56:37.822 - 00:57:00.290, Speaker B: So assuming that you already have them. Assuming that you already have the proofs, you can either create a snark proof, like where you just take a bunch of blocks and you put them together. So this has happened already. Like, there is a proof of concept for this already, or there is a recent technique called the LSA accumulator, which can be used for this, which I'll show you now how.
+00:57:00.740 - 00:57:04.084, Speaker A: But for the snark proof, why not just have a snark proof for the whole thing?
+00:57:04.122 - 00:57:13.672, Speaker B: I agree, but it's a simpler snark. It's simply a snark for a mercury proof, while if you want, like, for the whole thing. Oh, that's what you said. For the whole history.
+00:57:13.806 - 00:57:14.296, Speaker C: Yeah.
+00:57:14.398 - 00:57:16.424, Speaker B: If you do a snark proof, you do the whole history.
+00:57:16.542 - 00:57:17.064, Speaker C: Yeah.
+00:57:17.182 - 00:57:18.920, Speaker B: So you take the whole history.
+00:57:18.990 - 00:57:19.176, Speaker C: Yeah.
+00:57:19.198 - 00:57:23.460, Speaker A: You take the previously, all the transitions.
+00:57:23.540 - 00:57:24.168, Speaker B: Exactly.
+00:57:24.334 - 00:57:27.080, Speaker D: For the aerosa accumulator, do you need a semi prime?
+00:57:27.160 - 00:57:27.852, Speaker B: Yes, you do.
+00:57:27.906 - 00:57:31.084, Speaker A: It has a trusted setup such as snark. So snark yes.
+00:57:31.122 - 00:57:36.216, Speaker D: Or snark semi prime is slightly worse, I guess.
+00:57:36.338 - 00:57:44.236, Speaker B: No, you will generate it through MPC. So it's still like the same assumption.
+00:57:44.428 - 00:57:45.170, Speaker D: Right?
+00:57:45.540 - 00:58:18.670, Speaker B: So how would the RSA accumulator work? Currently, the operator, when you have like two chains, this is the parent chain, this is the site, the plasma chain. The operator, they commit like 32 bytes, the mercury root, which is like the. You take the tree, you make the mercury root. With the RSA accumulator, the operator, they additionally commit one more thing, the accumulator, which is 2048 bits, like 256 bytes, not 256.
+00:58:19.440 - 00:58:20.284, Speaker C: Yeah.
+00:58:20.482 - 00:58:51.792, Speaker B: So they need to commit something additionally, how does this work? So the accumulator, like, long story short, you start with a value, g. When you want to accumulate an element to it, you raise it to that power. So you have the slot three, the coin id, three, you raise it the third. When you want to add another element, you raise it to the, let's say the coin iD. Five, you raise the fifth. You can include multiple elements, the accumulator, by including their product. So you do directly g to the 15.
+00:58:51.946 - 00:58:52.650, Speaker C: Right.
+00:58:53.180 - 00:59:18.610, Speaker B: To prove inclusion to the accumulator, you reveal a cofactor. So if I have g to the 15, I need to reveal three and five. Like, three is the element I'm proving, five is the cofactor. If this is like maybe g to the 105, like three, five, seven. Yeah, that's it. Three, five, seven. You would reveal three and 35.
+00:59:18.610 - 00:59:49.544, Speaker B: Like I'm proving the inclusion of three without 35. So how does this apply for the plasma and the exclusion proofs? What you can do is that if you have multiple blocks and you have the accumulator at block one and block n, you can create one proof from just the accumulators. One proof of exclusion. So let's say you have one block, two blocks, and then you have a huge gap. And here, so you have an accumulator, a block n and a block n.
+00:59:49.582 - 00:59:53.080, Speaker D: Plus k. Do we have accumulator per coin?
+00:59:53.820 - 01:00:28.052, Speaker B: No, the accumulator, it's like one. The coin id is the value being accumulated. So you have both the merkle tree and the accumulator is essentially per block which coins moved and which coins did not. Right. Rather, the values which were in it are the ones which were included. So at this block, let's say the value of the accumulator is g to the three, five, seven at this block, and at this block it is g to the three square. 57.
+01:00:28.052 - 01:00:33.380, Speaker B: This essentially means that in this block, the only coin that was spent was three.
+01:00:33.530 - 01:00:33.856, Speaker C: Right?
+01:00:33.898 - 01:00:58.812, Speaker B: Because it was only accumulated and whatever transaction route was committed before. So what you can do is that you go to a bunch of blocks later and you have whatever element and you still have seven. So if you have this, you can be sure that by revealing this and this, the coin was not spent in between.
+01:00:58.946 - 01:01:03.570, Speaker D: But how do I prove that? I mean, if it was proved, then by now it will be seven squared, right?
+01:01:03.940 - 01:01:06.384, Speaker B: No, it wasn't spent. That's what I'm saying.
+01:01:06.502 - 01:01:07.600, Speaker A: If it was spent.
+01:01:08.180 - 01:01:09.808, Speaker B: If it was spent, would be seven.
+01:01:09.894 - 01:01:13.364, Speaker D: So there's still seven as a multiple here.
+01:01:13.482 - 01:01:14.832, Speaker B: No, you're just proving.
+01:01:14.896 - 01:01:15.524, Speaker C: Yeah, fine.
+01:01:15.562 - 01:01:17.440, Speaker A: You're proving absence of seven squared.
+01:01:17.520 - 01:01:22.816, Speaker D: How do I prove absence of. I can prove that there is some factor. I cannot prove the absence of a factor.
+01:01:22.848 - 01:01:23.990, Speaker B: Right, you can.
+01:01:24.360 - 01:01:25.892, Speaker D: You can prove absence of a factor.
+01:01:25.956 - 01:01:35.550, Speaker B: Yeah, because then you can reveal the next state. You can reveal the next state and you can show that it's not there. You can take the current state and the latest state.
+01:01:37.600 - 01:01:44.140, Speaker A: You mean like if there is a seven square somewhere? Like where it's spent.
+01:01:44.800 - 01:01:49.710, Speaker B: You only accumulate elements. You do not remove elements. So you cannot go from seven squared back to seven.
+01:01:50.740 - 01:01:57.552, Speaker D: So if I have three, five and seven. So each, each particular coin has a prime number associated with it, right.
+01:01:57.606 - 01:01:59.676, Speaker B: Only because otherwise it's not safe.
+01:01:59.708 - 01:02:00.290, Speaker A: Yeah.
+01:02:00.660 - 01:02:10.416, Speaker D: And three, five, seven means that coin three was spent once, coin five was spent once, and coin seven was spent once. And then when coin seven is spent, that becomes three, five, seven squared.
+01:02:10.448 - 01:02:10.692, Speaker C: Right.
+01:02:10.746 - 01:02:26.920, Speaker D: Okay, so when I send. So let's say n is the block. When I receive the coin and this is the block where I'm sending the coin to you, right? Or like rather say, this is where I'm sending. So I want to prove that here, up to here, it was not. I'm not proving.
+01:02:27.660 - 01:02:31.740, Speaker B: You need to prove inclusion of seven and exclusion of any higher power.
+01:02:31.890 - 01:02:34.300, Speaker A: The one before you just show that it's set.
+01:02:34.450 - 01:02:39.488, Speaker D: But how do they prove the exclusion of a power? I don't know. Maybe it's possible.
+01:02:39.654 - 01:02:58.132, Speaker B: It's possible because this is all work in progress, to be clear, like the stuff we have shown so far, it's set, but this is work in progress. So how to prove it? Like the accumulator is this one, you reveal the three, five, seven, and you want to prove exclusion of seven.
+01:02:58.186 - 01:02:58.884, Speaker C: Yes.
+01:02:59.082 - 01:03:15.384, Speaker D: So I'm going to show you three multiplied by five, but multiplied by seven, right? Yeah, I'm revealing to you g to the. No, but you cannot prove that. I think that's the entire point of the.
+01:03:15.502 - 01:03:18.476, Speaker B: Yeah, that there is no element twice. Because right now.
+01:03:18.498 - 01:03:26.072, Speaker D: No, I'm saying that's the entire point that you cannot prove that it is divisible by G to the 7th. Like the entire point of the RCI accumulator.
+01:03:26.216 - 01:03:26.910, Speaker C: Right.
+01:03:29.850 - 01:03:34.790, Speaker D: That's a good point, or it is not the case. Actually. Don't know. My math is a bit rushed.
+01:03:37.310 - 01:03:40.506, Speaker B: I don't have something right now, like off the top of my head, because.
+01:03:40.528 - 01:03:48.910, Speaker D: If you can prove that it is divisible by G to the 7th, then the problem is solved. I would reveal you this number. You will say, look, it's divisible by G to the 7th. You're clearly trying to.
+01:03:49.060 - 01:03:49.866, Speaker B: You're cheating.
+01:03:49.978 - 01:03:50.640, Speaker D: Yeah.
+01:03:51.250 - 01:04:00.690, Speaker B: So the question is, let me just note it down. So the question is, if we have like three, five, seven squared, how can I prove that seven squared is not in the accumulator?
+01:04:01.030 - 01:04:01.442, Speaker C: Right?
+01:04:01.496 - 01:04:04.642, Speaker B: Because currently the only thing I can prove is the seven only.
+01:04:04.696 - 01:04:09.218, Speaker D: Well, as a matter of fact, if it was possible to prove, to easily show, if it's divisible by seven, you.
+01:04:09.224 - 01:04:12.226, Speaker B: Would composite, like, this is a composite number, this is not a prime.
+01:04:12.338 - 01:04:17.590, Speaker D: Yeah, but you would not need to show the cofactor because people would just.
+01:04:17.660 - 01:04:19.570, Speaker A: Like, they would divide it.
+01:04:19.660 - 01:04:20.506, Speaker C: They will just check.
+01:04:20.608 - 01:04:23.660, Speaker D: So clearly you cannot, right?
+01:04:24.510 - 01:04:25.900, Speaker B: Yeah, that's a good thought.
+01:04:26.910 - 01:04:33.360, Speaker A: And by the way, for Ziggy's snark, if you're already using snarks, wouldn't it be easier to just have like an account model?
+01:04:34.850 - 01:04:41.642, Speaker B: That's why I do not delve into the Snark, because if you assume you can use snarks.
+01:04:41.786 - 01:04:42.766, Speaker D: Plasma is soft.
+01:04:42.868 - 01:04:44.222, Speaker B: Yeah, everything.
+01:04:44.276 - 01:04:45.434, Speaker A: But it's like way easier.
+01:04:45.562 - 01:04:46.510, Speaker D: Charging is soft.
+01:04:46.580 - 01:04:51.618, Speaker B: Yeah, exactly. So, yeah, that's why we do not stick into it.
+01:04:51.784 - 01:04:52.402, Speaker C: Right.
+01:04:52.536 - 01:05:02.998, Speaker B: Generally, this is like the history compaction. It is the biggest problem of the plasma because the fungibility. Okay, we agree, but this is a.
+01:05:03.004 - 01:05:06.434, Speaker D: Bit shaky, but, yeah, works in progress.
+01:05:06.562 - 01:05:31.230, Speaker B: Yeah. It's an improvement on the current thing to make it very feasible. And note that you can avoid having to do this. Like, this is another alternative that you can exit and redeposit if you want, because you exit the coin that you have and you redeposit it, and suddenly all your history collapses. All your history gets lost. So you could even do this if you want. Like, this would be an alternative.
+01:05:31.230 - 01:05:59.240, Speaker B: Or you have to maintain the history, which the history, it grows large after it becomes a gigabyte after two years of not moving the coin, maybe. So this is not exactly the best solution for cold storage, because you still need to watch and everything. But if you have maybe a tournament of a game or something, or you're doing some gambling on a side chain, this is good, because you do not have too long history.
+01:05:59.610 - 01:06:00.358, Speaker C: Right.
+01:06:00.524 - 01:06:04.378, Speaker B: And this happens when you commit very often.
+01:06:04.544 - 01:06:05.306, Speaker C: Right.
+01:06:05.488 - 01:06:15.086, Speaker B: So another approach would be that you also reduce the finality by committing less often. And naturally, if you commit less often, you have smaller history.
+01:06:15.188 - 01:06:41.960, Speaker D: Will the following work? So let's say that when I send a coin to ethereum, there is this prime. I know the prime, and I do not reveal the prime. So I will need in some way to prove that. So let's first go through it. So let's say I'm sending g. So my prime is seven. Okay, so I'm sending g to the power of seven to the hundred or, sorry, seven multiplied by 100.
+01:06:41.960 - 01:06:53.020, Speaker D: And because I know seven, I know all the g's from g to the. To the 7th, to g to the 7th, multiplied by 100. I know all hundred of them, but I only reveal this one.
+01:06:54.430 - 01:06:56.378, Speaker B: So you multiply seven by 100.
+01:06:56.464 - 01:07:00.906, Speaker D: Yes. And I raise g to that power, and I reveal that number 100, can.
+01:07:00.928 - 01:07:06.078, Speaker B: Be moved to any of the other numbers if there are more accumulated numbers.
+01:07:06.164 - 01:07:08.350, Speaker D: I mean, seven to the power of 100.
+01:07:08.500 - 01:07:09.520, Speaker B: Oh, okay.
+01:07:10.210 - 01:07:21.714, Speaker D: So I reveal that number. I need to prove somehow that this is actually. I don't even need to, like, I need to prove that this is a prime number to some power. I think that is.
+01:07:21.752 - 01:07:23.490, Speaker B: That is you need to do a prime altitude check.
+01:07:23.560 - 01:07:42.380, Speaker D: Yes. And so then what I do is that if I want to send money to someone, then I privately send them all the powers in between. And then we replace g to the seven to one. So we reduce the power instead of increasing it.
+01:07:43.310 - 01:07:45.050, Speaker A: So you limit how much you can move.
+01:07:45.120 - 01:07:52.138, Speaker D: So now, to prove that something wasn't spent, I can just provide a cofactor to this number.
+01:07:52.224 - 01:07:52.618, Speaker C: Right?
+01:07:52.704 - 01:08:03.006, Speaker D: And if it was spent, the power goes down. So I will not be able to do that. And when I send to the person all the powers, and so they will be able to decrease it in the future, but nobody else will.
+01:08:03.028 - 01:08:11.534, Speaker A: But that's kind of the reversed history in result. Like you say, this is my maximum length of history. And every time you send history minus.
+01:08:11.582 - 01:08:12.642, Speaker D: One, it does limit the history.
+01:08:12.696 - 01:08:19.400, Speaker A: Yes, but it's also like it's upfronting the history instead of history growing. But, yeah.
+01:08:22.010 - 01:08:23.910, Speaker D: Okay, let's move to fungibility.
+01:08:24.490 - 01:08:54.494, Speaker B: Yeah, this is like one of the unsolved. So the fungibility, how you can solve it. There's two approaches. Again. You can either consider that a coin from, like currently we consider that a coin is like one solid value. You can think that a coin is, let's say, I like this analogy with a liquid. So this is one coin, this is another coin.
+01:08:54.494 - 01:09:33.100, Speaker B: And the coin has like some, the ball has some maximum capacity. This is the plasma debit, which was proposed like a few months ago by Dan Robinson. And so the maximum size of the coin is like what you deposited initially. So if you deposit five eth, you get like maximum capacity, five. And if this is another coin that has like three, its three. And what you can do is that essentially, if a coin, and if a coin has any, and we consider that any coin can have a value in between. So the coin can be like a liquid, it can be half full.
+01:09:33.100 - 01:10:27.690, Speaker B: So here it's like a three out of five. And what you can do is that essentially you can create kind of fungible payments by atomically in the same moment, like reducing one coin and increasing another. So from going from three to five, you can essentially do go back to five to five and take this down to one out of three in that sense. But this requires that two transactions get included in one block at the same time. And you cannot assume this. So currently there is no clear atomic swap protocol, because you need to essentially force the operator to somehow include the transaction both to this one and to this one, or with some buffer, like within the next five or six blocks. But if you do this, so let's say you have the atomic swap, you can have the fungible payments.
+01:10:27.690 - 01:11:03.306, Speaker B: And the exit game, it gets modified slightly because you can consider essentially that each time you change this, it's like you almost have a channel, a payment channel with the operator. Because the five out of five, it means that you own the five and the operator owns zero. When you reduce it, you get three out of five, the operator owns two. But in addition, the operator, like this goes down. So the operator like, sorry, you had three out of five, so the operator owns two, you increase it by two. So now the operator owns two less. But you also decrease this one by two.
+01:11:03.306 - 01:11:08.150, Speaker B: So the operator is still always at zero. So there is almost like this liquidity.
+01:11:08.230 - 01:11:09.834, Speaker A: Like operator pretty much takes two here.
+01:11:09.872 - 01:11:16.654, Speaker B: And puts it exactly, which starts to look like an account model eventually, where each coin is its own account.
+01:11:16.852 - 01:11:17.646, Speaker C: Right.
+01:11:17.828 - 01:11:49.610, Speaker B: And essentially when you're doing these payments, this gives you instant finality between blocks because essentially you sign, you have messages with the operator that you sign. And so I can be a three out of five, then we have a nonce, for example, that you keep increasing. So you go three out of five out of five, then zero to five, then four out of five, then three out of five. And essentially when you exit, you also provide the nons and you will add an additional challenge which says, provide an elated nonce to stop my exit.
+01:11:50.190 - 01:11:50.940, Speaker C: Right.
+01:11:53.870 - 01:12:11.534, Speaker B: And then you'll need also another challenge to, if you include the transaction of an atomic swap, this can be challenged by revealing that there wasn't the corresponding transaction in the same block. Because if there wasn't, like you essentially got some money for free while the other party did not.
+01:12:11.572 - 01:12:12.830, Speaker A: Yeah, like operator took it.
+01:12:12.900 - 01:12:13.182, Speaker B: Exactly.
+01:12:13.236 - 01:12:13.778, Speaker A: Pretty much.
+01:12:13.864 - 01:12:24.946, Speaker B: Exactly. And there's no code for this, to be perfectly clear, like the history compaction and this. There's no code for this. It's purely because the protocol is still.
+01:12:24.968 - 01:12:26.782, Speaker A: Not complete, fully defined.
+01:12:26.846 - 01:12:28.482, Speaker C: Yeah. And.
+01:12:28.536 - 01:13:09.038, Speaker B: Yeah, so there's this approach which is like, essentially you do this. So you can consider almost that each coin becomes a channel with the operator and the operator becomes a hub. And essentially you do this up and down, like rebalancing of coins, which is nice. And it also has the addition that when you can either do this type of transaction or you can transfer your coin to somebody else. So this gives the notion of transferable payment channels, which currently does not exist, like in anything else. Because if I have a payment channel with you, I cannot give you the channel somehow without giving you my private key. So while I'm not sure about the use cases of this, it's interesting, like to see from a transferable.
+01:13:09.038 - 01:13:09.940, Speaker B: Exactly.
+01:13:12.150 - 01:13:14.834, Speaker A: If this is already kind of moving into account model.
+01:13:14.872 - 01:13:15.074, Speaker C: Right.
+01:13:15.112 - 01:13:19.814, Speaker A: Why not just make this an account model? Why have this limit? Pretty much.
+01:13:19.932 - 01:13:20.262, Speaker C: Right?
+01:13:20.316 - 01:13:25.090, Speaker B: Because if there is no limit, you cannot enforce how much can be exited.
+01:13:25.250 - 01:13:31.674, Speaker A: Because otherwise you just reveal that there is no. Yeah, but change like that.
+01:13:31.792 - 01:13:56.270, Speaker B: I haven't gone into this very much in depth, but the operator, basically, they can just create an invalid state transition. And if they withhold, they can exit that. It's always about the withholding attack that can happen. So that they withhold and they try to exit the coin, like at super large value. And you cannot prove that it doesn't have this super large value. You enforce this limit so that they cannot create any withdrawals.
+01:13:56.350 - 01:14:00.580, Speaker D: But if it's at one third, right now, operator, in principle, can still.
+01:14:01.030 - 01:14:28.154, Speaker B: No, they cannot, because you can reveal a challenge. You reveal a challenge because you have like a nonce that goes back and forward. So if the operator tries to exit the coin, or if you allow it in the protocol rules in the first place, to allow an operator to exit the coin, because currently you can make it that I exit and simply one third goes to me and the two thirds go to the operator. But if you allow the operator to exit the coin, what would happen is that from three out of three, it would go back to one out of one.
+01:14:28.352 - 01:14:29.802, Speaker D: I see. That makes sense.
+01:14:29.856 - 01:14:30.218, Speaker C: Yeah.
+01:14:30.304 - 01:15:10.778, Speaker B: Or you can additionally have the operator inject liquidity on a coin. So from three out of three? From one out of three, they would make it one out of five, for example. But this already starts to sound very hacky in a sense, because you have something and you start making it bigger, smaller, depending on what you want. So actually I have an open pull request on the code base that implements this, but doesn't implement the atomic swap. And if you don't have the atomic swap, it's useful because you can do like one way payments with the operator. So if the operator is Netflix, for example, you do stuff with that, but then it's just a one way payment channel with another party. So it's not like that.
+01:15:10.778 - 01:15:11.450, Speaker B: Interesting.
+01:15:11.600 - 01:15:12.854, Speaker A: With a centralized party.
+01:15:12.902 - 01:15:19.740, Speaker B: With a centralized party, but still it's another party. What I'm saying is that it's just payments at this point.
+01:15:21.870 - 01:15:22.714, Speaker C: Right.
+01:15:22.912 - 01:15:32.338, Speaker B: And do we have time for one more construction or if the limit is there? It's fine, I think.
+01:15:32.464 - 01:15:33.042, Speaker A: Whatever.
+01:15:33.176 - 01:15:34.180, Speaker B: Okay, cool.
+01:15:34.870 - 01:15:37.406, Speaker D: I think we covered quite a bit of material.
+01:15:37.518 - 01:15:38.658, Speaker C: Yeah, cool.
+01:15:38.824 - 01:15:41.346, Speaker D: Okay, thanks a lot for stopping by.
+01:15:41.368 - 01:15:47.358, Speaker A: Yeah, thanks a lot for stopping by. Check out other videos upstairs, downstairs, like it, et cetera.
+01:15:47.454 - 01:15:47.666, Speaker C: Yeah.
+01:15:47.688 - 01:15:48.242, Speaker A: All right, cool.
+01:15:48.296 - 01:15:48.562, Speaker C: Thanks.
+01:15:48.616 - 01:15:54.400, Speaker B: Yeah, thanks a lot. Close.

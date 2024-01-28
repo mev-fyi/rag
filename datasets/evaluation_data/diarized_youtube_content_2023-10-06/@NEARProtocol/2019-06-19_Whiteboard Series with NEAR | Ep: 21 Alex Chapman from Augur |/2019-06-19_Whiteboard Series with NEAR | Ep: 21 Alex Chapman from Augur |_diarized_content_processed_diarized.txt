@@ -1,0 +1,403 @@
+00:00:04.090 - 00:00:13.440, Speaker A: Hi everybody, this is Ilya from Nier, and we're here in New York on a rainy day, discussing with Alex on Auger and.
+00:00:15.490 - 00:00:30.822, Speaker B: Introducing myself. I'm Alex Chapman, lead Dev on Auger at the forecast foundation. We're a group of software developers right now working on a prediction market that runs on Ethereum. So I guess high level overview of how Auger works.
+00:00:30.876 - 00:00:31.814, Speaker C: Yeah, sure.
+00:00:31.852 - 00:00:44.650, Speaker B: And I'm not great at drawing, drawing too much on a whiteboard, but I can kind of give an idea of what the pieces are just from a really high level view. I actually never spell auger.
+00:00:45.470 - 00:00:48.218, Speaker A: Now it's on like the folder you type every day.
+00:00:48.304 - 00:01:17.854, Speaker B: Literally never spell it ever. No, because it autocompletes to a. If I've misspelled it, I should get shit forever, but if not, then that's fine. So I guess the two biggest components of the stuff that we make are a trading component and a oracle. So, trading component of auger, kind of what you'd expect in a prediction market. People can make markets by themselves. We don't actually make any markets.
+00:01:17.854 - 00:02:08.946, Speaker B: Totally decentralized people just come in and make their own. So you can make a market on something like political, like who's going to win a particular election, sports games, or something more sophisticated, like some sort of a specific business hedge you can make with scalar markets, which is something we have prediction markets to track, like a particular stock price. So there's a lot of different functionality you can get out of the trading park portion, but it's also not that difficult to make. People can make markets and exchanges all the time using smart contracts. What actually sets Auger apart is the fact that we have a decentralized oracle. So decentralized oracle means when someone makes one of those markets, like an election market, for example, and then it passes the deadline where the election results have come in, the blockchain needs to know, and the contract needs to know how to pay things out. So people who bet on the winner need to get the money that they deserve.
+00:02:08.946 - 00:02:53.940, Speaker B: And the people who didn't bet on the winner, they don't get to get anything. A lot of the ways that people solve this without using decentralized oracle typically revolve around just a trusted party going in and punching in who won, and then the results come out. The problem with that is having a centralized party in prediction market has a lot of risks associated with it. Pretty much every prediction market in history has been shut down, attacked, or has ended up being some sort of like an exit scam situation. So the decentralized oracle is really the super complicated secret sauce sort of part of auger. So the way that our oracle works, somebody's calling me. We have a token called rep.
+00:02:53.940 - 00:03:36.046, Speaker B: Like I said, I'm bad at whiteboard, by the way, which is why I've just switched to talking and I'm no longer drawing anything out. We have a token called rep. When a market is supposed to end, the market creator had designated, when they created the market, someone to report. So someone to go in and do that manual process as described, where they go in themselves and say, yeah, this guy won. The difference is that once those results are up, there's a time period where anybody who owns rep can go in and say, that's not true. And there's a preceding sequence of disputes that happen where the amount that they have to put up gets higher and higher and higher, which, if that was the only system we had, which is the way a lot of other decentralized oracles work, would be a keynesian beauty contest, which just means if someone go.
+00:03:36.068 - 00:03:39.826, Speaker A: Out and find more people to exactly whose take on it, right?
+00:03:39.928 - 00:04:28.602, Speaker B: And whoever ends up having the most just wins. And as a rational game theory participant, you should just go with whoever has the most rep, which means we wouldn't actually be a good decentralized oracle, we'd just be a keynesian beauty contest system. So the interesting thing about our decentralized oracle is at a certain point, we actually fork Auger within the ethereum blockchain. So not like an Ethereum fork, like an actual system where our contracts are capable of forking into two different auger systems. What happens is in the election market, for example, if that reached a fork, there'd be a fork. Let's say it was a 2016 election, there'd be a fork where Trump wins and a fork where Hillary won, or maybe Bernie, I don't know. And actually there could be all three, because anyone can make, if it was a categorical market, for example, anyone can say, I would like for that child universe to become its own auger once a fork occurs.
+00:04:28.602 - 00:04:32.766, Speaker B: The interesting thing about that is rep holders have to choose where the rep goes.
+00:04:32.868 - 00:04:33.840, Speaker A: Where is it?
+00:04:34.370 - 00:04:34.902, Speaker C: Right?
+00:04:34.996 - 00:04:56.854, Speaker B: So even though someone could potentially have a lot of rep and say, I have 50% of the rep, I'm going to say Hillary won, because I was betting a lot on that. They can do that, and they will end up getting the money that was in the market. So it will pay out for the Hillary winners, but they have to spend a lot of rep to do that. And because their rep has to go to the Hillary universe, which presumably no rational trader is ever going to want to trade on. They have to burn a lot of.
+00:04:56.892 - 00:04:57.734, Speaker C: Rep to do that.
+00:04:57.772 - 00:05:31.080, Speaker B: And that's kind of the crux of our whole security model, the fact that they have to make their rep go to a universe where it is probably worth nothing. So all of the security calculations we do, everything in the white paper is basically based on this notion of them having to burn more in rep than the market's open interest is. So even if they got all of the money from the market, they've overall lost money by performing that attack. Sort of a super high view, and I've drawn absolutely nothing. And I'm sure there's a million questions.
+00:05:31.690 - 00:05:32.246, Speaker C: Sure. Yeah.
+00:05:32.268 - 00:05:47.642, Speaker A: I mean, let's start maybe with training just to kind of give basic understanding how this is all set up. So usually there's just a template of a contract that anybody can deploy to spin up a new prediction. Market.
+00:05:47.776 - 00:05:51.446, Speaker B: Yes, those are called markets.
+00:05:51.558 - 00:05:52.006, Speaker A: Markets.
+00:05:52.038 - 00:05:53.142, Speaker B: It's actually a market contract.
+00:05:53.206 - 00:05:53.434, Speaker C: Yeah.
+00:05:53.472 - 00:05:53.722, Speaker A: Okay.
+00:05:53.776 - 00:05:54.910, Speaker B: I think it's created.
+00:05:55.330 - 00:06:02.382, Speaker A: And then. Yeah. So pretty much people just deposit, like, if it's binary decision, they deposit on either yes or no.
+00:06:02.516 - 00:06:03.200, Speaker C: Right.
+00:06:03.650 - 00:06:19.782, Speaker B: So I'll actually draw out the different types that we have. So the distinct types we have in the contracts are yes, no markets, which you could think of as, like I said, binary sort of thing, where it's will, I'll just do everything in terms of the 2016 election for whatever reason. So we always talk about it. So it's will Trump win?
+00:06:19.836 - 00:06:20.198, Speaker C: Yeah.
+00:06:20.284 - 00:06:27.670, Speaker B: So it's either yes or no in the UI that we have, the reference UI right now, for example, you would just see yes, and then you have to actually sell yes to.
+00:06:27.740 - 00:06:29.794, Speaker A: I see. It's like you shark. Yes.
+00:06:29.932 - 00:06:31.258, Speaker C: Right. Yeah.
+00:06:31.344 - 00:06:50.766, Speaker B: And then we have categoricals, which we call cats. And these can have up to eight outcomes. And the reason for that limitation is not a fun one, it's just a cost sort of thing. So on the ethereum network, if we.
+00:06:50.948 - 00:06:52.910, Speaker A: You'll need to fork into eight.
+00:06:52.980 - 00:07:38.880, Speaker B: Well, actually it's not even that, that part. Technically, with scalars, you could fork into hundreds of thousands of universes, but someone has to pay for that. If someone was like, yeah, no, I think this universe was correct, they're free to make. It basically is the way that the forking works, the categoricals, it's that the number of shares that we have to generate. And when you're trading, the number of shares we have to send to people, including like emitting logs for all those transfers and just all of the associated costs with having that many shares makes anything beyond eight kind of get a little wild. I think the cost of just creating a market was too high originally. We could actually probably increase that, but there would probably be negative side effects that would provide such a bad user experience that it would essentially seem broken to anybody.
+00:07:38.880 - 00:07:58.740, Speaker B: There are worst case scenario trading situations where in an eight outcome categorical market, if both people are reversing their positions across all. If you'reversing your positions because somebody had to have been short, which means they. This kind of gets into synthetic short.
+00:08:00.890 - 00:08:09.990, Speaker A: Like yes, no, okay, I buy yes or I'm selling yes. For categorical, you either buying one decision, you can buy multiple. How does that work?
+00:08:10.140 - 00:08:28.254, Speaker B: So buying multiple, you can go long multiple, which means make multiple trades. The key thing, though, is if you short. So the way that everything works in the underlying contract system is all of our shorts are synthetic shorts. So it's easy to understand with yes no. There's a yes share and a no share. If you short yes. If you say sell that, you'll get no right, makes perfect sense.
+00:08:28.254 - 00:09:00.706, Speaker B: Categorical. If there's eight candidates and you say, I want to short trump that, actually what the system has to do is give you shares of all the other candidates. So sort of what I was getting to with the synthetic short problem with reversing positions is if you're reversing, that means it has to transfer eight shares per person twice and has to emit logs for all of those and do all of the accounting for all of those individual shares. So what ended up happening is a single trade, if they're both reversing positions, costs like 3.5 million gas. So we could increase the outcome. Like, that's still under the block gas limit.
+00:09:00.706 - 00:09:01.898, Speaker B: But when you get that high in.
+00:09:01.904 - 00:09:06.118, Speaker A: The gas limit for need to pay for that and get into the block.
+00:09:06.294 - 00:09:15.754, Speaker B: Getting into the block is the weird part, because then you enter the part where, paradoxically, you have to pay the miners more. Such a high gas price, it's sort of a hard sell.
+00:09:15.792 - 00:09:17.438, Speaker A: They'll not be able to fit anybody else.
+00:09:17.524 - 00:09:39.154, Speaker B: So we could have that. But it's one of those things where I suspect people using it would be like, this is broken. What is going on? This can't be right. Categorical is the other type. You can have eight outcomes, max, on those and then scalars. Scalars are not used very much in v one. I hope they're used more in v two because these, I think, are the neatest type of markets.
+00:09:39.154 - 00:10:07.502, Speaker B: So scalar markets, it's like a margin coal kind of, yeah. So there's no actual margin. Things are sort of leveragey, but not actually. Like, you don't actually borrow any money or anything, but the way that it might work is bet on the price of apple, and then you could set a range between. I actually don't know what Apple is worth right now, but let's say it was somewhere between one and 200. Sorry, 102. Hundred, you would basically track that price.
+00:10:07.502 - 00:10:38.810, Speaker B: So the way that we have everything set up in the UI and it works differently underlying on the chain, but everything on the UI, for example, if you thought it was going to be 150, you could buy it anywhere under 150, you would actually pay that amount. So if someone was willing to sell at 145, you could buy 145. If at the end of market resolution it ended up being 150, you would make $5. And that's how the payouts actually works. The payout system for everything actually works as a scalar market, interestingly enough. Yeah, we could go through all that. All that how that works on contract.
+00:10:38.810 - 00:10:46.086, Speaker B: But, yeah, the scalar payout, there's actually two shares, a long and a short, and their payout is kind of on a range.
+00:10:46.198 - 00:10:50.458, Speaker A: And that's how that settles that short.
+00:10:50.544 - 00:10:50.794, Speaker C: Right?
+00:10:50.832 - 00:10:51.626, Speaker A: At some point, yeah.
+00:10:51.648 - 00:11:02.526, Speaker B: So those are the three classifications of market. And again, on chain, we have three different creation functions, but they're actually all the same thing. They all work the exact same, all the math is the exact same on all of them.
+00:11:02.708 - 00:11:04.238, Speaker A: This is just right.
+00:11:04.324 - 00:11:04.986, Speaker C: It's much simpler.
+00:11:05.018 - 00:11:15.342, Speaker B: So you could imagine. I'll actually go into it. So there's like a thing called payout, we call them payout numerators, which is a misnomer right now, actually, in the contracts, it has to do with how we pay out invalid markets.
+00:11:15.486 - 00:11:15.906, Speaker C: But in.
+00:11:15.928 - 00:11:25.800, Speaker B: Yes, no, you can imagine there's. I think the first one is a yes share and the second one's a no share. Don't quote me on that. I always forget which one it is.
+00:11:26.890 - 00:11:30.326, Speaker A: There's two errors in computer science off by one.
+00:11:30.428 - 00:11:31.400, Speaker C: Yeah, exactly.
+00:11:32.410 - 00:11:44.560, Speaker B: So you can imagine this is the payout for the yes share, and this is the payout for the no share. If the market resolved no, Trump didn't win. And this tells kind of the chain how to pay out the different shares. In a scalar market, it would look something more like.
+00:11:47.490 - 00:11:48.240, Speaker C: Hundred.
+00:11:51.340 - 00:12:01.528, Speaker B: The reason, by the way, I'm making everything add up to 10,000 is sort of an artifact of how the contracts work for figuring out how to pay everything out. And what prices people can bet on shares.
+00:12:01.624 - 00:12:03.980, Speaker A: Do you issue like 10,000 of something?
+00:12:04.130 - 00:12:44.936, Speaker B: So there's this concept in the contracts called num ticks, which everyone kind of dislikes because it's complicated. But we have not thought of a better way to conceptualize and program this notion. But the basic idea is when people are trading and people will get shares paid out, there has to be some notion of how many ticks they trade in. So you can imagine if you were buying something like on an exchange and you wanted to set a price for a share, you might think it's worth 89.5 cents. And that would only be possible if that exchange supported 1000 ticks, I think. Or is it 100 ticks? Yeah, 1000 ticks, because there's basically 1000 units of increase you can have.
+00:12:44.936 - 00:12:57.248, Speaker B: You can go from 89.5 to 89.6 to 8.7. If they didn't want to deal with fractions of a cent, you'd only have 100 ticks. You can only deal in that many ticks. So our underlying system for yes, no and categoricals has 10,000 thousand ticks right now.
+00:12:57.254 - 00:12:58.124, Speaker C: It's an ETH.
+00:12:58.252 - 00:13:26.664, Speaker B: So that actually is fairly close to trading a cent with current ETH prices. Yeah. So the issue is the payout is also based on those num ticks. And that makes it work out really, really nicely with making sure that all of the funds are actually covered and we don't have to do any weird rounding or division or anything like that. We just limit what you could have actually traded and what you get paid out. Scalars are more complicated. Scalars, we let people do custom amounts because 10,000 ticks does not always apply to every scalar market.
+00:13:26.664 - 00:13:36.332, Speaker B: You could have something very complicated. What if you're trading Berkshire Hathaway shares or something? Yeah, it has to be custom. Categoricals work the same way, but obviously there's more.
+00:13:36.466 - 00:13:38.152, Speaker A: It's like for each category.
+00:13:38.296 - 00:13:39.772, Speaker C: Yeah. Right.
+00:13:39.826 - 00:13:42.460, Speaker B: So there's Trump, Hillary.
+00:13:43.200 - 00:13:44.072, Speaker C: It's Bernie.
+00:13:44.136 - 00:13:44.872, Speaker A: Bernie.
+00:13:45.016 - 00:13:45.900, Speaker C: Bernie did it.
+00:13:45.970 - 00:13:51.576, Speaker B: We did it, guys. All right. Yeah, I guess Andrew Yang is the, is the Bernie of this election.
+00:13:51.688 - 00:13:53.276, Speaker A: Oh, there's Bernie in this election.
+00:13:53.308 - 00:13:53.616, Speaker C: That's true.
+00:13:53.638 - 00:13:55.040, Speaker B: There's Bernie in this election too, but.
+00:13:55.110 - 00:13:56.400, Speaker C: They won't let him have it.
+00:13:56.550 - 00:14:00.400, Speaker A: So what is the current market on Auger?
+00:14:00.740 - 00:14:01.712, Speaker B: What's the current what?
+00:14:01.766 - 00:14:06.100, Speaker A: Well, current market on Auger for democrats, like, you know, this doesn't fit at all.
+00:14:06.170 - 00:14:06.356, Speaker C: Right.
+00:14:06.378 - 00:14:49.376, Speaker B: Actually, people have pointed that out too. So interestingly, right now in v one of Auger, people shouldn't create markets that far out because v two is going to be coming out before that would actually resolve. And if the price of rep in v one gets too low because of the fact that v two has come out and everyone's kind of migrating the platform to v two, that affects the security of v one. Because as I mentioned before, in the Oracle system, you can imagine if rep is essentially worthless, they don't care if they have to burn it. If there was a lot of oi, for example, in the Democrat market, which is actually possible. So as a very specific example, if the open interest on that got up to, let's say, 3 million and the market cap of v one rep was less than 3 million.
+00:14:49.478 - 00:14:51.184, Speaker A: Yeah. Then just buy all the rep and.
+00:14:51.222 - 00:14:52.464, Speaker B: Resolve the market how you want to.
+00:14:52.502 - 00:14:53.040, Speaker C: Right.
+00:14:53.190 - 00:15:03.268, Speaker B: It's a hypothetical, though. So it's one of those things where we don't actually know exactly how it'll play out. It's something that we just work on messaging right now for that. Just so you know, this is kind of this weird thing.
+00:15:03.354 - 00:15:06.424, Speaker A: Don't do that or this will happen or this may happen.
+00:15:06.542 - 00:15:18.568, Speaker B: It's like you can do that, but just know this is how the game theory is going to work out there. Everything that we do, we try and make completely game theoretical secure. But there's also the weird. Humans are weird.
+00:15:18.664 - 00:15:23.004, Speaker A: They don't actually have underlying security. Right, right.
+00:15:23.122 - 00:15:23.548, Speaker C: Yeah.
+00:15:23.634 - 00:15:33.344, Speaker B: And a lot of that is based on multiple assumptions. And if you read the white paper, for example, there's this whole issue of parasitic markets. Are you familiar with that?
+00:15:33.382 - 00:15:33.632, Speaker A: No.
+00:15:33.686 - 00:15:34.476, Speaker C: That concept.
+00:15:34.588 - 00:16:08.620, Speaker B: So parasitic markets are kind of not only the thing that Auger sort of can't solve, it's actually probably provable that it's an unsolvable problem. The idea of a parasitic market is. Imagine the. I'll draw it out, actually. So imagine there is an election market for 2020, and people bet 2 million on Trump. People bet 4 million, and this is all on chain, on Yang.
+00:16:10.640 - 00:16:11.944, Speaker A: See? Who is your candidate?
+00:16:11.992 - 00:16:13.436, Speaker C: Trump and Yang. I'm coming.
+00:16:13.618 - 00:16:33.104, Speaker B: Yang Gang dude, he's coming to the conference. He's talking on Wednesday. I got a John Yang. So the total Oi in this market is $6 million. So say you and I just off chain, just, I have a bag of cash. Say, I'll bet you a billion dollars that Yang wins. Problem is, there's nothing the chain can do about that.
+00:16:33.104 - 00:17:01.736, Speaker B: There's nothing our security can do about that. We can never know that. So there's no way that any system that we create or any mechanism that we create could account for that, basically the best we can do is, and this is what the white paper does, is it says we don't think there'll ever be more than this much parasitic Oi based on the OI within our system. And that's the best we could do. So reading the white paper and with that amount, I believe the amount that we limit that to is something like 50% of existing Oi.
+00:17:01.848 - 00:17:05.836, Speaker A: So 50% of this, we're basically saying.
+00:17:05.858 - 00:17:26.630, Speaker B: Is if there was 6 million in this market, our white paper is assuming there's no more than 3 million you and me bets agreeing to use our oracle to resolve. If you believe that there's more OI than that, then the system can be completely, totally secure on that. There's a lot of things that go into that. Obviously. It's purely kind of pedantic, game theory ish sort of stuff.
+00:17:27.160 - 00:17:32.740, Speaker A: There's multiple prediction markets. There can be multiple prediction markets that are right.
+00:17:32.890 - 00:17:33.348, Speaker C: Yeah.
+00:17:33.434 - 00:17:59.840, Speaker B: And agreeing to use our oracle for that when there's other options too. Like I said, it kind of gets into a thing where it's purely pedantic game theory. I believe it's entirely possible there could be a lot more personally and things would not actually break because again, like that, there's more reasoning on that. What if they have other markets and they want those to resolve correctly and presumably showing that the Oracle resolved badly would have other negative side effects for them and potentially their other markets. Yeah, that's true. Who knows?
+00:18:01.460 - 00:18:02.112, Speaker C: Interesting.
+00:18:02.246 - 00:18:03.760, Speaker A: All right. Yeah.
+00:18:03.910 - 00:18:04.224, Speaker C: Okay.
+00:18:04.262 - 00:18:18.804, Speaker A: So let's say I go, I create a new. Yes. No, let's say tram versus yang. So when creating, I don't need to take a position in any.
+00:18:18.842 - 00:18:18.996, Speaker C: Right.
+00:18:19.018 - 00:18:25.704, Speaker A: I just kind of offer this to somebody else to take positions. As a creator. Do I take any cut on this?
+00:18:25.742 - 00:18:26.584, Speaker B: Oh, as a creator for the market?
+00:18:26.622 - 00:18:27.210, Speaker C: Yeah.
+00:18:28.220 - 00:18:34.440, Speaker B: So there's fees associated with all of our trading stuff too. We'll draw it out here. Fees.
+00:18:35.900 - 00:18:36.276, Speaker C: See?
+00:18:36.318 - 00:18:36.952, Speaker A: Like trees.
+00:18:37.016 - 00:18:38.030, Speaker C: All right. Yeah.
+00:18:38.640 - 00:18:41.196, Speaker B: I'm a programmer. That's how we deal with everything.
+00:18:41.298 - 00:18:41.644, Speaker C: All right.
+00:18:41.682 - 00:19:04.176, Speaker B: So every market has a market creator fee. This is something that's set by the market creator, obviously. Right now I think fees kind of are around 1% or 2%. I think typically the expectation is that over time they'll go to zero because people should be competing with markets, fork.
+00:19:04.208 - 00:19:05.828, Speaker A: It off and make it less.
+00:19:05.914 - 00:19:38.572, Speaker B: But V one markets, there's not a lot of competition, not a lot of high quality market creators. So people can charge higher fees. And people seem to be okay with that generally for trading on things that have even as high as like 4% fees, which I think is probably way too high, but that just goes to the market creator. So when two people, the way that we do fee settlement is whenever a trade would make people sell both their shares. So if I have Yang shares and you have trump shares, and we both want to close out our positions and we get mashed in a trade, it'll sell that back into the system and extract fees.
+00:19:38.636 - 00:19:39.296, Speaker C: I see.
+00:19:39.398 - 00:19:57.504, Speaker B: So we take fees in that case, and we take fees in a case when the market is over and you're just getting your payout from the system. Those are the two cases. We take fees if you're just trading back and forth shares in tokens. We actually don't. Or the Auger platform doesn't actually take any fees. So these go entirely to the market creator in V two. Actually, this is a V two feature preview.
+00:19:57.632 - 00:19:58.308, Speaker C: Yeah.
+00:19:58.474 - 00:20:19.212, Speaker B: The market creator can specify an affiliate fee. So the way that the affiliate fee actually works is they specify a portion of their market creator fees that can go to affiliate. I see people, they can give 25% of whatever they get from market creator fees to anyone who presumably will bring.
+00:20:19.266 - 00:20:20.216, Speaker A: People to their markets.
+00:20:20.248 - 00:20:20.540, Speaker C: Right.
+00:20:20.610 - 00:20:41.860, Speaker B: And the way that's implemented because it's smart contracts is you just specify an address. So really savvy people are very quickly going to learn that they can just specify their own address. But for a lot of people, that isn't the case. I mean, arguably you could sign up for the Amazon affiliate program and do the same thing, but nobody does. So in practice it'll be actually used that way.
+00:20:42.010 - 00:20:42.710, Speaker C: Yeah.
+00:20:43.480 - 00:20:51.524, Speaker B: The other fee is the reporting fee. This is kind of essential to, oh.
+00:20:51.562 - 00:20:59.524, Speaker A: Wait, affiliate is defined not by market creator, but by, like when you're actually doing the, when you're doing the trade, you specify.
+00:20:59.652 - 00:21:09.304, Speaker B: So the percentage of their creator fee is specified by the market creator, but they don't actually specify an affiliate. There's no whitelist for that or anything. It's just something you enter in when you make a trade.
+00:21:09.432 - 00:21:13.790, Speaker A: So it's like the front end will put it in, in transaction, pretty much.
+00:21:14.480 - 00:21:24.624, Speaker B: People will give links and it'll have an affiliate fee in. Our UI will know how to interpret that. And presumably other uis will know how to interpret that as well. Like it would be smart for anyone building on Auger to also build into that, obviously.
+00:21:24.822 - 00:21:25.570, Speaker C: Yeah.
+00:21:25.940 - 00:22:05.790, Speaker B: So the reporting fee is actually more important. It's kind of essential to the security of the system, but it is a function of the price of rep and the OI on the system. And this is how we make secure that whole system, where we try to guarantee, assuming a certain amount of parasitic interest, that if someone does incorrectly resolve a market, they will overall burn money. And we do that by adjusting reporting fee. So if you imagine the open interest on the platform is. Let's see, I'll try and write this out. So if the open interest in the platform is 10 million.
+00:22:08.660 - 00:22:10.528, Speaker A: That'S across all of the.
+00:22:10.614 - 00:22:11.056, Speaker C: Right.
+00:22:11.158 - 00:22:12.396, Speaker B: Across all markets.
+00:22:12.428 - 00:22:13.170, Speaker C: Yeah. Okay.
+00:22:13.540 - 00:22:24.160, Speaker B: And we imagine that the rep market cap, why? It's called rep for reputation. Those are short for reputation.
+00:22:24.240 - 00:22:24.724, Speaker C: Yeah.
+00:22:24.842 - 00:22:27.764, Speaker B: Originally in the first iterations of the system, the way that it worked was.
+00:22:27.802 - 00:22:29.360, Speaker A: You, you have like reputation.
+00:22:29.440 - 00:22:47.884, Speaker B: It was more sort of reputation based. Like you would buy reporting tokens for the right to report on markets and they would get assigned to you. And there were a lot of iterations where kind of the game theory folks were progressively more and more cutting everything like, this is not necessary. This is not necessary. So it's less reputation. Reputation based.
+00:22:47.922 - 00:22:50.092, Speaker A: Now, actually, there's more reputation, more like stake in rate.
+00:22:50.146 - 00:22:50.748, Speaker C: Yeah.
+00:22:50.914 - 00:23:01.936, Speaker B: Right now we actually assume, basically for game theory purposes, that rep is owned by two people. It should still work. It doesn't actually matter the reputation of the holder or not. You mentioned rep market cap.
+00:23:02.038 - 00:23:05.660, Speaker A: I mean, anything that's transferable is by definition, kind of repetition.
+00:23:05.740 - 00:23:06.720, Speaker C: Exactly. Right.
+00:23:06.870 - 00:23:48.444, Speaker B: Let's actually make that 100 million. If rep market cap was 1 million, then obviously something's wrong with the security model. Right now, rep is not worth enough to secure the system. And there's a multiplier that we have, I think, for v two, we're changing it to the rep market cap should be, sorry, the OI should be five times, I believe the rep market cap, that might be adjusted. But we have a formula basically for adjusting that. And what happens is when the rep market cap is too low, reporting fees go up. Reporting fees are taken from settlement and given to reporters for the people who hold rep.
+00:23:48.444 - 00:24:16.250, Speaker B: So basically by holding rep, you can participate in the system and then get those fees right. So presumably, the higher this is, the more the rep market cap should go up, and the more secure the system is against someone trying to buy up all the rep and then take all the money. So this is kind of how we attempt to, in an automated fashion, our mechanism for adjusting the security of this system based on the rep market cap and oi. So right now, in v one, the Reporting fee is the base, the minimum, which is zero, 1%.
+00:24:19.180 - 00:24:54.150, Speaker A: Just for my visual understanding. So you have, let's say a market. So as part of it, there's some amount of ETH locked up and this issued some yes tokens and no tokens. We can freely trade this. It's like RC 20. Before this finished, you can also just pretty much burn it and take out Eth. Both people show yes, no.
+00:24:54.150 - 00:24:56.736, Speaker A: You close the position and you take out Eth.
+00:24:56.768 - 00:24:57.156, Speaker C: Right.
+00:24:57.258 - 00:25:15.032, Speaker A: And then at the end you have like when the oracle comes in, there's a way to pretty much close this up and then the reporting fee is taken out of the full Oi of this market.
+00:25:15.166 - 00:25:15.608, Speaker C: Yeah.
+00:25:15.694 - 00:25:17.244, Speaker B: Based on the amount that they cashed out.
+00:25:17.282 - 00:25:17.484, Speaker C: Right.
+00:25:17.522 - 00:25:21.916, Speaker B: So if they together, let's say for simplicity's sake, there's two people.
+00:25:22.018 - 00:25:22.670, Speaker C: Yeah.
+00:25:24.080 - 00:25:26.670, Speaker A: So it's like 2 million here, 4 million here.
+00:25:30.240 - 00:25:32.204, Speaker B: So that means the total of the market would have to be 6 million.
+00:25:32.242 - 00:25:32.980, Speaker A: Oi.
+00:25:33.160 - 00:25:37.232, Speaker B: So if the reporting fee was 1%, then it would be 1% of 6 million.
+00:25:37.286 - 00:25:38.050, Speaker C: I see.
+00:25:38.980 - 00:25:41.776, Speaker A: How else is this, like, you don't have one to one matching.
+00:25:41.808 - 00:25:41.956, Speaker C: Right.
+00:25:41.978 - 00:25:52.484, Speaker A: Of yes and no token. So it is a levered, like, what is it called? I actually don't know how it's called, like four to one kind of betting thing.
+00:25:52.682 - 00:26:22.096, Speaker B: Sort of. The prices that they paid for their shares are not actually something the system ever takes into account. So whatever they paid for them, it's something that in b one, we don't actually record. We have a middleware component that reads logs and tries to kind of show them what they paid for it. And in v two, we actually do. We record that on chain, not for purposes of payouts, but just for purposes of showing them what their profit loss is and everything. But the way the system works is someone somehow acquires a yes share.
+00:26:22.096 - 00:26:52.810, Speaker B: If they're doing it through our trading contracts, they did it by specifying a price they want to pay and somebody else was willing to match that. Either sell their own yes shares or take the other position as no. But once they pay that money to the system, if you think about it, they've purchased a complete set, basically of yes and no. So they've bought all the outcomes that exist in that market together. Then they must pay whatever a complete set is worth. But it's irrelevant what each of them paid. All the matters of the system got enough to pay out basically this amount.
+00:26:52.810 - 00:27:13.664, Speaker B: So interestingly, the amount of complete set costs is always the number of ticks, by the way, too, which is again one of those nice properties that works on the chain. So together they came, let's say they just bought one share of each. So they collectively had to pay 10,000. But the person who bought the yes may have only paid one. The person who bought no may have only paid nine. Nine, nine or whatever. But then when they cash out, whoever won gets the 10,000.
+00:27:13.664 - 00:27:24.768, Speaker B: And we know that we have that because that's what they had to pay to get this at ten. Now the fees are taken out of that as well, obviously. So the way the fees are taken out is also just split evenly. Not split evenly.
+00:27:24.784 - 00:27:25.350, Speaker A: Sorry.
+00:27:25.960 - 00:27:29.332, Speaker B: Yeah, proportionally based on whatever they are getting out as well.
+00:27:29.386 - 00:27:39.130, Speaker A: But I'm just saying there's an underlying price at the end of yes and no. Like, if somebody wants to go and trade it on, like, secondary market, the price is defined by this.
+00:27:39.980 - 00:27:40.436, Speaker C: Defined.
+00:27:40.468 - 00:27:59.624, Speaker B: Well, so the price is defined by whatever people are trading. So there's actually an order book on chain and people going in say what they're willing to trade for. So just like any other exchange, it's not actually something. It's not like an actual betting market where somebody defines the ods or anything like that. It's just open marketplace.
+00:27:59.672 - 00:28:00.728, Speaker A: Open marketplace, yeah.
+00:28:00.834 - 00:28:10.704, Speaker B: Although Fortisworth, even with an underlying mechanism like that, there could be uis built on top of it that kind of translate that into betting ods like that.
+00:28:10.742 - 00:28:10.992, Speaker C: Yeah.
+00:28:11.046 - 00:28:12.850, Speaker B: So it's kind of just a display thing.
+00:28:13.960 - 00:28:33.448, Speaker A: I see. So pretty much, yeah. If I want to take no position, I take out the yes share, I go to some exchange, I sell it, somebody buys it, and then pretty much that defines the odds that whatever position I sell it here at, that's kind of ods I'm willing to take.
+00:28:33.534 - 00:28:33.844, Speaker C: Yeah.
+00:28:33.902 - 00:28:38.348, Speaker A: And then if, for example, this doesn't close, I can go close this up and say, hey, didn't work.
+00:28:38.434 - 00:28:39.070, Speaker C: Correct.
+00:28:40.320 - 00:28:52.220, Speaker A: Cool. So by increasing reporting fee, this is pretty much more reward to this to rep holders.
+00:28:52.300 - 00:28:52.832, Speaker C: Right.
+00:28:52.966 - 00:28:55.808, Speaker A: So presumably this increases the market cap.
+00:28:55.894 - 00:29:13.220, Speaker B: That's the idea, yeah. In theory, in practice, we have a .1% because right now the actual rep market cap is, I think, like, gosh, I don't even remember, but I think it's something like 200 million. And the Oi in our system is something like 2 million. So we're wildly over secure.
+00:29:13.300 - 00:29:14.120, Speaker A: Okay, great.
+00:29:14.270 - 00:29:16.824, Speaker B: There is zero risk of that happening.
+00:29:16.942 - 00:29:18.536, Speaker C: Well, that's good. Yeah.
+00:29:18.718 - 00:29:33.404, Speaker A: All right, so we did the selection 2020, and then things are happening. How does this pretty much oracle feeds this into the market.
+00:29:33.522 - 00:29:33.756, Speaker C: Right.
+00:29:33.778 - 00:29:43.648, Speaker B: So what happens is when the market expires, let's see what's the right way to draw this? We did it.
+00:29:43.654 - 00:29:44.272, Speaker C: We figured out.
+00:29:44.326 - 00:29:58.242, Speaker B: Okay, so the market ends, let's say June 19. So what occurs is at that time, a designated report window starts.
+00:29:58.306 - 00:29:59.400, Speaker C: I'll do a box.
+00:30:01.290 - 00:30:08.810, Speaker B: I'll call this the Dr. That's what we shorten it to. The designator reporter is the person that the market creator designates. Just an ethereum address.
+00:30:08.880 - 00:30:09.562, Speaker A: I see.
+00:30:09.696 - 00:30:30.080, Speaker B: This address is allowed to go in and say, what happened? Say whether Trump or Yang won. I see. So the Dr. Currently in V one has three days to do that. In V two, they're going to have one day, because we found that if they do show up at all, they show up within one day. If they don't show up within one day, they don't show up at all.
+00:30:30.850 - 00:30:31.998, Speaker A: People lost their key.
+00:30:32.084 - 00:30:51.986, Speaker B: There's a few actually interesting. If they lost their key, too, I don't think in V one there's a way to transfer that. So they would just be shadow hook basically, if that ever occurred. So there's two things that could actually happen here. Let's say they show or they don't.
+00:30:52.178 - 00:30:53.160, Speaker C: No show.
+00:30:57.970 - 00:31:00.560, Speaker A: Feel some decision tree is going to happen.
+00:31:01.010 - 00:31:28.614, Speaker B: So in this case, the Dr. Shows and they say yang. And then in the case where there's no show, so the three day limit is passed. Or in V two, the one day limit, it goes into something called open reporting. So. Or in open reporting, the no show bond, which is something that the market creator has to put up at market creation time, which is rep, gets used for the open report.
+00:31:28.812 - 00:31:32.006, Speaker A: It's just like an extra reward for somebody else.
+00:31:32.108 - 00:31:32.422, Speaker C: Exactly.
+00:31:32.476 - 00:31:53.774, Speaker B: And the open reporter, they're basically entitled to it once the market finalizes, presuming they reported correctly. So the NOShA bond goes up and up and up until it reaches kind of an equilibrium. That's the idea of it. And that's based on something the system records. The system records how much people don't show up. And the more people don't show up.
+00:31:53.812 - 00:31:57.550, Speaker A: Relative to some target, the more new markets need to put.
+00:31:57.620 - 00:31:58.240, Speaker C: Yeah.
+00:31:58.850 - 00:32:09.634, Speaker B: So you can imagine if 5% of markets have no shows and we're targeting 1%, the bond will just keep on increasing, where presumably once it gets high enough, people will show up and then that can start decreasing again.
+00:32:09.752 - 00:32:19.960, Speaker A: But shouldn't be like, on per market basis, just increase the reporting fee over time. Like, let's say one day passed, nobody reported, you increase a little bit.
+00:32:20.330 - 00:32:22.198, Speaker B: So the reporting fee is sort of.
+00:32:22.204 - 00:32:26.706, Speaker A: A different reporting fee. Awards all the wrap oracles.
+00:32:26.898 - 00:32:27.638, Speaker C: Yeah.
+00:32:27.804 - 00:32:29.558, Speaker B: It's not market specific. It's just for everyone.
+00:32:29.644 - 00:32:29.846, Speaker C: Yeah.
+00:32:29.868 - 00:32:56.962, Speaker B: And it's sort of a mechanism just to adjust the market cap. The no show is very specifically just people aren't showing, which is making markets resolve slower. How can we adjust that a little bit? So there are no show. The or gets to report, let's say the or reports for Trump. I don't know. Let's say in this world, Yang wins. So regardless of whether the or the Dr.
+00:32:56.962 - 00:33:03.700, Speaker B: Reported at this point, things are going to be the same. All that actually matters is who ends up entitled to the rep that was put in this report.
+00:33:04.310 - 00:33:10.562, Speaker A: So Dr. Gets the bond is like, usually very typically.
+00:33:10.626 - 00:33:31.274, Speaker B: I think in pretty much all cases that have ever occurred, the Dr. Is the market creator. We just say, I'm all, yeah. To be technically accurate, what ends up happening is when the Dr. Does show up, the market creator gets the NOShA bond back, and then the designator reporter has to put in a new bond. But in practice, that's just them putting the NoShA bond in, just like what happens with the open reporter.
+00:33:31.322 - 00:33:32.110, Speaker C: I see.
+00:33:32.260 - 00:34:01.266, Speaker B: So at this point, Yang won. So a few things can happen. The market can resolve with this outcome. For that to occur, this has to go at least seven days with nobody putting up a rep bond to challenge this and say that Trump won. It's actually a little longer than seven days. There's a cadence of windows that go by called in V one, few windows, and in V two they're called dispute windows. And those are on a seven day cadence.
+00:34:01.266 - 00:34:22.494, Speaker B: So it's possible that if this occurred at the beginning, it has to go a full one of those windows. So if this was reported at the beginning of a previous window, it could be almost 14 days for it to actually resolve. There's ways in V two that's going to give people opportunity to dispute it, to give people who have rep and who are looking at markets time to actually find it. If the window is too short, we.
+00:34:22.532 - 00:34:26.910, Speaker A: Risk, I get seven days. Why did you chunk it?
+00:34:27.060 - 00:34:38.926, Speaker B: Because it makes it so. There's a few reasons. One, it makes it more predictable. So if we chunk it in like a regular cadence like that, there's no segment of time where someone could have missed out on a market. People can make schedules.
+00:34:38.958 - 00:34:39.266, Speaker C: You were saying?
+00:34:39.288 - 00:34:41.682, Speaker A: Pretty much like every week I go in exactly check.
+00:34:41.816 - 00:35:02.940, Speaker B: I go every Wednesday. Wednesday is my day to look at markets and pick out what I want to do. It's going to be work a little different in V two. There's still a cadence like that, but there's other mechanisms. We have to speed up reporting because time is adding up here. We have three days and then up to 14 days, and then there's actually additional other time. And it all makes for a really slow resolution time.
+00:35:02.940 - 00:35:12.350, Speaker B: But let's say that goes seven days and nobody reports on it or goes the period of time has to to resolve, then the market resolves.
+00:35:18.390 - 00:35:23.058, Speaker C: All right, cool. Okay.
+00:35:23.144 - 00:35:28.574, Speaker B: So the market is final and Yang.
+00:35:28.622 - 00:35:37.046, Speaker A: Won, and then pretty much anybody can just go and deposit their. Yes, exactly.
+00:35:37.148 - 00:36:05.918, Speaker B: So now that the market is finalized, there is an actual contract called claim trading proceeds. You can pass it in a market. It'll look and see what shares you have, see what to pay you for them, destroy the shares and give you the money from the market and then pay fees. The other thing that could happen, though, let's say somebody disputes this. All right, so we're in. Let's see. This was the initial report.
+00:36:05.918 - 00:36:27.636, Speaker B: So this is second round. And they say no Yang one. So when you dispute, what you have to do is put up. There's actually a formula for how much? Rep. For purposes of this, we can just say it's twice the previous bond. It's actually different than that. And especially when it goes back and forth, it ends up being a different amount than that.
+00:36:27.636 - 00:36:45.636, Speaker B: But just for simplification purposes, let's say it's twice the amount of rep. That they put up. So did or put up some the or the. Dr. Rather, it's always going to be the in V one. It's a little complicated. It's the initial report size, but for simplification purposes.
+00:36:45.636 - 00:36:55.356, Speaker B: And because in V two, this is how it works, it's just the NOSha bond. So if the NoSha bond was one rep. Then the amount staked on Trump right now is one. So to dispute that, you'd have to put up two.
+00:36:55.378 - 00:36:55.660, Speaker C: Rep.
+00:36:55.730 - 00:36:56.510, Speaker A: I see.
+00:36:56.960 - 00:37:04.304, Speaker B: Then this can continue and continue and continue. If it doesn't go, this period of nobody disputing it until if you put.
+00:37:04.342 - 00:37:09.664, Speaker A: Two and nobody disputes for seven days this is finalized, this guy loses his right.
+00:37:09.782 - 00:37:15.332, Speaker B: So what will actually happen is if that's, this would be that one. Let's say it actually goes in seven days.
+00:37:15.386 - 00:37:15.990, Speaker C: Yeah.
+00:37:18.600 - 00:38:09.248, Speaker B: Then what happens is, let's say this is the Trump rep. This gets sent. It doesn't actually get sent directly to this person, but in effect, it basically goes to whoever put up the rep for this dispute. So I'll call these the yang holders. So what the contracts actually do is when the market is finalized, it looks at all of the losing bonds. All the ones that weren't for that were arguing basically for the outcome that did not end up being the finalized outcome and just takes their rep and then puts it into the bonds for the winning outcome. So when someone comes in and redeems their bond with the system, for example, this yang bond, they'll just receive that rep.
+00:38:09.248 - 00:38:23.700, Speaker B: So it liquidates all of the losing rep and gives it to all of the winning bond holders. I see the way that we have the formula set up that I was mentioning, which it's actually more complicated again, than just two times the previous bond, but it guarantees a 50% roi.
+00:38:30.710 - 00:38:32.022, Speaker A: If you think you're correct.
+00:38:32.156 - 00:38:32.550, Speaker C: Right?
+00:38:32.620 - 00:38:34.998, Speaker B: If you think you're correct, it's actually, it's extremely profitable to.
+00:38:35.084 - 00:38:35.526, Speaker C: Or if.
+00:38:35.548 - 00:38:50.262, Speaker B: If you think that's the truth, really not. You're correct. Reporting is actually weirdly nuanced, actually just the concept of what's true. There's some interesting markets we should talk about, actually. But yeah, if you ended up disputing.
+00:38:50.406 - 00:38:54.602, Speaker A: 40 rep, you would get 20 and you.
+00:38:54.736 - 00:38:56.460, Speaker C: Right, you end up getting 60.
+00:38:59.230 - 00:39:41.242, Speaker B: Yeah, there's been some very interesting markets. One of the first markets, and actually I think the biggest dispute that ever occurred, I think it got up to either somewhere around like $80,000 worth of rep before it actually ended up finalizing, was will the weather be nice for the Bastille day parade tomorrow. That was a description, and there was a link to a weather site that did not use the language good or nice. Yeah, it was od actually, seeing it get disputed so much. The market creator was very adamant in our discord that it was a valid market and that people should be able to find a shelling point on what is nice or good. But it ended up resolving to invalid, which is arguably what it should have resolved to. Invalid is interesting too.
+00:39:41.296 - 00:39:43.146, Speaker A: Oh, so invalid is like a separate thing, right?
+00:39:43.248 - 00:39:43.514, Speaker C: Yes.
+00:39:43.552 - 00:39:53.280, Speaker B: So invalid is a special case. It's handled very, very differently in v two than it is in v one. So in v one, the way that invalid works.
+00:39:53.730 - 00:40:01.780, Speaker C: Raise some stuff, raise all that. All right.
+00:40:03.270 - 00:40:05.410, Speaker B: So for an invalid payout.
+00:40:10.140 - 00:40:10.616, Speaker C: It would.
+00:40:10.638 - 00:40:13.336, Speaker B: Look something like this in v one. So if you imagine it's yes, no.
+00:40:13.358 - 00:40:13.930, Speaker C: Market.
+00:40:16.140 - 00:40:56.090, Speaker B: It'Ll just be an even payout. So this is nice in some ways and easy to understand in some ways, but it has a lot of really negative, weird side effects. And not every market that has an even payout, obviously is invalid. There's also like a flag you have to provide that says, I intend for this to be invalid. Because you can imagine a scalar market, there's actually a fairly decent chance it'll end up just being paying. So in this case, you can imagine it's not actually the same as paying people back for their bets, which I think is what a lot of people expect for invalid. Instead it just says, okay, we have to pay all outcomes equally because we don't know how to resolve this.
+00:40:57.420 - 00:41:00.040, Speaker A: This only happens at the end, at the resolution time.
+00:41:00.110 - 00:41:00.296, Speaker C: Yes.
+00:41:00.318 - 00:41:01.656, Speaker A: Like you cannot just flag that this.
+00:41:01.678 - 00:41:04.104, Speaker B: Is invalid from the beginning in v one.
+00:41:04.142 - 00:41:04.600, Speaker C: No. Right.
+00:41:04.670 - 00:41:14.284, Speaker B: Which is actually one of the problems. And you can't even really glean it easily from what had the order books trading because this is sort of weirdly baked into the price of things. Like if I pay 0.4 for.
+00:41:14.322 - 00:41:14.620, Speaker C: Yes.
+00:41:14.690 - 00:41:20.560, Speaker B: Is that a signal that a market is invalid? Maybe, because if it is invalid, then I'll actually make money on that.
+00:41:20.630 - 00:41:20.960, Speaker C: Right.
+00:41:21.030 - 00:41:27.756, Speaker B: Because I'm paying less than the amount that I'm going to get from payout. But it's really difficult to factor that in based on this payout.
+00:41:27.948 - 00:41:32.192, Speaker A: So pretty much people betting on yes, no and invalid in reality.
+00:41:32.336 - 00:41:36.804, Speaker B: Exactly. But the bets on invalid in v one are very difficult to see.
+00:41:36.842 - 00:41:44.200, Speaker A: Yeah, that's what I'm saying. With the price, you're actually betting that it will be valid.
+00:41:44.620 - 00:42:31.168, Speaker B: It's tricky, and it's especially tricky because invalid markets are sort of a conundrum. In view one, these people, enterprising individuals, again, everything is decentralized. So people are going to find everything eventually and figure it out, have figured out that they can create markets with really tiny subtleties that mean that they should resolve to invalid. So for example, people might make a market like what will the price of ethereum be at the end of April 15? And they'll make the market end the beginning of April 15, like the very start of the day. Reporters, what they have to do is to be consistent. They have to say, what was it at the time the market ended? If they can't know, then they have to resolve it to invalid, which is unfortunate because people see these and it's so subtle that they just see April 15. April 15.
+00:42:31.344 - 00:42:35.928, Speaker A: That seems you have like three days. It may work, but yeah, so the.
+00:42:35.934 - 00:42:45.192, Speaker B: Thing is, even though there's three days, the kind of ethos is you have to know right then because the Dr. Could have reported right then and you can't go back in time, sort of.
+00:42:45.246 - 00:42:46.010, Speaker C: I see.
+00:42:46.460 - 00:42:51.788, Speaker A: Because if it's like a market price, you want the market price at that time, not like market price in a day.
+00:42:51.874 - 00:42:52.510, Speaker C: Right.
+00:42:53.040 - 00:43:34.616, Speaker B: If you imagine reporters kind of as a whole body, they don't want to get into situations where they're hurting themselves just because of when people reported or something like they're very intolerant, for example, of APIs that go down or provide different results to different viewers. There's a problem with ESPN because there are people who report in Europe and there are people who report in the United States and they see different espns and yeah, they do not display in a way that is easy. People actually discovered this. This is one of the weird subtle invalid markets was they referenced ESPN. But this is kind of an issue for V one because like you said, there's no curation. Obviously the thing is completely decentralized. We actually aren't involved at all.
+00:43:34.616 - 00:44:09.604, Speaker B: We just make the software. The best thing we can do is add things to a reference UI, basically for viewing the on chain data that can help people. There's a few of those that can be added in V one, like looking at the spread in a particular market. Like is it oddly gearing towards this, for example, we can look at that and if so, try and make some guesstimates sort of on whether it's invalid. We can look at things like market fees. We can filter out anything with a market fee, like, or we could have a default filter basically in RuI anything that has fees above 5%. There were some markets with a 50% fee for a while, which is not even going to be possible in V two.
+00:44:09.604 - 00:44:40.224, Speaker B: But obviously that was like a way people tried to manipulate the system for the invalid payout. Though in v two we're not actually going to do invalid payouts this way. Instead, invalid will be a tradable outcome on every market, regardless of whether you specify that or not. So you'll always be able to trade invalid. The neat thing about that is you can obviously trade invalid without having to do weird calculations, but also it gives everyone an insight into whether the market is invalid or not.
+00:44:40.262 - 00:44:44.624, Speaker A: Yeah, and you can hedge kind of as you take in a position.
+00:44:44.742 - 00:45:16.356, Speaker B: Yeah, that's the other cool part. So you could use the invalid outcome to hedge. You could also like one of the things we've discussed is building filters into the reference UI that look at what invalid is trading at. Like if there are any bids for invalid, say above, 0.1 or something, you can imagine that we could have the filter have a default or have shows like this. There's warning. This is probably invalid if people are trying to buy the invalid outcome for that much consistently.
+00:45:16.356 - 00:45:35.052, Speaker B: Obviously there's a lot of questions about how a filter like that would work, because it's gamble. Obviously if someone wanted to just be a troll to a market, just go and do that. Yeah, but the issue is making sure that they like everything else, that they have to burn enough money in time that it wouldn't be actually economically advantageous to them to troll or to try and mask something as valid.
+00:45:35.116 - 00:45:40.064, Speaker A: Well, you can say what is position of invalid pretty much compared to actual decision.
+00:45:40.112 - 00:45:40.324, Speaker C: Right.
+00:45:40.362 - 00:45:43.524, Speaker A: And then if it's bigger or if.
+00:45:43.562 - 00:46:41.856, Speaker B: It'S meaningfully, if it's trading at 0.9 consistently, and there's going to be some formula obviously there too, because we don't want like a single dust order for 0.9 to hide a market. But if there's significant volume, whatever that is, maybe some portion of the overall volume on the market trading for prices above a certain level, then yeah, you can say with some confidence, actually, that the market is invalid. That's something everyone's looking forward to a lot in v two, because there sure are a lot of very silly markets right now in v two. Actually, another really interesting thing about reporting is that reporters, their goal is to ostensibly to report truth and to distinguish these invalid markets and handle things like that. But really, at the end of the day, their goal is to serve traders, really to make traders confident that markets will resolve how the traders expect, which is actually a more subtle, weird notion that we weren't really sure how was going to play out in practice.
+00:46:41.856 - 00:47:19.436, Speaker B: But there was a market that actually kind of exercised this notion, which was made by someone who famously makes a lot of invalid markets, too. But I think this was actually an accident. But it was on the 2018 House election, it was whether Republicans would maintain a majority, and the market ended, I believe, December, December 18 or something, somewhere in the middle of December. The interesting thing was, even though the elections happened before, that they don't actually take a majority until the next year. And the way that the market was worded, it was, will they take a majority?
+00:47:19.628 - 00:47:20.864, Speaker A: Ends at point of time.
+00:47:20.982 - 00:47:21.168, Speaker C: Right.
+00:47:21.174 - 00:47:30.304, Speaker B: And it ends at December 19. So technically, Republicans still had a majority, even though they actually lost seats to the Democrats. And the Democrats took the majority from the elections.
+00:47:30.352 - 00:47:31.510, Speaker A: Yeah, but not.
+00:47:32.120 - 00:47:32.580, Speaker C: Right.
+00:47:32.650 - 00:48:08.444, Speaker B: And traders had actually put, I think, 1.5 million in OI into this market. So it was getting heavy traction. And there was some debate about how it would resolve, actually, because if it was sort of the spirit of the market, obviously what traders had intended it for to be, it should resolve that Democrats won. But if it was sort of to the letter of the market and the description and the end time, then it should be either Republicans. There was actually even some people arguing it should be invalid because they were saying, because this was known before the market got made, this shouldn't actually qualify as a valid prediction market, and it should be made invalid.
+00:48:08.492 - 00:48:09.728, Speaker A: Yeah, you cannot pretty much.
+00:48:09.814 - 00:48:10.160, Speaker C: Right.
+00:48:10.230 - 00:48:16.096, Speaker B: So there was vying camps actually within sort of the decentralized rep reporter world on how this should resolve.
+00:48:16.128 - 00:48:23.688, Speaker A: I mean, there is also, like all kind of things that can happen before they actually take the seat. Right. And change that.
+00:48:23.774 - 00:48:50.176, Speaker B: Yeah, there's plenty of other valid reasons things could be invalid. Interestingly, it resolved sort of where people had hoped it would for traders, which was democrats. So it resolved in the spirit of the election, who won the election, which was interesting to see and nice that reporters could kind of find a way to, amongst themselves, figure out what would be best for traders and for the future of the platform, which is what they kind of have to do for.
+00:48:50.278 - 00:48:51.984, Speaker A: Because they want more people to.
+00:48:52.182 - 00:49:12.970, Speaker B: This is also what makes the oracle problem so interesting, because it's not something that can really easily be solved with, for example, just simple programming, like maybe machine learning and extremely fancy AI or something. But a lot of these questions are sort of weirdly human like, what did humans intend by this market? Yeah, that was one of the more interesting.
+00:49:15.500 - 00:49:24.868, Speaker A: All right, so can you explain more? What is this, like, the idea of two split universes of decisions?
+00:49:24.964 - 00:49:25.610, Speaker C: Right.
+00:49:26.000 - 00:50:02.120, Speaker B: That's where the home was getting. If the dispute just continues and continues and continues, there'll eventually be some round. Let's say it's the 20th round. And this varies depending on what the Nosha bond was originally on, how people dispute. But once it reaches a certain threshold, it will cause a fork in auger. So when a fork occurs for this forking market, anyone who disputed who has any rep locked up their rep is forced to go to those universes. So they may call a function that basically says, redeem my bonds and put them in the correct universe.
+00:50:02.120 - 00:50:04.568, Speaker B: Call all the guys.
+00:50:04.654 - 00:50:16.840, Speaker A: So when you say this universe, what this means is the wrap smart contract, which is, is it just an auger? Yeah, it's a wrap contract.
+00:50:16.920 - 00:50:17.212, Speaker C: Right.
+00:50:17.266 - 00:50:19.150, Speaker A: You just fork it.
+00:50:20.880 - 00:50:27.520, Speaker B: So it'll be a universe contract. And that universe contract has its own version of wrap.
+00:50:27.860 - 00:50:57.304, Speaker A: Okay. Yeah. So pretty much, originally there's one universe, and then you fork it into, let's say, because of this, it forked into a new one. So it's just a clone of it. Where rep holders pretty much. Here it's rep holders of, like, yang that pretty much got everything was staked on Trump. And here's Trump holders got everything from.
+00:50:57.342 - 00:51:28.236, Speaker B: Yang, sort what actually ends up happening. So there will be a Trump and yang universe. In the Yang universe, when all the people who staked on Yang move their rep to that universe, it will mint rep for them in that universe as though they had won the dispute. And similarly, in the Trump universe, it'll mint rep for them as though they had won the dispute in those respective universes. But it doesn't actually take it from the other universes. It just sort of says, you guys both won in your own universe.
+00:51:28.268 - 00:51:35.700, Speaker A: I mean, the question is, is there original universe? Or it kind of like, is there original universe that just got destroyed?
+00:51:36.040 - 00:51:38.720, Speaker B: See, the original universe is essentially frozen forever.
+00:51:38.800 - 00:51:39.396, Speaker C: I see.
+00:51:39.498 - 00:51:45.240, Speaker B: So the original rep, for example, still exists. And anybody can move their rep into one of those universes.
+00:51:46.060 - 00:51:49.288, Speaker A: They just cannot trade anymore in this one.
+00:51:49.374 - 00:51:57.784, Speaker B: So trading continues forever, but nobody can create any new markets, and no markets can finalize. So any existing markets that haven't finalized.
+00:51:57.912 - 00:52:01.244, Speaker A: Also migrate, and they also need to decide where to go.
+00:52:01.282 - 00:52:32.856, Speaker B: So the markets actually don't decide. The markets just go to the winning universe. So the markets are forced to go to those winning universes, which is, again, why this security calculation considers the entire open interest of the whole system instead of just the open interest of the particular market that it's working. Because if someone wins a fork, all the OI in the system moves into that universe, even though if they don't win that market, they've effectively won all those, which, in a way, makes sense as well, because if that force, whatever it is, has the ability to win that fork, then they have the ability to win it in future forks as well.
+00:52:32.878 - 00:52:34.580, Speaker A: Yeah, they can win any decision.
+00:52:34.660 - 00:52:35.240, Speaker B: Exactly.
+00:52:35.390 - 00:52:37.160, Speaker A: So how is the winning decided?
+00:52:38.860 - 00:52:43.500, Speaker B: The winning is decided when the fork occurs. There's a 60 day window.
+00:52:46.080 - 00:52:46.830, Speaker C: Do.
+00:52:49.970 - 00:52:51.950, Speaker B: There'S a 60 day fork window?
+00:52:55.650 - 00:52:56.400, Speaker C: No.
+00:52:57.650 - 00:53:14.150, Speaker B: And by the end of that window, whichever universe has had the most rep migrate to it is considered the winner. Or if before that fork window ends, over 50% of rep has moved to one of the universes. That's just how a fork winner is determined.
+00:53:15.930 - 00:53:27.260, Speaker A: But the people who are forced into the other one, they pretty much just burned because this has kind of got frozen or, like, you cannot create new markets on it or anything.
+00:53:27.950 - 00:53:39.294, Speaker B: In the child universes, you can create markets. It's just the genesis universe, the universe that had the 4k market originally, that's frozen forever. So in the Trump and yang child universes, those go on their own.
+00:53:39.332 - 00:53:45.520, Speaker A: So in theory, those people can keep going crazy markets and trade in their own thing.
+00:53:46.210 - 00:54:01.074, Speaker B: And that's an important part of why the system works the way it does, too. Because if there is legitimately a group of people who believe that there is another truth to the universe, they can go on. It's actually perfectly viable. It's hard to think of the exact.
+00:54:01.112 - 00:54:07.318, Speaker A: Scenario where this could happen. So there'll be like a wrap two pretty much on the market that will now be like its own thing, and.
+00:54:07.324 - 00:54:17.930, Speaker B: There would be traders that it's really ultimately a decision of traders whether they believe that or not. Like, there might be traders who wanted a market. It'll probably be something more subtle than whether Trump or yang wanted something where.
+00:54:18.000 - 00:54:20.426, Speaker A: There'S no actual truth, or if it.
+00:54:20.448 - 00:54:39.898, Speaker B: Was like a sports game with a very, very od call to it or something. And sports traders are like, no, we're trading in this universe where it was evaluated this way instead, because that's the way that we like to bet on things. So I could imagine some sort of a scenario like that where maybe there's people who bet on a specific subsection of things and they want people who.
+00:54:39.924 - 00:54:44.690, Speaker A: Resolve it, self selection, pretty much into the space where all the validators believe, into this.
+00:54:44.760 - 00:54:45.474, Speaker C: Right.
+00:54:45.672 - 00:55:16.230, Speaker B: In the best deal day market, actually, there was a just in the what? In the best deal day, will a weather be nice for the best deal day parade you can imagine? Maybe there are people who like to bet on weird, hard to define things. Maybe there are people who want such a market, for example, to resolve as, yes, when it was sunny outside and they could have their own universe, and then people who don't want to bet on strange, difficult to word markets would go, no, I'm going to avoid that universe. But that's perfectly valid. If there were two universes, it's just what people want to bet on but have not happened.
+00:55:16.320 - 00:55:17.120, Speaker C: Oh, no.
+00:55:18.370 - 00:55:19.774, Speaker A: Have you had fork at all?
+00:55:19.812 - 00:55:20.400, Speaker C: No.
+00:55:20.850 - 00:55:27.274, Speaker B: I sort of suspect there's a chance that a fork will never occur. But the important thing is that the threat of fork always exists.
+00:55:27.322 - 00:55:32.370, Speaker A: Someone knows. I mean, it's like a slashing. Yeah, you'll get slashed. Don't do stuff.
+00:55:32.440 - 00:55:32.962, Speaker C: Right, exactly.
+00:55:33.016 - 00:55:34.766, Speaker A: People don't do stuff because they'll get slashed.
+00:55:34.798 - 00:55:35.380, Speaker C: Right.
+00:55:35.830 - 00:55:47.830, Speaker B: It would be extremely disruptive to the system, obviously, because there's a 60 day window where it's quite likely no new markets will be able to be created. People are kind of potentially panicked, wondering where to put their rep, I suspect.
+00:55:48.410 - 00:55:52.806, Speaker A: Well, when the fork created, you can start creating markets here.
+00:55:52.828 - 00:55:53.574, Speaker C: Right. Right.
+00:55:53.692 - 00:55:57.926, Speaker A: So if you believe this should resolve, you'll go there and start creating markets.
+00:55:57.958 - 00:56:08.682, Speaker B: But if it was something extremely subtle. For example, it might be less obvious which rep to right. And there's not really a good hedging opportunity. It's basically you create a market in both.
+00:56:08.816 - 00:56:09.338, Speaker C: That's the thing.
+00:56:09.344 - 00:56:35.640, Speaker B: If you create a market in both, though, I mean, you have to split rep into both, you have to split your open interest into both. You have to have less liquidity because you're splitting. So you could, if you had to create immediately, but it costs money, and presumably you are burning half of your money unless both of those universes end up being legitimate. So it is disruptive and it would be good to avoid it, but it's important that it exists and functions for the game theory to actually hold up.
+00:56:38.150 - 00:56:45.538, Speaker A: Interesting. And all of those timelines, you pretty much were deciding mostly around how long for people to check and kind of make decision.
+00:56:45.634 - 00:56:46.038, Speaker C: Yeah.
+00:56:46.124 - 00:57:08.394, Speaker B: The 60 day window is essentially a thought process of how long would it take someone who is a rep whale to get their rep out of cold storage. So if you assume it's going to take them a month to travel around the world and find out, dig up hidden place where their hardware wallet is, and then give them another extra month to actually use it in their secure underground bunker.
+00:57:08.442 - 00:57:08.750, Speaker C: Yeah.
+00:57:08.820 - 00:57:13.070, Speaker A: Send transactions from 50 places in the world. Random coffee shops.
+00:57:14.370 - 00:57:15.166, Speaker C: Yeah.
+00:57:15.348 - 00:57:19.802, Speaker B: It is kind of just an arbitrary estimate, but sort of based on that mindset.
+00:57:19.866 - 00:57:28.910, Speaker A: Yeah, I see. Yeah, it's pretty cool. So what happens with scalar decisions? How does this work for scalar decisions?
+00:57:28.990 - 00:58:03.646, Speaker B: Sort of in the same vein, when people report on a scalar, for example, let's say it's the price of apple, a dispute for that could get particularly messy if there's not some very specific instructions on how to actually resolve it. The argued method of doing that is point to a very specific singular source, like a API feed or something that will give you a historical time period so that there can be no debate about what the actual number is. If you did, for example, like a general resolution, what's the price of apple? It's very likely there'd be a dispute because it's off by a couple of cents or something.
+00:58:03.668 - 00:58:10.398, Speaker A: But let's say there's a price which is like 118 83, and I believe it's 118 85.
+00:58:10.484 - 00:58:10.782, Speaker C: Exactly.
+00:58:10.836 - 00:58:22.194, Speaker A: And then somebody believes it's 118 81. I pretty much go in and say it's 118 85, and then you want to go in and say, can you bet on something else?
+00:58:22.312 - 00:58:26.626, Speaker B: Yeah, you could say 118 84 and then somebody else could say 117.
+00:58:26.818 - 00:58:30.470, Speaker A: So it will fork off into all of those universes at the end.
+00:58:30.540 - 00:59:13.714, Speaker B: So if there was a fork, yes. After you redeem your money, they would fork into those universes. And that would be bad, obviously, because, again, that's extremely unclear. There's some just sort of rational processes that would probably go into that would prevent something like that from happening. So, for example, if you're really disputing that, obviously there's probably a shelling point somewhere in here where people can kind of agree. Obviously, if both of you had money on this, or even if you're just reporters, it's doubtful people would argue about amounts that small. And if you actually had oi to protect in that market, it's doubtful you would make more by disputing that small amount than you would just going, okay, that's close enough.
+00:59:13.714 - 00:59:42.774, Speaker B: I'll make enough money. A dispute like that would have to be driven by something kind of irrational. And it's difficult to prevent people from doing irrational things because they're irrational. My guess is in such a situation, there'd be some sort of a shelling point, like, okay, we'll just agree it's zero point 84. It would end up resolving to that. But theoretically, if there was such a dispute, yeah. Any possible amount that could have been bet on in that market would be a potential fork universe.
+00:59:42.822 - 00:59:43.526, Speaker C: I see.
+00:59:43.648 - 00:59:46.074, Speaker A: So in theory, you can actually have like 20 forks.
+00:59:46.202 - 00:59:46.526, Speaker C: Oh, yeah.
+00:59:46.548 - 00:59:49.614, Speaker B: I mean, it could have thousands, thousands of forks if people are willing to pay them.
+00:59:49.652 - 00:59:52.266, Speaker A: Because in a scale market, you only have 20 steps.
+00:59:52.378 - 00:59:59.518, Speaker B: So it's not actually just based on what people report on, though, too. So any possible outcome that could have won, you can make a child universe.
+00:59:59.534 - 01:00:06.430, Speaker A: Even if nobody actually got, somebody can just go. And when it forks, anybody can. As a fork I want to create.
+01:00:06.600 - 01:00:45.650, Speaker B: It has to work that way, too, because otherwise there's sort of an attack in the forking procedure where you could imagine somebody, let's say this was a categorical, for example, and interestingly, Biden and Bernie are also running. They're actually like final candidates. They decide to be independent. And let's say yang wins. Somebody who wanted to attack the system could just go, Biden, Bernie Biden, Bernie Biden, Bernie, and not let anybody else do any disputes. And if that was, it was actually yang that won, there could be no true child universe. So we have to assume that attack could have occurred and let people make any universe that could have possibly been disputed or could have been the truth.
+01:00:45.650 - 01:00:52.420, Speaker B: There has to be a true universe, basically. So to do that, we have to allow people to make any universe that could have been.
+01:00:53.510 - 01:00:56.994, Speaker A: All right, that's map to display.
+01:00:57.122 - 01:00:57.800, Speaker C: Yeah.
+01:00:58.170 - 01:01:12.330, Speaker B: So display is a whole other notion how that's actually displayed in the UI, because it's something that we have to show traders and reporters, too, basically. There has to be some sort of notion of choosing the truth that you live in.
+01:01:12.480 - 01:01:13.450, Speaker A: Transferring to it.
+01:01:13.520 - 01:01:13.706, Speaker C: Right.
+01:01:13.728 - 01:01:48.790, Speaker B: Yeah, transferring into it. And it gets even more complicated. If you imagine a world where there's been multiple, say, you know, the election market forks, and then in the Yang universe, they have an argument over how many Twitter followers Yang has or something of that sort, then there's a sub fork there. So if you're using auger, you would be using, I believe in the truth, where yang wins and had a million Twitter followers. But it could get more and more complicated. Obviously, if there's multiple forks. Again, it's one of those things that exists and in theory works, but it'd be for the best if it never actually occurred.
+01:01:49.690 - 01:01:58.450, Speaker A: All right, cool. Yeah, no, super interesting. Anything else we didn't cover could go.
+01:01:58.460 - 01:01:59.594, Speaker B: On all day if we got other.
+01:01:59.632 - 01:02:00.314, Speaker C: Stuff to talk about.
+01:02:00.352 - 01:02:04.300, Speaker B: But, yeah, nothing else pops in my head at the moment.
+01:02:06.190 - 01:02:07.722, Speaker A: Yeah, we can close it up.
+01:02:07.776 - 01:02:09.162, Speaker C: Okay, great. Cool.
+01:02:09.216 - 01:02:16.170, Speaker A: Well, thanks a lot. That was super interesting. Check it out on, I guess, white paper and the website itself. I mean, it's all life.
+01:02:16.240 - 01:02:16.522, Speaker C: Yeah.
+01:02:16.576 - 01:02:17.254, Speaker B: On Auger.
+01:02:17.302 - 01:02:17.802, Speaker C: Net.
+01:02:17.936 - 01:02:22.434, Speaker B: Hang on. Our discord. If people are ever it or have questions, we're pretty much always there.
+01:02:22.552 - 01:02:23.026, Speaker C: Yeah.
+01:02:23.128 - 01:02:24.000, Speaker A: All right, cool. Thanks.

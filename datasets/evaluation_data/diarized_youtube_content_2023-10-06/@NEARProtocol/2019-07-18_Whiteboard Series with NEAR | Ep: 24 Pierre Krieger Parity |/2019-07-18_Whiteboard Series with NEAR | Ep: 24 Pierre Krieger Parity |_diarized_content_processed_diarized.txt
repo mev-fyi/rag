@@ -1,0 +1,256 @@
+00:00:04.090 - 00:00:19.966, Speaker A: Hey everyone, my name is Max, I'm from the near protocol and this is the part of our whiteboard series today. Here with me is Pierre from parity. He's working on Leap PTP. And Pierre, do you want to introduce lip to P to everyone?
+00:00:20.148 - 00:00:52.010, Speaker B: Yep. So lip PTP is several things. Initially the history of Lip two P is it was the networking stack of ipfs made by protocol apps. So protocol apps started ipfs, released ipfs and they were like oh, it would be nice to make this networking stack available to our people. So we just extracted the P two P from that. And what it is exactly. It's kind of a protocol, kind of a framework, kind of intertwined.
+00:00:52.010 - 00:01:06.020, Speaker B: When designing the P two P, they are kind of designing the protocols, but at the same time how you're supposed to use it, at least for the go on JavaScript version. The rest version is a bit on the side. We are doing things a bit more on our own.
+00:01:07.190 - 00:01:09.460, Speaker A: What do you mean on your own?
+00:01:09.910 - 00:01:12.242, Speaker B: Like we haven't followed the API of.
+00:01:12.296 - 00:01:17.060, Speaker A: Javascript and initially it was go. Right?
+00:01:18.410 - 00:01:30.630, Speaker B: So ipfs was originally go, so they extracted it in go more or less. But they also wrote the Javascript DP two P from scratch if I'm not mistaken.
+00:01:30.710 - 00:01:31.340, Speaker A: Why?
+00:01:31.950 - 00:01:35.674, Speaker B: Because there was no JavaScript ipfs at the time.
+00:01:35.712 - 00:01:38.140, Speaker A: It was the part of JavaScript IPFS project.
+00:01:38.990 - 00:01:42.800, Speaker B: I'm not like 100 certain of that. Okay, that's what I think happened.
+00:01:44.130 - 00:01:49.630, Speaker A: So what is this lip PTP? It's like just the communication between some random set of peers?
+00:01:49.970 - 00:02:02.674, Speaker B: Yes, it's basically a framework to do decentralized peer to peer networks. Whatever you want the network to do is up to you. But the networking part, the low level part, is handled by lip to p. I see.
+00:02:02.712 - 00:02:36.110, Speaker A: Like today I heard lots of people are using lip to p for blockchain, but it's not meant just for the blockchain. So we're probably just going to talk a bit about non blockchain specific stuff. Yeah, IPFS uses it and then jump to the blockchain specific stuff with adversaries and selfish behavior like at the very end. Cool. So can you say how exactly the relaying works in the wood PTP?
+00:02:37.250 - 00:02:42.042, Speaker B: So what do you mean by relaying? Do you mean just communication between nodes?
+00:02:42.106 - 00:02:49.300, Speaker A: Yeah, because to my understanding the point of loop PTP is that if you have a group of nodes, they don't communicate like everyone to everyone. Right.
+00:02:49.830 - 00:03:07.446, Speaker B: Well that's kind of agnostic on top of lipidp, and lipidp doesn't really care about that lipidopy lets you establish communications between nodes. Which node you actually establish a communication with is up to you. So that's on top of lipid, but.
+00:03:07.468 - 00:03:10.700, Speaker A: You can ask some node relay information to another node, right?
+00:03:12.030 - 00:03:54.040, Speaker B: Yes. At the core level, the answer is no. Really, at the very lowest core. On top of that, you have several protocols, two of which are flood sub gossip sub, which are pub submechanism, and they handle connecting to nodes and relaying messages, blah, blah, blah. There's also another concept, depending on what exactly you're talking about, the relay protocol. But it's not about relaying messages. Well, it's not about gossiping, it's about proxying, acting as a proxy, as a VPN, whatever you want to.
+00:03:54.890 - 00:03:56.002, Speaker A: For a different node.
+00:03:56.066 - 00:03:56.498, Speaker B: Yep.
+00:03:56.594 - 00:03:57.238, Speaker A: I see.
+00:03:57.324 - 00:04:15.760, Speaker B: So if node Alice and Bob want to talk to each other, Alice can ask to, what's the name of C. Claire. Alice can ask Claire to establish a communication with Bob. And so Alice and Bob, we communicate through.
+00:04:17.250 - 00:04:30.562, Speaker A: I see. Okay. And this is different from gossip because gossip happens like uncontrollably, sort of, it's like a propagation of information in a controllable way. That's what gossip is.
+00:04:30.616 - 00:04:39.350, Speaker B: They are kind of connected. But we will go back to it later, I suppose. Okay. Relaying for natural and so on.
+00:04:39.500 - 00:04:57.338, Speaker A: Yeah, we're going to talk about it later. So the go version of LipidP is full of features, right? You go to their website and it's just like a list of all kind of features that they support in there. So which of those features get translated into the rust version that you're actually working on?
+00:04:57.504 - 00:05:00.966, Speaker B: So the website is not up to date at all, unfortunately.
+00:05:01.078 - 00:05:01.850, Speaker A: Which one?
+00:05:02.000 - 00:05:12.742, Speaker B: The goal IO. No, for rust, it's not up to date. If you go on the website, it says not implemented. Not implemented. Not implemented.
+00:05:12.826 - 00:05:13.346, Speaker A: I see.
+00:05:13.448 - 00:05:47.174, Speaker B: Actually, almost everything is implemented. We have a few things that are not implemented. We don't have quick, we don't have TLS. Well, we use TLS, but we don't have the protocol named TLS. According to leap P two P. Okay, we don't have WebRTC, we don't have gossip sub. There's a pull request open made by someone else, not from parity, not from my company, but it's not merged in master.
+00:05:47.302 - 00:05:47.850, Speaker A: I see.
+00:05:47.920 - 00:05:51.830, Speaker B: That's basically the rest is the same as go.
+00:05:51.920 - 00:05:53.886, Speaker A: You have hole punching there, right?
+00:05:54.068 - 00:05:55.978, Speaker B: No, we don't have hole punching.
+00:05:56.074 - 00:05:58.570, Speaker A: Damn it. But you're going to have hole punching eventually.
+00:05:58.650 - 00:06:00.350, Speaker B: Yes. Pull request.
+00:06:01.090 - 00:06:03.954, Speaker A: Can you talk more about what hole punching is?
+00:06:03.992 - 00:06:10.994, Speaker B: Because popular feature maybe I can use the whiteboard, because that's great. This element hasn't been used.
+00:06:11.032 - 00:06:11.780, Speaker A: It's available.
+00:06:12.150 - 00:06:25.160, Speaker B: So if you have Alice and you have Bob, how do I draw a B again and want to talk to each other? Here you have a Nat, and that's a problem.
+00:06:25.690 - 00:06:27.080, Speaker A: And why is it a problem?
+00:06:27.630 - 00:06:31.098, Speaker B: So imagine that's like your home.
+00:06:31.264 - 00:06:32.742, Speaker A: Yes. And your laptop.
+00:06:32.806 - 00:07:11.062, Speaker B: That's your home. Yes. And that's your router, your box. In Germany, that would be a Fritz box, for example, because that's what everyone has. That's your router or your nut. And typically in your home, you have multiple machines connected to the same nut by wifi or by cable, it doesn't matter. And so if B tries to connect, it will reach here, but then the router doesn't know who to connect to because everything here has the same IP address.
+00:07:11.062 - 00:07:22.586, Speaker B: The IP address is here, and so the router doesn't know. Hey, which one do you actually want to talk to?
+00:07:22.768 - 00:07:24.822, Speaker A: Unless the connection is already established.
+00:07:24.886 - 00:07:42.110, Speaker B: Yes. That's why in order to do Nat traversal. So the easiest way to solve Nat traversal is if a establishes the connection. If a wants to talk to B, it's not a problem, unless B is also behind a Nat. But in this example, it's not.
+00:07:42.180 - 00:07:49.070, Speaker A: So what is the relation between those two things? Nat traversal and hole punching, the same concept.
+00:07:49.230 - 00:08:22.550, Speaker B: So hole punching is the other way to solve nat traversal. You have two kinds of hole punching. TCP and UDP. UDP. Hole punching is basically a and b send UDP packets to each other, and that kind of confuses the router. Well, you need, like, a relaying some way to synchronize. Like, step one is a and B know that they want to talk to each other.
+00:08:22.550 - 00:08:33.006, Speaker B: It cannot start out of nowhere. Step one is a and b need to know that they want to talk to each other, and then they start sending UDP packets to each other.
+00:08:33.028 - 00:08:34.290, Speaker A: Like on timer or something.
+00:08:34.440 - 00:08:56.114, Speaker B: Yeah, and the packets from B are not going to reach a, but since a is sending packets as well, the router is going to believe that a is establishing a connection, and so the packets from B are actually going to go through. This is just a hack to tell the router, hey, I want incoming.
+00:08:56.162 - 00:09:00.310, Speaker A: So you're basically exploiting some miss feature in router.
+00:09:00.650 - 00:09:06.378, Speaker B: Well, for UDP, it's not a missed feature for UDP. It's kind of the way it's supposed to work.
+00:09:06.464 - 00:09:13.902, Speaker A: Oh, I see. It's the way to tell the router that you want to establish connection, the cool thing.
+00:09:14.036 - 00:09:37.154, Speaker B: So you're going to say, why not just have a establish a connection? UDP hole punching works if both a and B are behind the router. So you imagine you have a router here as well. UDP hole punching is still going to work. Like A's packets are going to tell A's router, but it wants B's packets to come and vice versa.
+00:09:37.202 - 00:09:51.882, Speaker A: So if router implement this protocol to establish the connection already, why won't they have something more simple? Like, I send UDP with certain payload that tells the router that we're trying to establish connection with b?
+00:09:52.016 - 00:10:02.094, Speaker B: Well, that would be a big security issue. Anyone could send the packet, like, there needs to be something from a and from B.
+00:10:02.292 - 00:10:04.798, Speaker A: It's like handshake thing.
+00:10:04.964 - 00:10:19.458, Speaker B: If a doesn't know that B wants to establish a connection, there's no way for b to do that because that would be a pretty big security issue. Well, it's more like the router is designed to prevent that to happen.
+00:10:19.544 - 00:10:31.794, Speaker A: Specifically, why won't router specify that when a and B want to establish connection, they send one single package towards each other just once with certain kind of payload.
+00:10:31.922 - 00:11:12.414, Speaker B: So there is kind of this mechanism ish. Not that exactly. But you have UPnP, PCP, and another one which I don't remember. They basically protocols that let us tell the router, hey, I want to open a port. The problem with that is that UPnP is extremely crappy. So I don't know the details. I've never investigated really much into UPnP, but from what everyone says, it's kind of crappy, not working well, full of issues and so on and so forth.
+00:11:12.414 - 00:11:36.598, Speaker B: Also, UPnP doesn't work if you have two routers. If you are behind two routers, PCP is well better designed. PCP is the modern version of UPnP, but it's not implemented everywhere. So yeah, this kind of is trade off. That's why hole punching is still a thing. Because of UPNP scrap, PCP is not implemented everywhere.
+00:11:36.774 - 00:11:42.702, Speaker A: I see. Got it. So this is UDP hole punching. How does TCP hole punching work?
+00:11:42.756 - 00:12:29.094, Speaker B: So TCP hole punching works kind of the same way. It's just the implementation details that are a bit more weird. So again, I don't know the very specific details. I don't know. But to establish a TCP connection, you have a free messages, handshake, scene ack and scene ack and ack, and you basically flood each other scene ack packets instead of sending UDP packets. Same principle, but you just a different type of packets so that the router, again, the point is to tell the router, hey, I want this connection to happen. Same principle.
+00:12:29.094 - 00:12:44.062, Speaker B: There needs to be a synchronizing point. I think you need to agree on one port to use. So the synchronization points like step zero is a and B need to be able to. A and B need to know that they want to talk to each other.
+00:12:44.116 - 00:12:58.420, Speaker A: On the specific port. Yeah, because that's what I heard. Like one of the ways to do the hole punching is that a first opens connection with someone else on some given port and then gives this port number to b, and then B can talk on that port. Right.
+00:12:59.130 - 00:13:01.206, Speaker B: That's kind of the thing, yeah.
+00:13:01.388 - 00:13:02.120, Speaker A: Okay.
+00:13:02.730 - 00:13:19.046, Speaker B: Again, I don't know the very specific details of TCP hole punching because I never actually implemented it. But yeah, you could pretend that B is the IP of the third party that's used for synchronization.
+00:13:19.158 - 00:13:35.060, Speaker A: Okay, so I heard that lip PTP has, well, I didn't hear, I know that it has the special format of the address, right? Yeah. Which is multi address, more universal than just like IP address. Can you explain what multi address is?
+00:13:35.910 - 00:14:27.730, Speaker B: So the best way to explain that is just to give examples. So instead of having just an IP address, you have it in this format. So instead of saying 123, 480, 213 ports, 1030, you just write this and it's the same. That's basically just some user friendly way. It doesn't bring any technological advantage. It doesn't bring anything new on the technical level. It's just a way to make this more user friendly.
+00:14:27.730 - 00:15:09.466, Speaker B: You can combine protocols and multi addresses. You can actually create stacks on top of that. So if you want, you can add ws at the end. Ws means websocket. And basically this now means websockets on top of this TCP connection. And you're going to exchange messages within websocket frames instead of raw messages on the TCP connection. There's also, like, quick, there's also Unix.
+00:15:09.466 - 00:15:19.410, Speaker B: You can put a Unix path and so on and so forth. You have relaying capacities so you can write P two p circuit.
+00:15:21.590 - 00:15:26.600, Speaker A: So you said that relaying is something that is a higher level than lip PTP, right?
+00:15:28.330 - 00:15:39.462, Speaker B: Yeah, it's not part of a very core. It's like a protocol on top. It's still part of a lip PTP framework, more or less, but it's an optional component.
+00:15:39.606 - 00:15:44.540, Speaker A: It's an optional component. Okay, I see. But anyone can have their own relaying on it.
+00:15:46.190 - 00:15:48.730, Speaker B: Again, define relaying. Do you mean gossiping or.
+00:15:48.800 - 00:15:51.110, Speaker A: Yeah, gossiping. Got it.
+00:15:51.200 - 00:16:11.246, Speaker B: Yeah. That's one of the major selling points of the p two p. Every protocol is optional. You can write your own protocol. You don't have to use anything. There's a few components that are part of a core. The multi addresses thing, for example, peer identities.
+00:16:11.246 - 00:16:13.906, Speaker B: The public private keys is also the.
+00:16:13.928 - 00:16:14.526, Speaker A: Part of the core.
+00:16:14.558 - 00:16:16.766, Speaker B: Yeah, the public key has a specific format.
+00:16:16.878 - 00:16:17.202, Speaker A: Okay.
+00:16:17.256 - 00:17:09.654, Speaker B: And then you hash it in a specific way, gives you an identity of a node that's part of a core as well. And negotiating a protocol is part of a core. So maybe I could elaborate on that. So when you establish a connection, so imagine you establish a quick connection. I'm going to give like a concrete example. So imagine you're using lip p two p. Imagine you're using UDP, and I ask lip p two p, you're using leap p two p, and I ask lip p two p to connect to this address.
+00:17:09.772 - 00:17:10.198, Speaker A: Okay?
+00:17:10.284 - 00:17:51.886, Speaker B: It's going to use quick, the quick protocol. Quick has encryption and multiplexing already in the protocol. So once the connection is open, we negotiate quick and connection is open. But if I ask, if I ask this instead, that's a regular TCP IP connection. It's just a string of byte. There's no encryption, there's no multiplexing. So when this situation happens, there's like step two and step three, which is negotiate encryption, negotiate multiplexing.
+00:17:51.886 - 00:18:38.976, Speaker B: And so when we open the connection, we use a protocol named multistream select. And the two parts of the connection talk to each other and say, hey, do you want to use secio, do you want to use TLS, do you want to use noise, which are encryption protocols, and they agree on a specific encryption protocol to use. Then they do the DfE, Helman, and so on and so forth. And then step three is do the same for encryption, for multi detecting. Sorry, I see with Yamux, for example. So that's not needed with quick because quick already has this baked in. But if you have a raw connection, you need to negotiate encryption and multiplexing.
+00:18:39.028 - 00:18:46.590, Speaker A: Okay, can you talk more about this private public key that you need for the lipidp and what is it used for?
+00:18:47.200 - 00:18:54.656, Speaker B: That's basically how you identify a node. That's how you differentiate two nodes, two.
+00:18:54.678 - 00:19:03.556, Speaker A: Nodes or sessions nodes. Nodes. So if my machine got disconnected from the network and rejoins, it uses the.
+00:19:03.578 - 00:19:49.250, Speaker B: Same public private key, basically p two p. There's no concept necessarily of disconnecting, reconnecting from the network. I mean, you can disconnect from a node and reconnect to a, say, node later, but I disconnect it from the entire network. I don't know if you see what I mean. Is there a difference, there's no difference between a node connecting to zero peers and an offline node. Okay, so yeah, every single node on the network has a private key and a public key, and the private key is used in the encryption negotiation. Well, private and the public key, obviously.
+00:19:49.250 - 00:19:57.270, Speaker B: So when you establish a connection to someone, you prove that they are the identity that they claim to be.
+00:19:58.600 - 00:20:08.810, Speaker A: So every node can actually, it's supposed to use the same public and private key with every other node that they establish connection to, but there is no way to enforce it. Right.
+00:20:09.340 - 00:20:25.208, Speaker B: Well, if I use several different public key, if I use several different keys, they are considered as several different nodes. I see, again, there's no real way to detect that. You could just run the same program twice on your machine.
+00:20:25.304 - 00:20:28.204, Speaker A: Got it. It's not like they override each other or anything like that.
+00:20:28.242 - 00:20:28.684, Speaker B: They what?
+00:20:28.722 - 00:20:31.692, Speaker A: It's not like they override each other, like one takes priority over another.
+00:20:31.746 - 00:21:04.170, Speaker B: No, I see was the situation where they would override each other is you have two clients using the same peer id. Like if you have two machines using the same keys, that will create bugs, more or less, because a node will think it's already connected to you, so it receives an extra connection. It's like, oh, I can close one since one is useless. Like you only need one, so it's going to close one connection. So you shouldn't do that.
+00:21:04.620 - 00:21:14.940, Speaker A: But there is no tiebreaking happening there. That allows you to just prevent the cyclic reconnecting to different nodes every time they talk to you.
+00:21:15.090 - 00:21:23.372, Speaker B: No, again, there's no way to detect that. There's no way to differentiate that from a normal behavior.
+00:21:23.436 - 00:21:33.580, Speaker A: Sorry. Okay, and talking about tiebreaking, like if two nodes try to establish connections simultaneously to each other, how do they negotiate which one is actually incoming and which one is out?
+00:21:33.750 - 00:21:47.476, Speaker B: So in Javascript and go. And in rust in the future, we are just simply allowing multiple connections and all the communications go on one or the other.
+00:21:47.578 - 00:21:49.496, Speaker A: Did they choose random one or how.
+00:21:49.518 - 00:21:58.844, Speaker B: Does that, I don't know, for Javascript and go. I don't know this detail I see at the moment. In rust we don't do that. In rust we do a tiebreaker, as you said.
+00:21:58.882 - 00:21:59.896, Speaker A: And what is tiebreaker?
+00:21:59.928 - 00:22:06.380, Speaker B: Based on the PR ID, the lowest identity wins. For the dialing side.
+00:22:06.450 - 00:22:07.230, Speaker A: I see.
+00:22:07.600 - 00:22:13.360, Speaker B: It's actually quite hard to implement correctly. I don't know if you tried that in here.
+00:22:13.430 - 00:22:17.440, Speaker A: Yeah, we did it. It was hard. We did so many mistakes with it.
+00:22:17.510 - 00:22:20.784, Speaker B: Yeah. But then two months, maybe even more.
+00:22:20.822 - 00:22:38.852, Speaker A: But then also the interesting thing is that if you have some node who just turns, like accidentally has the lowest public key or whatever id, then everyone is going to have inbound connection with it. Right. It's not like it's going to have a balanced mix of inbound and outbound connection.
+00:22:38.916 - 00:22:42.788, Speaker B: No. Sony decided if they died each other simultaneously.
+00:22:42.884 - 00:22:43.240, Speaker A: Yeah.
+00:22:43.310 - 00:22:56.830, Speaker B: Okay. Makes sense. If you receive a connection, you're not going to die the same node yourself. You're just going to use your incoming connection. So even if your identity is.
+00:22:58.560 - 00:22:58.968, Speaker A: You'Re.
+00:22:58.984 - 00:23:06.556, Speaker B: Going to receive incoming connections, but you're not going to establish others. It's rare, so the type record is not relevant.
+00:23:06.748 - 00:23:12.960, Speaker A: Which leads to another question. How does peer discovery work in liptp?
+00:23:13.800 - 00:24:06.516, Speaker B: So again, it's not part of a very core, but protocols on top, you have like three mechanisms. One is basically boots nodes, because over the Internet you need some way to bootstrap yourself to join an existing network. And so boot nodes are hard coded identities and addresses, addresses like that, obviously not IP address port, but that which is more or less the same. Second mechanism is mdNs, which is discovering nodes on the local network, the land, the local area network. And how does it work with Unip broadcasting? So at a regular interval, I don't remember.
+00:24:06.618 - 00:24:09.844, Speaker A: It's just like a heartbeat that you're broadcasting over the network. I see.
+00:24:09.962 - 00:24:30.492, Speaker B: We just send a message saying, hey, are there people out there? MDNS is a standard protocol. It's not a lip PTP specific thing, but lip to p has a small extension to mdns to be able to say, hey, my identity is like, we need to pass the identity of a node as part of the process.
+00:24:30.626 - 00:24:34.488, Speaker A: Okay, and that's two mechanisms?
+00:24:34.664 - 00:24:35.148, Speaker B: Yes.
+00:24:35.234 - 00:24:37.036, Speaker A: And you can combine them together?
+00:24:37.218 - 00:25:13.180, Speaker B: Yeah, you can have both. In substrate we have both. The third one would be cardemia. So to go into a real world situation, mdns is useless. Well, not useless, but you have a blockchain you want to connect to the Internet. It very rarely happens that you have another node in your local network. So we can ignore mdNs, boot nodes only like four nodes.
+00:25:14.560 - 00:25:16.972, Speaker A: It's just for the initial connection, right?
+00:25:17.106 - 00:25:20.392, Speaker B: Yeah. In south trade right now, it's four nodes.
+00:25:20.536 - 00:25:27.600, Speaker A: Like, boot nodes cannot be the store of all addresses of the entire blockchain. That's too much for them, right? Yep.
+00:25:28.260 - 00:25:51.448, Speaker B: And therefore cardemia is like the main mechanism to discover the network. That's why I did this more off topic thing. I guess I should explain academia, please. Well, that's extremely hard to explain in a very. If you don't know anything about academia, that's kind of hard to explain.
+00:25:51.534 - 00:25:57.708, Speaker A: Well, that's a good thing that you are explaining to whoever is viewing this video, because otherwise it would be really hard for them to understand. Right?
+00:25:57.874 - 00:26:04.988, Speaker B: Yeah. Imagine that's the linear space. I'm going to say it to you.
+00:26:05.074 - 00:26:06.760, Speaker A: Nice. We're going in math.
+00:26:06.920 - 00:26:12.540, Speaker B: So imagine that the node AAA.
+00:26:13.540 - 00:26:14.896, Speaker A: It's the id.
+00:26:15.078 - 00:26:17.730, Speaker B: Oh, I shouldn't have said AA would be.
+00:26:18.340 - 00:26:22.468, Speaker A: Okay, that's the public key.
+00:26:22.634 - 00:26:24.004, Speaker B: The hash of the public key.
+00:26:24.042 - 00:26:24.836, Speaker A: Hash of the public.
+00:26:24.938 - 00:26:38.696, Speaker B: Your identity. And that would be s. No, we are using bay. We are not using stupid. We are not using exadecimals. We are using something else. We are using base 68, 58.
+00:26:38.696 - 00:26:40.760, Speaker B: So that would be Zzz.
+00:26:42.060 - 00:26:45.850, Speaker A: And why do you need to hash public key and then just use it as it is?
+00:26:46.480 - 00:27:04.128, Speaker B: Good question. That's totally off topic. To Kalim. Yeah. In ep two P, the format of a public key is generic, so we don't say you need Ed 2519. We just are generic over format. It can be RSA, it can be Ed two.
+00:27:04.128 - 00:27:05.152, Speaker B: It can be sec.
+00:27:05.286 - 00:27:05.728, Speaker A: Okay.
+00:27:05.814 - 00:27:27.732, Speaker B: It can be anything else in the future. And RSA keys need to be hashed because they're too large otherwise. But there's, like, some discussions. If it's Ed two, 5119, just pass the king itself. That has some consequences. Yes. Let's just assume it's hashed.
+00:27:27.796 - 00:27:30.760, Speaker A: Cool. Why is in base 58 and not just hex?
+00:27:31.820 - 00:27:35.124, Speaker B: There's no specific reason. Base 58 is shorter.
+00:27:35.172 - 00:27:36.620, Speaker A: That's it.
+00:27:36.770 - 00:27:47.676, Speaker B: Okay, so I was explaining Kademia. So that's the space of identities. Every single node is somewhere here. Is somewhere on this line.
+00:27:47.778 - 00:27:48.200, Speaker A: Yeah.
+00:27:48.290 - 00:28:04.580, Speaker B: Right. So I'm going to use another color. What's the time, by the way? Am I late?
+00:28:05.080 - 00:28:06.870, Speaker A: No, you're fine. Okay.
+00:28:11.080 - 00:28:12.950, Speaker B: This doesn't work very well.
+00:28:13.500 - 00:28:23.064, Speaker A: Have another one. Here we go. It's not going to be visible. Well, so you're partitioning this line near space.
+00:28:23.182 - 00:28:25.812, Speaker B: No, that's not partitioning. That's just nodes.
+00:28:25.876 - 00:28:26.440, Speaker A: Okay.
+00:28:26.590 - 00:28:56.612, Speaker B: I should have put some arrows, maybe instead. So these would be arrows, I suppose. Let's pretend they arrows are. And imagine your node is here. My node is here?
+00:28:56.746 - 00:28:57.430, Speaker A: Yeah.
+00:28:58.200 - 00:29:22.636, Speaker B: Do you have another color? Yes. Thank you. And your node is going to store 200. No, not 256. 20 node nodes which are in this space. 20 other nodes which are in this space.
+00:29:22.738 - 00:29:23.740, Speaker A: Sampled.
+00:29:25.520 - 00:29:27.000, Speaker B: What do you mean sampled?
+00:29:27.080 - 00:29:33.150, Speaker A: Like, the space is dense. Right. So if I have 20 nodes in this space, then the 20 nodes of this space.
+00:29:34.740 - 00:29:38.864, Speaker B: Yeah. So for example, this space excludes this.
+00:29:38.902 - 00:29:39.648, Speaker A: Oh, got it.
+00:29:39.734 - 00:29:49.940, Speaker B: Excludes Sony. Sony. I see apart from the outside 20 nodes here. Well, obviously here there's nothing, but you get the point.
+00:29:50.010 - 00:29:50.630, Speaker A: Yeah.
+00:29:52.040 - 00:30:33.090, Speaker B: And of course, smaller and smaller and smaller. If your node identity is 256 bits long, which is the case usually, then you're going to have 256 of these breakables. Okay, so what that means is each interval contains 20 nodes whose distance is a specific, like is in a specific interval. Like for example, this is what we call a bucket, by the way, stores 20 nodes in here, which means the distance between this and this.
+00:30:33.460 - 00:30:39.620, Speaker A: But what do you mean by 20 nodes? Do I choose arbitrary 20 nodes from inside this bracket?
+00:30:39.960 - 00:30:45.824, Speaker B: In practice, it's arbitrary. The way it's implemented is just first come, first serve.
+00:30:45.952 - 00:30:46.676, Speaker A: I see.
+00:30:46.778 - 00:31:04.492, Speaker B: When you connect to someone, or when someone connects to you, you add them to the. So that's the way academia works. So each node is responsible for knowing the nodes that are next to them.
+00:31:04.546 - 00:31:05.100, Speaker A: Yes.
+00:31:05.250 - 00:31:13.564, Speaker B: So imagine I want to know about this node.
+00:31:13.692 - 00:31:14.224, Speaker A: Yes.
+00:31:14.342 - 00:31:27.600, Speaker B: So I'm here, I want to know about this guy. I'm going to look in this bucket, which one I know of is like the closest, and it's this guy.
+00:31:27.670 - 00:31:28.684, Speaker A: And you're going to ask him.
+00:31:28.742 - 00:31:46.072, Speaker B: So I'm going to ask him, hey, give me information about this guy. Well, that's not a good example because we already know this guy. In this example, I think I want to know about a node that is here where there's no arrow. I'm going to ask this guy, give me information about this.
+00:31:46.206 - 00:31:56.396, Speaker A: And why would you want to do this? I mean, if you already have those brackets, it's only when you're constructing those brackets like you're trying to fill them with 20 nodes each, right?
+00:31:56.498 - 00:32:00.952, Speaker B: Yeah. You're actively trying to fill these brackets.
+00:32:01.016 - 00:32:06.432, Speaker A: And when you lose the connection with one of the nodes, you remove them from this bracket and then you try to fill it again.
+00:32:06.566 - 00:32:13.888, Speaker B: If we lose a connection, we don't remove a node from a bracket. We put it on the bottom of a list.
+00:32:13.974 - 00:32:14.368, Speaker A: Okay.
+00:32:14.454 - 00:32:17.200, Speaker B: And if we connect to someone else in the same bracket.
+00:32:17.880 - 00:32:21.924, Speaker A: So each bracket is like a priority priority list. Got it.
+00:32:22.042 - 00:32:36.040, Speaker B: It's only if a bucket is full, it's named buckets. It's named a bucket. If a bucket is full, we start replacing disconnected nodes with new nodes.
+00:32:36.380 - 00:32:41.310, Speaker A: And this works because it has some good mathematical properties or something.
+00:32:41.840 - 00:33:40.296, Speaker B: So the reason why cardima exists is that, so this is called a dht for the audience, DHT means distributed hash table. So imagine that would be a table. The elements of the table are hashes, and it's distributed because each node knows about the hashes next to their identity. The point of Kademia normally is to store arbitrary values. So each node is not only responsible for knowing the nodes that are next to it in identities, but also for storing values whose hash are next to store hash. If you want to store a value in this table, you're going to find the nodes that are close to the hash of that value, and you tell them, hey, please store this. That's the reason why cadmia exists.
+00:33:40.296 - 00:33:54.092, Speaker B: And we are using this as a discover mechanism, as kind of how to say that a derivation wave. It's not the primary reason why calamia exists.
+00:33:54.156 - 00:33:56.624, Speaker A: A special case of it. Got it.
+00:33:56.822 - 00:34:14.490, Speaker B: Ethereum uses calemia for its discovery. Ipfs uses caldemia for its discovery. Ipfs also uses the regular properties of calemia. And in substrate, we're also using the regular properties of calemia to store some validator information.
+00:34:15.260 - 00:34:20.224, Speaker A: I see. Yeah. So you can just also piggyback some metadata on this top of these ids.
+00:34:20.292 - 00:34:34.732, Speaker B: That's why we're using kademia, because in substrate we've also investigated over discovery mechanisms, but we need to be able to find to store more information with DHT. So we switched back to kademia.
+00:34:34.796 - 00:34:44.400, Speaker A: Got it. Okay, so you said many times that grabbing my water. Yeah. That lipptp is modular, right?
+00:34:44.470 - 00:34:45.090, Speaker B: Yeah.
+00:34:46.120 - 00:35:02.968, Speaker A: Which means I can actually define certain implementations of this behavior of the slip PTP library that I want to be customized for my own use. And there is even this behavior trait or something in the lip PTP that.
+00:35:02.974 - 00:35:06.132, Speaker B: You can implement that's specific to rust lip PTP.
+00:35:06.196 - 00:35:07.930, Speaker A: Okay, can you talk more about it?
+00:35:09.980 - 00:35:14.140, Speaker B: Maybe I can also talk about the way rusty PTP works in general.
+00:35:14.210 - 00:35:16.860, Speaker A: How would you use rust lipTp?
+00:35:17.840 - 00:35:26.272, Speaker B: How you would use rusty PTP is a bit too complicated to explain. You need a tutorial and everything.
+00:35:26.406 - 00:35:27.090, Speaker A: Okay.
+00:35:27.700 - 00:36:21.840, Speaker B: But the way rust TPT works in memory, basically, you have one thread, one green thread, one core routine, whatever you want to call that, for each connection. So you have connection, one connection, two, oops, three, four. And these are each like separate coroutines. These are each separate thread. In rusty p to p, you have like a handler, what we call a handler object. So that would be the Internet, basically. And you have one handler for each connection in its own thread.
+00:36:21.840 - 00:36:37.990, Speaker B: And then you have a main thread or task or coroutine, or again, whatever you want to call that, that acts as a synchronization point.
+00:36:39.180 - 00:36:41.508, Speaker A: What does it synchronize between those connections?
+00:36:41.604 - 00:37:08.112, Speaker B: So what is exchanged here between the handles and the main thread are messages that contain logic. So that would be, for example, a ping, to give the most simple example. Hey, although no ping is not actually exchanged here, so let's ignore that could be start academia request. I'm going to write that down.
+00:37:08.166 - 00:37:12.412, Speaker A: I see. So main thread decides that it's time to start academia request.
+00:37:12.476 - 00:37:44.664, Speaker B: Yeah, the main thread, for example, tells I want to start academia request on connection two. Of course it knows the identity of the node, of the connection, and then later, so the handler receives a message, hey, I need to start academia request, translates that into bytes and then it sends out the bytes on the connection, and then later the connection replies with bytes. The handler translates that into academia answer and then sends back the response.
+00:37:44.712 - 00:37:50.472, Speaker A: So this behavior trait, it implements what you say you run in these connections.
+00:37:50.536 - 00:38:09.984, Speaker B: In main thread, the network behavior trait implements basically everything. To implement the trait, you only need to implement that part, and that's named protocols handler. In the code, like the handler thingy is named protocols handler.
+00:38:10.032 - 00:38:10.630, Speaker A: Okay.
+00:38:12.520 - 00:38:35.560, Speaker B: Fun fact. So that's the API you're supposed to use if you want to use rest DPT. On the lower level, there's another API where this is named node handler. And thanks to this low level API, you can turn an EP, two P into anything you want. Basically you can turn that into an HTTP server.
+00:38:35.640 - 00:38:38.380, Speaker A: I see, yeah, interesting. That's cool.
+00:38:38.450 - 00:38:41.880, Speaker B: That's only if you use the low level connection, the low level API.
+00:38:41.960 - 00:38:42.396, Speaker A: Okay.
+00:38:42.498 - 00:38:57.904, Speaker B: And same principle, like connection one sends an HTTP request to the handler. The handler says to a main thread, hey, I have an HTP request. The main thread sends back the response and turn into bytes.
+00:38:58.032 - 00:38:58.708, Speaker A: Cool.
+00:38:58.874 - 00:39:01.380, Speaker B: But that's like kind of off topic.
+00:39:03.080 - 00:39:09.860, Speaker A: Let's now talk maybe a little bit about the blockchain part of lip PTP, right? So since it's become so popular.
+00:39:11.580 - 00:39:22.260, Speaker B: This also sends out pings, this sends out ask debug information, that kind of stuff. So the handle and the connection are also kind of isolated.
+00:39:22.340 - 00:39:24.312, Speaker A: Oh, I see, like acting on their own.
+00:39:24.366 - 00:39:29.256, Speaker B: Okay. The main thread on there to do everything. That's why they are kind of segregated.
+00:39:29.448 - 00:39:54.000, Speaker A: Cool. So regarding the blockchain world, right, it has this adversarial scenarios, it has not just with selfish behavior where they don't want to follow the protocol. So I know that you have this reputation system implemented. It's a substrate, it's not a part of Liptp.
+00:39:54.160 - 00:39:56.336, Speaker B: No, it's only a substrate.
+00:39:56.368 - 00:40:01.210, Speaker A: Yeah, I see, so what can you tell in general about this reputation system?
+00:40:02.460 - 00:40:33.356, Speaker B: So according to you, every node has a hash map basically of every other node that it knows of and has a reputation value associated to it. I explain that this way because when you talk about reputation, people think the reputation is a network reputation, like. No, that's not the case. Your reputation is different for each other, every single person. I see, yeah, it's not a global.
+00:40:33.388 - 00:40:44.550, Speaker A: Reputation, it's completely different or it's just like loosely correlated. Is it just like slightly different or is it completely off for everyone?
+00:40:45.800 - 00:41:41.508, Speaker B: Well, you're only going to have a reputation with the nodes you've ever been connected with. So if you have 10,000 nodes in practice substrate, you open maximum 50 connections. I see, so you're going to have a reputation with 50 nodes and not the 9950 others basically. Okay, so to go back to the reputation itself, whenever you do something beneficial, your reputation increases. Whenever you do something not malicious, but not beneficial, like not useful, your reputation decreases. The idea behind that is imagine you're a node, you receive a message, you're going to need some cpu and memory cpu time to process a message. So every single message that you receive should decrease the reputation of a sender.
+00:41:41.508 - 00:41:59.244, Speaker B: But if it turns out the message is useful, then the reputation is increased by more than what it got decreased. I see, but if you receive a useless message, you're not going to gain any reputation and you have this default decrease because you need cpu time to process.
+00:41:59.442 - 00:42:03.016, Speaker A: And if you misbehave entirely it just goes to zero or something like that.
+00:42:03.138 - 00:42:13.360, Speaker B: Yes, in practice to minus two, minimum value of 32 sign integer, but yeah, same principle, same principle as zero.
+00:42:13.510 - 00:42:19.188, Speaker A: I see. And why not just ban someone who sends you something that is not supposed to?
+00:42:19.354 - 00:43:13.760, Speaker B: So that's what we did. So if you send something completely off, if you send random garbage bytes, we're going to ban you. But in practice, in grandpa, well grandpa is the finality algorithm we use. In grandpa you have messages where we don't know if it's actually useful or not, or we don't know if it's useful yet, we're going to know later. Or maybe you receive messages from two rounds ago or three rounds ago, and the message would have been useful if they had been received now, if they had been received earlier, but now they are no longer useful. And because of that we have this reputation system, it's the higher level code that decides of a reputation change and not just the low level networking.
+00:43:13.840 - 00:43:32.620, Speaker A: I see, so basically even the completely honest. Nodes that follow the protocol exactly will sometimes produce useless messages. And so they just be useful on in expectations or something like that. Like amortized, whatever. Yeah, I see. Got it.
+00:43:32.690 - 00:43:47.788, Speaker B: It's not just malicious versus non malicious. It's also, well, actually kind of. Yes, but not strictly that you can be non malicious and still get repeat.
+00:43:47.804 - 00:43:53.420, Speaker A: And what happens to you when your reputation goes into garbage? You're not getting banned.
+00:43:53.580 - 00:43:58.976, Speaker B: No. Eventually. So we want to rotate nodes.
+00:43:59.088 - 00:43:59.652, Speaker A: I see.
+00:43:59.706 - 00:44:05.156, Speaker B: And the nodes with less reputation get kicked off. We disconnect from them.
+00:44:05.178 - 00:44:05.860, Speaker A: I see.
+00:44:06.010 - 00:44:21.028, Speaker B: It's also used when later we want to connect to someone else. Like, we have a free slot. We have a slot to connect to. We're going to choose the node with the highest reputation. Every node is trying to maximize the.
+00:44:21.054 - 00:44:23.532, Speaker A: Popularity in the network. I see.
+00:44:23.666 - 00:44:36.530, Speaker B: We have to find the right balance for that because, for example, someone in the middle of Siberia has a lot of latency, and we don't want their reputation to go to zero.
+00:44:39.780 - 00:44:47.692, Speaker A: But then everyone else can pretend to be in Siberia. Right. Or like, just malicious or whatever.
+00:44:47.846 - 00:44:57.280, Speaker B: The point is, someone in Siberia has no choice but to have latency, and we don't want them to be isolated entirely.
+00:44:57.360 - 00:45:01.800, Speaker A: I see. They're going to be kind of deprioritized, but not isolated entirely.
+00:45:02.220 - 00:45:03.896, Speaker B: That's the goal. Yes.
+00:45:03.998 - 00:45:04.712, Speaker A: Got it.
+00:45:04.846 - 00:45:11.692, Speaker B: In practice, we're not totally sure. We haven't analyzed the dynamics and everything.
+00:45:11.826 - 00:45:14.616, Speaker A: Sorry. You haven't analyzed the dynamics?
+00:45:14.728 - 00:45:20.172, Speaker B: No, we haven't. Really. It's a very pragmatic approach for the moment.
+00:45:20.306 - 00:45:20.652, Speaker A: Okay.
+00:45:20.706 - 00:45:32.940, Speaker B: The reputation values are kind of arbitrary. This kind of message increases your reputation by 400, for example. Why 400? Because the guy who wrote the code.
+00:45:33.010 - 00:45:33.852, Speaker A: So that's a good idea.
+00:45:33.906 - 00:45:41.828, Speaker B: Yeah. 400 live. That's basically what we're doing right now. But we want to tweak the values in the future, basically.
+00:45:41.914 - 00:45:54.710, Speaker A: Okay, cool. I think we are sort of out of time right now, so I suggest we wrap it up and just, like, thank everyone for whoever was watching this. And this is it. Right. Okay, thanks.

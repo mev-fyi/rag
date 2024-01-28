@@ -1,0 +1,352 @@
+00:00:04.250 - 00:00:16.062, Speaker A: Hi, everybody, I'm Amelia with near protocol. We're here actually at East New York right now and recording a whiteboard series with John from New Cipher. Please, John, introduce yourself and we can dive right in.
+00:00:16.116 - 00:00:32.280, Speaker B: Sure. I'm John from New Cipher, also known as tux. I'm a cryptography engineer at decipher and we build cryptography protocols and for decentralized applications and distributed applications that allow people to achieve more privacy and more security in their application.
+00:00:33.130 - 00:00:35.254, Speaker A: Awesome. How does it work?
+00:00:35.372 - 00:01:36.312, Speaker B: Sure. All right, so first, the basis of our network is called proxy re encryption. So I'm going to go ahead and just dive right in and explain what proxy reencryption is to give you an overview. We'll see PR e, that's just proxy re encryption. So I'm just going to diagram this out a little bit. So normally we're very familiar with Alice and Bob public key, right? So we'll say Alice has her key, actually, I'll call it key, and then Bob also has his public key. So what happens with proxy re encryption is actually this transformation from when we encrypt something here with Alice's public key so Alice can encrypt some data.
+00:01:36.312 - 00:02:24.710, Speaker B: So we'll call this like an encryption function here, and we pass in a pub with some data like this, and we'll say, we'll get c. Sorry, if you can't. C equals encryption, the encryption of this data with Alice's public key. What's happening here is that Alice is encrypting data with her public key. And typically what we know is we also have her private key. And so Bob also has a private key as well. Now if Alice wants to decrypt this data, normally she would call a decryption function using her private key.
+00:02:27.340 - 00:02:28.392, Speaker A: On the ca.
+00:02:28.526 - 00:03:12.324, Speaker B: Yeah, no worries, we'll just go see. I'll erase this really quickly, too, because we're going to be moving on. So now we have like this. So this is an asymmetric encryption algorithm. And as you can see, what's just happening here is that Alice is calling this decryption on this encrypted ciphertext with her private key and getting that data out that she encrypted here. This is the basics of what we know, public key cryptography and everything. So what we're going to do now is explain how proxy re encryption works with this kind of context setting, because everybody's familiar with Alice encrypting data for Bob and Bob encrypting data for Alice back and forth.
+00:03:12.324 - 00:03:50.784, Speaker B: But proxy encryption allows us Alice to encrypt data with her public key and then delegate access to that encrypted ciphertext to any person she wants. So with this in mind, let's go ahead. Oh, thank you. So we'll leave up this first function here, Ca. And what happens is we also have a delegating key that we call a re encryption key. So we'll go ahead and explain how everything fits in here with some algorithms right here. Proxy reencryption has five different algorithms.
+00:03:50.784 - 00:04:30.530, Speaker B: So we'll go one, this is key generation, so we'll call it Qgen. There's another one that is encrypt. Third one, decrypt. Fourth one, this is Rekegen. The fifth one is re encrypt. So we'll go into exactly what each function takes and does. But Keygen is pretty obvious.
+00:04:30.530 - 00:05:26.670, Speaker B: It just outputs a new key pair. Yeah, just a new key pair like that. Encrypt is very obvious given the input of a public key and some data. D we get a ciphertext and then on decrypt, given input of a private, private key and some ciphertext, we get our data. And then on Rekegen, this is where proxy encryption kind of gets like its big interesting component is that we can actually generate, at least in umbrella. So I'm going to go over, there's a variety of proxy encryption algorithms, but what newsypher uses is called umbrell. So I'll write this here.
+00:05:26.670 - 00:06:10.170, Speaker B: This was developed by one of our photographers, David Nunez. So when you keygen here, it takes Alice's private key and then Bob's public key. And on the output we actually get what are like shares. So we get in this. Know, I'm going to extend this, actually, I'll keep it simple for now and just talk about re key gen so we can get an overview on the output, we get what we call a re key and we'll say this goes from Alice to Bob to Bob right there. And then re encrypt simply takes this.
+00:06:10.860 - 00:06:14.280, Speaker A: Re key and ciphertext.
+00:06:14.360 - 00:06:23.576, Speaker B: Yep. And on the output, you now get a ciphertext.
+00:06:23.688 - 00:06:26.620, Speaker A: This is for Alice's key.
+00:06:26.770 - 00:07:15.024, Speaker B: There it'll say for like somebody else. This on the output gives you a ciphertext from of b. So what's happening here is when you call this reencrypt key encrypt function, it's transforming the ciphertext that's encrypted under Alice's key to Bob's public key, so Bob can decrypt it with his own private key, just like in this function here. So umbrella does things a little bit differently in a news cipher. This actually isn't secure in the setting that we need because if, you know, obviously we don't want somebody to have a component that is both Alice's private key and Bob's public key. Right. Because if you know Bob's public key, you can easily derive Alice's private key from that thing.
+00:07:15.024 - 00:07:50.604, Speaker B: So what we want to do is make it secure in a decentralized setting. We use threshold cryptography to solve this problem. So I'll get into that a little bit later. And so I'll just draw an arrow here for threshold. Sorry, my handwriting is horrible, by the way. So what we're going to do now is explain how this kind of narrative fits in here. So we have a ciphertext of Alice and say Bob wants access to this ciphertext here.
+00:07:50.604 - 00:08:27.048, Speaker B: So what Alice is going to do, Alice is going to call this function root keygen. She's going to pass in her private key and Bob's public key. And we're going to get this remainder here. We'll just call it rk to a to b. All right, so with this re encryption key that we have now, you can encode. Yeah, exactly. We can just do, I'll just run through the same thing we did here.
+00:08:27.048 - 00:09:21.210, Speaker B: We can do re encrypt with RKA and this ciphertext. So we're putting in Alice's encrypted ciphertext for her key and then this re encryption key and the output will get CB. What just happens here is literally what we call like an atomic transformation, meaning at no point in time is the Cyprtext actually decrypted. The Cybertex just gets transformed from one cyprtext to another. So there's never actually, there is no private material revealed by forms of computation. So now Bob can simply just do, if he wants to retrieve his data.
+00:09:21.660 - 00:09:24.792, Speaker A: He just calls decrypt with his key.
+00:09:24.926 - 00:10:00.032, Speaker B: Yep, with his. And then like that. That way nothing is ever revealed in this process. News cipher is a network that allows people to do this. So it's perfect for decentralized applications where somebody needs to control their key like they have control of their data, but they want to delegate access to it. So sometimes people are familiar with the key management kind of thing. Right? So in key management, typically you encrypt a secret, you store it somewhere else and then you just request access from somebody else to decrypt that secret.
+00:10:00.032 - 00:10:27.244, Speaker B: Right. So in this case, proxy encryption actually fits that really well. So if you're building a D app and say you want to share data with that application, you typically just encrypt the data using the new cipher network. You can delegate access to that application or another person and then they can decrypt it using the network. So the network will transform that ciphertext to decrypt along your key.
+00:10:27.282 - 00:10:31.952, Speaker A: So what would be like a use case, like an example of application to use this for?
+00:10:32.086 - 00:10:53.536, Speaker B: One use case we have is medical data sharing. So for example, you're a patient and you have a doctor. Let's say you move somewhere and you don't want your old doctor having access to your information anymore. This is like an increasing use case wanting more medical privacy, especially in Europe.
+00:10:53.568 - 00:10:55.190, Speaker A: And. Yeah.
+00:10:56.200 - 00:11:05.016, Speaker B: So in that case you can delegate access to your doctor to have access to your medical history. And if you move away, you can revoke access.
+00:11:05.038 - 00:11:06.408, Speaker A: Revoke access, yeah.
+00:11:06.494 - 00:11:15.532, Speaker B: So in this case, what this looks like here is that this re encrypt here is actually stored by a third party. I'm sorry, this re encryption is done.
+00:11:15.666 - 00:11:16.584, Speaker A: By a third party.
+00:11:16.632 - 00:11:30.330, Speaker B: So I'll say performed by a third party. This is also the new cipher.
+00:11:35.820 - 00:11:36.852, Speaker A: Nodes in the network.
+00:11:36.916 - 00:12:00.032, Speaker B: Yeah, exactly. So nodes in our network stake our token and they earn the inflation rewards by performing re encryption. So there's a few little problems here that I'm going to explain as well and how things work like this. But to solve a fundamental problem we have now, I'll just explain how the threshold cryptography part works.
+00:12:00.086 - 00:12:00.400, Speaker A: Sure.
+00:12:00.470 - 00:12:34.330, Speaker B: Let's go ahead and just erase this since I feel like we have this. Yeah, I think we figured out. I'll add in this threshold cryptography component. So we'll be modifying the re keygen function just a little bit to put out m of n shares. I'm sure if you're not familiar with Shamir's secret sharing, it's a very simple concept. You have a secret. So we'll say Shamir's secret sharing.
+00:12:34.330 - 00:12:54.318, Speaker B: What this is, is we have this algorithm, split secret, where an input, we take some secret. Usually people use this a lot with bitcoin private keys, so they can split it up among their friends and family. And if they need to recover it, they can just go there and say.
+00:12:54.324 - 00:12:57.294, Speaker A: Hey, collected multi sig.
+00:12:57.422 - 00:13:15.814, Speaker B: Exactly. So we also take these threshold components and we say, okay, I'm going to generate, let's say I need three shares out of five. Out of five. Right. And then when I do that, I get these shares. So I made no room for myself. So I'll do over here.
+00:13:15.814 - 00:13:18.120, Speaker B: That's horrible. I'm not going to do that.
+00:13:18.810 - 00:13:20.710, Speaker A: We'll just call it shares.
+00:13:21.210 - 00:13:30.122, Speaker B: That's horrible. So we have shares that they generated there, and then they can go and recover these. And like I said, they only need.
+00:13:30.176 - 00:13:33.498, Speaker A: Three to collect as a data back. The secret back.
+00:13:33.584 - 00:14:06.342, Speaker B: Yes. This is the threshold and this is the total. On the new cyber network, we call these values m of n. And you'll typically hear this referred to as m of n secret sharing. So we'll call this here m. So with that explained, now we can do the same thing for this re encryption key that we generated here, where we input that as the secret. Okay, so let me erase this and I'll dive right into that.
+00:14:06.342 - 00:14:38.240, Speaker B: So this time I'll leave room for myself. And so we call Rekey Jen, and on input, we take our Alice's private key, Bob's public key, and then our threshold. So we'll say three to five like that. On the output, we get a list of our chunks. Yep. One, two.
+00:14:41.170 - 00:14:45.662, Speaker A: So this Rike gen is done by Alice in this case, right? Yep.
+00:14:45.726 - 00:15:02.150, Speaker B: Alice is the one who performs this. And I'll go over exactly what I can label that out if need be. Yeah, but, yeah, so we generate five different re encryption key shares and each one of these, since we. Since if you're familiar with Shamir secret sharing and what the privacy of that is, each share alone has no.
+00:15:02.220 - 00:15:03.270, Speaker A: Yeah, it's not enough.
+00:15:03.420 - 00:15:33.426, Speaker B: It's what we call perfect secrecy. So it's not alone to recover the entire secret. So this is what we call collusion resistance, where now we're requiring nodes on our network, they would have to collude with each other to recover the secret. And even if they did recover the secret, they cannot. Only thing they could do is transform cybertext from al. So it kind of hurts some of that revocation that we talked about. So when our nodes revoke on the network, by the way, revocation is simply just telling the nodes, hey, delete your share and that's it.
+00:15:33.426 - 00:16:00.010, Speaker B: And all we need is just a maximum threshold. So in this case, we just need three shares of these five to be deleted and nobody will ever have access to that key again. So what happens now is that Alice is going to delegate access. So we'll say a. And we'll have five nodes. Bad player. Five nodes.
+00:16:00.010 - 00:16:09.550, Speaker B: But each one is given a share. Right.
+00:16:13.440 - 00:16:17.960, Speaker A: So she just finds whoever pretty much staked new cipher token.
+00:16:18.120 - 00:16:36.144, Speaker B: Yes. These are distributed based on how much somebody stakes on our network. So what we do is we select a random sample on the network and then distribute tokens based off this. So we use Ethereum for this. Not really a requirement. We just need to be able to have somewhere we can.
+00:16:36.182 - 00:16:38.788, Speaker A: You need some consent. Yeah, we need some consensus mechanism to.
+00:16:38.794 - 00:17:14.320, Speaker B: Be able to determine who to give these fragments to. And so each one of these nodes on our network receives this re encryption keyfrag. And then she tells the bob. So Alice now says, all right, I'm going to find a bob. And so since she generated for Bob here, what happens, all right, what happens is Bob will simply go to the network. And we'll put this as like, since we know that our network has tons of people on it, to avoid drawing it out over and over. I'm just going to call this just one big box, the network.
+00:17:14.320 - 00:17:40.696, Speaker B: Hopefully that doesn't confuse anybody. But Bob will call a retrieve function. And what happens is he just talks to the network here, and on the output he will get what is essentially a ciphertext for himself. So what he does is he sends this component, the ca. So Bob is actually.
+00:17:40.798 - 00:17:42.136, Speaker A: Oh, Bob sends a ca.
+00:17:42.238 - 00:17:44.452, Speaker B: Yeah. So Bob will send this encrypted.
+00:17:44.516 - 00:17:46.904, Speaker A: So Alice sends pretty much to Bob, a ca.
+00:17:47.022 - 00:18:17.024, Speaker B: Yeah, Alice will encrypt some data, like you say here, we're going to ciphertext. She gives this to Bob, she can store this on like ipfs, whatever. She gives this to Bob. And then Bob can just go to the network with that ca. And each node on the network performs this re encrypt with their share. And then at the end, Bob does like this whole combination. Typically when you have the Shamir secret sharing scheme, you perform that combination and you recover the secret.
+00:18:17.024 - 00:18:40.110, Speaker B: So he only needs to actually pick. So there's three different nodes that he can pick from here. So in reality, he's actually only picking like a certain subgroup of this. It can be here, whatever. Right. So there's plenty of nodes on the network. Depending on how much your share usually is, you can go to the network and do that with different efficiency, different performance parameters and like.
+00:18:40.110 - 00:18:55.330, Speaker B: So now when he has it encrypted or re encrypted for his key, he just calls that decrypt function his own private key, just like as if he had encrypted it with his own key. Right.
+00:18:57.540 - 00:18:58.240, Speaker A: It's a message.
+00:18:58.310 - 00:19:22.792, Speaker B: Yeah. So that's like the basics of how the new cipher network works. So there's a lot of different applications that obviously you can build with something like that. We're planning on adding a lot more features other than just proxy encryption, I think, to our network, which people are really stoked about. We have our testnet up and. Yeah. Can I answer any questions for you?
+00:19:22.846 - 00:19:38.972, Speaker A: Yes, please. So first question here is pretty much, you need this node, right? You need this network because you want to revoke access. Because if you never wanted to revoke access, you could have just Alice done this, sent it to Bob. Bob now has access to this data.
+00:19:39.026 - 00:19:46.656, Speaker B: The problem with giving Bob access to this is that since it's a component of his key, he can actually gain access as his private key with that one.
+00:19:46.758 - 00:19:47.424, Speaker A: I see.
+00:19:47.542 - 00:20:12.744, Speaker B: Right. So it's like a weird. I won't go into the. So if you just imagine this being just a component of each key, then we obviously don't want to give Bob access because then he'll be able to find, if he knows the re encryption key, he'll be able to derive Alice's private key. So that's why we split up the nodes across the network. They don't know each other.
+00:20:12.782 - 00:20:22.344, Speaker A: So these nodes don't know, but it's recorded somewhere. You said it's recorded on ethereum. Who got the parts? Because Bob needs to know also who has the parts.
+00:20:22.392 - 00:20:35.164, Speaker B: Right. But we actually use something we call the treasure map in our code base where that tells Bob where to go, which nodes have the fragments. And we also have something called a learning loop, so that he can learn about the network very easily and say where to go to and things like that.
+00:20:35.202 - 00:20:38.540, Speaker A: Yeah, but they can find out who has the parts.
+00:20:38.620 - 00:20:49.730, Speaker B: If they gain access to the treasure map, which is usually encrypted for Bob directly, they can, but otherwise it's, you know, if they can breach that.
+00:20:50.580 - 00:20:51.670, Speaker A: Oh, wow.
+00:20:52.120 - 00:20:55.510, Speaker B: If they can breach that, then, yeah, they can find out who has access.
+00:20:55.900 - 00:21:05.896, Speaker A: You just deploy a contract on Ethereum saying, put a piece of this reencrypted a to b, and I'll pay you like 30 e. Yeah, sure.
+00:21:06.078 - 00:21:19.212, Speaker B: So you can bribe somebody else to do it, but you'll find that actually, as this number increases, it becomes much more difficult. And so you're now at 30 ETH is like times 30. You're paying 90 e just for a re encryption key, which you actually can't do anything with.
+00:21:19.266 - 00:21:24.728, Speaker A: Yeah, you need to be a bob. Well, so I'm a bob, right? In this case, let's say I'm a Bob.
+00:21:24.824 - 00:21:28.256, Speaker B: You need all the Ursulas. You need a minimum threshold of the.
+00:21:28.278 - 00:21:31.810, Speaker A: Ursulas and to be a bob and to be at the public key.
+00:21:32.260 - 00:21:41.220, Speaker B: But you know what they could do instead? They just go up to Bob and say, hey, can I have the data? Or they could just try to buy the data from us directly, which may be more cheaper.
+00:21:41.640 - 00:21:47.210, Speaker A: Well, the question is pretty much what's the price of a data? Right. If the price is million, this is actually.
+00:21:47.580 - 00:21:59.210, Speaker B: Well, if the price is a million dollars, what you can do is up these numbers really high so that suddenly it becomes really impossible to actually pay enough.
+00:22:00.460 - 00:22:27.990, Speaker A: Okay. But I mean, there's question here is also, like, you have Alice, who may be selling a lot of data to all kinds of people, and you bought like some $10 data and it was re encrypted by five guys, but then you go bribe them, recover the re key. You have the private key for you. So you recovered the private key for Alice, and now you have access to all of this data, right?
+00:22:28.760 - 00:22:29.632, Speaker B: Not necessarily.
+00:22:29.696 - 00:22:31.652, Speaker A: Or Alice uses like, key per.
+00:22:31.786 - 00:22:44.856, Speaker B: Yeah. So typically what we actually do is we derive something called a label. So in this case, Alice will actually derive. We do this as a security measure for just that exact thing. So that way, if the recovery attack, the only attack that happens is actually this attack here.
+00:22:44.878 - 00:22:45.368, Speaker A: I see.
+00:22:45.454 - 00:22:49.630, Speaker B: The other attacks are you'd have to bribe everybody individually for each piece of data.
+00:22:50.400 - 00:22:54.088, Speaker A: Is it because of generating new private key per interaction?
+00:22:54.184 - 00:23:01.544, Speaker B: Yes. Well, typically we do it per bob. Per bob, per label, per policy. So it's really configurable.
+00:23:01.592 - 00:23:02.316, Speaker A: I see.
+00:23:02.498 - 00:23:13.664, Speaker B: Yeah. So it's like, if you're worried about that kind of attack, which we have that by default. So the security is relatively straightforward there for that. In that case, if an attack were to happen, they would only gain access.
+00:23:13.702 - 00:23:15.232, Speaker A: To this $10 data. Yeah.
+00:23:15.366 - 00:23:30.984, Speaker B: And even then, they don't gain access to Alice's root private key because we derive more keys from that, then she never uses that key by itself. And then here. So if this person has, like, if this is $10, but this is like ten k right here.
+00:23:31.022 - 00:23:31.464, Speaker A: Yeah.
+00:23:31.582 - 00:23:34.420, Speaker B: So this actually is never affected.
+00:23:34.580 - 00:23:39.788, Speaker A: Yeah, I mean, if you have a separate derived key, that makes sense. Okay.
+00:23:39.954 - 00:23:51.310, Speaker B: Right. So that's how we kind of achieve some of that forward secrecy in the protocol itself just a little bit. I think it's more like weak forward secrecy. It's not perfect forward.
+00:23:52.160 - 00:23:58.480, Speaker A: Like, even if you walked access from Bob, Bob could have just kept data. Right, right. And those folks could have kept the key.
+00:23:58.550 - 00:24:08.544, Speaker B: Exactly. So when you're building your applications, we typically like to tell people, know, keep in mind that the data that you're know is revocable, but they can't gain access to future.
+00:24:08.582 - 00:24:09.372, Speaker A: To the future.
+00:24:09.526 - 00:24:46.176, Speaker B: So in the case of, like, Netflix. Right. Or streaming service, you can encrypt different movies and different packets. But the moment you stop paying for it, Alice will revoke access where Alice being the application, like the application, she revokes access and Bob Miller has the access threat. So obviously there's some threat modeling people have to do to figure that kind of stuff out. But it's like if you're building like a secret, in the case of a centralized example being Google Cloud KMs or Amazon web kms, typically people have secrets for their applications that they need to store. They don't know where to store them.
+00:24:46.176 - 00:25:27.436, Speaker B: So in a decentralized application setting this is even more because you can't store your secrets to aws, right? So what we can do is encrypt those secrets, store them in your application locally, and then the application owner, the manager, administrator, you can simply say this node should be online and then you can give that node access for some time and they can use that and you can just refresh your policies every so often. So in our network, our policies have a time component which is how long they can last for. But that's kind of arbitrary because you pay for that time and then at the end you say, oh, you've had access long enough, I revoke access. You revoke the access and you need.
+00:25:27.458 - 00:25:29.836, Speaker A: To regenerate the, if you don't want.
+00:25:29.858 - 00:25:36.450, Speaker B: To regenerate, you don't have to, but you revoke the access and you won't pay for any further time, you'll just pay for the time that was spent there.
+00:25:37.620 - 00:25:49.588, Speaker A: But if you're doing this, the data is actually some private key for accessing something, then you need to regenerate, redo that private key because you revoke the.
+00:25:49.594 - 00:25:55.480, Speaker B: Access you can, but if it's the same bob, typically you don't, if it's the same person, the same bob.
+00:25:55.980 - 00:26:27.680, Speaker A: No, I mean if your data is actually a private key to this is a maker, I see what you're saying. Maker control key, right. And you have a server that doing stuff that you're giving access for a month and then you're like actually we don't want this server to have access to this. Sure, they kind of could have kept it somewhere. If anything else it's like in a cache somewhere sitting there.
+00:26:27.750 - 00:26:36.748, Speaker B: So like I said, the threat modeling is absolutely a requirement when you're building your application, when you see people, when they're trying to build something that's like they want to store their bitcoin private.
+00:26:36.764 - 00:26:38.468, Speaker A: Keys, their ethereum private keys, and be.
+00:26:38.474 - 00:26:45.172, Speaker B: Like, oh, that way, it's a great way actually not because you don't know who has kept it. Right. You don't know if they kept it or not.
+00:26:45.226 - 00:26:50.660, Speaker A: Yeah. I mean, if you can fresh out the key in some more customizable models.
+00:26:50.740 - 00:26:54.600, Speaker B: Yeah, more customizable models, if you want to. Are you saying like key rotation for this?
+00:26:54.670 - 00:26:56.120, Speaker A: Yeah, you just rotate.
+00:26:56.880 - 00:26:58.876, Speaker B: We don't really have that protocol in.
+00:26:58.898 - 00:27:01.756, Speaker A: News cipher for rotating the data.
+00:27:01.858 - 00:27:29.796, Speaker B: Yeah, for rotating, like an encrypted private key, for example. That's actually a separate protocol entirely, but things like that. We would be interested in building models for encrypting private keys, for actually keeping those secure. It's just that the security components, we have to really understand what they are first so that we know how to build these parameters without people misusing them. So in this case, we've tried our hardest to prevent this kind of thing because we don't think it's a proper security step.
+00:27:29.898 - 00:27:30.308, Speaker A: Yeah.
+00:27:30.394 - 00:27:34.996, Speaker B: So I'm sure you've probably heard the term like, misuse resistant cryptography, which is.
+00:27:35.018 - 00:27:37.990, Speaker A: Like, you cannot use it. Right.
+00:27:39.260 - 00:27:51.816, Speaker B: You cannot misuse it because a lot of times developers will use cryptography wrong. They don't know that they're using it unsafe. For example, there are really unsafe ways to encrypt data using AES. And if you do it the unsafe.
+00:27:51.848 - 00:27:54.332, Speaker A: Way, then somebody can recover as a private key.
+00:27:54.386 - 00:28:03.090, Speaker B: Yeah, exactly. We try to build protocols and our APIs and our libraries to actually prevent that from actually happening.
+00:28:03.700 - 00:28:04.752, Speaker A: It's pretty cool.
+00:28:04.886 - 00:28:48.652, Speaker B: So that's like the fundamentals of proxy reenction. The network itself is actually just really simple. It's just a proof of stake network that we just distribute tape, rags, what we call, these are called, in our network, these are called kfrags. And on the output, something I will explain here is just imagine here, this is one node, and these are all different, and they each have a re keyfrag here. When Bob calls his retrieve to each one of these, he's passing along some ciphertext from Alex. Right.
+00:28:48.786 - 00:28:49.336, Speaker A: Yeah.
+00:28:49.458 - 00:28:52.704, Speaker B: What happens is on the output, they.
+00:28:52.742 - 00:28:55.628, Speaker A: Actually get like a partial.
+00:28:55.804 - 00:28:58.476, Speaker B: Yeah. So we actually get what we call C frack.
+00:28:58.588 - 00:29:01.740, Speaker A: I see. Yeah. Fragment of encryption.
+00:29:01.820 - 00:29:21.530, Speaker B: Right? Yeah. So what Bob has to do, again, I'll say, put this into like a combination function. So combine with the CPR on the output, that's when we get the.
+00:29:23.820 - 00:29:28.264, Speaker A: What's cryptography behind combination function?
+00:29:28.462 - 00:29:30.208, Speaker B: That's actually shmer secret sharing.
+00:29:30.324 - 00:29:30.748, Speaker A: Okay.
+00:29:30.834 - 00:29:34.908, Speaker B: Yeah. So this split here, like we talked about here, the.
+00:29:34.994 - 00:29:35.644, Speaker A: Yeah, yeah.
+00:29:35.762 - 00:29:39.144, Speaker B: This component is just Shmeir's.
+00:29:39.272 - 00:29:46.144, Speaker A: Yeah. Shmir's parts and then this is like as if you were aggregating signatures, kind of, yeah.
+00:29:46.182 - 00:30:00.164, Speaker B: And then this is like, I think it's technically like polynomial interpolation. That's the technical for the combination function. And you only need a threshold. So in this case, yeah, you need.
+00:30:00.202 - 00:30:01.460, Speaker A: Only three out of five.
+00:30:01.610 - 00:30:05.156, Speaker B: I didn't display the third one, but yeah, you'd need only three. So you don't have to actually talk.
+00:30:05.178 - 00:30:18.072, Speaker A: To all five nodes in the network. Let's say Bob is like querying some of those proof of stake guys, and some of them don't respond. Is there any repercussion for them currently?
+00:30:18.126 - 00:30:26.188, Speaker B: Right now we have a thing where they have to confirm activity on the network to receive their staking rewards. If they don't confirm activity, then they don't get the staking rewards for that.
+00:30:26.274 - 00:30:27.820, Speaker A: How does it confirm activity?
+00:30:28.320 - 00:30:32.408, Speaker B: It communicates to a smart contract that says, hey, I'm online here.
+00:30:32.514 - 00:30:35.404, Speaker A: Oh, it's just like ping, pretty much like liveness ping.
+00:30:35.452 - 00:31:01.450, Speaker B: Yeah, it's kind of an open problem, really. It's a problem that we have currently, because there is no way to actually know if a node is online reliably. It's a component of the oracle problem. There's no way for us to know if a node is online. There's ways we can build around this to kind of determine if a node is online by having them perform some functions, but they all don't really achieve the same level of security that we actually need for it.
+00:31:02.140 - 00:31:23.180, Speaker A: So let's say you have a smart contract, Bob just adds ca to it, or like whatever hash route in ipfs or whatnot. And then these guys add the CFRag to associate to it. Then you see if they add it or not during some period of time.
+00:31:23.330 - 00:31:24.620, Speaker B: If they receive it or not.
+00:31:24.690 - 00:31:30.272, Speaker A: Well, like Bob adds it. Right, and pays for it, for example. And then you have all of us.
+00:31:30.326 - 00:31:32.256, Speaker B: Pays in this case. But Bob can.
+00:31:32.438 - 00:31:38.800, Speaker A: Sure. I mean, somebody pays. Yeah, but pretty much you have them to commit Cfrac on a smart contract.
+00:31:38.880 - 00:31:47.508, Speaker B: Well, the problem is that we don't want to commit the CFRAs on a smart contract because then Alice can never revoke access. Does that make sense?
+00:31:47.674 - 00:31:48.724, Speaker A: I see, yeah.
+00:31:48.762 - 00:32:21.424, Speaker B: So once, if these cfrags were all in a smart contract, then Bob could just go to that smart contract and gain access all the time, whenever he wants. We don't want that. So for some people that may be okay, but for our protocol, we don't really like that. All this stuff happens off chain, so we can actually have some level of privacy and anonymity not really true. Anonymity, not really between the parties because they have to know their keys and everything. Anonymity is actually something we're heavily researching to add to our network in the future. But with no plans right now, we just want to start testing it up with the main net coming soon.
+00:32:21.542 - 00:32:29.604, Speaker A: But I mean, yes, you do it off chain, but Bob has the same information. So you can just store it in his logs or whatever.
+00:32:29.802 - 00:32:32.310, Speaker B: But we still don't want this kind of.
+00:32:33.400 - 00:32:35.268, Speaker A: You don't want it discoverable? Pretty much.
+00:32:35.354 - 00:32:53.148, Speaker B: We don't want anything like no cryptographic components stored on the blockchain. We don't really consider it very safe to store ciphertext on the blockchain. That's like the whole point of using new cipher. So you don't have to do that. You never know what kind of computing threads are there.
+00:32:53.234 - 00:33:12.492, Speaker A: Yes, that's true. I mean, you can store hash or whatever in a hash of what you did. And Bob pretty much if they try to just put a hash that they did not give to Bob, he can actually. You go into arbitrage mode.
+00:33:12.556 - 00:33:30.360, Speaker B: We actually have an entire protocol piece that I didn't touch on for security. That's kind of similar to it. It does solves a different problem. We're trying really hard to figure out a better solution to the liveness and reliability factor of it because ideally we'd be able to say no to a stake and are not reliable, not online.
+00:33:30.430 - 00:33:32.248, Speaker A: Yeah, she should kick them out so.
+00:33:32.254 - 00:33:43.512, Speaker B: They don't do anything else. So I'll actually go into a little, another explainer, another misbehavior of the network is what if instead of providing a proper reencryption, Ursula.
+00:33:43.576 - 00:33:47.164, Speaker A: These are the nodes that we call Ursula. They could have given just.
+00:33:47.282 - 00:34:03.248, Speaker B: Yeah, instead of that, they just give some bullshit, random garbage data. Right. That's a problem. But I will go into the solution there. We use zero knowledge proofs to prove that re encryption was.
+00:34:03.334 - 00:34:04.630, Speaker A: Re encryption is correct.
+00:34:05.160 - 00:34:44.050, Speaker B: So we can have the output. So imagine we have our reencrypt in the umbrell scheme. So again, this is another umbrella specific thing here we call re encrypt. I said it took a re key. It took a ciphertext from Alice or whoever encrypted to. And then so on the output, we don't just get the c frag that we call it. We actually also get our c frag from to b.
+00:34:44.050 - 00:35:20.244, Speaker B: But we also get a proof. So we'll call this like some p. All right. This proof proves that the re encryption was performed correctly. So given an input, we can do a verify on input. We take a proof, Pete, and we take the c frag bob, and we just get a zero or one. Just saying true or false.
+00:35:20.292 - 00:35:22.248, Speaker A: Yeah. Correct or incorrect. Yeah.
+00:35:22.334 - 00:35:32.684, Speaker B: Right. If that proof does not verify, somebody gave Bob bullshit data. Instead, we can actually go to a smart contract.
+00:35:32.732 - 00:35:38.764, Speaker A: So you had, you can report the signed CFRAg with this proof.
+00:35:38.892 - 00:35:39.232, Speaker B: Exactly.
+00:35:39.286 - 00:35:40.540, Speaker A: You can verify it on chain.
+00:35:40.620 - 00:35:57.552, Speaker B: Yeah. So we provide the proof and the signed CFRAG, and then this thing, we call it an adjudicator. This thing tells it to punish node. So then usually what we say is this is like a very serious offense.
+00:35:57.616 - 00:35:58.036, Speaker A: Yeah.
+00:35:58.138 - 00:36:05.130, Speaker B: So it's like, oh, you're trying to abuse the network in some way. Just kick them off the network or slash their stake by a significant amount.
+00:36:05.660 - 00:36:11.000, Speaker A: So how long is this proof takes to actually.
+00:36:11.070 - 00:36:32.740, Speaker B: So traditionally in the space, people, when they hear zero proof, they want to think ZK snark or ZK stark or like some other really complex protocol. But this is such a simple protocol. This re encryption is technically only an elliptic curve multiplication. Really easy. It's like the performance is very minimal. It's nothing. It's similar to a signature verification.
+00:36:32.740 - 00:37:07.690, Speaker B: So because of the mathematics that it is, you can use something called a schnorr proof. So I'll say that the proof is schnorr is productive. Yeah. And all it does, I should say similar, because you're kind of proving something a little bit different, but same way. So, yeah, this p is just a snore proof that can be verified on contract. So we're actually performing this, the same calculation here on smart contract.
+00:37:08.270 - 00:37:09.798, Speaker A: Oh, the actual verification.
+00:37:09.974 - 00:37:12.742, Speaker B: Yeah, verification. So verification happens in two places.
+00:37:12.806 - 00:37:13.510, Speaker A: Oh, I see.
+00:37:13.600 - 00:37:17.162, Speaker B: By Bob. So Bob will perform verify.
+00:37:17.306 - 00:37:18.062, Speaker A: I see. Okay.
+00:37:18.116 - 00:37:21.470, Speaker B: Smart contract also performs this verification.
+00:37:21.810 - 00:37:35.618, Speaker A: I see. And how big is this proof? Less than 100 bytes for any amount of data, pretty much per cframe. I see.
+00:37:35.784 - 00:37:37.890, Speaker B: But we don't need to store them all on chain.
+00:37:38.630 - 00:37:40.226, Speaker A: Yeah, you only need the ones that's offending.
+00:37:40.258 - 00:37:46.246, Speaker B: Yeah, we only need the proof that defending. So we actually expect this to probably just remain relatively low because there's no.
+00:37:46.268 - 00:37:50.326, Speaker A: Way to, if people start doing it, they get slashed and.
+00:37:50.348 - 00:37:59.706, Speaker B: Yeah, if they do that and they modify their code to do it, have fun throwing your money away. That's how that works.
+00:37:59.888 - 00:38:10.526, Speaker A: But it allows us to kind of prevent it. All the slashing is prevention unless somebody actually gets a lot of money out.
+00:38:10.548 - 00:38:20.306, Speaker B: Of like the cool thing is too, is know when Bob does it, he can say you'll actually get a little bit of reward of new cyber token from the slash stake and I think we just burn the rest.
+00:38:20.408 - 00:38:21.682, Speaker A: Yeah, cool.
+00:38:21.816 - 00:38:41.154, Speaker B: Yeah, so that's that. Like I said, the open problem with the discussion you're talking about is this liveness issue. Yeah, as far as we know, there really is no serious answer to this problem. We've been looking for a really long time in the space for this. Other protocols will simply just say, have other nodes ping in other nodes and say, oh, this node is not online.
+00:38:41.212 - 00:38:44.266, Speaker A: Yeah, it's not good because all the.
+00:38:44.288 - 00:38:45.434, Speaker B: Nodes can be like, did you know.
+00:38:45.472 - 00:38:50.826, Speaker A: We can actually ddos them? Or just agree to say as they.
+00:38:50.848 - 00:38:54.346, Speaker B: Offline and in our network, if they can kick other nodes off, they get.
+00:38:54.368 - 00:38:56.878, Speaker A: More stuff incentivized to actually kick nodes off.
+00:38:56.964 - 00:38:58.094, Speaker B: More stuff and more money.
+00:38:58.212 - 00:38:59.760, Speaker A: Yeah, that's always like.
+00:39:00.210 - 00:39:07.330, Speaker B: Yeah, these solutions for the liveness stuff is really difficult and so far we're still looking for just a really serious solution.
+00:39:07.750 - 00:39:12.450, Speaker A: Well, I mean it's pretty much. You need some kind of consensus actually on this too.
+00:39:12.600 - 00:39:34.780, Speaker B: Yeah. So if liveness is an issue for you, we don't think liveness will be an issue. Our staking partners are really great people. They're going to keep their nodes online. They're really determined to run a ton of nodes. And we're actually going to have a fairly robust network in comparison to other privacy protocols. I think it's safe to say that we'll probably be one of the most robust networks in the decentralized space.
+00:39:35.550 - 00:39:43.658, Speaker A: So. Yeah, it's more like guardians in a way. This nodes are like guarding this pretty much fragments of keys and then they do this encryption.
+00:39:43.754 - 00:40:19.290, Speaker B: Yeah. And then another point here is that since these nodes are reliable, let's say we have an unreliable network, what you can do is simply up the threshold limit so that m of n value, you can increase n and then you'll actually get a certain amount of degree of reliability from that. So if one node is offline, you can go to the next one. That's like the short term for that. Obviously we are trying to find a solution really hard for that liveness thing. It's a hard problem.
+00:40:19.440 - 00:40:25.658, Speaker A: Yeah, no, it is. I mean liveness is a hard problem everywhere. Cool.
+00:40:25.744 - 00:40:27.542, Speaker B: Yeah, that's new cipher.
+00:40:27.686 - 00:40:31.914, Speaker A: Yeah, really cool. I mean, I'm kind of interested what's happening underneath here, just like as.
+00:40:32.032 - 00:40:32.506, Speaker B: Absolutely.
+00:40:32.608 - 00:40:33.966, Speaker A: I don't know if you want to.
+00:40:34.068 - 00:40:49.182, Speaker B: So I will explain now. This was umbrella. I don't want to get into the specifics of how elliptic curves. Yeah. I don't want to get into the specifics of how elliptic curves and things like that work, but I will explain with a very simple math.
+00:40:49.246 - 00:40:49.860, Speaker A: Okay.
+00:40:50.470 - 00:41:12.626, Speaker B: So you can imagine, and this is actually a scheme. So I'll go ahead and erase this. The very beginnings of proxy re encryption came from DBS. This paper published in 1998 called, I'll just put the reference here, 98. And this created essentially PR e. All right, so this is where this is from. Umbrella doesn't.
+00:41:12.626 - 00:41:33.618, Speaker B: So I'll clarify just again, umbrella doesn't do this because clearly in this case, a re encryption key is a component of Alice's private key and Bob's private key. We don't want Bob's private key. We call this interactive encryption. We don't want that. We want it to be non interactive. So we don't do this. But I'll show you how it works because then maybe you'll get a feel for exactly what's going on.
+00:41:33.618 - 00:42:17.240, Speaker B: So in a rekey, in this case, let's say Alice wants to generate a re encryption key from her to Bob. In our old setting, re Keygen will then take a component of Alice's private key and Bob's private key. Again, we don't do this in new cipher. So on the output of this, we get a math equation very similar to just like that. Bob's private key divided by Alice's private.
+00:42:17.660 - 00:42:26.744, Speaker A: When you multiply it by the encrypted message, you pretty much remove. Yeah, it's like I. Private key by C. Yeah.
+00:42:26.782 - 00:42:45.840, Speaker B: So what I'll say is it's kind of similar to where now it's like if you have a typical key or some message where it's like some randomness that's encrypted with like if you're not familiar with elliptic cryptography, I may lose.
+00:42:48.020 - 00:42:53.212, Speaker A: Know Google there is like pretty good articles about have we have a generator.
+00:42:53.276 - 00:43:11.144, Speaker B: Point g and algamal ciphertext may look where a is Alice's private key. So this is something that's been encrypted for Alice. If we multiply this by our b.
+00:43:11.182 - 00:43:11.960, Speaker A: Divided.
+00:43:16.700 - 00:43:35.710, Speaker B: It'S pretty clear to see what happens. We have g to the Ra, actually. Why am I doing that? Not in math class anymore. So what I can do is this. This is like, it's like it may be a stretch for something.
+00:43:39.360 - 00:43:39.928, Speaker A: Yeah.
+00:43:40.034 - 00:43:46.252, Speaker B: And so now we've actually created this ciphertext. So this actually itself is a ciphertext.
+00:43:46.316 - 00:43:50.052, Speaker A: A ciphertext b. Yeah, cybertext b.
+00:43:50.106 - 00:44:09.900, Speaker B: Again, new cipher does not use the private key of Bob. We do something differently here, but yeah. So G to the Ra times, b prime over a prime, cancel out. G to the RB. That's that. It's very simple. So this right here, this multiplication is the re encryption function.
+00:44:09.900 - 00:44:10.156, Speaker B: So.
+00:44:10.178 - 00:44:10.910, Speaker A: Right, yeah.
+00:44:15.830 - 00:44:17.250, Speaker B: That'S reencrypt.
+00:44:18.710 - 00:44:21.118, Speaker A: This is rekey.
+00:44:21.294 - 00:44:22.162, Speaker B: Yeah. Already.
+00:44:22.296 - 00:44:22.980, Speaker A: Yeah.
+00:44:23.510 - 00:44:24.580, Speaker B: There you go.
+00:44:24.950 - 00:44:25.650, Speaker A: All right, cool.
+00:44:25.720 - 00:44:40.794, Speaker B: Yeah, it's relatively similar. And then now you can start seeing exactly where the Shamir secrets fits in. Because now we take this, we can put this as an input to. And then we have the rk a to b. Yeah.
+00:44:40.832 - 00:44:43.482, Speaker A: And just split it off like that.
+00:44:43.536 - 00:44:45.626, Speaker B: And now you have kind of something like that.
+00:44:45.808 - 00:44:55.902, Speaker A: Yeah, you get like b. Like b one, b two, b three, b four. Yeah. Then you just multiply them and you get it back.
+00:44:55.956 - 00:44:58.302, Speaker B: Then you just put all those fragments back in the function. The same thing.
+00:44:58.356 - 00:44:58.958, Speaker A: Yeah.
+00:44:59.124 - 00:45:24.838, Speaker B: It's like, kind of touching on a little bit of threshold cryptography, multiparty there. But, yeah, this is pretty much how that works. Mathematically, it's extremely simple. It's one of the more simple cryptographic protocols. But the reason why, one thing that we find really interesting about proxy Encryption is that it's now kind of catching on again just a little bit more because people are realizing, oh, in decentralized and multiparty scenarios, actually not a bad thing.
+00:45:24.924 - 00:45:29.218, Speaker A: Well, I mean, we got to a stage where we can actually coordinate this before we couldn't.
+00:45:29.314 - 00:45:36.218, Speaker B: Yeah, exactly. So now, before 98, when this came out, what you had to do is actually trust this component here, which is.
+00:45:36.304 - 00:45:38.954, Speaker A: I mean, those guys need to get together pretty much and do this.
+00:45:38.992 - 00:45:41.886, Speaker B: Yeah, exactly. And this is extremely toxic material. Right.
+00:45:41.908 - 00:45:42.430, Speaker A: Yeah.
+00:45:42.580 - 00:45:51.086, Speaker B: So in the case, the attack that we explained earlier where that collision happened, if we had B priv and a.
+00:45:51.188 - 00:45:56.562, Speaker A: Priv, clearly, if we know any way you can restore both.
+00:45:56.696 - 00:45:58.786, Speaker B: Exactly. So you can just be like, if.
+00:45:58.808 - 00:46:00.020, Speaker A: You have a priv.
+00:46:02.790 - 00:46:03.346, Speaker B: I'm sorry.
+00:46:03.368 - 00:46:04.180, Speaker A: That's fine.
+00:46:05.270 - 00:46:06.994, Speaker B: I just did this wrong. I'm sorry.
+00:46:07.112 - 00:46:12.446, Speaker A: Anyway, if you have a prev, you can get B primf. If you get B print, you can get a pref.
+00:46:12.638 - 00:46:25.814, Speaker B: Right? Yeah. So if you know B priz, you can find a print. If you know a print, you can get b print. This. Technically, when you use both private keys, it actually has a component that we call bi directionality. So if you take the inversion of this rekey.
+00:46:25.862 - 00:46:27.050, Speaker A: Yeah. You can send it back.
+00:46:27.120 - 00:46:30.306, Speaker B: Send it back. So Bob can decrypt data or encrypt data for Alex.
+00:46:30.358 - 00:46:30.574, Speaker A: Yeah.
+00:46:30.612 - 00:46:45.954, Speaker B: So it kind of creates that weird little thing there. Obviously, it's something we don't want either. So what this protocol is, I'm sorry. It's interactive? Yeah, it's bi directional and it's like also multi hop. I've been a while since I linked to the paper.
+00:46:46.152 - 00:46:51.026, Speaker A: I mean, at this point, if you're doing this, you may as well just create a new key that both of you know.
+00:46:51.128 - 00:47:08.166, Speaker B: Exactly. So it never gained traction. Yeah, but now we actually have ways to build non threat proxy encryption. We have ways to securely store these keys. Because you don't want to trust a single. Would you trust Google with. Yeah, there's just no need for that anymore.
+00:47:08.166 - 00:47:10.410, Speaker B: We can do this in a secure setting.
+00:47:12.510 - 00:47:23.200, Speaker A: So you also mentioned, let's say Alice sends to Bob and puts our keys here.
+00:47:25.490 - 00:47:26.762, Speaker B: That's the new cipher network.
+00:47:26.826 - 00:47:34.350, Speaker A: Yeah, that's the new Cipher network. And then at the same time, Alice wants to send to Charlie the same data.
+00:47:34.500 - 00:47:35.150, Speaker B: Same data.
+00:47:35.220 - 00:47:41.682, Speaker A: Yeah. So she's still. It's a new policy. New policy, new encryption, new everything.
+00:47:41.736 - 00:47:45.262, Speaker B: So there's no like encrypted, the same private key.
+00:47:45.416 - 00:47:47.222, Speaker A: Same private key with her private key.
+00:47:47.276 - 00:47:49.720, Speaker B: So she's delegating access if she wants.
+00:47:50.730 - 00:47:57.830, Speaker A: Let's say the message is ipfs. Right. So for Bob, she puts a CA, right. Yeah, she can send CA to both.
+00:47:57.900 - 00:48:03.254, Speaker B: So she just simply calls that. So we call this function granting. So Alice can simply grant. This is a grant.
+00:48:03.382 - 00:48:06.460, Speaker A: Yeah. So this is Riki A to B. Ricky A to.
+00:48:09.550 - 00:48:30.900, Speaker B: Yeah, I'll say this is RKA to B. That's a great way to say, Matt. This is just an RKA two C. Yeah, that's how that works. It's very scalable. So we find like in multiple parties. Yeah, it's actually really nice because depending on the data, we encrypt it once and we can delegate access needed.
+00:48:32.630 - 00:48:39.014, Speaker A: So what happens when you revoke access premise? That's kind of the question because let's say this data is being updated every day.
+00:48:39.132 - 00:48:40.310, Speaker B: Being updated every day.
+00:48:40.380 - 00:48:40.806, Speaker A: Yeah.
+00:48:40.908 - 00:48:45.974, Speaker B: It's still encrypted under the same key, right? Yeah, no need to worry about it.
+00:48:46.012 - 00:48:48.950, Speaker A: Exactly. But then when you want to revoke access from one of the parties.
+00:48:49.030 - 00:48:52.060, Speaker B: From one of the parties, just delete these keys for.
+00:48:54.910 - 00:48:55.754, Speaker A: Mean.
+00:48:55.952 - 00:48:57.258, Speaker B: Charlie still has access.
+00:48:57.344 - 00:49:02.446, Speaker A: Charlie still has access to the new data and Bob has only access to the old data. Pretty much.
+00:49:02.548 - 00:49:08.830, Speaker B: Well, not the keys have changed here. Not the key has not changed.
+00:49:09.650 - 00:49:12.866, Speaker A: So if key did not change, if.
+00:49:12.888 - 00:49:24.914, Speaker B: Bob continues to hold on to that key ciphertext, he can only re encrypt. We have Ca. Oh, you said Ca one, Ca two.
+00:49:24.952 - 00:49:27.940, Speaker A: Yeah, it's every day just dumping in you.
+00:49:28.330 - 00:49:36.470, Speaker B: Okay, I misunderstood just a little bit there. So in this case, Bob has to perform this re encryption for new pieces of data.
+00:49:36.540 - 00:49:36.966, Speaker A: Yeah.
+00:49:37.068 - 00:49:42.458, Speaker B: So if Alice revokes access to Bob, he can't get the updated data.
+00:49:42.544 - 00:49:46.714, Speaker A: Yeah. Even if the private key is the same. I see.
+00:49:46.752 - 00:49:51.510, Speaker B: And then in this case, the Charlie will continue to have access this. Is that very similar to that Netflix?
+00:49:51.670 - 00:50:06.020, Speaker A: Yeah, exactly. So then to break into this, you need to actually go Collude with all these guys, recover the private keys this wasn't coded with, then you can have access to it. But of course, free Netflix right there.
+00:50:06.630 - 00:50:17.958, Speaker B: But the problem is, too, is that for people who are building this, typically they'll have more complex kind of schemes like that where it's like, maybe we do key rotation on movies that we.
+00:50:18.044 - 00:50:19.080, Speaker A: Exactly. Yeah.
+00:50:19.690 - 00:50:52.254, Speaker B: Now it's worth it. So what new cipher is it's layer two protocol. It's a very low level permit for people to start constructing these applications. And our goal is to eventually make this so misuse resistant and so easy that I don't know if you've taken a look at our libraries before, but we literally call our stuff Alice and Bob Ursula. We have these names in our code base, so people know exactly what they're building. They don't need to worry about who is. And if they want to, they absolutely can, but they don't need to worry about those kinds of things.
+00:50:52.254 - 00:50:55.438, Speaker B: That way they can always know. Oh, I'm an app. Oh, I'm a Bob.
+00:50:55.534 - 00:50:55.970, Speaker A: I see.
+00:50:56.040 - 00:51:05.378, Speaker B: And they can figure out exactly who to be in that situation. Sometimes Alice is. Yeah, I'd rather. Sometimes Bob is know.
+00:51:05.544 - 00:51:09.640, Speaker A: All right. I've got some inception right there.
+00:51:10.170 - 00:51:15.266, Speaker B: Yeah. It's pretty straightforward.
+00:51:15.378 - 00:51:17.340, Speaker A: Yeah, it's very nice. I mean, I like it.
+00:51:17.950 - 00:51:27.910, Speaker B: Again, very simple cryptography. Probably not. It's like one of the. Probably more simplistic protocols. And we just gain a ton of security just from distributing.
+00:51:27.990 - 00:51:44.962, Speaker A: Yeah. Just so when I'm recording the new keys, let's say I'm analysis. In this case, I create this new re key for Bob. Do I do this on chain or do I just send it to them.
+00:51:45.016 - 00:51:47.246, Speaker B: And hope so on chain?
+00:51:47.278 - 00:51:52.898, Speaker A: What happens is you just send a grand transaction saying you did it.
+00:51:52.984 - 00:51:58.420, Speaker B: Right. So Alice will go to a smart contract which has a list of our.
+00:52:01.290 - 00:52:03.334, Speaker A: Yeah, it's like everybody who stakes, right?
+00:52:03.372 - 00:52:05.378, Speaker B: Yeah. And so what she calls is like a sample.
+00:52:05.474 - 00:52:06.642, Speaker A: Or I call them Stoke.
+00:52:06.706 - 00:52:15.974, Speaker B: Yeah. Sample per stake. Right. And on the output, she'll get a list of. List of nodes.
+00:52:16.022 - 00:52:19.814, Speaker A: Is it just addresses or how do you identify nodes?
+00:52:19.862 - 00:52:20.874, Speaker B: Addresses, right. Yeah.
+00:52:20.912 - 00:52:27.038, Speaker A: Okay. But we have a, you have routing table, we don't use a routing something.
+00:52:27.124 - 00:52:28.862, Speaker B: We actually published a blog post on this.
+00:52:28.916 - 00:52:29.678, Speaker A: All right.
+00:52:29.844 - 00:52:30.938, Speaker B: A lot of people are using peer.
+00:52:30.954 - 00:52:35.018, Speaker A: To peer solutions like cademlia, stuff like DHT.
+00:52:35.194 - 00:52:44.850, Speaker B: We started out with cademlia, but it turned out it was kind of not great for us to use it that way. DHT is really annoying to handle. There's a lot of.
+00:52:45.000 - 00:52:48.146, Speaker A: Yeah, I know a lot of people.
+00:52:48.168 - 00:53:02.122, Speaker B: Are saying washington is an interplanetary solution, but we were like, we don't need that either. That's like all this complexity for some that we don't need. So what we do is our network is actually not going to be that massive at the time. We only imagine 1000 nodes or something.
+00:53:02.176 - 00:53:02.586, Speaker A: Yeah.
+00:53:02.688 - 00:53:06.874, Speaker B: We just need a very naive, what we call learning. We have speed nodes, very similar to how bitcoin works.
+00:53:06.912 - 00:53:07.402, Speaker A: Yeah. Okay.
+00:53:07.456 - 00:53:12.730, Speaker B: You just go to one node and say who do you know about? They tell us the node will go to those nodes. Who do you know about?
+00:53:12.800 - 00:53:14.140, Speaker A: We did the same thing.
+00:53:14.670 - 00:53:19.210, Speaker B: Cool. Yeah. We'd actually love to share your thoughts on that together.
+00:53:19.280 - 00:53:19.900, Speaker A: Sure.
+00:53:20.870 - 00:53:38.278, Speaker B: Them, but yeah. So then alice will go to these nodes and give the reencryption key to them. So what she does is this is where she pays. Alice will pay here and say, I'm ready to stake, I'm ready to put a policy in. She puts in a deposit for the length of time she wants. Smart contract says, here are some nodes based on the stake and based on.
+00:53:38.284 - 00:53:39.698, Speaker A: The requirements that you give a stake.
+00:53:39.794 - 00:53:43.334, Speaker B: Sometimes you only want to have nodes that are staking over a certain amount.
+00:53:43.372 - 00:53:46.882, Speaker A: You want them to be like, yeah, they're invested.
+00:53:46.946 - 00:54:11.520, Speaker B: Yeah, they're invested in the network. I only want people who are staking well over a good amount of money. You can do that. So you get out these nodes and then she goes to each one off chain, says, here's a reencryption keypress, and then that's it. She records them all into what we call that treasure map, gives that to Bob. Bob will be able to go to those notes and be like, I am me, this is my proof, I have the keys, blah, blah, blah, blah, and then perform the re encryption. Get it up.
+00:54:12.690 - 00:54:26.514, Speaker A: I see, cool. So Alice does need to run some piece of client, right for that to actually just cover the nodes and do some stuff. Are you guys planning to do that in JavaScript or. Right now it's like everything's in python for us.
+00:54:26.712 - 00:54:50.810, Speaker B: Yeah. So we can run. We're pretty early with our library tooling. We have a ton of stuff that people have built for us in JavaScript, something that we've built with character control. So if people want to use JavaScript for this, they can run a node on their platform and then call out to it. So yeah, we're working on building different ways of doing that. Eventually we'd like to be able to do just our learning loop.
+00:54:51.470 - 00:54:52.170, Speaker A: Exactly.
+00:54:52.320 - 00:54:53.406, Speaker B: So cool, because then you don't need.
+00:54:53.428 - 00:54:56.190, Speaker A: To in the front end. Yeah, just like it loads a little bit.
+00:54:56.260 - 00:55:04.938, Speaker B: The main thing that we want to try because something we believe is just the security and the safety of our users, and that misuse resistance part is people are so desperately like I want.
+00:55:04.964 - 00:55:06.414, Speaker A: To encrypt stuff in JavaScript.
+00:55:06.542 - 00:55:39.178, Speaker B: Yes, we know you want to encrypt stuff in JavaScript, we know you want to generate re encryption keys in JavaScript, but it's just not safe enough yet. It's just not safe enough. We don't like JavaScript based cryptography, there's still a lot of problems with it and the browser is just not a secure platform. Clearly we know that there's so many vulnerabilities that come out for it all the time, and for data like this we just don't want people to do that. We'd rather have people build applications that are specific to that. And then slowly when we gain more assurance and figure out how to do more and more stuff, that's when we.
+00:55:39.184 - 00:55:42.862, Speaker A: Can start adding this. Cool.
+00:55:42.916 - 00:55:50.938, Speaker B: Maybe a new cipher browser extension one day, which we actually have looked heavily into building, so we can actually call out and using native messaging to communicate.
+00:55:50.954 - 00:55:53.390, Speaker A: With our, which would be fantastic.
+00:55:53.470 - 00:56:25.702, Speaker B: So all it requires to do is typo everything our network, we have our federated testnet up, we just launched last night the beginnings of our decentralized testnet, and it's going good so far. So that's not available for the public quite yet. Maybe when this video is published maybe it will be. But yeah, things are going well. So if people want to test on our network and build stuff on it, they can absolutely do everything I just described.
+00:56:25.846 - 00:56:26.346, Speaker A: Nice.
+00:56:26.448 - 00:56:27.642, Speaker B: We actually work.
+00:56:27.776 - 00:56:34.222, Speaker A: Yeah, awesome. Well yeah, that was super great. Learned a little bit too. So yeah, thanks a lot.
+00:56:34.276 - 00:56:34.974, Speaker B: Yeah, thank you.
+00:56:35.012 - 00:56:40.474, Speaker A: All right, check it out on we have a discord.
+00:56:40.602 - 00:57:12.010, Speaker B: If you go on our discord, go on our website, newspaper, go on our discord and you'll be able to see, join us, see all of our development. It all happens in the public, so you can see us having arguments, discussions on how to build stuff. Our team's distributed, so that's the main place where we communicate. You can go on there and see the other applications we've built. We have an fhe library, so if you know what fully homomorphic encryption is, I'm not going to get into it now. But we have the world's fastest fully homo orphanage library, so maybe another time.
+00:57:12.080 - 00:57:13.750, Speaker A: Another time. Next episode.
+00:57:13.830 - 00:57:23.114, Speaker B: Yeah. Then after that, we also have a lot of our documentation there in our GitHub, so feel free newsipher.com, GitHub.com newsypher. Check us out.
+00:57:23.232 - 00:57:25.030, Speaker A: Thanks, everybody. Stay tuned for next episodes.

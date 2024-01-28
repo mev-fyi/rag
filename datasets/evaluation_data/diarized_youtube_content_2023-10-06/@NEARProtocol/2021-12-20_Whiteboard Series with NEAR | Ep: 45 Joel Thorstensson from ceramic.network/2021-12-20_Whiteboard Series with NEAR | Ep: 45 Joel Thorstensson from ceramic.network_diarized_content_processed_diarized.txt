@@ -1,0 +1,231 @@
+00:00:04.650 - 00:00:20.270, Speaker A: Welcome back to Whiteboard series. It's been a unfortunate break due to Corona, but we're back now that things are getting back to normal. And I have Joel here from ceramic to really dive in into how ceramic works. So, Joel, please introduce yourself, and let's dive in.
+00:00:20.340 - 00:00:31.062, Speaker B: Cool, thank you. So my name is Joel. I'm co founder and CTO at three box labs, and we're really kind of the creators of ceramic network and, yeah, I guess let's dive in, maybe before.
+00:00:31.116 - 00:00:33.858, Speaker A: This, which problem ceramic is solving.
+00:00:33.954 - 00:00:34.854, Speaker B: That's a good point.
+00:00:34.892 - 00:00:35.480, Speaker C: Yeah.
+00:00:35.930 - 00:01:10.142, Speaker B: So ceramic is a protocol for mutable data objects, where you have objects that live under the centralized network, and they have a controller, some user that can change and mutate the object over time, essentially get a history of how the object was changed over time, and you get kind of like an immutable kind of log of what has happened. And these objects are independently verifiable. So you don't need to kind of sync the state of an entire blockchain to validate the state of one object. So that's kind of like very high level of ceramic.
+00:01:10.206 - 00:01:16.610, Speaker A: There's a decentralized object store that people can use, but then with kind of auditable log.
+00:01:16.760 - 00:01:17.410, Speaker B: Yeah, exactly.
+00:01:17.480 - 00:01:18.600, Speaker A: They can rely on.
+00:01:19.770 - 00:01:20.326, Speaker C: Cool.
+00:01:20.428 - 00:01:22.246, Speaker B: All right, so are we ready to dive in?
+00:01:22.268 - 00:01:23.014, Speaker A: Yeah, let's do it.
+00:01:23.052 - 00:02:00.782, Speaker B: All right. Log is made up of these events, something called commits. And so we start creating an object by creating a genesis event. And this event might be just a data object that contains how to best visualize this. We have like a controller, and this is basically like the user id. So we might dive into this deeper. The did is like an abstract way of representing a user in a decentralized network.
+00:02:00.782 - 00:02:53.138, Speaker B: And then it might have some other metadata. All right, so once we have this, we've generated the stream id based on this. This is kind of the unique identifier of an object in ceramic. So now a user can go about creating an update that is assigned commit, and that is also, all of these objects are stored in iPLd. And IPLD is essentially a way to represent hash linked data. So this object has a pointer that points to the hash of the Genesis object. And this commit contains a signature issued by the users, and that's essentially it.
+00:02:53.138 - 00:03:41.300, Speaker B: Then it contains a patch for how the object is updated. So in ceramic right now, we have support for something we'll call a tile document, which is essentially like a JSON object, and the patch is just a JSON patch. So you have a JSON patch, and then these sign commits can be added over time and they link back and create this kind of like event log. And then in order to kind of get some kind of real sense of time into the system, because without this, you kind of need to either trust completely. Like if there's timestamps, if the user puts a timestamp in there. So we have another system that basically creates something called anchor commits or anchor events. So this can call it a, and this also points back to the previous one.
+00:03:41.300 - 00:04:17.440, Speaker B: And this essentially contains some metadata data information that's like which chain id it was anchored to. And like a transaction usually. So this is usually done by some kind of anchor service that can take a bunch of updates to a bunch of different streams, generate a Merkel tree and put the root on chain. So usually it contains like a Merkel witness as well.
+00:04:18.530 - 00:04:21.040, Speaker A: Does a merkle witness across a bunch of object?
+00:04:23.250 - 00:05:14.530, Speaker B: Yeah, so imagine this kind of stream. There are multiple of these, there are multiple objects updated by multiple users. So anchor service is essentially like an actor in the network that takes requests from users and takes the sign commit and batches a bunch of those into a Merkel tree and puts the root on chain, and then it kind of gives back this anchor commit that contains anchor. This was anchored on this chain id. Right now it's Ethereum mainet transaction hash and a path through the Merkel tree. And then you can continue updating the stream like this. So this is kind of the data structure.
+00:05:14.530 - 00:06:54.020, Speaker B: And so a ceramic node, basically either you create a stream on that node, so then you have kind of all this data. When you make an update to one of the streams, you publish an update in a lib PDP pub sub network, so that anyone can kind of that is interested in that stream, can update and sync that stream. That's essentially it. And then second part of this is we have a query system that allows you to, if you're a new node in the network, you want to sync any particular stream, you have the stream id, you want to find what the latest commit is or what the latest update is. So to do that, you basically look into right now in this, we use the IPFs DHT and basically put saying a node that pins the stream basically says, hey, I have this stream ID, put it in the DHT and then put, so the IPFs DHT basically works like you say you have an object and then you put your IP address or like your multi address into the DHT. So we can basically find all the peers that pin this stream. And so we walk the DHC into find all the peers that have this stream, and then we ask them like, hey, what's the latest update? And you sync the log and then you kind of verify the history of this log from the beginning to the latest update and then reduce the state based on that.
+00:06:55.590 - 00:06:56.978, Speaker A: I have a ton of questions.
+00:06:57.144 - 00:06:57.860, Speaker C: Great.
+00:06:58.550 - 00:07:21.834, Speaker A: So I guess let's start with the last thing you said, which is, let's say I want to find the latest state of an object. And so how frequently are this? I'm assuming pretty much the way for me to determine if this is a late state or not is to look for anchor commits. Like if I'm getting from multiple nodes, I'm getting different state.
+00:07:21.952 - 00:07:50.866, Speaker B: Yeah. So if you get different states, there is a conflict resolution that basically is based on earliest anchor rule. So if we have a stream here and I'm going to represent it upwards instead. So we have one commit here and one commit here. Sorry.
+00:07:50.968 - 00:07:52.740, Speaker A: So camera can see that.
+00:07:53.590 - 00:07:54.530, Speaker B: You can see it.
+00:07:54.600 - 00:07:54.882, Speaker C: Good.
+00:07:54.936 - 00:08:50.840, Speaker B: Okay, great. And then, so let's say there is like one anchor commit here, and then the other anchor commit is like later. This means that you get these two branches and there might be like other commits after here, you'll resolve to this. Basically this conflict logic will say like this was anchored earliest, so this will win. That's the current kind of current conflict resolution. We are also looking into various ways of merging as well, using crdts. But this is kind of like a simple way of doing it.
+00:08:50.840 - 00:09:00.602, Speaker B: And so you can think of an attack on this might be that you basically publish this thing and then you don't reveal this.
+00:09:00.656 - 00:09:01.354, Speaker C: Right.
+00:09:01.552 - 00:09:42.200, Speaker B: And then you later reveal it and then you kind of change the state. And so in a blockchain where you're tracking financial transactions, that's a problem because then you can steal money. But ceramic is primarily aimed at user centric data. So if you do this, you kind of do this and then later reveal kind of the main person that's affected by that. Because this stream id is controlled by you and it's controlled by your identity. You're basically, basically revoking things you've done. And it's probably mostly harmful to you and your reputation that you built up on this account.
+00:09:43.050 - 00:09:44.886, Speaker A: Well, it depends how people are using it.
+00:09:44.908 - 00:09:45.238, Speaker C: Right.
+00:09:45.324 - 00:10:00.566, Speaker A: Because as soon as you do some data stories, people will use it for financial transactions. But, yeah, like for example, if somebody wants to publish stock prices or updates or whatever, that can be a data structure to do it.
+00:10:00.688 - 00:10:11.360, Speaker B: Yeah, it can be. We're pretty trying to make people like this is not meant for financial transactions, it's meant for primarily like user centric data.
+00:10:13.830 - 00:10:22.100, Speaker A: Okay. I guess for me to understand how this can even happen, is the anchoring service just literally like it doesn't care, just find something.
+00:10:24.470 - 00:10:29.302, Speaker B: We run an anchoring service and we make sure that this doesn't happen. But someone else can run an anchoring service.
+00:10:29.356 - 00:10:29.670, Speaker C: Right.
+00:10:29.740 - 00:10:30.360, Speaker B: Okay.
+00:10:32.170 - 00:10:35.320, Speaker A: Should there be a consensus on anchoring services? Kind of.
+00:10:35.850 - 00:11:13.060, Speaker B: Right. That might be interesting to explore. When we decided signed this protocol, we had this kind of like identity use case in mind. And the problem we're trying to solve with these anchors is like key rotations. So you imagine the stream represents an account, a did. So a did is essentially a way to go from an abstract identifier to a document that contains public keys. And if you have these two branches, someone has rotated a key.
+00:11:13.060 - 00:11:37.350, Speaker B: If we were to go with this branch, someone that steals key, those like in the start, in the start, they could potentially create a new update in the future. And so we need to go with this kind of earliest anchor rule because the earliest rotation of the key needs to be the one that's valid, otherwise the key rotation part wouldn't be secure.
+00:11:37.430 - 00:11:38.300, Speaker A: Got it.
+00:11:41.090 - 00:11:41.854, Speaker C: I see.
+00:11:41.972 - 00:11:49.118, Speaker A: And then for anchor, for this information to get the actual timestamp, you need to fetch the transaction from the chain, right?
+00:11:49.204 - 00:11:50.080, Speaker B: Yeah, exactly.
+00:11:51.570 - 00:11:52.320, Speaker C: Cool.
+00:11:54.550 - 00:12:26.310, Speaker A: You're saying, let me just kind of draw how instead. So you have like DP to P on the bottom as your kind of networking stack. You use some pub sub here. This is where pretty much you have nodes which store kind of data. Presumably anybody can publish updates.
+00:12:26.470 - 00:12:30.970, Speaker B: Exactly. So like nodes choose which streams that they want to replicate.
+00:12:34.530 - 00:12:43.280, Speaker A: As a user I want to store some data. How do I tell which nodes are tracking this? Or how do I tell them to track.
+00:12:44.130 - 00:13:05.400, Speaker B: So right now developers in their application configure which node that they use. So right now it's kind of like on the developer to make sure that their user that they care about for their application is pinned. Yeah. So that's roughly, it is like right now, in theory a user could spin up a node and replicate their data.
+00:13:08.730 - 00:13:24.462, Speaker A: Inside node. This data stared. You have this log and you'd probably have just like a latest stream id to latest state.
+00:13:24.596 - 00:13:25.758, Speaker B: Yeah, exactly.
+00:13:25.844 - 00:13:27.470, Speaker A: So this is queryable.
+00:13:30.930 - 00:13:33.194, Speaker B: From an HTP API. That's a node exposed.
+00:13:33.242 - 00:13:33.840, Speaker C: Okay.
+00:13:34.610 - 00:13:43.346, Speaker A: And you said you have a DHT somewhere which is stream id to hash or to ip address.
+00:13:43.448 - 00:13:45.542, Speaker B: Yeah, the stream id to node peer id.
+00:13:45.596 - 00:13:46.102, Speaker C: Right.
+00:13:46.236 - 00:13:49.590, Speaker B: Okay, so that's also in the PDP.
+00:13:50.170 - 00:14:00.470, Speaker A: Okay, so presumably even a web can, you know, web thing can connect to this query, find IP address and then request via HTP.
+00:14:02.190 - 00:14:03.722, Speaker B: What do you mean by web thing?
+00:14:03.856 - 00:14:05.066, Speaker A: Like a web page?
+00:14:05.248 - 00:14:29.330, Speaker B: Yeah. Yes. But JavaScript implementation of Lipidp is fairly limited. But in theory it's possible. Generally, I guess the lipidp implementation can expose like a websocket. So you could connect to that. But crawling the DHT in web is kind of fairly expensive.
+00:14:29.330 - 00:14:30.818, Speaker B: But it's possible.
+00:14:30.984 - 00:14:38.006, Speaker A: Well, I mean you just need to, this is DHT, right? You can just query the DHt with some peers that you have connected to.
+00:14:38.108 - 00:14:42.120, Speaker C: Yeah. Okay, cool.
+00:14:44.010 - 00:14:54.042, Speaker A: It would be good to probably dive in into did here. And also how, like you mentioned kind of the did use case using ceramic on top.
+00:14:54.096 - 00:14:54.266, Speaker C: Right.
+00:14:54.288 - 00:14:55.274, Speaker A: That would be interesting as well.
+00:14:55.312 - 00:14:55.466, Speaker C: Yeah.
+00:14:55.488 - 00:15:01.930, Speaker B: So we actually used the stream to represent the did that's actually also like an author of a stream.
+00:15:02.670 - 00:15:05.834, Speaker A: Okay, so you're going meta.
+00:15:05.882 - 00:15:07.502, Speaker B: Okay, yeah, exactly.
+00:15:07.556 - 00:15:09.726, Speaker A: Is did actually a stream id?
+00:15:09.908 - 00:15:35.400, Speaker B: Yeah. So it could be, it can be. We support internally we have a did method called three id and that's based on this. But we also support other dad methods based on ethereum and whatnot. Okay. So in general, like a did is simply like, yeah, perfect. It's a little bit loose, I think.
+00:15:35.400 - 00:16:57.470, Speaker B: Do you want to raise? Okay, we can keep whatever, yeah. Okay, let's go redraw. So a did is very simple. Can I use that? You basically have an identifier. So this is a URL that's defined as did colon and then a method, and then an identifier. Um, and so this is the URL that you resolve to a dad document. And so this document contains like verification methods.
+00:17:05.370 - 00:17:06.120, Speaker C: It.
+00:17:08.650 - 00:18:16.940, Speaker B: So that might be signature key, like public or key exchange key. So it's essentially a way to have like an abstract identifier that resolves to some document that contains the public keys that are in used by this did at this point in time. So an example, we have a did method called the did three. And then it's just like, I don't know, like KJ, that's a stream id. And so this resolves using a ceramic stream to a did document that contains this type of kind of thing. Yeah, so that's essentially it basically. There are also like did methods that are very simple, like did.
+00:18:19.710 - 00:18:20.460, Speaker C: Key.
+00:18:21.630 - 00:18:26.222, Speaker B: And this is basically just how. Just a key.
+00:18:26.276 - 00:18:26.814, Speaker A: Public key.
+00:18:26.852 - 00:18:27.150, Speaker C: Yeah.
+00:18:27.220 - 00:18:35.540, Speaker B: Pub key in here. So that supports like Sig P.
+00:18:38.870 - 00:18:39.698, Speaker C: K one.
+00:18:39.784 - 00:18:45.946, Speaker B: K one. It supports r one. It supports Edison Curtis.
+00:18:45.998 - 00:18:46.600, Speaker C: Yeah.
+00:18:49.930 - 00:18:54.182, Speaker B: It supports like BLS. It supports most of the useful ones.
+00:18:54.236 - 00:18:54.840, Speaker C: Okay.
+00:18:57.790 - 00:20:03.258, Speaker B: There's also a new one that we worked on with spruce id that's called did PKh. And then it contains something called cap ten account id. And what this is, is essentially a way to represent a blockchain account on any blockchain. So an example is did PKH, eip one five five main net, and then zero x one two three ABC. And you could do something similar with near. I think with near we have like PK near main net. I don't know how a near address is usually defined.
+00:20:03.354 - 00:20:04.960, Speaker A: Near or ilya near.
+00:20:05.730 - 00:20:06.190, Speaker C: Okay.
+00:20:06.260 - 00:20:09.790, Speaker A: I mean it's pretty much a string.
+00:20:10.530 - 00:20:11.280, Speaker B: Okay.
+00:20:13.890 - 00:20:20.980, Speaker A: Just put you in the taxpayer, didn't I? Yeah. Okay, cool.
+00:20:24.390 - 00:20:33.350, Speaker B: Yeah, I mean you can create any type of dad method, right. So this kind of resolves to a DHA document that basically says like how to verify that. Yeah, essentially.
+00:20:35.130 - 00:20:37.750, Speaker A: But do you have actual code there or how does it.
+00:20:37.820 - 00:20:58.462, Speaker B: No, it doesn't have actual code. That's kind of like an annoying thing. You can specify verification methods that hire different things. So for each kind of curve in each thing, you have to have a specific. Yeah, and it needs to be like, okay, this is how it's verified. So that's like go officially. It needs to go through the w.
+00:20:58.516 - 00:21:04.498, Speaker A: Three cid standard for w three c. Yeah.
+00:21:04.584 - 00:21:05.220, Speaker C: Okay.
+00:21:06.550 - 00:21:40.700, Speaker B: And so this is actually something we're pushing through or working on with the credentials community group in w three c. So make that into a more official thing. Did key is like I guess one of the main kind of references. But I think the did community in general a little bit doesn't really like did key because it's like, oh, but you can't rotate keys, but it's like super useful primitive. And I think deadpth is going to be similarly useful to dead key.
+00:21:41.790 - 00:21:49.306, Speaker A: It's definitely useful even if it's not. I mean, the reason why they have named account is that you can rotate keys well and have many keys, et cetera.
+00:21:49.338 - 00:21:49.486, Speaker C: But.
+00:21:49.508 - 00:22:10.966, Speaker A: Yeah, okay. No, that's interesting. But right now for this to be, you need to implement it all on the node pretty much for every single verification Method. And then even for pths. Right. You will need to implement every single sub.
+00:22:11.068 - 00:22:32.410, Speaker B: Yeah, that's right. So it would be nice if there was an abstract way to find a cad method and find the reference implementation. Fetch that code. There are some projects working on that type of dynamic code loading, but none are super solid yet as far as I know.
+00:22:32.560 - 00:22:38.394, Speaker A: Yeah, I mean, I think with webassembly that's probably the way to do it. You have webassembly modules.
+00:22:38.442 - 00:22:55.060, Speaker B: Yeah, definitely. I mean, it's easier for these kind of things, which is kind of like static. Yeah, I don't know. So these are like public key hashes, I guess basically based on this is the hash of a public key. So you don't need to resolve anything, you can just verify it.
+00:22:55.750 - 00:22:59.410, Speaker A: You need to actually fetch the current set of keys.
+00:22:59.490 - 00:23:09.370, Speaker B: Right. So I don't know if this PTh would actually work for near accounts. That's something that we probably need to explore. I think right now we have like.
+00:23:09.440 - 00:23:10.922, Speaker A: This is closer to this actually.
+00:23:10.976 - 00:23:11.242, Speaker C: Right.
+00:23:11.296 - 00:23:15.180, Speaker A: Because this actually resolves to stand up keys that you can.
+00:23:17.390 - 00:24:01.834, Speaker B: So there are standard interfaces for resolving a did. But yeah, it would be ideal if we could dynamically resolve these types of things, but ultimately it kind of becomes like if the node has support for a lot of did methods, that kind of puts a lot of external dependencies in terms of trust. Yeah. So I guess it would be interesting to talk about. So this did PKH. The reason we are interested in that is we're building an object capability system to do authentication into ceramic, because right now you kind of need some kind of system. For our very simple case, we have a did key.
+00:24:01.834 - 00:24:41.400, Speaker B: You need to store the private key somewhere, and so you could generate a private key for did key and store it in the browser. And that's fine for short lived things. If you have a did three, we want to keep those keys secure. And right now we have a system that involves an iframe and involves signatures a little bit involved. And using an iframe is obviously not the best security practice. So what we want to do, and let's maybe clear some space here. No, I don't think so.
+00:24:41.400 - 00:24:56.134, Speaker B: So we want to use the did PTH as like a root identity or like as a base to issue capabilities to create streams in ceramic. And so imagine we have a wallet.
+00:24:56.182 - 00:24:56.940, Speaker C: Up here.
+00:24:59.970 - 00:26:28.410, Speaker B: And it has an address that's represented as it did BKh. So what we want to do is signing things with this thing could be done, but that requires the walls to pop up like a signature and do that every time. So if we have the DAP, right, I don't know how much space I'm going to need for this. We have DAP, and so the DAP can, the idea for the object capability system is that we have DAP, it can generate a dead key and then it requests a capability from the wallet. And that's basically a signature that includes like domain dead key. I realize this might be super small. Let me redo this and maybe some like TTL and then caveats.
+00:26:28.410 - 00:27:27.334, Speaker B: So let's say the app once get access to stream a, stream b. So this is signed and then returned to the DaP, right? So they get the signature. And now the DAP has this capability, this object capability, OCAp. They come from here. And if now the DaP wants to update stream a, it can simply create a commit. So let's say we have stream a over here. So here's the genesis.
+00:27:27.334 - 00:28:22.510, Speaker B: And this is stream a. So now when I create an update signed and this is signed by the did key. And in the header of this signature, or the things that signed, we include the Ocap. So now when a ceramic node is verifying the event log, you can see like, oh, this was signed by this did key, but it's including an object capability. And then see that, okay, this object capability was actually owned, signed by this. Yeah, exactly. So this is like did PKH.
+00:28:22.510 - 00:29:17.646, Speaker B: And so this will allow us to have these session keys that maybe it gets multiple access. Maybe we can have other types of caveats that include you can only write to this particular subsection of the stream or only make this particular update. So you can have more granular permissioning inside of the data that you give Dapps access to. And one cool thing about ocaps, we're not going to have this in the first version, but it's that in theory this dead key could live in adapt or it could live on someone's backend, or it could live wherever. But the wallet gives access to the dead key here. This dead key could potentially delegate it, delegate it, and say like they could attenuate and say like only access to stream b and not access to stream a.
+00:29:17.668 - 00:29:19.790, Speaker A: So you would just like sign with.
+00:29:19.940 - 00:29:21.758, Speaker B: So you would sign with actually this key.
+00:29:21.844 - 00:29:26.100, Speaker A: Yeah, it was this key you add next.
+00:29:30.710 - 00:29:31.362, Speaker C: Sorry.
+00:29:31.496 - 00:29:37.062, Speaker A: And so you add like extra caveat on top of this stream b, right?
+00:29:37.196 - 00:29:42.200, Speaker B: Yeah. And so this would be signed by the did key.
+00:29:48.490 - 00:29:49.240, Speaker C: Interesting.
+00:29:52.890 - 00:30:29.350, Speaker A: Yeah, I mean it's somewhat similar to our model, but yeah, our model is like this. And then DaP or whatever back end has a key. And so you sign that, you want to add key, right. Key you add for which contract. So it's kind of domain and which methods you can call. And you have a gas limit, pretty much gas allowance as you can just send a ton of transactions. And then, so this goes on chain.
+00:30:29.350 - 00:30:33.800, Speaker A: And now you can use this to send transactions with this.
+00:30:34.250 - 00:30:51.034, Speaker B: In this model you have this access list of all the accounts that have access, whereas in here we don't need to keep this state anywhere. This DaP is responsible for keeping this all cap around and only displaying it once it's used. Like including it once it's used.
+00:30:51.232 - 00:30:51.546, Speaker C: Yeah.
+00:30:51.568 - 00:30:58.730, Speaker A: I think the problem is if you're a wallet displaying, who did you give that permissions to across multiple devices?
+00:30:58.810 - 00:31:43.134, Speaker B: That's what. So one thing you could do is actually store caps. This OCap could get permission to also write itself to another object store. Yeah. And you could have potentially other caveats is like, only if this is false. So you can have revocation lists for this. And that could be like, in theory, you could make ocaps, like very generic, general, I think ocaps is actually when it was invented, it's used on an operating system level where having these kind of access control lists is really expensive because you kind of need to check them and keep track of them.
+00:31:43.134 - 00:31:47.934, Speaker B: Whereas here you kind of only have this object wherever you need it.
+00:31:48.132 - 00:31:59.154, Speaker A: Yeah, for sure. It's cheaper. You still may have multiple. Your PKh here is itself maybe complex to verify. Like your did here may be complex to verify, right?
+00:31:59.352 - 00:32:00.100, Speaker B: Yeah.
+00:32:01.910 - 00:32:06.486, Speaker A: And if you rotate a key here, this ocap have.
+00:32:06.668 - 00:32:06.966, Speaker C: Yeah.
+00:32:06.988 - 00:32:34.810, Speaker B: If you rotate the key, this ocap would be invalidated unless there's anchor here. So this is anchored before the BKh in some public key that supports key rotation. Then you can see like, okay, that particular version of the did, so it's still valid. But if they tried to use this ocap later, it wouldn't be valid.
+00:32:34.970 - 00:32:58.886, Speaker A: So let's say is PKH able to pull pretty much. How does this did PKH or others that pull external information work? Right, because in this case you're saying if I'm revalidating and at this point I need to verify that this is signed by this did PTh. But if this PTH is external, you.
+00:32:58.908 - 00:33:36.820, Speaker B: Mean if it rotates keys? Yeah, self rotates keys. So PTH is static. We can't rotate keys there. Whatever. So what we actually do when we sign thing is we actually include the did that signed it, and it actually points to the specific, if you remember in the did document, there's a verification method. So you might have like multiple public keys. So we actually have a query param here that's like version, version iD.
+00:33:36.820 - 00:34:23.850, Speaker B: And this version id says that this is the particular version of the did document that was used to sign, to sign it. And that's included in here. So what you like this version iD? We need to check that it was valid. It wasn't invalidated before this thing was anchored. So when you resolve a did that has a version id, you will also see like you can get stamp of that anchor when this update happened and when the next update happened. So you can check that this anchor that came after. Actually, yeah, this update actually happened in that time period.
+00:34:24.010 - 00:34:32.818, Speaker A: So do you anchor every as anchoring service you run, do you anchor every change? No, because there's like multiple changes.
+00:34:32.904 - 00:34:56.550, Speaker B: Yeah, no, we don't anchor every change right now because of Ethereum Mainet expensiveness. We anchor it twice a day. And obviously that needs to increase as the network grows. But yeah, these kind of transactions are kind of like not really final until it's been anchored.
+00:34:56.630 - 00:34:57.420, Speaker C: I see.
+00:34:58.670 - 00:34:59.034, Speaker B: Yeah.
+00:34:59.072 - 00:35:09.226, Speaker A: Because if you have change the key and then you don't have anchoring for some period of time, then this points to the specific document.
+00:35:09.418 - 00:35:21.938, Speaker B: Yeah, this points to the specific version. If this is the stream for the three id. Yeah, this points to the version id can only point to like an anchor. So if you rotate the keys anchor here.
+00:35:22.024 - 00:35:22.418, Speaker A: Yeah.
+00:35:22.504 - 00:35:44.540, Speaker B: So you need to point to this. Actually, in the implementation, we don't allow you to rotate keys until it's been anchored and then you can rotate again in 380, we kind of anchor every update, but in like generally in streams, we kind of make a bunch of updates in anchor depending on how much it's used. Of course.
+00:35:47.550 - 00:35:54.030, Speaker A: Yeah, this is definitely like where complexity is, if you don't check it in right then.
+00:35:54.100 - 00:36:15.006, Speaker B: Yeah, no, it's definitely, and this thing, this was in the dad core specification, but the ability to check when was the last update and when is the next update. That was not something that we had to add that to the dad core and we barely got it in for conversion. One, we're like, this is a bug because otherwise it doesn't really work in trustless systems.
+00:36:15.038 - 00:36:15.378, Speaker C: Exactly.
+00:36:15.464 - 00:36:36.394, Speaker B: And they're like trustless systems. What's that? Like a bunch of web two people building this decentralized identifier spec. Well, I mean there is a bunch of projects in the kind of web three ecosystems also like contributing, contributing for sure. But yeah, we found that bug in the last moment of being able to update the spec.
+00:36:36.512 - 00:36:43.038, Speaker A: Yeah, I mean this is where not having consensus always kind of creates problems.
+00:36:43.124 - 00:36:43.422, Speaker C: Right.
+00:36:43.476 - 00:36:48.302, Speaker A: Because you don't have the time. So you're trying to kind of checkpoint at least some surface form better.
+00:36:48.436 - 00:36:51.870, Speaker C: Yeah. Okay.
+00:36:51.940 - 00:36:57.890, Speaker A: No, this is cool. Do you want to talk about kind of, what are you guys thinking for the future?
+00:36:58.040 - 00:37:57.666, Speaker B: Yeah, we can do that. That's kind of very loosely defined. Okay. But this works well for when you have individual user identities and want to be able to, because the revocation is mostly like you kind of slash your own data and your own reputation. We have implemented an experimental feature or experimental did method called did NFT. And obviously that allows you to like, I can update it, then I send it to you and you can update the stream. And so there, this kind of data withholding attack that we talked about is problematic because people can, if I create this NFT, I make a bunch of updates and now you see like, oh, that's super cool, I won't have it and I send it to you, then I can kind of like, I mean you can always look at the history of the data and the things that will change and remake it to that version.
+00:37:57.666 - 00:38:01.446, Speaker B: But it's like for the experience of that, it's really bad.
+00:38:01.628 - 00:38:14.582, Speaker A: But also, how does this work with this problem? Because you change the owner, right? If you give an O cap with an NFT and then you sell the NFt, but you still have an ocap.
+00:38:14.726 - 00:38:40.258, Speaker B: Yeah, I guess like an OCAp would be revoked at the time of transfer, of transfer. But anything that was issued before and used before would still be valid because it would be at the time. There's like a lot of complications. Ideally we'd make this kind of general to any blockchain, but there's complications like querying the historical state of blockchain because.
+00:38:40.344 - 00:38:44.834, Speaker A: Now your version id is actually like some hash or block or something.
+00:38:44.952 - 00:39:40.280, Speaker B: Yeah. So with version id we're actually using version time now. And we have this implemented for a few different Ethereum chains. And it's essentially like you take the version time, you use the graph to basically look up what the state of that, who the owner of that NFT was at that point in time for this type of thing. The streams that we talked about isn't really kind of ideal. And so this is one of the reasons we want to introduce a blockchain where you have streams represented, use this object on chain, you can still have this kind of like event log that happened and kind of verify the history independently that it's actually signed by the right user. So that if there's like an attack by validators or whatever, they can't actually fake which transaction took place.
+00:39:40.280 - 00:40:13.150, Speaker B: And we still want to keep this kind of property of every stream being completely independent so you can kind of sync only the data pieces that you're interested in. I don't know how much it makes sense to dive into that right now. It's like very early in kind of research and development that's kind of what we're going for there. So that will be like, ideally it's also solving a different problem.
+00:40:13.220 - 00:40:13.454, Speaker C: Right.
+00:40:13.492 - 00:40:32.070, Speaker B: Also because one problem with this right now is that you have to run your own ceramic node or you trust a third party to run the node. For most users, they're not going to do that. So the blockchain could potentially also provide like a service where you pay and actually have data and have these streams maintained.
+00:40:36.330 - 00:40:39.420, Speaker A: Makes sense. Anything else we should cover?
+00:40:43.870 - 00:41:09.454, Speaker B: No, I think that's actually like everything I was thinking about, I guess. Well, it could make sense to cover kind of. We have a framework like how you use ceramic on top called self id. And it's a way, kind of like to allow interoperability of data between applications. So we could just go like a brief overview of that.
+00:41:09.492 - 00:41:10.080, Speaker C: Sure.
+00:41:27.710 - 00:42:11.442, Speaker B: So self ID, we also sometimes call it IDX. It's more specifically like the data structure of this thing. But conceptually you can think of it as a big user table. So here we have dids. So we have like did PKH or did three or whatever. And then the columns. Imagine you want to build like a user table that is shared across the Internet.
+00:42:11.442 - 00:43:04.230, Speaker B: Now, if someone goes here and like, okay, developer, I want to have a name for my user. So application a might store that as like a string, but application b might store it as an object. It's like name, string and surname. This is difficult. Also string. And so a user that comes to application a, like creates a name, comes to application b. Application B is broken.
+00:43:04.230 - 00:43:10.314, Speaker B: It's problematic. So we can't have this.
+00:43:10.352 - 00:43:10.554, Speaker C: Right.
+00:43:10.592 - 00:44:09.130, Speaker B: This is bad. So we need a way for developers to kind of define claim names or define things. So we have something called data models. So data model is essentially, they are represented as a stream in ceramic. We have data model one, and it is represented as like a stream id. And this might say like, okay, the data you can find in here has the structure of specific name string, your favorite emoji. I guess that's also like a string enum.
+00:44:09.130 - 00:44:29.822, Speaker B: Yeah, string, but like two characters. And now someone goes to an application and creates an entry here when they're writing to the stream. That's one thing I didn't mention the protocol. We have like an additional feature that allows you to specify a JSON schema for a stream.
+00:44:29.886 - 00:44:32.414, Speaker A: The whole stream? Yeah, Genesis.
+00:44:32.542 - 00:45:18.558, Speaker B: Yeah. At Genesis you can change it, but you can also not allow it to be changed. But basically you specify JSON schema and then the state object needs to conform to that JSON schema. So this schema can be defined in a data model and the data model also contains other metadata, like the name, some description, maybe potentially other metadata in the future. And so an application developer that sees like, okay, this data model one here is super useful for my application. They can just import this into their app and then start pulling that from all the users that come to their application and they can be certain that the data that will get out of this data model is of this format.
+00:45:18.734 - 00:45:22.366, Speaker A: But you said this data model itself is a stream, right? So it can be updated.
+00:45:22.478 - 00:45:23.940, Speaker B: It can be updated, yeah.
+00:45:24.550 - 00:45:25.940, Speaker A: What's going to happen now?
+00:45:27.290 - 00:46:08.420, Speaker B: So this is like a problem in general in these types of systems where you want to be able to have updates over time, but if you're building an application, you might not want to limit yourself to one schema. So there's actually a lot of research going into how can we have schemas that we can change over time but allows us to have the data kind of change with the schema. So that's kind of like an unsolved problem still probably like a good first approach to this is just like not allow the schema to be changed. So that provides solid foundation until those types of systems are more available.
+00:46:09.190 - 00:46:13.730, Speaker A: I feel like, yeah, data models being more permanent. Right. And kind of.
+00:46:13.800 - 00:46:25.720, Speaker B: But really. Yeah, I guess the data model itself doesn't need to be permanent. You might want to have the schema be permanent, but maybe you want to change how the data is backed up.
+00:46:26.170 - 00:46:29.350, Speaker A: I see more metadata there.
+00:46:29.420 - 00:46:50.670, Speaker B: Yeah, there might be more metadata. Maybe you change the description over time or. Yeah, there's like potentially other things you might want to store in this metadata. And it's essentially a way for developers to find, why should I use this data model? It seems useful. So then you can have an infinite amount of columns here, essentially.
+00:46:52.610 - 00:46:55.962, Speaker A: And then you have a discovery problem which is like, which columns should I use?
+00:46:56.036 - 00:46:56.274, Speaker C: Right.
+00:46:56.312 - 00:47:04.786, Speaker B: So then there's a discovery problem. So that needs some other type of system, but we can start thinking about that more once we run into that.
+00:47:04.808 - 00:47:07.686, Speaker A: We have more of those. Yeah, that makes sense.
+00:47:07.868 - 00:47:08.694, Speaker C: No, this is cool.
+00:47:08.732 - 00:47:24.620, Speaker B: Yeah. This is kind of just simple, the framework. An individual user has a stream that stores their row and then there's an individual stream for each cell.
+00:47:27.150 - 00:47:42.650, Speaker A: So when you say stores a row, they have a stream which. Or like they just have a jSon which has like Dm one to another stream iD.
+00:47:42.820 - 00:47:48.290, Speaker B: Yeah, it's just a key value store.
+00:47:48.360 - 00:47:48.980, Speaker C: Okay.
+00:47:49.430 - 00:48:09.506, Speaker B: And obviously if you have a JSON object like that, if it grows very big, it's a problem. So what we want to do is introduce a new stream type that's used something called Hampt hash array map tree and essentially like a Merkel tree that has like a key k bucket and use that as like a key value store. I see.
+00:48:09.628 - 00:48:14.986, Speaker A: Yeah, that's kind of the question I had is like how scalable this all is given the current model.
+00:48:15.088 - 00:48:38.750, Speaker B: Yeah, in this current model you will run into problems when one document is large, one document is really large. And so that's kind of like one of our main focus next year is introducing these new types of stream types that allows you to have this hammed type of key value store and doing similar things for lists.
+00:48:39.810 - 00:48:49.380, Speaker A: But also obviously this is all independent structure, so potentially you can shard the hell out of them. But how scalable this is right now?
+00:48:50.230 - 00:48:51.118, Speaker B: Which aspect?
+00:48:51.214 - 00:48:59.130, Speaker A: Well, the number of streams, like for example, that people can do in parallel and update in parallel, that an individual.
+00:48:59.200 - 00:49:07.386, Speaker B: User can do parallel or that a node can handle. That node can handle, yeah, I mean it depends on how much resources your.
+00:49:07.408 - 00:49:10.634, Speaker A: Node has, but that's a good point.
+00:49:10.752 - 00:49:15.550, Speaker B: Yeah. As you said, you can have multiple nodes that pin different, subsequent.
+00:49:15.890 - 00:49:19.662, Speaker A: So that's already kind of like it's kind of on demand charging pretty much.
+00:49:19.796 - 00:49:22.320, Speaker B: Yeah, you can think of it like that.
+00:49:22.870 - 00:49:28.190, Speaker A: And so if you're getting destroyed by some streams, you can unpin them potentially.
+00:49:28.350 - 00:49:30.740, Speaker B: Yeah, exactly. Cool.
+00:49:31.990 - 00:49:34.130, Speaker A: I guess as document grows for.
+00:49:34.200 - 00:49:36.690, Speaker B: Yeah, I mean that's definitely a problem that needs solving.
+00:49:37.190 - 00:49:49.114, Speaker A: Yeah. It's interesting to think you are trying to kind of have a merkel hash table here, right?
+00:49:49.232 - 00:50:03.274, Speaker B: Yeah, exactly. So that could itself be stored in an IPLD representation. So you could as potentially like a live client of this stream. You don't need to sync the entire tree.
+00:50:03.322 - 00:50:03.486, Speaker C: Right.
+00:50:03.508 - 00:50:18.114, Speaker A: You sync only the just subset that you need. Yeah, it's interesting because it's getting closer and closer to what we all do for blockchains where we have like a mercurialized hash table underneath. Right, right.
+00:50:18.152 - 00:50:43.450, Speaker B: But you might have like for different use cases, you might have different data structures. The merkalized tree is very useful for, or like the hammed kind of like symmetric trees are useful for key value store. But if you're making a list, you probably want to have a different structure and depending on which direction and which way you want to iterate quickly through the list, you have different data structures for those.
+00:50:43.520 - 00:50:44.140, Speaker C: Yeah.
+00:50:45.950 - 00:50:56.030, Speaker A: Right now each smart contract just has a key value store pretty much for it and then lists, et cetera, implemented on top.
+00:50:56.180 - 00:50:56.638, Speaker B: Right.
+00:50:56.724 - 00:50:59.418, Speaker A: So we just have like, yeah, it's.
+00:50:59.434 - 00:51:00.490, Speaker B: A hash map, essentially.
+00:51:00.570 - 00:51:00.766, Speaker C: Yeah.
+00:51:00.788 - 00:51:05.218, Speaker A: It's a hash map for each contract, and then they have permissions to write it, to mutate it.
+00:51:05.304 - 00:51:05.940, Speaker C: Yeah.
+00:51:06.790 - 00:51:12.340, Speaker A: And then underneath is like a mercalized try pretty much, to resolve that.
+00:51:13.270 - 00:51:14.020, Speaker C: Cool.
+00:51:15.130 - 00:51:23.542, Speaker A: All right, I think that's all. Yeah. Thanks. And tune in for more episodes coming soon, I hope.
+00:51:23.676 - 00:51:24.262, Speaker C: Cool.
+00:51:24.396 - 00:51:24.854, Speaker B: Thank you.
+00:51:24.892 - 00:51:34.098, Speaker A: All right, thanks. Maybe before this, which problem ceramic is solving.
+00:51:34.194 - 00:51:35.094, Speaker B: That's a good point.
+00:51:35.132 - 00:51:49.980, Speaker C: Yeah. You. It's important.

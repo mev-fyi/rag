@@ -1,0 +1,346 @@
+00:00:03.210 - 00:00:16.350, Speaker A: Hi, this is Ilya from Nier. And we're here in Beijing with Conflux and Dr. Yang to describe us how conflux works. Do you want to give a little bit intro about yourself and then you can describe the complex?
+00:00:16.770 - 00:00:47.386, Speaker B: Okay. I'm the associate director of complex and I got a phd in cryptography and theoretical computer science. So now I'm handling the protocol design and other data staff of our group. Okay, sure. Why we use tag for the first topic. Yeah, I think you're familiar with blockchain, right?
+00:00:47.488 - 00:00:48.140, Speaker C: Yes.
+00:00:50.270 - 00:01:40.970, Speaker B: Which is, like I say, bitcoin protocol. The Nakamoto consensus, which is logistical chain. So the waste point of bitcoin is TPS is very low. The reason is the bulk is limited size. And the time between bulk is expected to be quite low by the terminate. So how do we increase the throughput of the system? Can we just increase the bug size and reduce the bug time? In fact, we cannot do that directly. If we do that, the chain will focus very fragment.
+00:01:40.970 - 00:01:44.718, Speaker B: Do you know the video?
+00:01:44.804 - 00:01:50.960, Speaker A: Yeah. There's a few things, right. There's like ghost, et cetera, that kind of work around this.
+00:01:53.990 - 00:02:32.160, Speaker B: When you generate a block, you have to broadcast to the whole network. But if the block is larger, then it takes longer to broadcast the block. And if the expected time to generate a block is shorter, then you generate another block. When this one is a film broadcasting. At this point you will have a folk. And if you have very short lock time and quite large lock size, you will have many folks. Right.
+00:02:32.160 - 00:03:14.170, Speaker B: But if you have many folks, then the adversary can attack with much less computing power. It doesn't have to have 51%. It just needs to get say computing power is greater than the gap between these two BBC branches. Then he can make this one to be the main chain and then switch back. Arbitrary. Okay, so let's not face. And the gold rule said we don't choose the bank chain as the consensus.
+00:03:14.170 - 00:03:42.926, Speaker B: Instead we will choose the heavy chain. Let's say this example. Okay. Say we are enter this point. Which one is the next bug in the consensus? If we fumble the bump to the Chain rule. This one is a bump to the chain. But if we fumble the go to the rule.
+00:03:42.926 - 00:04:05.122, Speaker B: Here we have 12345 bugs. Here we have four. So we choose this way to go. And then again we choose this way because we have three here and one here. And now we have a tag. And we don't have control yet for these two box. Okay, so we go to the rule.
+00:04:05.122 - 00:04:55.690, Speaker B: First we have one more box. Now we have main chain in the ghost rule, right? But the ghost rule solved the problem of how to get a consensus on a chain when we have very short block time. But you see, we have many blocks off the goat chain, many blocks are wasted. They have transaction, but the transactions are not valid, not processed at all. But still they also need to be broadcasted and they will use the bandwidth, they will use the computing power. The miners will do pow. But eventually the efforts are just wasted.
+00:04:55.690 - 00:06:18.342, Speaker B: So our intuition is that why don't we take data bugs also in our consensus. So besides the main chain, we have many other blocks, we just make them in a good order so we can have some of the transactions, maybe not all transaction in this box, but we can have some of them to contribute to the throughput of the system. And in fact, in most of the cases, when there is no adversary, when we have two concurrent blocks, we may have some transactions that are duplicated, but the transaction is not contradicting each other. So if we take both blocks in the consensus, we only need to just ignore some duplicated transaction and the others, we can process it separately. And in many cases just the arbitrary order is fine. But in the consensus we can have a unique total order of all the blocks. And if we can find a total order of all the blocks, then we can protect the transactions one by one.
+00:06:18.342 - 00:06:42.480, Speaker B: And when we met a transaction that is not valid or duplicated, we just ignore that one and we continue with that transaction. So that is the main intuition of why we can use the deck structure and we can utilize the throughput contributed in every folk. Okay.
+00:06:46.530 - 00:06:46.846, Speaker C: Yeah.
+00:06:46.868 - 00:06:50.320, Speaker A: I mean, the question is pretty much how do you get the total order, right?
+00:06:52.370 - 00:07:38.042, Speaker B: That's the main work. Okay, so to get the total order, first we use ghost rule. We find a main chain, which we call it the pivot chain market, with a different color, the word change, sorry, a pivot chain. So on the pivot chain we have a partial order. This bug is first, 2nd, 3rd, fourth, right. Okay. Then for every bug we allow them to have one parent age, which reference the buck that we think feed the pivot block, the block on the pivot chain.
+00:07:38.042 - 00:08:28.960, Speaker B: And they will also have some references. Okay, the reference age, I saw this block before generating this one. So it happened on layer. But I don't think this is a pivot block. So it's some block offset off the pivot chain. Okay, so for every pivot block, we now have a temp, right, to have a patch order for the pivotal block. And for other blocks, we see which one is the first pilot, block that reference this log.
+00:08:28.960 - 00:10:42.570, Speaker B: Further, we can partition the timing to my name, which we call epoch, which epoch in every epoch will have one pivot bug, okay, like this and the other bugs. If this bug is first referenced by a pivotal bug in this epoch, then this bug belong to this epoch. Okay, for example, this one is first referenced in this pivot bug. It belongs to a much later epoch to make the line. Okay, so it doesn't matter what height did bug claim to be, it matters when did y get referenced by a pivot box? Okay then suppose we have a consensus today to pivot box. Right? Now the view of all parts of bugs which the miner can see before generating this bug are all referenced by this one, direct or undirected. So from this pivot block we have first the partial of all pivot blocks and then IPOC by each pivot block, and then other blocks, each one bound to IPOC when it's first referenced.
+00:10:42.570 - 00:11:42.880, Speaker B: Okay, so if, okay, then we can say if the pivotal block is not reverted, it is still the pivot chain. It is a pivotal block. Then no other block can be inserted into some order before this bip. Shall we write a total order here? I think we need it. This is A-B-I. Okay, now the total order is first we have a, then we have c, but b and d happened before c. So they are inserted and we break type by the block id.
+00:11:42.880 - 00:11:46.400, Speaker B: Okay, by block id, yeah.
+00:11:52.450 - 00:11:55.090, Speaker A: So block, you mean block hash or something?
+00:11:55.160 - 00:12:28.300, Speaker B: Yeah. Okay, and then we have s. And in this epoxy we have e and G Alphabet. Okay, and then we have h, but I come the first and then comes before k. We will preserve the topology coder as well.
+00:12:31.010 - 00:12:32.640, Speaker C: Can you have a loop here?
+00:12:33.010 - 00:12:43.630, Speaker B: No, unless somebody is malicious, right? Unless you can find the cognition of inner hash. Otherwise you can never have a loop.
+00:12:43.710 - 00:12:44.340, Speaker C: Okay.
+00:12:46.310 - 00:12:53.906, Speaker B: Because if you have a loop, let's say we have a loop here, it means when generating this block, you.
+00:12:53.928 - 00:12:58.180, Speaker A: Know, the somebody malicious, like I posted two blocks pretty much.
+00:12:59.670 - 00:13:11.546, Speaker B: But there is very difficult. You needed to find a commission in the hash function because you needed to.
+00:13:11.568 - 00:13:32.160, Speaker A: Do just for a second. So I post two blocks, I can just do this, right? Like I post two blocks that point at the same parent and pointed each other. I found two solutions. Like I split my hash power, found two solutions, posted two blocks pointing at each other.
+00:13:32.850 - 00:13:38.722, Speaker B: Not a good, because the block id will be the hash of the block, right?
+00:13:38.776 - 00:13:39.502, Speaker A: Yeah, of the block.
+00:13:39.566 - 00:13:45.646, Speaker B: We including the solution of the pow tab girl. Okay, but the reference happened before pow tap.
+00:13:45.678 - 00:13:47.240, Speaker A: Yeah, makes sense.
+00:13:48.490 - 00:13:51.526, Speaker B: You need to very difficult.
+00:13:51.708 - 00:13:52.680, Speaker C: Yeah. Okay.
+00:13:54.010 - 00:15:11.322, Speaker B: Now let's say some adversary, he wanted to make a block by, say, x, and he wanted to insert the block somewhere before the order here, before age. How can he do that? Of course he can. Say my parent is this ape bug here, variable bug. Then can I get inserted somewhere here like before c? No, not real, because the reference of c are already fixed, can be referenced perhaps by another block, m. But the energy will belong to the epoch of m, which happens definitely after the epoch of h. So it can only be inserted somewhere here, and this cannot be inserted in anywhere before. So the total order up to this point, if we don't revert the pivot chain, it's stable and cannot be changed.
+00:15:11.466 - 00:15:21.010, Speaker A: So what happens when somebody publishes a block and the references pretty much going to something that's not being broadcast in the network?
+00:15:23.190 - 00:15:30.026, Speaker B: You mean like may reference someone but this one is not broadcasted?
+00:15:30.078 - 00:15:30.582, Speaker C: Yeah.
+00:15:30.716 - 00:15:38.890, Speaker B: In this case, this block will not be considered a valid block unless other seed block.
+00:15:40.110 - 00:15:43.450, Speaker A: So you only can accept this block.
+00:15:44.510 - 00:15:49.418, Speaker B: You can only add it into the dagger after you add this one.
+00:15:49.504 - 00:15:50.090, Speaker C: Okay.
+00:15:50.240 - 00:15:55.790, Speaker B: Because otherwise you cannot know if there even is such a block.
+00:15:56.370 - 00:15:57.118, Speaker C: Exactly.
+00:15:57.284 - 00:16:19.880, Speaker B: Right. So otherwise either this one have to broadcast this block first, and then this one or others will just ignore this one until they see this one. The other one who referenced the letter can be accepted. Okay.
+00:16:23.370 - 00:16:24.280, Speaker C: All right.
+00:16:26.970 - 00:16:36.074, Speaker A: Let'S see. The usual problem with dags is like, you can pretty much attack them by doing some kind of long range type.
+00:16:36.112 - 00:16:38.060, Speaker C: Of stuff, because.
+00:16:43.250 - 00:16:48.862, Speaker A: Each block right now has pretty much exactly the same proof of work as this one.
+00:16:48.916 - 00:16:49.520, Speaker C: Right.
+00:16:51.810 - 00:16:55.182, Speaker B: For this moment, we can think they have the same difficulty.
+00:16:55.246 - 00:16:55.954, Speaker C: Okay.
+00:16:56.152 - 00:17:07.314, Speaker B: Because there will be difficulty in the border, you may reference a bug with a lower difficulty, but that's not a very common case.
+00:17:07.512 - 00:17:08.500, Speaker C: I see.
+00:17:12.810 - 00:17:15.762, Speaker A: The way your transactions are pretty much circulating.
+00:17:15.826 - 00:17:16.440, Speaker C: Right.
+00:17:17.390 - 00:17:19.814, Speaker A: Do you modify how you're circulating transactions.
+00:17:19.862 - 00:17:22.010, Speaker C: To kind of optimize for the structure?
+00:17:22.510 - 00:17:30.686, Speaker A: Because as you said, presumably in bitcoin, ethereum, mempools of all the miners are somewhat similar.
+00:17:30.868 - 00:17:51.986, Speaker B: Yeah. In this one we will also have the similar mempool of transaction. But then we also like the transactions according to some randomized rule, because if they select the same transactions, let's say B-C-D they may be generated a concurrent way.
+00:17:52.088 - 00:17:52.594, Speaker C: Yeah.
+00:17:52.712 - 00:18:21.980, Speaker B: If they, unless vector the transaction with the height transaction fee, then they will have the same transaction here, same here, same here, and the three block equal to one block. Okay, so for this rule, for this problem, we will distribute the transaction fee to those who pack the transaction into the log.
+00:18:22.770 - 00:18:26.798, Speaker A: So the person who produced this will receive transaction fees from this.
+00:18:26.884 - 00:18:30.398, Speaker B: Let's say we have a transaction, t one.
+00:18:30.484 - 00:18:31.022, Speaker C: Yeah.
+00:18:31.156 - 00:19:07.754, Speaker B: If t one is packed in two bugs, sorry, not a very good example because already 50 and say t one is packed in B and the d, there are two concurrent blocks. Okay, in this case, the transaction fee of t one will be divided between the minor of B and D. If there are more concurrent blocks containing t one, it will be divided into more minor fee. Should not contain t one.
+00:19:07.792 - 00:19:10.826, Speaker A: Yeah. Will that be invalid block.
+00:19:10.858 - 00:20:26.738, Speaker B: If he contains it, he will not get her transaction fee because he feeds it. Okay, in that case, if a transaction has a very high transaction fee, the minor is afraid to assign a higher probability to pack that transaction. But he must be aware that it's likely other miners will have the same transaction as well. So let's say if this transaction fee turn and there is another transaction with the transaction phase six, and they can only pack one transaction in the block. So it may not be the best choice to always choose ten, because otherwise they get five and five each. So with some props, get it, they will choose the other transaction and get a higher revenue. So in this case, the miners will use a randomized strategy, and in this way, they will use a randomized strategy to increase unexpected revenue.
+00:20:26.738 - 00:20:37.350, Speaker B: And at the same time, they are also maximizing the throughput of the whole system in transaction favorite.
+00:20:42.990 - 00:20:44.022, Speaker A: To be efficient.
+00:20:44.086 - 00:20:44.362, Speaker C: Right.
+00:20:44.416 - 00:20:50.054, Speaker A: Ideally, you would want to know how many of the blocks going to be produced in parallel.
+00:20:50.102 - 00:20:50.700, Speaker C: Right.
+00:20:52.850 - 00:20:55.200, Speaker B: In practice, when we have.
+00:21:00.130 - 00:21:00.606, Speaker C: I think.
+00:21:00.628 - 00:21:24.034, Speaker B: We have two megabytes of block size, the broader cutting time in our test net, but not a real net, because we don't have it yet. The broader cutting time in like 100 seconds or 120 seconds to broadcast seconds or milliseconds, the broadcasting to the whole network.
+00:21:24.162 - 00:21:24.742, Speaker C: Okay.
+00:21:24.876 - 00:22:10.680, Speaker B: I mean, I broadcast two megabytes to like 20,000 nodes with network delay and so on. So during that time, because we have lock time of 5 seconds. So during the broadcasting, it's expected to generate 20 blocks or 24, something like that. But of course, some Node will already see the block before it generates. So the concurrent block will be bounded. If we are in no adversary, no attack, no figure of network, in the normal time, it will be bounded by something like 20.
+00:22:15.210 - 00:22:15.960, Speaker C: Okay.
+00:22:18.190 - 00:22:31.178, Speaker A: Interesting. If I'm producing this block, right, what is the incentive for me to include this to link to these two blocks?
+00:22:31.194 - 00:22:31.374, Speaker C: Right.
+00:22:31.412 - 00:22:34.702, Speaker A: Why don't I just do this, right.
+00:22:34.756 - 00:22:35.710, Speaker B: Compile.
+00:22:37.650 - 00:22:41.230, Speaker A: Right here, which is like, yeah, transaction.
+00:22:44.290 - 00:23:16.470, Speaker B: So in the incentive design, we will punish the block based on the anticon side of the block. Which anticon means. How many blocks are there? We don't have. There is no difference order between these two blocks. Let's say for this block, this one saves him. This one doesn't see him. So this is one anti block.
+00:23:16.470 - 00:23:59.542, Speaker B: If he doesn't reference this one bug, this one can be. This one is not other than not. So for z box, we don't have a directed pass from c to D or from d to c. Yeah. So these are anticon bucks which is generated during the broadcasting of C and D. Right. Okay, so if the anticon buck is much larger than the expected value, then we know there is something wrong.
+00:23:59.542 - 00:24:09.050, Speaker B: Either this one is withholding his bulk or his network is not in a very good condition. So in this case, we will punish him in the bug reward.
+00:24:13.870 - 00:24:19.274, Speaker A: You mean like somewhere later? Pretty much. When everybody receives his block. Because this is 5 seconds.
+00:24:19.322 - 00:24:19.920, Speaker C: Right?
+00:24:20.290 - 00:24:25.780, Speaker A: But you said it takes like 120 seconds for everybody to receive everything.
+00:24:28.870 - 00:24:30.020, Speaker B: Not like.
+00:24:31.750 - 00:24:36.946, Speaker A: Okay, well, you said block production time is. Yeah, I'll be producing blocks every 5 seconds.
+00:24:36.978 - 00:24:37.478, Speaker C: Pretty much.
+00:24:37.564 - 00:24:40.918, Speaker A: Let's imagine this is like one minor, for whatever reason.
+00:24:41.084 - 00:24:52.118, Speaker B: Okay, but the one minor will not have 5 seconds. It will have five second is the target of the whole network.
+00:24:52.214 - 00:24:52.860, Speaker C: Okay.
+00:24:53.870 - 00:25:12.458, Speaker B: Yeah, but there will naturally be many blocks which they don't have reference relations. But if there are too many blocks not referencing him or he doesn't refer to others, there is a problem.
+00:25:12.564 - 00:25:13.746, Speaker C: Right? Yeah.
+00:25:13.928 - 00:25:28.870, Speaker B: So in this case, if the anticon is quite large, let's say one, two, three, or even more like, say 30 or 40. Then we will punish this bug in the bug reward path.
+00:25:30.010 - 00:25:30.760, Speaker C: But.
+00:25:34.330 - 00:25:43.066, Speaker A: What may happen, let's say this is produced by a guy number one. Guy number two will see that these blocks are not referenced and linked to them.
+00:25:43.168 - 00:25:45.450, Speaker B: Right, sorry.
+00:25:45.520 - 00:25:47.226, Speaker A: It will reference them.
+00:25:47.408 - 00:25:53.218, Speaker B: Yeah, because by referencing other blocks, it will reduce the anti concept.
+00:25:53.334 - 00:25:58.670, Speaker A: Yeah, but this person just stole the transactions from these two guys.
+00:25:58.820 - 00:26:04.522, Speaker B: Yes. For others, it's just like they generate the blocks concurrently.
+00:26:04.666 - 00:26:25.640, Speaker A: Well, let's imagine. So what happens is this produced blocks and then he saw them, collected their transactions, did not link to them. And for some reason, he's like closer to this. So he didn't propagate them. And the second person got his block first.
+00:26:26.810 - 00:26:28.198, Speaker B: This is a perfect company.
+00:26:28.284 - 00:26:28.630, Speaker C: Okay.
+00:26:28.700 - 00:26:33.050, Speaker B: Because if you independent guy's block, you cannot say which one copy which.
+00:26:33.200 - 00:26:39.146, Speaker A: Yes, but my point is, at this point, I'm not punished and I'm not incentivized to link them.
+00:26:39.168 - 00:26:39.306, Speaker C: Right.
+00:26:39.328 - 00:26:43.470, Speaker A: I'm actually incentivized not to link them because I can take their transactions.
+00:26:45.170 - 00:26:53.550, Speaker B: In fact, if you don't reference to this block, the anticon will be increased by antimicrobial.
+00:26:54.290 - 00:26:55.086, Speaker C: Sure.
+00:26:55.268 - 00:27:22.060, Speaker B: And for this one increased by one. Then you may get some advantage in transaction fee because you can still the transaction with high transaction fee here. But still you will be punished in the buck reward part and also the transaction fee. You cannot steal the whole transaction fee, you just divide with others.
+00:27:22.910 - 00:27:30.066, Speaker A: No, but they are after me, right? They will be included because they will be referenced after. If I was on the pivot.
+00:27:30.118 - 00:28:07.570, Speaker B: Pivot. This one is on the pivot chain. Yeah, happens in another app. But still we will get the transaction fee to because we are not distributing the trantagraphy only in one epoch. We will do it in several consecutive epoch. As long as they don't have directed, they don't have reference. So if we do that, others will still get the transaction fee, even if they are in a later epoch.
+00:28:07.570 - 00:28:35.862, Speaker B: But they may get a bit unbiased. So by doing so, we haven't fixed the parameters yet, but we want to make the parameters to be tuned that by increasing the anticon, you will get more punishment than you're getting, than you can get from the tantalogy.
+00:28:35.946 - 00:28:51.320, Speaker A: So just for me to understand how the curve for punishing actually looks like. Right. I produced a block, right? And there's 20 other blocks pretty much produced at the same time.
+00:28:51.690 - 00:28:52.440, Speaker B: Yeah.
+00:28:52.810 - 00:28:53.414, Speaker C: Right.
+00:28:53.532 - 00:29:19.768, Speaker A: So you're pretty much saying that if I don't link to any of them, even though I saw them, I will get. So I guess, I guess the question actually, let me backtrack a little bit. The question I have is I'd be able to link to these blocks, right?
+00:29:19.854 - 00:29:20.152, Speaker B: Right.
+00:29:20.206 - 00:29:31.550, Speaker A: So I have received them. Why am I not choosing one of them as a parent right now? Like why? Why didn't do this?
+00:29:33.840 - 00:29:51.360, Speaker B: Okay, yeah, good question. So this is bad choice. Sorry. In this case, if he should make this one or this one. I feel tired. Okay. Just a joint.
+00:29:55.880 - 00:30:10.472, Speaker A: I guess, just to be more clear, for me, it will be pretty much alternative blocks that don't link to each other.
+00:30:10.526 - 00:30:11.130, Speaker B: Right?
+00:30:11.740 - 00:30:18.632, Speaker A: And then I produce a block pointing. And this is the uncles of my parents. This is my uncles.
+00:30:18.696 - 00:30:19.212, Speaker B: Yes.
+00:30:19.346 - 00:30:20.030, Speaker C: Okay.
+00:30:22.400 - 00:30:27.710, Speaker A: In this case, who is getting punished by not linking to them?
+00:30:32.240 - 00:30:36.750, Speaker B: He will get punished by not linking to them.
+00:30:38.580 - 00:30:41.740, Speaker A: Because I didn't link to his uncles. He will get punished.
+00:30:41.820 - 00:30:46.710, Speaker B: No, because he did not bink him to heal sagabin. Right.
+00:30:47.640 - 00:30:51.620, Speaker A: But he cannot seriously will be punished.
+00:30:53.020 - 00:30:53.770, Speaker C: Why?
+00:30:54.140 - 00:31:03.080, Speaker B: Because you don't know if they are generated a concurrent way.
+00:31:03.150 - 00:31:03.480, Speaker C: Yeah.
+00:31:03.550 - 00:31:51.892, Speaker B: Oh, I generated a product later, but I say my parent is the same parent. So in this case, the anticoag will always be punished. We don't care the structure, but we will take punishment. Like the factor is one minus gamma square over 10,000. Gamma is the number of anticonclocks. So in expectation the anticon blocks will be bounded by something around 20. Not necessarily.
+00:31:51.892 - 00:31:56.332, Speaker B: Second, you can have more locks across.
+00:31:56.386 - 00:32:00.060, Speaker A: Other epochs as well. Yeah, so you can have a lot.
+00:32:00.130 - 00:32:36.756, Speaker B: Of, but we only counted the anti con to the epoch of this bulk of like 20 epochs after this bulk. Because after we counter the reward of this bulk, there can still be some anticipate bugs of this one. Yes, because I can always generate a bug reference to variable bug and be added to the pivot chain much later. So this one will not be counted.
+00:32:36.788 - 00:32:41.668, Speaker A: As a punishment, but only everything that's within 20 epochs.
+00:32:41.844 - 00:32:42.888, Speaker B: Within 20.
+00:32:43.054 - 00:32:54.140, Speaker A: So in theory, if you're saying there's 20 siblings on average, so one of them is pure chain and then there's 19 multiplied by 20 epochs.
+00:32:55.920 - 00:32:58.928, Speaker B: Sorry, 119 times 20.
+00:32:59.094 - 00:33:06.044, Speaker A: Well, so you have 19, like in parallel, there is on average will be 20 blocks produced.
+00:33:06.172 - 00:33:16.864, Speaker B: Yeah, but if the product is generated after this one is broadcast PDA. So even if they are stable, they will reference this block.
+00:33:16.912 - 00:33:17.510, Speaker C: Right.
+00:33:18.360 - 00:33:24.908, Speaker B: And also reference all the anchor block suppositor.
+00:33:24.944 - 00:33:25.530, Speaker C: Right.
+00:33:26.300 - 00:33:31.770, Speaker B: So in this case, he will not get punished for this happening.
+00:33:32.300 - 00:33:45.950, Speaker A: I see. Okay, so he'll only be punished if what's happening is everybody just doing this like everybody just sticking with their own chains and not.
+00:33:46.320 - 00:33:50.644, Speaker B: Right. Not representing other chains.
+00:33:50.712 - 00:33:51.330, Speaker C: Yeah.
+00:33:52.820 - 00:34:08.556, Speaker B: They will also get punished. They will lose one anticon flux is reflecting the anticon for each other.
+00:34:08.678 - 00:34:09.350, Speaker C: Yeah.
+00:34:10.360 - 00:34:47.600, Speaker B: So in expectation, in normal time, this punishment will be no more than 4%. But if you increase it by one, by a few more, it will increase very quickly. Also, by the way, the gamma is not exactly the number of anticon blocks. It is the equivalent number of anticiplocs because the anticon may contain some block with a much lower target difficulty.
+00:34:50.760 - 00:34:56.070, Speaker A: Okay, yeah, let's talk about difficulty maybe a little bit. How does difficulty work?
+00:34:56.760 - 00:35:59.512, Speaker B: Okay, the difficulty is 1000 dipole. We will counter the temp step and how many bucks are generated during that period and then adjust the target difficulty. But still, after we adjust the target difficulty, if possible, some oil, some bug generated earlier will be added to the dagger after we have a new difficulty. Yeah, but those bugs, they will have lower difficulty. So when we counter the punishment, those bugs will have lower weight as well. Basically, to avoid attack by Lincoln, to avoid more difficulty bug, you generate badge anti and everybody gets punished. So this way you will not do that.
+00:35:59.512 - 00:36:00.308, Speaker B: You cannot.
+00:36:00.404 - 00:36:01.050, Speaker C: Yeah.
+00:36:03.020 - 00:36:08.764, Speaker A: All right, so difficulty wise, let me think for a second.
+00:36:08.882 - 00:36:10.270, Speaker B: If you have a.
+00:36:12.960 - 00:36:15.340, Speaker A: So you said there is a timestamp?
+00:36:15.760 - 00:36:16.510, Speaker B: Yeah.
+00:36:19.060 - 00:36:21.340, Speaker A: So there's timestamp on every block.
+00:36:21.500 - 00:36:22.210, Speaker B: Right.
+00:36:23.460 - 00:36:34.500, Speaker A: How is the time step proven, validated, accepted. Why can't I just say, actually, ten minutes passed, we should reduce the difficulty?
+00:36:38.200 - 00:36:52.730, Speaker B: Well, because this temp step is generated by different miners, so they can be very different. Come out.
+00:36:53.340 - 00:37:04.910, Speaker A: Yeah, but let's say I'm a minor and I produce some percentage of blocks. Why would I not try to increase this timestamp beyond the real time?
+00:37:08.900 - 00:37:12.530, Speaker B: Well, okay, that's a good question.
+00:37:14.100 - 00:37:18.530, Speaker A: Because if I would do this and my body would do this, and then.
+00:37:19.300 - 00:37:37.080, Speaker B: If you increase the attempt too much, then the bug will not be accepted because the temp step is too different from the real world or the local time of other minor.
+00:37:38.540 - 00:37:47.900, Speaker A: So the other node, when they accept the block, they check this timestamp. And what's the window that allows the timestamp to vary?
+00:37:49.760 - 00:38:01.904, Speaker B: Well, I don't quite know. Data parameter, like a few hours, maybe a few days.
+00:38:02.022 - 00:38:09.664, Speaker A: But let's say we are miners, right? There's a bunch of other miners, but two of us colluding on time.
+00:38:09.782 - 00:38:10.256, Speaker B: Okay.
+00:38:10.358 - 00:38:28.376, Speaker A: And so we start producing blocks, which are like, with skewed timestamps, and we still link to the pivot chain, but we keep pushing it.
+00:38:28.398 - 00:38:28.584, Speaker C: Right.
+00:38:28.622 - 00:38:33.960, Speaker A: So would we in this way, reduce the difficulty?
+00:38:34.460 - 00:39:05.270, Speaker B: Because the log time seemed much better than the time? Except if other managers are honest, they will not accept this bug before the time window becomes small enough. Then if the temp step is too much ahead of the clock time.
+00:39:08.840 - 00:39:28.204, Speaker A: All right, so let's draw this a little bit. It was a lot of dag happening here, right? So let's say, I mean, this is like a real dag been built, right?
+00:39:28.322 - 00:39:28.990, Speaker C: Yeah.
+00:39:46.120 - 00:40:02.250, Speaker A: And what we do, we just produce blocks with an increased timestamp. So, like, it took forever. And we just keep producing them.
+00:40:06.860 - 00:40:07.224, Speaker C: And.
+00:40:07.262 - 00:40:10.810, Speaker A: We just keep pointing at a parent a while ago.
+00:40:15.980 - 00:40:16.730, Speaker C: Right?
+00:40:20.320 - 00:40:23.890, Speaker A: If this guys are on us, right, they'll link to us.
+00:40:24.340 - 00:40:25.090, Speaker B: Yes.
+00:40:32.180 - 00:40:33.650, Speaker A: It like the.
+00:40:36.040 - 00:40:36.896, Speaker B: Pivot chain.
+00:40:36.928 - 00:40:47.172, Speaker A: Yeah, it's pivot Chain. Like, it will link to us. So when there's time to recalculate the difficulty, our thing will be included into this.
+00:40:47.306 - 00:40:47.990, Speaker C: Right.
+00:40:50.540 - 00:40:56.570, Speaker B: But when data, they include it here, the time step will not be too different.
+00:40:58.460 - 00:41:06.140, Speaker A: But this block took, like we just said, let's say this is thousand epochs, right?
+00:41:06.290 - 00:41:07.084, Speaker C: Right.
+00:41:07.282 - 00:41:22.144, Speaker A: So this is the beginning of the epoch. And actually what we did, we were producing these blocks with whatever period we can produce blocks. They said they all took thousand epochs. You said 5 seconds each epoch, 10.
+00:41:22.182 - 00:41:22.960, Speaker C: Seconds.
+00:41:25.880 - 00:41:26.790, Speaker B: I mean.
+00:41:29.960 - 00:41:43.124, Speaker A: Whatever, let's say 2 hours or whatever, right. So I just put this took 2 hours, 2 hours, 2 hours, 2 hours, 2 hours, 2 hours, right. So within this thousand epochs, let's imagine.
+00:41:43.172 - 00:41:48.360, Speaker B: I could produce like this twelve means from this one.
+00:41:48.430 - 00:42:06.000, Speaker A: Yeah, this is zero. The block I produced. This is all the blocks I produced. But I put they all took 2 hours. And by the time they were, they, I guess, and I just published them all at the end.
+00:42:06.150 - 00:42:06.560, Speaker C: Right.
+00:42:06.630 - 00:42:09.664, Speaker A: So this guy being honest, he needs to include all of them.
+00:42:09.702 - 00:42:12.850, Speaker B: Yeah, include all of this.
+00:42:17.940 - 00:42:18.496, Speaker C: Yeah.
+00:42:18.598 - 00:42:19.200, Speaker B: Okay.
+00:42:19.350 - 00:42:33.812, Speaker A: So we just got like, I mean, some fraction, right. That took forever, right. Which if you calculate difficulty from all of the blocks, right? You're not just calculating from pivot chain.
+00:42:33.956 - 00:42:36.532, Speaker B: No, I will calculate all the block.
+00:42:36.596 - 00:42:43.256, Speaker A: Yeah, all the blocks. So this blocks took forever and this lowered the difficulty.
+00:42:43.448 - 00:42:52.830, Speaker B: Why I don't get this point. Because here we have a temp step, right? But in fact we will compute the temp step.
+00:42:55.140 - 00:42:58.224, Speaker A: So this was zero, this would be 1000, right?
+00:42:58.342 - 00:42:58.912, Speaker B: Yeah.
+00:42:59.046 - 00:43:01.200, Speaker A: And all of this also are 1000.
+00:43:01.270 - 00:43:02.850, Speaker C: Pretty much, yeah.
+00:43:07.720 - 00:43:12.260, Speaker A: So let's say I could manage to produce 500 blocks.
+00:43:13.160 - 00:43:28.020, Speaker B: Okay. Then I will count to this .1 thousand. In the wheel, in the path of this pyro block, there are this many blocks.
+00:43:28.100 - 00:43:35.128, Speaker A: Yeah. Let's assume this like the thing is that there's 20 blocks per epoch being produced.
+00:43:35.224 - 00:43:36.012, Speaker B: Yeah. Okay.
+00:43:36.066 - 00:43:39.372, Speaker A: And then it says thousand epochs, right?
+00:43:39.426 - 00:43:40.030, Speaker B: Yeah.
+00:43:40.480 - 00:44:01.204, Speaker A: I managed to produce like 500. So it's a 500 out of 20,000. It's a fair bit of percentage, right, right. This will lower a little bit difficulty because let's say everybody else was producing on the clock, they were all on point.
+00:44:01.322 - 00:44:01.990, Speaker B: Yeah.
+00:44:02.520 - 00:44:13.880, Speaker A: And you have, what is this? This is like domain, couple percent, like less.
+00:44:13.950 - 00:44:26.060, Speaker B: Right. By making the time a little ahead. So you, by the compensatory rules, because the app takes a little longer time.
+00:44:26.210 - 00:44:33.116, Speaker A: Yeah. So I did it once, that lowered a little bit of difficulty. Then I do it again and again and again.
+00:44:33.218 - 00:44:40.290, Speaker B: But if you do it once, then the next dipole between then to summer ahead of time.
+00:44:45.220 - 00:44:52.980, Speaker A: Normal people producing faster now because difficulty is smaller.
+00:44:55.880 - 00:45:24.780, Speaker B: Because you cannot like the time shift, unlimited. There is a boundary, you cannot shift it too much. So if you shift it longer. So this epoch simply to take longer time. Then the next epoch in the consensus looks later, and when we adjust the difficulty for the next epoch, it looks that one will be a shorter time period.
+00:45:29.360 - 00:45:39.750, Speaker A: I mean, it's not that epoch. Choose exactly the same time. It's just that on average, blocks took longer.
+00:45:41.720 - 00:45:48.356, Speaker B: Um, sorry, I don't get so, so when you say.
+00:45:48.378 - 00:45:57.720, Speaker A: Okay, when you're saying you're computing difficulty from the timestamp, are you computing just this or are you computing average how long it took the blocks to produce?
+00:45:58.300 - 00:46:08.780, Speaker B: I will compute the starting time of the epoch, which is average of time steps from many blocks, not only one.
+00:46:08.850 - 00:46:09.244, Speaker A: I see.
+00:46:09.282 - 00:46:09.484, Speaker C: Okay.
+00:46:09.522 - 00:46:16.930, Speaker B: Under the ending time of the epoch and then the number of blocks in between.
+00:46:18.820 - 00:46:20.560, Speaker A: And the number of blocks in between.
+00:46:20.630 - 00:46:21.152, Speaker C: Yeah.
+00:46:21.286 - 00:46:23.010, Speaker A: How does that get used?
+00:46:24.660 - 00:46:43.668, Speaker B: Because I have the starting time of this period and ending time of the period. And in fact, I will have how many bugs I can calculate. But I can see how many bugs.
+00:46:43.684 - 00:46:45.364, Speaker A: I have here produced.
+00:46:45.492 - 00:46:59.070, Speaker B: Yeah, I have produced them. And not only the purity, every bug you counted. And then I will do a calculation, just divide them and see what the target should be.
+00:46:59.600 - 00:47:00.830, Speaker C: Okay, I see.
+00:47:04.100 - 00:47:21.540, Speaker B: So by shifting the timestamp here, maybe you can influence the ending time of this a little bit, but not too much. And it will also affect the starting time of the next difficulty acting.
+00:47:25.080 - 00:47:31.188, Speaker A: Yes, pretty much. This timestamp was actually the timestamp of blocks beforehand.
+00:47:31.284 - 00:47:31.880, Speaker C: Yes.
+00:47:32.030 - 00:47:34.440, Speaker A: So if we push them this time.
+00:47:34.510 - 00:47:40.250, Speaker B: Because the total time cannot be shifted too much.
+00:47:40.860 - 00:47:41.610, Speaker C: Right.
+00:47:47.120 - 00:47:55.116, Speaker A: So do you do anything for transaction propagation or even the block propagation?
+00:47:55.148 - 00:47:55.344, Speaker C: Right.
+00:47:55.382 - 00:48:01.468, Speaker A: You actually have a lot of duplication blocks. Do you do any bloom filter conversion?
+00:48:01.484 - 00:48:24.070, Speaker B: Bloom filter, yeah, I think so. And also compact block. Compact block, yeah. We will use that because many transaction will be similar. And also it really makes the broader cutting much faster than just broader cutting. And the hope log.
+00:48:28.920 - 00:48:41.432, Speaker A: All right, what are the, actually one question we didn't discuss is block reward. So not the transaction fees. Do you have also like a general block reward?
+00:48:41.576 - 00:48:44.600, Speaker B: Yeah, there will be a general coinbase reward.
+00:48:44.680 - 00:48:45.310, Speaker C: Yeah.
+00:48:45.620 - 00:48:49.200, Speaker A: Is it also split between everybody in the epoch?
+00:48:49.780 - 00:49:17.528, Speaker B: No, that is not between. It's a block reward. But we have some factor like anticon punishment and also difficulty punishment if you have a buck, but it's printed very early. So if the target difficulty can be very small.
+00:49:17.614 - 00:49:18.200, Speaker C: Yeah.
+00:49:18.350 - 00:49:25.192, Speaker B: In this case, we will not get the same buck award as others, although they are in the same IPOC.
+00:49:25.336 - 00:49:27.688, Speaker A: But it's still split between everybody in the epoch.
+00:49:27.704 - 00:49:28.220, Speaker C: Right.
+00:49:28.370 - 00:49:41.600, Speaker B: No Pombac award is given purple buck. Not depending on how many block in one IPOC? If there are $10 in one IPOC, each of them will get $1 of work.
+00:49:41.670 - 00:49:42.576, Speaker C: I see.
+00:49:42.758 - 00:50:06.500, Speaker B: Because the bug generation takes the same amount of proof of work. If you have 20 or ten, this may just because of the network condition or some of random. So in this case, every block they did the same amount of work. So they get the same amount of block award.
+00:50:06.660 - 00:50:09.172, Speaker A: Yeah, just it for difficulty.
+00:50:09.316 - 00:50:13.820, Speaker B: If the difficulty, the max bombard, you will not get the award.
+00:50:14.640 - 00:50:18.190, Speaker C: I see. All right.
+00:50:19.600 - 00:50:22.028, Speaker A: What is the other interesting parts of.
+00:50:22.034 - 00:50:23.950, Speaker C: The system that we didn't talk about?
+00:50:26.160 - 00:51:28.050, Speaker B: One thing. Oh, there is one pattern for the deferred execution, because we are using account model and supporting smart contracts. So that's basically optimization in the implementation. It's not in the consensus rule. When you use that, it's unbiased, but you have variant bound revert, because that means you revert the ghost chain for varma. But it's like by change, the pivot chain isn't back by you change it between this one because they are very new in the field chain. When you see these two blocks, you don't know which one will become the later field.
+00:51:28.050 - 00:52:28.516, Speaker B: So if you do the execution until this time, and you see the revert by one bug, you will have to go back and visit all the state here and then redo the computation. So that's very expensive. So in fact, under this log, we will have. But this data route is not the data. After we process all the transaction here, it refers to file parent, let's say 12345. Okay. Means after we include all the transactions before this log, including this one, and now we get a state, and the state root is updated here, you actually.
+00:52:28.538 - 00:52:41.908, Speaker A: Cannot input state because this block may be put somewhere. Like the order may be different when it actually finalizes. So when you're producing the block, you cannot actually produce this state root.
+00:52:42.084 - 00:52:43.704, Speaker B: You mean the state root, the state.
+00:52:43.742 - 00:52:50.190, Speaker A: Root of this transactions. Yet, because this block may get included somewhere here.
+00:52:50.560 - 00:53:37.260, Speaker B: In fact, you can, because if it's included somewhere here, it should deal. I know, you're fine. Because if it's not a pivotal marker, some anticon marker of this one will be inserted before. Yeah, that's true. So the sedesa router will actually yield a parent reference of this bug. And we count file parent here, and the sedate route is after it's tilting this one. So in that case, if we revert, let's say, from here to here, or even from here, we revert to somewhere here.
+00:53:37.260 - 00:54:17.770, Speaker B: Let's say we reverted to this one, this branch, they will have the same date root. So in this case it's very, we don't need to recompute this data in practice. In our experiment we see many reverting of length one or two, but it's very unlikely to have a revert of three and above four or five we don't see any.
+00:54:21.020 - 00:54:23.412, Speaker A: This is without any resettle behavior.
+00:54:23.556 - 00:54:27.470, Speaker C: Yeah, I mean probably some ways to cut it.
+00:54:31.200 - 00:54:36.688, Speaker B: The efficiency will be equal that depending on the workday power.
+00:54:36.774 - 00:54:43.344, Speaker A: So if I'm pretty much like light.
+00:54:43.382 - 00:54:44.450, Speaker C: Client, right.
+00:54:49.160 - 00:54:52.964, Speaker A: What can I actually use to verify the current state of the.
+00:54:53.002 - 00:54:56.100, Speaker B: Chain, the current data?
+00:54:56.250 - 00:55:20.812, Speaker A: You mean like I'm, I'm a light client, right? I cannot maintain the whole data, all of the transactions and everything. I just want to have. I'm pretty much requesting, I'm on the phone and I'm requesting you hey, give me state of my account like zero.
+00:55:20.866 - 00:55:21.710, Speaker C: X, whatever.
+00:55:26.340 - 00:55:32.290, Speaker A: How much I have. What is you can provide to me?
+00:55:35.060 - 00:56:14.568, Speaker B: I cannot provide to you this data after executing the latest log. But you will not accept it either because that's not confirmed, it's not finalized. So what I will provide is if you ask what is my latest final by the state I can find on the tree and the action rate will go a bit further than $5 and from that state route I will find the state of the account and with my coach proof and I can prove to you that state.
+00:56:14.754 - 00:56:23.840, Speaker A: But how can I check that this state root is correct, that it's on a dag?
+00:56:25.140 - 00:56:29.170, Speaker B: If you can read a header it's easy right.
+00:56:30.980 - 00:56:36.740, Speaker A: I need to pretty much recreate the whole dag, right? Like without bodies but full dag of headers.
+00:56:37.560 - 00:56:50.420, Speaker B: Yeah. Also not real but full deck but from some checkpoint later you need to get the structure of the deck.
+00:56:50.500 - 00:56:50.984, Speaker C: Right.
+00:56:51.102 - 00:56:53.050, Speaker A: And how those checkpoints work.
+00:56:54.080 - 00:59:09.300, Speaker B: Okay, let's see. Yeah, it's a past set of this bug and we have other bugs this one. Okay, so if this set is bad enough we know that if any bulk that ever have a parent in the part of this one and better included this one gets referenced at this point, then this bulk will get enough money punishment, we will get nothing, will not change the reward. And also we will not be used to punish for their reward because if we return weight. Okay so in this case we know every block up to this point, the reward, the state will be stable unless you revert to volume bound chain. Okay, so in this case we can just take all the previous one and get a snapshot and we can start the state here. And then this will be updated to maker box, to the mass checkpoint.
+00:59:09.300 - 00:59:34.350, Speaker B: So every time when you want to check the structure of the dagger, you don't need to get the structure of the whole tag here. You need to start from one checkpoint and then you get the box after the checkpoint. Okay.
+00:59:34.960 - 00:59:41.244, Speaker A: So the checkpoint is just a hash of a block.
+00:59:41.292 - 00:59:41.890, Speaker C: Right.
+00:59:42.500 - 00:59:46.700, Speaker A: Of this block. What was a checkpoint?
+00:59:46.780 - 00:59:47.920, Speaker C: Data structure.
+00:59:51.880 - 00:59:55.780, Speaker A: Because you actually need to validate that this is really a checkpoint.
+00:59:56.200 - 01:00:26.930, Speaker B: Right. Checkpoint. Let me think. Router. What we will have will here boxes. Wait. Header of the deck before it.
+01:00:27.860 - 01:00:29.120, Speaker A: The folder.
+01:00:31.140 - 01:00:34.800, Speaker B: Up to the bucket checkpoint.
+01:00:35.540 - 01:00:41.940, Speaker A: Okay. So it'll have all of the headers of all of the blocks.
+01:00:45.880 - 01:00:58.920, Speaker B: Yeah. You might need a merco router for the deck structure because in most of the kfad you don't really need to get the DaX structure.
+01:01:00.620 - 01:01:01.690, Speaker C: You need.
+01:01:10.000 - 01:01:16.060, Speaker A: I mean, my question is pretty much how hard it is for me to create a checkpoint. That's like, I created a different block here.
+01:01:16.130 - 01:01:16.652, Speaker C: Right.
+01:01:16.786 - 01:01:17.228, Speaker B: Right.
+01:01:17.314 - 01:01:34.950, Speaker A: Which nobody points it. And I can say this is a checkpoint. What is preventing me from doing that? When I'm sending to like client, I'm like, hey, here's a state.
+01:01:35.960 - 01:01:36.660, Speaker B: Yeah.
+01:01:36.810 - 01:01:37.510, Speaker C: Okay.
+01:01:41.640 - 01:02:12.608, Speaker B: So if I need to think it. Okay. So basically just data root of the checkpoint, which includes the state and the text structure before it will be added in the later block, which thinks this one is the pivot block under this point.
+01:02:12.774 - 01:02:13.248, Speaker C: Okay.
+01:02:13.334 - 01:02:16.690, Speaker B: If you do this block, others will not think.
+01:02:22.020 - 01:02:22.768, Speaker C: Okay.
+01:02:22.934 - 01:02:29.670, Speaker B: Others just take it as a reference block. So what he think is a checkpoint? It doesn't matter.
+01:02:30.920 - 01:02:36.072, Speaker A: Let's say I am producing this block which says this is a checkpoint, but.
+01:02:36.126 - 01:02:38.328, Speaker B: Then you have to add your parent.
+01:02:38.414 - 01:02:41.240, Speaker A: Id so I cannot reference to it.
+01:02:41.390 - 01:02:47.848, Speaker B: You can reference it to it, but the reference block doesn't have the power of producing a checkpoint.
+01:02:48.024 - 01:03:01.584, Speaker A: Okay, but then you're saying you're sending to me only a checkpoint, right? Yeah, for the white lag. So I don't actually know if you.
+01:03:01.622 - 01:03:04.210, Speaker C: Parented to it or reference to it or whatever.
+01:03:04.820 - 01:03:13.700, Speaker B: I need to send you the checkpoint and the box later, the structure after the checkpoint.
+01:03:14.760 - 01:03:15.556, Speaker C: Okay.
+01:03:15.738 - 01:03:23.412, Speaker B: So you can check the pivot block. Pretty much, yeah, that's a pivot block.
+01:03:23.556 - 01:03:24.490, Speaker C: I see.
+01:03:25.580 - 01:03:41.736, Speaker A: So tell me pretty much this block header is the checkpoint and then you send it to me. Everything that happened after it. So pretty much about 20 plus epochs.
+01:03:41.928 - 01:03:46.030, Speaker B: Yeah. Would be more than 20.
+01:03:48.340 - 01:03:58.660, Speaker A: And then I can verify that.
+01:04:01.430 - 01:04:05.990, Speaker B: And also your cash card are not. If they have the same checkpoint.
+01:04:10.730 - 01:04:12.280, Speaker C: Not in. Yeah.
+01:04:12.810 - 01:04:14.954, Speaker B: In case there are you any difference.
+01:04:15.152 - 01:04:17.420, Speaker A: I mean, they can give you this, for example?
+01:04:22.030 - 01:04:30.682, Speaker B: No, not a job. You can checkpoint. We will do it periodically. Fixed number of height of IPO.
+01:04:30.746 - 01:04:31.600, Speaker C: I see.
+01:04:33.490 - 01:04:35.370, Speaker B: Okay, so you cannot.
+01:04:35.530 - 01:04:39.440, Speaker A: We don't have rolling checkpoint. No.
+01:04:41.010 - 01:04:49.290, Speaker B: So the checkpoint will be stable and audited. Node will likely share the same checkpoint.
+01:04:49.370 - 01:04:49.806, Speaker C: Yeah.
+01:04:49.908 - 01:04:58.680, Speaker A: Thanks a lot. If you have any comments, please leave them on the video. Otherwise, check out the white paper and join the conflux community.
+01:04:59.770 - 01:05:00.820, Speaker B: Thank you. Thanks.

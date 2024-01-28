@@ -1,0 +1,367 @@
+00:00:04.170 - 00:00:15.178, Speaker A: Hello, everyone. Amelia coming back with whiteboard series here from New York. I have Tarun from Ganthan network, and we're gonna go in to the meV.
+00:00:15.354 - 00:00:31.622, Speaker B: Yeah, so I think if you follow crypto Twitter at all nowadays, you know, there's a lot of fighting over what qualifies as meV. But first of all, let's write out what acronym is the acronym has changed. It actually stands for maximal extractable value.
+00:00:31.676 - 00:00:34.934, Speaker A: Not because. No more miners, right? As a few weeks ago.
+00:00:35.052 - 00:01:06.354, Speaker B: Yeah, exactly. So this is what we're talking about. And so the problem is, one, hard to define. Two, it has the quality of porn, which is, you know it when you see it. This is from a famous Supreme Court case where this was.
+00:01:06.392 - 00:01:07.860, Speaker A: That was a definition of.
+00:01:09.430 - 00:01:13.890, Speaker B: But you know, you know it when you see it, unique to blockchains.
+00:01:16.730 - 00:01:17.094, Speaker C: Because.
+00:01:17.132 - 00:01:32.742, Speaker B: In tradfi, you don't really see it. You see your version of it, but the exchange doesn't tell you really what everyone else is doing. So it's hard to see if someone is extracting something from you. But here it's like porn, because you literally go in the block explorer.
+00:01:32.886 - 00:01:36.334, Speaker A: Yes. But you have, like, Robinhood, for example, which was kind of doing that.
+00:01:36.372 - 00:01:36.574, Speaker C: Right?
+00:01:36.612 - 00:01:39.486, Speaker A: Like, you send all your trades and they would match them and kind of.
+00:01:39.508 - 00:01:43.182, Speaker B: Do it, but you don't actually see how much money they made out of.
+00:01:43.236 - 00:01:43.598, Speaker C: Exactly.
+00:01:43.684 - 00:01:47.586, Speaker B: You don't really see how much citadel made or jump or whoever made out of it.
+00:01:47.608 - 00:01:47.794, Speaker C: Right.
+00:01:47.832 - 00:02:46.920, Speaker B: So the interesting thing is that here in blockchains, there's this porn aspect of it in that you can go run the transaction and see how much it should have cost or taken, and you can go look at what happened, actually happened, and you see a difference. So clearly there's some sense in which difference between expected cost and realized cost. So this is, I send five tokens, I'm supposed to get $5, but I get 450.
+00:02:49.290 - 00:02:54.726, Speaker A: But then you also said you're fine with this when you were sending here, otherwise this would have failed.
+00:02:54.838 - 00:03:13.434, Speaker B: Correct. But the thing is, in a lot of applications, right, an application will guarantee you something. It'll say, like, spend $5 on Robinhood and you'll get five shares. And then if you say yes, and then you see that you got 4.5 shares, you'll be pissed. You will be pissed.
+00:03:13.482 - 00:03:13.934, Speaker C: Yeah.
+00:03:14.052 - 00:04:14.050, Speaker B: So this is the you know it when you see it aspect. Right now, there's this big question of, like, is everything Mev? So I think the flashbuild people who do mev auctions on May, I think they take a lot of liberty with saying even like our dex arbitrage is Mev, but in some ways it's not really. It is just intrinsic to the system, that there's some uncertainty over a block. And whoever gets kind of to pick what the block ordering is kind of has some power over the users. So instead, I think a sort of more kind of economic way of defining MeV is sort of, we have a sequence of transactions that are sort of sitting in the mempool. We have a sort of value function which takes in an ordered sequence of transactions.
+00:04:14.950 - 00:04:16.762, Speaker A: And you want to find such permutation.
+00:04:16.846 - 00:04:21.910, Speaker B: And you want to say like, what's the max permutation? So this is permutation.
+00:04:26.200 - 00:04:32.490, Speaker A: That's probably going to be the most formulas in whiteboard series thus far, right?
+00:04:32.860 - 00:04:48.220, Speaker B: This is Mev, or sorry, rather you should say this is the max value m. This is the expected value e expected value, permutations.
+00:04:50.960 - 00:04:52.492, Speaker A: Here's a question for you.
+00:04:52.626 - 00:04:53.310, Speaker B: Yeah.
+00:04:53.840 - 00:05:00.290, Speaker A: Why don't block producers by protocol, not forced to just randomize its order?
+00:05:00.900 - 00:05:21.800, Speaker B: Yeah, great question. One reason is that they cannot come to consensus on the actual transactions they have. So, for instance, if we have a network of validators, I'll just draw them as this network graph. These are the validators. And then there's the network of users. Actually, you mind if I use the other color?
+00:05:21.870 - 00:05:22.536, Speaker C: Thanks.
+00:05:22.718 - 00:06:26.354, Speaker B: So we'll make the red as validators, blue is users. And so the users are sitting all over the Internet, and they submit transactions. And as you can see, they submit them to different validators. Maybe they submit them twice just to make sure their transaction gets in. And the problem is coming to consensus on the set of transactions you have. So, on the set TX one, a, adds a bunch of latency, but B, you basically have to ensure that people are not dropping some of these transactions, but also you basically have to do what's sort of like a ranked vote. So let's say, even if we agree that these are the transactions, the set of transactions, the ones we're going to include, then we have to say, okay, well, I got this transaction first and I got this transaction last.
+00:06:26.354 - 00:06:29.794, Speaker B: But the problem is there's no way that everyone gets the same ordering.
+00:06:29.842 - 00:06:30.054, Speaker C: Sure.
+00:06:30.092 - 00:06:46.860, Speaker B: Yeah, right. And effectively, people have to vote on what the ordering is. They could vote on the randomness. So they could vote on. But the thing is that the randomness only chooses the permutation. The way each person is storing the set is actually up to them.
+00:06:47.790 - 00:07:00.350, Speaker A: No, but I mean, you can say like, publish a set first, get to a consensus and then through that, also vote on the randomness. Like, for example, the randomness is sourced from DLS signature on the block, and then the execution happens.
+00:07:00.420 - 00:07:12.750, Speaker B: Already we need to agree in advance on some notion of what the set is and what lexicographic ordering is, like, what alphabetical ordering is. And then we draw this random permutation.
+00:07:12.830 - 00:07:13.780, Speaker C: Right? Yeah.
+00:07:14.950 - 00:07:21.734, Speaker B: A, higher latency, b, you still have the set problem of how do you guarantee that people are including what they say?
+00:07:21.772 - 00:07:29.506, Speaker A: Because you mean that this is where the tips and transaction fees are coming from to actually get included in private.
+00:07:29.618 - 00:07:29.990, Speaker B: Exactly.
+00:07:30.060 - 00:07:32.890, Speaker A: So as soon as you do that, you're kind of violating the.
+00:07:32.960 - 00:07:38.842, Speaker B: And B, that there isn't some side channel agreement where a miner is accelerating certain transactions versus others.
+00:07:38.896 - 00:07:39.066, Speaker C: Right.
+00:07:39.088 - 00:07:57.406, Speaker B: Which is what flashbots effectively does. There's an auction. You pay them. If you win the auction, you get to go ahead of everyone. So, a, it's bad, b, increases latency. C, sort of like, increases communication. That the valders have to do, makes them more susceptible to get ddos.
+00:07:57.406 - 00:08:44.698, Speaker B: There's, like, lots of sort of things that make it harder. So instead, the way things work on Ethereum right now is there's effectively a centralized coordinator called flashbots. And let's say I'm a strategic user. So I'm going to call the strategic user is, like, going to give them face with some glasses. And the strategic user is like, hey, flashbots, here's my transaction, and I want it to be first, and I'm willing to pay $5 more than what the transaction costs. And let's say that wins. Then flashbots broadcasts this transaction to all those validator.
+00:08:44.698 - 00:08:57.362, Speaker B: All the validators and who subscribe to it, and they effectively agree, like a cartel, to execute the transaction such that that occurs, and they only get the payment if the thing.
+00:08:57.416 - 00:08:58.190, Speaker A: This thing passes.
+00:08:58.270 - 00:08:58.900, Speaker C: Yes.
+00:09:00.150 - 00:10:01.430, Speaker B: And so you might say, hey, I'm getting robbed here because this guy's putting his transaction first. So that when I put in the five tokens, I only get 450, because he put in his two tokens before and took out my. Arguably, it is more efficient in the sense that people who are strategic, if this wasn't there, they would try to spam the validators with many, many transactions, and you would actually get worse performance in other ways. Right? So there's this trade off between the economics of incentivizing the strategic users to pay more versus the spam on the network. And that's sort of this intrinsic trade off in MeV, there's people who spend their lives trying to make these things called fair ordering protocols that do really complicated kind of the things we talked about. Like everyone keeps voting on the sets of transactions first, then they vote on sort of the randomness, and then they execute. So far, none of them have worked without either some amount of centralization.
+00:10:01.430 - 00:10:05.994, Speaker B: They have sort of some fallback mechanism, or they just blow up.
+00:10:06.032 - 00:10:06.582, Speaker A: Take forever.
+00:10:06.646 - 00:10:08.060, Speaker B: Take forever, right.
+00:10:08.510 - 00:10:10.890, Speaker A: Some consensus algorithms.
+00:10:11.550 - 00:10:28.290, Speaker B: The big problem is no one has actually proven any formal results about this that say something like, hey, there's always this trade off of, like you either get the highest information processed through your blockchain or you have to slow it down to guarantee some sort of fairness. And there's sort of some trade off.
+00:10:28.440 - 00:10:31.410, Speaker A: There's a latency, pretty much like everything is about latency.
+00:10:32.070 - 00:11:32.610, Speaker B: It's sort of latency for finality or for sort of cost and sort of fairness measured in some notion of how much you're respecting the intent of the user. Because one way of thinking about it is we have a blockchain, block one, block two, block three. The user sees the state of block three and it sees that it's like $5 for shitcoin, right? And they're like, oh, I want to buy $5 shitcoin. And so I'm like, yeah, I'm going to send my transaction here, take my money for $500. But then of course, somebody comes in and somebody comes in, and instead of getting 100 shitcoins, they only get 90. And so the idea here is that fairness would say, hey, actually, if there's ten people trying to get the $500 thing, instead of having one person get 100, another person get 95, another person get 90, split it evenly. That's the fairness axis.
+00:11:32.610 - 00:11:35.590, Speaker B: The latency access is like, how fast is my transaction process?
+00:11:35.660 - 00:11:38.406, Speaker A: Yeah, just aggregate all transactions, wait for a while.
+00:11:38.508 - 00:11:38.966, Speaker B: Exactly.
+00:11:39.068 - 00:11:42.830, Speaker A: Everybody chill, and then settle unfairly.
+00:11:42.930 - 00:11:43.290, Speaker C: Exactly.
+00:11:43.360 - 00:12:02.880, Speaker B: And cost is a little bit complicated, actually. So one thing that's interesting is like suppose we have two exchanges. So we have one exchange that shows $5 shitcoin and the other exchange that shows 450 shitcoin. What's the real price?
+00:12:03.410 - 00:12:09.906, Speaker A: Well, depends on how much you're buying and exactly the pools, exactly how much.
+00:12:09.928 - 00:12:43.980, Speaker B: Liquidity there is, what you're buying. It's possible that the $5 shitcoin is horrible for you because there's no liquidity and you push the price to $10. Or it's possible that the 450 is actually worse. And so what is the natural incentive for people to do is to synchronize these, because technically they have the same assets. So buy low sell high. So in some sense, your cost goes down by allowing people who are doing arbitrage to go in front of you because they're actually ensuring that the prices are sort of synchronized. And so it's as close to $5 as when you saw as possible.
+00:12:43.980 - 00:13:08.040, Speaker B: And so there's some sort of like surface in this 3d, I'm bad at drawing 3d things, but there's some sort of trade off surface between fairness, latency and cost. And there's this idea that, hey, if I maximize fair, the people who believe in fair ordering, they think that if you maximize fairness, you're not trading off these other two. But I think that one of the big unsolved sort of mysteries is proving that you can never have all three of these.
+00:13:09.290 - 00:13:29.562, Speaker A: The question is also because, for example, you build a blockchain where the swap is core part of protocol and you aggregate all the transactions and then you execute swaps at the end of the block. Right. The transaction ordering, for example, does not matter in a block at all.
+00:13:29.696 - 00:13:30.042, Speaker C: Yes.
+00:13:30.096 - 00:14:09.142, Speaker B: So there are things like penumbra, which is a ZK blockchain where they take all your transactions and they do a batch auction. The batch auction gives everyone the same price, so it maximizes the fairness side, but everyone actually only sends encrypted transactions. So liquidity providers have to play this game where before the block they have to basically submit how much of their liquidity they want to keep for that block, and then the order flow gets executed privately against that. So that's another example of someone going way on the fairness axis. But their latency access is also quite low. They're high fairness, low latency, but high cost because the batch auction, worst case is high cost.
+00:14:09.196 - 00:14:09.606, Speaker C: Right.
+00:14:09.708 - 00:14:20.246, Speaker A: But let's say you don't do it private, you do it in public. You say we aggregate all transactions and instead of executing them in order, we batch all the orders.
+00:14:20.358 - 00:14:23.822, Speaker B: But now your consensus rule has to interact with an application for the order.
+00:14:23.876 - 00:14:30.670, Speaker A: Well, but then let's say we build the fair, low latency, low cost swap chain.
+00:14:32.850 - 00:14:42.286, Speaker B: Right? But my point is you can't drive all of them to zero. Or like maybe there's some sort of limit to how well you can do without making your consensus suddenly.
+00:14:42.318 - 00:15:03.180, Speaker A: Well, I think that what will happen in this case is that the cost is lower on ethereum, for example, because there's so much more other stuff. As soon as you start optimizing just for swaps, a specific chain, you lose all the other functionality. And now actually your cost will be higher because you don't have flash loans and stuff like this to actually.
+00:15:03.630 - 00:15:26.686, Speaker B: Or you don't have routing where you have many dexes. And I want to trade a to d, but I can split my trade into a to b to d, a to c to D. And actually, this gets to a paradox in a paper we wrote recently that's actually pretty easy to explain, that you can explain mainly without math by just some pictures.
+00:15:26.878 - 00:15:29.330, Speaker A: Wait, Tarun. Explaining something without math.
+00:15:31.750 - 00:16:11.354, Speaker B: I do my best. So this is a sort of paradox, basically, in this paper, we found this paradox that the inverse of this paradox that exists in sort of traffic modeling, like when you're designing cities or designing roads between cities for amm. So the way it works is imagine we have four tokens. Unfortunately, there's not, I don't know, shit in other languages. Otherwise I would name them each a different form of shit. But we'll start with the traffic version of this. So we have four cities on each edge.
+00:16:11.354 - 00:16:45.434, Speaker B: So you want to go from a to d. So Abd ACD on each edge is what's known as sort of the latency. So let's say there's 100 cars that need to travel this. If the latency says x and 50 of the cars take this route, then the time it takes is one half. And if it says one, it's like a really large highway. It'll just take everyone the same amount of time always. And so we have this thing where we have kind of this really large highway, really narrow road.
+00:16:45.434 - 00:17:30.040, Speaker B: Really narrow road, really large highway. Okay, so if we look at the equilibrium of this, imagine everyone was like, hey, what's the fastest route to take? Well, they would see, okay, well, it takes me the same amount on each route. And you would expect traffic to sort of 50 50, right? So you get 50, 50% this way and 50% this way. Okay, now imagine, counterintuitively, that you add a road here that has latency zero. Just imagine the teleportation device, right? And so actually, by the way, when they're split 50 50, the time it takes you is one half plus one, which is three halves, right? Because half goes here. So you have one half and then takes one.
+00:17:30.750 - 00:17:31.450, Speaker C: Okay?
+00:17:31.600 - 00:18:06.258, Speaker B: Now, here, if everyone is selfishly optimizing, the fastest path is actually this path. Because if they took any of the other paths, it could be higher, right? But here it's actually technically x and x, whereas this is always two and x is less than two. Basically what happens is, but then you get this weird, paradoxical thing. If everyone takes this route, then the time it takes them, even though I added another road. There should be more throughput in the network. The network should be more efficient. Takes them longer.
+00:18:06.258 - 00:18:08.754, Speaker B: Because everyone took this road, and everyone took this road.
+00:18:08.792 - 00:18:09.454, Speaker A: Takes time, too.
+00:18:09.512 - 00:18:36.080, Speaker B: Yeah, right. So that's bad. However, what happens if I add. Now let's suppose I add zero, one, a little epsilon times x. That's the only symbol you're getting. Okay, so now, as you make this cost, congestion cost go up, then you'll see that people will revert to distributing 50 50. And how much this congestion cost controls how people distribute themselves.
+00:18:36.080 - 00:19:13.814, Speaker B: Amms are the same way. If I have four tokens and I have these edges that can be built, it turns out that these people doing this mev, there's these things called sandwich attacks, which we can explain. I don't know if that's worth explaining. It's sort of this idea of, I put in $5.05 tokens. I was supposed to get $5 by 450. And the way it works is basically any trade you put in, you say, okay, I'm putting in five tokens, but I don't want to move the price more than 10%, and I say the percentage.
+00:19:13.814 - 00:19:31.514, Speaker B: But let's suppose someone who's strategic notices that actually, if they put me first in the block, I'll only move the price 5%. Then they add another transaction. So this is, say, attacker. They call it a sandwich attack. It's not really. I find it hard to call these things attacks. They're sort of like it's a sandwich trade.
+00:19:31.514 - 00:19:39.490, Speaker B: It's like you're a bad, dumb user. Like, you should have bidden bidding in the auction for the same spot. But that's what you get for being the unsophisticated user.
+00:19:40.150 - 00:19:42.020, Speaker A: You're just saying order books are better.
+00:19:44.950 - 00:20:16.918, Speaker B: I'm not Anatoli. So this guy adds in a trade that pushes the cost up 5%. We put in my trade, which pushes the cost up 5%, and then the attacker sells back. Attacker sells back their amount debt they put in. And so this sequence of trades can be profitable. So they push the price up in front of me. I get a worse price, I get less tokens out, and then they sell right after me.
+00:20:16.918 - 00:21:03.630, Speaker B: And as long as they can guarantee these are executed in that order, they can take advantage of me. Now, the interesting thing about this example is the sandwich attacker is adding this congestion epsilon in some sense. And what actually is kind of a very non intuitive thing is that without the sandwich attacker, there's some scenarios based on the different relative liquidities of this, where actually you have a worse cost for executing end trades over this network than you do if you have the sandwicher. So the sandwicher actually, they cause congestion, but in the same way they make people's routing go back more optimal. So there's this trade off between like, yes, the users who take that edge are getting sandwiched, getting a worse price, but the overall flow across the network can be better. And there's this trade off between congestion and routing costs.
+00:21:04.290 - 00:21:34.680, Speaker A: But usually this kind of trade is atomic. And so even if it is, let's say my trade is a to b to d plus a to c to d in one transaction. And so you're saying that they've done this on B ab and on ac, for example, and then sold it.
+00:21:35.690 - 00:22:02.302, Speaker B: That's still in some cases, it's not always true. It's just that there are examples where if this thing is actually sort of low liquidity, but these are higher, and there's some ratio between how much liquidity is. Here, you can basically get this scenario where the sandwicher actually helps avoid people taking the low liquidity path, because the sandwicher's profit is highest on the low liquidity path, so people's routing changes around.
+00:22:02.356 - 00:22:10.782, Speaker A: I see. But this is like, presumably when somebody does it doing the search, they should probably try to predict how much they're going to be.
+00:22:10.836 - 00:22:38.326, Speaker B: I mean, structure, if someone's doing the search. If there were a way to do this in Ethereum, you can't do this. But I think in anything where you have multi transaction flash loans, you could actually just flash borrow BNC, add liquidity here, and then actually make the path cheaper. But you'd have to inject the flash loan inside the atomic thing. It would be annoying. So you'd have to do this multi transaction mev of like flash loan, execute trades, unflash loan.
+00:22:38.358 - 00:22:38.506, Speaker C: Right.
+00:22:38.528 - 00:22:42.746, Speaker B: And it's hard to compress those atomically. But if you could do that, well.
+00:22:42.768 - 00:22:47.950, Speaker A: If you had resources, for example, that are multi block, multi with some guarantee.
+00:22:48.770 - 00:22:54.890, Speaker B: Then you could actually just never have any of these types of problems. And just assuming there's like a flash loanable place capability.
+00:22:54.970 - 00:23:04.578, Speaker A: Yeah, this is actually something we wanted to do because our stuff is always multi block anyway, right. And so we've been thinking how to have pretty much resources or vaults where.
+00:23:04.664 - 00:23:09.118, Speaker B: Actually walk me through how the design of that. How do you guarantee kind of atomicity?
+00:23:09.214 - 00:23:18.694, Speaker A: We don't over these. Each contract is almost its own chain, or its own roll up, or its own subchain, or its own power chain, or its own name.
+00:23:18.732 - 00:23:19.966, Speaker B: A thing even within the chain.
+00:23:20.018 - 00:24:04.630, Speaker A: What I'm saying is that's the point we don't have. So let's say you have like uniswap, so on, near, Uniswap has all the pairs in one contract. Okay, and so then let's go grab finance. And so then all the trades are just linearized around that. But if you want to do anything else, like for example, actually send tokens to the user, that is done in the next block. So the token itself, like USDT, near or whatever it's called, is you deposit money in one block, then you do a trade and then you withdraw in a way.
+00:24:04.700 - 00:24:06.690, Speaker B: But you can't do that all in the same block.
+00:24:06.850 - 00:24:12.214, Speaker A: No. Okay, because each cross contract call happens.
+00:24:12.412 - 00:24:18.774, Speaker B: In the next cross contract column. Is the token transfer call for USDT.
+00:24:18.822 - 00:24:19.580, Speaker C: Yeah, exactly.
+00:24:19.950 - 00:24:24.090, Speaker A: So it's all based on callbacks. You're always calling the out. It's message pass.
+00:24:24.160 - 00:24:36.846, Speaker B: Am I guaranteed my callback doesn't revert? Like what happens on reversion, you get a callback, but then you have to wait another block. Right, for that callback to have the exception. Does the exception ever take more than a block?
+00:24:36.958 - 00:24:37.620, Speaker A: No.
+00:24:38.390 - 00:24:39.314, Speaker B: You guarantee that?
+00:24:39.352 - 00:24:47.226, Speaker A: Well, we have gas limits. You can write some code that will run out of the gas. So you kind of need to guarantee.
+00:24:47.278 - 00:24:58.440, Speaker B: The, someone can't make an exception that throws an exception callback and has this chain of. If they wanted to grief you because you're paying the gas for that.
+00:24:59.450 - 00:25:02.898, Speaker A: Well, so the user pays like the whole transaction is paid by the user.
+00:25:02.914 - 00:25:07.514, Speaker B: Right, right. But the user could trigger this chain of exceptions that keeps calling back.
+00:25:07.632 - 00:25:11.238, Speaker A: No, there's a limit for one. There is a fault. The whole thing transactions.
+00:25:11.414 - 00:25:15.114, Speaker B: Yeah, because that would be better. So how would you do flash loans.
+00:25:15.162 - 00:25:42.070, Speaker A: In near you don't. Okay, so I mean, you would have a uniswap having a flash loan capacity, or this is what we're thinking, to have vaults. So vault would be something that travels like, that's on a runtime level and it travels between contracts and it has similar callback guarantees pretty much as. So you would program a vault like you say, it either settles in this way or gets returned.
+00:25:42.490 - 00:25:42.854, Speaker B: Right.
+00:25:42.892 - 00:25:45.586, Speaker A: And so you package whatever resources you want in the vault.
+00:25:45.698 - 00:25:53.306, Speaker B: And if it gets returned, do you have like a per block gas spend on the vault as it goes through each?
+00:25:53.408 - 00:25:59.354, Speaker A: Yeah, you pretty much will program. Pretty much. Vault will be like a piece of programmable data that travels around.
+00:25:59.392 - 00:25:59.594, Speaker C: Right.
+00:25:59.632 - 00:26:06.762, Speaker A: So right now data travels around without just a call. But what if you actually can program it so that it can execute.
+00:26:06.906 - 00:26:18.706, Speaker B: So actually, maybe this is a good analysis question. So if we were to do a sandwich attack on near. If I drew, like, block height h. Block height h plus one. Block height h plus two.
+00:26:18.808 - 00:26:21.860, Speaker A: Well, so right now depends on how.
+00:26:23.430 - 00:26:25.730, Speaker B: Can I batch the transfers?
+00:26:26.150 - 00:26:29.138, Speaker A: Yeah, you can deposit everything, trade everything, and then withdraw everything.
+00:26:29.224 - 00:26:40.258, Speaker B: Because, say, the attacker first does their trade. They say transfer a to the Uniswap contract. This one says transfer b, the users. So you can do that in one block?
+00:26:40.434 - 00:26:41.826, Speaker A: You can do that in one block.
+00:26:41.938 - 00:26:42.466, Speaker B: Okay.
+00:26:42.588 - 00:26:51.722, Speaker A: But, like, an attacker would just already have all the deposits on the contract. Because you can have your internal balance on this contract. You don't need to.
+00:26:51.776 - 00:26:55.014, Speaker B: Oh, I see. You would have just already transferred.
+00:26:55.062 - 00:27:00.654, Speaker A: Yeah, you just put all the money in, and then when you see somebody executing, you just try to execute around them.
+00:27:00.692 - 00:27:02.254, Speaker B: You execute in the same block, then.
+00:27:02.292 - 00:27:02.494, Speaker C: Yeah.
+00:27:02.532 - 00:27:03.354, Speaker A: That's linearized.
+00:27:03.402 - 00:27:04.880, Speaker B: Got it. Okay.
+00:27:05.430 - 00:27:11.490, Speaker A: So within this, you can have many, many call executions pretty much happening within one block.
+00:27:13.270 - 00:27:16.580, Speaker B: But I force some serialization around them, right? Yes.
+00:27:17.430 - 00:27:43.390, Speaker A: And this is where the fun starts. So each contract is its own, quote, unquote, chain roll up, whatever. But then they get batched into actual shards, physical shards, which are actually semideterministic. Cross contract calls are getting batched and received from different shards. And also deterministic, but kind of determined by a previous block.
+00:27:44.050 - 00:27:49.840, Speaker B: How do you guarantee that the validator executes the callback correctly on the next block? Are they?
+00:27:50.370 - 00:27:56.874, Speaker A: Yeah, that's just invalid state tradition if they don't. Okay, so pretty much the way it works. So this is a block.
+00:27:56.922 - 00:27:57.182, Speaker C: Right.
+00:27:57.236 - 00:28:19.378, Speaker A: So within the blocks, there's chunks or shards, and then you have transactions here. And so this produces, we call them receipts, but this is just cross contract calls. And so they're getting included in the beginning of the next. So these things will get included. So there's, like, actually two parts transactions.
+00:28:19.474 - 00:28:32.774, Speaker B: The block header of the previous block includes the set of things that must be called first or something. Got it. Is it possible that the number of these things have to get called here, take up the entire next block?
+00:28:32.902 - 00:28:33.194, Speaker C: Yeah.
+00:28:33.232 - 00:28:42.894, Speaker A: So there's always some limit to include more transactions, but, yeah. So there's a queue pretty much been built, and it may take some time to undo it, process it.
+00:28:42.932 - 00:29:07.474, Speaker B: The user doesn't actually have that. So suppose there was, like, an order book, and I had a liquidation from a lending protocol that took out the whole order book. It's possible that if I wanted to trade on that order book, I submit a transaction, I'll be behind. Is there a bound on that time, or is there a bound on the space per block that's taken by the previous callback?
+00:29:07.522 - 00:29:12.300, Speaker A: Yes, there's some space always for new transactions to come in.
+00:29:13.390 - 00:29:35.274, Speaker B: Okay, so that's where you have some mev. So if I know the new transaction space, let's say I know there's a liquidation, let's say I'm the liquidator, so I cause the liquidation to happen, and then I want my orders to get filled. I will just add in new kind of orders to the order book such that some of these have to get executed in this block.
+00:29:35.322 - 00:29:35.786, Speaker C: Right? Yeah.
+00:29:35.828 - 00:29:44.734, Speaker B: Non zero number. If I look at, let's say this is like block space as, like there's some percentage that is callbacks from last block.
+00:29:44.782 - 00:29:44.994, Speaker C: Yeah.
+00:29:45.032 - 00:29:50.306, Speaker A: Or like receipts from before and how.
+00:29:50.328 - 00:29:53.410, Speaker B: Much and some new transactions. What's the ratio?
+00:29:54.250 - 00:30:08.938, Speaker A: So there's a limit on the whole block, and then there's a minimum percentage for this. I don't remember what it is, but, like, and then usually it's less than. And so it fills in with the rest.
+00:30:09.024 - 00:30:09.274, Speaker C: Yeah.
+00:30:09.312 - 00:30:30.786, Speaker B: This is an interesting way of manipulating a TbOP, Oracle. So another form of mev is like, let's say you have a uniswap transaction and someone's using it as an oracle price, like they're marking a loan on another contract. If you basically change the price on uniswap, so you paid to move the price up for a certain amount of.
+00:30:30.808 - 00:30:31.380, Speaker A: Time.
+00:30:33.270 - 00:30:38.230, Speaker B: You will somehow keep adding trades here that are callbacks and you'll have to add some new transactions.
+00:30:40.570 - 00:30:49.074, Speaker A: So, yeah, you can pretty much try to push up the price. And while this gets executed, if there's more stuff scheduled to execute.
+00:30:49.122 - 00:30:49.430, Speaker C: Yeah.
+00:30:49.500 - 00:30:50.166, Speaker B: Right.
+00:30:50.348 - 00:30:51.080, Speaker A: Yeah.
+00:30:51.530 - 00:31:01.354, Speaker B: That's kind of interesting. This callback Mev, I don't think anyone's ever talked about, but it clearly exists. So how does this ratio get chosen? Is that governance or is that.
+00:31:01.392 - 00:31:02.890, Speaker A: Yeah, it's a configuration.
+00:31:03.890 - 00:31:06.014, Speaker B: So validators have to vote on change to it.
+00:31:06.052 - 00:31:06.640, Speaker C: Yeah.
+00:31:07.410 - 00:31:11.406, Speaker B: Have you seen people taking advantage of this in this way?
+00:31:11.508 - 00:31:18.334, Speaker A: Not this right now. I think there's some sandwiching that happens, but it's also hard because, let's say.
+00:31:18.372 - 00:31:24.350, Speaker B: Well, the sandwiching is capital inefficient here because you can't really flash on your sandwich.
+00:31:24.430 - 00:31:30.542, Speaker A: Well, you can on a specific protocol application implementation that has internal balances.
+00:31:30.686 - 00:31:33.400, Speaker B: Okay, so you're saying in the Uniswap contract, I could put.
+00:31:34.010 - 00:31:38.902, Speaker A: So uniswap contract is almost like its own chain where you can deposit money, trade, and then withdraw money.
+00:31:38.956 - 00:31:39.574, Speaker C: Right? Yeah.
+00:31:39.692 - 00:31:41.426, Speaker A: That's why they are actually chains.
+00:31:41.458 - 00:31:41.766, Speaker C: Right? Yeah.
+00:31:41.788 - 00:31:47.878, Speaker A: And you can do it in one transaction, but obviously it's less efficient than if you deposit, do a bunch of trades and withdraw.
+00:31:47.974 - 00:31:48.282, Speaker C: Right.
+00:31:48.336 - 00:31:56.170, Speaker B: But can I flash borrow as my deposit and then do the trades and then flash close, assuming it's profitable?
+00:31:56.830 - 00:32:00.894, Speaker A: There's no implementation. A current. But in theory. Yeah, in theory you could.
+00:32:00.932 - 00:32:06.122, Speaker B: Okay. Someone should do that. I feel like that would just make this process more efficient.
+00:32:06.186 - 00:32:20.142, Speaker A: Yeah, in theory. Because this contract actually has a lot of liquidity itself. So it actually can borrow. Actually, it doesn't even need the real money yet. You can actually literally print the money because the tool will be within one of its execution.
+00:32:20.206 - 00:32:34.120, Speaker B: Yeah, exactly. You should be able. So this is an interesting question. In a protocol, like, near where I can think of as, like, each app is almost effectively its own chain, although there's some sequencing, there's still.
+00:32:35.470 - 00:32:42.518, Speaker A: There is a pretty much synchronization that happens. Right. That's really what our point was. If it's completely async.
+00:32:42.534 - 00:32:42.762, Speaker C: Right.
+00:32:42.816 - 00:32:50.094, Speaker A: Which was like, a lot of original sharding designs, it becomes completely unmanageable. Right. Because as a user, you now have no idea what's going on.
+00:32:50.132 - 00:32:51.854, Speaker B: I mean, you already still do have the little.
+00:32:51.892 - 00:32:52.462, Speaker A: You have some.
+00:32:52.516 - 00:32:52.686, Speaker C: Yeah.
+00:32:52.708 - 00:32:53.562, Speaker A: You have some uncertainty.
+00:32:53.626 - 00:33:16.582, Speaker B: But as a user, the wallet needs to basically resend if it doesn't make it into the. If you're on high priority, let's say you get into the callback, but you have no clue whether you'll be in the next block or five blocks away. You have to keep layering new orders and try to get into this. Yeah, I mean, it's actually kind of interesting to think about what the other.
+00:33:16.636 - 00:33:43.120, Speaker A: Type, because in a way, this is a more optimized version of a multi chain world. Right? Like, if you think of it, each thing is multichain world. It's just you have kind of a single machinery to deal with it, but you have this problem across. Like, say you have cosmos with IBC, you have the same type of thing, right? You have things sending money between. You can trade, you can withdraw. And so, like a multi chain mev, that's what Niero's already.
+00:33:47.330 - 00:33:58.358, Speaker B: So one interesting thing about multi chain mev, another kind of funny little allegory, this one. Again, I'm trying to do all the ones that don't need new mouth. This one doesn't really.
+00:33:58.444 - 00:34:00.934, Speaker A: Actually, I was thinking about this.
+00:34:00.972 - 00:34:01.174, Speaker C: Yeah.
+00:34:01.212 - 00:34:24.140, Speaker A: So actually, if this contract is ref finance, adds a primitive specifically for sandwich attacks, where you literally say, I'm going to borrow x, trade like a to b or whatever, some set of executions, and then whenever somebody else trades this, I'll return it.
+00:34:24.610 - 00:34:30.026, Speaker B: I mean, the interesting thing is this changes the dichotomy of this uniswap pool.
+00:34:30.058 - 00:34:30.206, Speaker C: Right.
+00:34:30.228 - 00:34:41.490, Speaker B: So let's just say we have r one, r two, which is like the reserves. Well, what are you borrowing when you're flash borrowing? Well, you're borrowing one side of this, so you're actually changing the price slightly.
+00:34:41.910 - 00:34:58.040, Speaker A: You literally just say, I'm going to drop the. But then this contract can just do it themselves. They can just give everyone the minimal price. The minimal, like whatever the price that user said the minimum, they will be fine with it, can just give it to that and take all the money to itself. Why doesn't do that?
+00:34:58.650 - 00:35:01.622, Speaker B: That's a great question. You should ask them why their token doesn't.
+00:35:01.766 - 00:35:10.666, Speaker A: No, but whatever uniswap just did that, it will always give them whatever minimal price or fail it is.
+00:35:10.688 - 00:35:11.018, Speaker C: True.
+00:35:11.104 - 00:35:20.480, Speaker B: So that's what this penumbra type of thing does when they do batch auctions. They effectively do. You could do it on the single transaction level. They just do it on a many transaction level.
+00:35:21.730 - 00:35:33.860, Speaker A: But if we're talking about generally, yeah, if the contracts themselves force that because then people will actually optimize this. Because right now it said like to 5%.
+00:35:34.950 - 00:35:41.010, Speaker B: The problem is we're ignoring one user here, which is the liquidity provider, and they are losing out on this potentially.
+00:35:41.090 - 00:35:47.110, Speaker A: But no, but the contract can make money for liquidity providers with this. Like they can split the profit.
+00:35:47.450 - 00:35:48.200, Speaker B: Right.
+00:35:50.410 - 00:36:10.720, Speaker A: Now you have this, like you get, there's a price curve. Right like this. And you're saying if you're buying, then the price goes up. If you're selling, the price goes down. But the reality is you can just say you'll be going from here instead. And this is your.
+00:36:11.250 - 00:36:11.614, Speaker C: Yeah.
+00:36:11.652 - 00:36:20.046, Speaker B: The problem is the language that you design trades in uniswap doesn't give you a price. You just say the language is trade size and slippage limit.
+00:36:20.078 - 00:36:20.418, Speaker A: Exactly.
+00:36:20.504 - 00:36:23.298, Speaker B: It doesn't give you a price that you pin to.
+00:36:23.384 - 00:36:24.020, Speaker A: Yeah.
+00:36:24.550 - 00:36:33.730, Speaker B: If you added the price, you could sort of do this, provided that it is true. This is sort of like adding like stop loss orders.
+00:36:33.810 - 00:36:47.466, Speaker A: Exactly. It's more like when you trade, you just say like I trade a to b and I want at least x of b. Yeah.
+00:36:47.568 - 00:36:49.690, Speaker B: Which is how slip agreements are defined.
+00:36:51.630 - 00:36:52.426, Speaker A: Exactly.
+00:36:52.608 - 00:36:53.262, Speaker B: This is how.
+00:36:53.316 - 00:36:56.560, Speaker A: And so you just get always the x. Yeah.
+00:36:57.570 - 00:37:02.682, Speaker B: The problem is their transaction might fail many times. Exactly, because someone frontruns.
+00:37:02.746 - 00:37:07.710, Speaker A: But this is true right now too, when somebody is front running it, hopefully.
+00:37:07.790 - 00:37:09.358, Speaker B: Yeah, as long as you can enforce.
+00:37:09.454 - 00:37:28.738, Speaker A: So if there's efficient value extractors like flashbot, you will always get x. Yeah, otherwise they're not efficient and they can extract more. So in reality, you're already getting this. Except the money go to whoever runs searchers instead of lps.
+00:37:28.834 - 00:37:29.480, Speaker C: Right.
+00:37:29.790 - 00:37:40.138, Speaker A: So why don't the swap protocols just give it to a piece and their token holders, if they have the, they could.
+00:37:40.224 - 00:38:13.186, Speaker B: I guess the weird thing about this, borrow this. Like, hey, I'm going to take some of the reserves and use it to do the sandwich, taco sandwich, is that it doesn't work at very low liquidity, so long tail assets are fucked. But then it also doesn't work for really large trades because they will wipe out. It'll have to borrow so much of this that it'll push the price. There is this trade off between how much you're willing to borrow to do the sandwich versus the trade size. And it's unprofitable in some cases. But you're right that you could do it just on the trades.
+00:38:13.186 - 00:38:15.410, Speaker B: That's guaranteed profitable for lps.
+00:38:15.490 - 00:38:33.370, Speaker A: Yeah, so we just solved movies. No, I mean, this is the sandwich. We just solved sandwich text. Pretty much all amms should just always return whatever minimum user said and make money for lps.
+00:38:34.030 - 00:38:39.040, Speaker B: Yeah, that's definitely true. They should just sandwich themselves. I mean, people have made these.
+00:38:41.010 - 00:38:41.546, Speaker A: Amms.
+00:38:41.578 - 00:38:50.402, Speaker B: Have done that, but for some reason, they've never been able to get liquidity, because there's this liquidity begetting liquidity effect of if people's wallets are already routing to you.
+00:38:50.536 - 00:38:52.526, Speaker A: Yeah, there's network effects.
+00:38:52.558 - 00:38:55.330, Speaker B: There's network effects, I think somehow.
+00:38:55.830 - 00:39:10.922, Speaker A: So you actually talked about originally, and I know you wanted to flip to another topic, but defining kind of, it's through maximum permutation, but things like TWAp and other stuff that take multiple blocks are actually not that.
+00:39:10.976 - 00:39:34.510, Speaker B: Yes. The thing here is max over permutations, max over transactions. You can add max over transactions. You remove such that the sum of all the transactions is less than the block limit.
+00:39:36.770 - 00:39:41.774, Speaker A: But there's also a context of, like, you can be doing this for multiple blocks.
+00:39:41.902 - 00:40:16.320, Speaker B: Yeah, again, that's true. Then you need to make sure this block limit thing takes advantage of that of value of mempool. It is expensive. I do think the amount people have. So one question you might say is like, suppose I gave you a flash loan that, let's say, flashbots offered a service where they lend you collateral over a block. So let's say you're a searcher. So a searcher is a strategic user who does a sandwich or does a liquidation, whatever.
+00:40:16.320 - 00:40:26.386, Speaker B: Flashbot says, hey, we'll lend you 1 million, you can do a bunch of transactions, but it'll only be valid if we get back at least 1 million.
+00:40:26.488 - 00:40:28.414, Speaker A: Plus some interest reward.
+00:40:28.462 - 00:40:39.854, Speaker B: Yeah, right. But you can buy arbitrary amounts in a block. Now you could imagine just doing that repeatedly and the cost of this twap attack just went down dramatically.
+00:40:39.902 - 00:40:40.126, Speaker C: Right.
+00:40:40.168 - 00:40:47.126, Speaker B: So the question is, this is actually incentive compatible for the auctioneer because it's actually better for them to be lending you money.
+00:40:47.228 - 00:40:47.590, Speaker C: Right.
+00:40:47.660 - 00:40:50.986, Speaker B: Because they actually don't earn any yield right now.
+00:40:51.088 - 00:40:53.610, Speaker A: Yeah, because it's pretty. Yeah.
+00:40:53.680 - 00:40:53.962, Speaker C: Right.
+00:40:54.016 - 00:41:19.300, Speaker B: And for them this is free interest. So the question is, at what point does all the value go from the oracle lps to the auction? And my suspicion is, in the long run, the validators always hold the keys literally, and they can literally always do this, and there's no reason for them not to. And if you're accelerationist, validators should be selling these types of services.
+00:41:19.830 - 00:41:24.626, Speaker A: But shouldn't validators be the oracles then, because they hold the keys anyway?
+00:41:24.728 - 00:41:25.282, Speaker B: Yeah, exactly.
+00:41:25.336 - 00:41:27.618, Speaker A: May as well just, they should actually provide the data.
+00:41:27.704 - 00:41:28.194, Speaker C: Yeah.
+00:41:28.312 - 00:42:17.330, Speaker B: So Eigen layer, which is like this thing for e two for restaking. So what it is is like, let's say I'm an e two validator, I've staked 100 eth, and someone is like, hey, I'll pay you 5% a year if you take your 100 Eth in these two and you restaked it in my oracle protocol. So what that means is if I draw it, it's like I have my hundred eth I deposit into staking contract and now I have 100 staked EtH. I'll cut se to separate it from St EtH because that's slightly different. And what restaking does instead it says, hey, put your hundred ETH in the oracle contract.
+00:42:17.690 - 00:42:20.338, Speaker A: That will actually stake it underneath.
+00:42:20.434 - 00:43:24.806, Speaker B: Yes, and the oracle deposits it. So the withdrawal address that the main protocol sees is the oracle. But the oracle is a smart contract that guarantees that when you call withdrawal, it atomically sends you back withdrawal. So now you basically get this pass through where you can earn extra interest as the validator by basically delegating your stake to a contract that does go and put in the main network, but then also earns fees from whatever people calling the oracle function. So there's a sense in which that's the way I think, that all of these services that validators could offer, like lending, you could basically make a lending protocol like this, where the amount that's allowed to be lent effectively is like the protocol say, takes. So let's suppose we had a lending protocol version of this lend. They take 95 ETH and restake, and they take five Eth and put in the lending pool.
+00:43:24.806 - 00:43:34.054, Speaker B: And the idea is maybe this is getting you 7% fixed and the loans are getting you like five to 10% variable.
+00:43:34.102 - 00:43:34.314, Speaker C: Right.
+00:43:34.352 - 00:43:39.998, Speaker B: And you can choose how much you want to do that. And then the validator would have the.
+00:43:40.004 - 00:43:41.706, Speaker A: Capital to do this, to lend.
+00:43:41.738 - 00:43:43.502, Speaker B: Yeah, but then the tv oracle completely.
+00:43:43.556 - 00:43:49.774, Speaker A: Is ruined by that. But if we go further, we just go to add this on a protocol.
+00:43:49.822 - 00:43:54.046, Speaker B: Level, where, I mean, you could add these as services directly in the protocol.
+00:43:54.078 - 00:43:54.466, Speaker C: Yeah.
+00:43:54.568 - 00:43:57.490, Speaker A: And then you can, which I think is any amount of anything.
+00:43:57.640 - 00:43:58.386, Speaker C: Right.
+00:43:58.568 - 00:44:00.606, Speaker B: If you return it, you can even flash mint.
+00:44:00.638 - 00:44:00.834, Speaker C: Right.
+00:44:00.872 - 00:44:01.358, Speaker B: Where you mint.
+00:44:01.374 - 00:44:07.080, Speaker A: Well, that's what I mean. Yeah. You just borrow any amount, like infinite amount of anything. If you return more of it.
+00:44:08.010 - 00:44:09.990, Speaker B: 64 has a max bud.
+00:44:10.570 - 00:44:12.538, Speaker A: Well, U 256, to be clear.
+00:44:12.624 - 00:44:13.734, Speaker B: 56 has a max.
+00:44:13.782 - 00:44:22.410, Speaker A: Also, you can borrow as much as limit of the integers.
+00:44:25.570 - 00:44:52.082, Speaker B: But I think this is actually what will end up kind of defeating a lot of on chain trading as oracles. I think there's a lot of people trying to build lending protocols that use t wop oracles. And the moment validators start doing, and, like, ETH has already gone this way, proposer builder separation sort of screws over a lot of these things that want to use twap oracles. So you might as well just shove it into the validator.
+00:44:52.146 - 00:44:59.320, Speaker A: Yeah, there was no attacks yet on all the stuff that depends on tWap. I think right now the validators can do whatever, right.
+00:44:59.690 - 00:45:05.382, Speaker B: There have been a couple, and most of them actually just have to do with people using bad twap settings.
+00:45:05.446 - 00:45:06.058, Speaker C: Okay.
+00:45:06.224 - 00:45:09.834, Speaker B: Because obviously they make the window too short, it becomes really cheap, they're really easy.
+00:45:09.872 - 00:45:10.460, Speaker C: Yeah.
+00:45:11.310 - 00:46:01.722, Speaker B: And so I think another kind of interesting liquidation game to consider is. Oh, yeah, sorry, cross chain auction design. So this is something I'm working on now, and it's formalized formally, but there's one example in there that's kind of interesting. So suppose we have two chains, chain x, chain y. And there's an amm here that is trading x versus synthetic y synth y. And there's something here trading synth x y. Okay, so let's suppose the price here is p zero.
+00:46:01.722 - 00:46:16.050, Speaker B: The price here is p one p zero is less than p one. Let's suppose that there's validators. I should draw them as little stick figures.
+00:46:19.270 - 00:46:21.954, Speaker A: There's validators, same validators of people.
+00:46:22.152 - 00:46:50.774, Speaker B: They might not be the same. They might be the same. Who knows? And they can do one of three auctions. One, sell the arbitrage. So, like, trade x for synth y, go to y, redeem it. Trade Y for synth X, go across back, so you can price the auction, price the bundle in x, price bundle.
+00:46:50.822 - 00:46:53.760, Speaker A: In y, or price both.
+00:46:54.290 - 00:46:55.834, Speaker B: Or sell the leg separately.
+00:46:55.882 - 00:46:56.480, Speaker C: Yeah.
+00:46:57.650 - 00:47:33.046, Speaker B: And depending on the liquidity and the gas cost model, when you do this trade here, if you bid on them separately, you're actually bidding on how much you're going to change your gas cost here, because you're actually pushing down the price wise. So if this price difference is really big, then you actually can, as the auctioneer, earn higher revenue by pricing separately versus pricing in one or the other. And this is the type of stuff, I think, that makes this cross chain mev stuff much more complicated. Actually, sometimes the auctioneer should be offering you very different sets of bundles. Biding languages.
+00:47:33.238 - 00:47:39.114, Speaker A: Well, I mean, this is where, ideally, you have some options that you can buy to hedge your.
+00:47:39.232 - 00:47:40.700, Speaker B: Yeah, sure.
+00:47:41.230 - 00:47:42.118, Speaker A: Latency.
+00:47:42.294 - 00:47:47.070, Speaker B: I'm saying there's certainly, hopefully that. But for a lot of coins, that's not true.
+00:47:47.140 - 00:47:47.662, Speaker C: Right.
+00:47:47.796 - 00:48:13.090, Speaker A: Well, I think one of the interesting things in general, for any multichain stuff is because there's a latency l that exists here. And so what you want, you want some option for two l plus some epsilon that will guarantee you whatever you're doing here. And so having a facility that gives you such options, like efficiently priced.
+00:48:13.170 - 00:48:15.718, Speaker B: Again, this is another thing that validators should be selling you.
+00:48:15.804 - 00:48:19.026, Speaker A: Yeah. Especially validators that run across all the chains.
+00:48:19.138 - 00:48:44.942, Speaker B: Right, exactly. So the difference in value in a sort of no arbitrage world, which is obviously somewhat idealistic, but it's not that idealistic, because the validators, if they're issuing the options, it should be no arbitrage. Otherwise they fucked up. That means that they wrote their code wrong. Then, in that case, if there are options, these three should all probably be priced the same, because these two will include options.
+00:48:44.996 - 00:48:45.226, Speaker C: Yeah.
+00:48:45.268 - 00:49:04.760, Speaker B: Right. But my point is, right now, that if you just look at the dexes, the way MeV is extracted is actually the way people are designing. How you bid on these things changes their revenue. And I don't think anyone's very much solved that problem.
+00:49:06.170 - 00:49:38.218, Speaker A: Yeah, I think that there's an interesting, like, if we're talking about validator right now, they're just running like a regular node. And so already with flashbots ideas, you run something that proposes blocks. Sidecar proposes block. So the question is, should this be kind of a standardized facility to allow for kind of customization of the, almost like a block for flash mints and kind of all these things?
+00:49:38.324 - 00:50:03.334, Speaker B: I think that's inevitable. This is the direction. I think all the cosmos MeV stuff is moving this direction. I'm going to guess near Mev will move in this direction. This is where it's different than ETH, because ETH is doing first proposer builder separation, which kind of complicates doing these sidecar things. So the proposer is a person who gets drawn from the stake distribution. The builder is a person who proposes a block.
+00:50:03.334 - 00:50:12.182, Speaker B: And so you have this auction where the proposer is given a bunch of blocks. They can't see what the transactions are, but they're bidding on a particular block.
+00:50:12.246 - 00:50:17.478, Speaker A: So it's like, no, they're just picking whatever. Who pays them more? Pretty much. And they just, they should be.
+00:50:17.584 - 00:50:26.174, Speaker B: I mean, there's some weirdness here in that, and I don't know why flashbust people don't believe this, but, like, the proposer and builder could easily collude by being the same person. Right?
+00:50:26.212 - 00:50:26.974, Speaker A: Which they are.
+00:50:27.012 - 00:50:28.160, Speaker B: They usually are.
+00:50:30.290 - 00:50:54.370, Speaker A: Also, there's like, builders who propose, builders propose a block, propose a block. Which is why it's confusing. You would expect proposers to propose a block. Correct. And then the validator, let's just call them, is the one who actually picks. And so, like, naturally, I mean, ideally they should pick whatever pays them the highest. But if they are the builder, then there's some in, they just laid them to choose.
+00:50:54.460 - 00:50:57.066, Speaker B: Well, they might want to choose the cheaper one because they have a bunch of their own.
+00:50:57.168 - 00:51:02.506, Speaker A: Well, yeah, there's like extracted value here, which is higher than this price.
+00:51:02.688 - 00:51:25.886, Speaker B: This, again, gets at this fact of like, fair ordering is fucking stupid. This thing will never be compatible with this idea that there exists some global. Kenneth Arrow won the fucking Nobel prize for proving this impossibility theorem for ranked voting, and somehow we still want to shove ourselves into pretending that that's not just like a fact of reality, because there's no fairness.
+00:51:25.998 - 00:51:28.930, Speaker A: Pretty much sorry for destroying your world. There's no fairness.
+00:51:29.270 - 00:52:06.058, Speaker B: There's a trade off of fairness. There's a big problem in machine learning too, right now. Big problem in both machine learning and crypto. So I actually think that's where the intersection of research is right now. It's like the fairness thing of like how much fairness do you trade off for accuracy, cost and latency and very hard problem. But I do think people will make a node where there's sort of like a DSL that lets you say, hey, I'm going to use this mainnet contract as my restaking mechanism. And you deploy these contracts, oracle lending, whatever, that basically guarantee the execution for the validator.
+00:52:06.234 - 00:52:24.614, Speaker A: Yeah, well I don't think you need a restaking contract. You just literally have some, you just say there's a facility of pre block, post block logic that everybody just, the whole blockchain just votes that we're going to accept this piece of code to run. And like in cosmos it's like everybody does that all the time.
+00:52:24.652 - 00:52:33.146, Speaker B: Well I think the restaking thing is kind of important because you, yeah, I know the pre block, post block header thing there is a little bit that.
+00:52:33.168 - 00:52:40.074, Speaker A: Makes sense, but I think in cosmos they literally have that. Two pieces of interesting thing here is.
+00:52:40.112 - 00:52:51.882, Speaker B: That the lend contract may actually want to source liquidity, not from the validators. Right. The lend contract might just be like, hey, it's the normal ave pool.
+00:52:51.946 - 00:52:52.366, Speaker C: Yeah.
+00:52:52.468 - 00:52:54.058, Speaker B: And you're just using the ave, that's.
+00:52:54.074 - 00:53:17.878, Speaker A: If you don't have just flash mint. If you have flash mint. And that's what I'm saying. If you have just like facility to do whatever, that's where it's at. Code and stuff like this. Yeah, but generally saying, right, I mean this is where if we had programmable resources, then you can have a flesh mint in the resource where in x blocks it needs to come back.
+00:53:17.964 - 00:53:29.494, Speaker B: But I guess my question with the design, you're saying earlier of like have to wait another block, I have to wait each block. How does flash mint work? Because I can flash mint, but then the flashman is stuck. Context.
+00:53:29.622 - 00:53:47.774, Speaker A: Yeah, that's what I'm saying. It's programmable. There's like a piece of logic there that says in x blocks this thing needs to come back and call this function that will flesh, pretty much mint it, burn it, and so it doesn't matter where this resource ends up. Well that's where the guarantee by the runtime.
+00:53:47.822 - 00:53:48.450, Speaker B: I see.
+00:53:48.600 - 00:53:58.722, Speaker A: Okay, so in runtimes there's a new pack, like a new place where it records all the resources that are there and iterates over there and says like is any of these resources need to come back?
+00:53:58.776 - 00:54:01.346, Speaker B: Also says, basically takes a lock on all these resources.
+00:54:01.378 - 00:54:23.802, Speaker A: Exactly. This is a lock mechanism. Yeah, it's a mutex of resource that you can travel around. This is how we were solving the train and hotel problem and we have not implemented this because it is more complex. But actually move is doing this. This is where it gets interesting because move is actually programming language that has the resources already which are like have conditions around.
+00:54:23.856 - 00:54:51.046, Speaker B: I do think the problem with this stuff is like the uniswap style, like global state. Everyone is shitting in the same pool when you're executing. Doesn't work very well here because you have to have many of these running concurrently for each user in some sense, which can be like a pain in the ass. So you need to build this stuff to manage all the users state traipsing. And then when there's the same lock you have some rules, but this is.
+00:54:51.068 - 00:54:59.906, Speaker A: Where usually something on uniswap will just be one chain contract account thing where you just synchronize everyone, trade it and synchronize.
+00:55:00.018 - 00:55:06.138, Speaker B: But I just mean for developers that's quite a bit of overhead. If they have to think about that. They want to write fucking javascript, man.
+00:55:06.224 - 00:55:06.586, Speaker C: They do.
+00:55:06.608 - 00:55:08.826, Speaker A: That's why we have now javascript, they.
+00:55:08.848 - 00:55:09.946, Speaker B: Don'T want to write this type of.
+00:55:09.968 - 00:55:23.706, Speaker A: Well, in javascript you do have callbacks and this is literally how microservices work. To be clear, each contract on near is a microservice with a database and it receives incoming calls and it has callbacks.
+00:55:23.738 - 00:55:27.074, Speaker B: But the question to me is actually more like the lock on the state.
+00:55:27.192 - 00:55:37.022, Speaker A: That'S touched is based on how you want it. It's a developer. That's why we wanted to add some facility like standardized lock facilities, but we haven't.
+00:55:37.086 - 00:55:43.318, Speaker B: Is there a way to wait? Can I control whether I have a view only resource? First mutable resource of like you as.
+00:55:43.324 - 00:55:47.734, Speaker A: A developer can implement whatever you want. You can literally resolve your own locks and everything.
+00:55:47.852 - 00:56:38.838, Speaker B: Okay, yeah, that makes sense. This seems like there's more mev here honestly than there is an e. I know all the move people are like oh, we have less mev bullshit. This actually seems like there's way more of like for the resources, the sequencing. Suppose I have like five resource, let's suppose there's state one, state two, state three, and like calculation one, calculation two, and we have five people. And let's suppose we have the sort of like complete bipartite graph on this and each of them is taking some path, like one is doing that, one is doing that, one is doing that, and they have some contention, right? Like they'll reach the same state. The resolution of those contentions is either random, but the randomness is not really random there, because if you know the validator code, you can figure out what the, they have to come to consensus on that.
+00:56:38.838 - 00:56:44.330, Speaker B: So there must be some deterministic source of that. So you could try to basically simulate ahead the previous.
+00:56:46.190 - 00:57:07.050, Speaker A: Unless you pipeline it, then it's the next block. So this is where in our case we have a one bit of validator, can only affect one bit of randomness, right. By not producing a block, which then actually corrupts their ability to do anything. And we actually had a fully non biased VRF implemented, but not launched.
+00:57:07.130 - 00:57:41.830, Speaker B: Well, how come there's no. One thing I haven't understood, because there's so many benefits to application developers, is why no one has a VRF the application level. Because to some extent the thing you were describing earlier where we're like, hey, we'll let you borrow a little bit before the contract does, it itself is a sort of form of like, hey, the contract is collecting its own mev, or like there's application specific mev. But one of the things is that's not quite easy to do right now. And one thing that would make it easier is actually having just like a VRF, you could call in your contract that's tied to the consensus.
+00:57:41.990 - 00:57:54.490, Speaker A: So we have that because when you submit a transaction, it gets included and then it gets executed. Okay, so by the time it gets executed, you already had something that was like consensus here and have a random.
+00:57:54.570 - 00:58:00.674, Speaker B: Haven'T made like numpy random for consensus randomness. Like I want to sample gaussian. I want to do the.
+00:58:00.792 - 00:58:01.890, Speaker A: You can do that on here.
+00:58:01.960 - 00:58:10.518, Speaker B: I know, but someone should actually just make the library because I feel like that will actually give application developers a lot more easy control over avoiding these.
+00:58:10.604 - 00:58:15.974, Speaker A: So you're just saying like, oh, just give a random amount back. Pretty much within the range, right.
+00:58:16.012 - 00:58:17.350, Speaker B: But with some distribution.
+00:58:18.410 - 00:58:24.714, Speaker A: Well, you have a slippage and you just say, well, we're going to give you random amount.
+00:58:24.832 - 00:59:03.350, Speaker B: Yeah. We wrote this paper proving how to get differential privacy, which is sort of like a way of, you can show for these amms, you can't ever give pure privacy even if you had a ZK proof blocking the reserves. Because if you see the prices, you can always invert the prices because the functions are deterministic for how they change. So the question is, how do you add noise such that if I add x bits of entropy to your trade, which change your price by some amount of, there's some bits of entropy to the random price, how do I make sure that someone can't infer what your trade size was with more precision than x. But then I also don't move your price more than y.
+00:59:03.420 - 00:59:03.654, Speaker C: Right.
+00:59:03.692 - 00:59:25.238, Speaker B: So there's like the trade size space and then there's the sort of price. And I want to add randomness. So you're in here. But then I also don't want this thing to be really. And so there's this trade off. And if you had different distributions, you can add noise here with certain distributions to guarantee that this thing is bounded.
+00:59:25.334 - 00:59:28.000, Speaker A: Well, there's a project right there for someone to build.
+00:59:28.530 - 00:59:31.306, Speaker B: I think the library thing might be first numpy random.
+00:59:31.338 - 00:59:40.574, Speaker A: Well, that's what I mean. Yeah, because there's a source of randomness. You just need to then build distributions. You can actually run numpy on here, right.
+00:59:40.612 - 00:59:43.282, Speaker B: You can just copy that and just make sure it uses the correct.
+00:59:43.336 - 00:59:45.122, Speaker A: It's a C code. So you could just run that.
+00:59:45.176 - 00:59:48.740, Speaker B: You just need to make sure it gets. Well, the problem is your vrf is 256.
+00:59:49.270 - 00:59:50.934, Speaker A: 256 bits. Yeah.
+00:59:51.052 - 01:00:06.220, Speaker B: You're going to need to convert that shuffle shuffle into numpy. My point. And you probably want 256 bit randomly, so you might want to rewrite those to support U 256. But I think there's like lots of stuff like this, unexplored territory for people.
+01:00:07.550 - 01:00:12.614, Speaker A: Well, lots to build. There's lots to fix with existing protocols.
+01:00:12.742 - 01:00:15.920, Speaker B: I mean, look, he didn't think we'd have an hour of mev content.
+01:00:16.770 - 01:00:17.630, Speaker A: All right, awesome.
+01:00:17.700 - 01:00:18.030, Speaker C: Thanks.
+01:00:18.100 - 01:00:26.960, Speaker A: Thanks, Tarun. And please check out all the videos, like, you know, the usual YouTube stuff that I don't know what to do, but thank you.
+01:00:30.850 - 01:00:33.214, Speaker B: See, I told you we'd find out.
+01:00:33.332 - 01:00:35.918, Speaker A: I'm sure we can talk for like many hours, to be clear.
+01:00:36.004 - 01:00:38.242, Speaker B: Yeah, I feel like we out there a lot of shit.
+01:00:38.306 - 01:00:43.620, Speaker A: Yeah, no, it's good. Close.
