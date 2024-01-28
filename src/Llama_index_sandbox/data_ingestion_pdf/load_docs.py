@@ -199,7 +199,7 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
                     not any(excluded_filename.lower() in filename for excluded_filename in exclude_filenames):
                 files.append(file_path)
             else:
-                logging.info(f"[{details.get('author')}] Excluding file: {filename} with title: {title}")
+                logging.info(f"[{details.get('author')}] Excluding file: [{filename}] with title: [{title}]")
 
         logging.info(f"Processing directory: {directory_path} with {len(files)} files")
         all_documents, all_documents_details = load_pdfs(directory_path, details['title_extraction_func'],

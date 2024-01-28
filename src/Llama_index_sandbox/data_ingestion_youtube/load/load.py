@@ -39,7 +39,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
     video_data = video_row.iloc[0] if not video_row.empty else None
 
     if video_data is None:
-        logging.info(f"No data found for video transcript with title {title}.")
+        logging.info(f"No data found for video transcript with title [{title}].")
         return []
 
     reader = SimpleDirectoryReader(
