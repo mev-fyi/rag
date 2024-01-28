@@ -490,12 +490,40 @@ class TwitterBot:
             # Process the message
             response = self.process_chat_message(chat_input).response
             if response:
-                self.reply_to_tweet(user_id, response, tweet_id, test, post_reply_in_prod, is_paid_account)
+                shared_chat_link = self.create_shared_chat(messages=response)
+                # TODO 2024-01-28: implement the screenshot logic here.
+                self.reply_to_tweet(user_id, shared_chat_link, tweet_id, test, post_reply_in_prod, is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
                 logging.error("No response generated for the mention.")
         else:
             logging.info(f"Rate limit: Not replying to {user_id}")
+
+    def create_shared_chat(self, messages):
+        """
+        Sends a POST request to the Next.js API to create a shared chat.
+        :param messages: The chat messages to be sent
+        :return: The shared chat link or None in case of an error
+        """
+        url = os.environ.get('NEXTJS_API_ENDPOINT')  # Fetch the API endpoint from environment variables
+        api_key = os.environ.get('NEXTJS_API_KEY')  # Fetch the API key from environment variables
+
+        headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': api_key
+        }
+        data = {'messages': messages}
+
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                return response.json().get('sharedChatLink')
+            else:
+                logging.error(f"Error creating shared chat: {response.text}")
+        except Exception as e:
+            logging.error(f"Exception in create_shared_chat: {e}")
+
+        return None
 
     @staticmethod
     def extract_command_and_message(message):
