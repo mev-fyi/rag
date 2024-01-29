@@ -34,6 +34,61 @@ def return_driver():
     return driver
 
 
+def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
+    """
+    Uploads a file to Google Cloud Storage
+    :param bucket_name: Name of the bucket
+    :param source_file_name: Path to the file to upload
+    :param destination_blob_name: Name of the destination object in the bucket
+    :return: The public URL of the uploaded file
+    """
+    # Create a storage client
+    from google.cloud import storage
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    # Upload the file to GCS
+    blob.upload_from_filename(source_file_name)
+
+    # Make the blob publicly viewable if needed
+    # blob.make_public()
+
+    # The public URL can be used to directly access the file via HTTP
+    return blob.public_url
+
+
+def take_screenshot_and_upload(url, filename, bucket_name):
+    """
+    Takes a screenshot of the given URL, saves it, and uploads to Google Cloud Storage.
+    :param url: The URL to take a screenshot of
+    :param filename: The filename to save the screenshot as
+    :param bucket_name: Name of the GCS bucket to upload to
+    :return: The public URL to the saved screenshot or None if failed
+    """
+    driver = return_driver()
+    driver.get(url)
+
+    # Wait for any dynamic content to load
+    time.sleep(3)
+
+    # Define the path to save the screenshot in the /tmp directory
+    screenshot_path = f'/tmp/{filename}.png'
+
+    try:
+        # Take the screenshot and save it locally
+        driver.save_screenshot(screenshot_path)
+
+        # Upload the screenshot to GCS and get the public URL
+        public_url = upload_to_gcs(bucket_name, screenshot_path, f'screenshots/{filename}.png')
+        return public_url
+    except Exception as e:
+        print(f"Failed to take screenshot and upload: {e}")
+        return None
+    finally:
+        driver.quit()
+
+
 def clean_title(title: str) -> str:
     """Remove non-breaking spaces and other non-standard whitespace."""
     # Replace non-breaking spaces and other special whitespaces with regular space

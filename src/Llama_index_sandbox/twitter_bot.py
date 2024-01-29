@@ -9,6 +9,8 @@ import requests
 from requests_oauthlib import OAuth1
 import tweepy
 from tweepy import OAuth1UserHandler
+
+from src.Llama_index_sandbox.data_ingestion_pdf.utils import take_screenshot_and_upload
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
@@ -141,6 +143,9 @@ class TwitterBot:
         self.auth = OAuth1UserHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
+
+        # GCS screenshot store
+        self.gcs_bucket = os.environ.get('GCS_BUCKET')
 
         # Chatbot Engine Initialization
         self.engine = 'chat'
@@ -293,7 +298,7 @@ class TwitterBot:
 
         logging.info("Completed tweeting!")
 
-    def direct_reply_to_tweet(self, tweet_id, reply_text, tweet_number, in_thread=False, previous_tweet_id=None):
+    def direct_reply_to_tweet(self, tweet_id, reply_text, tweet_number, media_id=None, in_thread=False, previous_tweet_id=None):
         """
         Posts a reply using a direct Twitter API call with OAuth 1.0a.
         Can also be used to post a thread by linking tweets.
@@ -308,9 +313,13 @@ class TwitterBot:
         payload = {
             "text": reply_text,
             "reply": {
-                "in_reply_to_tweet_id": reply_to_id
+                "in_reply_to_tweet_id": tweet_id
             }
         }
+        if media_id:
+            payload['media'] = {
+                'media_ids': [media_id]
+            }
 
         # Create an OAuth1 object
         auth = OAuth1(
@@ -492,6 +501,7 @@ class TwitterBot:
             if response:
                 shared_chat_link = self.create_shared_chat(messages=response)
                 # TODO 2024-01-28: implement the screenshot logic here.
+                # public_url= take_screenshot_and_upload(url=shared_chat_link, filename=f"{tweet_id}_{user_id}", bucket_name=self.gcs_bucket)
                 self.reply_to_tweet(user_id, shared_chat_link, tweet_id, test, post_reply_in_prod, is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
