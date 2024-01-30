@@ -1,41 +1,85 @@
 import logging
 import os
 import re
+import time
+import uuid
 
 import backoff
 import requests
 
+from src.Llama_index_sandbox.data_ingestion_pdf.utils import return_driver_docker_gce
 
-def upload_media_chunked(media_path, auth):
-    # INIT request
-    init_url = 'https://upload.twitter.com/1.1/media/upload.json'
-    files = {
-        'command': (None, 'INIT'),
-        'media_type': (None, 'image/png'),  # or 'image/jpeg', 'image/gif', 'video/mp4' etc.
-        'total_bytes': (None, str(os.path.getsize(media_path))),
+
+def take_screenshot_and_upload(url):
+    """
+    Takes a screenshot of the given URL and uploads it to Twitter using chunked upload.
+    :param url: The URL to take a screenshot of
+    :return: The media ID on Twitter or None if failed
+    """
+    driver = return_driver_docker_gce()
+    driver.get(url)
+    time.sleep(3)  # Wait for dynamic content
+
+    # Generate a unique filename
+    unique_filename = f"{uuid.uuid4()}.png"
+    screenshot_path = f'/tmp/{unique_filename}'
+
+    try:
+        driver.save_screenshot(screenshot_path)
+        media_id = upload_media_chunked(screenshot_path, 'image/png', 'dm_image', True)  # Shared picture
+        return media_id
+    except Exception as e:
+        print(f"Failed to take screenshot and upload: {e}")
+        return None
+    finally:
+        driver.quit()
+        # Clean up the screenshot file
+        if os.path.exists(screenshot_path):
+            os.remove(screenshot_path)
+
+
+def upload_media_chunked(file_path, media_type, media_category, is_shared):
+    # Step 1: INIT
+    url = 'https://upload.twitter.com/1.1/media/upload.json'
+    headers = {'Authorization': f'Bearer {os.environ["TWITTER_BEARER_TOKEN"]}'}
+    data = {
+        'command': 'INIT',
+        'total_bytes': os.path.getsize(file_path),
+        'media_type': media_type,  # Change as appropriate
+        'media_category': media_category,
+        'shared': is_shared
     }
-    response = requests.post(init_url, files=files, auth=auth)
-    media_id = response.json().get('media_id_string')
+    response = requests.post(url, headers=headers, data=data)
+    media_id = response.json()['media_id_string']
 
-    # APPEND request
-    append_url = 'https://upload.twitter.com/1.1/media/upload.json'
-    files = {
-        'command': (None, 'APPEND'),
-        'media_id': (None, media_id),
-        'segment_index': (None, '0'),
-        'media': open(media_path, 'rb')
-    }
-    response = requests.post(append_url, files=files, auth=auth)
+    # Step 2: APPEND
+    with open(file_path, 'rb') as file:
+        segment_id = 0
+        while True:
+            chunk = file.read(4 * 1024 * 1024)  # 4 MB per chunk
+            if not chunk:
+                break
+            files = {'media': chunk}
+            data = {
+                'command': 'APPEND',
+                'media_id': media_id,
+                'segment_index': segment_id
+            }
+            response = requests.post(url, headers=headers, data=data, files=files)
+            segment_id += 1
 
-    # FINALIZE request
-    finalize_url = 'https://upload.twitter.com/1.1/media/upload.json'
+    # Step 3: FINALIZE
     data = {
         'command': 'FINALIZE',
         'media_id': media_id
     }
-    response = requests.post(finalize_url, data=data, auth=auth)
+    response = requests.post(url, headers=headers, data=data)
 
-    return media_id
+    if response.status_code == 200:
+        return media_id
+    else:
+        print(f"Error in media upload: {response.text}")
+        return None
 
 
 @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)

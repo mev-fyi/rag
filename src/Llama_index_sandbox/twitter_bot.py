@@ -14,7 +14,7 @@ from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
-from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023
+from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
 
@@ -149,7 +149,7 @@ class TwitterBot:
             logging.error(f"Exception in fetch_username_directly: {e}")
         return None
 
-    def reply_to_tweet(self, user_id, response, tweet_id, test, command, post_reply_in_prod=True, is_paid_account=False):
+    def reply_to_tweet(self, user_id, response, tweet_id, test, command, media_id=None, post_reply_in_prod=True, is_paid_account=False):
         """
         Posts a reply to a tweet. If the account is not paid, splits the response into multiple tweets.
         :param user_id: The user ID to whom the reply should be addressed
@@ -157,6 +157,7 @@ class TwitterBot:
         :param tweet_id: The ID of the tweet being replied to
         :param test: Boolean flag for testing
         :param command: What the user wants explained: thread or tweet
+        :param media_id: Media id once uploaded on Twitter e.g. screenshot from the shared_link
         :param post_reply_in_prod:
         :param is_paid_account: Boolean flag indicating if the account is a paid subscription
         """
@@ -166,7 +167,7 @@ class TwitterBot:
                 if username:
                     reply_text = f"@{username} Here is your {command} explanation: {response}"
                     if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
-                        self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0)
+                        self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0, media_id=media_id)
                     else:
                         self.post_thread_reply(username, response, tweet_id)
             except Exception as e:
@@ -207,21 +208,27 @@ class TwitterBot:
         Can also be used to post a thread by linking tweets.
         :param tweet_id: The ID of the tweet being replied to
         :param reply_text: The reply message to be posted
+        :param tweet_number: Number of the tweet in a sequence
+        :param media_id: ID of the media to be attached (optional)
         :param in_thread: Boolean flag indicating if this is part of a thread
         :param previous_tweet_id: The ID of the previous tweet in the thread (if applicable)
         :return: The ID of the new tweet
         """
         url = 'https://api.twitter.com/2/tweets'
         reply_to_id = previous_tweet_id if in_thread and previous_tweet_id else tweet_id
+
+        # Payload for the tweet
         payload = {
             "text": reply_text,
             "reply": {
-                "in_reply_to_tweet_id": tweet_id
+                "in_reply_to_tweet_id": reply_to_id
             }
         }
+
+        # Add media_id if available
         if media_id:
-            payload['media'] = {
-                'media_ids': [media_id]
+            payload['attachments'] = {
+                'media_keys': [f"media_key:{media_id}"]
             }
 
         # Create an OAuth1 object
@@ -403,9 +410,8 @@ class TwitterBot:
             chat_response, metadata = self.process_chat_message(chat_input)
             if chat_response:
                 shared_chat_link = self.create_shared_chat(chat_response, metadata)
-                # TODO 2024-01-28: implement the screenshot logic here.
-                # public_url= take_screenshot_and_upload(url=shared_chat_link, filename=f"{tweet_id}_{user_id}", bucket_name=self.gcs_bucket)
-                self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
+                media_id = take_screenshot_and_upload(url=shared_chat_link)
+                self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
                 logging.error("No response generated for the mention.")

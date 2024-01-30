@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 from src.anyscale_sandbox.utils import root_directory
 
@@ -34,59 +35,22 @@ def return_driver():
     return driver
 
 
-def upload_to_gcs(bucket_name, source_file_name, destination_blob_name):
-    """
-    Uploads a file to Google Cloud Storage
-    :param bucket_name: Name of the bucket
-    :param source_file_name: Path to the file to upload
-    :param destination_blob_name: Name of the destination object in the bucket
-    :return: The public URL of the uploaded file
-    """
-    # Create a storage client
-    from google.cloud import storage
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
+def return_driver_docker_gce():
+    CHROME_BINARY_PATH = f'{root_directory()}/../mev.fyi/src/chromium/chrome-linux64/chrome'
+    CHROMEDRIVER_PATH = f'{root_directory()}/../mev.fyi/src/chromium/chromedriver-linux64/chromedriver'
 
-    # Upload the file to GCS
-    blob.upload_from_filename(source_file_name)
+    options = Options()
+    options.binary_location = CHROME_BINARY_PATH
 
-    # Make the blob publicly viewable if needed
-    # blob.make_public()
+    # Configure Chrome for headless operation
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')  # May not be required for newer versions of Chrome
+    options.add_argument('--window-size=1920x1080')
 
-    # The public URL can be used to directly access the file via HTTP
-    return blob.public_url
-
-
-def take_screenshot_and_upload(url, filename, bucket_name):
-    """
-    Takes a screenshot of the given URL, saves it, and uploads to Google Cloud Storage.
-    :param url: The URL to take a screenshot of
-    :param filename: The filename to save the screenshot as
-    :param bucket_name: Name of the GCS bucket to upload to
-    :return: The public URL to the saved screenshot or None if failed
-    """
-    driver = return_driver()
-    driver.get(url)
-
-    # Wait for any dynamic content to load
-    time.sleep(3)
-
-    # Define the path to save the screenshot in the /tmp directory
-    screenshot_path = f'/tmp/{filename}.png'
-
-    try:
-        # Take the screenshot and save it locally
-        driver.save_screenshot(screenshot_path)
-
-        # Upload the screenshot to GCS and get the public URL
-        public_url = upload_to_gcs(bucket_name, screenshot_path, f'screenshots/{filename}.png')
-        return public_url
-    except Exception as e:
-        print(f"Failed to take screenshot and upload: {e}")
-        return None
-    finally:
-        driver.quit()
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)
+    return driver
 
 
 def clean_title(title: str) -> str:
