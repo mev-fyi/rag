@@ -8,6 +8,8 @@ from requests_oauthlib import OAuth1
 import tweepy
 from tweepy import OAuth1UserHandler
 
+from src.Llama_index_sandbox import globals as glb
+from src.Llama_index_sandbox import constants
 from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
@@ -15,6 +17,9 @@ from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engi
 from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
+
+from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params
+
 load_dotenv()
 
 
@@ -144,7 +149,7 @@ class TwitterBot:
             logging.error(f"Exception in fetch_username_directly: {e}")
         return None
 
-    def reply_to_tweet(self, user_id, response, tweet_id, test, post_reply_in_prod=True, is_paid_account=False):
+    def reply_to_tweet(self, user_id, response, tweet_id, test, command, post_reply_in_prod=True, is_paid_account=False):
         """
         Posts a reply to a tweet. If the account is not paid, splits the response into multiple tweets.
         :param user_id: The user ID to whom the reply should be addressed
@@ -158,7 +163,7 @@ class TwitterBot:
             try:
                 username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
                 if username:
-                    reply_text = f"@{username} {response}"
+                    reply_text = f"@{username} Here is your {command} explanation: {response}"
                     if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
                         self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0)
                     else:
@@ -262,10 +267,10 @@ class TwitterBot:
                 run_application=True,
                 reset_chat=self.config.reset_chat
             )
-            return response
+            return response, formatted_metadata
         except Exception as e:
             logging.error(f"Error processing chat message: {e}")
-            return None
+            return None, None
 
     def fetch_thread(self, tweet_id, test, test_http_request):
         """
@@ -365,8 +370,8 @@ class TwitterBot:
         Args:
             test_http_request:
         """
-        user_id = mention['user']['id_str']
-        tweet_id = mention['id_str']
+        user_id = mention['author_id']
+        tweet_id = mention['id']
 
         if tweet_id in self.last_reply_times:
             first_reply_id = self.last_reply_times[user_id]
@@ -394,19 +399,19 @@ class TwitterBot:
 
             chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
             # Process the message
-            response = self.process_chat_message(chat_input).response
-            if response:
-                shared_chat_link = self.create_shared_chat(messages=response)
+            chat_response, metadata = self.process_chat_message(chat_input)
+            if chat_response:
+                shared_chat_link = self.create_shared_chat(chat_response, metadata)
                 # TODO 2024-01-28: implement the screenshot logic here.
                 # public_url= take_screenshot_and_upload(url=shared_chat_link, filename=f"{tweet_id}_{user_id}", bucket_name=self.gcs_bucket)
-                self.reply_to_tweet(user_id, shared_chat_link, tweet_id, test, post_reply_in_prod, is_paid_account)
+                self.reply_to_tweet(user_id, shared_chat_link, tweet_id, command, test, post_reply_in_prod, is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
                 logging.error("No response generated for the mention.")
         else:
             logging.info(f"Rate limit: Not replying to {user_id}")
 
-    def create_shared_chat(self, messages):
+    def create_shared_chat(self, chat_response, metadata):
         """
         Sends a POST request to the Next.js API to create a shared chat.
         :param messages: The chat messages to be sent
@@ -419,18 +424,40 @@ class TwitterBot:
             'Content-Type': 'application/json',
             'x-api-key': api_key
         }
-        data = {'messages': messages}
+        embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
+
+        model_specifications = {
+            "embedding_model_parameters": {
+                "embedding_model_name": embedding_model_name,
+                "text_splitter_chunk_size": text_splitter_chunk_size,
+                "chunk_overlap": chunk_overlap,
+                "number of chunks to retrieve": glb.NUMBER_OF_CHUNKS_TO_RETRIEVE,  # NOTE 2023-10-30: fix the retrieval of this as global variable
+                "temperature": constants.LLM_TEMPERATURE,
+            }
+        }
+
+        data = {
+            "status": "completed",
+            "response": chat_response.response,
+            "formatted_metadata": metadata,
+            "job_id": '',
+            "model_specifications": model_specifications,
+        }
+
+        logging.info(f'POSTing response to front-end: {data}')
 
         try:
             response = requests.post(url, headers=headers, json=data)
             if response.status_code == 200:
-                return response.json().get('sharedChatLink')
+                shared_chat_link = response.json().get('sharedChatLink')
+                logging.info(f'Shared chat created successfully: {shared_chat_link}')
+                return shared_chat_link
             else:
-                logging.error(f"Error creating shared chat: {response.text}")
+                logging.error(f"Error creating shared chat: {response.status_code} - {response.text}")
+                return None
         except Exception as e:
             logging.error(f"Exception in create_shared_chat: {e}")
-
-        return None
+            return None
 
     @staticmethod
     def extract_command_and_message(message):
