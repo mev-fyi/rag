@@ -58,7 +58,19 @@ def set_secrets_from_cloud():
         'PINECONE_API_ENVIRONMENT',
         'ASSEMBLY_AI_API',
         'YOUTUBE_CHANNELS',
-        'YOUTUBE_API_KEY'
+        'YOUTUBE_API_KEY',
+        'TWITTER_CONSUMER_KEY',
+        'TWITTER_CONSUMER_SECRET',
+        'TWITTER_ACCESS_TOKEN',
+        'TWITTER_ACCESS_TOKEN_SECRET',
+        'TWITTER_CLIENT_ID',
+        'TWITTER_CLIENT_SECRET',
+        'TWITTER_BEARER_TOKEN',
+        'TWITTER_BOT',
+        'TWITTER_USERNAME',
+        'TWITTER_PASSWORD',
+        'NEXTJS_API_ENDPOINT',
+        'NEXTJS_API_KEY',
     ]
 
     for secret_name in secrets_to_fetch:
