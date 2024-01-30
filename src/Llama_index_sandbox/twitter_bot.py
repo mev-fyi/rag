@@ -156,6 +156,7 @@ class TwitterBot:
         :param response: The response message to be posted
         :param tweet_id: The ID of the tweet being replied to
         :param test: Boolean flag for testing
+        :param command: What the user wants explained: thread or tweet
         :param post_reply_in_prod:
         :param is_paid_account: Boolean flag indicating if the account is a paid subscription
         """
@@ -404,7 +405,7 @@ class TwitterBot:
                 shared_chat_link = self.create_shared_chat(chat_response, metadata)
                 # TODO 2024-01-28: implement the screenshot logic here.
                 # public_url= take_screenshot_and_upload(url=shared_chat_link, filename=f"{tweet_id}_{user_id}", bucket_name=self.gcs_bucket)
-                self.reply_to_tweet(user_id, shared_chat_link, tweet_id, command, test, post_reply_in_prod, is_paid_account)
+                self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:
                 logging.error("No response generated for the mention.")
