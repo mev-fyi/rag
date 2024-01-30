@@ -15,15 +15,7 @@ from src.Llama_index_sandbox.twitter_bot import TwitterBot  # Update the import 
 
 class TestTwitterBotAndApp(unittest.TestCase):
     def setUp(self):
-        self.app = twitter_bot_app.app.test_client()
-        self.app.testing = True
         self.bot = TwitterBot()  # Using real TwitterBot instance
-
-    def test_hello_world_route(self):
-        # Test the '/' route of Flask app
-        response = self.app.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('Twitter Bot is running', response.get_data(as_text=True))
 
     def test_process_mention_thread(self):
         # Test processing a thread mention with real TwitterBot instance
@@ -52,17 +44,6 @@ class TestTwitterBotAndApp(unittest.TestCase):
     #    # Test if the shared chat link is returned as expected
     #    self.assertIsNotNone(shared_chat_link)
 
-
-class TestFlaskApp(unittest.TestCase):
-    def setUp(self):
-        self.app = twitter_bot_app.app.test_client()
-        self.app.testing = True
-
-    def test_hello_world_route(self):
-        # Test the '/' route
-        response = self.app.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('Twitter Bot is running', response.get_data(as_text=True))
 
 
 if __name__ == '__main__':

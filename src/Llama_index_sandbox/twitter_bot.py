@@ -165,7 +165,7 @@ class TwitterBot:
             try:
                 username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
                 if username:
-                    reply_text = f"@{username} Here is your {command} explanation: {response}"
+                    reply_text = f"@{username} your {command} explanation: {response}"
                     if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
                         self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0, media_id=media_id)
                     else:
@@ -410,7 +410,7 @@ class TwitterBot:
             chat_response, metadata = self.process_chat_message(chat_input)
             if chat_response:
                 shared_chat_link = self.create_shared_chat(chat_response, metadata)
-                media_id = take_screenshot_and_upload(url=shared_chat_link)
+                media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}")
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
             else:

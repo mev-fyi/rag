@@ -6,7 +6,9 @@ import uuid
 
 import backoff
 import requests
+from requests_oauthlib import OAuth1
 
+from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import return_driver_docker_gce
 
 
@@ -16,15 +18,17 @@ def take_screenshot_and_upload(url):
     :param url: The URL to take a screenshot of
     :return: The media ID on Twitter or None if failed
     """
-    driver = return_driver_docker_gce()
-    driver.get(url)
-    time.sleep(3)  # Wait for dynamic content
-
-    # Generate a unique filename
-    unique_filename = f"{uuid.uuid4()}.png"
-    screenshot_path = f'/tmp/{unique_filename}'
-
     try:
+        driver = return_driver_docker_gce()
+        driver.get(url)
+        time.sleep(3)  # Wait for dynamic content
+
+        # Generate a unique filename
+        unique_filename = f"{uuid.uuid4()}.png"
+        if not os.path.exists(f"{root_dir}/tmp/"):
+            os.makedirs(f"{root_dir}/tmp/")
+        screenshot_path = f'{root_dir}/tmp/{unique_filename}'
+
         driver.save_screenshot(screenshot_path)
         media_id = upload_media_chunked(screenshot_path, 'image/png', 'dm_image', True)  # Shared picture
         return media_id
@@ -39,47 +43,52 @@ def take_screenshot_and_upload(url):
 
 
 def upload_media_chunked(file_path, media_type, media_category, is_shared):
-    # Step 1: INIT
+    # OAuth 1.0a authentication
+    oauth = OAuth1(
+        client_key=os.environ["TWITTER_CONSUMER_KEY"],
+        client_secret=os.environ["TWITTER_CONSUMER_SECRET"],
+        resource_owner_key=os.environ["TWITTER_ACCESS_TOKEN"],
+        resource_owner_secret=os.environ["TWITTER_ACCESS_TOKEN_SECRET"]
+    )
+
+    # Initialize the upload
     url = 'https://upload.twitter.com/1.1/media/upload.json'
-    headers = {'Authorization': f'Bearer {os.environ["TWITTER_BEARER_TOKEN"]}'}
-    data = {
+    init_data = {
         'command': 'INIT',
         'total_bytes': os.path.getsize(file_path),
-        'media_type': media_type,  # Change as appropriate
+        'media_type': media_type,
         'media_category': media_category,
-        'shared': is_shared
+        'shared': str(is_shared).lower()  # Convert boolean to string
     }
-    response = requests.post(url, headers=headers, data=data)
-    media_id = response.json()['media_id_string']
+    init_response = requests.post(url, data=init_data, auth=oauth)
+    if (init_response.status_code != 200) and (init_response.status_code != 202):
+        raise Exception(f"INIT request failed: {init_response.text}")
+    media_id = init_response.json()['media_id_string']
 
-    # Step 2: APPEND
+    # Upload the file in chunks
     with open(file_path, 'rb') as file:
         segment_id = 0
         while True:
             chunk = file.read(4 * 1024 * 1024)  # 4 MB per chunk
             if not chunk:
                 break
-            files = {'media': chunk}
-            data = {
+            append_data = {
                 'command': 'APPEND',
                 'media_id': media_id,
                 'segment_index': segment_id
             }
-            response = requests.post(url, headers=headers, data=data, files=files)
+            append_response = requests.post(url, data=append_data, files={'media': chunk}, auth=oauth)
+            if append_response.status_code != 204:  # HTTP 204 indicates success
+                raise Exception(f"APPEND request failed: {append_response.text}")
             segment_id += 1
 
-    # Step 3: FINALIZE
-    data = {
-        'command': 'FINALIZE',
-        'media_id': media_id
-    }
-    response = requests.post(url, headers=headers, data=data)
+    # Finalize the upload
+    finalize_data = {'command': 'FINALIZE', 'media_id': media_id}
+    finalize_response = requests.post(url, data=finalize_data, auth=oauth)
+    if finalize_response.status_code != 200:
+        raise Exception(f"FINALIZE request failed: {finalize_response.text}")
 
-    if response.status_code == 200:
-        return media_id
-    else:
-        print(f"Error in media upload: {response.text}")
-        return None
+    return media_id
 
 
 @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
