@@ -1,4 +1,5 @@
 import asyncio
+import concurrent
 import glob
 import itertools
 import json
@@ -37,20 +38,33 @@ def chunked_iterable(iterable, size):
         yield chunk
 
 
-async def download_audio_batch(video_infos, ydl_opts):
+def download_video(url, ydl_opts, retries=3):
+    while retries > 0:
+        with ydlp.YoutubeDL(ydl_opts) as ydl:
+            try:
+                ydl.download([url])
+                logging.info(f"Downloaded video: {url}")
+                break  # Exit the loop if download succeeds
+            except DownloadError:
+                logging.warning(f"Download error for {url}. Retrying... {retries} attempts left.")
+            except Exception as e:
+                logging.warning(f"Error downloading {url}: {e}")
+        retries -= 1  # Decrement the number of retries after an exception
+
+
+
+def download_audio_batch(video_infos: List[dict], ydl_opts: dict):
     """
-    This function downloads multiple audio files based on the provided list of video information.
+    Download a batch of videos in parallel using threads.
     """
-    urls = [info['url'] for info in video_infos]  # Extract URLs from the video information
-    print(f"Dowloading batch of urls {urls}")
-    with ydlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            ydl.download(urls)  # Download all videos using a single command
-        except DownloadError:
-            print(f"Download error for {urls}")
-        except Exception as e:
-            print(f"Other error not caught by handler: {e}")
-            pass
+    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+        futures = [executor.submit(download_video, info['url'], ydl_opts) for info in video_infos]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()  # You can add a timeout here if needed
+            except Exception as e:
+                # Handle exceptions from within the thread
+                print(f"An error occurred: {e}")
 
 
 def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
@@ -73,6 +87,10 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
 def video_valid_for_processing(channel_name, video_title, dir_path):
     try:
         normalized_video_title = video_title.replace('/', '_')
+        titles_to_avoid = ['livestream', 'live stream', 'live']
+        for title in titles_to_avoid:
+            if title in normalized_video_title.lower():
+                return False
 
         # Function to check for the title's existence in files
         def title_exists_in_files(directory, suffix):
@@ -199,9 +217,9 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
 
     if service_account_file:
         credentials = authenticate_service_account(service_account_file)
-        print("Service account file found. Proceeding with public channels, playlists, or private videos if accessible via Google Service Account.")
+        logging.info("Service account file found. Proceeding with public channels, playlists, or private videos if accessible via Google Service Account.")
     else:
-        print("No service account file found. Proceeding with public channels or playlists.")
+        logging.info("No service account file found. Proceeding with public channels or playlists.")
 
     # Create a dictionary with channel IDs as keys and channel names as values
     # Define the path for storing the mapping between channel names and their IDs
