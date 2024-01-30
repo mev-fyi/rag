@@ -136,3 +136,30 @@ Deep crypto (eg. obfuscation) and delay-encrypted mempools have been added to re
 Big thanks to @drakefjustin @fradamt @mikeneuder @dankrad @barnabemonnot @asanso @icebearhww @domothy @gballet  for feedback!
 @VitalikButerin @drakefjustin @fradamt @mikeneuder @dankrad @barnabemonnot @asanso @icebearhww @domothy @gballet @mevfyi explain thread
 """
+
+
+def lookup_user_by_username(username):
+    # Replace 'your_bearer_token_here' with your actual bearer token.
+    bearer_token = os.environ.get("TWITTER_BEARER_TOKEN")
+
+    # Endpoint URL for the Twitter API v2 user lookup by username
+    endpoint_url = f"https://api.twitter.com/2/users/by/username/{username}"
+
+    # Prepare the request headers with authorization
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "User-Agent": "v2UserLookupPython"
+    }
+
+    # Make the GET request to the Twitter API
+    response = requests.get(endpoint_url, headers=headers)
+
+    # Check the response status code
+    if response.status_code == 200:
+        user_data = response.json().get("data", {})
+        user_id = user_data.get("id")
+        logging.info(f"User ID for @{username} is {user_id}")
+        return user_id
+    else:
+        logging.error(f"Error fetching user ID: {response.status_code} - {response.text}")
+        return None

@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import os
 import sys
 
-from src.Llama_index_sandbox.twitter_bot_app import lookup_user_by_username
+from src.Llama_index_sandbox.twitter_utils import lookup_user_by_username
 
 # Ensure the src directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))

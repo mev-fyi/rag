@@ -25,22 +25,11 @@ COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
 # Append src directory to PYTHONPATH
 ENV PYTHONPATH "${PYTHONPATH}:/twitter_bot_app/src"
 
-# Set the Flask environment to production
-ENV FLASK_ENV=production
+# NOTE: Consider setting resource limits (CPU, memory) here if needed
 
-# Set the Flask twitter_bot_app to the correct file
-ENV FLASK_APP=src/Llama_index_sandbox/twitter_bot_app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=8080
+# Command to run the Twitter bot
+CMD ["python", "src/Llama_index_sandbox/twitter_bot_app.py"]
 
-# Expose the port the twitter_bot_app runs on
-EXPOSE 8080
-
-# Command to run the application
-CMD ["gunicorn", "--timeout", "3600", "-w", "4", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.twitter_bot_app:app"]
-
-
-# NOTE on number of gunicorn workers: If you're deploying your container on Google Cloud Platform and you've configured each instance to have 2 vCPUs, then
-# you effectively have 2 cores available for each instance. This information is crucial for configuring the number of Gunicorn workers optimally.
-# A common guideline for setting the number of Gunicorn workers is to use 2-4 workers per core. Therefore, for an instance with 2 vCPUs,
-# you might consider having anywhere from 4 to 8 workers. This range is a starting point; the optimal number can depend on your specific application's workload and behavior.
+# NOTE on deployment: This Dockerfile is configured for deployment on Google Compute Engine.
+# Ensure that VM instances are configured according to the resource requirements of your application.
+# Consider implementing health checks and monitoring for robust operation.
