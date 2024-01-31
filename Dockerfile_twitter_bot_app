@@ -27,11 +27,11 @@ COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
 # Append src directory to PYTHONPATH
 ENV PYTHONPATH "${PYTHONPATH}:/twitter_bot_app/src"
 
-# NOTE: Consider setting resource limits (CPU, memory) here if needed
+# Copy the startup script into the container
+COPY startup.sh /startup.sh
 
-# Command to run the Twitter bot
-CMD ["python", "src/Llama_index_sandbox/twitter_bot_app.py"]
+# Make the startup script executable
+RUN chmod +x /startup.sh
 
-# NOTE on deployment: This Dockerfile is configured for deployment on Google Compute Engine.
-# Ensure that VM instances are configured according to the resource requirements of your application.
-# Consider implementing health checks and monitoring for robust operation.
+# Command to run the startup script, which in turn will run the Twitter bot
+CMD ["/startup.sh"]
