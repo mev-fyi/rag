@@ -30,7 +30,7 @@ def take_screenshot_and_upload(url):
         screenshot_path = f'{root_dir}/tmp/{unique_filename}'
 
         driver.save_screenshot(screenshot_path)
-        media_id = upload_media_chunked(screenshot_path, 'image/png', 'dm_image', True)  # Shared picture
+        media_id = upload_media_chunked(screenshot_path, 'image/png', 'tweet_image', True)  # Shared picture
         return media_id
     except Exception as e:
         print(f"Failed to take screenshot and upload: {e}")
@@ -57,8 +57,8 @@ def upload_media_chunked(file_path, media_type, media_category, is_shared):
         'command': 'INIT',
         'total_bytes': os.path.getsize(file_path),
         'media_type': media_type,
-        'media_category': media_category,
-        'shared': str(is_shared).lower()  # Convert boolean to string
+        'media_category': media_category # ,
+        # 'shared': str(is_shared).lower()  # Convert boolean to string
     }
     init_response = requests.post(url, data=init_data, auth=oauth)
     if (init_response.status_code != 200) and (init_response.status_code != 202):
@@ -85,7 +85,7 @@ def upload_media_chunked(file_path, media_type, media_category, is_shared):
     # Finalize the upload
     finalize_data = {'command': 'FINALIZE', 'media_id': media_id}
     finalize_response = requests.post(url, data=finalize_data, auth=oauth)
-    if finalize_response.status_code != 200:
+    if (finalize_response.status_code != 200) and (finalize_response.status_code != 201):
         raise Exception(f"FINALIZE request failed: {finalize_response.text}")
 
     return media_id

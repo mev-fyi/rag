@@ -219,16 +219,17 @@ class TwitterBot:
 
         # Payload for the tweet
         payload = {
-            "text": reply_text,
-            "reply": {
+            "text": reply_text
+        }
+        if in_thread:
+            payload["reply"] = {
                 "in_reply_to_tweet_id": reply_to_id
             }
-        }
 
         # Add media_id if available
         if media_id:
-            payload['attachments'] = {
-                'media_keys': [f"media_key:{media_id}"]
+            payload['media'] = {
+                'media_ids': [media_id]  # media_id should be a string
             }
 
         # Create an OAuth1 object
