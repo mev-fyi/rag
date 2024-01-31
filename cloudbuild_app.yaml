@@ -1,5 +1,5 @@
 steps:
-  # Build the first Docker image (llama-flask-app)
+  # Build the Docker image for llama-flask-app
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -9,11 +9,11 @@ steps:
       - './Dockerfile_app'
       - '.'
 
-  # Push the first Docker image to Google Container Registry
+  # Push the Docker image for llama-flask-app to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA']
 
-  # Build the second Docker image (twitter-bot-app)
+  # Build the Docker image for twitter-bot-app
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -21,11 +21,9 @@ steps:
       - 'gcr.io/mev-fyi/twitter-bot-app:$SHORT_SHA'
       - '-f'
       - './Dockerfile_twitter_bot_app'
-      - '--build-arg'
-      - 'DOCKERIGNORE_CONTEXT=twitter_bot_app'
       - '.'
 
-  # Push the second Docker image to Google Container Registry
+  # Push the Docker image for twitter-bot-app to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/mev-fyi/twitter-bot-app:$SHORT_SHA']
 

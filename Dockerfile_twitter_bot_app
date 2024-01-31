@@ -1,37 +1,23 @@
-# Use an official lightweight Python image
+# Use an official lightweight Python image.
 FROM python:3.10
 
-# Use a build argument to specify the context
-ARG DOCKERIGNORE_CONTEXT=twitter_bot_app
+# Set the working directory in the container.
+WORKDIR /app
 
-# Set the working directory in the container
-WORKDIR /twitter_bot_app
-
-RUN mkdir -p /tmp
-
-# Copy the requirements file to the working directory in the container
-COPY requirements.txt .
-
-# Install any dependencies
+# Install any system dependencies.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir -r requirements.txt
+    rm -rf /var/lib/apt/lists/*
 
-# Copy only the relevant directory to the working directory
-COPY . .
+# Copy the requirements file and install Python dependencies.
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Use the build argument to copy the correct .dockerignore file before the build
-COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
+# Copy the application source code to the container.
+COPY src /app/src
 
-# Append src directory to PYTHONPATH
-ENV PYTHONPATH "${PYTHONPATH}:/twitter_bot_app/src"
+# Set PYTHONPATH to include the directory where your app is located.
+ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 
-# Copy the startup script into the container
-COPY startup.sh /startup.sh
-
-# Make the startup script executable
-RUN chmod +x /startup.sh
-
-# Command to run the startup script, which in turn will run the Twitter bot
-CMD ["/startup.sh"]
+# Run the Twitter bot application.
+CMD ["python", "/app/src/Llama_index_sandbox/twitter_bot_app.py"]
