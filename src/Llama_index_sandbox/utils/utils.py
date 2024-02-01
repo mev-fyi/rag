@@ -15,17 +15,23 @@ import subprocess
 from llama_index.llms import ChatMessage, MessageRole
 
 
+import os
+import subprocess
+
 def root_directory() -> str:
     """
-    Determine the root directory of the project by using the 'git' command first,
-    and if that fails, by manually traversing the directories upwards to find a '.git' directory.
-    If none are found or an error occurs, raise an exception.
+    Determine the root directory of the project. It checks if it's running in a Docker container and adjusts accordingly.
 
     Returns:
     - str: The path to the root directory of the project.
     """
 
-    # First, try to use the git command to find the root directory
+    # Check if running in a Docker container
+    if os.path.exists('/.dockerenv'):
+        # If inside a Docker container, use '/app' as the root directory
+        return '/app'
+
+    # If not in a Docker container, try to use the git command to find the root directory
     try:
         git_root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], stderr=subprocess.STDOUT)
         return git_root.strip().decode('utf-8')
@@ -40,12 +46,18 @@ def root_directory() -> str:
     # Manual traversal if git command fails
     current_dir = os.getcwd()
     root = os.path.abspath(os.sep)
+    traversal_count = 0  # Track the number of levels traversed
+
     while current_dir != root:
         try:
             if 'src' in os.listdir(current_dir):
                 print(f"Found root directory: {current_dir}")
                 return current_dir
             current_dir = os.path.dirname(current_dir)
+            traversal_count += 1
+            print(f"Traversal count # {traversal_count}")
+            if traversal_count > 10:
+                raise Exception("Exceeded maximum traversal depth (more than 10 levels).")
         except PermissionError as e:
             # Could not access a directory due to permission issues
             raise Exception(f"Permission denied when accessing directory: {current_dir}") from e
@@ -816,15 +828,15 @@ def copy_and_rename_website_docs_pdfs():
 
 
 if __name__ == '__main__':
-    copy_and_verify_files()
+    # copy_and_verify_files()
 
     # copy_and_rename_website_docs_pdfs()
 
-    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    # clean_fullwidth_characters(directory)
-    # move_remaining_mp3_to_their_subdirs()
-    # merge_directories(directory)
-    # delete_mp3_if_text_or_json_exists(directory)
+    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    clean_fullwidth_characters(directory)
+    move_remaining_mp3_to_their_subdirs()
+    merge_directories(directory)
+    delete_mp3_if_text_or_json_exists(directory)
 
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"

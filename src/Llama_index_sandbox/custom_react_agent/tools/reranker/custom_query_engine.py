@@ -16,11 +16,20 @@ from urllib.parse import urlparse
 from tldextract import extract  # You might need to install this package
 
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
-from src.anyscale_sandbox.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory
 
 
 class CustomQueryEngine(RetrieverQueryEngine):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.effective_weights = self.load_or_compute_weights(
+            document_weight_mappings=self.document_weight_mappings,
+            weights_file=self.weights_file,
+            authors_list=self.authors_list,
+            authors_weights=self.authors_weights
+        )
 
+    weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
             'ethresear.ch': 1,
@@ -102,8 +111,11 @@ class CustomQueryEngine(RetrieverQueryEngine):
     # File to store the precomputed effective weights
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
 
-    @staticmethod
-    def load_or_compute_weights(document_weight_mappings, weights_file, authors_list, authors_weights, recompute_weights=False):
+    @classmethod
+    def load_or_compute_weights(cls, document_weight_mappings, weights_file, authors_list, authors_weights, recompute_weights=False):
+        # Use cls.weights_file instead of CustomQueryEngine.weights_file
+        os.makedirs(os.path.dirname(cls.weights_file), exist_ok=True)
+
         def precompute_effective_weights(document_weight_mappings, authors_weights, authors_list):
             effective_weights = {}
 
@@ -132,18 +144,19 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             return effective_weights
 
-        # Check if the file exists and the size of data structures hasn't changed
-        if os.path.exists(weights_file) and (not recompute_weights):
-            with open(weights_file, 'rb') as f:
-                return pickle.load(f)
-        else:
-            effective_weights = precompute_effective_weights(document_weight_mappings=document_weight_mappings, authors_list=authors_list, authors_weights=authors_weights)
-            with open(weights_file, 'wb') as f:
-                pickle.dump(effective_weights, f)
-            return effective_weights
-
-    # Load or compute the effective weights
-    effective_weights = load_or_compute_weights(document_weight_mappings=document_weight_mappings, weights_file=weights_file, authors_list=authors_list, authors_weights=authors_weights)
+        try:
+            # Check if the file exists and the size of data structures hasn't changed
+            if not recompute_weights and os.path.exists(weights_file):
+                with open(weights_file, 'rb') as f:
+                    return pickle.load(f)
+            else:
+                effective_weights = precompute_effective_weights(document_weight_mappings=document_weight_mappings, authors_list=authors_list, authors_weights=authors_weights)
+                with open(weights_file, 'wb') as f:
+                    pickle.dump(effective_weights, f)
+                return effective_weights
+        except Exception as e:
+            logging.error(f"Error while loading or computing weights: {str(e)}")
+            return {}  # Return an empty dictionary in case of an error
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))

@@ -10,7 +10,7 @@ from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
-from src.anyscale_sandbox.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory
 
 
 from selenium import webdriver

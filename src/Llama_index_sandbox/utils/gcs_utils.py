@@ -51,8 +51,6 @@ def set_secrets_from_cloud():
     project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
     secrets_to_fetch = [
         'OPENAI_API_KEY',
-        'OPENAI_API_KEY_ANYSCALE',
-        'OPENAI_API_BASE_ANYSCALE',
         'ASSEMBLY_AI_API_KEY',
         'PINECONE_API_KEY',
         'PINECONE_API_ENVIRONMENT',
