@@ -4,20 +4,21 @@ FROM python:3.10
 # Set the working directory in the container.
 WORKDIR /app
 
-# Install any system dependencies.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
 # Copy the requirements file and install Python dependencies.
-COPY requirements.txt /app/
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application source code to the container.
-COPY src /app/src
+COPY src ./src
+
+# Create the datasets directory
+RUN mkdir -p ./datasets/evaluation_data
+
+# Copy the .storage directory to the container
+COPY .storage ./.storage
 
 # Set PYTHONPATH to include the directory where your app is located.
-ENV PYTHONPATH "${PYTHONPATH}:/app/src"
+ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # Run the Twitter bot application.
-CMD ["python", "/app/src/Llama_index_sandbox/twitter_bot_app.py"]
+CMD ["python", "/app/src/Llama_index_sandbox/twitter_bot_app.py", "2>&1", "|", "tee", "/app/app.log"]

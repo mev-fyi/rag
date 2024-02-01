@@ -1,3 +1,5 @@
+
+print("Starting the Twitter bot application...")
 import logging
 import os
 import time
@@ -5,21 +7,25 @@ import requests
 import dotenv
 from concurrent.futures import ThreadPoolExecutor
 
+# Adjust the import statements to match the directory structure in the Docker container
 from src.Llama_index_sandbox.twitter_utils import lookup_user_by_username
 
 dotenv.load_dotenv()
 
 from src.Llama_index_sandbox.twitter_bot import TwitterBot
-
+print("Logging configuration initialized...")
 # Configure logging to file and stdout
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("twitter_bot.log"),
+        logging.FileHandler("/app/twitter_bot.log"),  # Log file in /app directory
         logging.StreamHandler()
     ]
 )
+
+# Add initial log to indicate the script has started
+logging.info("Starting the Twitter bot application...")
 
 # Initialize the TwitterBot
 bot = TwitterBot()
@@ -38,10 +44,13 @@ def process_mention(mention):
 
 # Function to poll Twitter mentions
 def poll_twitter_mentions():
+    print("polling twitter mentions")
     last_polled_id = None
     user_id = lookup_user_by_username(os.getenv('TWITTER_USERNAME'))
     bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
     base_url = f'https://api.twitter.com/2/users/{user_id}/mentions'
+
+    logging.info("Twitter bot is ready to poll mentions.")
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         while True:
@@ -83,4 +92,5 @@ def poll_twitter_mentions():
 
 
 if __name__ == '__main__':
+    print("starting main")
     poll_twitter_mentions()
