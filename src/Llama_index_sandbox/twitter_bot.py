@@ -66,7 +66,7 @@ class TwitterBot:
         )
         self.last_reply_times = {}
         # File to store processed mentions
-        self.replied_tweet_ids = self.initialize_reply_status_ids()
+        self.cached_already_replied_to_tweet_ids, self.cached_invalid_tweets = self.initialize_reply_status_ids()
 
     def initialize_reply_status_ids(self):
         """
@@ -85,6 +85,7 @@ class TwitterBot:
         }
 
         all_in_reply_to_user_ids = []
+        all_invalid_tweets = []
         total_fetched = 0
         max_tweets = 3200  # Maximum number of tweets to fetch
         
@@ -92,26 +93,33 @@ class TwitterBot:
             response = connect_to_endpoint(url, params, self.bearer_token)
             if response:
                 tweets = response.get('includes', [])['tweets']  # check a link to find about expansions and includes https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
-
+                fetched_tweet_ids = []
+                invalid_tweets = []
                 # First return the list of tweet IDs where the user mentioned the bot
-                fetched_tweet_ids = [tweet['id'] for tweet in tweets if f"@{self.username}" in tweet['text']]  # this relies on the fact that the bot doesn't mention itself as per the reply method
+                for tweet in tweets:
+                    if self.check_if_valid_mention(mention_text=tweet['text']):
+                        fetched_tweet_ids.append(tweet['id'])
+                    else:
+                        invalid_tweets.append(tweet['id'])
+
                 # 2024-02-03: We simplify the "is this a user mentioning the bot" process by checking in the text if there is the "@mevfyi" tag
                 # otherwise I'd have to look up the user corresponding to each of those tweet which is likely to explode in the number of calls, while we have the texts by defaults anyway.
 
-                logging.info(f"Adding tweet IDs of [{self.username}] mentions: {fetched_tweet_ids}")
+                logging.info(f"[initialize_reply_status_ids] Adding tweet IDs of [{self.username}] mentions: {fetched_tweet_ids} to cached_already_replied_to_tweet_ids and {invalid_tweets} to cached_invalid_tweets")
                 # Check if we have fetched the maximum number or if there are no more tweets
+                all_in_reply_to_user_ids += fetched_tweet_ids
+                all_invalid_tweets += invalid_tweets
+                total_fetched += len(fetched_tweet_ids)
+
                 if total_fetched >= max_tweets or 'next_token' not in response.get('meta', {}):
                     break
-                    
-                all_in_reply_to_user_ids += fetched_tweet_ids
-                total_fetched += len(fetched_tweet_ids)
-                
+
                 # Set the next_token for the next iteration
                 params['pagination_token'] = response['meta']['next_token']
             else:
                 break  # Exit if there is an error in the response
                 
-        return all_in_reply_to_user_ids
+        return all_in_reply_to_user_ids, all_invalid_tweets
 
     def should_reply_to_user(self, user_id):
         """
@@ -161,25 +169,22 @@ class TwitterBot:
         :param post_reply_in_prod:
         :param is_paid_account: Boolean flag indicating if the account is a paid subscription
         """
-        if post_reply_in_prod:
-            try:
-                username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
-                if username:
-                    reply_text = f"@{username} your {command} explanation: {response}"
-                    reply_text = reply_text.replace(f"@{self.username}", '')  # let's make sure the user can't trick the bot tagging itself
+        try:
+            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
+            if username:
+                reply_text = f"@{username} your {command} explanation: {response}"
+                reply_text = reply_text.replace(f"@{self.username}", '')  # let's make sure the user can't trick the bot tagging itself
 
-                    if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
-                        self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0, media_id=media_id)
-                    else:
-                        self.post_thread_reply(username, response, tweet_id)
-            except Exception as e:
-                logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
-                # Fallback to fetch username directly and then reply
-                username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
-                reply_text = f"@{username} {response}"
-                self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
-        else:
-            logging.info("Not posting replies in PROD")
+                if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
+                    self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0, media_id=media_id, post_reply_in_prod=post_reply_in_prod)
+                else:
+                    self.post_thread_reply(username, response, tweet_id)
+        except Exception as e:
+            logging.warning(f"Error posting reply with direct posting, now retrying with Tweepy: {e}")
+            # Fallback to fetch username directly and then reply
+            username = self.api.get_user(user_id=user_id).screen_name if not test else 'unlock_VALue'
+            reply_text = f"@{username} {response}"
+            self.api.update_status(status=reply_text, in_reply_to_status_id=tweet_id)
 
     def post_thread_reply(self, username, response, tweet_id):
         """
@@ -204,7 +209,7 @@ class TwitterBot:
 
         logging.info("Completed tweeting!")
 
-    def direct_reply_to_tweet(self, tweet_id, reply_text, tweet_number, media_id=None, in_thread=False, previous_tweet_id=None):
+    def direct_reply_to_tweet(self, tweet_id, reply_text, tweet_number, media_id=None, in_thread=False, previous_tweet_id=None, post_reply_in_prod=False):
         """
         Posts a reply using a direct Twitter API call with OAuth 1.0a.
         Can also be used to post a thread by linking tweets.
@@ -214,6 +219,7 @@ class TwitterBot:
         :param media_id: ID of the media to be attached (optional)
         :param in_thread: Boolean flag indicating if this is part of a thread
         :param previous_tweet_id: The ID of the previous tweet in the thread (if applicable)
+        :param post_reply_in_prod: If we post the bot reply in PROD as in tweet it away
         :return: The ID of the new tweet
         """
         url = 'https://api.twitter.com/2/tweets'
@@ -245,19 +251,21 @@ class TwitterBot:
         headers = {
             "Content-Type": "application/json"
         }
+        if post_reply_in_prod:
+            try:
+                response = requests.post(url, headers=headers, json=payload, auth=auth)
+                if response.status_code == 201:
+                    logging.info(f"Reply posted tweet # [{tweet_number}] successfully with direct API call.")
+                    new_tweet_id = response.json()['data']['id']
+                    return new_tweet_id
+                else:
+                    logging.error(f"Error posting reply with direct API call: {response.status_code} - {response.text}")
+            except Exception as e:
+                logging.error(f"Error with direct API call: {e}")
 
-        try:
-            response = requests.post(url, headers=headers, json=payload, auth=auth)
-            if response.status_code == 201:
-                logging.info(f"Reply posted tweet # [{tweet_number}] successfully with direct API call.")
-                new_tweet_id = response.json()['data']['id']
-                return new_tweet_id
-            else:
-                logging.error(f"Error posting reply with direct API call: {response.status_code} - {response.text}")
-        except Exception as e:
-            logging.error(f"Error with direct API call: {e}")
-
-        return None
+            return None
+        else:
+            logging.info("Not posting reply \n\n```[{reply_text}]```\n\n in prod.")
 
     def process_chat_message(self, message):
         """
@@ -319,7 +327,6 @@ class TwitterBot:
         thread = thread[::-1]  # Reverse to maintain the chronological order
         return '\n'.join(thread)
 
-
     def fetch_tweet(self, tweet_id, test, test_http_request):
         """
         Fetches the tweet with the given tweet ID, attempting to retrieve the full content.
@@ -370,6 +377,13 @@ class TwitterBot:
 
         return None  # Return None if it's an original tweet or in case of an error
 
+    def check_if_valid_mention(self, mention_text: str):
+        # this relies on the fact that the bot doesn't mention itself as per the reply method
+        if (f"@{self.username}" in mention_text) and ("explain" in mention_text.lower()):
+            return True
+        else:
+            return False
+
     def process_mention(self, mention, test=False, test_http_request=False, post_reply_in_prod=True, is_paid_account=False):
         """
         Processes a single mention from the Twitter mentions timeline.
@@ -382,10 +396,13 @@ class TwitterBot:
         """
         user_id = mention['author_id']
         tweet_id = mention['id']
+        tweet_text = mention['text']
         # Check if this mention has already been processed
-        if tweet_id in self.replied_tweet_ids:
-            logging.info(f"Mention already processed: {tweet_id}")
+        if tweet_id in self.cached_already_replied_to_tweet_ids or tweet_id in self.cached_invalid_tweets or not self.check_if_valid_mention(mention_text=tweet_text):
+            logging.info(f"Mention already processed or invalid: {tweet_id}, with content [{tweet_text}]")
             return
+        else:
+            logging.info(f"Mention not processed yet, processing it with user input: [{tweet_text}]")
 
         if tweet_id in self.last_reply_times:
             first_reply_id = self.last_reply_times[user_id]
@@ -393,8 +410,6 @@ class TwitterBot:
             self.api.update_status(status=already_processed_reply, in_reply_to_status_id=tweet_id)
             logging.info(f"Mention already processed: {tweet_id}")
             return
-
-        tweet_text = mention['text']
 
         if self.should_reply_to_user(user_id):
             # Check if the mention is a reply or a quote
@@ -419,7 +434,7 @@ class TwitterBot:
                 media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}")
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
-                self.replied_tweet_ids.append(tweet_id)
+                self.cached_already_replied_to_tweet_ids.append(tweet_id)
             else:
                 logging.error("No response generated for the mention.")
         else:

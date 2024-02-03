@@ -90,7 +90,7 @@ def poll_twitter_mentions():
             else:
                 logging.error(f"Error fetching mentions: {response.status_code} - {response.text}")
 
-            time.sleep(13)
+            time.sleep(30)
         except Exception as e:
             logging.exception("Exception occurred while polling mentions.")
             time.sleep(120)
