@@ -18,11 +18,10 @@ import src.Llama_index_sandbox.embed as embed
 from src.Llama_index_sandbox import index_dir
 from src.Llama_index_sandbox.utils.utils import timeit
 
-api_key = os.environ["PINECONE_API_KEY"]
-
 
 @timeit
 def initialise_vector_store(embedding_model_vector_dimension, vector_space_distance_metric='cosine') -> PineconeVectorStore:
+    api_key = os.environ["PINECONE_API_KEY"]
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
     index_name = "mevfyi"
 
@@ -104,6 +103,7 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
+    api_key = os.environ["PINECONE_API_KEY"]
     try:
         pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
         index_name = "mevfyi"

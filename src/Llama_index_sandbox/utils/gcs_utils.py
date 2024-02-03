@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 from google.cloud import secretmanager, firestore
@@ -48,7 +49,7 @@ def set_secrets_from_cloud():
     """
     Sets the necessary secrets as environment variables from Secret Manager.
     """
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "mev-fyi")
     secrets_to_fetch = [
         'OPENAI_API_KEY',
         'ASSEMBLY_AI_API_KEY',
@@ -73,4 +74,5 @@ def set_secrets_from_cloud():
 
     for secret_name in secrets_to_fetch:
         if secret_name not in os.environ:
+            logging.info(f"set_secrets_from_cloud: fetching [{secret_name}] from Secrets Manager")
             os.environ[secret_name] = get_secret(project_id, secret_name)
