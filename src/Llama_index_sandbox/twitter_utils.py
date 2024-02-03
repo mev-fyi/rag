@@ -18,8 +18,8 @@ def take_screenshot_and_upload(url):
     :param url: The URL to take a screenshot of
     :return: The media ID on Twitter or None if failed
     """
+    driver = return_driver_docker_gce()
     try:
-        driver = return_driver_docker_gce()
         driver.get(url)
         time.sleep(3)  # Wait for dynamic content
 
@@ -216,3 +216,51 @@ def lookup_user_by_username(username):
     else:
         logging.error(f"Error fetching user ID: {response.status_code} - {response.text}")
         return None
+
+
+def extract_command_and_message(message):
+    """
+    Extracts the command and the message from the tweet.
+
+    :param message: The message from the tweet
+    :return: A tuple containing the command and the message
+    """
+    command = "tweet"  # default command
+    if " thread" in message.lower():
+        command = "thread"
+    return command, message
+
+
+def make_twitter_api_call(url, params=None, bearer_token=None):
+    """Generic method for making requests to the Twitter API."""
+    headers = {"Authorization": f"Bearer {bearer_token}"}
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()  # Raises an HTTPError for 4XX/5XX errors
+        return response.json()
+    except requests.exceptions.HTTPError as e:
+        logging.error(f"Error making Twitter API call: {e.response.status_code} - {e.response.text}")
+        return None
+
+
+def bearer_oauth(bearer_token):
+    """Method required by bearer token authentication."""
+
+    def bearer_auth(request):
+        request.headers["Authorization"] = f"Bearer {bearer_token}"
+        request.headers["User-Agent"] = "v2UserMentionsPython"
+        return request
+
+    return bearer_auth
+
+def connect_to_endpoint(url, params, bearer_token):
+    """Connect to Twitter API endpoint."""
+    response = requests.get(url, auth=bearer_oauth(bearer_token), params=params)
+    logging.info(response.status_code)
+    if response.status_code != 200:
+        raise Exception(
+            "Request returned an error: {} {}".format(
+                response.status_code, response.text
+            )
+        )
+    return response.json()

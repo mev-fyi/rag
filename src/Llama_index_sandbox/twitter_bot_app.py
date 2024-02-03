@@ -15,11 +15,16 @@ dotenv.load_dotenv()
 from src.Llama_index_sandbox.twitter_bot import TwitterBot
 print("Logging configuration initialized...")
 # Configure logging to file and stdout
+# Determine if running in Docker
+is_in_docker = os.getenv('IS_IN_DOCKER', 'false') == 'true'
+
+log_file_path = "/app/twitter_bot.log" if is_in_docker else "twitter_bot.log"
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("/app/twitter_bot.log"),  # Log file in /app directory
+        logging.FileHandler(log_file_path),
         logging.StreamHandler()
     ]
 )
@@ -52,43 +57,43 @@ def poll_twitter_mentions():
 
     logging.info("Twitter bot is ready to poll mentions.")
 
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        while True:
-            try:
-                params = {
-                    'max_results': '10',
-                    'tweet.fields': 'created_at,author_id',
-                }
-                if last_polled_id:
-                    params['since_id'] = last_polled_id
+    while True:
+        try:
+            params = {
+                'max_results': '10',
+                'tweet.fields': 'created_at,author_id',
+            }
+            if last_polled_id:
+                params['since_id'] = last_polled_id
 
-                headers = {
-                    'Authorization': f'Bearer {bearer_token}',
-                    'User-Agent': 'v2MentionsPython'
-                }
+            headers = {
+                'Authorization': f'Bearer {bearer_token}',
+                'User-Agent': 'v2MentionsPython'
+            }
 
-                logging.info("Polling for mentions...")
-                response = requests.get(base_url, headers=headers, params=params)
+            logging.info("Polling for mentions...")
+            response = requests.get(base_url, headers=headers, params=params)
 
-                if response.status_code == 200:
-                    response_json = response.json()
-                    mentions = response_json.get('data', [])
-                    logging.info(f"Received {len(mentions)} mentions.")
+            if response.status_code == 200:
+                response_json = response.json()
+                mentions = response_json.get('data', [])
+                logging.info(f"Received {len(mentions)} mentions.")
 
-                    # Submit mention processing tasks to the thread pool
+                # Process mentions using ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
                     for mention in mentions:
                         executor.submit(process_mention, mention)
 
-                    meta_data = response_json.get('meta', {})
-                    if 'newest_id' in meta_data:
-                        last_polled_id = meta_data['newest_id']
-                else:
-                    logging.error(f"Error fetching mentions: {response.status_code} - {response.text}")
+                meta_data = response_json.get('meta', {})
+                if 'newest_id' in meta_data:
+                    last_polled_id = meta_data['newest_id']
+            else:
+                logging.error(f"Error fetching mentions: {response.status_code} - {response.text}")
 
-                time.sleep(12)
-            except Exception as e:
-                logging.exception("Exception occurred while polling mentions.")
-                time.sleep(120)
+            time.sleep(13)
+        except Exception as e:
+            logging.exception("Exception occurred while polling mentions.")
+            time.sleep(120)
 
 
 if __name__ == '__main__':

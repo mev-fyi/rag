@@ -14,7 +14,7 @@ from src.Llama_index_sandbox.main import initialise_chatbot
 from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
-from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload
+from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload, lookup_user_by_username, make_twitter_api_call, bearer_oauth, connect_to_endpoint, extract_command_and_message
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
 
@@ -34,9 +34,13 @@ class TwitterBot:
         Initializes the Twitter Bot with necessary credentials and configurations.
         """
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        set_secrets_from_cloud()
+        if (not os.environ.get('ENVIRONMENT', 'LOCAL') == 'LOCAL') or not os.environ.get('ENVIRONMENT') == 'STAGING':
+            # NOTE 2024-02-01: staging is when we still want 'LOCAL' logs while deployed on cloud
+            set_secrets_from_cloud()
 
         # Twitter API Authentication
+        self.user_id = lookup_user_by_username(os.getenv('TWITTER_USERNAME'))
+        self.username = os.getenv('TWITTER_USERNAME')
         self.consumer_key = os.environ.get('TWITTER_CONSUMER_KEY')
         self.consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')
         self.access_token = os.environ.get('TWITTER_ACCESS_TOKEN')
@@ -45,9 +49,6 @@ class TwitterBot:
         self.auth = OAuth1UserHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
-
-        # GCS screenshot store
-        self.gcs_bucket = os.environ.get('GCS_BUCKET')
 
         # Chatbot Engine Initialization
         self.engine = 'chat'
@@ -64,6 +65,53 @@ class TwitterBot:
             recompute_weights=True
         )
         self.last_reply_times = {}
+        # File to store processed mentions
+        self.replied_tweet_ids = self.initialize_reply_status_ids()
+
+    def initialize_reply_status_ids(self):
+        """
+        Initializes a set of tweet IDs the bot has replied to, with pagination to retrieve up to 3200 tweets.
+        This simplifies the checking process for whether a mention has already been responded to.
+        """
+        # We get all the tweets of the bot
+        url = f"https://api.twitter.com/2/users/{self.user_id}/tweets"
+        # Then using the `expansions` parameter "referenced_tweets.id" we find all the parent tweets of the bot.
+        # Once the tag "@mevfyi" shows up, then it means that we already responded to that and we no longer need to process it.
+        # Then we loop in the mentions, and if the mention is in the list that we just constituted in the initialize_reply_status_ids method,
+        # then we do not need to process it.
+        params = {
+            "max_results": "100",
+            "expansions": "referenced_tweets.id"  # https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
+        }
+
+        all_in_reply_to_user_ids = []
+        total_fetched = 0
+        max_tweets = 3200  # Maximum number of tweets to fetch
+        
+        while True:
+            response = connect_to_endpoint(url, params, self.bearer_token)
+            if response:
+                tweets = response.get('includes', [])['tweets']  # check a link to find about expansions and includes https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
+
+                # First return the list of tweet IDs where the user mentioned the bot
+                fetched_tweet_ids = [tweet['id'] for tweet in tweets if f"@{self.username}" in tweet['text']]  # this relies on the fact that the bot doesn't mention itself as per the reply method
+                # 2024-02-03: We simplify the "is this a user mentioning the bot" process by checking in the text if there is the "@mevfyi" tag
+                # otherwise I'd have to look up the user corresponding to each of those tweet which is likely to explode in the number of calls, while we have the texts by defaults anyway.
+
+                logging.info(f"Adding tweet IDs of [{self.username}] mentions: {fetched_tweet_ids}")
+                # Check if we have fetched the maximum number or if there are no more tweets
+                if total_fetched >= max_tweets or 'next_token' not in response.get('meta', {}):
+                    break
+                    
+                all_in_reply_to_user_ids += fetched_tweet_ids
+                total_fetched += len(fetched_tweet_ids)
+                
+                # Set the next_token for the next iteration
+                params['pagination_token'] = response['meta']['next_token']
+            else:
+                break  # Exit if there is an error in the response
+                
+        return all_in_reply_to_user_ids
 
     def should_reply_to_user(self, user_id):
         """
@@ -79,54 +127,6 @@ class TwitterBot:
             return True
         time_since_last_reply = datetime.now() - self.last_reply_times[user_id]
         return time_since_last_reply > timedelta(seconds=30)  # Change the time limit
-
-    def process_webhook_data(self, data, test=False, test_http_request=False):
-        """
-        Processes incoming data from the webhook.
-        :param data: The data received from the webhook
-
-        Args:
-            test:
-            test_http_request:
-        """
-        # Extract relevant information from the data
-        if 'tweet_create_events' in data:
-            for event in data['tweet_create_events']:
-                user_id = event['user']['id_str']
-                if self.should_reply_to_user(user_id):
-                    tweet_id = event['id_str']
-                    tweet_text = event['text']
-
-                    # Check if the tweet is a reply or quote
-                    if 'in_reply_to_status_id_str' in event or 'quoted_status' in event:
-                        command, _ = self.extract_command_and_message(tweet_text)
-
-                        if command == "thread":
-                            message = self.fetch_thread(tweet_id, test=test, test_http_request=test_http_request)
-                        elif command == "tweet":
-                            message = self.fetch_tweet(tweet_id, test=test, test_http_request=test_http_request)
-                        else:
-                            message = tweet_text  # Default behavior
-
-                        if message is None:
-                            logging.error("Could not fetch tweet")
-                            return
-
-                        chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
-                        # TODO 2024-01-25: if the thread or tweet is referring to document existing in the database, fetch their content too.
-                        # TODO 2024-01-25: if there is one or more images to each tweet, add them.
-
-                        # Process the message
-                        response = self.process_chat_message(chat_input).response
-                        if response:
-                            self.reply_to_tweet(user_id, response, tweet_id, test)
-                            self.last_reply_times[user_id] = datetime.now()
-                        else:
-                            logging.error("No response generated for the tweet.")
-                else:
-                    logging.info(f"Rate limit: Not replying to {user_id}")
-        else:
-            logging.error("Webhook data does not contain tweet creation events.")
 
     def fetch_username_directly(self, user_id):
         """
@@ -166,6 +166,8 @@ class TwitterBot:
                 username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
                 if username:
                     reply_text = f"@{username} your {command} explanation: {response}"
+                    reply_text = reply_text.replace(f"@{self.username}", '')  # let's make sure the user can't trick the bot tagging itself
+
                     if is_paid_account or len(reply_text) <= TWEET_CHAR_LENGTH:
                         self.direct_reply_to_tweet(tweet_id, reply_text, tweet_number=0, media_id=media_id)
                     else:
@@ -317,7 +319,6 @@ class TwitterBot:
         thread = thread[::-1]  # Reverse to maintain the chronological order
         return '\n'.join(thread)
 
-    # Additional method within the TwitterBot class
 
     def fetch_tweet(self, tweet_id, test, test_http_request):
         """
@@ -381,6 +382,10 @@ class TwitterBot:
         """
         user_id = mention['author_id']
         tweet_id = mention['id']
+        # Check if this mention has already been processed
+        if tweet_id in self.replied_tweet_ids:
+            logging.info(f"Mention already processed: {tweet_id}")
+            return
 
         if tweet_id in self.last_reply_times:
             first_reply_id = self.last_reply_times[user_id]
@@ -393,7 +398,7 @@ class TwitterBot:
 
         if self.should_reply_to_user(user_id):
             # Check if the mention is a reply or a quote
-            command, _ = self.extract_command_and_message(tweet_text)
+            command, _ = extract_command_and_message(tweet_text)
 
             if command == "thread":
                 message = self.fetch_thread(tweet_id, test=test, test_http_request=test_http_request)
@@ -414,6 +419,7 @@ class TwitterBot:
                 media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}")
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
+                self.replied_tweet_ids.append(tweet_id)
             else:
                 logging.error("No response generated for the mention.")
         else:
@@ -466,17 +472,4 @@ class TwitterBot:
         except Exception as e:
             logging.error(f"Exception in create_shared_chat: {e}")
             return None
-
-    @staticmethod
-    def extract_command_and_message(message):
-        """
-        Extracts the command and the message from the tweet.
-
-        :param message: The message from the tweet
-        :return: A tuple containing the command and the message
-        """
-        command = "tweet"  # default command
-        if " thread" in message.lower():
-            command = "thread"
-        return command, message
 

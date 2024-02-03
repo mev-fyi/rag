@@ -24,23 +24,21 @@ class TestTwitterBotAndApp(unittest.TestCase):
         mention = {'author_id': lookup_user_by_username('unlock_VALue'), 'id': thread_tweet_id, 'text': "Explain thread"}
         self.bot.process_mention(mention, test=True, test_http_request=False, post_reply_in_prod=True, is_paid_account=False)
 
-        # Since this is a real API call, assertions will depend on the actual response
-        # Ensure you have appropriate checks to verify the bot's behavior
 
     # Additional tests for different scenarios of your TwitterBot can be added here
     # Remember to respect Twitter's rate limits and usage policies
 
     #def test_create_shared_chat(self):
     #    bot = TwitterBot()
-#
+    #
     #    # Define a mock chat response and metadata
     #    chat_response = Mock()
     #    chat_response.response = "This is a test response for the chatbot"
     #    metadata = "Test metadata"
-#
+    #
     #    # Call the method under test
     #    shared_chat_link = bot.create_shared_chat(chat_response, metadata)
-#
+    #
     #    # Test if the shared chat link is returned as expected
     #    self.assertIsNotNone(shared_chat_link)
 
