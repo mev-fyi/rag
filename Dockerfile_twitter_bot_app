@@ -17,12 +17,9 @@ RUN mkdir -p ./datasets/evaluation_data
 # Copy the .storage directory to the container
 COPY .storage ./.storage
 
-# Install the Google Cloud Logging agent
-RUN curl -sSO https://dl.google.com/cloudagents/add-logging-agent-repo.sh && \
-    bash add-logging-agent-repo.sh && \
-    apt-get update -y && apt-get install google-fluentd -y
-
-COPY fluentd.conf /etc/google-fluentd/config.d/
+# Install the Google Cloud Logging agent (Fluentd)
+RUN curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh && \
+    bash install-logging-agent.sh
 
 # Install Google Cloud SDK
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
@@ -37,8 +34,6 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 # Environment variable to specify the Google Cloud project
 ENV GOOGLE_CLOUD_PROJECT=mev-fyi
 ENV ENVIRONMENT=LOCAL
-
-CMD ["google-fluentd"]
 
 # At runtime, your application script should be responsible for using ADC
 # to authenticate and access Google Secrets Manager or other Google Cloud services.
