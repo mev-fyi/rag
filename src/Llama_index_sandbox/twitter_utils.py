@@ -105,7 +105,8 @@ def safe_request(url, headers):
         return None
     except requests.exceptions.RequestException as e:
         logging.error(f"Request Exception: {e}")
-        return None
+    return None
+
 
 
 def split_response_into_tweets(response, username):

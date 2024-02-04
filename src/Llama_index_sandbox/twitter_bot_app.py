@@ -8,7 +8,7 @@ import dotenv
 from concurrent.futures import ThreadPoolExecutor
 
 # Adjust the import statements to match the directory structure in the Docker container
-from src.Llama_index_sandbox.twitter_utils import lookup_user_by_username
+from src.Llama_index_sandbox.twitter_utils import lookup_user_by_username, safe_request
 
 dotenv.load_dotenv()
 
@@ -49,7 +49,7 @@ def process_mention(mention):
 
 # Function to poll Twitter mentions
 def poll_twitter_mentions():
-    print("polling twitter mentions")
+    print("Polling Twitter mentions")
     last_polled_id = None
     user_id = lookup_user_by_username(os.getenv('TWITTER_USERNAME'))
     bearer_token = os.getenv('TWITTER_BEARER_TOKEN')

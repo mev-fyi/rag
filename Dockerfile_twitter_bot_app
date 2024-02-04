@@ -17,8 +17,29 @@ RUN mkdir -p ./datasets/evaluation_data
 # Copy the .storage directory to the container
 COPY .storage ./.storage
 
+# Install the Google Cloud Logging agent
+RUN curl -sSO https://dl.google.com/cloudagents/add-logging-agent-repo.sh && \
+    bash add-logging-agent-repo.sh && \
+    apt-get update -y && apt-get install google-fluentd -y
+
+COPY fluentd.conf /etc/google-fluentd/config.d/
+
+# Install Google Cloud SDK
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    google-cloud-sdk
+
+# Set the environment variable to enable ADC
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/key.json
+
 # Set PYTHONPATH to include the directory where your app is located.
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
-# Run the Twitter bot application.
+# Environment variable to specify the Google Cloud project
+ENV GOOGLE_CLOUD_PROJECT=mev-fyi
+ENV ENVIRONMENT=LOCAL
+
+CMD ["google-fluentd"]
+
+# At runtime, your application script should be responsible for using ADC
+# to authenticate and access Google Secrets Manager or other Google Cloud services.
 CMD ["python", "/app/src/Llama_index_sandbox/twitter_bot_app.py", "2>&1", "|", "tee", "/app/app.log"]
