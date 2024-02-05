@@ -46,6 +46,8 @@ def return_driver_docker_gce():
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
+    options.add_argument('--no-zygote')
+    options.add_argument('--single-process')
 
     driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
     return driver
