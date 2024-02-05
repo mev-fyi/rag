@@ -45,7 +45,7 @@ def process_mention(mention):
     try:
         bot.process_mention(mention)
     except Exception as e:
-        logging.exception("Exception occurred while processing mention.")
+        logging.exception(f"Exception occurred while processing mention: [{e}]")
 
 
 # Function to poll Twitter mentions
