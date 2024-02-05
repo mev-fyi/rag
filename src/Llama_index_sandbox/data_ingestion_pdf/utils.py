@@ -36,21 +36,23 @@ def return_driver():
 
 
 def return_driver_docker_gce():
-    CHROME_BINARY_PATH = f'{root_directory()}/src/chromium/chrome-linux64/chrome'
-    CHROMEDRIVER_PATH = f'{root_directory()}/src/chromium/chromedriver-linux64/chromedriver'
+    # Paths are set based on typical installation locations within the Docker container
+    CHROME_BINARY_PATH = '/usr/bin/google-chrome'
+    CHROMEDRIVER_PATH = '/usr/local/bin/chromedriver'
 
-    options = webdriver.ChromeOptions()
+    options = Options()
     options.binary_location = CHROME_BINARY_PATH
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
-    options.add_argument('--no-zygote')
-    options.add_argument('--single-process')
+    options.add_argument('--no-zygote')  # Improves startup time.
+    options.add_argument('--single-process')  # Reduces resource usage.
 
     driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
     return driver
+
 
 def clean_title(title: str) -> str:
     """Remove non-breaking spaces and other non-standard whitespace."""
