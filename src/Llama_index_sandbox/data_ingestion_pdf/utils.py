@@ -36,14 +36,18 @@ def return_driver():
 
 
 def return_driver_docker_gce():
-    options = Options()
+    CHROME_BINARY_PATH = f'{root_directory()}/src/chromium/chrome-linux64/chrome'
+    CHROMEDRIVER_PATH = f'{root_directory()}/src/chromium/chromedriver-linux64/chromedriver'
+
+    options = webdriver.ChromeOptions()
+    options.binary_location = CHROME_BINARY_PATH
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
     return driver
 
 def clean_title(title: str) -> str:
