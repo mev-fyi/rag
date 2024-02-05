@@ -38,7 +38,7 @@ bot = TwitterBot()
 # Fetch the number of workers from an environment variable, with a default fallback
 MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
 
-SLEEP_SECONDS_BETWEEN_MENTIONS = int(os.getenv('SLEEP_SECONDS_BETWEEN_MENTIONS', 5))
+SLEEP_SECONDS_BETWEEN_MENTIONS = int(os.getenv('SLEEP_SECONDS_BETWEEN_MENTIONS', 120))
 
 # Function to process a single mention
 def process_mention(mention):
