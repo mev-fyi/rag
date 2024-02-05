@@ -1,0 +1,18 @@
+steps:
+  # Build the Docker image for twitter-bot-app
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/mev-fyi/twitter-bot-app:$SHORT_SHA'
+      - '-f'
+      - './Dockerfile_twitter_bot_app'
+      - '.'
+
+  # Push the Docker image for twitter-bot-app to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/mev-fyi/twitter-bot-app:$SHORT_SHA']
+
+# Specify the images to be available in the Container Registry
+images:
+  - 'gcr.io/mev-fyi/twitter-bot-app:$SHORT_SHA'

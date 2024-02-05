@@ -17,7 +17,20 @@ RUN mkdir -p ./datasets/evaluation_data
 # Copy the .storage directory to the container
 COPY .storage ./.storage
 
-# Install Google Cloud SDK
+# Install required packages to add Google Cloud SDK repository
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    lsb-release
+
+# Add the Google Cloud SDK distribution URI as a package source
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+
+# Import the Google Cloud public key
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+
+# Update the package list and install Google Cloud SDK
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     google-cloud-sdk
 
