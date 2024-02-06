@@ -49,6 +49,7 @@ class TwitterBot:
         self.auth = OAuth1UserHandler(self.consumer_key, self.consumer_secret)
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
+        self.take_screenshot = os.environ.get('TAKE_SCREENSHOT', 'FALSE') == "TRUE"
 
         # Chatbot Engine Initialization
         self.engine = 'chat'
@@ -432,7 +433,7 @@ class TwitterBot:
             chat_response, metadata = self.process_chat_message(chat_input)
             if chat_response:
                 shared_chat_link = self.create_shared_chat(chat_response, metadata)
-                media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}")
+                media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}") if self.take_screenshot else None
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
                 self.cached_already_replied_to_tweet_ids.append(tweet_id)
