@@ -398,6 +398,7 @@ class TwitterBot:
         tweet_id = mention['id']
         tweet_text = mention['text']
         # Check if this mention has already been processed
+        # TODO 2024-02-05: when processing a chat, add it to a list. if the processing is completed and not in the cached or replied to tweets, then
         if tweet_id in self.cached_already_replied_to_tweet_ids or tweet_id in self.cached_invalid_tweets or not self.check_if_valid_mention(mention_text=tweet_text):
             logging.info(f"Mention already processed or invalid: {tweet_id}, with content [{tweet_text}]")
             return

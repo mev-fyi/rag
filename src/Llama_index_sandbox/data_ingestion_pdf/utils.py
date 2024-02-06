@@ -36,21 +36,24 @@ def return_driver():
 
 
 def return_driver_docker_gce():
-    # Paths are set based on typical installation locations within the Docker container
     CHROME_BINARY_PATH = '/usr/bin/google-chrome'
     CHROMEDRIVER_PATH = '/usr/local/bin/chromedriver'
 
-    options = Options()
+    options = webdriver.ChromeOptions()
     options.binary_location = CHROME_BINARY_PATH
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
-    options.add_argument('--no-zygote')  # Improves startup time.
-    options.add_argument('--single-process')  # Reduces resource usage.
+    # Debugging and logging
+    options.add_argument('--enable-logging=stderr')
+    options.add_argument('--v=1')
+    # Try removing or adjusting these options if the issue persists
+    # options.add_argument('--no-zygote')
+    # options.add_argument('--single-process')
 
-    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)
     return driver
 
 
