@@ -25,18 +25,18 @@ RUN apt-get update && apt-get install -y \
     libxi6 \
     libgconf-2-4 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable
+    && rm -rf /var/lib/apt/lists/*
 
-# Install matching version of ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | grep -oE "[0-9.]*" | head -1) \
-    && CHROME_DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") \
-    && wget -O /tmp/chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" \
-    && unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ \
-    && rm /tmp/chromedriver_linux64.zip \
+# Download and install a specific version of Google Chrome.
+RUN wget -O chrome-linux64.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chrome-linux64.zip \
+    && unzip chrome-linux64.zip -d /opt/ \
+    && rm chrome-linux64.zip \
+    && ln -s /opt/chrome-linux/chrome /usr/bin/google-chrome
+
+# Download and install a specific version of ChromeDriver.
+RUN wget -O chromedriver_linux64.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chromedriver-linux64.zip \
+    && unzip chromedriver_linux64.zip -d /usr/local/bin/ \
+    && rm chromedriver_linux64.zip \
     && chmod +x /usr/local/bin/chromedriver
 
 # Set display port and disable GPU for Chrome to run headlessly.
