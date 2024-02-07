@@ -17,33 +17,6 @@ RUN mkdir -p ./datasets/evaluation_data
 # Copy the .storage directory to the container
 COPY .storage ./.storage
 
-# Install system dependencies required for Python and Chrome
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    xvfb \
-    libxi6 \
-    libgconf-2-4 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Download and install a specific version of Google Chrome.
-RUN wget -O chrome-linux64.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chrome-linux64.zip \
-    && unzip chrome-linux64.zip -d /opt/ \
-    && rm chrome-linux64.zip \
-    && ln -s /opt/chrome-linux/chrome /usr/bin/google-chrome
-
-# Download and install a specific version of ChromeDriver.
-RUN wget -O chromedriver_linux64.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chromedriver-linux64.zip \
-    && unzip chromedriver_linux64.zip -d /usr/local/bin/ \
-    && rm chromedriver_linux64.zip \
-    && chmod +x /usr/local/bin/chromedriver \
-    && ls -lah /usr/local/bin/ # Add this line for debugging
-
-# Set display port and disable GPU for Chrome to run headlessly.
-ENV DISPLAY=:99
-ENV PYTHONUNBUFFERED=1
-
 # Install required packages to add Google Cloud SDK repository
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     apt-transport-https \

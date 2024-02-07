@@ -36,8 +36,8 @@ def return_driver():
 
 
 def return_driver_docker_gce():
-    CHROME_BINARY_PATH = '/usr/bin/google-chrome'
-    CHROMEDRIVER_PATH = '/usr/local/bin/chromedriver'
+    CHROME_BINARY_PATH = f'{root_directory()}/src/chromium/chrome-linux64/chrome'
+    CHROMEDRIVER_PATH = f'{root_directory()}/src/chromium/chromedriver-linux64/chromedriver'
 
     options = webdriver.ChromeOptions()
     options.binary_location = CHROME_BINARY_PATH
@@ -46,14 +46,10 @@ def return_driver_docker_gce():
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920x1080')
-    # Debugging and logging
-    options.add_argument('--enable-logging=stderr')
-    options.add_argument('--v=1')
-    # Try removing or adjusting these options if the issue persists
-    # options.add_argument('--no-zygote')
-    # options.add_argument('--single-process')
+    options.add_argument('--no-zygote')
+    options.add_argument('--single-process')
 
-    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
     return driver
 
 
