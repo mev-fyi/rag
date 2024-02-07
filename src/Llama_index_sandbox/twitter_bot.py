@@ -228,11 +228,14 @@ class TwitterBot:
 
         # TODO 2024-02-07: investigate https://twitter.com/mevfyi/with_replies diff between post and reply
         # Payload for the tweet
+        if reply_to_id is None or not reply_to_id:
+            logging.warning(f"[direct_reply_to_tweet] reply_to_id is unspecified: [{reply_to_id}]")
         payload = {
-            "text": reply_text
+            "text": reply_text,
+            "reply": {
+                "in_reply_to_tweet_id": reply_to_id
+            }
         }
-        if in_thread:
-            payload["in_reply_to_tweet_id"] = reply_to_id  # Corrected payload key
 
         # Add media_id if available
         if media_id:
