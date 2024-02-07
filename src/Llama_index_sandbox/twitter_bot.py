@@ -50,6 +50,7 @@ class TwitterBot:
         self.auth.set_access_token(self.access_token, self.access_token_secret)
         self.api = tweepy.API(self.auth)
         self.take_screenshot = os.environ.get('TAKE_SCREENSHOT', 'FALSE') == "TRUE"
+        self.seconds_throttler_for_user = os.environ.get('SECONDS_THROTTLER_FOR_USER', 30)
 
         # Chatbot Engine Initialization
         self.engine = 'chat'
@@ -134,8 +135,12 @@ class TwitterBot:
             return False
         if user_id not in self.last_reply_times:
             return True
-        time_since_last_reply = datetime.now() - self.last_reply_times[user_id]
-        return time_since_last_reply > timedelta(seconds=30)  # Change the time limit
+
+        # Convert the string to a datetime object
+        last_reply_time = datetime.strptime(self.last_reply_times[user_id], '%Y-%m-%d %H:%M:%S.%f')
+        time_since_last_reply = datetime.now() - last_reply_time
+
+        return time_since_last_reply > timedelta(seconds=self.seconds_throttler_for_user)  # Change the time limit
 
     def fetch_username_directly(self, user_id):
         """
