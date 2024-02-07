@@ -226,14 +226,13 @@ class TwitterBot:
         url = 'https://api.twitter.com/2/tweets'
         reply_to_id = previous_tweet_id if in_thread and previous_tweet_id else tweet_id
 
+        # TODO 2024-02-07: investigate https://twitter.com/mevfyi/with_replies diff between post and reply
         # Payload for the tweet
         payload = {
             "text": reply_text
         }
         if in_thread:
-            payload["reply"] = {
-                "in_reply_to_tweet_id": reply_to_id
-            }
+            payload["in_reply_to_tweet_id"] = reply_to_id  # Corrected payload key
 
         # Add media_id if available
         if media_id:
