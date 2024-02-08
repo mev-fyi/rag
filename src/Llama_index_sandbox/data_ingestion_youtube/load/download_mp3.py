@@ -53,18 +53,21 @@ def download_video(url, ydl_opts, retries=3):
 
 
 
-def download_audio_batch(video_infos: List[dict], ydl_opts: dict):
+async def download_audio_batch(video_infos: List[dict], ydl_opts: dict):
     """
     Download a batch of videos in parallel using threads.
     """
-    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-        futures = [executor.submit(download_video, info['url'], ydl_opts) for info in video_infos]
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                future.result()  # You can add a timeout here if needed
-            except Exception as e:
-                # Handle exceptions from within the thread
-                print(f"An error occurred: {e}")
+    loop = asyncio.get_event_loop()
+    futures = [
+        loop.run_in_executor(executor, download_video, info['url'], ydl_opts)
+        for info in video_infos
+    ]
+    for future in futures:
+        try:
+            await future  # Use await to get the result of the future
+        except Exception as e:
+            # Handle exceptions from within the thread
+            logging.error(f"An error occurred: {e}")
 
 
 def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
@@ -84,7 +87,7 @@ def filter_videos_in_dataframe(video_info_list, youtube_videos_df):
     return titles_in_df
 
 
-def video_valid_for_processing(channel_name, video_title, dir_path):
+async def video_valid_for_processing(channel_name, video_title, dir_path):
     try:
         normalized_video_title = video_title.replace('/', '_')
         titles_to_avoid = ['livestream', 'live stream', 'live']
@@ -143,7 +146,6 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
     video_batches = list(chunked_iterable(video_info_list, batch_size))
     # TODO 2023-10-31: fix somehow the addition of spaces before colons : e.g. for DVT and for Defi panel
     #  The different pipes somehow. Check the match method in utils.py
-    # Create a common download option for all videos in the batch.
     ydl_opts = {
         'format': 'bestaudio/best',
         'postprocessors': [{
@@ -151,32 +153,23 @@ async def process_video_batches(channel_name, video_info_list, dir_path, youtube
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        # NOTE 2023-10-31: we do not pass the video title and its subdirectory because we process several URL at once per batch.
-        # Therefore we cannot match tuples of ydl_opts and their URLs.
-        # So we'll have discerpeancies.
         'outtmpl': f'{dir_path}/%(title)s.%(ext)s',
     }
 
     tasks = []
     for batch_info in video_batches:
         filtered_videos = filter_videos_in_dataframe(batch_info, youtube_videos_df)
-        # if len(filtered_videos) > 1:
-        #     logging.info(f"[{channel_name}] filtered videos: {filtered_videos}")
-        # valid_videos = [video for video in filtered_videos if await video_valid_for_processing(video['title'], dir_path)]
         valid_videos = []
         for index, row in filtered_videos.iterrows():
-            # Convert the row to a dictionary
             video_dict = row.to_dict()
-
-            # Now you can access the row data as a dictionary
-            # For example, video_dict['title'] will give you the title
-            is_video_Valid = video_valid_for_processing(channel_name, video_dict['title'], dir_path)
+            is_video_Valid = await video_valid_for_processing(channel_name, video_dict['title'], dir_path)
             if is_video_Valid:
                 valid_videos.append(video_dict)
         if len(valid_videos) > 1:
             logging.info(f"[{channel_name}] valid videos: {valid_videos}")
 
         if valid_videos:
+            # Since download_audio_batch is now an async function, we directly add it to the task list
             task = asyncio.create_task(download_audio_batch(valid_videos, ydl_opts))
             tasks.append(task)
 
