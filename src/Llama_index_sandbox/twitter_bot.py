@@ -136,8 +136,8 @@ class TwitterBot:
         if user_id not in self.last_reply_times:
             return True
 
-        # Convert the string to a datetime object
-        last_reply_time = datetime.strptime(self.last_reply_times[user_id], '%Y-%m-%d %H:%M:%S.%f')
+        # Assuming self.last_reply_times[user_id] is a timestamp, convert it to a datetime object
+        last_reply_time = datetime.fromtimestamp(int(self.last_reply_times[user_id]) / 1000.0)
         time_since_last_reply = datetime.now() - last_reply_time
 
         return time_since_last_reply > timedelta(seconds=self.seconds_throttler_for_user)  # Change the time limit
