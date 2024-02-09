@@ -6,6 +6,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 import re
+import time
+import random
 
 from src.Llama_index_sandbox import YOUTUBE_VIDEO_DIRECTORY
 
@@ -16,6 +18,11 @@ if not api_key:
     raise EnvironmentError("ASSEMBLY_AI_API_KEY environment variable not found. Please set it before running the script.")
 
 aai.settings.api_key = api_key
+
+
+# Define a random sleep function
+def random_sleep(min_seconds=0.5, max_seconds=2.5):
+    time.sleep(random.uniform(min_seconds, max_seconds))
 
 
 def is_valid_filename(filename):
@@ -46,6 +53,7 @@ def utterance_to_dict(utterance) -> dict:
 
 
 def transcribe_and_save(file_path):
+    random_sleep()  # Random sleep before starting transcription
     try:
         transcript_file_path = os.path.splitext(file_path)[0] + "_diarized_content.json"
 
@@ -62,6 +70,11 @@ def transcribe_and_save(file_path):
         config = aai.TranscriptionConfig(speaker_labels=True)
         transcriber = aai.Transcriber()
         transcript = transcriber.transcribe(file_path, config=config)
+
+        # Check if the transcript is None which could be due to a '409 Conflict' error
+        if transcript is None:
+            logging.error(f"Transcription returned None for file: {file_path}. This may be due to a '409 Conflict' error.")
+            return
 
         utterances_dicts = [utterance_to_dict(utterance) for utterance in transcript.utterances]
 
@@ -89,7 +102,7 @@ def main():
             logging.warning("No MP3 files found to transcribe.")
             return
 
-        max_workers = os.cpu_count()
+        max_workers = 2
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             executor.map(transcribe_and_save, mp3_files)
 

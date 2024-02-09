@@ -31,8 +31,6 @@ class TestTwitterBotAndApp(unittest.TestCase):
         poll_twitter_mentions()
 
 
-
-
     # Additional tests for different scenarios of your TwitterBot can be added here
     # Remember to respect Twitter's rate limits and usage policies
 
