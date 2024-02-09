@@ -166,5 +166,5 @@ TWITTER_THREAD_INPUT = """The user is asking "{user_input}" about the following 
  ``` 
  
 You need to do a thorough explanation of all the terms used by the thread author and give as much context as you can and by citing the relevant sources that helped you providing the explanation.
-There is no need to state that it is a Twitter reply or thread, just directly answer given the above requirements.  
+There is no need to state that it is a Twitter reply or thread, just directly answer given the above requirements. You need to account for the user inputs and exhaustively answer the user input.
 """
