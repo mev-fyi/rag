@@ -136,11 +136,11 @@ class TwitterBot:
         if user_id not in self.last_reply_times:
             return True
 
-        # Assuming self.last_reply_times[user_id] is a timestamp, convert it to a datetime object
-        last_reply_time = datetime.fromtimestamp(int(self.last_reply_times[user_id]) / 1000.0)
+        # Convert stored timestamp to datetime object
+        last_reply_time = datetime.fromtimestamp(self.last_reply_times[user_id])
         time_since_last_reply = datetime.now() - last_reply_time
 
-        return time_since_last_reply > timedelta(seconds=self.seconds_throttler_for_user)  # Change the time limit
+        return time_since_last_reply > timedelta(seconds=self.seconds_throttler_for_user)
 
     def fetch_username_directly(self, user_id):
         """
@@ -442,7 +442,7 @@ class TwitterBot:
                 shared_chat_link = self.create_shared_chat(chat_response, metadata)
                 media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}") if self.take_screenshot else None
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
-                self.last_reply_times[user_id] = tweet_id  # Update with the latest processed tweet ID
+                self.last_reply_times[user_id] = time.time()  # Store the current timestamp
                 self.cached_already_replied_to_tweet_ids.append(tweet_id)
             else:
                 logging.error("No response generated for the mention.")
