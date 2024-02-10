@@ -151,6 +151,7 @@ To quote the source, only quote the URL as-is and wherever it is relevant e.g. a
 Do not use markdown notation, only directly input the URL in parentheses at the end, do not specify 'Source', just write (URL).
 If the cited content is from the same source, cite the source once in a new line after that paragraph.
 If the context does not help you answering the question, state it and do not try to make an answer based on your prior knowledge.
+Do not state that it is a Twitter reply or thread, just directly answer given the above requirements.
 Now, given the context which is about {llm_reasoning_on_user_input}, answer the question: {user_raw_input}"""
 
 CONFIRM_FINAL_ANSWER = """Given the elements that you have namely the question, the response, and the sources from the response, formulate an answer to the question.
@@ -165,6 +166,6 @@ TWITTER_THREAD_INPUT = """The user is asking "{user_input}" about the following 
  {twitter_thread}
  ``` 
  
-You need to do a thorough explanation of all the terms used by the thread author and give as much context as you can and by citing the relevant sources that helped you providing the explanation.
-There is no need to state that it is a Twitter reply or thread, just directly answer given the above requirements. You need to account for the user inputs and exhaustively answer the user input.
+You need to do a thorough explanation of the user input and give as much context as you can and by citing the relevant sources that helped you providing the explanation.
+Do not state that it is a Twitter reply or thread, just directly answer given the above requirements.
 """
