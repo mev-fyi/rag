@@ -106,7 +106,7 @@ def construct_single_node(text_chunk, src_doc_metadata):
 @timeit
 def construct_node(text_chunks, documents, doc_idxs) -> List[TextNode]:
     """ 3. Manually Construct Nodes from Text Chunks """
-    available_workers = int(3 / 4 * multiprocessing.cpu_count())  # Calculate 3/4 of the available CPU count
+    available_workers = int(1 / 2 * multiprocessing.cpu_count())  # Calculate 3/4 of the available CPU count
 
     with ProcessPoolExecutor(max_workers=available_workers) as executor:
         future_to_idx = {
