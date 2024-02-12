@@ -256,14 +256,91 @@ def bearer_oauth(bearer_token):
 
     return bearer_auth
 
-def connect_to_endpoint(url, params, bearer_token):
-    """Connect to Twitter API endpoint."""
-    response = requests.get(url, auth=bearer_oauth(bearer_token), params=params)
-    logging.info(response.status_code)
-    if response.status_code != 200:
-        raise Exception(
-            "Request returned an error: {} {}".format(
-                response.status_code, response.text
-            )
-        )
-    return response.json()
+
+def connect_to_endpoint(url, params, bearer_token, max_retries=5, backoff_factor=60):
+    """Connect to Twitter API endpoint with retry logic."""
+    for attempt in range(max_retries):
+        response = requests.get(url, auth=bearer_oauth(bearer_token), params=params)
+        logging.info(f"Attempt {attempt + 1}: HTTP status code {response.status_code}")
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 429:
+            # Too Many Requests, apply exponential backoff
+            sleep_time = backoff_factor * (2 ** attempt)
+            logging.info(f"Rate limit exceeded. Waiting for {sleep_time} seconds before retrying...")
+            time.sleep(sleep_time)
+        else:
+            raise Exception(f"Request returned an error: {response.status_code} {response.text}")
+    raise Exception("Maximum retry attempts reached, unable to fetch data.")
+
+
+
+def create_shared_chat(chat_response, metadata):
+    """
+    Sends a POST request to the Next.js API to create a shared chat.
+    :param messages: The chat messages to be sent
+    :return: The shared chat link or None in case of an error
+    """
+    url = os.environ.get('NEXTJS_API_ENDPOINT')  # Fetch the API endpoint from environment variables
+    api_key = os.environ.get('NEXTJS_API_KEY')  # Fetch the API key from environment variables
+
+    headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': api_key
+    }
+    embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
+
+    model_specifications = {
+        "embedding_model_parameters": {
+            "embedding_model_name": embedding_model_name,
+            "text_splitter_chunk_size": text_splitter_chunk_size,
+            "chunk_overlap": chunk_overlap,
+            "number of chunks to retrieve": glb.NUMBER_OF_CHUNKS_TO_RETRIEVE,  # NOTE 2023-10-30: fix the retrieval of this as global variable
+            "temperature": constants.LLM_TEMPERATURE,
+        }
+    }
+
+    data = {
+        "status": "completed",
+        "response": chat_response.response,
+        "formatted_metadata": metadata,
+        "job_id": '',
+        "model_specifications": model_specifications,
+    }
+
+    logging.info(f'POSTing response to front-end: {data}')
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            shared_chat_link = response.json().get('sharedChatLink')
+            logging.info(f'Shared chat created successfully: {shared_chat_link}')
+            return shared_chat_link
+        else:
+            logging.error(f"Error creating shared chat: {response.status_code} - {response.text}")
+            return None
+    except Exception as e:
+        logging.error(f"Exception in create_shared_chat: {e}")
+        return None
+
+
+def fetch_username_directly(bearer_token, user_id):
+    """
+    Fetches the username of a user directly using the Twitter API v2.
+    :param user_id: The user ID
+    :return: The username of the user
+    """
+    url = f"https://api.twitter.com/2/users/{user_id}"
+    headers = {
+        "Authorization": f"Bearer {bearer_token}"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            user_data = response.json().get('data', {})
+            return user_data.get('username')
+        else:
+            logging.error(f"Error fetching username directly: {response.status_code} - {response.text}")
+    except Exception as e:
+        logging.error(f"Exception in fetch_username_directly: {e}")
+    return None

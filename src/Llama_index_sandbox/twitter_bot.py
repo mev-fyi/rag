@@ -250,11 +250,12 @@ class TwitterBot:
         else:
             logging.info("Not posting reply \n\n```[{reply_text}]```\n\n in prod.")
 
-    def process_chat_message(self, message):
+    def process_chat_message(self, message, direct_llm_call=False):
         """
         Processes a chat message using the chatbot engine and returns the response.
 
         :param message: The message to process
+        :param direct_llm_call: To directly make an LLM call without passing by the agent
         :return: The response from the chatbot
         """
         try:
@@ -267,45 +268,45 @@ class TwitterBot:
                 query_engine_as_tool=self.query_engine_as_tool,
                 chat_history=[],
                 run_application=True,
-                reset_chat=self.config.reset_chat
+                reset_chat=self.config.reset_chat,
+                direct_llm_call=direct_llm_call
             )
             return response, formatted_metadata
         except Exception as e:
             logging.error(f"Error processing chat message: {e}")
             return None, None
 
-    def fetch_thread(self, tweet_id, test, test_http_request):
-        """
-        Fetches the parent tweets of the given tweet ID, walking up the conversation tree.
-        :param tweet_id: The tweet ID to fetch the thread for
-        :return: The fetched thread as a list of tweet texts
-        """
+    def fetch_thread(self, tweet_id, test, test_http_request, max_retries=5, backoff_factor=60):
         if test and not test_http_request:
             return vitalik_ethereum_roadmap_2023
+
         thread = []
-        try:
-            while tweet_id:
-                # Fetch the tweet with the given ID, including note_tweet for long tweets
+        attempt = 0
+
+        while tweet_id and attempt < max_retries:
+            try:
                 tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
                 url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
                 headers = {"Authorization": f"Bearer {self.bearer_token}"}
-                response = safe_request(url, headers)
-                if not response:
-                    logging.error(f"Failed to fetch tweet with ID: {tweet_id}")
-                    return None
-                response.raise_for_status()
-                tweet_data = response.json().get('data', {})
+                response = connect_to_endpoint(url, None, self.bearer_token, max_retries, backoff_factor)
+
+                tweet_data = response.get('data', {})
                 tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
                 thread.append(tweet_text)
 
-                # Check if this tweet is in reply to another and get the parent tweet ID
                 referenced_tweets = tweet_data.get('referenced_tweets', [])
                 parent_tweet = next((ref for ref in referenced_tweets if ref['type'] == 'replied_to'), None)
                 tweet_id = parent_tweet['id'] if parent_tweet else None
+                attempt = 0  # Reset attempt counter after successful fetch
 
-        except requests.exceptions.HTTPError as e:
-            logging.error(f"Error fetching tweet: {e.response.text}")
-            return None
+            except Exception as e:
+                logging.error(f"Error fetching tweet: {e}")
+                attempt += 1
+                if attempt >= max_retries:
+                    break
+                sleep_time = backoff_factor * (2 ** attempt)
+                logging.info(f"Waiting for {sleep_time} seconds before retrying...")
+                time.sleep(sleep_time)
 
         thread = thread[::-1]  # Reverse to maintain the chronological order
         return '\n'.join(thread)
