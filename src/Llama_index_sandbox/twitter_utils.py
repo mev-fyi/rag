@@ -8,8 +8,9 @@ import backoff
 import requests
 from requests_oauthlib import OAuth1
 
-from src.Llama_index_sandbox import root_dir
+from src.Llama_index_sandbox import root_dir, globals as glb, constants
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import return_driver_docker_gce
+from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params
 
 
 def take_screenshot_and_upload(url):
@@ -164,6 +165,7 @@ def split_response_into_tweets(response, username):
 
 
 TWEET_CHAR_LENGTH = 280
+TWEET_CHAR_LENGTH_FOR_LINE_RETURN = 2
 vitalik_ethereum_roadmap_2023 = """
 By popular demand, an updated roadmap diagram for 2023! https://t.co/oxo58A2KuG
 Here was the one from last year. Notice that it's actually quite similar! As Ethereum's technical path forward continues to solidify, there are relatively few changes. I'll go through the important ones.

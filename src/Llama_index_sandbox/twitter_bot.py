@@ -8,17 +8,13 @@ from requests_oauthlib import OAuth1
 import tweepy
 from tweepy import OAuth1UserHandler
 
-from src.Llama_index_sandbox import globals as glb
-from src.Llama_index_sandbox import constants
 from src.Llama_index_sandbox.main import initialise_chatbot
-from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT
+from src.Llama_index_sandbox.prompts import TWITTER_THREAD_INPUT, TWITTER_TWEET_INPUT
 from src.Llama_index_sandbox.retrieve import ask_questions
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
-from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload, lookup_user_by_username, make_twitter_api_call, bearer_oauth, connect_to_endpoint, extract_command_and_message
+from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, TWEET_CHAR_LENGTH_FOR_LINE_RETURN, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload, lookup_user_by_username, connect_to_endpoint, extract_command_and_message, create_shared_chat, fetch_username_directly
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
-
-from src.Llama_index_sandbox.utils.utils import get_last_index_embedding_params
 
 load_dotenv()
 
@@ -142,27 +138,6 @@ class TwitterBot:
 
         return time_since_last_reply > timedelta(seconds=self.seconds_throttler_for_user)
 
-    def fetch_username_directly(self, user_id):
-        """
-        Fetches the username of a user directly using the Twitter API v2.
-        :param user_id: The user ID
-        :return: The username of the user
-        """
-        url = f"https://api.twitter.com/2/users/{user_id}"
-        headers = {
-            "Authorization": f"Bearer {self.bearer_token}"
-        }
-        try:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                user_data = response.json().get('data', {})
-                return user_data.get('username')
-            else:
-                logging.error(f"Error fetching username directly: {response.status_code} - {response.text}")
-        except Exception as e:
-            logging.error(f"Exception in fetch_username_directly: {e}")
-        return None
-
     def reply_to_tweet(self, user_id, response, tweet_id, test, command, media_id=None, post_reply_in_prod=True, is_paid_account=False):
         """
         Posts a reply to a tweet. If the account is not paid, splits the response into multiple tweets.
@@ -176,7 +151,7 @@ class TwitterBot:
         :param is_paid_account: Boolean flag indicating if the account is a paid subscription
         """
         try:
-            username = self.fetch_username_directly(user_id) if not test else 'unlock_VALue'
+            username = fetch_username_directly(bearer_token=self.bearer_token, user_id=user_id) if not test else 'unlock_VALue'
             if username:
                 reply_text = f"@{username} your {command} explanation: {response}"
                 reply_text = reply_text.replace(f"@{self.username}", '')  # let's make sure the user can't trick the bot tagging itself
@@ -406,8 +381,9 @@ class TwitterBot:
         tweet_id = mention['id']
         tweet_text = mention['text']
         # Check if this mention has already been processed
-        # TODO 2024-02-05: when processing a chat, add it to a list. if the processing is completed and not in the cached or replied to tweets, then
-        if tweet_id in self.cached_already_replied_to_tweet_ids or tweet_id in self.cached_invalid_tweets or not self.check_if_valid_mention(mention_text=tweet_text):
+        # TODO 2024-02-05: when processing a chat, add it to a list. if the processing is completed and not in the cached or replied to tweets, then it is not responded to.
+        #  Conversely, in twitter_bot_app, reset the initial list every 5 loops
+        if (not test) and (tweet_id in self.cached_already_replied_to_tweet_ids or tweet_id in self.cached_invalid_tweets or not self.check_if_valid_mention(mention_text=tweet_text)):
             logging.info(f"Mention already processed or invalid: {tweet_id}, with content [{tweet_text}]")
             return
         else:
@@ -437,9 +413,10 @@ class TwitterBot:
 
             chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
             # Process the message
+
             chat_response, metadata = self.process_chat_message(chat_input)
             if chat_response:
-                shared_chat_link = self.create_shared_chat(chat_response, metadata)
+                shared_chat_link = create_shared_chat(chat_response, metadata)
                 media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}") if self.take_screenshot else None
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
                 self.last_reply_times[user_id] = time.time()  # Store the current timestamp
@@ -449,51 +426,4 @@ class TwitterBot:
         else:
             logging.info(f"Rate limit: Not replying to {user_id}")
 
-    def create_shared_chat(self, chat_response, metadata):
-        """
-        Sends a POST request to the Next.js API to create a shared chat.
-        :param messages: The chat messages to be sent
-        :return: The shared chat link or None in case of an error
-        """
-        url = os.environ.get('NEXTJS_API_ENDPOINT')  # Fetch the API endpoint from environment variables
-        api_key = os.environ.get('NEXTJS_API_KEY')  # Fetch the API key from environment variables
-
-        headers = {
-            'Content-Type': 'application/json',
-            'x-api-key': api_key
-        }
-        embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
-
-        model_specifications = {
-            "embedding_model_parameters": {
-                "embedding_model_name": embedding_model_name,
-                "text_splitter_chunk_size": text_splitter_chunk_size,
-                "chunk_overlap": chunk_overlap,
-                "number of chunks to retrieve": glb.NUMBER_OF_CHUNKS_TO_RETRIEVE,  # NOTE 2023-10-30: fix the retrieval of this as global variable
-                "temperature": constants.LLM_TEMPERATURE,
-            }
-        }
-
-        data = {
-            "status": "completed",
-            "response": chat_response.response,
-            "formatted_metadata": metadata,
-            "job_id": '',
-            "model_specifications": model_specifications,
-        }
-
-        logging.info(f'POSTing response to front-end: {data}')
-
-        try:
-            response = requests.post(url, headers=headers, json=data)
-            if response.status_code == 200:
-                shared_chat_link = response.json().get('sharedChatLink')
-                logging.info(f'Shared chat created successfully: {shared_chat_link}')
-                return shared_chat_link
-            else:
-                logging.error(f"Error creating shared chat: {response.status_code} - {response.text}")
-                return None
-        except Exception as e:
-            logging.error(f"Exception in create_shared_chat: {e}")
-            return None
 
