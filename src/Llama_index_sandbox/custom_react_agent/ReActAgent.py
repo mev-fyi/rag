@@ -73,6 +73,10 @@ class CustomReActAgent(ReActAgent):
                 # Extract the part after 'Action Input:'
                 # TODO NOTE 2023-10-15: lets engineer and scrutinise further this part. Beyond passing the question as-is, we can wrap it further e.g.
                 #  add "always make a thorough answer", "directly quote the sources of your knowledge in the same sentence in parentheses".
+                # TODO 2024-02-19: make sure that the index search and retrieval of chunks works as intended when users refers to past content e.g. with "it".
+                #  Namely in https://mev.fyi/share/PbJU6QW the answer to "Can it influence MEV" where "it" is "Rocket Pool",
+                #  does not really search for Rocket pool and MEV related content, in fact, nothing is about Rocket Pool in the returned search results.
+                #  However the same happens for Uniswap while expectedly there should be direct references to Uniswap and MEV.
                 action_input_part = response_content.split('Action Input:')[1].strip()
 
                 # Modify its "input" value to be the user question

@@ -5,7 +5,7 @@ TOPIC_KEYWORDS = """Maximal Extractable Value (MEV), Auction Design, Cryptograph
 MEV in L2, MEV Taxonomy, Protocol Design, Search Optimization, Incentive Alignment in Blockchain Systems, Mechanism Design and its Implications, 
 Transaction Ordering and its Impacts, Auction theory and its Applications in Blockchain, Potential Solutions and Mitigations for MEV, 
 loss-versus-rebalancing (LVR); blockchain intents, the Single Unifying Auction for Value Expression (SUAVE); L2 sequencers; 
-transaction ordering, L1s, L2s, transaction ordering, order flow auctions (OFAs), 
+transaction ordering, L1s, L2s, transaction ordering, order flow auctions (OFAs), Actively Validated Service (AVS),
 enshrined Proposer Builder Separation (ePBS), ERC-4337 (also referred to as 4337, account abstraction, or AA), 
  EIP-1559, Protocol enforced Proposer commitments (PEPC), Multi-Party-Computation (MPC), Trusted Execution Environment (TEE), MEV burn, Uniswap, Hooks."""
 
@@ -162,13 +162,24 @@ sources: {sources}
 response: {response}
 """
 
-TWITTER_THREAD_INPUT = """The user is asking "{user_input}" about the following Twitter thread:
- ```
- {twitter_thread}
- ``` 
- 
+TWITTER_THREAD_INPUT = """The user is asking "{user_input}" about the following Twitter thread delimited in triple backticks:
+```
+{twitter_thread}
+``` 
 You need to do a thorough explanation of the user input and give as much context as you can and by citing the relevant sources that helped you providing the explanation.
 You need to clearly distinguish between the user input and put it in perspective relative to the content retrieved from the query engine.
 If the retrieved content does not help, state that you do not know.
 Do not state that it is a Twitter reply or thread, just directly answer given the above requirements.
+"""
+
+TWITTER_TWEET_INPUT = """Given the original user input "{user_input}" about the following Twitter thread:
+```
+{twitter_thread}
+``` 
+and the answer provided 
+```
+{chat_response}
+```
+
+Write a very concise single tweet with maximum character {tweet_char_size} to answer the user given the Twitter context and our long-form response.
 """

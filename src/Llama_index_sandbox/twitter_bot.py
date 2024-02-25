@@ -286,6 +286,7 @@ class TwitterBot:
         while tweet_id and attempt < max_retries:
             try:
                 tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
+                # tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet,author_id"
                 url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
                 headers = {"Authorization": f"Bearer {self.bearer_token}"}
                 response = connect_to_endpoint(url, None, self.bearer_token, max_retries, backoff_factor)
@@ -293,6 +294,10 @@ class TwitterBot:
                 tweet_data = response.get('data', {})
                 tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
                 thread.append(tweet_text)
+
+                # TODO 2024-02-25: also add author name for appropriate naming of who said what?
+                # tweet_author = fetch_username_directly(bearer_token=self.bearer_token, user_id=tweet_data.get('author_id'))
+                # thread.append(f"---\n{tweet_author}\n```\n{tweet_text}\n```")
 
                 referenced_tweets = tweet_data.get('referenced_tweets', [])
                 parent_tweet = next((ref for ref in referenced_tweets if ref['type'] == 'replied_to'), None)
@@ -420,6 +425,12 @@ class TwitterBot:
                 shared_chat_link = create_shared_chat(chat_response, metadata)
                 media_id = take_screenshot_and_upload(url=f"https://www.{shared_chat_link}") if self.take_screenshot else None
                 self.reply_to_tweet(user_id=user_id, response=shared_chat_link, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
+
+                # # TODO 2024-02-11: make a gpt3.5-turbo call of the chat_input + chat_response and append shared_chat_link?
+                # input_to_create_tweet = TWITTER_TWEET_INPUT.format(user_input=tweet_text, twitter_thread=message, chat_response=chat_response, tweet_char_size=TWEET_CHAR_LENGTH-len(shared_chat_link)-TWEET_CHAR_LENGTH_FOR_LINE_RETURN)
+                # tweet_response, metadata = self.process_chat_message(message=input_to_create_tweet, direct_llm_call=True)
+                # self.reply_to_tweet(user_id=user_id, response=tweet_response, tweet_id=tweet_id, test=test, command=command, media_id=media_id, post_reply_in_prod=post_reply_in_prod, is_paid_account=is_paid_account)
+
                 self.last_reply_times[user_id] = time.time()  # Store the current timestamp
                 self.cached_already_replied_to_tweet_ids.append(tweet_id)
             else:
