@@ -1,39 +1,37 @@
 import json
 import logging
-
-import assemblyai as aai
 import os
-from concurrent.futures import ThreadPoolExecutor
-from dotenv import load_dotenv
 import re
 import time
 import random
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from dotenv import load_dotenv
 
 from src.Llama_index_sandbox import YOUTUBE_VIDEO_DIRECTORY
 
 load_dotenv()
-api_key = os.environ.get('ASSEMBLY_AI_API_KEY')
+api_keys = os.environ.get('ASSEMBLY_AI_API_KEYS')  # Expecting a comma-separated list of API keys
 
-if not api_key:
-    raise EnvironmentError("ASSEMBLY_AI_API_KEY environment variable not found. Please set it before running the script.")
+if not api_keys:
+    raise EnvironmentError("ASSEMBLY_AI_API_KEYS environment variable not found. Please set it before running the script.")
 
-aai.settings.api_key = api_key
+api_keys = api_keys.split(',')
 
 
-# Define a random sleep function
+def set_api_key(api_key):
+    import assemblyai as aai
+    aai.settings.api_key = api_key
+
+
 def random_sleep(min_seconds=0.5, max_seconds=2.5):
     time.sleep(random.uniform(min_seconds, max_seconds))
 
 
 def is_valid_filename(filename):
-    """Check if the filename starts with 'yyyy-mm-dd_' format."""
     return re.match(r'^\d{4}-\d{2}-\d{2}_', filename)
 
 
 def utterance_to_dict(utterance) -> dict:
-    """
-    Convert an Utterance object to a dictionary.
-    """
     return {
         'text': utterance.text,
         'start': utterance.start,
@@ -52,8 +50,10 @@ def utterance_to_dict(utterance) -> dict:
     }
 
 
-def transcribe_and_save(file_path):
-    random_sleep()  # Random sleep before starting transcription
+def transcribe_and_save(api_key_file_path):
+    api_key, file_path = api_key_file_path
+    set_api_key(api_key)
+    random_sleep()
     try:
         transcript_file_path = os.path.splitext(file_path)[0] + "_diarized_content.json"
 
@@ -65,13 +65,24 @@ def transcribe_and_save(file_path):
             logging.warning(f"File {file_path} not found.")
             return
 
-        logging.info(f"Diarization started for {file_path}")
 
+        # Split the file_path into segments
+        path_segments = file_path.split('/')
+
+        # Extract "@EthereumProtocol" and ".mp3" file name based on their fixed positions
+        channel_name = path_segments[-3]  # Assuming "@EthereumProtocol" is always two directories up from the file
+        file_name = path_segments[-1]  # The .mp3 file name is the last segment
+
+        # Similarly for the JSON path if needed, adjust based on how you get or store the transcript_file_path
+        transcript_file_name = os.path.basename(transcript_file_path)  # Gets the file name from the full path
+
+        logging.info(f"Diarization started for {channel_name}/{file_name}")
+
+        import assemblyai as aai
         config = aai.TranscriptionConfig(speaker_labels=True)
         transcriber = aai.Transcriber()
         transcript = transcriber.transcribe(file_path, config=config)
 
-        # Check if the transcript is None which could be due to a '409 Conflict' error
         if transcript is None:
             logging.error(f"Transcription returned None for file: {file_path}. This may be due to a '409 Conflict' error.")
             return
@@ -81,33 +92,41 @@ def transcribe_and_save(file_path):
         with open(transcript_file_path, 'w') as file:
             json.dump(utterances_dicts, file, indent=4)
 
-        logging.info(f"Transcript for {file_path} saved to {transcript_file_path}")
+        logging.info(f"Transcript for {channel_name}/{file_name} saved to {channel_name}/{transcript_file_name}")
 
     except Exception as e:
         logging.error(f"Error transcribing {file_path}: {e}")
 
 
+def worker(api_key, file_paths):
+    # Ensure this function and any function it calls are defined at the top level of the module.
+    set_api_key(api_key)
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        api_key_file_paths = [(api_key, file_path) for file_path in file_paths]
+        list(executor.map(transcribe_and_save, api_key_file_paths))  # Force execution with list()
+
+
 def main():
-    """Main function to transcribe files."""
-    try:
-        data_path = YOUTUBE_VIDEO_DIRECTORY
-        mp3_files = []
+    load_dotenv()
+    api_keys = os.environ.get('ASSEMBLY_AI_API_KEYS')
+    if not api_keys:
+        raise EnvironmentError("ASSEMBLY_AI_API_KEYS environment variable not found. Please set it before running the script.")
+    api_keys = api_keys.split(',')
 
-        for root, dirs, files in os.walk(data_path):
-            for file in files:
-                if file.endswith(".mp3") and is_valid_filename(file):
-                    mp3_files.append(os.path.join(root, file))
+    data_path = YOUTUBE_VIDEO_DIRECTORY
+    mp3_files = [os.path.join(root, file) for root, _, files in os.walk(data_path) for file in files if file.endswith(".mp3") and is_valid_filename(file)]
+    if not mp3_files:
+        logging.warning("No MP3 files found to transcribe.")
+        return
 
-        if not mp3_files:
-            logging.warning("No MP3 files found to transcribe.")
-            return
+    # Split files evenly among API keys
+    files_per_key = len(mp3_files) // len(api_keys)
+    file_chunks = [mp3_files[i:i + files_per_key] for i in range(0, len(mp3_files), files_per_key)]
 
-        max_workers = 2
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            executor.map(transcribe_and_save, mp3_files)
-
-    except Exception as e:
-        logging.error(f"An error occurred in main: {e}")
+    with ProcessPoolExecutor(max_workers=len(api_keys)) as executor:
+        futures = [executor.submit(worker, api_key, file_chunks[i % len(file_chunks)]) for i, api_key in enumerate(api_keys)]
+        for future in futures:
+            future.result()  # Wait for all futures to complete, handling any exceptions.
 
 
 if __name__ == "__main__":
