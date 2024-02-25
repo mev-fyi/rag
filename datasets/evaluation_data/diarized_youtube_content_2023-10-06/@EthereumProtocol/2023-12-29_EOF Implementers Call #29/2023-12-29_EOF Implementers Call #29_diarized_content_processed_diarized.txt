@@ -1,0 +1,90 @@
+00:00:00.330 - 00:00:00.880, Speaker A: You.
+00:00:03.090 - 00:00:29.910, Speaker B: Hey everyone, welcome to the EOF implementers call. I think this one is 29. The last one I put, last agenda I'd put up was 27, and I'm pretty sure there was one in between somewhere that I didn't have an agenda for. So we'll call this 129. Let's just jump into updates from people. Do any client teams, client devs have updates on their EOF implementations?
+00:00:35.920 - 00:00:38.190, Speaker A: Is EvM one on the call?
+00:00:41.280 - 00:00:46.050, Speaker C: Hello, I think you said EvM one, right?
+00:00:46.500 - 00:00:47.250, Speaker A: Yes.
+00:00:48.580 - 00:01:03.190, Speaker C: Yeah, we are. Do you have any updates in terms of the implementation? I don't know. We've been trying to follow the spec clarifications that we've done two weeks ago.
+00:01:05.720 - 00:01:11.992, Speaker A: And you're starting to output reference tests generated from your local tests. I think that's worth noting. That's going to be very.
+00:01:12.126 - 00:01:15.770, Speaker C: Yeah, yeah, I think that was Pavel doing this, but he's not.
+00:01:22.150 - 00:01:46.360, Speaker A: Basically has been following the reference tests and been mostly chasing down some security reports unrelated to EOF. But over Christmas I'm going to do like last Christmas and focus on getting testing and an up to date implementation. One concern we have is opcode allocation for some of the things on the to do list. What are some of the opcode numbers for some of these things?
+00:01:51.350 - 00:02:11.510, Speaker B: Thanks, I guess. Our two clients here. Any compiler updates? Cool. Spec questions and updates?
+00:02:14.750 - 00:02:46.290, Speaker D: I don't have any updates, but I heard on the last call there was some discussion about return data load. And yeah, I think there was some confusion about whether there was consensus on it. But I think that my understanding of the call we had the other week, or now, two months ago, or something with solidity, is that yes, all the commercial teams want return data load.
+00:02:52.970 - 00:03:00.090, Speaker A: I think the question whether we zero extend or whether we violate on boundary violations, or whether we fault on boundary violations.
+00:03:08.720 - 00:03:11.660, Speaker D: It should have the same behavior as return data copy.
+00:03:12.160 - 00:03:23.400, Speaker C: Yeah, for return data load we have the notes that the concern is semantics of out of bounds. I just posted the link in the chat here.
+00:03:27.960 - 00:03:47.150, Speaker A: Either way is fine. It just seemed like it was the opportunity to go back to zero extending it, because that's always a subject of all of the solidity and EVM quirks panels. Or if we should stick with the old fault on boundary violations, I'm cool with either. I just want a clear commitment to one.
+00:03:54.770 - 00:04:09.330, Speaker D: Daniel in discord and make a decision. I don't care too much. It's fine either way. I think the zero padding is a little bit more future proof.
+00:04:22.640 - 00:04:28.370, Speaker A: And we still charge for the proposed length, so zero padding won't become an attack vector. Right.
+00:04:33.830 - 00:04:34.900, Speaker D: Sorry, what?
+00:04:36.310 - 00:04:51.510, Speaker A: The cost of the copy. We're going to charge up front based on the expected length and fail before we even try and allocate memory. Correct. Let's say it's out of gas and they ask for a billion copy.
+00:04:58.460 - 00:05:01.450, Speaker D: I mean, if it's out of gas, it doesn't matter if you touch memory, right?
+00:05:02.220 - 00:05:12.690, Speaker A: Right. So we charge gas based on memory and we check memory before size. That is the only argument against zero extension. And since we take care of it, I don't think it's much of an issue.
+00:05:21.850 - 00:05:29.400, Speaker D: Wait, I don't actually understand. There is memory expansion for return data copy, but none for return data load. Right.
+00:05:32.390 - 00:06:10.954, Speaker A: But we would still need the amount of data you're copying. Let's say you're referencing something that's one byte, but it's a gigabyte down the line. Well, zero extended would be a problem because you could figure it from the end. But if you're allocating a gigabyte of memory that you're copying a gigabyte of memory. We'll do the memory expansion on the target there. I just want to make sure that if we do zero extend, it's not going to open an out of memory and resource exhaustion attacks. But I think the gas and smart handling of it would take care of it because if you're going to do a large return anyway, you're already paying for the memory space for the return higher up the stack.
+00:06:10.954 - 00:06:29.010, Speaker A: So it will be gas limited to whatever your gas limit is to what you can return. So that will provide resource protection. I think that's the only argument that could be made against zero extension. And I'm fairly certain we're fully protected against it because we would have been hit by this way early in the EVM's life.
+00:06:29.160 - 00:06:31.198, Speaker D: Are we talking about return data copy?
+00:06:31.374 - 00:06:32.050, Speaker A: Yes.
+00:06:32.200 - 00:06:36.242, Speaker D: I mean, it would just be the same gas check as call data copy or code copy.
+00:06:36.386 - 00:06:41.366, Speaker A: Yes. So it would behave exactly like those.
+00:06:41.548 - 00:06:42.280, Speaker D: Yeah.
+00:06:53.860 - 00:07:00.176, Speaker E: I think we mostly were not clear about return data load out of bound semantics. We didn't want to change return data copy.
+00:07:00.208 - 00:07:06.228, Speaker D: Which exception abboards return data load should do whatever return data copy does.
+00:07:06.394 - 00:07:10.360, Speaker E: Yeah, I think so too. So it will be exception.
+00:07:12.860 - 00:07:16.010, Speaker D: But I think the question is whether both should be.
+00:07:16.460 - 00:07:28.350, Speaker E: Yeah, so that would be unprecedented in terms of changing existing instruction into something else in EOF. That's why we, I think, didn't want to do this.
+00:07:40.920 - 00:07:50.010, Speaker A: So let's advance that they both have the same behavior with just a fault on extension. And if there's strong pushback, we go back to zero extend on both of them.
+00:08:00.470 - 00:08:04.660, Speaker D: I think there was also maybe. Well, is this topic done?
+00:08:08.020 - 00:08:08.770, Speaker A: Sure.
+00:08:11.220 - 00:08:43.800, Speaker D: I think there was also maybe some discussion about compressing the length encoding for section headers. And I would just like to advocate for that because I think that's kind of important for code size. It's probably like a 1% win, I think, depending on the contract, which is important since we're in a constrained environment.
+00:08:47.930 - 00:09:18.180, Speaker A: Yeah, I pitched for LeB encoding or something like it last week too, for actually not just the header but all opcodes. But even if we could just get in, the header size would be fine. But also my header concerns are that we have, for fragmenting that we have total sizes, but we need to be careful how we do that because we don't want to constrain the size of EOF to 64k by using fixed length. So if we were to put the sizes in the header, it would need to be a variable width size as it is.
+00:09:23.180 - 00:09:33.340, Speaker D: Yeah, I agree. And if we're going to be using variable size pointer length, then we should, in my opinion, do it everywhere.
+00:09:39.040 - 00:09:41.490, Speaker A: For reference. That's exactly what move does.
+00:09:42.420 - 00:09:46.530, Speaker D: We could actually get rid of all the push instructions if we did that.
+00:09:51.380 - 00:09:55.220, Speaker A: I think we'd see size regression because all the push instructions would go to two bytes.
+00:10:05.450 - 00:10:06.840, Speaker D: Sorry, I don't understand.
+00:10:07.770 - 00:10:18.170, Speaker A: So push is one byte plus whatever data you're putting in. And if we do push and then size and then data, I'm concerned we'll see a size regression.
+00:10:18.590 - 00:10:22.570, Speaker D: No, I think we use the, what is this called? Like the zigzag encoding.
+00:10:23.630 - 00:10:28.350, Speaker A: The zigzag is for negative values. That's for relative jumps.
+00:10:34.080 - 00:10:42.344, Speaker E: Lab is also one byte for values below 128, I think. Or maybe there are some limits.
+00:10:42.392 - 00:10:47.816, Speaker A: Yeah, unsigned lab is up to 128 for one byte.
+00:10:48.008 - 00:11:07.930, Speaker D: I it. There must be some encoding which doesn't do that. Right.
+00:11:08.620 - 00:11:36.800, Speaker A: So web has a signed encoding which is 64 to negative 64. And one byte it would basically be seven bit bytes, and the high bit would be the sign. Protobuff does a zigzag where they put the sign bit into zero and the rest of it is positive and negative and zero. And zero is zero. So negative zero becomes negative one. It's still two complement. They just move where the sign byte hides.
+00:11:52.510 - 00:11:59.340, Speaker D: Yeah, so there's this VLQ thing which does a continuation bit.
+00:12:07.330 - 00:12:17.140, Speaker A: I think Leb is just a continuation bit. I think Unicode is the weird one with a full size in the first byte. Everything else is just a continuation bit. In blocks of seven.
+00:12:18.230 - 00:12:36.450, Speaker D: Right. So I think in general you just get one eight overhead. So like if you really wanted to push 32 bytes, you would end up with 32 times eight over seven.
+00:12:39.780 - 00:12:43.712, Speaker A: Oh, move. The continuation of the whole push. I see what you mean.
+00:12:43.846 - 00:12:48.884, Speaker D: Yeah. So push accepts a compressed integer, so.
+00:12:48.922 - 00:13:04.520, Speaker A: That would have a 12% size bump, probably, because everything would then go up. Everything beyond one byte would go up. And there's a lot of addresses that are pushed and a lot of hashes.
+00:13:05.020 - 00:13:15.208, Speaker D: Yeah. Okay. But it works for code offsets, for.
+00:13:15.214 - 00:13:29.010, Speaker A: The mediate arg, like r jump. If our jump was an Leb signed, there is a lot of, I mean, most jumps are 64 forward, back. It would result in a lot of code size savings there.
+00:13:29.380 - 00:13:46.150, Speaker D: Yeah, I agree. So I think that's a desirable property to have.
+00:13:49.240 - 00:15:13.980, Speaker A: Because some of the people I've been talking to on Besu who aren't all in on EOF, their first argument is, what does this get us today? Everything's all downstream, and if we can pitch 5% to 10%, size reduction is what you get today. That would be very persuasive, at least to the app developers. But I think more important than the lower size reduction is the ability to safely uncap. And I think our code validation gets that. And that might also be something we could sell with the current structure of the headers without changing anything. Opinions from ipsilon on this?
+00:15:27.350 - 00:15:45.320, Speaker E: Nothing substantial. It just feels like a big change, the entire spec, and we are at the point where we should finalize it as soon as possible if we want to make it to proc. That's basically why I'm reserved about this.
+00:15:46.830 - 00:16:01.230, Speaker D: I actually don't think it's a big change to the spec, and it doesn't necessarily add a lot of complication because there's good libraries for doing these various encodings.
+00:16:29.210 - 00:16:45.020, Speaker E: Yeah, encoding itself is not that complicated. I guess it's just a lot of implementations need to be changed in all of the tests. Yeah, I'm not sure.
+00:17:43.370 - 00:17:46.520, Speaker A: So what else is on the agenda? I've got nine minutes before I have to go.
+00:17:50.090 - 00:18:18.910, Speaker B: Yeah, I think that's about it. There's probably no testing updates. Was there any other things that people want to talk about that we didn't cover yet? Does anybody want to talk about Prague? Or have we beaten that to death?
+00:18:23.730 - 00:19:00.990, Speaker A: I mean, I think we want to ship in Prague. I think it's not a discussion for this room, because everyone's kind of aligned on getting there. We can argue about the finer details, but I think we'll all align when it's ship or don't ship. I think the bigger discussion is going to be in all core devs in the Verkel tree versus EOf question. And the question for me is when will Verkel actually be in a shippable position? I think my honest take is if vertical can get a compelling story that they're going to ship in Q three, we're out. But if they're going to start talking like it's 25 q one, we're in, it's Q four that it becomes tricky.
+00:19:07.640 - 00:19:39.250, Speaker B: Yeah. Q three sounds unbelievable from my perspective, but yeah, I think there's no chance it even shifts in 2024. To be fully honest. I guess I'm curious if anyone else has been talking with teams or people to see what the appetite is. Obviously everybody wants to ship EOF in Prague, but we still have to make it through the all core devs process.
+00:19:45.380 - 00:20:01.620, Speaker A: So basically is a little split, but it's split amongst engineers who work on vertical and engineers who work on the EVM, which I think answers one concern, which is we'll split engineering interest and we've know everyone that we need to on both sides of the coin.
+00:20:08.880 - 00:20:32.390, Speaker F: I think what Andre mentioned is quite know. We're still considering changing the headers significantly. I think if you want to be successful in front of all cordevs, really have to be decided on semi final details. We cannot just go and then a few weeks after change like a significant part of the spec.
+00:20:36.060 - 00:21:14.120, Speaker B: Yeah, I don't think you can even come to all cordes at this point and not have a quote unquote finalized spec. I would not even mention that there's really openness to changing anything because the feedback is just going to be EOF was presented over one year ago and there's still questions, things to change. Why will that be any different in six months as we're trying to ship it onto the fork? Obviously things will change if it's accepted and clients start implementing. There'll be small things, but we definitely have to have this header stuff sorted out before January.
+00:21:23.220 - 00:21:27.040, Speaker F: What is the current plan for Cancun?
+00:21:28.740 - 00:22:13.884, Speaker B: As in shipping? Yeah, I think the idea is probably around march now for Mainnet. Going to try and do girly as soon as we can in January. So first couple weeks and then two week cadence. But Tim was talking about having one of the first all core devs calls next year, talk about some prog planning and it's probably going to be led with priorities. So we're going to ask what is the priority for clients right now. Is it to ship vertical? EOF. There's also some chatter about things like inclusionless because 93% of blocks are coming from censoring builders.
+00:22:13.884 - 00:22:25.940, Speaker B: So there's other competition, but that's probably going to happen in the first week, two weeks of January. And so EOF should be ready by then to be a contender.
+00:22:32.250 - 00:22:37.050, Speaker F: Seems like a tough plan again, given the holidays.
+00:22:42.800 - 00:23:20.890, Speaker A: So the proposal is we stick with what's proposed for Prague, which I think gives us the advantages we need. It's not perfect. You can always change things. I think we've been changing things mostly because we've had time. So I'm okay going with it as is. But if it slips out of Prague into 24, I think we revisit the variable sizing if that's going to give us a full fork to mess around with. But yeah, if we need to commit in January, large changes like this would have need to have happened three months ago.
+00:23:36.050 - 00:23:42.500, Speaker B: Yeah, just some things to consider, I guess. Anything else before we close out?
+00:23:47.110 - 00:23:47.570, Speaker A: Yeah.
+00:23:47.640 - 00:23:51.250, Speaker F: What is the plan regarding the calls, given the holidays?
+00:23:53.130 - 00:24:14.140, Speaker B: Yeah, the next one is right after Christmas, the 27th, so I probably won't be around that day. But yeah, I'm not the blocker for having this call because the Zoom meetings there and if you guys want to meet up, should definitely do it.
+00:24:16.990 - 00:24:37.780, Speaker F: Should we try to recall next week to make up to roll call? Well, I guess then we break the cycle with all codevs. But what I was going to propose have one next week and then two weeks after that, so on the third, but yeah, I guess that breaks it with.
+00:24:40.470 - 00:24:56.300, Speaker A: Austria on a family vacation on the third. So my availability for that date for call is very questionable. I'm available next week.
+00:24:57.950 - 00:25:04.620, Speaker B: I've got a conflict next week, but I can set the meeting up if you want to do next week too.
+00:25:07.870 - 00:25:08.234, Speaker A: Yeah.
+00:25:08.272 - 00:25:12.170, Speaker F: How about we do one next weekend and then regular schedule on the 10th?
+00:25:13.310 - 00:25:13.914, Speaker B: Sounds good.
+00:25:13.952 - 00:25:21.790, Speaker F: Yeah, it basically means that the call on the tent going to be kind of like finalizing all details, right? If we're going to meet that deadline.
+00:25:22.290 - 00:25:48.470, Speaker B: Yeah. Cool. Let's plan on that. And we can chat more in the EVM channel if some other things come up or we want to have some sort of ad hoc call in the meantime. And I'll set the meeting invite up for next week on the protocol calendar.
+00:25:50.650 - 00:25:52.246, Speaker F: Awesome. Thank you.
+00:25:52.428 - 00:25:59.340, Speaker B: Yep. Thanks a lot, guys. Have a good rest of your day. Thanks.

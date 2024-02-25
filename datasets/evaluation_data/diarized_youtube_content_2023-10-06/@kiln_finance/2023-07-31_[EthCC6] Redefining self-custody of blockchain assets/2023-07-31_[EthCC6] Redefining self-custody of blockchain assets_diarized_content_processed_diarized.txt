@@ -1,0 +1,123 @@
+00:00:04.410 - 00:00:04.670, Speaker A: Yes.
+00:00:04.740 - 00:00:38.358, Speaker B: I'm Hakeem, founder of Blank, based in Amsterdam, and together with a very small team based distributor in Amsterdam, Berlin, Ukraine, and India. We're trying to see how we can make the experience super easy for new users who are good to come in, but they're just overwhelmed by all the things we throw at them. That, okay, figure this out. Figure that out. Go watch 25 YouTube videos, and then you're ready. And then if you fuck up, too bad. You didn't deserve to be here.
+00:00:38.358 - 00:02:49.374, Speaker B: So how can we do something differently, right? We need more people in the ecosystem, right, to just give a little sense of where I'm coming into this space from. I mean, I've been building hardware for a while now, surgical robotic systems, gaming systems at Google. I was building embedded sensors for things like gesture recognition and stuff in a low power way, using radars and stuff. So I've been basically building hardware for a while. And then as I was using crypto in a kind of personal capacity for the past, like, three od years, like, yeah, this whole experience is pretty clunky when you come in and you need to understand what you're doing with the seed phrase and all that stuff, right? So what I want to do in this talk is essentially talk about, you would have heard a lot of keywords around there, and I'm sure a bunch of you over here would be a lot more knowledgeable about different aspects. But I want to try and help build some intuition around what is it that wallets really need to do and basically how all the new kind of wallets that are evolving now, how they're doing different stuff to essentially address that problem, right? So at the essence, the thing is that blockchains and even centralized ledgers are maintaining a list of asset ownership and records of transfers, right? So what they need to answer is who a particular asset belongs to, right? In a traditional system, what we rely on is that, okay, there is an entity that we trust, and we share a common artifact with them, which is why it's called symmetric, that it's shared between the user, say, alice over here, and the central entity, and that's why it's symmetric. But if we didn't need to have a central trusted entity, how could we share something that's common between the sender and that without that person basically doing the transfer? Right? So that's why it would be good if it was an asymmetric artifact.
+00:02:49.374 - 00:03:07.026, Speaker B: So basically what they have is something that anybody can own but they can't really use for transfer. They can use it to verify. Right, so basics of what this is, right. So how this would essentially be possible, we essentially use beautiful mathematical properties of a finite field elliptic curve.
+00:03:07.058 - 00:03:07.206, Speaker A: Right.
+00:03:07.228 - 00:03:34.814, Speaker B: I mean, the general idea is this, that you have this equation, s is your secret. And if you knew the equation of this curve, and you knew a starting point, the generator point, you could do a scalar multiplication, get p. Right, but it's difficult, given the math of this finite field elliptic curve, it's difficult to do a division of this. So basically, if you knew p and g is known, you can't really get s from that.
+00:03:34.852 - 00:03:35.006, Speaker A: Right.
+00:03:35.028 - 00:04:03.202, Speaker B: So that's basically the crux of how you deal with private keys. But obviously, if it was a small set like this, you don't need to do the division, you could just enumerate all the points and you would get s. Right. So the idea is that you need to keep this field pretty large, and the work of cryptographers enable that. Yeah, we can basically use large prime numbers and we can use this large s to do that. Now, the challenge is, well, this is a large s. Unlike a password, you can't really remember.
+00:04:03.202 - 00:04:28.978, Speaker B: You need to write it down. Right, and this is just one chain. If you had multiple chains, you have multiple s, and so you need to store all that. Good thing is that industry standardize around. Okay, how can we just derive that from a single, single key and not necessarily have multiple keys? Right, so for different blockchains, you could start from a single key and then derive all these different keys. Great. But you still have that one key and that one s that you need to remember.
+00:04:29.064 - 00:04:29.410, Speaker A: Right.
+00:04:29.480 - 00:05:00.214, Speaker B: And you can't really remember. Like I said, it's large. So what we did is basically said that, okay, let's actually derive that from something that's easy to write down, as opposed to this large s value, which is like a string of 256 bits. Let's keep it something simple. And we derive that large s from that. So that's something that's easy for a user to copy down on a piece of paper, sadly. But yes, that's what we tell users that write it down on a piece of paper.
+00:05:00.214 - 00:05:03.994, Speaker B: So that's basically the premise of HD wallets.
+00:05:04.042 - 00:05:04.398, Speaker A: Right.
+00:05:04.484 - 00:05:08.574, Speaker B: Clearly this is rudimentary, and lots of wallets are evolving beyond that.
+00:05:08.612 - 00:05:09.006, Speaker A: Right.
+00:05:09.108 - 00:05:11.834, Speaker B: The classics are hardware wallets.
+00:05:11.962 - 00:05:12.206, Speaker A: Right.
+00:05:12.228 - 00:06:06.098, Speaker B: So these are great. What we do here is essentially say that instead of keeping that thing vulnerable, the large s being vulnerable in an insecure environment, which has lots of other things going on, and being able to snoop, let's put that in a secure environment and it's secure because it's a small self contained system focusing on just doing key management. And the other thing is it has limited connectivity, right? So those things are great. So it keeps it secure. But on the flip side, what we are saying is the secret is actually resident in that piece of hardware. So what that means is for recovery, what you need to do is still say user, write it down on a piece of paper and store it somewhere safe, right? So we're kind of back to the square one of saying that, well, user is in a way responsible and we know how users are. When you ask them to keep something safe, they write it down in their email.
+00:06:06.098 - 00:08:07.938, Speaker B: Essentially that's how we send reminders to ourselves, right? Moving on to saying that, okay, what if we didn't let the users do that? Let put that verification logic on something different, something better, right? So that's the general concept of smart contract based wallet, right? Pioneered by people like argent and safe and stuff which try to do social, not try to do, they are doing, and they're doing a really good job at it, right? So they do social recovery, argent safe does multi sig and all these things essentially. But they put the verification logic on chain essentially, even if they're doing off chain, it's basically a side chain and stuff, right? It increases the cost, but it essentially gives a better mechanism than having a single point of failure, right? And now the industry, especially after you've heard Vitalik's talk from the launch day at ECC, there is a lot of momentum around basically standardizing that so that it's not a single smart contract of argent or safe. Basically any player can come in and they can do that. A lot of complexity over here goes into essentially incentivizing entities like bundlers and paymasters to be able to provide that verification logic service. Paymasters and stuff is great. I mean basically you can have a system where paying for gas fees and stuff is something that can be taken out of the user experience, which is a big hassle, right? So those things are great. But if you're having third party do the verification for you, you're adding cost for simple transactions essentially, right? So that's one of the reasons why you have these third kind of wallets which try to do that completely off chain, right? So here the idea is that you don't necessarily have verification logic basically being done by a whole network of operators, but it's essentially just some service providers who can help you with doing that extra verification.
+00:08:07.938 - 00:08:29.242, Speaker B: And the idea is that there is no one key. Essentially, it's basically shards of keys. And the typical implementation, like the ones that we see from Zengo and the recent wallet as a service from Coinbase, is that it essentially has a two of two scheme, right? So you have a service provider and you have the user.
+00:08:29.306 - 00:08:29.582, Speaker A: Right.
+00:08:29.636 - 00:08:44.322, Speaker B: Together you sign the transaction. Great. Not a single point of failure. But the problem is that now you have a third party provider who needs to be an active participant. If they don't actually participate in the signing, you're basically locked out.
+00:08:44.376 - 00:08:44.786, Speaker A: Right.
+00:08:44.888 - 00:08:57.254, Speaker B: Obviously they don't want that either, which is why they give you a mechanism to get out of that system. How? By encrypting the two shares by a pin that you need to now take care of.
+00:08:57.292 - 00:08:57.446, Speaker A: Right.
+00:08:57.468 - 00:09:05.514, Speaker B: So in one form or the other, it's coming back to that same system that you're giving responsibility to the user saying that, okay, you need to take care of this.
+00:09:05.552 - 00:09:05.706, Speaker A: Right.
+00:09:05.728 - 00:09:16.030, Speaker B: So in this scenario, if you don't use the pin for a while, you're going to forget it, or if you're going to share it between different applications, you have a weakness over there.
+00:09:16.180 - 00:09:16.830, Speaker A: Right.
+00:09:16.980 - 00:09:48.570, Speaker B: So what we were questioning is that how could we do something that combines a lot of good aspects of all these different ideas that do exist out there, right? So basically say that we have the kind of safety of multisig that smart contract wallets have. It's actually happening in a self contained way on the user end, like the hardware wallets do. But it also has the kind of security of threshold signatures which say that there's no key resident in one place, so you don't really have to protect that one place.
+00:09:48.640 - 00:09:49.162, Speaker A: Right.
+00:09:49.296 - 00:10:12.586, Speaker B: So that's basically what we are trying to do with blank, where essentially we say that we have a hardware wallet which does the computation part of it, right? So the computation part is secure because this is essentially a self contained system like typical hardware wallet. It has a small microprocessor which is in that chip.
+00:10:12.618 - 00:10:12.766, Speaker A: Right.
+00:10:12.788 - 00:10:20.882, Speaker B: So it's the typical thing that you have in your payment cards as well. This is a slightly beefier version of that processor typically you've seen in your passports and stuff.
+00:10:20.936 - 00:10:21.540, Speaker A: Right?
+00:10:21.910 - 00:10:26.370, Speaker B: But we use this only for computation. It never actually stores your key.
+00:10:26.440 - 00:10:26.770, Speaker A: Right.
+00:10:26.840 - 00:10:32.706, Speaker B: So you don't really need to protect this, just like you don't need to protect your credit card to a good extent.
+00:10:32.738 - 00:10:32.886, Speaker A: Right.
+00:10:32.908 - 00:10:36.934, Speaker B: You lose your credit card, you call the bank, you block the card and you're good to go.
+00:10:36.972 - 00:10:37.174, Speaker A: Right.
+00:10:37.212 - 00:10:40.902, Speaker B: You get a new card, you activate it and you're good to go. We want to use the similar model.
+00:10:40.956 - 00:10:41.126, Speaker A: Right.
+00:10:41.148 - 00:10:50.054, Speaker B: So there is nothing that's stored on this, right? Well, nothing in the sense that it only stores a shard of the key that you're seeing even in the multi sig kind of approach.
+00:10:50.102 - 00:10:50.314, Speaker A: Right.
+00:10:50.352 - 00:10:58.990, Speaker B: So you lose your card, you lose a single shard. The hacker, even if they throw millions of dollars of equipment and time, they get a shard, they don't really get anything.
+00:10:59.140 - 00:10:59.840, Speaker A: Right.
+00:11:00.690 - 00:11:21.362, Speaker B: But the beauty is that this guy gives us a way to also connect to traditional rails with visa, Mastercard and stuff. But the idea is that the basic thing is that this guy has an NFC interface, which helps us build a very easy user experience for people to use hardware wallets without actually having to carry around a new device and learn how to use that new device.
+00:11:21.426 - 00:11:21.750, Speaker A: Right.
+00:11:21.820 - 00:11:44.074, Speaker B: So the crux is still like you're using a mobile wallet, so you have the same kind of convenient hot wallet kind of experience with the mobile wallet, but you have the security of a hardware wallet by just using this card to tap for all the transaction signing. Right, but there is more, right? Because we said that there is no key that is really stored in that device.
+00:11:44.122 - 00:11:44.430, Speaker A: Right.
+00:11:44.500 - 00:12:00.434, Speaker B: Nor in your hardware for sure. In your device for sure. So how does it really work? So what we do is essentially have this secret sharing approach. Essentially it's shamir secret sharing, which has been around even before bitcoin got cool and stuff.
+00:12:00.472 - 00:12:00.674, Speaker A: Right?
+00:12:00.712 - 00:12:16.354, Speaker B: So the idea is that you break the key into multiple pieces. It's sharing, but it's secret sharing because each of those shares don't actually leak any part of information unless you hit the threshold number of shares.
+00:12:16.402 - 00:12:16.710, Speaker A: Right?
+00:12:16.780 - 00:12:27.498, Speaker B: So in the scheme for three of n, for instance, unless you have three pieces of it, you can't really get any information. Basically you leak no bits of the secret itself.
+00:12:27.584 - 00:12:28.074, Speaker A: Right.
+00:12:28.192 - 00:12:47.150, Speaker B: What people typically do with seed phrases is that they store three words here and five words there, but that's actually leaking information. If you knew six seed phrase, the amount of difficulty to basically guess the rest number of bits has come down exponentially.
+00:12:47.230 - 00:12:47.474, Speaker A: Right.
+00:12:47.512 - 00:13:06.054, Speaker B: So this is actually an approach of doing that in a secure way so that you actually don't leak any information. But like I said, the whole idea is that it's not just technical complexity, as we were talking to some of you earlier, that we want this to be about user experience.
+00:13:06.172 - 00:13:06.550, Speaker A: Right?
+00:13:06.620 - 00:13:34.270, Speaker B: So how does a daily transaction essentially look like? Right, so we basically have three participants, which is the server, the device, and the card. So your signing of a transaction is practically tapping the card to your phone, but behind the scenes, basically what's happened is three pieces came together in this secure element. We signed the transaction. As soon as you move the card away from the phone, the power is gone. It was only transient in the memory. The memory is now depowered, so the secret is gone from the card, really.
+00:13:34.340 - 00:13:34.910, Speaker A: Right.
+00:13:35.060 - 00:13:48.758, Speaker B: So this happened from a user perspective as just a simple tab, which is what users are already familiar with. They tap this card for payment. This is what they do with crypto, but now they do it on the phone as opposed to a payment terminal of the user, really.
+00:13:48.844 - 00:13:49.478, Speaker A: Right.
+00:13:49.644 - 00:13:56.402, Speaker B: But what the scheme also enables, in addition to the simplicity of transaction, is the ease of recovery.
+00:13:56.466 - 00:13:56.790, Speaker A: Right.
+00:13:56.860 - 00:14:08.474, Speaker B: So because of the inbuilt redundancy, three of n. If you lose your card or you lose your device or you lose both, essentially, you still have other pieces that you can use to reactivate a new card, really?
+00:14:08.512 - 00:14:08.714, Speaker A: Right.
+00:14:08.752 - 00:14:22.350, Speaker B: So three of n. That n could be anything that the user wants to customize. We start with the three of five scheme. So in this case, for instance, if you lose your device or card, it's trivial to rebuild, but say you lost both your device and your card.
+00:14:22.420 - 00:14:22.798, Speaker A: Right.
+00:14:22.884 - 00:14:40.290, Speaker B: In that case, basically, you have your iCloud g drive based cloud share that you're using, and you can use your social recovery, essentially. In this case, the social recovery is like your trusted contact, who you don't really trust with your assets itself or your seed phrase itself. You're trusting them only with a shard.
+00:14:40.370 - 00:14:40.710, Speaker A: Right.
+00:14:40.780 - 00:14:46.098, Speaker B: So you're trusting them only to be a participant, but not really with the custody of your assets.
+00:14:46.194 - 00:14:46.502, Speaker A: Right.
+00:14:46.556 - 00:15:05.710, Speaker B: So the three pieces still come together, and you can reactivate your new device and your new card, and you're back in business. Right, and all of this is essentially still just tap of cards. So that's essentially how we're trying to address the user experience problem without actually compromising on decentralization and security.
+00:15:05.860 - 00:15:06.174, Speaker A: Right.
+00:15:06.212 - 00:15:19.294, Speaker B: So how can security be made simple? There are obviously still vectors, attack vectors, that are always going to be possible. We want to keep it self custodial. So we are not going to say that. Well, we'll keep a copy of it and we'll try to keep it secure.
+00:15:19.342 - 00:15:19.506, Speaker A: Right.
+00:15:19.528 - 00:15:49.930, Speaker B: So other things are possible. We can build different mechanisms to essentially prevent all kinds of other failures as well. The ultimate goal is you only make it exponentially harder by already introducing three factors. We've actually made it like, say, 100,000 times more secure than a mechanism that's only using a single thing, like a seed phrase. If you assume a 1% probability of failure, for instance. I'm not throwing a number. It's actually the probability calculation if you assume 1% probability.
+00:15:50.510 - 00:15:51.306, Speaker A: Right.
+00:15:51.488 - 00:16:26.280, Speaker B: So, yeah, I mean, we've basically just publicly announced last month we're open for beta sign ups. And if you want to join this small beta, please scan the code. It's a very small beta. Because the thing is, we are still working with our manufacturers to produce these cards. It's in the works. But yeah, we have a small number of cards which are going to be white plastic, not the fancy cards that we've designed, which are going to come out soon. But yeah, we have these cards and we'd be happy to get you guys on the beta list to try out this wallet and tell us what you feel about the experience.
+00:16:26.280 - 00:16:29.820, Speaker B: Thank you again so much. I'm open to questions.
+00:16:33.550 - 00:16:44.880, Speaker C: Yes, thanks so much for the presentation. I have a question about. So you mentioned that the sharding happens in three times. That's the social part, the card and the phone.
+00:16:45.810 - 00:16:46.894, Speaker B: No, there are five.
+00:16:47.012 - 00:16:48.878, Speaker C: Five. Which are the five.
+00:16:48.964 - 00:16:50.926, Speaker B: So there is the server, which is us.
+00:16:51.028 - 00:16:51.486, Speaker A: Right.
+00:16:51.588 - 00:17:06.710, Speaker B: There is the device cloud, there is the device itself, which is the keychain within your device. There is the card and there is the social recovery. And there can be end. Right, so that's why I'm keeping it general. So you can add more, you can add backup cards and stuff, but go on. Sorry.
+00:17:06.780 - 00:17:11.446, Speaker C: Is the card itself immutable, meaning that it has one shard and that's it. Can you swap the shard on the card?
+00:17:11.548 - 00:17:13.666, Speaker B: Yes. So you can always roll the shares.
+00:17:13.698 - 00:17:13.846, Speaker A: Right.
+00:17:13.868 - 00:17:16.102, Speaker B: So that's basically the model when you actually lose the card.
+00:17:16.156 - 00:17:16.470, Speaker A: Right.
+00:17:16.540 - 00:17:18.902, Speaker B: So you lose the card, you lose the share a.
+00:17:19.036 - 00:17:25.740, Speaker C: That shares what I mean the other way around. So if I want to create a new key, a new private key, do I need a new card?
+00:17:26.110 - 00:17:29.100, Speaker B: New private key meaning for other chains or something?
+00:17:30.030 - 00:17:31.830, Speaker C: Separate address. Separate.
+00:17:31.990 - 00:17:32.410, Speaker A: Right.
+00:17:32.480 - 00:17:34.874, Speaker B: So that's basically the hd wallet part.
+00:17:34.912 - 00:17:35.066, Speaker A: Right.
+00:17:35.088 - 00:17:39.754, Speaker B: So you're deriving everything from the same seed phrase. So what this thing is protecting is the seed phrase.
+00:17:39.802 - 00:17:41.450, Speaker C: And a new seed phrase means new cards.
+00:17:41.530 - 00:17:48.690, Speaker B: A new seed phrase will mean new cards. We can always add like multiple wallets on the same thing, but we don't want to complicate the user experience with saying that.
+00:17:48.760 - 00:17:48.994, Speaker A: Okay.
+00:17:49.032 - 00:17:52.738, Speaker B: You can create n wallets on a single card and then swap between wallets and stuff.
+00:17:52.824 - 00:17:53.410, Speaker C: Thanks.
+00:17:53.560 - 00:18:05.320, Speaker B: Yeah, absolutely. If you see over here, we actually have that thing in the user interface that you can use multiple wallets. But all that is like multiple accounts with the same seed phrase. Yeah.
+00:18:09.610 - 00:18:26.270, Speaker D: Thanks for the great talk. What are some of the use cases? So you're going to make adoption easier for people because they know how to use a card every day already. You're going to make recovery easier. What are some of the use cases that you're excited to see now possible for people who are not yet into crypto?
+00:18:28.450 - 00:18:38.690, Speaker B: Great question. Because it's also like one of the themes of current ECC. I don't know how many of you saw the presentation from Nosis where they announced a crypto card.
+00:18:38.760 - 00:18:39.090, Speaker A: Right?
+00:18:39.160 - 00:18:52.146, Speaker B: So they do nothing about basically this being actually a hardware wallet because they're still using their safe as a smart contract wallet. But essentially the beautiful thing that they've enabled is the connection with traditional rails.
+00:18:52.178 - 00:18:52.326, Speaker A: Right.
+00:18:52.348 - 00:19:00.706, Speaker B: So that's essentially our motivation behind the wallet being in the card form factor, that this is your bridge to essentially traditional finance and crypto.
+00:19:00.738 - 00:19:00.886, Speaker A: Right.
+00:19:00.908 - 00:19:09.366, Speaker B: So your same card can be your payment card. So this can actually be your credit card or debit card or whatever, and also be your hardware wallet.
+00:19:09.398 - 00:19:09.546, Speaker A: Right.
+00:19:09.568 - 00:19:43.430, Speaker B: So imagine a use case where you're saying paying for your coffee with your normal fiat, with your debit card, credit card, but collecting crypto rewards, right? So you could do a lot between basically bridging between traditional finance and crypto finance once it's in a form that's easy for user to already relate to and be able to use that on a daily basis as opposed to something that they've set up once and put in a drawer and going to come out six months later. You love it. I think you've already signed up for beta.
+00:19:45.850 - 00:19:48.038, Speaker C: Is wallet connect on your roadmap already?
+00:19:48.124 - 00:20:00.782, Speaker B: It is already integrated, actually, because that's the idea of keeping the mobile as the portal because all that part is easy to build within the mobile. And so, yeah, we already connect to wallet connect using our thing.
+00:20:00.836 - 00:20:01.662, Speaker C: Cool, thanks.
+00:20:01.796 - 00:20:05.006, Speaker B: Absolutely. Thank you.
+00:20:05.108 - 00:20:05.500, Speaker A: Thank you.

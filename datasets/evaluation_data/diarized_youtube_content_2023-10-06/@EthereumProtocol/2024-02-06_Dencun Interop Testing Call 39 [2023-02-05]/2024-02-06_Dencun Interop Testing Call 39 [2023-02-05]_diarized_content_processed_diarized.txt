@@ -1,0 +1,100 @@
+00:00:00.330 - 00:00:24.240, Speaker A: You okay? We should be live. Welcome to what is our 39th testing call since the start of. Four. Four. Four. Yes. I guess the main thing I had on the agenda was just, if there's anything on Sepolia we want to discuss.
+00:00:24.240 - 00:00:44.294, Speaker A: But. But it feels like we've covered that on HTC last week. Blob expiry. Have we seen that already on Gordy? And then anything to figure out for Holski. And if there's other things people want to talk about, we can obviously cover those, but I guess. Yeah. Starting with blob expiry.
+00:00:44.294 - 00:00:51.230, Speaker A: Does someone know when we will see the blobs expire on Gordy?
+00:00:55.170 - 00:00:58.270, Speaker B: I think it was Wednesday, but let me just confirm.
+00:00:59.650 - 00:01:01.760, Speaker A: Wednesday in two days. Right.
+00:01:05.510 - 00:01:14.754, Speaker B: But I could be wrong with the date. Focus on the 17th.
+00:01:14.802 - 00:01:25.696, Speaker A: Right. I am not sure if it was.
+00:01:25.718 - 00:01:30.044, Speaker B: The 17th, then 18 days was yesterday, so we should be seeing block expiry.
+00:01:30.172 - 00:01:32.508, Speaker A: Oh, you mean. Oh, sorry, the fort was the 17th.
+00:01:32.604 - 00:01:34.000, Speaker B: Yeah, the girly fort.
+00:01:34.760 - 00:01:35.076, Speaker C: Yeah.
+00:01:35.098 - 00:01:39.350, Speaker A: Let me just double check. It was the 17th. Yeah.
+00:01:40.360 - 00:01:44.160, Speaker B: So it should have been expiring as of yesterday.
+00:01:44.320 - 00:01:47.512, Speaker A: Is there a way we can check?
+00:01:47.566 - 00:01:50.436, Speaker B: Yeah, we can just query one of the older blobs.
+00:01:50.548 - 00:01:50.872, Speaker A: Right?
+00:01:50.926 - 00:01:56.650, Speaker B: And then we should be good to go. I can just do that now. Awesome.
+00:02:02.750 - 00:02:16.500, Speaker D: But wouldn't it be syncing where we would really want to make sure things are working correctly? Like, if I'm bootstrapping a new node now, I want to make sure that I'm downloading the blobs that haven't expired yet.
+00:02:18.470 - 00:02:25.554, Speaker B: Yeah, we'd have to start syncing here. Right, but we can have that done before ACC this week.
+00:02:25.672 - 00:02:27.060, Speaker A: Yeah, that would be great.
+00:02:27.430 - 00:02:33.400, Speaker B: I guess just sync one of. I guess the El doesn't care.
+00:02:46.070 - 00:02:55.990, Speaker D: Is anyone planning to run a non pruning Cl for Mainnet? Does that exist for blobs?
+00:03:06.790 - 00:03:10.310, Speaker A: Does any client team have a non pruning option?
+00:03:10.380 - 00:03:11.830, Speaker C: Yes, I was in mute.
+00:03:12.490 - 00:03:13.240, Speaker B: Yeah.
+00:03:16.010 - 00:03:24.700, Speaker C: I remember we implemented a flag for non pruning or pruning blobs, but I need to get it back. I don't recall exactly.
+00:03:27.470 - 00:03:36.090, Speaker B: Yeah, remember Lighthouse had one too. Lordstar is implementing a non pruning flag.
+00:03:42.460 - 00:03:46.810, Speaker E: Prism can have a longer pruning window, but we're not testing that right now either.
+00:03:47.180 - 00:03:47.930, Speaker F: Okay.
+00:03:50.000 - 00:04:13.920, Speaker D: Yeah, I mean, it's not a high likelihood, but it would be good if we knew the blobs are being saved by a trustworthy party. Because eventually, I think we need to have a better picture about how are we going to save this for the future and share with people who are interested in getting up to date with historical blobs?
+00:04:17.260 - 00:04:24.360, Speaker A: Do we know what? Does blob scan keep the blobs forever, or did they just keep them for the rolling period?
+00:04:33.350 - 00:04:49.020, Speaker B: Last I heard, they keep them forever. But we should definitely confirm that we're also storing all the blobs on our side to just tosses it in a database. So worst case, we can pull them out. Okay.
+00:04:52.190 - 00:04:54.410, Speaker D: Sounds like we have the bases covered.
+00:04:55.470 - 00:04:56.220, Speaker A: Yeah.
+00:04:59.950 - 00:05:00.406, Speaker B: Sweet.
+00:05:00.438 - 00:05:12.110, Speaker A: Yeah. So, yeah, if we can have some synced nodes by Thursday, that'll be a valuable data point. Anything else on the expiry?
+00:05:16.910 - 00:05:25.020, Speaker E: Justin pinged me with what seems to be a memory issue on prism that cropped up around the time we started expiring, so we're looking into that today.
+00:05:25.790 - 00:05:26.540, Speaker A: Okay.
+00:05:31.640 - 00:05:38.180, Speaker B: We had the blob spam test from the Nethermind team on Friday. That caused a lot of chaos.
+00:05:38.260 - 00:05:42.730, Speaker A: Yes. Marcin, do you have updates on that?
+00:05:47.280 - 00:06:23.210, Speaker C: Yes, it was like spamming with a lot of one block transactions, like about 3000, 500,000 transactions. And some clients didn't handle it well, but they found the reasons and seems like they are fixed, because today I'm spamming again. And as far, we have no issues. So I will try to break it again, but for now, we are working fine.
+00:06:23.920 - 00:06:25.550, Speaker A: Oh, that's really good news.
+00:06:28.160 - 00:06:28.524, Speaker F: Yeah.
+00:06:28.562 - 00:07:07.796, Speaker G: So for us, we had oom. Basically, whenever we created a block, we pulled up a bunch of transactions from the transaction pool and also pulled up the blobs. And instead of dereferencing them, we kept them in memory somehow. And then, so whenever our node created a blob created a block, we would pull up a bunch of blob transactions and just allocate, like, two and a half gigabytes of memory within a very short time. And then at some point, just om.
+00:07:07.908 - 00:07:08.810, Speaker A: And then.
+00:07:10.620 - 00:07:13.690, Speaker G: The node shut down. But that's fixed now.
+00:07:25.580 - 00:07:40.350, Speaker B: But the root cause was just that earlier, all the spamming was with six blobs all the time. And now we did it with sometimes one and sometimes six. Or what actually changed, because we've been blob spamming this whole time.
+00:07:42.880 - 00:08:00.000, Speaker G: Lot of transactions. I think for us, a lot more transactions than before. Just the sheer number of transactions, not the number of blobs.
+00:08:05.560 - 00:09:03.028, Speaker C: There are different implementation clients. So in Neandermind, we have a cap of amount of transactions. We are capping it to 16,000. So the worst case for Nethermind is 16,000 of six block transactions. And I was always doing it this way to check how Nethermind is behaving. In worst case, scenario. And like a few days ago I started sending more one block transaction because if there was only six blob transactions, it was like in Nethermine we have sixteen k and in Gav it was about 13 14,000 and they are capping it by size like to 10gb from what I know.
+00:09:03.028 - 00:09:23.470, Speaker C: So it was lower amount than in Nethermind. And when I started sending one block transactions then in Nethermind it was still 16,000, but in gaff it was like 50,000 and more. So amount was way higher and it is why we catched it at this point and not.
+00:09:45.000 - 00:09:55.400, Speaker A: Okay. Oh, hi Barnabas. Anything else on the spamming?
+00:10:00.140 - 00:10:18.770, Speaker C: Yes, I'm continuing the spamming. Like for now Devnet looks fine, only our clients are working fine. I'm planning to test some replacement and send some invalid transactions, so I will keep trying to break it, but for now it's all working fine.
+00:10:21.060 - 00:10:55.250, Speaker B: I just tested on one of the nodes for expiry and it seems to work fine as well. Of course we'd still do the sync tests, but at least it looks like Teku has expired. The blobs as expected for this epoch. I just ran this request and to make sure that the request itself is valid, here's a newer epoch and a newer request. So the older one doesn't give me any data and the newer one gives me data.
+00:11:17.760 - 00:11:20.450, Speaker A: And yeah, Bernard, we are spamming again.
+00:11:22.260 - 00:11:33.410, Speaker F: How many blobs per slot? What is the target? Because I see most of these slots are empty.
+00:11:35.610 - 00:12:13.150, Speaker C: Yes, but it's like totally different scale than earlier. And today as far I sent about 2001 block transactions and now I will try to send replacement like the same transaction with higher prices. So the amount will not be higher today, but I will send like transactions for the same address and. Nonsense again with higher prices.
+00:12:18.450 - 00:12:18.958, Speaker A: It.
+00:12:19.044 - 00:12:25.060, Speaker F: Yeah, currently it looks all fine. Looks a lot better than last week at least.
+00:12:38.680 - 00:12:43.210, Speaker B: Also, just going to mention if someone has validators on Holskeep, please update them.
+00:12:48.410 - 00:13:04.090, Speaker A: Yes. Do we have a sense for how many validators are from non client teams and people we have no idea on Hosky, I guess permission as validators.
+00:13:05.090 - 00:13:09.680, Speaker F: Yeah, it's a small minority. It's only a few thousand.
+00:13:10.770 - 00:13:11.840, Speaker A: Got it.
+00:13:12.930 - 00:13:27.598, Speaker B: I think we know the numbers to like 1.46 million and then there's another 80 90,000 that came on later. Okay, but most of them requested ETH directly, so already reached out to them to ask update.
+00:13:27.694 - 00:13:29.960, Speaker A: Okay, got it.
+00:13:31.690 - 00:13:49.420, Speaker F: We are also going to do some deposits and exits today and tomorrow, and hopefully it's going to be like 5000. And then hopefully we're going to see the churn limit being activated on Hosky in real time when the fork happens.
+00:13:50.590 - 00:14:28.950, Speaker B: Yeah, maybe worth talking on that a bit more. Initially we wanted to see the churn limit on Gurley. The issue is that someone started exiting en masse, so that negated a lot of the deposits we made. And the more exits that are deposited, the longer it would take for us to hit that number where we churn. I think we're still about 2000 validators away, but there's about 5500 deposits and 9800 exits already. So we're going to continue trying. But at this point it looks like we'll get an answer way faster from Holski than we ever would from Gurley.
+00:14:29.290 - 00:14:55.810, Speaker A: Got it. Anything else? I guess we sort of covered a bit of each of the other blobs and host key, but is there anything else on the test networks?
+00:14:56.330 - 00:14:57.880, Speaker B: People want to bring up.
+00:15:02.530 - 00:15:08.830, Speaker A: More confirmations as well that the gory blobs are expired.
+00:15:10.630 - 00:15:21.342, Speaker F: Maybe we can discuss whether we want to do a main shadow fork with the final main net release candidates and the timeline for that.
+00:15:21.496 - 00:15:23.640, Speaker A: We definitely should. Yeah.
+00:15:28.540 - 00:15:33.960, Speaker F: I guess we expect to discuss timeline for minute fork on Thursday.
+00:15:34.300 - 00:16:09.844, Speaker A: Yeah, I think assuming all the issues from the spammer are fixed and like El clients are not having any issues. Yeah, we should be good to go. And then. Yeah, the other thing, like Perry mentioned earlier, having synced a couple of new nodes on Gordy to make sure that sync still works post expiry, I think those are the two main things. On Thursday we can agree to a date as soon as we have the releases come out, we should run a shadow fork, which.
+00:16:09.882 - 00:16:21.290, Speaker B: Bob, one small question about the syncs. Do the Cl teams want me to just try checkpoint sync or should I also try Genesis sync? Because Genesis sync will take substantially longer.
+00:16:24.940 - 00:16:34.430, Speaker F: Genesis sync will require you to enable some flags of like enable non checkpoint syncing or whatever.
+00:16:35.360 - 00:16:36.072, Speaker A: For taco.
+00:16:36.136 - 00:16:39.384, Speaker F: Yes, for Teku and Lighthouse. Also lodestar.
+00:16:39.432 - 00:16:46.080, Speaker A: Also, can we do checkpoint sync with the checkpoints with expired blobs?
+00:16:50.660 - 00:16:52.770, Speaker B: We'd use the latest checkpoint, yeah.
+00:16:54.840 - 00:16:55.204, Speaker A: Which.
+00:16:55.242 - 00:17:10.680, Speaker B: Would be the default we recommend to people. Anyway, Genesis sync would technically fail because unless someone has an archive node on good, there is Cl archive.
+00:17:11.820 - 00:17:14.872, Speaker F: There probably are some. I would assume so.
+00:17:14.926 - 00:17:18.410, Speaker A: At least we could give it a try, actually.
+00:17:20.160 - 00:17:21.630, Speaker B: Yeah, might as well.
+00:17:38.450 - 00:17:50.558, Speaker F: So then if we agree on a date on Thursday, then I expect client releases to be around on 15th, 16 February. And then maybe we can plan shadow fork.
+00:17:50.734 - 00:17:59.270, Speaker A: Yeah, on the week of the 19th. Yeah, I think that probably makes sense. Let's obviously confirm that on Thursday's call, but I think that's reasonable.
+00:18:02.650 - 00:18:12.150, Speaker F: Because we do need some preparation for that and thinking some minute nodes. And that will take some time, especially for archive nodes.
+00:18:12.890 - 00:18:35.620, Speaker A: Okay. Yeah. Then let's from the DevOps and be ready for the 20th. It's better to be ready for the 20th on the DevOps side and then push it back. Because whatever, we're missing a client release than it is to have everything ready and then be waiting for nodes to sync. Yeah.
+00:18:36.630 - 00:18:37.380, Speaker F: Okay.
+00:18:50.300 - 00:19:04.780, Speaker A: Yeah. And then the 20th also means we would have like a testing call the day right before so we can discuss any sort of final last minute issues right before the shadow fork. Yeah, that seems reasonable.
+00:19:07.040 - 00:19:13.772, Speaker H: So related to syncing, I think someone briefly mentioned whether we've tried checkpoint syncing.
+00:19:13.916 - 00:19:15.520, Speaker D: When blobs are expired.
+00:19:17.140 - 00:20:09.520, Speaker H: How it would work is since blobs don't expire for 4096 epochs and we always checkpoint sync from a finalized checkpoint, that would mean the chain would have had to not finalize for 4096 epochs. And that's like around what the week subjectivity period is, which is like the period where it's safe to checkpoint sync. So when we were talking about this, like a few months ago, we're talking about how clients would, in this scenario, have to support checkpoint sync from a non finalized checkpoint, and it would have to be within the blob expiration period. So it's actually like a pretty tricky thing to do, but it's an unlikely scenario. So in Lighthouse, we're still working on getting that working. Just so everyone knows.
+00:20:11.140 - 00:20:26.724, Speaker F: I think it's not just Lighthouse. Last week we experienced a non finalty event on Devnet twelve. And I tried to sync a load star node and I also had to sync off of another node, not off of checkpoint sync. I think that was related to this too.
+00:20:26.922 - 00:20:33.880, Speaker B: No, that was related to Checkpoint C. Not serving it on non finalized data. It's not to do with expiry.
+00:20:34.700 - 00:20:38.708, Speaker H: Yeah, because this scenario would only happen if the chain hasn't finalized for like.
+00:20:38.734 - 00:20:42.030, Speaker D: Three weeks or a bit more, I think.
+00:20:42.400 - 00:20:44.110, Speaker F: Yeah. Okay.
+00:21:11.430 - 00:21:51.330, Speaker A: Anything else people feel we should cover? Okay, last chance. If not. Yeah, let's wrap up and. Yeah, let's discuss main updates, hopefully on ACDC this week. And assuming that moves forward, aim for a shadow fork just over two weeks from now. Yeah. Thanks, everyone.
+00:21:52.980 - 00:21:57.820, Speaker G: All right, see you on Thursday. Bye.

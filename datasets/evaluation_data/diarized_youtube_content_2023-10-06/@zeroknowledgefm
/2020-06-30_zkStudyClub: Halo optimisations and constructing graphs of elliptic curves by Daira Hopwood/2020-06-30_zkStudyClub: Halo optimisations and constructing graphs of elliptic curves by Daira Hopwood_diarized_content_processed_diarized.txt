@@ -1,0 +1,498 @@
+00:00:00.810 - 00:00:17.390, Speaker A: So welcome to this week's VK study club. Today we have sort of the part two of the halo study clubs that were started last week with Sean. Today we have Dara Hopwood, who's going to be speaking about halo optimization and constructing graphs of elliptic curves.
+00:00:17.890 - 00:00:19.054, Speaker B: Take it away.
+00:00:19.252 - 00:01:05.300, Speaker C: Hello. Welcome, welcome everyone. Okay, I, I'm Dera. I'm a cryptographic engineer at electriccoin company. There are my usernames and this is the GitHub repo with the slides and some animations and some code. There's also a bit of code in the Tweedle repo as well. So the outline of the talk we're going to discuss what a graph of elliptic curves is and why they're useful and how to construct them.
+00:01:05.300 - 00:01:48.462, Speaker C: So what are the obstacles to doing that? And it turns out that we'll need a category of curves called curves with complex modification. Those make it relatively easy to find cycles. Then we talk about other properties. You might want the curves like turidicity, which is useful for certain proving systems, more complex graphs, and hopefully if the demo gods are with me, then some live coding in sage math to show.
+00:01:48.516 - 00:01:51.342, Speaker B: You how to solve part of the.
+00:01:51.396 - 00:01:56.866, Speaker C: Problem for some arbitrary new curve that.
+00:01:56.888 - 00:01:59.060, Speaker B: You want to construct a cycle for.
+00:02:00.390 - 00:03:05.814, Speaker C: And then we go on to halo optimizations. So describing what halo and sonic circuit model is, how to do scalar multiplication in circuits, how to optimize it even further, and then doing fiat chamber in a circuit. Okay, so let's carry on. So what do I mean by a graph of elliptic curves? It's a directed graph, so we've got a set of vertices that are going to be the primes defining our fields. So the field of definition of each curve, and then the edges between those primes represent the curves themselves. So we draw an edge from one prime to another. So from p to q, when the field of definition is fp and we.
+00:03:05.852 - 00:03:10.118, Speaker B: Have an order q prime, order subgroup.
+00:03:10.294 - 00:03:12.906, Speaker C: So that's FQ is where we're going.
+00:03:12.928 - 00:03:22.000, Speaker B: To be doing the cryptography in the prelink system. So yeah.
+00:03:24.210 - 00:03:52.440, Speaker C: Okay, and we assume that our proof system using this curve can efficiently support circuits over Fq. So why would we need anything other than a simple two cycle? Well, sometimes we want pairing friendly curves for our proof systems and so.
+00:03:54.650 - 00:03:55.590, Speaker B: That'S.
+00:03:56.090 - 00:04:10.038, Speaker C: A functionality that we wouldn't get just from a simple cycle. So I've drawn the pairing friendly curves here in green. This on the top left is just.
+00:04:10.224 - 00:04:12.666, Speaker B: A cycle of normal curves that aren't.
+00:04:12.698 - 00:04:22.350, Speaker C: Pairing friendly as used for halo. Then below it we have. Can you see my pointer, by the way?
+00:04:22.420 - 00:04:23.634, Speaker B: We can.
+00:04:23.672 - 00:04:24.286, Speaker C: Oh, excellent.
+00:04:24.318 - 00:04:24.900, Speaker B: Yes.
+00:04:25.910 - 00:04:44.520, Speaker C: So this one is half pairing cycle. So one of the keras is pairing friendly. And this is something like the cycle in the original BctV 14 paper where this could be an MNT four cycle, mnt four, mnt six.
+00:04:44.890 - 00:04:46.406, Speaker B: So something like that.
+00:04:46.588 - 00:05:11.646, Speaker C: And then you've got things like you have one pairing friendly care if you construct another one on top of it with cox pinch or whatever construction you want. Or this one here is like we use in sapling. We have pairing friendly curve like BlS twelve, three eight one. And then another normal curve called, which.
+00:05:11.668 - 00:05:13.790, Speaker B: Is jojob in the case of sapling.
+00:05:16.150 - 00:05:46.410, Speaker C: And here, this is something a little bit more interesting that I've been working on recently. I don't know whether we're going to need it, but the idea is that you have a halo cycle and then on top of one of those curves, you have a pairing friendly curve. So that means that you can say you wanted to use grot 16 to prove something about halo proof. Then you could use this kind of.
+00:05:46.480 - 00:05:49.638, Speaker B: Construction, and I call this an inverted.
+00:05:49.654 - 00:06:02.414, Speaker C: Lollipop just because of the shape and because we were originally trying to find the opposite construction where you start with.
+00:06:02.452 - 00:06:06.734, Speaker B: A small curve and then you go.
+00:06:06.772 - 00:06:12.066, Speaker C: Up to a cycle. But it turns out that that's very difficult to construct and we don't know.
+00:06:12.088 - 00:06:12.690, Speaker B: How to do it.
+00:06:12.760 - 00:06:20.770, Speaker C: So this is one thing that you can do instead. Okay, so why do we need cycles?
+00:06:20.930 - 00:06:30.630, Speaker D: Derek, could you go back for this cycle in the middle with the black and the green arrow?
+00:06:31.450 - 00:06:32.790, Speaker C: That's not a cycle.
+00:06:33.550 - 00:06:36.906, Speaker D: No, sorry. In the left side? The middle of the left side?
+00:06:37.008 - 00:06:37.690, Speaker C: Yep.
+00:06:38.350 - 00:06:42.990, Speaker D: Is there an application for that? So you have one pairing friendly and one non pairing.
+00:06:44.450 - 00:07:03.300, Speaker C: So this is actually used by the pickles proving system. I don't know if we've got Isaac Mackler or. I can't see who's on the call, but ask him about this kind of construction and why it's useful. The idea is that you can.
+00:07:05.050 - 00:07:05.414, Speaker B: Do.
+00:07:05.452 - 00:07:25.850, Speaker C: Succinct proofs within the cycle. So the pairing friendly curve you could use, say, plunk or grot 16 or something like that. Obviously, that comes up with the trade off that you need a trusted setup for the pairing friendly proof system normally.
+00:07:26.750 - 00:07:29.130, Speaker B: But it can be useful for efficiency.
+00:07:29.470 - 00:07:30.460, Speaker D: Thank you.
+00:07:32.130 - 00:07:39.406, Speaker C: So when you talked about the inverted lollipops, you mentioned that that was an.
+00:07:39.428 - 00:07:43.390, Speaker E: Alternative to something else which didn't work out. What was the other thing?
+00:07:43.540 - 00:07:55.330, Speaker C: The other thing would have been you start with a chain of pairing friendly curves. So like we have here and then with a cycle on top, okay, so it looks like a lollipop.
+00:07:57.530 - 00:07:58.280, Speaker B: Okay.
+00:08:00.010 - 00:08:18.342, Speaker C: And I don't know how to make those. So why do we need cycles? So we assumed that our proof system could directly support arithmetic over FQ where Q is the prime order. But if we want to do arithmetic.
+00:08:18.406 - 00:08:21.790, Speaker B: With the wrong fields and not FQ.
+00:08:22.210 - 00:09:19.840, Speaker C: That has an overhead of over 1000 times. So I worked it out for say another 256 bit field and it's something like 1200 times 1200 constraints in r one cs to do a reduction in the wrong field. And that's explained in this ticket. So we can use something like pluckup, which is a way of doing tables in plunk like proof systems. And that does help a lot because how this works, this sum of residues reduction is you take each bit in the partial product and you reduce it independently and then add them up.
+00:09:20.530 - 00:09:22.994, Speaker B: So what pluckup allows you to do.
+00:09:23.032 - 00:09:28.818, Speaker C: Here is to define tables. So you can process more than one bit at once.
+00:09:28.984 - 00:09:34.500, Speaker B: But the cost of those tables is.
+00:09:37.210 - 00:09:49.114, Speaker C: Proportional to the table size. So exponential in the table width or the number of bits you're processing at once. So you end up still having a very significant overhead because you can't use.
+00:09:49.152 - 00:09:53.466, Speaker B: Very large tables for halo anyway, we.
+00:09:53.488 - 00:09:57.414, Speaker C: Want to minimize the cost of the recursion subsurface.
+00:09:57.542 - 00:09:59.210, Speaker B: That's part of the aim.
+00:09:59.630 - 00:10:05.962, Speaker C: But you could use lookup in the same proof system if it was compatible.
+00:10:06.026 - 00:10:10.480, Speaker B: If you made those changes. So.
+00:10:12.470 - 00:10:18.340, Speaker C: It'S going to be a little bit more complicated than just using.
+00:10:20.390 - 00:10:21.300, Speaker B: A site.
+00:10:24.150 - 00:10:26.198, Speaker C: If, if you only needed to do.
+00:10:26.284 - 00:10:31.206, Speaker B: One level of recursion then it would.
+00:10:31.228 - 00:10:35.320, Speaker C: Be sufficient to just do your.
+00:10:37.370 - 00:10:38.630, Speaker B: Arithmetic.
+00:10:39.610 - 00:10:47.254, Speaker C: For one curve using the scalar field of the other curve. But what we'll actually need for the recursive proofs is to use two instances.
+00:10:47.302 - 00:10:50.060, Speaker B: Of the proof system. We've got some diagrams of that later.
+00:10:53.170 - 00:11:10.530, Speaker C: So this is the cycle that's in the halo paper. It actually takes a few hours to generate, but that's just because we search for curves with other nice properties besides forming a cycle.
+00:11:12.150 - 00:11:15.926, Speaker B: So you'll see here that both of.
+00:11:15.948 - 00:11:23.986, Speaker C: These primes, the zeros here, mean that it has high turidicity and that's useful.
+00:11:24.018 - 00:11:25.670, Speaker B: For some improving systems.
+00:11:26.490 - 00:11:44.110, Speaker C: They both have 126 bit security. Yeah, so they have cubic end of office. So we'll explain that, what that means later, but it basically means that you can do scalar multiplication more efficiently.
+00:11:45.170 - 00:11:49.534, Speaker B: And these conditions here mean that the.
+00:11:49.652 - 00:11:53.506, Speaker C: Power of five map, so that the map from x to x to the.
+00:11:53.528 - 00:11:58.142, Speaker B: Five in the field is a permutation.
+00:11:58.206 - 00:12:02.450, Speaker C: And that's useful for algebraic hashes like rescue.
+00:12:04.310 - 00:12:06.966, Speaker B: So I'm going to explain how we.
+00:12:06.988 - 00:12:10.274, Speaker C: Constructed these, and how you can generalize.
+00:12:10.322 - 00:12:12.870, Speaker B: It to other graphs of curves.
+00:12:15.850 - 00:13:05.400, Speaker C: Notice that these are short viastros curves. So what's the problem with constructing cycles? So we have something called the Hassa bound, which determines what range the order of an elliptic curve can fall into. So if you have a curve over FP, then its order is going to be approximately the same size as p, but it can vary by something that depends on the square root. So if you have a 255 bit.
+00:13:06.010 - 00:13:10.362, Speaker B: Curve cycle like Tweedle, then the order.
+00:13:10.416 - 00:13:31.360, Speaker C: Of each curve lies in a range that's two to the 129.5. So that's obviously a huge range. And there's a conjecture called the SATO take conjecture about how that distribution varies. It's not uniform, it takes the shape here.
+00:13:31.890 - 00:13:34.400, Speaker B: But we don't need to go into detail about that.
+00:13:36.450 - 00:13:46.326, Speaker D: So, question. This is a bit confusing, because it seems like you're suggesting the order is two to the 128, roughly speaking. But it's two to the 256, right?
+00:13:46.428 - 00:14:02.730, Speaker C: No, this is the range in which the order can lie. I'll show you on the next slide. So each of these values is roughly two to the two five, six. But the range of possible orders.
+00:14:04.510 - 00:14:05.260, Speaker B: Is.
+00:14:05.630 - 00:14:13.120, Speaker C: Two to the one two 9.5 range. Is that clear?
+00:14:13.890 - 00:14:18.282, Speaker D: When you say range, it's like minus.
+00:14:18.346 - 00:14:24.180, Speaker F: Two square root p up to p plus two square root p. Correct, exactly.
+00:14:24.870 - 00:14:38.982, Speaker C: Sorry, I probably should have said that explicitly on the slide. Okay, so the point here is that if we start with a curve over.
+00:14:39.036 - 00:14:44.534, Speaker B: Fp, we find its order q, and.
+00:14:44.572 - 00:14:56.394, Speaker C: Then we construct another curve over fq and find its order r. Then there's negligible chance that p will be equal to r unless we do something else.
+00:14:56.432 - 00:15:02.240, Speaker B: We use some special construction. Okay, is that clear to everyone?
+00:15:05.490 - 00:15:07.360, Speaker C: Okay, assume it's clear.
+00:15:08.130 - 00:15:10.960, Speaker A: Assuming the field that it's over. Correct.
+00:15:12.050 - 00:15:14.046, Speaker C: Sorry, what was that? I didn't quite hear.
+00:15:14.148 - 00:15:18.898, Speaker A: I was saying this is assuming the field, like you're not going over extension fields or anything like that.
+00:15:19.064 - 00:15:29.030, Speaker C: We're only using prime fields here. I should have clarified that. It turns out that it's difficult to use extension fields.
+00:15:31.290 - 00:15:35.000, Speaker B: Prime fields are much easier anyway.
+00:15:36.650 - 00:16:03.570, Speaker C: So what if we had some way of constructing curves so that one of the possible orders was guaranteed to coincide? So here we have curves over Fp, and they only have six possible orders. And then when we go to the curve over fq, it also has six possible orders, and it turns out that.
+00:16:03.640 - 00:16:07.122, Speaker B: One of those orders is p. So.
+00:16:07.176 - 00:16:19.526, Speaker C: When we try to find coefficients for these curves, so remember that the curve equation is y squared equals x cubed plus b.
+00:16:19.708 - 00:16:23.814, Speaker B: So b is the coefficient here, as.
+00:16:23.852 - 00:16:29.820, Speaker C: We vary b, we will get one of these six values, and similarly for.
+00:16:30.510 - 00:16:39.420, Speaker E: One of these six values, there are only six orders. If we are restricting ourselves to this equation type, which is a is equal to zero.
+00:16:40.290 - 00:17:10.486, Speaker C: Yes, correct. There are six orders for any given p and 70 for any given cube. Okay, so it turns out that Cm curves, so curves with complex multiplication have exactly this property. And the cases where there's six possible orders is just the case that the.
+00:17:10.508 - 00:17:12.902, Speaker B: Equation that I just gave x y.
+00:17:12.956 - 00:17:30.380, Speaker C: Squared equals x cubed plus b. So I'm going to try to explain what complex multiplication is without using much heavy duty number theory, but just to make it less mysterious, and we'll see how well I do.
+00:17:31.970 - 00:17:58.600, Speaker G: Sorry, I'm just confused. On the previous slide you said that if you vary the b, you get six possible orders for the curve. And it seems now that you're saying that this property is actually satisfied, as soon as you are complex multiplication, is it always the case, or do you need something else for these six orders to be there?
+00:18:00.570 - 00:18:16.198, Speaker C: So for complex multiplication curves, you have at most six orders. You actually may have two, four or six orders, depending on the equation. For the equation, I said you always have six orders.
+00:18:16.374 - 00:18:18.074, Speaker B: Yes, I mean, in general, when j.
+00:18:18.112 - 00:18:20.050, Speaker E: Invariant is equal to zero, you have six orders.
+00:18:20.070 - 00:18:22.638, Speaker C: Exactly. I talk about j invariance a little.
+00:18:22.644 - 00:18:27.200, Speaker B: Bit later, okay, I'm sorry. Okay.
+00:18:30.450 - 00:19:02.214, Speaker C: So any careve has an endomorphism ring. So I think we've talked about endomorphisms in previous UK study clubs, but basically it's a group homomorphism. It preserves the group structure that's from the curve group onto itself. And you can compose endomorphism, so you can effectively multiply them by composing them, and you can add them and there's an identity.
+00:19:02.262 - 00:19:12.266, Speaker B: So therefore it's a ring. An example of this is scalar.
+00:19:12.298 - 00:19:25.966, Speaker C: Multiplication by a constant is an endomorphism. You can easily track that. But what you can do is to consider any possible endomorphism of an elliptic.
+00:19:25.998 - 00:19:30.210, Speaker B: Curve group as being like a generalized scalar.
+00:19:31.110 - 00:19:43.814, Speaker C: So normally we're used to scalars being integers, but think of any endomorphism as being a scalar. This is just one possible way of explaining it that I find.
+00:19:44.012 - 00:19:48.650, Speaker D: So is an endomorphism a set of homomorphisms?
+00:19:51.150 - 00:19:57.020, Speaker C: An endomorphism is a homomorphism that is from the group onto itself.
+00:19:58.110 - 00:19:59.450, Speaker B: That's the definition.
+00:20:07.490 - 00:20:08.560, Speaker C: Is that clear?
+00:20:09.810 - 00:20:10.800, Speaker D: Kind of.
+00:20:11.350 - 00:20:15.790, Speaker F: I think the question was about the endomorphism. Ring being a set of endomorphism.
+00:20:15.870 - 00:20:24.642, Speaker C: Yes. Oh, sorry. Yeah. It's an algebraic structure. It's a ring of endomorphisms. So each element in the ring is an endomorphism.
+00:20:24.786 - 00:20:27.414, Speaker D: I see. That's a bit harder to imagine, that's why.
+00:20:27.452 - 00:20:34.810, Speaker C: Okay, well, if you consider the simple case where you just have integers, then.
+00:20:34.880 - 00:20:36.794, Speaker B: It'S clear that it's a ring, right?
+00:20:36.832 - 00:20:40.490, Speaker C: And then the elements are just elements of the ring.
+00:20:42.370 - 00:20:43.934, Speaker B: So the ring is just z n.
+00:20:43.972 - 00:20:46.000, Speaker C: Where n is the group order.
+00:20:51.030 - 00:20:52.100, Speaker B: Is that clear?
+00:20:53.270 - 00:20:53.922, Speaker D: Yeah.
+00:20:54.056 - 00:20:55.460, Speaker B: Okay. Right.
+00:20:57.610 - 00:21:07.334, Speaker C: So if we were just considering elliptic curves over finite fields, then it turns out that all endomorphisms are equivalent to.
+00:21:07.372 - 00:21:09.850, Speaker B: Scalar multiplication by an integer.
+00:21:11.950 - 00:21:53.622, Speaker C: But for any curve over a finite field, we can consider the curve with the same equation over the complex numbers. So each coordinate is a complex number. It's a little bit hard to visualize because you effectively have four dimensions, two for each coordinate. And then complex multiplication just means that you can scale and multiply by a complex number. So here's an example. We have this elliptic curve, and we.
+00:21:53.676 - 00:22:03.100, Speaker B: Define multiplication by I. So I is the square root of one as this. Check that it works.
+00:22:04.030 - 00:22:16.538, Speaker C: So if you apply this map twice, then you get x here, then minus y, which is the same as I squared times xy.
+00:22:16.634 - 00:22:17.680, Speaker B: So it works.
+00:22:20.050 - 00:22:43.400, Speaker C: So what you end up with here is the scalars are elements of a complex latice. And in this example, the latice is zi. I'll show you some pictures on the next slide. But that's just the gaussian integers of this.
+00:22:45.130 - 00:22:48.786, Speaker B: And if I've lost anyone, then it's.
+00:22:48.818 - 00:22:52.294, Speaker C: Going to get simpler when we just consider the case of finite fields.
+00:22:52.342 - 00:22:53.914, Speaker B: So don't worry about it.
+00:22:53.952 - 00:23:48.650, Speaker C: I'm just trying to make the idea of complex modification less mysterious, because it's referenced very often in papers and they don't explain it at all. They refer you to Silverman's book or whatever. And it is actually reasonably easy to explain just using basic principles. So we said that these generalized scalars, so these endomorphisms, are in a complex latice. So here's the example we saw on the previous slide where the elements of the lattice are in this arrangement. So this is called the gaussian integers. And the other case, which is the j equals zero case that we're interested in, these are called the Eisenstein integers.
+00:23:49.230 - 00:23:51.980, Speaker B: So here.
+00:23:54.210 - 00:24:23.682, Speaker C: You have four units here, which are in the lattice, and here, the green dots here are the units. So you have six on the unit circle. So that's what defines these lattices. So this case is nice for cryptography. And sec p two, five, six, k, one falls into this case. So we're not doing anything especially controversial.
+00:24:23.746 - 00:24:28.326, Speaker B: Or new here, because the billions of.
+00:24:28.348 - 00:24:44.858, Speaker C: Dollars riding on sec p two, five, six, k one being secure. Okay, so I just told you about the units, the elements that have a multiplicative inverse. So if you take some other element.
+00:24:44.954 - 00:24:50.462, Speaker B: Here, say this one, that doesn't have.
+00:24:50.516 - 00:24:56.030, Speaker C: An inverse in the lattice, it's only these that have inverses.
+00:24:56.770 - 00:24:59.394, Speaker B: So the inverse of one is one.
+00:24:59.432 - 00:25:14.066, Speaker C: For example, and it turns out that the orders correspond to the number of units. So if you have a latice like this, then you'll have four possible orders.
+00:25:14.098 - 00:25:16.210, Speaker B: Of the elliptic curve.
+00:25:16.370 - 00:25:35.782, Speaker C: You have a latice like this, you have six orders. So that's why that happens. And then when you map from the elliptic curve over. Sorry, I didn't quite hear you, though.
+00:25:35.936 - 00:25:43.134, Speaker B: Your sound was difficult to understand. Can you say that again?
+00:25:43.252 - 00:25:47.890, Speaker A: I think that person just joined. Actually, I think it was just some background noise.
+00:25:48.230 - 00:25:48.834, Speaker B: Oh, okay.
+00:25:48.872 - 00:25:49.458, Speaker C: No problem.
+00:25:49.544 - 00:25:51.458, Speaker B: Yeah. Okay.
+00:25:51.544 - 00:26:42.500, Speaker C: So when we move from the elliptic curve over the complex numbers to the one over finite fields, these complex roots can correspond to roots of unity in the finite field. So we might have six roots of unity in the finite field. And then it will turn out that multiplying by one of these scalars is equivalent to multiplying by an integer. But it will be a shortcut to multiplying by that integer, because moving.
+00:26:45.750 - 00:26:46.500, Speaker B: In.
+00:26:47.050 - 00:26:56.440, Speaker C: The imaginary direction here in the lattice. Was that a question?
+00:26:56.970 - 00:26:57.814, Speaker B: I don't think so.
+00:26:57.852 - 00:27:08.650, Speaker C: I think it was background. So moving to one of those units corresponds to applying an atomorphism, which can be quite easy to compute. So that's useful.
+00:27:09.870 - 00:27:10.620, Speaker B: Okay.
+00:27:15.250 - 00:27:25.050, Speaker F: Just to see I understand the Notation Ep, arrow q means whatever they're called, isos, isogeny, whatever they're called.
+00:27:25.060 - 00:27:31.234, Speaker C: No, this is just saying that we have a curve defined over Fp and.
+00:27:31.272 - 00:27:34.466, Speaker B: Its prime order is Q. Oh, so.
+00:27:34.488 - 00:27:38.070, Speaker F: That'S just the endomorphisms of this curve.
+00:27:39.050 - 00:27:49.598, Speaker C: Sorry. Yeah, so in the finite field case, the endomorphisms are just the endomorphism ring.
+00:27:49.634 - 00:27:50.970, Speaker B: Is just the integers.
+00:27:53.470 - 00:28:03.470, Speaker F: Yeah. I'm saying this notation is Ep, arrow q is for the endomorphisms of this curve of like size p over fq.
+00:28:05.810 - 00:28:15.566, Speaker C: You can think of it that way. Yeah, you can just think of this as being the field of definition p and the scalar field q if you.
+00:28:15.588 - 00:28:17.920, Speaker B: Want, because.
+00:28:19.670 - 00:28:24.962, Speaker C: After we've explained complex quantification, we're just going to go back to.
+00:28:25.096 - 00:28:26.740, Speaker B: Considering the simpler case.
+00:28:28.090 - 00:28:39.740, Speaker F: And you say the units correspond to the possible order. What does it mean? An order of Ep Arrow Q. Oh, sorry.
+00:28:40.830 - 00:28:43.020, Speaker C: The possible orders of Ep.
+00:28:45.550 - 00:28:46.154, Speaker B: As you.
+00:28:46.192 - 00:28:51.914, Speaker C: Vary the coefficient b and the number.
+00:28:51.952 - 00:28:52.540, Speaker E: Of.
+00:28:55.090 - 00:28:57.470, Speaker F: The units of l correspond.
+00:28:58.050 - 00:28:58.654, Speaker B: I see.
+00:28:58.692 - 00:29:04.110, Speaker F: And you haven't said how this correspondence happened.
+00:29:04.260 - 00:29:05.600, Speaker C: I will get to that.
+00:29:05.970 - 00:29:11.970, Speaker F: Okay, cool. Yeah, I thought it was like order in the sense that sometimes they talk in complex multiplication.
+00:29:12.390 - 00:29:19.110, Speaker C: Yeah, the problem with number theory in general is that it's having too few words in English to describe the number of concepts.
+00:29:20.410 - 00:29:22.920, Speaker F: Yeah. Okay, thanks.
+00:29:24.010 - 00:29:25.960, Speaker D: That's the only problem with numbers.
+00:29:27.850 - 00:29:56.626, Speaker C: Everything else is simple. Notice how I carefully avoided saying unit circle here because that would have been really confusing. Okay, so we should consider whether Cm curves are secure. I've just said that. Sec p two, five, six, k. One is a Cm curve. And all pairing friendly curve constructions that.
+00:29:56.728 - 00:30:00.178, Speaker B: I know of or that are in.
+00:30:00.344 - 00:30:03.650, Speaker C: Any papers I know of produce Cm curves.
+00:30:04.870 - 00:30:07.362, Speaker B: So this is a very well studied.
+00:30:07.426 - 00:30:17.480, Speaker C: Thing, and I don't think that there's any reason to believe that the discrete log problem on these curves would be.
+00:30:20.590 - 00:30:23.740, Speaker B: Any less hard. Okay.
+00:30:25.630 - 00:30:59.666, Speaker C: Even though they're only a small fraction of curves. Okay, so when we map the Cm curve back to the finite field has a small number of possible orders determined by the number of units, and that's determined by the j invariant. So turns out this case here, where we have a gaussian lattice, is j equals 1728, and this case here is j equals zero. And you can compute the j invariant.
+00:30:59.698 - 00:31:01.430, Speaker B: Just based on the curve equation.
+00:31:02.570 - 00:31:39.810, Speaker C: Not going into how you do that, you can just look it up here. And the reason why j invariant zero curves are interesting is they have six possible orders. And it'll turn out that it's useful to have several possibilities for the order because sometimes some of them are excluded because they will never be prime. So you basically have six bytes of the cherry to get something that's prime.
+00:31:43.190 - 00:31:46.814, Speaker G: Are these six possible orders explicit or do you have to?
+00:31:46.872 - 00:32:21.550, Speaker C: Yeah, so I'm going to go into that in a few slides. But basically there's something called the norm equation, which allows you to compute them explicitly. We're going to go into some detail on that. Okay, so this is the norm equation. Dv squared equals four, p minus t squared. So all of these are integers. This d here is called the fundamental discriminant.
+00:32:21.550 - 00:32:29.540, Speaker C: And by convention, it's normally negative. So what I've done here is just take the absolute value.
+00:32:31.750 - 00:32:38.470, Speaker B: And v. Obviously p and t are integers.
+00:32:40.490 - 00:32:50.482, Speaker C: And then you have a trace t. So I'm not sure how many people are familiar.
+00:32:50.546 - 00:32:51.160, Speaker B: With.
+00:32:53.770 - 00:33:01.660, Speaker C: Enough elliptic curve cryptography to have seen this before, but the trace is basically.
+00:33:04.130 - 00:33:10.382, Speaker B: It determines the difference of the order from p plus one.
+00:33:10.436 - 00:33:22.254, Speaker C: So remember we talked about the hassle bound? The range of possible q's is p plus one plus or minus two root.
+00:33:22.302 - 00:33:37.190, Speaker B: P, so that range and then t. Here is something that can vary up to two root p in magnitude.
+00:33:38.250 - 00:33:46.346, Speaker C: And then it turns out that there's a relation between this t, this capital t, and the trace. So plus or minus t are two.
+00:33:46.368 - 00:33:49.946, Speaker B: Of the possible traces, and that's the.
+00:33:49.968 - 00:34:18.518, Speaker C: Case regardless of the j invariant. But in some cases there might be more possible traces than this. So for the Tweedle curves, all we do is set d equals three. It turns out that for Cm curves where the order is prime, d will always be three. And then we pick, we can almost.
+00:34:18.604 - 00:34:24.054, Speaker B: Freely choose integers v and t. And.
+00:34:24.092 - 00:34:26.310, Speaker C: Then from that we can compute the prime.
+00:34:29.050 - 00:34:32.010, Speaker B: So we can both the prime and the order.
+00:34:32.080 - 00:34:49.360, Speaker C: Actually, and the reason we want to do it that way is we want both of the curves in the cycle to have high two identicity. And we'll see in a minute how we can choose v and t. So that's always the case.
+00:34:53.090 - 00:34:56.914, Speaker B: But first of all, this is an.
+00:34:56.952 - 00:35:36.970, Speaker C: Explanation of why this property holds. So there's a proof by Stanger and Silverman, but their proof is quite complicated. And so I wrote up a simpler proof, and that's in the accompanying notes, which are in the GitHub repo. So the proof actually of the case that we use for Tweedle fits on one slide. And so we have this norm equation, and we want to show that one of the possible orders for Eq.
+00:35:37.050 - 00:35:38.080, Speaker B: Is p.
+00:35:40.210 - 00:35:50.386, Speaker C: And it's just a straightforward application of algebra we end up with. So we have to distinguish between the.
+00:35:50.408 - 00:35:53.762, Speaker B: V and t for the curve over.
+00:35:53.816 - 00:36:05.480, Speaker C: Ep, and the v and t for the curve over Eq. It turns out that the v is the same for both, but t is different. So TQ will be.
+00:36:07.210 - 00:36:10.300, Speaker B: Will differ from TP by two.
+00:36:11.470 - 00:36:14.842, Speaker C: And if it does, then it works.
+00:36:14.896 - 00:36:20.534, Speaker B: Out that the order of Eq.
+00:36:20.582 - 00:36:45.460, Speaker C: Is p. So this is one of the possible orders of Eq. And remember, we're going to have to search for the coefficient that gives this order. So is that reasonably clear? This is just to explain that there's nothing mysterious about why this should happen. It's something.
+00:36:47.850 - 00:36:55.830, Speaker D: Can we recap real quickly what happened up until this point in the presentation? Because I'm a bit lost after this whole Cm.
+00:36:56.970 - 00:37:07.610, Speaker C: Okay, so what we're trying to do is understand the construction.
+00:37:10.270 - 00:37:12.698, Speaker B: For creating two cycles of curves.
+00:37:12.874 - 00:37:16.080, Speaker C: So curves where the order of one.
+00:37:19.010 - 00:37:27.090, Speaker B: Is the prime over which the other is defined, but non pairing friendly.
+00:37:28.710 - 00:37:36.610, Speaker C: So this is in general both for pairing friendly and non pairing friendly curves.
+00:37:38.650 - 00:37:39.398, Speaker D: I see.
+00:37:39.484 - 00:37:52.966, Speaker C: Okay, so any CM curve pairing friendly curves are basically CM curves because that's the only way we know how to construct them. But you can also construct non pairing.
+00:37:52.998 - 00:37:54.620, Speaker B: Friendly curves for this year.
+00:37:56.590 - 00:37:59.020, Speaker C: Sec. Two, five, six, k, one being an example.
+00:38:01.950 - 00:38:08.400, Speaker A: Hey Dara, this might be a good moment to have a quick peek at the chat. I don't know if you can see it on your screen.
+00:38:09.330 - 00:38:11.406, Speaker C: There's been a few points that were.
+00:38:11.428 - 00:38:19.540, Speaker A: Made, so might just be worth it to check it out quick. And if anyone else has anything they want to kind of raise, this might be a good moment to do that too.
+00:38:20.310 - 00:38:30.360, Speaker C: I don't seem to be able to see the chat without stopping screen sharing for some reason. I don't understand why that is. Can you just read out the questions in the chat and.
+00:38:34.410 - 00:38:35.238, Speaker E: Just go ahead?
+00:38:35.324 - 00:38:39.660, Speaker A: Yusef, do you want to say what you wrote? Because it's a bit longer than just a question.
+00:38:40.830 - 00:39:12.690, Speaker E: I just didn't want to interrupt because maybe it's not that important, but in one slide you said that the ring of endomorphism is equivalent to the scalar multiplication by integers when we are talking about ellipticals over finite field. Why I wanted to say just it is the case for ordinary ellipticals because for super singular ellipticals, the ring roof endomorphism is an order in quaternion algebra, so it's not multiplication by scalars, but I just didn't want to interrupt.
+00:39:13.510 - 00:39:30.010, Speaker C: Thank you for the correction. I'll correct the slides there. Yes, we don't want to use super singular curves because they're insecure. But yes, that point is well taken. Thank you. Anything else from the chat?
+00:39:33.950 - 00:39:52.478, Speaker A: I think everything else was like additional ideas or kind of backing up some of the stuff that was being spoken about. And someone did ask if I would export this. So what I usually do is I take kind of relevant links and I add that into the show notes of YouTube. But maybe I can add some of this text as well.
+00:39:52.564 - 00:40:03.060, Speaker C: If you guys think that would be so. There are some notes which are on HackMD. Let me actually.
+00:40:05.510 - 00:40:07.538, Speaker A: Did you already share that in the group before?
+00:40:07.704 - 00:40:13.334, Speaker C: I think I did, yeah. Okay, yeah, I'm pretty sure I shared this.
+00:40:13.372 - 00:40:18.600, Speaker A: We can share in the group after and we can also put this on the YouTube chat as cool.
+00:40:20.410 - 00:40:25.514, Speaker H: So yes, I do actually have a question.
+00:40:25.632 - 00:40:26.540, Speaker B: Go on.
+00:40:27.390 - 00:40:40.640, Speaker H: So safe curves makes a big deal about low cm discriminant enabling some sort of row speed up. Is that a concern here? Is that why we're looking for 130 bit curves? Does it matter?
+00:40:41.490 - 00:41:13.900, Speaker C: You can compute exactly the speed up. There's a footnote in the halo paper about exactly this point. So yes, you can use the endomorphism in pollard row and that gives you a speed up of, I think it's square root three or something like that. So it's barely significant. And you can just compute what security your curve has. Taking that into account.
+00:41:14.350 - 00:41:58.894, Speaker E: Yes, I think that it is well known, but when people are talking about the complex multiplication discriminant being small, it's not about the security, but it's about the complex multiplication theory, gives you the existence of the curve. But then you need to find the coefficients a and b in short life transform, for instance. So if the discriminant is too big, then you cannot find this coefficient. There is a method by Atkin and Mohan to find this, but in the kind of curves Dira is talking about, when the j invariant is zero, when you have just x cube plus b, you do not need this middle because you have only six orders. You can just try a few coefficients until you do one clicks.
+00:41:59.042 - 00:41:59.642, Speaker C: Exactly.
+00:41:59.776 - 00:42:00.460, Speaker B: Yes.
+00:42:01.710 - 00:42:24.626, Speaker C: Okay, thank you. Yeah, that was a good point. Thank you. So we want both curves to have high toadicity. Typically we want. So if we're using say crot 16 or BCTV 14 proving systems, then we.
+00:42:24.648 - 00:42:28.094, Speaker B: Would need a two identity.
+00:42:28.142 - 00:42:50.346, Speaker C: That depends on the circuit size. So a two identity of c would allow for a circuit with two to the c gates. And the details may depend on the prelink system, but that's the basic idea. So we want both p and q to be one mod two to the.
+00:42:50.368 - 00:42:54.346, Speaker B: C. And here's how we do that.
+00:42:54.528 - 00:43:11.038, Speaker C: I'm not going to go through this in detail, but the idea is that we can freely choose v and t, so we can choose them in order to guarantee that both p minus one and q minus one multiples of two.
+00:43:11.124 - 00:43:11.760, Speaker B: C.
+00:43:14.230 - 00:43:16.194, Speaker C: This actually only works for two.
+00:43:16.232 - 00:43:18.894, Speaker B: Of the possible orders.
+00:43:18.942 - 00:43:21.700, Speaker C: So two of the six orders, but that's okay.
+00:43:23.510 - 00:43:24.260, Speaker B: Um.
+00:43:26.970 - 00:44:02.638, Speaker C: So that's basically everything for halo cycles. But we might also want cycles that involve pairing friendly curves just so that we can use a greater variety of proof systems. So brief recap of what a pairing is. It's a bilinear map. I'm not going to go through this in much, take too long on this. So we pick our pairing friendly curve. We're going to assume that it's in a parameterized family.
+00:44:02.638 - 00:44:09.250, Speaker C: So we have an integer parameter X and then P and Q.
+00:44:09.320 - 00:44:13.198, Speaker B: So FP is the field of definition.
+00:44:13.294 - 00:44:22.854, Speaker C: Fq is the scalar field. They're defined by these polynomials in X. So Bn curves are an example here.
+00:44:22.892 - 00:44:24.310, Speaker B: Britainary curves.
+00:44:27.130 - 00:44:34.026, Speaker C: And so are bls and kss and M t curves. Any curve construction that you might want.
+00:44:34.048 - 00:44:36.762, Speaker B: To use in cryptography is of this form.
+00:44:36.816 - 00:44:37.420, Speaker E: Really.
+00:44:40.750 - 00:44:57.540, Speaker C: So let's consider how to make half pairing cycles. I already answered this in response to a question before, but the reason why you would want these is so that.
+00:44:59.990 - 00:45:02.994, Speaker B: You can use a proving system that.
+00:45:03.192 - 00:45:29.610, Speaker C: Produces fully succinct proofs as part of the cycle. So you won't be able to use that for both sides of the cycle, but only being able to do it for one is sometimes sufficient, depending on exactly how you do the recursion. So I think Isaac Meckler has a video about the pickles proof system that.
+00:45:29.680 - 00:45:33.260, Speaker B: Explains how that uses them.
+00:45:34.830 - 00:45:45.860, Speaker C: So in order for curves to form a cycle, they have to be prime order, so that the orders are within.
+00:45:47.510 - 00:45:49.330, Speaker B: Each curve's hassle interval.
+00:45:50.710 - 00:46:07.894, Speaker C: And so that restricts us to some families of pairing friendly curves, like BN, Freeman or MNT. And in practice we want the curve to be as small as possible for a given level of security.
+00:46:08.092 - 00:46:10.490, Speaker B: So we want Bn curves.
+00:46:12.030 - 00:46:16.618, Speaker C: And it turns out to be trivial because all Bn curves will form a.
+00:46:16.624 - 00:46:21.050, Speaker B: Cycle, a two cycle. So we just search for the coefficients.
+00:46:24.450 - 00:46:28.400, Speaker C: That's just a consequence of this.
+00:46:30.690 - 00:46:31.440, Speaker B: Okay.
+00:46:37.170 - 00:46:44.340, Speaker C: And to get the two addicity, we just choose the parameter to be a multiple of whatever toadicity we want.
+00:46:44.710 - 00:46:50.274, Speaker D: But if all BM curves form a cycle, they're pairing friendly. So you get a full pairing cycle.
+00:46:50.322 - 00:46:51.858, Speaker B: Not a half pairing cycle.
+00:46:52.034 - 00:46:58.040, Speaker C: No. The other curve will have very high.
+00:46:59.530 - 00:47:03.050, Speaker B: Embedding degree, so it won't be pairing friendly.
+00:47:06.270 - 00:47:11.210, Speaker E: And I think you can't get cycles of pairing friendly curves with bm by definition.
+00:47:12.590 - 00:47:23.600, Speaker C: Yeah, that was proven in I can't remember the authors, but yes, and it also proves it for Freeman curves as well.
+00:47:23.970 - 00:47:50.760, Speaker E: Yes, the basic probe is just a sum of the traces. The sum of the traces is equal to the number of cycles. So in bn curse, for example, the trace is six times x squared plus one. So if you sum these equal to two, then you will have the only solution is x is equal to one and x is equal to one, then you cannot find a prime order for p, neither for q.
+00:47:51.390 - 00:48:02.106, Speaker C: Yes, exactly. Thank you. So choosing x here, notice that if.
+00:48:02.128 - 00:48:04.126, Speaker B: X is multiple of two to the.
+00:48:04.148 - 00:48:11.486, Speaker C: C, then so are all of these terms that involve x. And so you get one modulo two.
+00:48:11.508 - 00:48:12.400, Speaker B: To the c.
+00:48:15.010 - 00:48:32.626, Speaker C: So we might want to have other constructions with one pairing friendly curve in the graph. I don't know how to do constructions with two pairing friendly curves unless you use something like cox pinch. So anyway, if you have one pairing.
+00:48:32.658 - 00:48:37.526, Speaker B: Friendly curve, then just figure out what.
+00:48:37.548 - 00:48:57.360, Speaker C: Your polynomials are for p and q here. So you need to solve the norm equation that I gave before for each of the other curves in the graph. And so if it's not obvious how to solve them, you can.
+00:48:59.090 - 00:49:00.350, Speaker B: Just construct.
+00:49:00.770 - 00:49:09.300, Speaker C: Some in sage, say, find its order, and then work out from that what the solution for the norm equation must be.
+00:49:11.990 - 00:49:14.690, Speaker B: So j equals zero curves.
+00:49:15.110 - 00:49:17.154, Speaker C: So very convenient here because we have.
+00:49:17.192 - 00:49:20.040, Speaker B: Six chances to find a prime order.
+00:49:21.530 - 00:49:36.330, Speaker C: And then just to optimize the search, we can work out sort of congruent relation on x so that all of these polynomials are more likely to be prime.
+00:49:36.670 - 00:49:38.060, Speaker B: And to have the right.
+00:49:40.990 - 00:49:48.542, Speaker C: You can't always produce curves with high two odicity. You might have to settle for high.
+00:49:48.596 - 00:49:51.360, Speaker B: Three odicity or some of the small values said.
+00:49:54.770 - 00:51:09.030, Speaker C: So let's see whether we can give an example of that of solving the norm equation. So I'm going to have to stop screen sharing the slides and I'm going to a sage window and we'll see how to do that. So the motivation here is we want to construct a Kss 18 curve because this is the smallest construction I know of, the construction that gives the smallest p that I know of. So this cycle has to be around q and r have to be around 256 bits for security. And then Kss 18 will give you a secure pairing because the size of will be 345 times 18, which is 6100 and something. So that's secure.
+00:51:10.650 - 00:51:14.230, Speaker B: But this is minimal.
+00:51:18.970 - 00:51:22.826, Speaker C: Stop screen sharing and I'll screen share my sage window.
+00:51:22.978 - 00:51:23.680, Speaker B: It.
+00:52:10.750 - 00:52:15.530, Speaker C: I guess I should have closed most of my windows in order to make this easier.
+00:52:21.250 - 00:52:22.602, Speaker B: Reboot the whole machine.
+00:52:22.746 - 00:52:26.990, Speaker A: Ivan, you had that question in the group. Did you feel like it got answered?
+00:52:28.370 - 00:52:29.370, Speaker E: Yeah, I think.
+00:52:29.540 - 00:52:30.866, Speaker B: Okay, cool.
+00:52:31.048 - 00:52:34.500, Speaker C: Okay, cool. So do you see my screen?
+00:52:36.150 - 00:52:39.940, Speaker B: Yes. Okay, cool.
+00:52:40.970 - 00:53:08.500, Speaker C: Let me just my notes. The first thing we need to do is to work out the polynomial for the order of the curve, our pairing friendly curve.
+00:53:09.480 - 00:53:10.230, Speaker B: So.
+00:53:13.320 - 00:53:46.636, Speaker C: Looking at that up, because I've got it in my notes, we have. So this is a slightly different parameterization than the one you usually see. And the reason is that the usual one produces, doesn't always produce integers, but this is equivalent. So it's 343. U to the six plus seven, u.
+00:53:46.818 - 00:53:55.468, Speaker B: To the three plus one. So that's the, for KSS 18 curves.
+00:53:55.644 - 00:54:00.292, Speaker C: Yeah. So this is the prime order of.
+00:54:00.346 - 00:54:03.140, Speaker B: A KSS 18 curve.
+00:54:05.000 - 00:54:29.790, Speaker C: Sort of reprimatizing. So that this is always an integer. We want to choose a U so that this is prime. And we also want u to be quite simple because we want to be able to recognize the order in terms of U.
+00:54:30.800 - 00:54:33.630, Speaker B: So what I'll do is.
+00:54:38.160 - 00:54:39.660, Speaker C: Is prime.
+00:54:40.880 - 00:54:41.630, Speaker B: So.
+00:54:45.280 - 00:54:48.550, Speaker C: So what I'm doing here is.
+00:54:49.160 - 00:55:02.520, Speaker B: Checking for each k up to 100 whether p of two to the k is prime.
+00:55:03.260 - 00:55:06.644, Speaker C: I suppose I could just write two to the k here, but for micro.
+00:55:06.692 - 00:55:18.024, Speaker B: Optimization, why didn't that work? You mean n and not equals? It should be in range.
+00:55:18.152 - 00:55:36.050, Speaker C: Yeah, thank you. That shows you that I'm not just copying and pasting. Okay, so this tells us, for example, that U equals two to the 33.
+00:55:37.480 - 00:55:38.976, Speaker B: Gives us a prime.
+00:55:39.168 - 00:55:45.670, Speaker C: So if we were actually trying to construct a KSS 18 curve, we would also have to check that.
+00:55:49.640 - 00:55:50.828, Speaker B: The prime.
+00:55:50.864 - 00:56:03.512, Speaker C: For the field of definition is also a prime. It turns out it isn't for this. But it doesn't matter if we're just trying to solve the norm equation, because we're actually trying to find the curve.
+00:56:03.576 - 00:56:07.020, Speaker B: Underneath the KSS 18 curve.
+00:56:08.800 - 00:56:15.170, Speaker C: Okay, so let's calculate our prime p.
+00:56:21.460 - 00:56:23.452, Speaker B: This is what it is in binary.
+00:56:23.516 - 00:57:13.330, Speaker C: So you can see it's very sparse. And let's construct our elliptic curve over that prime. Here are the varshas coefficients. A is zero, b is five, say, and we'll count the number of points. That was fast. Point counting used to be slow, but not anymore. Sometimes you have to convert things to python integers in sage, so let's see what that order is.
+00:57:13.330 - 00:57:26.980, Speaker C: Well, that's interesting, because it's very similar to p. Is p prime, by the way? Yes.
+00:57:27.130 - 00:57:28.550, Speaker B: Can we just check?
+00:57:31.000 - 00:57:32.448, Speaker C: I checked it above.
+00:57:32.624 - 00:57:33.350, Speaker B: Okay.
+00:57:35.980 - 00:57:38.440, Speaker E: This is the polynomial of KSS 18.
+00:57:38.940 - 00:57:45.272, Speaker C: Yeah, sorry. It's the order of a KSS 18 case.
+00:57:45.326 - 00:57:48.764, Speaker B: Okay, so all we need for this.
+00:57:48.802 - 00:57:51.180, Speaker C: Exercise is that the order is prime.
+00:57:52.000 - 00:57:57.756, Speaker B: If we were actually constructing the curve, we would need the field of definition.
+00:57:57.788 - 00:57:59.090, Speaker C: To be prime as well.
+00:58:00.900 - 00:58:09.364, Speaker F: Dara, is there a reason that we're restricting attention to prime order curves? Isn't it okay if it just has.
+00:58:09.402 - 00:58:10.820, Speaker C: A large prime factor?
+00:58:14.840 - 00:58:21.444, Speaker F: Actually, the prime you're talking about, I think, is the prime subgroup order of the paraphernalia.
+00:58:21.572 - 00:58:32.444, Speaker C: Yeah, exactly. KSS 18 curves are not prime order. So you also have another polynomial for the cofactor, which I haven't bothered with here.
+00:58:32.642 - 00:58:33.324, Speaker B: Okay, great.
+00:58:33.362 - 00:58:34.044, Speaker G: Thank you.
+00:58:34.162 - 00:58:34.924, Speaker B: Yeah.
+00:58:35.122 - 00:58:42.536, Speaker C: So this is just the prime subgroup, which is what we want to construct our graph.
+00:58:42.648 - 00:58:44.830, Speaker B: That makes sense. Okay.
+00:58:48.420 - 00:58:51.730, Speaker C: Let'S compute what the trace might be.
+00:58:54.740 - 00:58:56.450, Speaker B: Okay. All right.
+00:58:59.720 - 00:59:12.250, Speaker C: In binary. Oh, that's interesting. So remember that our parameter was this. Okay, so.
+00:59:17.020 - 00:59:19.210, Speaker B: Okay, so it looks like.
+00:59:20.700 - 00:59:23.470, Speaker C: This trace might be something like.
+00:59:25.040 - 00:59:28.430, Speaker B: So what's this.
+00:59:33.200 - 00:59:43.904, Speaker C: Might be 17 u cubed. Something like that, yes. Oh, hang on.
+00:59:43.942 - 00:59:45.490, Speaker B: You need a plus one there.
+00:59:48.520 - 00:59:50.230, Speaker C: Okay, so.
+00:59:53.320 - 00:59:56.950, Speaker B: Let'S guess that t is that.
+01:00:01.420 - 01:00:15.180, Speaker C: Remember, our norm equation is this. Well, we have p and we have t, so we can just compute dv squared.
+01:00:16.000 - 01:00:16.860, Speaker B: Let's.
+01:00:18.800 - 01:00:26.720, Speaker C: Take its square free part. Take that correctly.
+01:00:28.180 - 01:00:28.688, Speaker B: Okay.
+01:00:28.774 - 01:00:30.608, Speaker C: Three. Okay, so D equals three.
+01:00:30.694 - 01:00:31.650, Speaker B: That's good.
+01:00:32.020 - 01:00:40.310, Speaker C: So v squared equals over D. Well, that'd a better v square.
+01:00:42.760 - 01:00:43.910, Speaker B: Yes, it is.
+01:00:45.240 - 01:00:48.100, Speaker C: So we can take it square root.
+01:00:51.640 - 01:00:52.500, Speaker B: Let's.
+01:01:01.680 - 01:01:23.170, Speaker C: So we also need to work out what this is as a function of U. So, I think it's fairly clear that this only differs in the first five bits here. So it's going to be of the form something times u cubed plus one. So it's going to be.
+01:01:30.200 - 01:01:43.770, Speaker B: 19. Okay, excellent. So that's our solution.
+01:01:44.590 - 01:01:46.010, Speaker C: So that's.
+01:01:46.590 - 01:01:47.340, Speaker B: Okay.
+01:01:51.630 - 01:02:10.340, Speaker C: Well, we haven't checked that this is true for all possible u, but let's see. I prefer to use pari for operations on polynomials. So.
+01:02:12.070 - 01:02:13.220, Speaker B: You can do.
+01:02:18.290 - 01:02:21.620, Speaker C: So this is the polynomial for p.
+01:02:26.230 - 01:02:27.380, Speaker B: And then v.
+01:02:48.440 - 01:03:00.730, Speaker C: Okay, so this is the right hand side of our norm equation, and then the left hand side is going to be three times bu.
+01:03:01.180 - 01:03:03.848, Speaker B: Squared, and it's the same.
+01:03:03.934 - 01:03:31.200, Speaker C: So we know that this is true for all you. Any questions? So, this, this is basically. So this is not unrealistic, because this is actually how I did it when I was trying to write the code to find cycles under KSS 18.
+01:03:31.780 - 01:03:38.630, Speaker A: I think people are mostly just really excited to see you live coding. So that seems to be the chatter right now.
+01:03:40.440 - 01:04:01.690, Speaker C: Cool. I didn't know whether that would all work, but that worked out very well. Does anyone have any questions about the math? Does anyone think that they could do this for another curve type now? Because that's my goal, really. I don't want to be the only person doing this.
+01:04:03.120 - 01:04:04.910, Speaker A: Olivier, do you have a question?
+01:04:05.280 - 01:04:15.600, Speaker C: What is your goal there again? To teach other people to be able to find arbitrary graphs of elliptic curves.
+01:04:15.940 - 01:04:23.964, Speaker E: But the only use case for the time being is something like for cycles with per inference, at least one of them is pickles.
+01:04:24.012 - 01:04:24.610, Speaker B: Right.
+01:04:28.520 - 01:04:44.760, Speaker C: That slide that I showed only considers that case. But other people may have more ideas than I've had. You can sort of build on these techniques to do more interesting things, or at least more complicated.
+01:04:45.500 - 01:05:02.140, Speaker H: The reason that this is possible to do with these parameterized families is because we know how to go from a subgroup order to the full curve construction. But could you also do this with something like an Edwards curve?
+01:05:03.760 - 01:05:13.984, Speaker C: So an Edwards curve is never prime order, but as long as your graph doesn't require it to be prime order, then.
+01:05:14.022 - 01:05:14.610, Speaker B: Yes.
+01:05:15.860 - 01:05:16.416, Speaker C: Well, but.
+01:05:16.438 - 01:05:35.160, Speaker H: So in this case with the KSS 18 curves, they're also not prime order, you said. That's correct, but we simply know how to search for them on the basis of their prime order subgroup, which is not necessarily true for other curve families.
+01:05:37.900 - 01:05:39.896, Speaker C: Yeah, I don't know how you would.
+01:05:39.918 - 01:05:44.412, Speaker B: Do it for cases where the order.
+01:05:44.466 - 01:06:07.440, Speaker C: Is not parameterized, because if any of the curves is not CM, then you're not going to be able to solve its norm equation. And so it can still be a leaf in the graph, but you're not going to be able to make it participate in a cycle.
+01:06:08.100 - 01:06:08.800, Speaker B: Got it.
+01:06:08.870 - 01:06:13.636, Speaker F: Hey, Dara, you know how you have a second half of this talk that talks about the circuits and stuff?
+01:06:13.738 - 01:06:14.052, Speaker C: Yeah.
+01:06:14.106 - 01:06:19.764, Speaker F: Since we've done an hour so far, did you want to split that into a different study club?
+01:06:19.812 - 01:06:35.884, Speaker C: Maybe so it's a shorter part of the presentation. Let's see, I'm on slide 23 and goes up to slide 36. So it's about half the length of.
+01:06:35.922 - 01:06:37.390, Speaker B: What I've done so far.
+01:06:37.920 - 01:06:40.750, Speaker C: I remember I did the live coding bit, so.
+01:06:42.880 - 01:06:44.430, Speaker B: That also took longer.
+01:06:45.360 - 01:06:49.650, Speaker C: So, Anna, do you think you should split it?
+01:06:50.900 - 01:06:58.212, Speaker A: I think we could probably do another 20 minutes, but I don't know that we can do much more. So it depends. Do you think that there'd be a lot of.
+01:06:58.346 - 01:07:03.990, Speaker C: No, it can fit in 20 minutes. Yeah, I've done this in 20 minutes. Okay, cool.
+01:07:06.440 - 01:07:26.750, Speaker G: Just before you move on. Go on. Yeah, I was just wondering. I basically have two questions. So you quoted this result that said that you could move back and forth between two primes if you had complex multiplication. I guess.
+01:07:30.400 - 01:07:30.812, Speaker C: So.
+01:07:30.866 - 01:07:39.840, Speaker G: The first question I have is basically, is this all this paper says, or does it describe other paths you could take between curves?
+01:07:40.900 - 01:08:15.870, Speaker C: So the original stanger and Silverman paper. Yeah. I hope I'm pronouncing stanger properly. I'm not sure whether it's that or stanger anyway, so what that's trying to do is to count the number of curves that form cycles. The papers are few years old now, and it wasn't specifically oriented towards cryptography. It was more of a pure number theory paper.
+01:08:17.360 - 01:08:18.110, Speaker B: So.
+01:08:22.240 - 01:08:35.970, Speaker C: There may be other tidbits from that paper that we could mine, but I'm not sure there's anything that's directly usable that answer the question.
+01:08:37.320 - 01:09:18.480, Speaker G: Well, I'll just take a look myself, I guess. And the other question I had was, so you did everything you did, as far as I understood it, always with j invariant zero. And you had reasons for it, which I don't remember. But you had on your slide, you said, it's better to do it with j equals zero. Do you have any idea if other j invariants would be useful?
+01:09:18.900 - 01:09:35.104, Speaker C: So, we know that j invariant 1728 never produces primo order curves. That's proven in one of the papers that I referenced. But other j invariants might be useful.
+01:09:35.152 - 01:09:42.710, Speaker B: Yes. Okay, thanks. So I'm going to screen share again now.
+01:09:44.680 - 01:09:52.516, Speaker C: Start from current slide, and let's see if I can get the zoom window.
+01:09:52.708 - 01:10:12.752, Speaker A: Sarah, I do wonder, are you sure you don't want to maybe do, like, a bonus session where we finish it? The reason I say that is we only have 15 minutes left, and I feel like no one will really be able to ask questions on what you're doing. And I feel like there will be also. There's a few people that have dropped off that I think might want to have.
+01:10:12.806 - 01:10:13.296, Speaker C: All right.
+01:10:13.398 - 01:10:14.464, Speaker A: Would that be okay?
+01:10:14.582 - 01:10:15.776, Speaker C: We'll split it there.
+01:10:15.878 - 01:10:26.832, Speaker A: Okay. Because I think this is a cool stopping point. And actually, maybe it's good we get, actually, a little bit more conversation out of this. Okay, so let me just conclude. Or do you want to say sort of a conclusion?
+01:10:26.896 - 01:10:30.570, Speaker C: Well, whether. Any more questions on the curve construction part?
+01:10:31.820 - 01:10:44.670, Speaker B: Yeah, I had a question in the chat. It's somewhat abstract, though. You said that it's impeachable, basically, to find any cycles in non Cm curves. But is there any reason why we would want to do that?
+01:10:49.040 - 01:10:57.632, Speaker C: So, if you are worried about the security of Cm curves, then you might. Other than that, you might want complete.
+01:10:57.686 - 01:10:59.680, Speaker F: Curve equations that are really efficient.
+01:11:02.020 - 01:11:14.150, Speaker H: Another curve type for legacy reasons, like constructing bulletproof cycles around ECDSA standards or something.
+01:11:14.600 - 01:11:26.280, Speaker C: Right. Because most of the existing standards, with the exception of sec p two, five, six, k one, and some of the other sec p curves would not be cm.
+01:11:27.740 - 01:11:29.130, Speaker B: All right, thank you.
+01:11:33.020 - 01:11:45.952, Speaker C: But you can use non CM curves at the leaves of the graph. Any other questions, or shall we stop.
+01:11:46.006 - 01:12:11.720, Speaker A: Recording oh, I just had a quick question, Dara, about requiring the j invariant to be zero. Is there a write up of that somewhere, or is that in one of the papers you looked at? I know you said that's used for the curve used in bitcoin, so I was just curious where that write up is of where it's useful.
+01:12:13.820 - 01:12:45.440, Speaker C: So the main reason it's useful is that you have these endomorphisms. So that's how the second part of the talk followed on from the first. I actually used the endomorphisms to explain how we optimize halo. So you'll have to wait for the next part of the talk for me to explain that, I think.
+01:12:45.510 - 01:12:46.080, Speaker B: Got it.
+01:12:46.150 - 01:12:46.768, Speaker A: Okay.
+01:12:46.934 - 01:12:52.116, Speaker E: And I think you can also make the pairing faster because you can compress g two up to a six.
+01:12:52.298 - 01:13:00.680, Speaker C: Oh, yeah, that's another good reason. So that doesn't apply to the halo curves, but it does apply to pairing friendly curves.
+01:13:01.420 - 01:13:02.170, Speaker B: Yes.
+01:13:02.620 - 01:13:03.524, Speaker C: Go on, Gchan.
+01:13:03.572 - 01:13:16.712, Speaker H: But the reasoning about j invariant zero curves mapping into finite fields in the way that they do is written down somewhere.
+01:13:16.776 - 01:13:17.390, Speaker C: Right.
+01:13:18.160 - 01:13:19.390, Speaker H: What is that from?
+01:13:20.720 - 01:13:22.590, Speaker C: So that is.
+01:13:26.180 - 01:13:26.930, Speaker B: So.
+01:13:29.860 - 01:13:32.976, Speaker C: Slide 15. There's a reference to on orders of.
+01:13:32.998 - 01:13:37.330, Speaker B: Elliptic curves over finite fields. I think it's in that one.
+01:13:42.360 - 01:13:50.900, Speaker C: Cool. Yeah, this was fun. It worked out really well for your curve search.
+01:13:51.050 - 01:14:06.430, Speaker B: Is your curve search repo the best place to find this? And your second question is, the stuff that you did with the parry calculator, is that part of your normal workload? Is that what you kind of normally do?
+01:14:07.600 - 01:14:16.012, Speaker C: Yeah. So my normal workflow is to have a sage window open and a pari window open, and to just use whichever.
+01:14:16.076 - 01:14:21.516, Speaker B: One is most convenient, because pari tends.
+01:14:21.548 - 01:14:29.920, Speaker C: To handle polynomials with a very simple and concise syntax, whereas for sage, you need to declare the variables. It's slightly.
+01:14:31.620 - 01:14:39.110, Speaker B: And for the brute forcing part, can your normal computer handle it, or do you send it away to the cloud or crunch it there.
+01:14:40.860 - 01:14:46.040, Speaker C: So my computer can handle it. It's just an ordinary desktop with six cores.
+01:14:46.620 - 01:14:47.370, Speaker B: Awesome.
+01:14:47.740 - 01:14:55.868, Speaker C: And these searches don't require very much memory, so, yeah, any desktop should be.
+01:14:55.874 - 01:14:57.070, Speaker B: Able to handle it.
+01:15:00.000 - 01:15:04.816, Speaker C: How long a search will take depends on basically how much time you have.
+01:15:04.838 - 01:15:06.130, Speaker B: To optimize it.
+01:15:10.500 - 01:15:21.904, Speaker C: And whether you're searching for any special properties of the curves beyond the fact that they form a cycle. Also, it depends on how many curves.
+01:15:21.952 - 01:15:23.380, Speaker B: You need to track a prime.
+01:15:24.680 - 01:15:36.490, Speaker C: So by the prime number theorem, roughly speaking, the probability of any NBIT number being prime is.
+01:15:38.380 - 01:15:40.616, Speaker B: One over proportional to.
+01:15:40.638 - 01:15:43.870, Speaker C: One over n. And so.
+01:15:46.240 - 01:15:49.484, Speaker B: The larger the numbers are, the less likely they.
+01:15:49.522 - 01:15:51.532, Speaker C: Are to be prime. And then if you have to check.
+01:15:51.586 - 01:16:00.930, Speaker B: Several numbers for being prime, you have to check more of the parameter space in order to find one.
+01:16:08.810 - 01:16:24.750, Speaker C: If you're finding that that is a problem, then there's a trick that you can use which I didn't put on the slides. There's a technique called a factor wheel, which you can generalize.
+01:16:27.090 - 01:16:28.094, Speaker B: To using these.
+01:16:28.132 - 01:16:40.180, Speaker C: Searches so you can have, effectively, a very large virtual factor wheel that satisfies all of the congruences that you need. So that makes it more likely that.
+01:16:41.670 - 01:16:46.130, Speaker B: Each polynomial will produce a prime.
+01:16:46.790 - 01:16:51.540, Speaker C: So if you're having trouble with how long the searches are taking, you can use that.
+01:16:52.950 - 01:16:58.706, Speaker B: Thank you. I was going to play with it, and I just want to make sure that I could. Perfect. Thanks for your talk.
+01:16:58.808 - 01:17:16.894, Speaker C: Yeah. So the programs in the curve search repo, they all produce curves relatively frequently. So it's only if you're searching for.
+01:17:16.932 - 01:17:20.000, Speaker B: Something very specific that it would take a long time.
+01:17:23.410 - 01:17:35.650, Speaker C: I think it's a couple of hours to search for the Tweedle curves, but that's just because we insisted on them being twist secure for some reason, even though we're not actually using twist security in Halo.
+01:17:36.070 - 01:17:37.220, Speaker B: But anyway.
+01:17:42.250 - 01:17:46.022, Speaker C: Cool. So let's stop recording. If I can find.
+01:17:46.076 - 01:17:50.120, Speaker A: Yeah. Well, first, let's say thank you. Thank you so much for doing this.
+01:17:51.610 - 01:17:55.354, Speaker C: You're welcome. It was a lot of fun.
+01:17:55.472 - 01:17:55.802, Speaker B: Yeah.
+01:17:55.856 - 01:18:01.990, Speaker A: And we'll do a bonus, I guess, after this, we'll organize this bonus edition of the Halo.
+01:18:02.150 - 01:18:05.898, Speaker C: Yeah. And maybe I can expand on that part of it.
+01:18:06.064 - 01:18:08.140, Speaker B: Cool. Nice.
+01:18:08.590 - 01:18:10.540, Speaker C: See you next week, probably.
+01:18:11.150 - 01:18:16.246, Speaker A: Yeah, I think something like similar time, but we'll coordinate in the chat.
+01:18:16.358 - 01:18:16.682, Speaker B: Okay.
+01:18:16.736 - 01:18:17.580, Speaker A: Thanks, everybody.
+01:18:17.910 - 01:18:24.670, Speaker B: Bye bye. Thank you. All right, bye.

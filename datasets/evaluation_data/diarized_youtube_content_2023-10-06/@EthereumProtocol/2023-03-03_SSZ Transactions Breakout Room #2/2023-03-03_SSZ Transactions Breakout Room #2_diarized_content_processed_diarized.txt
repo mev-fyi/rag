@@ -1,0 +1,213 @@
+00:00:00.170 - 00:00:07.520, Speaker A: And get started. Hello everyone, welcome to the SSE transactions breakout room number two.
+00:00:09.810 - 00:00:13.454, Speaker B: I was offline last week, so I.
+00:00:13.492 - 00:00:17.246, Speaker A: Unfortunately didn't follow a lot of the things that have happened in the last.
+00:00:17.268 - 00:00:20.558, Speaker B: Week or so, so it would be.
+00:00:20.644 - 00:00:41.500, Speaker A: Great for me and probably for others to get an update. I think Eton been working pretty hard on doing some analysis on the performance differences between the union SSD format and the unified SSZ format. Do you want to take a few minutes and talk a little bit about what you found?
+00:00:42.510 - 00:01:51.600, Speaker C: Sure. Last week, essentially in the call we figured that there is no clean answer. Both options are viable and both have their own advantages and disadvantages. And to avoid having to flip a coin, Vitalik essentially requested me to collect as many metrics as possible to see whether one format or the other has advantages, especially in light clients. And that's essentially what I did. I can put the link to six four four in the chat, and when you scroll down there to the test cases, the union approach is a bit smaller. For most transaction types, it's about 50 bytes per transaction inside the consensus payload, so it's about 10 block, but it has a couple of issues, and.
+00:01:53.910 - 00:01:54.782, Speaker B: Namely.
+00:01:54.926 - 00:02:57.958, Speaker C: The transaction id and signature hash. They are not part of this transaction. When the transaction originally was an RLP transaction, anything besides SSC essentially has this problem, and it doesn't sound like a big problem, but it kind of prevents doing useful proofs on those kind of transactions, because if you don't have the signature hash, then you cannot recover the signer, so you don't know who sent the transaction. So even a basic proof like tell me who sent something to this address doesn't work for RLP transactions. Furthermore, the union proofs were mostly bigger in size than normalized transaction proofs. That's a very small difference. So it doesn't really matter that much.
+00:02:57.958 - 00:04:03.370, Speaker C: But what matters is to verify a proof that with the union you have to do a lot more operations, and that's this SSC proof verification requirements table a bit further down, where you can see that to verify a proof, like a basic proof, who sent an amount to someone, you need the Sec p public key recovery and the ketchup cache to recover the signer. And you need RLP only some minimal RLP and another ketchup cache. If you want to know for a transaction that deploys a new contract where this contract will be located, because that one depends on who signed it and its nons. So with every new transaction type, this becomes more complex. So for example, if you want to have a transaction type that uses ED 250 519 instead of SeCP. Two hundred and fifty six k one. Suddenly you need that one as well.
+00:04:03.370 - 00:04:45.190, Speaker C: And if you need Poseidon hashes, then you need to add that one as well and it just explodes. So that also shows a bit for these embedded measurements that I did. But yeah, I essentially made two implementations for both the union and normalized, where I created all the proofs, where I created all the verifiers in both python with libraries and in C without libraries except for the cryptographic primitives. These are linked below the tables. We just have to decide on one or the other essentially.
+00:04:51.440 - 00:04:52.140, Speaker B: That's awesome.
+00:04:52.210 - 00:04:54.220, Speaker A: It looks like a lot of pretty.
+00:04:54.290 - 00:05:13.648, Speaker B: Great work done here. Does anybody have any comments on the findings that etons had actually had a couple questions.
+00:05:13.814 - 00:05:31.060, Speaker A: I was trying to understand what you mean by for non SSE transactions you need the full transaction to figure out the sender. Are you saying that in the union transaction format this is the case and it's different for the normalized transaction format?
+00:05:31.880 - 00:06:06.240, Speaker C: Yes, essentially in the normalized transaction format I create as part of the consensus payload. So when you create a new block, I put a copy of the transaction hash in there. So it is part of this SSC tree you can just query directly, and the same is the case for the signer and for the address of a new contract. So all of these derived computations you can just fetch directly. So that's also why the normalized transaction is a bit bigger.
+00:06:07.380 - 00:06:12.084, Speaker B: So I guess why is that specific.
+00:06:12.202 - 00:06:15.412, Speaker A: For the normalized transaction? Why is it not possible to say.
+00:06:15.466 - 00:06:20.324, Speaker B: Have a union transaction type that has.
+00:06:20.362 - 00:06:29.380, Speaker A: Some inner transaction where the union sits, that has the different transaction formats on the outer struct. You also have this data, the sender.
+00:06:29.460 - 00:06:34.184, Speaker B: And maybe the contract created address, you.
+00:06:34.222 - 00:07:42.048, Speaker C: Could start doing that. Essentially you can put this contract address as well as the sender and the transaction hash outside of this container. But then you kind of start combining these advantages, because then you need even more storage than the normalized transaction, which can store those fields as part of the transaction itself instead of in a wrapper outside. And you also have to think about how to structure it inside this tree, because the union has this union selector at the top, and you would have to wrap that one with these additional fields. And when you do something like give me all transaction ids inside a block, then this answer should not be too big. So the transaction id needs to be on yet another separate layer. That's what I have in the normalized the TX hash is at the top.
+00:07:42.048 - 00:07:49.730, Speaker C: So yeah, you can do that, but transaction gets bigger and you don't really gain that much with it.
+00:07:51.240 - 00:08:28.464, Speaker A: I feel a little bit like, especially in this SSD proof verification table, it's not quite a fair comparison between the two, because even in the normalized case, we're kind of going into this world now where we're putting derived fields into consensus objects, which I don't think we have generally done. And so of course it's much cheaper. We don't need to do the elliptic curve checks, the recovery in the normalized case, if you just put the derived values. And so it's not quite a one to one comparison between those two things.
+00:08:28.542 - 00:08:29.170, Speaker B: Yeah.
+00:08:31.060 - 00:09:13.820, Speaker C: Sure. I mean, it is, for SSC transactions it is, because for those, the transaction id in the union is farther towards the top, and the signed hash is an intermediate node. So for the SSE transactions with the union, that's what you gain, is that you save this extra space because you don't need the extra nodes in the tree for storing those hashes. But I know what you mean. It's not one to one with the normalized, you need the fields there because there is no structure where you can derive them otherwise.
+00:09:15.120 - 00:09:15.804, Speaker B: What do you mean?
+00:09:15.842 - 00:09:22.448, Speaker A: There's not a structure that you could derive them. There's still the idea of the transaction type, right?
+00:09:22.614 - 00:09:23.650, Speaker B: Or no?
+00:09:25.220 - 00:09:53.476, Speaker C: No, in a normalized version, the transaction type is just like one field of a transaction that tells you how to recover the original representation, but it is not a major criteria anymore. If you scroll up to. Let me just find this real quick. It's called normalized transaction representation.
+00:09:53.588 - 00:09:54.250, Speaker B: Okay.
+00:09:56.640 - 00:10:32.070, Speaker C: There you can see that the transaction type in this case is inside of this transaction signature type, and if you search for that one, that one then includes the transaction type, but it's not really a special field. Essentially what this does is it gives you the JSON RPC thing that also has like the type in between the other fields. It gives you this representation of JSON RPC and adds the ability to prove that the answer is correct.
+00:10:33.900 - 00:10:45.224, Speaker B: I see. Do any other client teams have thoughts or comments curious to hear, especially on.
+00:10:45.262 - 00:10:50.350, Speaker A: This idea of embedding derivable values into a consensus object?
+00:10:59.610 - 00:11:08.642, Speaker D: It seems weird to me, but I don't mind. I mean, I will follow whatever you decide.
+00:11:08.706 - 00:11:09.320, Speaker E: Guys.
+00:11:17.400 - 00:11:18.340, Speaker B: Anybody else?
+00:11:18.410 - 00:11:19.124, Speaker C: What is the reason?
+00:11:19.162 - 00:11:26.264, Speaker D: Why do we have derived fields there? If it's derived, we cannot calculate it.
+00:11:26.302 - 00:12:00.470, Speaker C: When we need it. The reason is with the normalized representation that even if it's an SSC transaction, those fields are not part of the tree. So to compute them. You need to download the entire transaction, including all the call data, which can be very big. And one of my use cases is a device that has 64 ram. So the call data doesn't necessarily even fit in there.
+00:12:05.730 - 00:12:08.014, Speaker B: So it's not really derived fields, like.
+00:12:08.052 - 00:12:13.680, Speaker D: Derived fields from more data. So then it's not a problem for me.
+00:12:17.430 - 00:13:01.600, Speaker C: To be fair, this hardware that I just mentioned, it is a very common bluetooth chip that is used in Internet of things devices. So you could imagine as a use case, for example, a bicycle lock, and you have your rental pass on your phone and you just want to submit the quick proof that you did your payment and that you have your pass. So the bicycle lock just needs to verify those things and record who sent it so that it can do the billing later. This is the same chip that is also used inside apple Airtags, like those object trackers that you can attach to a key. So it's a very common chip for about $2.
+00:13:08.670 - 00:13:17.770, Speaker B: But will this verification be done on transaction object? This kind of verification?
+00:13:18.350 - 00:14:11.310, Speaker C: I mean, I had to construct it in a way for transactions because we are talking about transactions. Of course in a real world scenario, you also want to verify the receipt so that you know that it was successful. And if it's an NFT, you also want a proof from the state, which right now is this Merkel Patricia tree proof that you need to verify with ketchup. And it's like this east get proof response that one will become virtual later. But you could already do something simple that says if you send one eth to this address, then I can get the sender of it and record it that they paid me with. Just transaction and receipt.
+00:14:21.130 - 00:14:26.710, Speaker A: Any other thoughts on anything related to the proposal?
+00:14:29.290 - 00:15:00.690, Speaker F: The last part kind of sounds to me a bit like over fitting for a very small use case. How often do you suspect IoT devices to verify the transaction but not verify the storage proof? I don't think that this should be a consideration when choosing the SSC.
+00:15:01.590 - 00:15:38.480, Speaker C: No, sure. I mean, normally you combine information from all the three tries that you have, receipts, transactions and the state. But as part of this you may have a transaction proof. Of course we can say that there is no use case for the transaction tree and then we don't need an SSC representation at all. It would just mean that we would transition the Merkel Patricia tree to an SSE tree, but underneath there would just be the byte vectors. I guess that could be an approach as well.
+00:15:43.770 - 00:15:46.566, Speaker B: Did you consider adding some of these.
+00:15:46.588 - 00:15:53.610, Speaker A: Derived fields to the receipt rather than to the transaction object at the start.
+00:15:53.680 - 00:16:34.630, Speaker C: I consider that, because then what you gain is that the extra fields are not part of the consensus payload anymore. So they are not part of the block. They don't make the block bigger anymore. But there is a problem when you do the backfill, because right now you can backfill the receipts and the transaction separately. And if those extra fields are part of the receipts tree, you can no longer do that. You essentially need to sync all the transactions first and then all the receipts. So I'm not sure if that's worth it as a restriction.
+00:16:34.970 - 00:16:37.990, Speaker B: Sorry, I don't know if I quite.
+00:16:38.060 - 00:16:57.434, Speaker A: Follow the rationale for that. Why do you need to, you're saying the problem is that it becomes like a sequential thing. You have to download all transactions. If you download the header chain, you have the receipt route.
+00:16:57.482 - 00:17:00.366, Speaker B: So why can you not verify that.
+00:17:00.388 - 00:17:03.940, Speaker A: The receipts just match that? Why do you need to verify against the transactions too.
+00:17:06.390 - 00:17:21.718, Speaker C: If the transaction id designer and the destination is part of the receipts route? Or you mean like if it would also be part of the receipts themselves, then it could work, I guess.
+00:17:21.884 - 00:17:45.760, Speaker A: Yeah, that's what I was referring. I don't know what you mean by part of the receipt route. I meant expanding the receipts because the receipt is kind of a derived object. It feels like if I were to put more derived elements that it would fit more naturally into the receipt, because the receipt comes from executing the transaction. So you would expand it to include the from address, the contract created address.
+00:17:48.210 - 00:17:58.100, Speaker C: Yeah, those two fields could work there. Transaction hash there. You also have the issue that.
+00:17:59.910 - 00:18:00.238, Speaker B: I'm.
+00:18:00.254 - 00:18:17.270, Speaker C: Not sure if that's a use case, but the consensus layer right now, it can answer the query about, hey, give me all the transaction ids inside a block. And if the transaction id is only part of the receipts rule.
+00:18:19.070 - 00:18:19.466, Speaker B: I mean.
+00:18:19.488 - 00:18:20.634, Speaker A: You should be able to compute the.
+00:18:20.672 - 00:18:23.722, Speaker B: Transaction id from the full transaction, right?
+00:18:23.776 - 00:18:33.310, Speaker C: Yeah, if you add ketchup, sure. And if you add all the SSC types to the consensus layer.
+00:18:36.550 - 00:18:42.100, Speaker B: Right. Okay.
+00:18:43.510 - 00:18:52.550, Speaker C: And for the from address, that's true. That one could be moved to the receipts route, the create destination.
+00:18:54.650 - 00:18:55.430, Speaker B: Not sure.
+00:18:55.500 - 00:19:26.320, Speaker C: How much that one gains, because right now there is this optional destination address in transactions, and address is like 20 bytes. So destination one nice advantage is that it's no longer optional. So you can save this extra wrapper of this optional element. But I mean that's, yeah, it doesn't really matter where it is for that one doesn't save space.
+00:19:34.630 - 00:19:46.860, Speaker B: Any other thoughts on this? I think we can circle back in a minute and talk about future steps.
+00:19:46.940 - 00:19:52.396, Speaker A: But I saw there was another proposal that you have Eton this SSE transaction signature scheme.
+00:19:52.428 - 00:19:54.310, Speaker B: Did you want to talk about that on the call?
+00:19:55.960 - 00:20:13.290, Speaker C: I think we should mention it as well. Not sure if it's the right call for it. I mean, it's SSc based and it sort of affects all the SSE transactions, including 4844. I can briefly mention it after if you want.
+00:20:15.660 - 00:20:26.888, Speaker A: I guess the only other thing that we should really talk about is what are going to be the next steps for these proposals for changing the transaction routes and the other routes.
+00:20:27.064 - 00:20:30.256, Speaker B: So it might be nice just to.
+00:20:30.278 - 00:20:32.336, Speaker A: Mention the signature scheme and then we.
+00:20:32.358 - 00:20:35.296, Speaker B: Can talk about how to deal with.
+00:20:35.318 - 00:20:36.880, Speaker A: These things in Cancun.
+00:20:42.400 - 00:20:48.770, Speaker C: Okay, I mean, let's move to the signature scheme then, because for the other one, it seems that.
+00:20:51.060 - 00:20:51.824, Speaker B: There is no.
+00:20:51.862 - 00:21:58.470, Speaker C: More comments on it. So the signature scheme is 6493. This is essentially a way how we can structure SSC transactions in a way so that hash that is being signed is based on a SSC root that is part of the transaction tree. And also so that it is not malleable if there are multiple transaction types that can encode to the same hash, that there is enough information mixed into that hash that they cannot be confused even among different blockchains, different forks from different vendors that may have a different understanding of what a specific transaction type is. If anyone checked it out, I can answer questions as well.
+00:22:01.420 - 00:22:03.210, Speaker B: Yeah, any questions, guys?
+00:22:14.800 - 00:22:20.110, Speaker A: So is this kind of a prerequisite to sort out for 4844?
+00:22:21.440 - 00:22:41.220, Speaker C: Yes, I think you made this pr at some point where you changed the four eight four functions to hash tree root. And this is essentially the follow up of this. How could we do that? And it's also very close to Vitalik's document about SSC unions.
+00:22:43.880 - 00:23:19.040, Speaker G: Just to clarify here you're saying in the ip that included in the signature scheme, there is the fork where this transaction type was introduced. So the fork hash introduced in the fork id. So basically execution clients need to keep track of when each transaction type was introduced in which fork, and include the fork hash for that and the signature for the transaction.
+00:23:19.780 - 00:23:51.390, Speaker C: Exactly. That just uniquely identifies that what is being signed is really this blob transaction from 4844 and not something else. Because there was this problem that I think starknet used transaction type four for something and now we can never use four ourselves. And I'm not even sure what happened to three. And there is also 25 that is being used for message signatures. So we cannot use that for a transaction type anymore. Just get rid of this problem.
+00:23:51.920 - 00:24:21.460, Speaker G: But won't the genesis hash and the chain id add enough uniqueness that even if the transaction type four, for example, matched the transaction type that darknet or whatever other chains are doing, then chain id and the genesis hash will uniquely identify that, oh, this is in a certain chain and a certain genesis.
+00:24:23.240 - 00:24:55.170, Speaker C: Maybe. I'm not sure about those forks like EThw or East classic. Maybe some of them don't change the chain id initially or change it later. It could be that I put too much information in there. Also, there could be different chain ids. Maybe it's all right without that fork hash. I'm not sure.
+00:25:02.830 - 00:25:12.110, Speaker G: I'm pretty sure they changed the chain id. But Genesis hash is the same for both EW and ethereum classic.
+00:25:15.490 - 00:25:25.550, Speaker B: On the other hand, if we have fork hash, genesis hash and chain iD kind of are redundant, right? The other way around. Fork hash is unique, completely per chain.
+00:25:26.310 - 00:25:28.690, Speaker C: Unless there is a three way fork.
+00:25:29.910 - 00:25:34.020, Speaker B: Okay, maybe. But Genesis hash can be dropped. Definitely.
+00:25:37.530 - 00:25:42.040, Speaker C: Fork version includes genesis hash, I guess. Yes.
+00:25:43.290 - 00:25:47.290, Speaker G: So if we're including the fork, maybe we can drop the genesis.
+00:25:50.830 - 00:26:03.786, Speaker F: Quick question. If we're including the fork hash, then will my transactions just not be valid anymore after a fork?
+00:26:03.898 - 00:26:12.290, Speaker C: No, it's the fork hash when the transaction type was introduced on a network. Okay, transaction always cancun, essentially.
+00:26:14.310 - 00:26:15.540, Speaker B: I see. Thanks.
+00:26:17.030 - 00:26:23.742, Speaker G: And this is only of course for new transactions like SSD transactions and the coming ones, right?
+00:26:23.896 - 00:26:26.722, Speaker C: Yes, this is only for SSD transactions.
+00:26:26.866 - 00:26:27.560, Speaker B: Okay.
+00:26:31.570 - 00:27:16.270, Speaker C: So one thing that I try to do here is to keep it as close as possible to consensus. Where they have Genesis validator root and a fork version. They don't have the chain iD, but maybe, I'm not sure why they have both the genesis validators route and the fork version. Maybe that's just an extra safety thing. But if we know who created those specifications, maybe we can find out if the fork version is necessary or the genesis hash is necessary.
+00:27:21.010 - 00:27:26.750, Speaker B: Yeah, that sounds good. Any other comments on the signature format?
+00:27:35.570 - 00:27:38.190, Speaker G: Can you clarify domain types?
+00:27:39.890 - 00:28:10.520, Speaker C: A domain type is just a four byte value that is used to distinguish a kind of signature that is being signed. So in consensus, there is, for example, one domain type for signing beacon blocks. There is one domain type for signing attestations. There is one domain type for doing sync committee contributions. And here I sort of create one domain type per transaction type.
+00:28:17.300 - 00:28:20.610, Speaker G: What's the idea behind this?
+00:28:21.380 - 00:29:16.710, Speaker C: The idea is that if you have a transaction, for example, that has a UN 32 and that's type one, and then you have another transaction that has two Un 16s for example, or a UN 64. They could both end up having the same hash in the end. Yeah, the UN 32 and the UN 64, they could have the same hash value. And putting in this domain type that contains the transaction type solves this by giving a separate hash for each of them. Otherwise when you sign one of the transactions, it could be interpreted as a valid signature for the other transaction type.
+00:29:21.640 - 00:29:36.184, Speaker B: Yeah, got it. Thank you. Eton.
+00:29:36.252 - 00:29:48.200, Speaker A: Is there anything else that you wanted to mention that we haven't covered, or should we start talking a little bit about how we think about making these decisions for Cancun?
+00:29:51.020 - 00:30:11.390, Speaker C: There are a couple minor questions left. Like chain id, should it be a UN 256 or should it be a UN 64 or should it be a byte vector 32? Just those minor things, I'm not sure if we need to discuss them on the call. I guess those can be.
+00:30:12.160 - 00:30:13.616, Speaker B: I would say it has to be.
+00:30:13.638 - 00:30:15.120, Speaker A: Greater than 64 bit.
+00:30:15.270 - 00:30:21.024, Speaker B: But I don't know about the byte vector versus Un two five six that.
+00:30:21.062 - 00:30:46.680, Speaker C: There used to be a proposal where they wanted to create deterministic chain ids based on some hashes. So if we want to support it, it sort of needs to be a UN 256 or byte 32. Yeah, there are some arguments for UN 64 as well for legacy transactions because they do arithmetic on those chain ids.
+00:30:51.480 - 00:30:53.350, Speaker B: What is the arithmetic they do.
+00:30:55.080 - 00:31:06.280, Speaker C: For computing the signatures v value? They use chain id times two plus 45 plus 35 plus y parity.
+00:31:06.620 - 00:31:07.370, Speaker B: Right.
+00:31:08.780 - 00:31:19.230, Speaker C: And metamask, because it's Javascript based, they have an even lower limit, like this UN 53 or something that they accept as a valid chain id.
+00:31:20.400 - 00:31:21.390, Speaker B: I see.
+00:31:22.400 - 00:31:26.670, Speaker C: But yeah, I mean, that's a detail that we don't need to have. Everyone.
+00:31:29.540 - 00:31:31.200, Speaker A: Any other small details.
+00:31:36.740 - 00:32:11.470, Speaker C: More about these block transactions? They are very rare, I think one to four blobs per block. And there was this proposal from POTUS to even separate the blob transactions into a separate tree. I'm not sure what happened to that one. But there is this question whether we want to always include the blob information or keep it as an optional. Right now I have it as an optional, but it's the only place where we have an optional field inside the entire protocol, so it feels a bit off.
+00:32:14.400 - 00:32:15.964, Speaker B: There's not an optional for the two.
+00:32:16.002 - 00:32:33.332, Speaker C: Address, not anymore, because it just becomes a union of either it's a regular transfer or it is a create, and then you have the destination there. You don't need an optional there.
+00:32:33.466 - 00:32:35.764, Speaker B: Right, okay, I see.
+00:32:35.962 - 00:32:54.730, Speaker C: And for the 4844 transaction, I think, Marius, you preferred if they would not be allowed to also have a create intent. So you cannot deploy a transaction and have a blob at the same time. So it would also get rid of the optional there.
+00:32:55.360 - 00:32:57.790, Speaker E: Yes, I would love that.
+00:32:59.680 - 00:33:16.150, Speaker B: Nice. Okay. Yeah, I guess let's talk a little bit about what to do next, how to get ready for Cancun.
+00:33:16.650 - 00:33:56.546, Speaker A: Obviously we have the Allcore devs call tomorrow where I'm sure we'll talk about some of these. Know, personally I feel I'm a little bit behind on what you've been up to, so I will spend some time and try and catch up a bit. But I think there is quite a bit here and we're starting to really think about everything that could be done, like having some derived fields in the transaction. This is kind of a new idea. I know there's a little bit of talk about maybe also getting rid of the bloom filter, changing the receipt format. We're starting to discuss lots of things.
+00:33:56.728 - 00:34:00.562, Speaker B: And I would say one, it's really.
+00:34:00.616 - 00:34:03.960, Speaker A: Important that we have more people engaged with it.
+00:34:06.490 - 00:34:07.798, Speaker B: I don't want to get this to.
+00:34:07.804 - 00:34:24.940, Speaker A: Get to a point where Eton, you're doing most of the work, like writing a lot of proposals, and it's not until two or three months later where people start really engaging with it. Because I think that this is going to take a lot of work from many different client teams to figure out what the best solution is. So we should keep that in mind.
+00:34:26.430 - 00:34:28.218, Speaker B: I also think it's sort of difficult.
+00:34:28.304 - 00:34:59.720, Speaker A: To follow all the different things right now. One good way of trying to really understand how all these things fit together is just to go and implement this as if we're implementing it for Cancun. And I don't even know where to start right now. So if you had the ability to create some sort of meta spec, like here are the three or four or five eips that we intend to put in Cancun together. That would be pretty useful for myself.
+00:35:05.610 - 00:35:12.570, Speaker C: How do these meta specs work? Is that another eip that then umbrella?
+00:35:13.390 - 00:35:40.850, Speaker A: The way that it's been done in the past is people will just create a hack MD of sorts. It could be like whatever, it doesn't have to be an EIP, it could be whatever document format you like and just write some information. Like here are four eips, this is how they fit together. And just use that as some sort of tracker to track maybe what clients have implemented what. Where can I discuss if I have a question about something like what is the right form to discuss that, et cetera?
+00:35:42.570 - 00:36:02.780, Speaker C: Okay, so I can create this metaspec. I will also have to update the receipts similarly to the transaction. What about this idea of moving the derived field into the receipt? Should I try and explore that as well?
+00:36:04.350 - 00:36:05.386, Speaker A: I think it would be great to.
+00:36:05.408 - 00:36:08.254, Speaker B: Explore it, but I think we really.
+00:36:08.292 - 00:36:40.690, Speaker A: Need to have more people get eyes on this thing without getting more commitment from client teams that this is even a direction they want to go, then it's kind of moot if a lot of clients say they don't. They think that having to write fields in consensus objects doesn't make sense. So I would say that's something we should probably discuss on all core devs. Just looking at the transaction route eap.
+00:36:40.850 - 00:36:43.222, Speaker B: There'S like a lot going on and.
+00:36:43.276 - 00:37:00.240, Speaker A: I'm not sure the best way to really engage everybody with the content. I'm sort of looking at it right now and it's hard to think about how much this is going to change the client code base.
+00:37:00.930 - 00:37:01.534, Speaker B: Right.
+00:37:01.652 - 00:37:10.130, Speaker A: So without that, I think a lot of people will just glaze over this until the very last moment and we really need to get them engaged.
+00:37:15.020 - 00:37:33.630, Speaker E: There is quite a general question about what can be if we passport all this, will it damage the system? Is it the best choice to deliver it during Cancun or not?
+00:37:36.480 - 00:37:40.504, Speaker B: I think a lot of the conversations.
+00:37:40.632 - 00:37:52.900, Speaker A: That we're having now sort of came out of the fact that four four four is really the next slated big thing to happen for the protocol. And because there is this desire to have 44 four as an SSC transaction.
+00:37:53.720 - 00:37:55.412, Speaker B: It feels like it's the right time.
+00:37:55.466 - 00:38:21.468, Speaker A: To do some of these changes, like moving things to SSC. Otherwise we end up in a similar situation that we have with withdrawals, where we shipped withdrawals because it needs to be done or in the process of shipping withdrawals. But we are using the Merkle Patricia tree and very quickly after we are expecting to change it to SSC. And I think that if we do four a four four, we're going to have this hacky format for four a.
+00:38:21.474 - 00:38:23.596, Speaker B: Four four where we come up with.
+00:38:23.618 - 00:38:53.108, Speaker A: Some weird signature scheme, we come up with some way of putting into the Merkel Patricia tree and then we end up changing it later on or we create a much harder environment to change it to what we want. So I think that's, for me, the main reason that this has come up and why it's sort of getting coupled together with four four four. I'm sure that Eton you can share your perspective, but I think from your perspective, we really need a lot of these changes to make light clients viable.
+00:38:53.284 - 00:38:56.744, Speaker B: And that's obviously a huge part of.
+00:38:56.782 - 00:39:00.090, Speaker A: The Ethereum roadmap is improving the viability of those things.
+00:39:02.940 - 00:39:51.850, Speaker C: Yeah, I mean, I cannot really add anything here. You already said yeah, so the idea is to put it in Cancun, but I don't expect there to be a huge change for execution layer, because most of this is about the representation as part of consensus. There is no new feature or removed feature. Maybe the blobs, maybe there was loom, things get removed, but whatever. And you can always convert between those representations. If you don't have the internal code ready yet, you can just convert it back to some format, process it as usual, and then convert it to whatever you need. If you just need to ship something fast.
+00:39:51.850 - 00:40:00.460, Speaker C: So the main challenge here is really the design work and also finding agreements.
+00:40:04.410 - 00:40:15.606, Speaker A: The other client developers have comments on this, especially on how can we move forward and make decisions. There are a lot of different aspects.
+00:40:15.638 - 00:40:21.100, Speaker B: Of this proposal and a lot of different ways of comparing them.
+00:40:23.810 - 00:41:22.640, Speaker E: That is very interesting to hear about additional clients, I mean like low computation power devices and so on. And probably it would be cool to have such examples somewhere like who can be a consumer so we can consider it in our assumptions to check if it fits zero needs or not for us execution client developer develops for server like platforms, right? And we are not aware a lot about low end devices, for example. If you could provide more information about that, could be helpful to understand the motivation about some points and so on.
+00:41:24.290 - 00:41:30.340, Speaker B: Yeah, that's a good point. I wonder if it would be useful to try.
+00:41:31.110 - 00:41:34.834, Speaker A: Maybe this is like an easier place to find alignment is to try and.
+00:41:34.872 - 00:41:46.674, Speaker B: Discuss what are the goals of this proposal and change. Because I don't know if all of the core developers feel that changing consensus.
+00:41:46.722 - 00:42:05.840, Speaker A: To make it more amenable for proving on low resource environments is an important thing to do. It seems like a really useful aspect, but maybe there's arguments that in the farther future, if we're able to create a snark of the entire protocol that's very small, that this should be.
+00:42:07.730 - 00:42:08.094, Speaker B: All.
+00:42:08.132 - 00:42:19.330, Speaker A: That lower power device is needed, and it's not necessary to also have really efficient ways of proving certain values of transactions.
+00:42:20.230 - 00:42:24.114, Speaker B: So I don't know if that would be a useful thing to talk about a little bit.
+00:42:24.152 - 00:42:26.018, Speaker A: Tomorrow is sort of like what is.
+00:42:26.024 - 00:42:29.682, Speaker B: Our alignment on this change in general.
+00:42:29.816 - 00:42:31.446, Speaker A: What are we really trying to achieve with it?
+00:42:31.468 - 00:42:33.906, Speaker B: And then use that as the rubric.
+00:42:33.938 - 00:42:49.722, Speaker A: Because we now have a really good idea of what is the performance considerations of the two things now we need to spend a little bit of time of thinking about how do we go on from there. What is the measuring stick to figure.
+00:42:49.776 - 00:42:52.974, Speaker B: Out if the unified version or the.
+00:42:53.012 - 00:42:55.120, Speaker A: Union version is better.
+00:42:58.030 - 00:42:58.490, Speaker B: Yeah.
+00:42:58.560 - 00:43:38.950, Speaker C: Also for those snarks, even if the verifier has constant performance, it doesn't matter how complex the proof is. For the verifier, you have the proving cost, obviously, and that one depends on things like the branching factor. It depends on the hash functions that are involved. And I could try and ask a zero knowledge guy to estimate those two proposals as well. So we have numbers there as well that compare the proving cost, if that is relevant.
+00:43:40.330 - 00:43:47.990, Speaker A: I think it's hard because I don't think we're very close to a true ZK circuit of the whole protocol.
+00:43:48.070 - 00:43:51.146, Speaker B: And so the numbers that we would.
+00:43:51.168 - 00:44:06.480, Speaker A: Get back are probably pretty far, unless it's like orders of magnitude difference, pretty far from being relevant in the overall scheme. More information is obviously better, but.
+00:44:08.230 - 00:44:08.498, Speaker B: I.
+00:44:08.504 - 00:44:36.390, Speaker A: Don'T want to drown everyone in the information. Okay, all core devs call tomorrow. I haven't looked at the agenda. Did you open a point on the agenda Eton to discuss the ssdification of.
+00:44:36.460 - 00:44:38.134, Speaker B: Things or not yet?
+00:44:38.252 - 00:45:06.014, Speaker C: I haven't so far. I can add it together with this, whether we want derived fields in the transactions tree, or whether we want to force them into the receipt. And also these sample clients, like what clients do we want to optimize for or what clients are there, I guess.
+00:45:06.212 - 00:45:20.886, Speaker A: Yeah, I think that'd be great. It looks like Tim's already put a summary of the SSD transactions breakout room, this one on the agenda, so we will talk about it. But I think it would be useful for you and everyone else on this.
+00:45:20.908 - 00:45:23.654, Speaker B: Call to think about what to talk.
+00:45:23.692 - 00:45:25.190, Speaker A: About on the call tomorrow.
+00:45:28.970 - 00:46:23.160, Speaker E: Yeah, just a small point to mention is that SSD based hash calculation actually is a new topic for execution client, and probably some of execution clients will require more time to implement it if we want to move to other type of tree of root calculation. I mean to merkel calculation, right? Instead of Merkel Patricia tree. So it is small point about moving Cancun update in further future because of that, if we want to switch, so maybe it will require more time just.
+00:46:25.150 - 00:46:26.938, Speaker A: Yeah, that makes sense.
+00:46:27.024 - 00:46:29.754, Speaker B: I would say that in general, if.
+00:46:29.792 - 00:46:40.898, Speaker A: Execution client teams haven't started or are not looking at implementing or using a full SSE library that also does hatchery.
+00:46:40.934 - 00:46:43.566, Speaker B: Routes, they should probably be doing so.
+00:46:43.668 - 00:46:52.820, Speaker A: Because I think it's almost certain that the 44 four transaction signature hash will be a hash tree root of something.
+00:46:53.750 - 00:47:07.650, Speaker B: So I would keep that on everybody's radar. We got ten minutes left.
+00:47:08.500 - 00:47:15.040, Speaker A: Anything that people want to talk about that we didn't get a chance to discuss? Any other comments on Cancun?
+00:47:25.510 - 00:47:58.046, Speaker D: Maybe just like you mentioned already once, this hack MD would be nice to have the list of all the stuff I see, like withdrawals, route transactions, route ssdfcation, all these other things have a list of what all the things are being taught. Like right now most of them are in draft. So which of them are how close to being Cancun? All of them. Or maybe some of them. Or is there some dependencies between them? I'm not completely.
+00:47:58.148 - 00:47:59.482, Speaker E: Maybe this was a discussion.
+00:47:59.546 - 00:48:57.970, Speaker A: Yeah, I mean, that's something we should discuss tomorrow. But I wouldn't use the EAP status as how likely it is to go into Cancun at this point. I think it's right now pretty likely that we do. Probably all of the changes that we're talking about. Ss of the Merkel Patricia tree, routes for transactions, receipts. Yeah, I think that's pretty likely at this point, but we should continue discussing it. Anything else that would be useful as a client developer, as an El developer, if you were interested in prototyping this, is there something that would be helpful for you to get started?
+00:49:00.180 - 00:49:11.990, Speaker D: I would always like to have test cases. Like how example of something that somebody considers valid signatures or whatever.
+00:49:16.700 - 00:49:20.520, Speaker C: Do you mean for the blob transactions?
+00:49:24.500 - 00:49:56.030, Speaker D: For example, transactions we already have. I don't know exactly what I mean. It's like when we are implementing EIP, having a test case upfront is better. And of course if we are prototyping, we probably don't have everything and stuff, but like new transaction structure, normalized transaction. What does it look like when it's actually in bytes, so that I can teleze it myself and see whether my implementation serialize it correctly and so on.
+00:49:57.520 - 00:50:05.950, Speaker C: Sure, yeah, can do that, but probably after the design work is.
+00:50:10.320 - 00:50:11.650, Speaker B: Yeah, that makes sense.
+00:50:12.980 - 00:50:15.520, Speaker C: So I will do one in Python.
+00:50:17.300 - 00:50:21.332, Speaker B: Great. Yeah, that would be great.
+00:50:21.386 - 00:50:43.450, Speaker C: Thank you. Is there anyone who has strong feelings about the union thing, who thinks that the normalized transaction is bad in a fatal way?
+00:50:51.390 - 00:50:53.022, Speaker A: I don't feel like I've spent enough.
+00:50:53.076 - 00:50:57.246, Speaker B: Time understanding the work that you've done.
+00:50:57.268 - 00:51:08.674, Speaker A: On the normalized transaction format, but I am still apprehensive of it a bit and I need to just spend more time thinking about the differences and trying.
+00:51:08.712 - 00:51:10.260, Speaker B: To implement some of them.
+00:51:11.430 - 00:51:41.210, Speaker C: Yeah, that would be great. Also this idea about moving parts of the fields into the receipt, that could be interesting. As well. We just have to make sure that the sync can stay flexible as is. And, yeah, that we don't overcomplicate things. I mean, this is about two hashes and the destination.
+00:51:50.560 - 00:51:54.556, Speaker B: Okay, guys. Yeah, good call.
+00:51:54.738 - 00:51:56.590, Speaker A: Any last comments before we close?
+00:52:02.170 - 00:52:11.310, Speaker B: All. Okay, cool. Have five minutes. Back to your day. I'll see you all tomorrow on all core doves.
+00:52:12.210 - 00:52:12.766, Speaker F: See you.
+00:52:12.788 - 00:52:13.406, Speaker D: Thank you.
+00:52:13.508 - 00:52:14.266, Speaker B: Bye bye.
+00:52:14.378 - 00:52:14.940, Speaker A: Thanks a lot.
