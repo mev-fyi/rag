@@ -229,12 +229,13 @@ def find_closest_match(video_title, df_titles):
     max_overlap = 0
     best_match = None
     for title in df_titles:
-        overlap = sum(1 for a, b in zip(video_title, title) if a == b)
+        # Ensure title is a string before iterating
+        title_str = str(title)
+        overlap = sum(1 for a, b in zip(video_title, title_str) if a == b)
         if overlap > max_overlap:
             max_overlap = overlap
-            best_match = title
+            best_match = title_str
     return best_match
-
 
 def move_remaining_mp3_to_their_subdirs():
     # Load the DataFrame
@@ -263,7 +264,6 @@ def move_remaining_mp3_to_their_subdirs():
         if video_title == containing_dir:
             continue
 
-        # video_row = youtube_videos_df[youtube_videos_df['title'].str.contains(video_title, case=False, na=False, regex=False)]
         best_match = find_closest_match(video_title, df_titles)
         video_row = youtube_videos_df[youtube_videos_df['title'] == best_match]
 
@@ -828,6 +828,7 @@ def copy_and_rename_website_docs_pdfs():
 
 
 if __name__ == '__main__':
+    pass
     # copy_and_verify_files()
 
     # copy_and_rename_website_docs_pdfs()
