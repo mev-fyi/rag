@@ -76,7 +76,7 @@ def transcribe_and_save(api_key_file_path):
         # Similarly for the JSON path if needed, adjust based on how you get or store the transcript_file_path
         transcript_file_name = os.path.basename(transcript_file_path)  # Gets the file name from the full path
 
-        logging.info(f"Diarization started for {channel_name}/{file_name}")
+        logging.info(f"Diarization started for [{channel_name}/{file_name}]")
 
         import assemblyai as aai
         config = aai.TranscriptionConfig(speaker_labels=True)
@@ -84,7 +84,7 @@ def transcribe_and_save(api_key_file_path):
         transcript = transcriber.transcribe(file_path, config=config)
 
         if transcript is None:
-            logging.error(f"Transcription returned None for file: {file_path}. This may be due to a '409 Conflict' error.")
+            logging.error(f"Transcription returned None for file: [{file_path}]. This may be due to a '409 Conflict' error.")
             return
 
         utterances_dicts = [utterance_to_dict(utterance) for utterance in transcript.utterances]
@@ -92,7 +92,7 @@ def transcribe_and_save(api_key_file_path):
         with open(transcript_file_path, 'w') as file:
             json.dump(utterances_dicts, file, indent=4)
 
-        logging.info(f"Transcript for {channel_name}/{file_name} saved to {channel_name}/{transcript_file_name}")
+        logging.info(f"Transcript for [{channel_name}/{file_name}] saved to [{channel_name}/{transcript_file_name}]")
 
     except Exception as e:
         logging.error(f"Error transcribing {file_path}: {e}")
