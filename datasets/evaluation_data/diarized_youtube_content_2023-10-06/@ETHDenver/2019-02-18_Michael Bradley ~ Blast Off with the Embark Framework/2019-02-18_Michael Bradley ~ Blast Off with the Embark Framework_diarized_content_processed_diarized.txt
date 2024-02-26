@@ -1,0 +1,302 @@
+00:00:20.620 - 00:00:35.060, Speaker A: All right, I am Michael Bradley. I'm here representing status. I'm part of the team that develops the open source embark framework, and I'm excited to be here with you today. Over the next 30 minutes, I'm going to give you a whirlwind tour of developing decentralized applications, or Dapps.
+00:00:35.140 - 00:00:37.096, Speaker B: With embark, I'm going to give you.
+00:00:37.118 - 00:00:43.384, Speaker A: A 10,000 foot view of the tooling, and with the remaining time, work through some initial steps of building a fresh.
+00:00:43.432 - 00:00:46.284, Speaker C: Dap, because time is short.
+00:00:46.322 - 00:00:49.544, Speaker A: If you'd like to get hands on with embark, please check out a tutorial.
+00:00:49.592 - 00:00:51.948, Speaker B: Series just launched by another member of.
+00:00:51.954 - 00:01:03.730, Speaker A: The embark team, Pascoprecht. The link is there on the slide. Building a decentralized Reddit, and you can check out the bit ly link, and I'll put that back up on the screen in just a bit.
+00:01:07.480 - 00:01:10.196, Speaker C: Can you hear me okay?
+00:01:10.298 - 00:01:17.340, Speaker B: Is that better? All right, so what's in adapt? Generally there are four fundamental components.
+00:01:17.520 - 00:01:29.376, Speaker A: We have decentralized computation, which would be the blockchain, its consensus mechanisms, and smart contracts. There's decentralized storage, that could be ipfs, could be swarm, maybe some other technologies.
+00:01:29.428 - 00:01:40.460, Speaker B: That come along, decentralized messaging, such as Whisper, and finally a decentralized name system. Those are going to be the four main building blocks. So what's embark?
+00:01:41.520 - 00:01:52.688, Speaker A: Embark brings all these things together. It makes it easy to launch the processes for these components altogether. Within one unit, it creates an immersive and interactive development environment that's going to.
+00:01:52.694 - 00:02:00.790, Speaker B: Help you develop, debug, test, and finally deploy your DAP. Deploy your DaP when the time is ready.
+00:02:04.280 - 00:02:07.140, Speaker A: So let's talk about some prerequisites.
+00:02:09.880 - 00:02:11.476, Speaker B: To use embark, you would need node.
+00:02:11.508 - 00:02:14.996, Speaker A: JS version 811, three or newer.
+00:02:15.028 - 00:02:17.316, Speaker B: I actually recommend the LTS version.
+00:02:17.348 - 00:02:27.148, Speaker A: The latest LTS, which would be in the 1015 series. I do not at this time recommend a node version eleven install. There are some API compatibility problems with.
+00:02:27.154 - 00:02:29.340, Speaker B: The Node JS standard library.
+00:02:30.080 - 00:02:35.112, Speaker A: You would need developer tools on your machine. So if you're on macOS, that would be xcode.
+00:02:35.176 - 00:02:35.948, Speaker B: For example.
+00:02:36.114 - 00:02:39.356, Speaker A: If you were on Linux, you would do it was a Debian distro.
+00:02:39.388 - 00:02:41.616, Speaker B: You'd app get install build essential if.
+00:02:41.638 - 00:02:48.364, Speaker A: You'Re on Windows, there's a Windows developers tools package that you can install directly and freely from NPM.
+00:02:48.412 - 00:02:53.300, Speaker B: As long as you have admin privileges on the machine. You're going to need an ethereum client.
+00:02:53.640 - 00:03:18.990, Speaker A: That could be parity. It could be a simulator. I'm going to be using guest today or go Ethereum. You also need to have a storage daemon installed that's typically ipfs or swarm. I'm going to be using ipfs. If you have any questions about the installation, you have trouble with that, I encourage you to check out our docs at the link at the bottom of the slide. There's a section for each of those components and you should be able to get up and running pretty quickly.
+00:03:18.990 - 00:04:03.796, Speaker A: All right, so that's about it for the slides. Actually, I'm going to be jumping in to the command line to show off a little bit of what it's like to work with embark. However, I do want to mention something before we start that embark is undergoing some significant changes. Our current beta release is embark version four, beta zero. We're going to be releasing beta one pretty soon and we're going to be making some important and exciting changes as we go through today through the demo, you're going to notice that embark has a built in web pipeline that's basically Babel and webpack working together to compile the front end assets. We found that's too restrictive. Many of our users have complained that our own pipeline is too restrictive.
+00:04:03.796 - 00:04:09.608, Speaker A: It's not easy enough to adapt to a custom purpose or to integrate potentially with other tooling, say, if you preferred.
+00:04:09.624 - 00:04:11.288, Speaker B: To use angular's tools.
+00:04:11.464 - 00:04:25.970, Speaker A: So embark for the beta one, which will be released soon, is actually going to make that possible. And the embark team is actually working really hard right now on refactoring embark to make that possible. So watch out for the release. It's going to be exciting times.
+00:04:28.600 - 00:04:43.016, Speaker B: All right, so let's open up a terminal. I'm going to blow up the font a little bit here and I'm going.
+00:04:43.038 - 00:04:44.696, Speaker A: To check the prerequisites really quick, like.
+00:04:44.718 - 00:04:45.450, Speaker B: I mentioned.
+00:04:48.780 - 00:04:49.304, Speaker A: 1 second.
+00:04:49.342 - 00:05:03.096, Speaker B: All right, so we talked about having geth installed and we can see that's available ipfs. I have a compiler right node version.
+00:05:03.128 - 00:05:16.724, Speaker A: I'm actually tracking the node and NPM version in my command line, so I've got all the pieces in place. The next step that people typically are going to take is to install embark globally. This is what you would do. Now, I already have it installed, so I'm not going to run this command, but what that would look like is.
+00:05:16.762 - 00:05:23.380, Speaker B: NPM install global embark at next.
+00:05:23.530 - 00:05:43.230, Speaker A: Now note the at next part on the end. That's the package distribution tag. If you leave that off, you'll actually get embark version three, which is still our current stable release. But today we're going to be looking at embark version four features and I would encourage you to go with the beta. So if you want to explore what I'm covering. So make sure to put that next on the end.
+00:05:44.480 - 00:05:48.408, Speaker B: All right, having already done that, embarks.
+00:05:48.424 - 00:05:55.032, Speaker A: On my global path. Right, and I'm going to go ahead and invoke it along with the version command.
+00:05:55.176 - 00:05:55.756, Speaker D: And we'll see.
+00:05:55.778 - 00:06:02.992, Speaker A: We've got 400 and beta zero. Now I'm going to invoke embark without any arguments. Just to give you a look here at the.
+00:06:03.126 - 00:06:06.770, Speaker B: Let's see what that looks like on the screen. Narrow it up a little bit.
+00:06:07.620 - 00:06:12.416, Speaker A: All right, there's quite a bit of help output. Embark covers a lot of territory and we're barely going to scratch the surface.
+00:06:12.448 - 00:06:12.836, Speaker B: Today.
+00:06:12.938 - 00:06:14.756, Speaker A: For example, it comes complete with a.
+00:06:14.778 - 00:06:18.020, Speaker B: Command line scaffolding interface for building Dapps.
+00:06:19.100 - 00:06:24.632, Speaker A: Each of these commands has help as well. So if we were to append help.
+00:06:24.686 - 00:06:28.010, Speaker B: After a command, we'd see command specific help.
+00:06:28.860 - 00:06:36.140, Speaker A: All right, the docs have all the details on what these commands do and how some of the flags work, so definitely seek out the documentation.
+00:06:37.920 - 00:06:39.388, Speaker B: All right, so let's get to the.
+00:06:39.394 - 00:06:41.516, Speaker A: 10,000 foot view by spinning up the.
+00:06:41.538 - 00:06:43.740, Speaker B: Built in embark demo, taking a look.
+00:06:43.810 - 00:06:46.076, Speaker A: At the command line dashboard and at.
+00:06:46.098 - 00:06:50.336, Speaker B: The web based cockpit, as we call it. So I'm going to change to my.
+00:06:50.358 - 00:06:54.050, Speaker A: Dapps directory and I'm going to run a command embark demo.
+00:06:55.940 - 00:06:59.156, Speaker B: All right, this is basically going to take a template and spin it up.
+00:06:59.178 - 00:07:02.180, Speaker A: It installs all the dependencies on the fly with NPM.
+00:07:03.000 - 00:07:05.910, Speaker B: We're going to switch into the demo directory and we're going to run it.
+00:07:08.040 - 00:07:10.036, Speaker A: All right, now the command line dashboard.
+00:07:10.068 - 00:07:11.720, Speaker B: Is going to take over my terminal.
+00:07:12.380 - 00:07:13.864, Speaker A: And it's going to prompt me to.
+00:07:13.902 - 00:07:15.320, Speaker B: Open a web browser.
+00:07:18.300 - 00:07:18.824, Speaker D: All right?
+00:07:18.862 - 00:07:21.224, Speaker B: So embark is going to start by.
+00:07:21.262 - 00:07:42.364, Speaker A: Firing up a bunch of child processes, namely processes for go, Ethereum and IPfs. Once it's completed that step, it's going to deploy the contract that comes with the demo. It's called simple storage. Once that's deployed to the local blockchain, it's going to invoke that pipeline I talked about and build out some assets.
+00:07:42.492 - 00:07:50.356, Speaker B: And having completed that, our DAP is up and running the front end of the DAP and the back end.
+00:07:50.538 - 00:07:52.228, Speaker A: And I'm going to make this a.
+00:07:52.234 - 00:07:54.196, Speaker B: Little bigger and we're going to look.
+00:07:54.218 - 00:08:02.968, Speaker A: At our fundamentals again, we talked about the four fundamentals of a distributed application, so we're going to kind of take a surface look here. We're not going to dive into the code, but we're going to interact with.
+00:08:02.974 - 00:08:05.256, Speaker B: The blockchain and these other technologies, so.
+00:08:05.278 - 00:08:06.964, Speaker A: We could set a value by interact.
+00:08:07.012 - 00:08:15.996, Speaker B: By invoking our contract. And that's what the front end ties into storage methods set. We send the value 103 and we.
+00:08:16.018 - 00:08:24.056, Speaker A: Can get it to come back around. If we went back to the dashboard command line, we'd see that we're tracking.
+00:08:24.088 - 00:08:26.744, Speaker B: That, so that as you take actions.
+00:08:26.792 - 00:08:30.368, Speaker A: In the Dapps that you're developing, you can kind of get a sense that.
+00:08:30.454 - 00:08:33.250, Speaker B: Okay, what I'm doing is what I think I'm doing.
+00:08:34.020 - 00:08:37.968, Speaker A: If we move on to decentralized storage, we have the IPFs daemon running locally.
+00:08:38.064 - 00:08:55.930, Speaker B: We can save some text and we can retrieve it from the hash it gave us. We can upload pictures. What's a demo without some cat photos? We can download it.
+00:08:56.300 - 00:08:57.464, Speaker A: All right, so we just went full.
+00:08:57.502 - 00:09:02.164, Speaker B: Circle with ipfs, we have distributed messaging.
+00:09:02.292 - 00:09:06.200, Speaker A: We can listen to whisper channels. So I'm created a channel called ABCD.
+00:09:06.360 - 00:09:08.924, Speaker B: And I'm going to send it a message, 12345.
+00:09:09.042 - 00:09:14.424, Speaker A: And that's going to echo back around. All right, finally we have our naming.
+00:09:14.472 - 00:09:17.840, Speaker B: System, or name system. In this case it's ens.
+00:09:18.580 - 00:09:32.550, Speaker A: We can resolve a name to an address on the blockchain and then we can look up addresses too and get a name back. So in a nutshell, that's the four fundamental components. We see that we've done this through a JavaScript browser. Front end.
+00:09:33.240 - 00:09:40.920, Speaker B: The next thing I want to take a look at is another aspect of working with embark, and it's called whoops. It's called the cockpit.
+00:09:41.580 - 00:09:47.828, Speaker A: So you'll notice that after the DAP fired up, it told us access the web back end with the following URL.
+00:09:48.004 - 00:09:51.550, Speaker B: This is another process that's listening on.
+00:09:53.280 - 00:09:58.716, Speaker A: Localhost port five five. By default, the development web server is.
+00:09:58.738 - 00:10:01.068, Speaker B: Listening on 8000 and this is going.
+00:10:01.074 - 00:10:13.088, Speaker A: To require an access token. All right, so we log into our nice web UI. I will note that some people have a strong preference. Some people are really glued to the.
+00:10:13.094 - 00:10:14.880, Speaker B: Command line and that's where they want to live.
+00:10:15.030 - 00:10:21.300, Speaker A: Other people really would like a more graphical interface and we're trying to serve both needs with embark. And you can use both.
+00:10:21.370 - 00:10:23.030, Speaker B: Actually, they can work well together.
+00:10:24.280 - 00:10:28.692, Speaker A: Just a quick look here. I'm just going to do a superficial overview of the features. I want you to have a sense.
+00:10:28.746 - 00:10:30.144, Speaker B: Of what you get with embark.
+00:10:30.192 - 00:10:31.972, Speaker A: It really is a batteries included system.
+00:10:32.026 - 00:10:34.136, Speaker B: For building dapps in the top right.
+00:10:34.158 - 00:10:40.440, Speaker A: We'Ve got some helpful links to our documentation and our home on GitHub. If you hate dark themes, I'm not a big fan myself.
+00:10:40.590 - 00:10:41.684, Speaker B: Maybe I'm weird.
+00:10:41.812 - 00:10:51.100, Speaker A: You can switch to a light theme, but we'll go back to dark for the demo. We've got a repl here or the console. We could also do this on the command line.
+00:10:51.170 - 00:11:02.064, Speaker B: This is a live Javascript environment. We can enter expressions and we have top level awaits, which is really nice. So let's create a promise, a really.
+00:11:02.102 - 00:11:14.308, Speaker A: Trivial one with promise resolve. And if we await that, we immediately get back the answer so that we don't have to wrap inside an async function. Although we could write our own async function if we wanted to.
+00:11:14.474 - 00:11:16.976, Speaker B: Here we can see the debug output.
+00:11:17.008 - 00:11:22.600, Speaker A: Of the blockchain process. So this is coming from Go Ethereum.
+00:11:24.700 - 00:11:26.968, Speaker B: All right, so let's dig into some other features here.
+00:11:27.054 - 00:11:59.440, Speaker A: Well, actually, if I scroll down a little bit, you'll see there's a summary of the deployed contracts I mentioned. The demo has one built in contract called simple storage. Let's actually go and look at the deployment page. We see more details, we see the arguments that that was instantiated with the transaction hash, how much gas it cost, et cetera. We have a suite of explorers, and the explorers view opens up to basically kind of a little bit of a montage of the explorers. Let's drill down into the individual explorers. We have an accounts explorer.
+00:11:59.440 - 00:12:24.504, Speaker A: There's only one account on the blockchain right now. We have a blocks Explorer, a contracts explorer, and a transactions explorer. Now, hyperlinking is employed throughout this interface. It's easy to move back and forth between these different things that are out on the blockchain. I will point out that right now in beta zero, our security token that governs access to the cockpit is a little too tight. So if I were to open this.
+00:12:24.542 - 00:12:28.728, Speaker B: In a tab, it's not going to work. It's going to say, hey, you didn't.
+00:12:28.744 - 00:12:37.120, Speaker A: Have access, that shouldn't be that way. And we're going to fix that. So for today, and if you work with beta zero yourself, just navigate through, just use the menus to move around.
+00:12:37.270 - 00:12:45.168, Speaker B: So we loaded a transaction, right? We could then go see what block that corresponded to and get all the.
+00:12:45.174 - 00:12:47.510, Speaker A: Low level details if we need them.
+00:12:48.040 - 00:12:52.388, Speaker B: If we go back to accounts, we can click on an account and we.
+00:12:52.394 - 00:12:58.656, Speaker A: Can see the transactions that are associated with that account. All right, so that's the explorers.
+00:12:58.688 - 00:13:02.090, Speaker B: We also have a built in editor, right?
+00:13:03.340 - 00:13:13.044, Speaker A: This is a live editor. If you make changes here in this source file, they are actually going to get saved to disk on your local machine.
+00:13:13.092 - 00:13:13.256, Speaker D: Right.
+00:13:13.278 - 00:13:17.260, Speaker A: It's not just in memory in the browser and it will trigger a redeploy.
+00:13:17.920 - 00:13:19.068, Speaker B: So I'm going to come here and.
+00:13:19.074 - 00:13:23.550, Speaker A: I'm going to add something to the set method. I'm going to say it's going to be plus three.
+00:13:23.920 - 00:13:25.884, Speaker B: And if I save it, we'll see.
+00:13:25.922 - 00:13:38.180, Speaker A: That the contract was automatically recompiled from solidity and redeployed to the blockchain, which is pretty nice. It's going to help keep you in the flow. Also, the pipeline kicks in and we'll recompile any web front end assets that have changed.
+00:13:39.800 - 00:13:45.300, Speaker B: All right, now we're not limited to just looking at contracts in this editor.
+00:13:45.640 - 00:14:05.144, Speaker A: So we could take a look at our test suite. The demo comes with one test built in. Not going to spend a lot of time here, but basically you could edit anything. We could actually edit the DaP itself. Each of the tabs in the demo corresponds to a react or a javascript.
+00:14:05.192 - 00:14:07.896, Speaker B: File which is just using plain vanilla.
+00:14:07.928 - 00:14:35.056, Speaker A: React to get the job done, along with some APIs that embark exposes currently called embark JS, although that name is going to be subject to revision. All right, so there are some advanced features which I'm not going to even touch today. We do have an integrated debugger. It is getting better and better. It is a little buggy right now on beta zero, but it is there and I encourage you to explore with it. That's going to actually let you debug your contracts in this live development environment.
+00:14:35.088 - 00:14:35.990, Speaker B: It's very nice.
+00:14:37.080 - 00:15:11.200, Speaker A: Quick look at the utils. These are pretty simple but handy. We have a units converter. If you have trouble keeping track of just how the units work, obviously you can get the definition, but then you can also plug in numbers and it'll live update. We have a communications panel and a name system panel, which are very similar to the demo tabs in the demo, so I'm not going to show those again. You have the ability to do one off signing and verification of transactions if you need to do that or want to experiment with that. And we also have a transaction decoder.
+00:15:13.620 - 00:15:24.020, Speaker B: All right, so let me catch up with my notes here. I work on this stuff every day, so some of this is just rolling off the tongue.
+00:15:27.000 - 00:15:28.356, Speaker A: All right, so that is it for.
+00:15:28.378 - 00:15:30.096, Speaker B: The broad overview of the tooling.
+00:15:30.208 - 00:15:36.676, Speaker A: There is more to explore, but that's what I'm going to cover today. With respect to the demo, my hope is that having seen what's available, you'll.
+00:15:36.708 - 00:15:38.456, Speaker B: Feel excited to dive in.
+00:15:38.638 - 00:16:04.448, Speaker A: Embark aims to give a true batteries included. Experience, as I've explained before, and I want you to realize that we are in a beta release. We just came out of Alpha. If you use beta zero, you're going to run into bugs and a lot of those bugs probably are fixed in beta one, which should be coming out really soon. We have a getter channel where you're welcome to join us anytime. Come chat to us. We're friendly and our teams distributed all over the world.
+00:16:04.448 - 00:16:13.556, Speaker A: So ods are that there is a team member awake and in the lobby channel on the gitter. So come chat with us. Also, if you find something, find some.
+00:16:13.578 - 00:16:15.876, Speaker B: Behavior that seems to be a new.
+00:16:15.898 - 00:16:27.816, Speaker A: Bug, please feel free to file a GitHub issue. We will try and respond as quickly as we also, you know, everyone at status, the embark team included, but everyone is deeply committed to open source technology.
+00:16:27.998 - 00:16:30.936, Speaker B: So pull requests are very welcome and.
+00:16:30.958 - 00:16:32.296, Speaker A: I would encourage you to get involved.
+00:16:32.328 - 00:16:36.990, Speaker B: We'd love to have you involved. Let's see, how much time do I have left?
+00:16:39.440 - 00:16:39.996, Speaker C: Enough.
+00:16:40.098 - 00:16:49.504, Speaker B: All right. So the next thing I want to do is take a look at what would be involved in creating a fresh dap, right?
+00:16:49.542 - 00:17:00.468, Speaker A: I mean, we worked from the demo. Let's see what it would be like to start more or less from scratch. You don't have to start from scratch, from scratch. You don't have to create all the files yourself. One of our embark commands is going.
+00:17:00.474 - 00:17:03.190, Speaker B: To put all the boilerplate in place for you.
+00:17:05.000 - 00:17:07.108, Speaker A: So I directory down and I'm going.
+00:17:07.114 - 00:17:13.052, Speaker B: To run a command called Embark New now. Embark new actually has some nice features.
+00:17:13.136 - 00:17:20.296, Speaker A: It has the ability to reach out and go at a GitHub repo or really any hosted git repo. So that could be BitBucket or GitLab right now.
+00:17:20.318 - 00:17:22.540, Speaker B: But GitHub seems to be the most popular.
+00:17:23.280 - 00:17:24.856, Speaker A: So you can basically use a GitHub.
+00:17:24.888 - 00:17:26.376, Speaker B: Repository as a template.
+00:17:26.488 - 00:17:29.550, Speaker A: We have a number of templates baked in. That's what I'm going to use today.
+00:17:37.230 - 00:17:37.706, Speaker B: All right.
+00:17:37.728 - 00:17:38.538, Speaker A: And I'm going to give it a.
+00:17:38.544 - 00:17:41.654, Speaker B: Name which will be right.
+00:17:41.712 - 00:17:42.986, Speaker A: You may remember that at the beginning.
+00:17:43.018 - 00:17:44.526, Speaker B: Of the talk I mentioned there is.
+00:17:44.548 - 00:17:56.098, Speaker A: A new tutorial series we just launched. Parts one and two are out. Part three will be coming soon. I'm going to mention that again. So I'm going to quickly work through. I'm going to put some of the code from these tutorials in place and I would encourage you to do a.
+00:17:56.104 - 00:18:12.310, Speaker B: Deeper dive with that material. All right, so having spawned the D Reddit dap from the boilerplate, let's jump in there and take a look real quick at what it did. All right, so I'm not going to go over all these files.
+00:18:12.810 - 00:18:17.354, Speaker A: I'll leave it to you to explore some of this. But I do want you to take note of the main three things, and.
+00:18:17.392 - 00:18:20.726, Speaker B: That is the app, the config, and the contracts.
+00:18:20.758 - 00:18:22.294, Speaker A: And right now there's nothing in contracts.
+00:18:22.342 - 00:18:25.210, Speaker B: Because this is not the demo, this is just the boilerplate.
+00:18:26.510 - 00:18:30.014, Speaker A: This is going to be changing a bit. I talked about beta one is going to change things.
+00:18:30.052 - 00:18:32.078, Speaker B: It's going to change how you develop.
+00:18:32.244 - 00:18:32.574, Speaker C: Right.
+00:18:32.612 - 00:18:35.658, Speaker B: So when we release beta one, it's.
+00:18:35.674 - 00:18:40.634, Speaker A: Going to include a demo that uses create React app. Instead of the old built in Pipeline.
+00:18:40.682 - 00:18:42.778, Speaker B: We'Re going to deprecate the built in pipeline.
+00:18:42.954 - 00:18:49.458, Speaker A: That's going to mean that some of this layout is going to change a bit. So what you see here today with this structure may get slightly revised, but.
+00:18:49.464 - 00:19:18.398, Speaker B: It should be pretty familiar still. All right. Now, as a good practice, we want to initialize our directory as a git repository. And the reason is, of course, that it's going to be easier if you do that to then figure out what you changed, that you experiment, and you could do the same thing with the demo. And I would encourage you, if you're.
+00:19:18.404 - 00:19:20.078, Speaker A: Going to play with the demo, go ahead and do that so then you.
+00:19:20.084 - 00:19:21.882, Speaker B: Can keep track of what you modified.
+00:19:21.946 - 00:19:24.106, Speaker A: And get it back to ground Zero easily.
+00:19:24.138 - 00:19:26.480, Speaker B: You could also always just create a new, fresh demo.
+00:19:27.330 - 00:19:39.374, Speaker A: Now, rather than work in this directory with the code from the tutorials that I mentioned, I'm actually going to take some shortcuts because we are running short on time. I'm going to go to D Reddit.
+00:19:39.422 - 00:19:40.020, Speaker B: Two.
+00:19:41.750 - 00:19:52.710, Speaker A: And I'm going to go back to step Zero. Now, step Zero basically corresponds to what we just did in that other D Reddit directory. So I just had run Embark New.
+00:19:52.780 - 00:19:54.858, Speaker B: And I get initialized and that's it.
+00:19:55.024 - 00:20:11.418, Speaker A: The next step I did was to go to part one of the decentralized Reddit tutorial that Pascal put together. And it recommends creating a contract. It shows you how to do it. It explains a lot about it if you're new to solidity, if you're just getting started, it's not a thorough introduction.
+00:20:11.434 - 00:20:13.166, Speaker B: But it's probably a good way to start.
+00:20:13.268 - 00:20:17.502, Speaker A: Take a look and see what some real contracts do. So I put that contract in place.
+00:20:17.556 - 00:20:23.474, Speaker B: And I checked it in on the step one branch, and if I run.
+00:20:23.512 - 00:20:28.100, Speaker A: Tree l two now, we'll see that under contracts there's Dereddit Sol.
+00:20:28.470 - 00:20:29.746, Speaker B: I'm going to bump the font up.
+00:20:29.768 - 00:20:30.946, Speaker A: A little more because I think it's.
+00:20:30.978 - 00:20:36.550, Speaker B: Just a little too small and I'm going to open that file.
+00:20:42.330 - 00:20:47.798, Speaker A: There's not time to go over all of this. Like I said, the tutorial part one is going to explain all this to.
+00:20:47.804 - 00:20:49.050, Speaker B: You and how it was put together.
+00:20:49.200 - 00:20:58.042, Speaker A: But let's step back and think about what would be in a distributed, I mean, if you were going to try and reinvent Reddit as a decentralized application, what are the key things you would need?
+00:20:58.096 - 00:21:10.158, Speaker B: Well, we're all familiar with Reddit, probably most of us are. There's posts, there's users, and there's the ability to upvote and downvote. All right, so all of those things we can model at least maybe a.
+00:21:10.164 - 00:21:11.522, Speaker A: Little bit naively, but we can model.
+00:21:11.576 - 00:21:17.106, Speaker B: Them with a smart contract and with wallet addresses. Wallet addresses would serve the place of.
+00:21:17.288 - 00:21:19.246, Speaker A: A user account and then the contracts.
+00:21:19.278 - 00:21:21.394, Speaker B: Are going to manage how votes get.
+00:21:21.432 - 00:21:30.118, Speaker A: Recorded and then also they're going to have hashes to material that's stored out on ipfs. So again, I'm not going to cover all this code, but let's just take a quick look.
+00:21:30.204 - 00:21:46.406, Speaker B: We have data structures for posts. We have events that cover new posts and votes, and we have some methods that deal with creating posts, with voting. We have some helper functions that determine.
+00:21:46.438 - 00:21:50.586, Speaker A: All right, can you vote? I mean, maybe that you were referring to a post that didn't even exist.
+00:21:50.698 - 00:21:53.002, Speaker B: Out on the blockchain, or maybe you've already voted.
+00:21:53.146 - 00:21:54.318, Speaker A: And then we have the ability to.
+00:21:54.324 - 00:22:01.582, Speaker B: Go get the vote count. All right, so that's it for part.
+00:22:01.636 - 00:22:18.600, Speaker A: One of the tutorial. In a nutshell, I put that down. Last thing I'm going to do is I'm going to go to step two, which corresponds to part two of the tutorial. And what this put in place.
+00:22:22.330 - 00:22:23.318, Speaker B: Was a test.
+00:22:23.404 - 00:22:25.846, Speaker A: And I'm going to open this up, give a whirlwind tour and then run.
+00:22:25.868 - 00:22:29.306, Speaker B: The test so you can see and pass. So we always want to test our code, right?
+00:22:29.328 - 00:22:29.962, Speaker A: That's what we do.
+00:22:30.016 - 00:22:33.420, Speaker B: As developers, one of the things that.
+00:22:33.870 - 00:22:45.806, Speaker A: Embark empowers you to do is to use Javascript and things you're already familiar with to test your contracts, to test all your code. Actually embark is going to make some global variables available and we're going to be able to test the contracts in.
+00:22:45.828 - 00:22:55.330, Speaker B: The familiar style of the Mocha test runner. So we have some preamble stuff and then we have a suite of tests.
+00:22:57.270 - 00:23:01.220, Speaker A: We're going to test that. It should be able to create a post and receive it via contract event.
+00:23:01.830 - 00:23:02.946, Speaker B: That we should not be able to.
+00:23:02.968 - 00:23:06.386, Speaker A: Vote with an unexisting post. That's the helper method.
+00:23:06.418 - 00:23:07.286, Speaker D: I talked about that.
+00:23:07.308 - 00:23:09.366, Speaker A: We should be able to vote in a post if an account has not.
+00:23:09.388 - 00:23:11.000, Speaker B: Voted before, and so on.
+00:23:11.610 - 00:23:21.866, Speaker A: All these tests are really straightforward. You can use APIs that are exposed by web three or that are exposed by embark itself through what we call embark js. Once you've got your tests written, or.
+00:23:21.888 - 00:23:33.306, Speaker B: Even as you're writing them, you can use Embark's built in test runner to kick off the tests. And this is going to help you have confidence that the contracts you're deploying.
+00:23:33.338 - 00:23:34.718, Speaker A: That your DAP works the way you.
+00:23:34.724 - 00:23:40.994, Speaker B: Would expect it to. So by default, the test runner is.
+00:23:41.032 - 00:24:03.080, Speaker A: Going to use an ethereum simulator. You do have the option to run the test out on your local chain, and you could also run them against. So you could run them against Geth if you wanted to. You could run them against a new geth or even an external geth, but the simulator is the default and it works pretty well.
+00:24:03.610 - 00:24:07.546, Speaker B: So the next step for building this.
+00:24:07.568 - 00:24:20.686, Speaker A: Out would actually be to implement the front end. That's pretty involved. It's not terribly complicated, but it does involve a fair bit of code and it's kind of beyond the scope of this workshop. Especially I'm bumping up against my time limit. What I'm going to encourage you to.
+00:24:20.708 - 00:24:24.938, Speaker B: Do is to seek out again this tutorial series.
+00:24:25.034 - 00:24:53.750, Speaker A: Part three is going to be released soon. In fact, I'm going to talk to the author and see if I can't get him to go ahead and publish it today. And then you can check that out and you can get the end to end picture. Not only you get a brief look at the contracts and how to run the tests, the tutorial is going to tell you more. And then with part three you'll actually be able to dive in and implement that web front end like we had for the embark demo. One last thing I want to mention is if we go to the docs.
+00:24:56.490 - 00:24:58.154, Speaker B: All right, blow this up a little bit.
+00:24:58.192 - 00:25:06.086, Speaker A: In the top left there is a version selector. It always defaults to version the latest stable release, which is still version three. I'm going to encourage you to switch.
+00:25:06.118 - 00:25:12.720, Speaker B: It to version four and then the documentation will be synced up with what version four does, how it works.
+00:25:13.890 - 00:25:23.300, Speaker A: So I want to thank the organizers of ETH Denver today. I know this was a quick tour of embark. I don't know if anybody has any questions or if there's time for some quick questions, be glad to entertain them.
+00:25:28.790 - 00:25:29.540, Speaker B: Anybody?
+00:25:34.630 - 00:25:35.198, Speaker C: Test.
+00:25:35.304 - 00:25:35.960, Speaker D: So.
+00:25:37.850 - 00:25:41.714, Speaker A: What was the motivation for building embark as opposed to using truffle?
+00:25:41.762 - 00:25:45.750, Speaker B: Can I use this congruently with truffle?
+00:25:47.210 - 00:25:54.026, Speaker A: That's a common question. We get that quite a bit. I mean, really, there is a lot of similarity and there's some crossover, and in fact, we make use of some.
+00:25:54.048 - 00:25:55.594, Speaker B: Of the tools that truffle has.
+00:25:55.632 - 00:26:00.922, Speaker A: So, for example, the simulator I keep mentioning is the Ganache simulator, but embark.
+00:26:00.986 - 00:26:03.966, Speaker B: Just has a slightly different aim toward it.
+00:26:03.988 - 00:26:12.302, Speaker A: I mean, we really are going for that batteries included type of approach, and everything is really well integrated together. So I think that you are welcome.
+00:26:12.356 - 00:26:17.506, Speaker B: To use Ganache components if you wish, but I would encourage you to at least give a shot to what comes.
+00:26:17.528 - 00:26:31.446, Speaker A: Out of the box with embark. You may find that it gets the job done, and if not, it's very pluggable. All the embark components fit together as plugins, even internally. It's all set up as a plugin system, so the sky's the limit as far as integrating with stuff that we.
+00:26:31.468 - 00:26:32.520, Speaker B: Haven'T thought of yet.
+00:26:38.950 - 00:26:40.100, Speaker D: No more questions.
+00:26:41.190 - 00:26:41.922, Speaker B: All right, again.
+00:26:41.976 - 00:26:53.526, Speaker A: Once again, many thanks to the organizers of Eat Denver. I've been very happy to be here today, presenting to you. I'm going to be around the conference the rest of this weekend, so if you have any questions or you need any help, please come find me.
+00:26:53.548 - 00:26:53.686, Speaker D: Again.
+00:26:53.708 - 00:27:01.400, Speaker A: My name is Michael Bradley. I'll be very, very happy. I would love to help you get started with embark, learning how to build decentralized applications. Thank you very much.
+00:27:29.240 - 00:27:42.088, Speaker D: Doing fine. How are you? So I'm going to step off. Do you need any doctor or something?
+00:27:42.254 - 00:28:04.670, Speaker C: Yeah, HPMI. Perfect. How you have there? Good, thank you. So it's duplicating the screen.
+00:28:08.580 - 00:28:14.156, Speaker D: You want to extend the desktop or just clone or duplicate the screen? Mirrors. Mirrors or mirrors.
+00:28:14.188 - 00:28:18.290, Speaker C: Okay. Do you want to use?
+00:28:24.420 - 00:28:25.136, Speaker D: We don't need to.
+00:28:25.158 - 00:28:29.250, Speaker C: Do you?
+00:29:08.240 - 00:29:10.510, Speaker D: So here, let me just close these.
+00:29:59.520 - 00:30:00.316, Speaker C: Interesting.
+00:30:00.498 - 00:30:02.030, Speaker D: Well, we want to use.
+00:30:03.040 - 00:30:07.150, Speaker C: I don't know now I don't really know what's going on.
+00:30:15.700 - 00:30:18.080, Speaker D: Is it okay with that little box, Jeff?
+00:30:21.460 - 00:30:22.930, Speaker C: This little box here.
+00:30:24.440 - 00:30:29.092, Speaker D: So when you click present, it has.
+00:30:29.146 - 00:30:30.964, Speaker C: That stuff at the bottom.
+00:30:31.162 - 00:30:32.868, Speaker D: I don't really know how to take it away.
+00:30:32.954 - 00:30:34.116, Speaker C: I don't really mind.
+00:30:34.298 - 00:30:42.490, Speaker D: I think it went away just because any vibration here.
+00:30:43.100 - 00:30:56.824, Speaker C: Hey, how you doing? Hey, Doug. I'm running stage morning. I'll introduce you guys. We have an introductor.
+00:30:56.952 - 00:30:57.630, Speaker D: Okay.
+00:31:02.100 - 00:31:22.470, Speaker C: Are you guys going to do a Q and a portion after? Yeah, as you introduce you to plug the relaxation upstairs and, like, 200 meters to the left, difficult to find.
+00:31:24.520 - 00:31:27.328, Speaker D: There's going to be guided meditation, yoga down there.
+00:31:27.514 - 00:31:31.736, Speaker C: And then tell everybody to make sure.
+00:31:31.758 - 00:31:33.156, Speaker D: They have their water bottle.
+00:31:33.348 - 00:31:36.680, Speaker C: And they talk to sponsors about getting individual stickers.
+00:31:39.440 - 00:31:40.796, Speaker D: Everybody kind of, like, knows about it.
+00:31:40.818 - 00:31:48.140, Speaker C: At the registration, but we just need to remind them. And what's the name of that program? Water bottle sticker.
+00:31:52.800 - 00:31:54.750, Speaker D: With the relaxation room?
+00:31:56.800 - 00:32:03.808, Speaker C: No, there's gonna be pretty cool. So it's up these stairs, hang a.
+00:32:03.814 - 00:32:05.024, Speaker D: Left, and then walk for a long.
+00:32:05.062 - 00:32:07.090, Speaker C: Time, really far away.
+00:32:08.260 - 00:32:09.890, Speaker D: That's all I need from you.
+00:32:10.260 - 00:32:11.476, Speaker C: You're welcome to do your own thing.
+00:32:11.498 - 00:32:13.152, Speaker D: Are you going to do a q and a afterwards?
+00:32:13.296 - 00:32:13.844, Speaker C: Yeah.
+00:32:13.962 - 00:32:20.520, Speaker D: So we're going to have a presentation that lasts, like, half the time. Although.
+00:32:24.140 - 00:32:25.850, Speaker C: It'S kind of surprising, like.
+00:32:30.700 - 00:32:33.000, Speaker D: But it seems like what's happening is.
+00:32:33.070 - 00:32:36.108, Speaker C: Once you start, people kind of, like, get lured in.
+00:32:36.194 - 00:32:37.596, Speaker D: And this room is also a little.
+00:32:37.618 - 00:32:40.556, Speaker C: Bit deceptive because it's very deep and.
+00:32:40.578 - 00:32:43.260, Speaker D: You can't see back there, but there's some tv monitors.
+00:32:44.420 - 00:32:48.944, Speaker C: They can hear you perfectly. So I think because of the size.
+00:32:48.982 - 00:32:50.704, Speaker D: Of the room and depth, there's more.
+00:32:50.742 - 00:32:53.810, Speaker C: People than you actually expect sitting right in front.
+00:32:54.980 - 00:32:57.124, Speaker D: And then you guys have a booth up there.
+00:32:57.162 - 00:33:05.060, Speaker C: So you guys should have just gotten your stickers, or you're about to get your stickers. We brought our own stickers.
+00:33:05.560 - 00:33:10.584, Speaker D: Yeah. So there's a program. Everybody gets a water bottle, and then.
+00:33:10.622 - 00:33:15.636, Speaker C: Each sponsor has a QR code and a sticker that sits on the water bottle.
+00:33:15.828 - 00:33:21.912, Speaker D: They fill their water bottle, they're going to be on your thing, on your table.
+00:33:22.056 - 00:33:25.832, Speaker C: And some sponsors saying, like, hey, you get the sticker.
+00:33:25.896 - 00:33:27.900, Speaker D: And then if they fill out the whole water bottle.
+00:33:32.560 - 00:33:36.204, Speaker C: Engagement with sponsors and.
+00:33:36.242 - 00:33:37.710, Speaker D: There'S, like, a sticker for both.
+00:33:40.420 - 00:33:43.170, Speaker C: Okay, so you guys are on your own.
+00:33:44.020 - 00:33:45.910, Speaker D: We're gonna wait till 1010, I think.
+00:33:47.720 - 00:33:51.730, Speaker C: Yeah. Thank you.
