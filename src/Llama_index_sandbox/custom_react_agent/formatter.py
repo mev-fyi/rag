@@ -8,7 +8,7 @@ from llama_index.agent.react.formatter import ReActChatFormatter, get_react_tool
 from llama_index.agent.react.types import ObservationReasoningStep, BaseReasoningStep
 from llama_index.llms import ChatMessage, MessageRole
 
-from src.Llama_index_sandbox.prompts import REACT_CHAT_SYSTEM_HEADER, TWITTER_REACT_CHAT_SYSTEM_HEADER
+from src.Llama_index_sandbox.prompts import REACT_CHAT_SYSTEM_HEADER, TWITTER_REACT_CHAT_SYSTEM_HEADER, TOPIC_KEYWORDS
 
 
 class CustomReActChatFormatter(ReActChatFormatter):
@@ -30,6 +30,7 @@ class CustomReActChatFormatter(ReActChatFormatter):
         current_date = datetime.now().strftime('%Y-%m-%d')
         fmt_sys_header = self.system_header.format(
             current_date=current_date,
+            TOPIC_KEYWORDS=TOPIC_KEYWORDS,
             tool_desc=tool_descs_str,
             tool_names=", ".join([tool.metadata.get_name() for tool in self.tools]),
         )
