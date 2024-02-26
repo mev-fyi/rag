@@ -48,6 +48,8 @@ def chat_endpoint():
     logging.info(f"Received chat history: {chat_history}")
     if not message:
         return jsonify({"error": "Message not provided"}), 400
+    if not chat_history:
+        return jsonify({"error": "chat_history not provided"}), 400
 
     job_id = str(uuid.uuid4())
 
@@ -63,15 +65,7 @@ def chat_endpoint():
             run_application=True,
             reset_chat=config.reset_chat
         )
-        # response.response += f"\n\n{formatted_metadata}"
-
         # logging.info(f"Job {job_id} completed successfully with response: {response}")
-
-        # db.collection('chat_responses').document(job_id).set({
-        #     'response': f"{response.response}",
-        #     'timestamp': firestore.SERVER_TIMESTAMP
-        # })
-        # Save the response to Firestore
         embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
 
         model_specifications = {

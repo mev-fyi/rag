@@ -627,7 +627,11 @@ def copy_txt_files_to_transcripts(rootdir=root_directory()):
 
 
 def process_messages(data):
-    messages = data.get("messages", [])
+    try:
+        messages = data["chat_history"]
+    except KeyError:
+        # Handle the absence of chat_history key more gracefully
+        return None
     chat_messages = []
 
     for message in messages:
