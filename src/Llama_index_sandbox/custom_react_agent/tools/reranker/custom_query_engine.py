@@ -6,6 +6,9 @@ import tldextract
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
 from llama_index.indices.base_retriever import BaseRetriever
+from llama_index.response.schema import (
+    Response,
+)
 from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.response.schema import RESPONSE_TYPE
 from llama_index.schema import NodeWithScore
@@ -160,6 +163,14 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
+        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.79'))
+        MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '5'))
+
+        # Filter out nodes below score threshold
+        nodes_with_score = [node for node in nodes_with_score if node.score >= SCORE_THRESHOLD]
+        if len(nodes_with_score) < MIN_CHUNKS_FOR_RESPONSE:
+            logging.warning(f"Number of nodes below threshold: {len(nodes_with_score)}")
+            nodes_with_score = []
 
         for node_with_score in nodes_with_score:
             score = node_with_score.score
@@ -178,7 +189,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
                 extracted = tldextract.extract(link)
                 domain = f"{extracted.subdomain}.{extracted.domain}.{extracted.suffix}".strip('.')
                 author_url = node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK').strip()
-                weight_key = (document_type, domain, author_url)  #  + '_weights'
+                weight_key = (document_type, domain, author_url)  # + '_weights'
                 effective_weight = self.effective_weights.get(
                     weight_key,
                     self.document_weights[document_type + '_weights'].get(domain, self.document_weights[document_type + '_weights'].get('default', 1))
@@ -326,11 +337,11 @@ class CustomQueryEngine(RetrieverQueryEngine):
     def _query(self, query_bundle: QueryBundle) -> RESPONSE_TYPE:
         """Answer a query."""
         with self.callback_manager.event(
-            CBEventType.QUERY, payload={EventPayload.QUERY_STR: query_bundle.query_str}
+                CBEventType.QUERY, payload={EventPayload.QUERY_STR: query_bundle.query_str}
         ) as query_event:
             with self.callback_manager.event(
-                CBEventType.RETRIEVE,
-                payload={EventPayload.QUERY_STR: query_bundle.query_str},
+                    CBEventType.RETRIEVE,
+                    payload={EventPayload.QUERY_STR: query_bundle.query_str},
             ) as retrieve_event:
                 nodes = self.retrieve(query_bundle)
 
@@ -340,11 +351,23 @@ class CustomQueryEngine(RetrieverQueryEngine):
                     payload={EventPayload.NODES: nodes},
                 )
 
-            response = self._response_synthesizer.synthesize(
-                query=query_bundle,
-                nodes=nodes,
-            )
+            if not nodes:
+                response_str = """We could not find any results related to your query. 
+                                  However, we encourage you to ask questions about Maximal Extractable Value (MEV) and blockchain research, 
+                                  as these topics are rich with information and ongoing developments. Feel free to ask another question!"""
+
+                response = Response(
+                    response_str,
+                    source_nodes=[],
+                    metadata={},
+                )
+            else:
+                response = self._response_synthesizer.synthesize(
+                    query=query_bundle,
+                    nodes=nodes,
+                )
 
             query_event.on_end(payload={EventPayload.RESPONSE: response})
 
         return response
+
