@@ -368,7 +368,7 @@ class TwitterBot:
 
     def check_if_valid_mention(self, mention_text: str):
         # this relies on the fact that the bot doesn't mention itself as per the reply method
-        if (f"@{self.username}" in mention_text) and ("explain" in mention_text.lower()):
+        if (f"@{self.username}" in mention_text) and (("explain" in mention_text.lower()) or ("OH" in mention_text.lower())):
             return True
         else:
             return False

@@ -229,7 +229,7 @@ def extract_command_and_message(message):
     :return: A tuple containing the command and the message
     """
     command = "tweet"  # default command
-    if " thread" in message.lower():
+    if (" thread" in message.lower()) or ("OH" in message.lower()):
         command = "thread"
     return command, message
 
