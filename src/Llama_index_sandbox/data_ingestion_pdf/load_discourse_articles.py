@@ -18,29 +18,29 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
         title = os.path.basename(file_path).replace('.pdf', '').replace('<slash>', '/')
-        paper_row = paper_details_df[paper_details_df['title'] == title]
+        paper_row = paper_details_df[paper_details_df['Title'] == title]
 
         if not paper_row.empty:
-            assert paper_row.iloc[0]['title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['article']}"
-            assert paper_row.iloc[0]['authors'] != np.nan, f"authors is NaN for {paper_row.iloc[0]['article']}"
-            assert paper_row.iloc[0]['article'] != np.nan, f"pdf_link is NaN for {paper_row.iloc[0]['article']}"
-            assert paper_row.iloc[0]['release_date'] != np.nan, f"release_date is NaN for {paper_row.iloc[0]['article']}"
+            assert paper_row.iloc[0]['Title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['Link']}"
+            assert paper_row.iloc[0]['Author'] != np.nan, f"Author is NaN for {paper_row.iloc[0]['Link']}"
+            assert paper_row.iloc[0]['Link'] != np.nan, f"Link is NaN for {paper_row.iloc[0]['Link']}"
+            assert paper_row.iloc[0]['Release Date'] != np.nan, f"Release Date is NaN for {paper_row.iloc[0]['Link']}"
 
             # Update metadata
             for document in documents:
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
 
-                if '<|endoftext|>' in document.text:
-                    logging.error(f"Found <|endoftext|> in {title} with {file_path}")
-                document.text.replace('<|endoftext|>', '')
+                if '' in document.text:
+                    logging.error(f"Found  in {title} with {file_path}")
+                document.text.replace('', '')
 
                 document.metadata.update({
                     'document_type': DOCUMENT_TYPES.ARTICLE.value,
                     'title': title,
-                    'authors': str(paper_row.iloc[0]['authors']),
-                    'pdf_link': str(paper_row.iloc[0]['article']),
-                    'release_date': str(paper_row.iloc[0]['release_date']),
+                    'authors': str(paper_row.iloc[0]['Author']),
+                    'pdf_link': str(paper_row.iloc[0]['Link']),
+                    'release_date': str(paper_row.iloc[0]['Release Date']),
                 })
         else:
             for document in documents:
@@ -50,18 +50,15 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
-        # Find the corresponding row in the DataFrame
         return []
 
 
-
 @timeit
-def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
+def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[str, Path], num_files: int = None):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     all_documents = []
-    articles_aggregates_path = f"{root_dir}/datasets/evaluation_data/articles_updated.csv"
     paper_details_df = pd.read_csv(articles_aggregates_path)
     partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df)
 
@@ -93,4 +90,5 @@ def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
 if __name__ == '__main__':
     # Example usage
     pdf_directory = f"{root_dir}/datasets/evaluation_data/articles_2023-12-05"
-    load_pdfs(pdf_directory)
+    articles_aggregates_path = f"{root_dir}/datasets/evaluation_data/merged_articles.csv"  # Updated path
+    load_pdfs(pdf_directory, articles_aggregates_path)

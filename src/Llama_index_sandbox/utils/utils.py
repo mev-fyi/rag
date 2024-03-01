@@ -711,6 +711,7 @@ def copy_and_verify_files():
     # Define the source directories
     csv_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/")
     articles_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/articles_pdf_download/")
+    articles_pdf_discourse_dir = os.path.join(articles_pdf_source_dir, "all_discourse_topics/")
     articles_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/article_thumbnails/")
     research_paper_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/research_papers_pdf_thumbnails/")
     papers_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/papers_pdf_downloads/")
@@ -718,16 +719,16 @@ def copy_and_verify_files():
     # Define the destination directories
     csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
     articles_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_2023-12-05/")
+    articles_discourse_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/articles_discourse_2024_03_01/")
     articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
     papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
-    # articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
-    # papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "app/public/research_paper_thumbnails/")
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
 
     # List of CSV files to copy
     csv_files_to_copy = [
         "paper_details.csv",
         "links/articles_updated.csv",
+        "links/merged_articles.csv",
         "links/youtube/youtube_videos.csv",
         "links/youtube/youtube_channel_handles.txt"
     ]
@@ -737,6 +738,7 @@ def copy_and_verify_files():
     os.makedirs(articles_pdf_destination_dir, exist_ok=True)
     os.makedirs(papers_pdf_destination_dir, exist_ok=True)
     os.makedirs(articles_thumbnails_destination_dir, exist_ok=True)
+    os.makedirs(articles_discourse_destination_dir, exist_ok=True)  # Ensure the discourse articles destination directory exists
 
     # Copy and verify CSV files
     for file_name in csv_files_to_copy:
@@ -750,7 +752,20 @@ def copy_and_verify_files():
     copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
     copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
-    copy_and_rename_website_docs_pdfs()
+    # New: Copy and rename articles from discourse subdirectories
+    for subdir, dirs, files in os.walk(articles_pdf_discourse_dir):
+        for file_name in files:
+            if file_name.lower().endswith('.pdf'):
+                subdir_name = os.path.basename(subdir)
+                new_file_name = f"{subdir_name}_{file_name}"
+                source_file = os.path.join(subdir, file_name)
+                destination_file = os.path.join(articles_discourse_destination_dir, new_file_name)
+                try:
+                    shutil.copy(source_file, destination_file)
+                    print(f"Copied: {source_file} to {destination_file}")
+                except Exception as e:
+                    print(f"Error copying {file_name} from discourse topics: {e}")
+
     print("File copying completed.")
 
 
