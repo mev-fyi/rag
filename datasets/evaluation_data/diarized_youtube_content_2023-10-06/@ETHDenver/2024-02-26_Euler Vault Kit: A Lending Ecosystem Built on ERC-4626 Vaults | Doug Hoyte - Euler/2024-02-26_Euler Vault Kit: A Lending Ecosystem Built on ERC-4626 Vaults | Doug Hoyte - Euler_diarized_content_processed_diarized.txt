@@ -1,0 +1,435 @@
+00:00:07.690 - 00:00:16.510, Speaker A: Hello, everyone. I'm Doug Hoyt, one of the co founders of Euler Labs. And this is the presentation about Euler Volt Kit.
+00:00:18.050 - 00:01:12.210, Speaker B: Casper, also on the Euler team, helped me a lot with this. So also his work, this talk I've sectioned into three different topics. Firstly, we're going to do a little bit of introduction to DeFi lending. I wasn't entirely sure who the audience was from this, so some of it might be things you already know, but it's a little bit of a description on who are using these products and why they are doing that. Next, we're going to talk about a project that we've developed called the Ethereum Vault connector. And then finally another project that brings it all together called the Euler Vault kit. Kicking off the introduction to DFI lending, there's this concept, the time value of money, right? And if you ask the question of yourself, would you rather have $100 right now or $100 a year from now? Well, there's actually a correct answer, and it's right now because of this time value of money, right.
+00:01:12.210 - 00:01:17.330, Speaker B: Obviously, you will earn interest over that year and that interest has a quantifiable amount.
+00:01:17.400 - 00:01:17.646, Speaker A: Right.
+00:01:17.688 - 00:01:40.506, Speaker B: And in this case, $10 per year. Time is money is the expression. And lending markets, the way I like to think about it, is that they're kind of exchanges between that time and money trade off, right? And the passive lending pools like compound and Ave and Euler and so on are built in a way similar to uniswap. They're automatic market makers.
+00:01:40.538 - 00:01:40.686, Speaker A: Right?
+00:01:40.708 - 00:01:45.150, Speaker B: So the smart contract code defines the actual exchange between time and money.
+00:01:45.220 - 00:01:45.840, Speaker A: Right?
+00:01:46.690 - 00:01:58.702, Speaker B: And almost all of the systems work with this concept of over collateralization. And the idea behind that is that borrowers have to put more value in as collateral than they can take out as a loan.
+00:01:58.766 - 00:01:59.138, Speaker A: Okay?
+00:01:59.224 - 00:02:10.358, Speaker B: And usually when I explain that to people, it doesn't quite come through. So I like to use this example of a mortgage. A mortgage is a loan you take.
+00:02:10.364 - 00:02:12.214, Speaker A: Out, typically to buy a house or something.
+00:02:12.412 - 00:02:20.486, Speaker B: Let's say you want to buy a house of a million dollars. You save up a down payment, 50,000. And then you take out a loan, that's your mortgage of 950,000.
+00:02:20.508 - 00:02:24.042, Speaker A: And then you buy the house.
+00:02:24.176 - 00:02:32.634, Speaker B: Let's look at what you have in your assets and debt columns here, right. You have a house that's worth a million dollars now because you bought it, but you have a $950,000 debt.
+00:02:32.682 - 00:02:32.846, Speaker A: Right.
+00:02:32.868 - 00:02:40.858, Speaker B: And you can see here that in this very typical case, your assets value exceeds the value of your liability. So you're over collateralized.
+00:02:40.954 - 00:02:41.600, Speaker A: Right?
+00:02:43.090 - 00:02:58.242, Speaker B: But let's examine what happens if the price of your house changes. Remember, it started at a million dollars. Let's say the value drops to 950,000. That's a 5% drop. Then you will no longer be over collateralized.
+00:02:58.306 - 00:03:04.294, Speaker A: Because if you look at the column, the debt and asset values will be identical, right.
+00:03:04.492 - 00:03:05.942, Speaker B: You're wiped out, in fact.
+00:03:05.996 - 00:03:06.166, Speaker A: Right.
+00:03:06.188 - 00:03:30.030, Speaker B: Because if you sold your house and repaid your loan, you'd end up with nothing, losing your down payment. On the other hand, if it goes up 5%, then if you close out your, sell your house and so forth, then you're actually doubled your down deposit, right? So how is it possible that such a small percent change in the price results in such a large gain or loss? It's because of this concept, leverage.
+00:03:31.730 - 00:03:34.602, Speaker A: There's several different ways to quantify leverage.
+00:03:34.666 - 00:03:36.274, Speaker B: Depending on your field, if you're an.
+00:03:36.312 - 00:03:38.514, Speaker A: Accountant or investor, and so on.
+00:03:38.632 - 00:03:42.786, Speaker B: But the one that I think makes most sense in defi context is the.
+00:03:42.808 - 00:03:44.270, Speaker A: Debt to equity measure.
+00:03:44.430 - 00:03:48.006, Speaker B: Equity is just your assets minus your debt, right? What you would be left with if.
+00:03:48.028 - 00:03:51.030, Speaker A: You sold off your assets and repaid all your debts.
+00:03:51.690 - 00:03:54.150, Speaker B: So then, to compute leverage, it's simply.
+00:03:54.650 - 00:04:13.322, Speaker A: Your debt divided by that equity. So in our mortgage example, we have 19 x leverage. And that, as we see in this slide, corresponds to your gain and losses, right? This is the physical analogy for leverage.
+00:04:13.386 - 00:04:16.126, Speaker B: How it happens, right? A small price movement can end up.
+00:04:16.148 - 00:04:19.470, Speaker A: With a large effect on your profit and loss.
+00:04:20.770 - 00:04:57.350, Speaker B: So often, traditionally, these leverage deposits were set up with this method called looping. And looping is basically just depositing into a lending pool, borrowing as much as you can, swapping it back into the collateral and depositing that again, and going back and repeating, and repeating. And that will end up with a position as leveraged as you desire and also allowed by the lending pool. However, this is, as you probably understand, gas inefficient, right. Because you're doing many, many swaps. So that's why there's many different other ways of solving this. Most famously, I would say, is flash loans.
+00:04:57.350 - 00:05:23.106, Speaker B: It's where you take out in one atomic transaction, a big borrow and use that to set up your position and then repay it at the end. But as you'll see, we have a little bit of a better way of doing that with this generalized concept of slash liquidity. Like all markets, the lending markets are two sided, right? Where there's two different participants acting in them. So there are the borrowers, of course.
+00:05:23.128 - 00:05:24.626, Speaker A: That we've talked about that want to.
+00:05:24.648 - 00:05:47.660, Speaker B: Set up these leveraged positions. And there's also on the other side, lenders that want to earn interest. And sometimes we call those depositors because they deposit into these passive lending pools. And in most designs, including boilers and ava and compound, et cetera, interest is compounding, right? Which means that interest is also paid on previously earned interest with no action to yourself.
+00:05:49.950 - 00:05:50.700, Speaker A: And.
+00:05:52.450 - 00:06:09.486, Speaker B: One of the very advantageous things that people like to do that has a net benefit of improving the system by improving its efficiency is arbitraging interest rates, right? So the idea is that if you see one particular lending market has a low interest rate and other has a high interest rate, you can take advantage.
+00:06:09.518 - 00:06:11.746, Speaker A: Of that for a profit, right?
+00:06:11.848 - 00:06:17.022, Speaker B: So in this case, the obvious one is you take a levered position on a low interest borrow.
+00:06:17.086 - 00:06:18.630, Speaker A: It's a high interest collateral.
+00:06:19.530 - 00:06:28.514, Speaker B: And the classic example in traditional finance is you borrow japanese yen, which charges.
+00:06:28.562 - 00:06:36.166, Speaker A: Almost zero interest rate, and borrow, or, sorry, you take advantage of the japanese.
+00:06:36.198 - 00:06:39.146, Speaker B: Yen that has a very low interest rate, and something like australian dollar, which.
+00:06:39.168 - 00:06:47.406, Speaker A: Has a very high interest rate. ERC 46 26 is an emerging standard.
+00:06:47.588 - 00:06:49.358, Speaker B: And we think it's very, going to.
+00:06:49.364 - 00:06:50.990, Speaker A: Be very important moving forward.
+00:06:51.140 - 00:06:51.840, Speaker C: And.
+00:06:53.730 - 00:06:55.754, Speaker B: What it is, is a specification.
+00:06:55.802 - 00:07:02.706, Speaker A: For trading yield bearing vault, right? That's a smart contract that you deposit into and it will do something for.
+00:07:02.728 - 00:07:04.114, Speaker B: You, earn yield and then you can.
+00:07:04.152 - 00:07:08.040, Speaker A: Deposit out in the end. The great thing about standard is that.
+00:07:10.810 - 00:07:13.014, Speaker B: If many different protocols implement the same.
+00:07:13.052 - 00:07:28.166, Speaker A: Standard, then one integration suffices to interact with all the different protocols. And we think that the network effects of ERC 46 26 will be very important for the future of lending markets.
+00:07:28.358 - 00:07:30.346, Speaker B: Just because of network effect.
+00:07:30.448 - 00:07:31.100, Speaker C: Right?
+00:07:32.110 - 00:07:36.410, Speaker A: One thing I like to say is that ERC 20 had to come before.
+00:07:36.480 - 00:07:38.926, Speaker B: Unitswap, before you could have something like uniswap, a good application.
+00:07:39.028 - 00:07:41.966, Speaker A: You need a standard that all these tokens can kind of agree on.
+00:07:42.148 - 00:07:44.482, Speaker B: And we think 46 26 has the.
+00:07:44.616 - 00:07:52.770, Speaker A: Potential to do that for lending markets. In the typical formulation of 46 26.
+00:07:52.920 - 00:07:56.050, Speaker B: Vaults are active, right? And the idea behind that is that.
+00:07:56.200 - 00:07:59.926, Speaker A: You as a depositor put your money into the vault and it does some.
+00:07:59.948 - 00:08:05.142, Speaker B: Kind of actions on your behalf, like reinvesting them elsewhere, maybe lp tokens or.
+00:08:05.196 - 00:08:08.806, Speaker A: Other lending markets or so forth, according to its strategy, right?
+00:08:08.828 - 00:08:11.514, Speaker B: And then later on, when you want to withdraw, it goes and unwinds those.
+00:08:11.552 - 00:08:13.850, Speaker A: Positions and lets you withdraw.
+00:08:14.750 - 00:08:21.066, Speaker B: Our concept, while still being interface compatible, is what we call passive vault. And the idea behind that is that.
+00:08:21.088 - 00:08:27.310, Speaker A: You deposit your funds into these vaults, but the vault doesn't itself do anything with it. It waits for borrowers to come around.
+00:08:27.380 - 00:08:28.766, Speaker C: And borrow it from you.
+00:08:28.948 - 00:08:38.114, Speaker A: And this is the standard compound model, et cetera. When you deposit into a 46 26 vault, you receive shares back.
+00:08:38.232 - 00:08:39.614, Speaker B: Those are kind of like your deposit.
+00:08:39.662 - 00:08:42.994, Speaker A: Tokens or receipts, and they themselves are.
+00:08:43.032 - 00:08:44.606, Speaker B: ERC 20 compatible tokens.
+00:08:44.638 - 00:08:44.930, Speaker C: Right.
+00:08:45.000 - 00:08:51.206, Speaker A: Another great thing about 46 26 is backwards compatible with ERC 21.
+00:08:51.228 - 00:08:53.142, Speaker B: Thing that the standard mandates that's important.
+00:08:53.196 - 00:09:01.770, Speaker A: Is that the shares are not rebasing. Right. In other words, if you don't perform any action, the amount of shares you hold will not change over time. Right. That makes integrations a lot easier.
+00:09:02.910 - 00:09:08.874, Speaker B: But instead, as interest is accrued, every share becomes more and more valuable, right. Exchangeable for a larger and larger amount.
+00:09:08.912 - 00:09:11.230, Speaker A: Of quantity of the underlying asset.
+00:09:12.610 - 00:09:17.070, Speaker B: And how do you figure out that quantity of underlying asset?
+00:09:17.810 - 00:09:27.078, Speaker A: It's based on the exchange rate. And the exchange rate is just simply taking a look at the ratio of the assets to the total number of shares.
+00:09:27.114 - 00:09:28.990, Speaker C: Like the assets of the pool.
+00:09:29.150 - 00:09:49.398, Speaker A: The assets of the pool are two components. You have the cash, which is actually what the vault owns in terms of the token balance, and you have the total amount that's been borrowed out. Right. Both of those are assets that the vault owns. And when you sum them together, you get the total value of due to this pool, ultimately. So then it's just simply dividing that.
+00:09:49.404 - 00:09:50.646, Speaker B: Asset by total number of shares to.
+00:09:50.668 - 00:09:58.650, Speaker A: Figure out the number of shares that the number of assets that each share is worth. Notice that I've got a little asterisk there. This is a slightly simplified exchange rate.
+00:09:58.720 - 00:10:00.906, Speaker B: Because it doesn't use this virtual share protection.
+00:10:00.938 - 00:10:02.190, Speaker C: We'll talk about shortly.
+00:10:04.290 - 00:10:11.502, Speaker A: So our concept at Euler is to use ERC 46 26 for everything, for.
+00:10:11.556 - 00:10:12.702, Speaker C: All parts of the system.
+00:10:12.836 - 00:10:17.794, Speaker A: So not only is the borrow, the asset being loaned out 46 26, but.
+00:10:17.832 - 00:10:19.940, Speaker B: Also the collaterals, right.
+00:10:20.630 - 00:10:23.694, Speaker A: Because when you want to take out a loan, obviously you need to put a collateral.
+00:10:23.742 - 00:10:24.050, Speaker C: Right.
+00:10:24.120 - 00:10:26.386, Speaker B: So those collaterals will themselves be held.
+00:10:26.418 - 00:10:27.926, Speaker A: In arc 46 26.
+00:10:28.028 - 00:10:29.080, Speaker C: That's the idea.
+00:10:30.090 - 00:10:37.334, Speaker A: But probably the first description of this concept you've heard. You're just thinking about the obvious problem with this.
+00:10:37.372 - 00:10:37.670, Speaker C: Right?
+00:10:37.740 - 00:10:39.826, Speaker A: Well, if that's the case, what's preventing.
+00:10:39.858 - 00:10:42.034, Speaker B: The user from just simply withdrawing that collateral?
+00:10:42.082 - 00:10:46.090, Speaker A: Right. That's supposed to be posted as an asset or in escrow.
+00:10:48.030 - 00:10:49.094, Speaker C: For this borrow.
+00:10:49.222 - 00:10:53.102, Speaker A: Well, you need to coordinate the vaults. They need to work together in some way.
+00:10:53.156 - 00:10:53.518, Speaker C: Right.
+00:10:53.604 - 00:11:16.470, Speaker A: And that's where ethereum vault connector, the EVC comes in. The EVC is designed to be very non invasive. And what we hope is that it's very easy to integrate with existing systems or to make new systems that don't have a lot of extra croft cluttering of the code. And we've created an integration layer that helps with that.
+00:11:16.540 - 00:11:18.262, Speaker B: And we've also created some ERC 20.
+00:11:18.316 - 00:11:45.630, Speaker A: Wrappers and integration points as well. So it should be quite a simple action to take any existing vault or token and turn it into something that can be used as collateral in the system. Let's go through the mechanics of how the EVC works. So inside the EBC, it maintains this thing called the collateral set. And that's basically just a list of vaults that a user has entered as collateral. It's chosen to post as collateral.
+00:11:46.210 - 00:11:48.142, Speaker B: So users themselves manage this.
+00:11:48.276 - 00:11:50.366, Speaker A: They pause into vaults and they pick.
+00:11:50.388 - 00:11:52.094, Speaker B: Which vaults they want to use for.
+00:11:52.132 - 00:11:54.590, Speaker A: Their account as collateral in the EBT.
+00:11:55.270 - 00:11:56.546, Speaker B: And then next, when they actually want.
+00:11:56.568 - 00:12:06.418, Speaker A: To perform a borrow, they will select the vault and set it as the controller for the account. An account can only have one controller.
+00:12:06.514 - 00:12:07.878, Speaker B: This is an important property for a.
+00:12:07.884 - 00:12:13.350, Speaker A: Lot of reasons, but it will usually.
+00:12:13.420 - 00:12:14.758, Speaker B: Be the vault that you're about to.
+00:12:14.764 - 00:12:19.734, Speaker A: Create a borrow for. After you've set up your collaterals and.
+00:12:19.772 - 00:12:22.938, Speaker B: Associated them in the EVC, you now select a controller, and that's tracked for.
+00:12:22.944 - 00:12:28.378, Speaker A: You in the EVC as well. And the important thing is that when you have selected a vault as a.
+00:12:28.384 - 00:12:31.386, Speaker B: Controller, you are giving over control of.
+00:12:31.408 - 00:12:45.554, Speaker A: Your account to the vault. And that sounds quite a bit scary, of course. But the way I like to say is that it's not actually semantically any different than taking a borrow on Ave or compound or so on.
+00:12:45.672 - 00:12:47.294, Speaker B: They won't let you remove your collaterals.
+00:12:47.342 - 00:12:54.034, Speaker A: Either until you have paid back the loan. So that's the same kind of effect, right?
+00:12:54.232 - 00:12:59.746, Speaker B: Yes, your controller will be able to prevent you from removing collaterals from your collateral vaults, but that's exactly the same.
+00:12:59.768 - 00:13:01.480, Speaker A: Semantic as any other lending market.
+00:13:02.490 - 00:13:04.418, Speaker B: So when you do try to withdraw.
+00:13:04.434 - 00:13:08.578, Speaker A: From a collateral vault, what happens is that collateral vault goes via the EVT.
+00:13:08.754 - 00:13:10.774, Speaker B: And asks the controller vault if this.
+00:13:10.812 - 00:13:12.760, Speaker C: Action is allowed, right? And.
+00:13:14.650 - 00:13:17.546, Speaker B: If you're trying to withdraw a small amount, it might be okay. But if you're trying to draw too.
+00:13:17.568 - 00:13:19.126, Speaker A: Much, that would put you in violation.
+00:13:19.158 - 00:13:19.754, Speaker B: Of your loan terms.
+00:13:19.792 - 00:13:28.190, Speaker A: It might be prohibited. And yes, only the controller itself can release the control that happens when you repay your loan.
+00:13:29.650 - 00:13:31.742, Speaker B: And the other side of the trust.
+00:13:31.796 - 00:13:36.642, Speaker A: Dimension is that the vaults are trusting their collateral, right?
+00:13:36.696 - 00:13:38.750, Speaker B: They're trusting that these are well behaved.
+00:13:38.830 - 00:13:41.234, Speaker A: Tokens that aren't malacting maliciously and will.
+00:13:41.272 - 00:13:43.458, Speaker B: Keep up there and integrate correctly with.
+00:13:43.464 - 00:13:44.740, Speaker C: The EBC as well.
+00:13:46.090 - 00:13:54.534, Speaker A: The way it works is that usually vaults are configured to accept only a subset of vaults, like only a particular.
+00:13:54.732 - 00:13:56.946, Speaker B: List of vaults as the allowed collateral.
+00:13:57.058 - 00:13:57.334, Speaker C: Right?
+00:13:57.372 - 00:14:01.066, Speaker B: And if anyone adds any other vault to the collateral set, that will be.
+00:14:01.088 - 00:14:05.980, Speaker A: Ignored for the purpose of determining if a loan is healthy or not.
+00:14:09.230 - 00:14:14.222, Speaker B: Because the collateral vaults are also 46 26 vault, they may in fact support borrowing as well.
+00:14:14.276 - 00:14:14.494, Speaker A: Right?
+00:14:14.532 - 00:14:17.262, Speaker B: So your collateral could be earning interest, right?
+00:14:17.316 - 00:14:20.510, Speaker A: This is kind of critical for the carry trade that we talked about earlier.
+00:14:21.330 - 00:14:29.026, Speaker B: But in some cases, you don't necessarily want that. You don't want that rehypothecation, right? This might be because you always want to make sure you can withdraw your.
+00:14:29.048 - 00:14:35.618, Speaker A: Collateral on time without worrying about if the amount is currently loaned out or not.
+00:14:35.784 - 00:14:37.426, Speaker B: And also, some of the integrations are.
+00:14:37.448 - 00:14:39.842, Speaker A: Easier if you just use collateral only vault, right?
+00:14:39.896 - 00:14:44.162, Speaker B: A collateral only vault is one that does not support borrowing, but still can be processed collateral.
+00:14:44.226 - 00:14:44.646, Speaker C: Right?
+00:14:44.748 - 00:14:47.350, Speaker B: Our terminology for that is an escrowable.
+00:14:49.230 - 00:15:11.498, Speaker A: At a high level. The EVC has this sort of split that we've kind of devised for responsibilities for allocating the responsibilities. The EVC is responsible for the authentication, in other words, who is requesting this action. And as we'll see, there's a whole bunch of features that this opens up by delegating that responsibility to EVC.
+00:15:11.674 - 00:15:15.118, Speaker B: However, the vaults are responsible for the authorization.
+00:15:15.294 - 00:15:21.698, Speaker A: When an action is requested, EVC validates who it is.
+00:15:21.784 - 00:15:23.166, Speaker B: Vaults validate whether it's allowed.
+00:15:23.198 - 00:15:23.490, Speaker C: Right?
+00:15:23.560 - 00:15:26.566, Speaker B: The most obvious example of this is if someone tries to withdraw more than.
+00:15:26.588 - 00:15:28.470, Speaker A: Their balance, it should be prevented.
+00:15:30.570 - 00:15:33.666, Speaker B: So since the EVC is in charge.
+00:15:33.698 - 00:15:38.330, Speaker A: Of authentication, one of the things that enables is the liquidation mechanism.
+00:15:38.670 - 00:15:41.466, Speaker B: Liquidation is obviously critical, and this is.
+00:15:41.488 - 00:15:45.340, Speaker A: How it's performed in the EBC system.
+00:15:46.830 - 00:15:51.466, Speaker B: Because you have given control over your account to a controller, the EVC will.
+00:15:51.488 - 00:15:57.402, Speaker A: Allow it to invoke vaults on your behalf. That's the mechanism that allows liquidation.
+00:15:57.546 - 00:16:00.746, Speaker B: So if a controller has decided that you are in violation of your loan.
+00:16:00.778 - 00:16:06.806, Speaker A: Terms, it will actually have the ability to call into the collateral vault and call a method on your behalf.
+00:16:06.938 - 00:16:12.734, Speaker B: Typically it will call, withdraw or transfer or whatever in order to perform liquidation.
+00:16:12.782 - 00:16:14.050, Speaker A: And repay your debt.
+00:16:15.270 - 00:16:21.334, Speaker B: But the nice thing is that this is kind of in some level and a bit of an emergent property of how the controllers work.
+00:16:21.372 - 00:16:21.960, Speaker A: Right?
+00:16:22.810 - 00:16:24.566, Speaker B: It's basically just because you've given this.
+00:16:24.588 - 00:16:27.014, Speaker A: Sort of control to the controller to.
+00:16:27.052 - 00:16:28.402, Speaker B: Interact with your collateral vaults.
+00:16:28.466 - 00:16:30.130, Speaker A: EVC handles that authentication.
+00:16:30.290 - 00:16:33.226, Speaker B: The collateral vaults don't even know that.
+00:16:33.248 - 00:16:40.358, Speaker A: They'Re being participating in a liquidation, they just see that the user itself is withdrawing or transferring its funds.
+00:16:40.454 - 00:16:43.898, Speaker B: So no special logic needs to be.
+00:16:43.904 - 00:16:46.430, Speaker A: Put inside of the collateral vault to support liquidation.
+00:16:47.890 - 00:16:51.774, Speaker B: So the EVC authentication responsibilities also open.
+00:16:51.812 - 00:16:56.820, Speaker A: Up a bunch of other possibilities. I like to say the EVC is a glorified multi call.
+00:16:57.750 - 00:16:59.438, Speaker B: Probably most of you are familiar with multi calls.
+00:16:59.454 - 00:17:01.534, Speaker A: You just create a bunch of operations.
+00:17:01.582 - 00:17:03.506, Speaker B: Put them into a single transaction, and.
+00:17:03.528 - 00:17:09.990, Speaker A: Execute them in one transaction, right? EBC supports that with some extras, what.
+00:17:10.060 - 00:17:31.766, Speaker B: We call these multicol indications, batches. And one of the things that also supports via batches is the use of sub accounts, right. If you've seen order one, we actually allow you to have 256 virtual accounts underneath your main account, even if you're just regular EOA using metamask or something. You can have multiple independent isolated accounts.
+00:17:31.798 - 00:17:33.350, Speaker A: Each with their own position, set up.
+00:17:33.440 - 00:17:34.080, Speaker C: Right.
+00:17:34.450 - 00:17:38.366, Speaker B: Batches also allow you to perform operations atomically, right? In other words, both of them will.
+00:17:38.388 - 00:17:43.646, Speaker A: Succeed, or none of them will. And finally, maybe most important is that.
+00:17:43.668 - 00:17:45.546, Speaker B: You can actually defer the liquidity checking.
+00:17:45.578 - 00:17:50.142, Speaker A: Until the very end of your batch, right? So in most cases, vaults, when they're.
+00:17:50.206 - 00:17:59.746, Speaker B: Asked if this is all out or not, will only be asked after all of the batch items have progressed, have completed. And that lets you think that enables.
+00:17:59.778 - 00:18:02.280, Speaker A: The flash liquidity we're talking about, which we'll talk about in a second.
+00:18:02.810 - 00:18:06.258, Speaker B: This is the interface for the batch for batch method.
+00:18:06.434 - 00:18:09.170, Speaker A: It's pretty much, as you see, a standard multicall.
+00:18:09.250 - 00:18:11.322, Speaker B: You have the target contract you're calling.
+00:18:11.456 - 00:18:14.618, Speaker A: And the value, that's the amount of.
+00:18:14.624 - 00:18:16.218, Speaker B: Native currency ether you want to transfer.
+00:18:16.304 - 00:18:18.522, Speaker A: And the bytes data, that's the actual.
+00:18:18.576 - 00:18:21.370, Speaker B: Call data that you want to pass it. However, it also has this one thing.
+00:18:21.440 - 00:18:23.230, Speaker A: On behalf of account. Right.
+00:18:23.380 - 00:18:25.520, Speaker B: Often that will just be your address. But.
+00:18:27.250 - 00:18:28.126, Speaker A: If you want to do a.
+00:18:28.148 - 00:18:32.926, Speaker B: Sub account, or we'll talk about a second concept of operators, you'll pass in.
+00:18:32.948 - 00:18:38.446, Speaker A: A different address there. As we were talking about that liquidity.
+00:18:38.478 - 00:18:45.218, Speaker B: Or the deferral of checks is quite powerful. And what we call this is like flash liquidity or deferred liquidity or something like that.
+00:18:45.304 - 00:18:47.106, Speaker A: And as I was saying, accounts can.
+00:18:47.128 - 00:18:49.218, Speaker B: Temporarily violate their liquidity as long as.
+00:18:49.224 - 00:18:50.774, Speaker A: They solve at the end of the batch, right?
+00:18:50.812 - 00:18:54.598, Speaker B: And that lets you avoid set up leverage positions without doing any kind of.
+00:18:54.604 - 00:19:01.740, Speaker A: Looping or flash loans or anything like this. It's just built into natively to the system. Yeah.
+00:19:02.430 - 00:19:05.866, Speaker B: Batches also support nesting so that you.
+00:19:05.888 - 00:19:11.974, Speaker A: Can have batches created inside of another batch. The only reason this is really useful.
+00:19:12.022 - 00:19:14.934, Speaker B: Is that contracts themselves can use batching.
+00:19:14.982 - 00:19:17.870, Speaker A: For the purpose of liquidity deferral, right.
+00:19:17.940 - 00:19:18.926, Speaker B: So you don't need any kind of.
+00:19:18.948 - 00:19:22.942, Speaker A: Special casing on your contracts to actually take advantage of that.
+00:19:22.996 - 00:19:32.370, Speaker B: It's just built in there. You just always create a batch and you know that the checks will happen at the end of your batch or later. The EVC guarantees it'll happen eventually.
+00:19:34.470 - 00:19:46.434, Speaker A: Operators are a very cool concept, we think. And what it is is a way to allow a particular address, which is usually a smart contract, to perform operations.
+00:19:46.482 - 00:19:48.054, Speaker C: On your behalf, right.
+00:19:48.252 - 00:19:51.278, Speaker A: And obviously you should be very careful.
+00:19:51.314 - 00:19:53.242, Speaker B: With that because they could do something.
+00:19:53.296 - 00:19:56.234, Speaker A: That you don't want them to do. So you should be very careful which.
+00:19:56.272 - 00:19:58.570, Speaker B: Contracts you enable, and they should be.
+00:19:58.720 - 00:20:19.906, Speaker A: Well audited and securely deployed and so forth. But in principle, they could just be an EOA, right. There's some examples where you would do that too. There's a little bit of a crossover between controllers and operators because both of them are like giving control to your account. But the important bit is that as.
+00:20:19.928 - 00:20:23.486, Speaker B: A user, you can always remove an operator anytime, not necessarily true of a controller.
+00:20:23.518 - 00:20:30.166, Speaker A: Remember, a controller, you have to repay your loan. Here's some use cases for operators. If you wanted to just simply have.
+00:20:30.188 - 00:20:31.942, Speaker B: A hot wallet that could do some.
+00:20:32.076 - 00:20:35.670, Speaker A: Subset of actions on your account, you could install that as an operator.
+00:20:36.970 - 00:20:39.314, Speaker B: If you wanted to actually do a subset, it would be a contract that.
+00:20:39.372 - 00:20:57.134, Speaker A: Kind of firewalls and determines what actions are actually allowed. It could also be an emergency closeout contract that if the price is dipped to some level or some alerts are issued, it could close your positions for you. Or it could do that based on market conditions and implement things like stop.
+00:20:57.172 - 00:20:58.350, Speaker C: Losses and so on, right?
+00:20:58.420 - 00:21:09.266, Speaker A: So here's just some examples of price conditions that would cause actions to be triggered by an operator, right? You have take profit, where if a.
+00:21:09.288 - 00:21:12.626, Speaker B: Price goes in your favor a certain degree, then an operator is allowed to.
+00:21:12.648 - 00:21:19.314, Speaker A: Close out your position. In other words, to lock in your gains. Or similarly, symmetrically, if the price goes.
+00:21:19.352 - 00:21:20.706, Speaker B: Against you a certain amount, it might.
+00:21:20.728 - 00:21:29.094, Speaker A: Close out your position to protect you from further loss. And another one that's very popular in a lot of trading systems is the trailing stop. This is a stop loss, but the.
+00:21:29.132 - 00:21:31.254, Speaker B: Stop floor is adjusted over time as.
+00:21:31.292 - 00:21:34.474, Speaker A: The price moves in your favor. So the idea is that you can.
+00:21:34.512 - 00:21:36.474, Speaker B: Ride a really high, really large price.
+00:21:36.512 - 00:21:39.306, Speaker A: Swing in your favor, and then if the price goes down again, take the.
+00:21:39.328 - 00:21:40.154, Speaker C: Profit of it, right?
+00:21:40.192 - 00:21:42.350, Speaker B: And this can all happen without your.
+00:21:42.500 - 00:21:46.250, Speaker A: Interaction, because an operator will be able to do this on your behalf.
+00:21:46.410 - 00:21:47.886, Speaker B: This is kind of our vision for.
+00:21:47.908 - 00:21:54.958, Speaker A: The off chain system component of the one thing that kind of occurred to.
+00:21:54.964 - 00:21:58.658, Speaker B: Us as we were building this is that liquidations and stop losses have a.
+00:21:58.664 - 00:21:59.730, Speaker C: Lot in common, right?
+00:21:59.800 - 00:22:02.658, Speaker A: They're really just. If a price, at the end of.
+00:22:02.664 - 00:22:05.654, Speaker B: The day, if a price drips down, dips down against the user, a certain.
+00:22:05.692 - 00:22:14.050, Speaker A: Amount, or the price of their liability goes up, then they have their position closed.
+00:22:14.130 - 00:22:14.614, Speaker C: Right?
+00:22:14.732 - 00:22:18.774, Speaker A: So the only difference is that stop.
+00:22:18.812 - 00:22:22.826, Speaker B: Losses are typically based on the price level of some particular asset, whereas the.
+00:22:22.848 - 00:22:26.922, Speaker A: Liquidation levels are triggered at overall health of your account.
+00:22:26.976 - 00:22:27.146, Speaker C: Right.
+00:22:27.168 - 00:22:29.558, Speaker A: That's taking into account prices of your collateral and your liabilities.
+00:22:29.654 - 00:22:30.154, Speaker C: Right.
+00:22:30.272 - 00:22:35.006, Speaker A: But because we have this general system of building stop losses, you can kind.
+00:22:35.028 - 00:22:37.246, Speaker B: Of think about installing those on all.
+00:22:37.268 - 00:22:42.926, Speaker A: Of your positions in order to customize your liquidation, right? So you might be able to kind.
+00:22:42.948 - 00:22:45.726, Speaker B: Of have like bespoke liquidation arguments, like.
+00:22:45.748 - 00:22:53.406, Speaker A: Maybe using different oracles, obviously, as I was saying, based on price triggers instead of health scores, maybe hard coded dexes.
+00:22:53.438 - 00:22:54.498, Speaker B: That you're allowed to swap on and.
+00:22:54.504 - 00:22:57.606, Speaker A: So on and so on, right? So you could really kind of, with.
+00:22:57.708 - 00:23:00.118, Speaker B: The collaboration of the other entities and.
+00:23:00.124 - 00:23:12.406, Speaker A: System, have these sort of bespoke liquidation, which I think is sort of cool. And that brings us to the next part of this is the Euler vault kit.
+00:23:12.598 - 00:23:17.066, Speaker C: And the Euler vault kit is what.
+00:23:17.088 - 00:23:22.798, Speaker A: We'Ve been building a little bit to interact with UBC. It's kind of the mechanism we expect.
+00:23:22.884 - 00:23:23.520, Speaker C: To.
+00:23:26.210 - 00:23:34.238, Speaker A: Create Euler like ERC 46 26 compatible vaults that can be used with the UVC, and what we like to.
+00:23:34.244 - 00:23:36.750, Speaker B: Think of as a very flexible and unimpeded software package.
+00:23:36.830 - 00:23:39.298, Speaker A: So it's really got a lot of.
+00:23:39.304 - 00:23:40.338, Speaker B: Knobs you can turn and a lot.
+00:23:40.344 - 00:23:50.440, Speaker A: Of settings you can configure. And it really allows you to create bespoke and custom vaults, and by extension, lending products on top of them.
+00:23:51.450 - 00:23:54.582, Speaker B: And whenever you create a vault, you become the governor at first.
+00:23:54.636 - 00:23:55.142, Speaker C: Okay.
+00:23:55.276 - 00:24:14.686, Speaker A: And this brings us to the first distinction, is you have managed or immutable vaults, and that comes down to what you do with the governor ultimately, right? So if after you create a vault, you retain that governor, you can think of it as a managed vault, right? And ideally, it would be best if.
+00:24:14.708 - 00:24:16.298, Speaker B: That governor was some kind of multi.
+00:24:16.314 - 00:24:21.760, Speaker A: Sig or governance contract or time lock or whatever, but it doesn't necessarily have to be.
+00:24:22.950 - 00:24:24.878, Speaker B: And many different vaults could be managed.
+00:24:24.894 - 00:24:30.286, Speaker A: By the same multi sig, for example, to create a cluster like type lending.
+00:24:30.318 - 00:24:34.526, Speaker B: Product, or they could be individually controlled.
+00:24:34.638 - 00:24:39.262, Speaker A: And be a very contained, isolated one. On the other end of the spectrum.
+00:24:39.326 - 00:24:40.678, Speaker B: If you take that governor and you.
+00:24:40.684 - 00:24:42.566, Speaker A: Throw it away, in other words, you.
+00:24:42.588 - 00:24:46.930, Speaker B: Set the governor's address to be address zero, meaning no one can invoke the governance methods.
+00:24:47.010 - 00:24:55.260, Speaker A: We call those immutable vaults, in which case the configuration that was set up for the vault at its creation is now fixed and will not change.
+00:24:56.990 - 00:24:59.930, Speaker B: And there's also a spectrum of different.
+00:25:00.080 - 00:25:06.686, Speaker A: Vault governance strategies in between that, right, you can accomplish something that allows only.
+00:25:06.708 - 00:25:08.366, Speaker B: A subset of the governance actions to.
+00:25:08.388 - 00:25:16.898, Speaker A: Be triggered by installing a contract as the governor and acting as a proxy. Right?
+00:25:16.984 - 00:25:18.338, Speaker B: So if you wanted to make it.
+00:25:18.344 - 00:25:36.054, Speaker A: So that, let's say only pausing operations could happen, or let's say only LTV changes, that's the loan to value ratio that are allowed to change, then you would have a contract that only allows that, but nothing else. Right?
+00:25:36.092 - 00:25:37.870, Speaker B: And that contract could also have timelock.
+00:25:37.890 - 00:25:39.114, Speaker A: Things built into it and so on.
+00:25:39.152 - 00:25:39.354, Speaker C: Right?
+00:25:39.392 - 00:25:49.260, Speaker A: So it's really a whole spectrum of fully governed and managed all the way to immutable and all that in between.
+00:25:50.350 - 00:25:51.926, Speaker B: One of the things that we've spent.
+00:25:51.958 - 00:25:58.080, Speaker A: Quite a bit of time on with the vault kit implementation is being able to price the shares of the vault securely. Okay?
+00:25:58.690 - 00:26:00.446, Speaker B: And that's really just as we're talking.
+00:26:00.468 - 00:26:53.390, Speaker A: About the exchange rate, right? Reading the exchange rate of a pool. Right. It's not quite as easy as it sounds because there's a lot of different attack vectors like donations to the pool and so forth. But we've designed it so that EVK vaults shares can be securely priced by oracle system. Okay? And according to the 46 26 standard, the way you read the exchange rate indirectly is with this convert to assets function, right? So it's given this amount of shares, how many assets will I get from that? And yeah, the protections that facilitate this are internal balance tracking and virtual deposits. One of the things that secure share pricing enables is this concept of nested vault. And this is something we're still formulating exactly how it's going to work, but we're pretty enthused by the potential.
+00:26:53.390 - 00:27:00.306, Speaker A: The idea is that imagine you create another vault. That underlying asset that it contains are.
+00:27:00.328 - 00:27:03.140, Speaker C: The shares from a separate vault, right?
+00:27:03.910 - 00:27:07.390, Speaker B: Just as an example, let's say you have USDC. That's the underlying asset.
+00:27:07.470 - 00:27:10.310, Speaker A: You create a new vault. Let's call EUSDC.
+00:27:10.650 - 00:27:12.726, Speaker B: And its underlying asset of course, is.
+00:27:12.748 - 00:27:55.958, Speaker A: USDC, and its shares are that USDC token, right? And if you remember, 46, 26 vaults are ERC 20 compatible, so they themselves can be used as tokens. Any place that a token will be used. Right? So you create another vault based on that. And now the interesting thing about this is that if you hold EeUSDC tokens, you will be getting the yield from EUSDC vault as well as the yield from EEUSDC Vault, right? The idea is that you can create a lending pool based on the shares of another lending pool and attract people to deposit into it without them paying the opportunity cost of not receiving the.
+00:27:55.964 - 00:27:58.550, Speaker C: Yield from the parent vault because they're still doing that.
+00:27:58.700 - 00:28:09.846, Speaker A: Hold, still have title to the EUSDT token. Right. We think this will allow people to create lending products and partially solve the bootstrapping problem. Right?
+00:28:09.868 - 00:28:11.938, Speaker B: Like how do you attract initial depositors?
+00:28:12.114 - 00:28:15.050, Speaker A: You create a new pool and it's earning 0% yield.
+00:28:15.630 - 00:28:17.098, Speaker B: Why would anyone deposit to that when.
+00:28:17.104 - 00:28:20.282, Speaker A: They could earn 5% yield over here? Right? So now you make it so that.
+00:28:20.416 - 00:28:24.538, Speaker B: My pool is offering 5% yield right now. And maybe if more borrowers come, you'll.
+00:28:24.554 - 00:28:25.502, Speaker A: Get something on top of that.
+00:28:25.556 - 00:28:25.822, Speaker C: Right?
+00:28:25.876 - 00:28:26.942, Speaker A: So that's one of the things we.
+00:28:26.996 - 00:28:28.400, Speaker C: Hope to accomplish with this.
+00:28:30.450 - 00:28:44.862, Speaker A: Another feature that we've added to the EVK compatible vaults is this LTV ramping. LTV stands for loan to value ratio. And as we were talking about, there's.
+00:28:45.006 - 00:28:46.382, Speaker B: This concept of leverage.
+00:28:46.526 - 00:28:48.482, Speaker A: And if the leverage is too high.
+00:28:48.536 - 00:28:51.106, Speaker B: Or like allowable leverage on a pool is too high, then even a tiny.
+00:28:51.138 - 00:28:53.254, Speaker A: Price movement would cause a position to be wiped out.
+00:28:53.292 - 00:28:53.686, Speaker C: Right?
+00:28:53.788 - 00:28:57.846, Speaker A: So vaults will typically, well, not just.
+00:28:57.868 - 00:29:00.658, Speaker B: Vaults, but any lending product will typically limit that amount of leverage.
+00:29:00.754 - 00:29:05.542, Speaker A: Right, and the way they typically do that is with this, by limiting the LTV.
+00:29:05.686 - 00:29:08.374, Speaker B: You may have also heard of this as a collateral factor.
+00:29:08.422 - 00:29:10.220, Speaker C: That's what compound calls it, for example.
+00:29:12.050 - 00:29:22.800, Speaker A: And one of the problems we saw with that was that in a managed pool, LTVs can change for various reasons. Let's say that.
+00:29:24.690 - 00:29:26.686, Speaker B: Previously believed secure collateral.
+00:29:26.718 - 00:29:29.438, Speaker A: Is no longer secure or less secure.
+00:29:29.614 - 00:29:31.262, Speaker B: Then you'd want to reduce the LTV.
+00:29:31.326 - 00:29:31.794, Speaker C: Right.
+00:29:31.912 - 00:29:35.318, Speaker B: The problem we saw with that, though, is that in most designs, if you.
+00:29:35.324 - 00:29:39.954, Speaker A: Reduce the LTV immediately, a lot of people with existing loans will be instantly.
+00:29:40.002 - 00:29:41.320, Speaker B: Liquidated at a very.
+00:29:43.770 - 00:29:45.286, Speaker A: Unfavorable conditions because.
+00:29:45.308 - 00:29:46.790, Speaker C: They'Re deeply in violation.
+00:29:47.370 - 00:29:50.266, Speaker A: However, what we've come up with this.
+00:29:50.288 - 00:29:53.350, Speaker B: LTV ramping is to split the ltvs.
+00:29:53.510 - 00:30:01.022, Speaker A: Used for liquidations from the ltvs that are used for the existing loans. Right? So a managed vault, the governor can.
+00:30:01.076 - 00:30:05.262, Speaker B: Install a new LTV that will come into effect for everyone in, let's say.
+00:30:05.316 - 00:30:12.270, Speaker A: A month from now. Right? That duration is called the ramp duration new loans.
+00:30:13.650 - 00:30:14.062, Speaker B: Sorry.
+00:30:14.116 - 00:30:16.546, Speaker A: Yeah, I guess I have it called existing loans here.
+00:30:16.568 - 00:30:17.540, Speaker B: But this is like.
+00:30:19.510 - 00:30:20.226, Speaker A: That means that.
+00:30:20.248 - 00:30:23.266, Speaker B: The loans that have already currently in effect in the pool, and also any.
+00:30:23.288 - 00:30:38.902, Speaker A: New loans that will be initiated are under this new LTV immediately. Right. However, with all the previous loans that had this further liquidation will go under, this ramp will be used according to this ramp.
+00:30:38.966 - 00:30:39.338, Speaker C: Right.
+00:30:39.424 - 00:30:49.862, Speaker A: And I don't have any slides to talk about right now, but the way that Euler v one liquidation work is that how deeply in violation you are.
+00:30:49.936 - 00:30:53.200, Speaker B: Corresponds to how much you will be.
+00:30:54.930 - 00:30:56.378, Speaker A: Losing in the liquidation.
+00:30:56.474 - 00:30:56.878, Speaker C: Okay.
+00:30:56.964 - 00:30:59.582, Speaker A: So in this case, at the exact.
+00:30:59.636 - 00:31:03.086, Speaker B: Point down that ramp where you get in violation is where you will be.
+00:31:03.108 - 00:31:17.814, Speaker A: Liquidated, meaning you'll be liquidated under the very most favorable conditions for you. Right. So you'll usually lose very little or nothing relative to closing out the position yourself on that. So it's a good way to, if.
+00:31:17.852 - 00:31:21.190, Speaker B: It'S a managed pool, change the LTV without unfairly impacting.
+00:31:22.890 - 00:31:24.950, Speaker A: You know, there's been.
+00:31:25.020 - 00:31:27.382, Speaker B: Other approaches to this. Like, for example, Ave has a similar.
+00:31:27.436 - 00:31:32.166, Speaker A: System, but with their design, those loans.
+00:31:32.198 - 00:31:33.510, Speaker B: Are on the books forever.
+00:31:33.590 - 00:31:41.022, Speaker A: Basically, there's no ramp that ends up correcting them. So the pool, in theory, could stand with loans at the previous LTV for.
+00:31:41.076 - 00:31:42.382, Speaker C: Indefinite amount of time. Right.
+00:31:42.436 - 00:31:43.374, Speaker B: We think this is a better way.
+00:31:43.412 - 00:31:45.120, Speaker A: For managers to correct that.
+00:31:46.850 - 00:31:47.600, Speaker C: Yeah.
+00:31:48.130 - 00:31:54.500, Speaker A: Another thing that we've developed is this reward streaming concept, and this is.
+00:31:56.230 - 00:31:56.546, Speaker C: Kind.
+00:31:56.568 - 00:32:04.354, Speaker A: Of us taking a step back and looking at how the previous, like liquidity mining and bonusing systems and so on have previously worked.
+00:32:04.552 - 00:32:07.042, Speaker B: We can generalize this a little bit, make it a little bit more permissionless.
+00:32:07.106 - 00:32:08.630, Speaker C: A little bit more flexible.
+00:32:08.970 - 00:32:10.998, Speaker A: And essentially what it is, is a.
+00:32:11.004 - 00:32:13.474, Speaker B: Way for vaults to notify an external.
+00:32:13.522 - 00:32:20.026, Speaker A: Contract about the balance changes inside this vault. And if users opt into this, their.
+00:32:20.048 - 00:32:22.410, Speaker B: Balances will, every time their balances change.
+00:32:22.560 - 00:32:24.326, Speaker A: That external vault will be notified.
+00:32:24.438 - 00:32:24.906, Speaker C: Right.
+00:32:25.008 - 00:32:28.710, Speaker A: And this allows us to create fully permissionless mining rewards.
+00:32:28.790 - 00:32:29.420, Speaker C: Right.
+00:32:30.450 - 00:32:33.390, Speaker A: What we want is that vaults.
+00:32:35.090 - 00:32:35.454, Speaker C: Can.
+00:32:35.492 - 00:32:39.502, Speaker A: Be like, vault depositors can be rewarded by anyone in any token at any time.
+00:32:39.556 - 00:32:40.062, Speaker C: Right.
+00:32:40.196 - 00:32:46.350, Speaker A: So you don't have to interact with the vault creator to reward depositors on the token.
+00:32:46.430 - 00:32:46.962, Speaker C: Right.
+00:32:47.096 - 00:32:55.886, Speaker A: And it's a maximally flexible system. And the really key part of that is that even because there's no staking.
+00:32:55.918 - 00:32:58.198, Speaker B: Required, you're not taking your shares out.
+00:32:58.204 - 00:33:03.410, Speaker A: Of the vault in order to earn the rewards. That means that leveraged amounts can also be rewarded.
+00:33:03.490 - 00:33:03.878, Speaker C: Right.
+00:33:03.964 - 00:33:10.022, Speaker A: So that if you have a large leveraged position, you can be earning rewards.
+00:33:10.086 - 00:33:12.534, Speaker B: Based on the full nominal value of your collateral.
+00:33:12.582 - 00:33:15.050, Speaker A: Right. Even though that is several times leveraged in theory.
+00:33:17.790 - 00:33:18.106, Speaker C: Yeah.
+00:33:18.128 - 00:33:32.874, Speaker A: So that's the sum of the talk here we have some bounties for the hackathon going on here. Two bounties. The first one is to create ERC.
+00:33:32.922 - 00:33:36.306, Speaker B: 721 or vaults that accept ERC 71.
+00:33:36.328 - 00:33:40.930, Speaker A: Tokens as collateral and integrate them with the EVC. Right.
+00:33:41.000 - 00:33:43.186, Speaker B: We have some helpful wrappers in our.
+00:33:43.208 - 00:33:51.026, Speaker A: EVC playground repo that can help you get started. And helpful examples. I just want to say that we're.
+00:33:51.058 - 00:33:52.994, Speaker B: Actually a little bit flexible on what uses collateral.
+00:33:53.042 - 00:33:53.350, Speaker C: Right.
+00:33:53.420 - 00:33:55.266, Speaker B: Nfts are probably the easiest.
+00:33:55.298 - 00:34:02.746, Speaker A: Describe a very obvious use case of it, but of something that's different. But I think we'd be interested in.
+00:34:02.768 - 00:34:05.210, Speaker B: Seeing any kind of defi product use a collateral.
+00:34:06.430 - 00:34:08.140, Speaker A: We would think that's pretty cool too.
+00:34:08.670 - 00:34:11.210, Speaker B: Bounty number two is building an operator.
+00:34:11.550 - 00:34:15.646, Speaker A: On top of the EVP. And that's what we were talking about.
+00:34:15.668 - 00:34:17.662, Speaker B: Earlier, where you give another contract control.
+00:34:17.716 - 00:34:23.630, Speaker A: Over your account and allow it to perform actions on your behalf. Many possibilities here.
+00:34:23.780 - 00:34:26.206, Speaker B: Something like a security guardian that is.
+00:34:26.228 - 00:34:37.414, Speaker A: Able to close out your positions if it receives some kind of alert or something like that. Or as we talked about it could be based on on chain observable things.
+00:34:37.452 - 00:34:38.838, Speaker B: Like prices, in which case I would.
+00:34:38.844 - 00:34:40.790, Speaker C: Implement stop losses and so forth.
+00:34:41.130 - 00:34:42.482, Speaker B: Position rebalancers.
+00:34:42.546 - 00:35:03.050, Speaker A: There's a lot of possibilities there. And please talk to us for more details there. Happy to walk through any concepts you have. And that's it. These two URLs are the documentation pages for the EBC and the Weathervolt kit respectively.
+00:35:03.890 - 00:35:06.782, Speaker B: And the bottom link has a link.
+00:35:06.836 - 00:35:09.118, Speaker A: To our light paper as well as the white paper.
+00:35:09.204 - 00:35:10.574, Speaker B: Light paper is more of a higher.
+00:35:10.612 - 00:35:12.974, Speaker A: Level product concept where we talk about.
+00:35:13.092 - 00:35:15.630, Speaker C: The different deployment techniques.
+00:35:17.490 - 00:35:18.638, Speaker B: For Euler vault.
+00:35:18.654 - 00:35:28.658, Speaker A: Kits and what we intend to accomplish with them. And the white paper itself is a more technical deep dive that talks about all the things we've discussed today, but.
+00:35:28.744 - 00:35:30.598, Speaker B: Also a bunch of other features I didn't get into.
+00:35:30.684 - 00:35:45.142, Speaker A: There's a lot of features, additional features that we didn't talk about today in the vault kit and the EBT. So if you're interested in them, check out the white papers or come talk to us at the conference today and that's it.
+00:35:45.196 - 00:35:46.280, Speaker C: Thank you very much.
+00:35:51.490 - 00:35:54.620, Speaker A: If there's any questions, we could try to do that.
