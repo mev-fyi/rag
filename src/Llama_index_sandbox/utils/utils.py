@@ -833,15 +833,15 @@ def copy_and_rename_website_docs_pdfs():
 
 if __name__ == '__main__':
     pass
-    # copy_and_verify_files()
+    copy_and_verify_files()
 
     # copy_and_rename_website_docs_pdfs()
 
-    directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    clean_fullwidth_characters(directory)
-    move_remaining_mp3_to_their_subdirs()
-    merge_directories(directory)
-    delete_mp3_if_text_or_json_exists(directory)
+    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    # clean_fullwidth_characters(directory)
+    # move_remaining_mp3_to_their_subdirs()
+    # merge_directories(directory)
+    # delete_mp3_if_text_or_json_exists(directory)
 
     # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"

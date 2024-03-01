@@ -165,7 +165,7 @@ sources: {sources}
 response: {response}
 """
 
-TWITTER_THREAD_INPUT = """The user is asking "{user_input}" about the following Twitter thread delimited in triple backticks:
+TWITTER_THREAD_INPUT = """The user @{username} is asking "{user_input}" about the following Twitter thread delimited in triple backticks:
 ```
 {twitter_thread}
 ``` 

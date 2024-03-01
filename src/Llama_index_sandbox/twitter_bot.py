@@ -30,7 +30,7 @@ class TwitterBot:
         Initializes the Twitter Bot with necessary credentials and configurations.
         """
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        if (not os.environ.get('ENVIRONMENT', 'LOCAL') == 'LOCAL') or not os.environ.get('ENVIRONMENT') == 'STAGING':
+        if (not os.environ.get('ENVIRONMENT', 'LOCAL') == 'LOCAL') or os.environ.get('ENVIRONMENT') == 'STAGING':
             # NOTE 2024-02-01: staging is when we still want 'LOCAL' logs while deployed on cloud
             set_secrets_from_cloud()
 
@@ -285,19 +285,19 @@ class TwitterBot:
 
         while tweet_id and attempt < max_retries:
             try:
-                tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
-                # tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet,author_id"
+                # tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet"
+                tweet_fields = "tweet.fields=created_at,text,referenced_tweets,note_tweet,author_id"
                 url = f"https://api.twitter.com/2/tweets/{tweet_id}?{tweet_fields}"
                 headers = {"Authorization": f"Bearer {self.bearer_token}"}
                 response = connect_to_endpoint(url, None, self.bearer_token, max_retries, backoff_factor)
 
                 tweet_data = response.get('data', {})
                 tweet_text = tweet_data.get('note_tweet', {}).get('text') or tweet_data.get('text')
-                thread.append(tweet_text)
+                # thread.append(tweet_text)
 
                 # TODO 2024-02-25: also add author name for appropriate naming of who said what?
-                # tweet_author = fetch_username_directly(bearer_token=self.bearer_token, user_id=tweet_data.get('author_id'))
-                # thread.append(f"---\n{tweet_author}\n```\n{tweet_text}\n```")
+                tweet_author = fetch_username_directly(bearer_token=self.bearer_token, user_id=tweet_data.get('author_id'))
+                thread.append(f"---\n@{tweet_author}\n```\n{tweet_text}\n```")
 
                 referenced_tweets = tweet_data.get('referenced_tweets', [])
                 parent_tweet = next((ref for ref in referenced_tweets if ref['type'] == 'replied_to'), None)
@@ -417,7 +417,7 @@ class TwitterBot:
                 logging.error("Could not fetch tweet")
                 return
 
-            chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message)
+            chat_input = TWITTER_THREAD_INPUT.format(user_input=tweet_text, twitter_thread=message, username=fetch_username_directly(bearer_token=self.bearer_token, user_id=user_id) if not test else 'unlock_VALue')
             # Process the message
 
             chat_response, metadata = self.process_chat_message(chat_input)

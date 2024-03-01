@@ -18,6 +18,16 @@ if not api_keys:
 api_keys = api_keys.split(',')
 
 
+class No200HTTPFilter(logging.Filter):
+    def filter(self, record):
+        # Assuming the log message is structured in a way that includes the status code directly
+        if "HTTP/1.1 200 OK" in record.getMessage():
+            return False  # Do not log
+        return True  # Log all other messages
+
+# Assuming a logger is set up somewhere in the script
+
+
 def set_api_key(api_key):
     import assemblyai as aai
     aai.settings.api_key = api_key
@@ -131,4 +141,8 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger()  # Get the default logger
+    logger.addFilter(No200HTTPFilter())  # Apply the No200HTTPFilter to the logger
+
     main()
+
