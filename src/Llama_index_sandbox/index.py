@@ -159,6 +159,6 @@ def create_index(model_details, embedding_model, add_new_transcripts, vector_spa
     # We now insert these nodes into our PineconeVectorStore.
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
-    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name], vector_space_distance_metric=vector_space_distance_metric)
+    index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config_instance.EMBEDDING_DIMENSIONS[embedding_model_name], vector_space_distance_metric=vector_space_distance_metric)
     persist_index(index)
     return index

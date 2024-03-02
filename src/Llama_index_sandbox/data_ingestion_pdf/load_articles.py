@@ -43,10 +43,25 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                     'release_date': str(paper_row.iloc[0]['release_date']),
                 })
         else:
+            # Update metadata
             for document in documents:
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
-            logging.warning(f"Failed to find metadata for {file_path}")
+
+                if not document.text:
+                    logging.error(f"Found empty document text in [{title}] with [{file_path}]")
+                    continue
+                document.text.replace('', '')
+
+                document.metadata.update({
+                    'document_type': DOCUMENT_TYPES.ARTICLE.value,
+                    'title': title,
+                    'authors': "",
+                    'pdf_link': "",
+                    'release_date': "",
+                })
+
+            logging.warning(f"Failed to find metadata for [{file_path}], adding only title")
         save_successful_load_to_csv(documents[0], csv_filename='articles.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
         return documents
     except Exception as e:

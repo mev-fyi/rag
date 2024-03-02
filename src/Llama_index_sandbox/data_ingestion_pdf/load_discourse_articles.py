@@ -102,7 +102,7 @@ def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[
                 logging.info(f"Failed to process {pdf_file}, removing file: {e}")
                 os.remove(pdf_file)
 
-    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{DOCUMENT_TYPES.ARTICLE.value}] files.")
+    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{DOCUMENT_TYPES.ARTICLE.value}] Discourse files.")
     return all_documents
 
 
