@@ -34,6 +34,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
         )
         self.merged_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/merged_articles.csv")
         self.updated_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/articles_updated.csv")
+        self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.85'))
+        self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '0.70'))
+        self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.1'))
 
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
@@ -67,6 +70,24 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'EF': {
             'https://ethresear.ch/u/mikeneuder',
             'https://ethresear.ch/u/barnabe',
+            'https://ethresear.ch/u/potuz',
+            'https://ethresear.ch/u/soispoke',
+            'https://ethresear.ch/u/mteam88',
+            'https://ethresear.ch/u/terence',
+            'https://ethresear.ch/u/vbuterin',
+            'https://ethresear.ch/u/casparschwa',
+            'https://ethresear.ch/u/edfelten',
+            'https://ethresear.ch/u/justindrake',
+            'https://ethresear.ch/u/fradamt',
+            'https://ethresear.ch/u/dmarz',
+            'https://ethresear.ch/u/dcrapis',
+            'https://ethresear.ch/u/nerolation',
+            'https://ethresear.ch/u/ballsyalchemist',
+            'https://ethresear.ch/u/thegostep',
+            'https://ethresear.ch/u/thogard785',
+            'https://ethresear.ch/u/diego',
+            'https://ethresear.ch/u/drewvanderwerff',
+            'https://ethresear.ch/u/joseph'
         },
         'Ethereum.org': {
                 'Ethereum.org'
@@ -179,11 +200,11 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             # Adjust score based on link and title conditions
             if link in merged_links and link in updated_links and title not in updated_titles:
-                node_with_score.score *= 0.80
+                node_with_score.score *= self.discourse_only_penalty
 
             # Further adjust score if title contains specific keywords
             if "ethereum research" in title.lower() or "flashbots collective" in title.lower():
-                node_with_score.score *= 0.7  # Apply further adjustment for specific keywords in title
+                node_with_score.score *= self.forum_name_in_title_penalty  # Apply further adjustment for specific keywords in title
 
         return nodes_with_score
 
@@ -256,7 +277,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             # Special case adjustment
             if document_name in self.edge_case_set:
-                score *= 0.1
+                score *= self.doc_to_remove
 
             node_with_score.score = score
 
