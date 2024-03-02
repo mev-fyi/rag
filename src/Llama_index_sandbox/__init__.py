@@ -1,6 +1,8 @@
 import os
 import sys
 
+from src.Llama_index_sandbox.evaluation.config import Config
+
 # Append the parent directory to sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
@@ -19,4 +21,5 @@ DISCOURSE_ARTICLES_DIRECTORY = f"{root_dir}/datasets/evaluation_data/articles_di
 FLASHBOTS_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/flashbots_docs_2024_01_07"
 ETHEREUM_ORG_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/ethereum_org_content_docs_2024_01_07"
 YOUTUBE_VIDEO_DIRECTORY = f"{root_dir}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
-index_dir = f"{root_dir}/.storage/research_pdf/"
+config_instance = Config()
+output_dir = config_instance.get_index_output_dir()
