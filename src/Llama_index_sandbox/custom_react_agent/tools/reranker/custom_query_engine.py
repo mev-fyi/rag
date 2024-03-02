@@ -177,8 +177,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
             link = node_with_score.node.metadata.get('pdf_link', '').strip()
             title = node_with_score.node.metadata.get('title', '').strip()
 
+            # Adjust score based on link and title conditions
             if link in merged_links and link in updated_links and title not in updated_titles:
-                node_with_score.score *= 0.80  # Adjust score if conditions are met
+                node_with_score.score *= 0.80
+
+            # Further adjust score if title contains specific keywords
+            if "ethereum research" in title.lower() or "flashbots collective" in title.lower():
+                node_with_score.score *= 0.7  # Apply further adjustment for specific keywords in title
 
         return nodes_with_score
 

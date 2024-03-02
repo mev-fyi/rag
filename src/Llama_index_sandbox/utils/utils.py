@@ -911,3 +911,12 @@ def get_embedding_model(embedding_model_name):
     # else:
     #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"
     return embedding_model
+
+
+def load_csv_data(file_path):
+    if os.path.exists(file_path):
+        return pd.read_csv(file_path)
+    else:
+        logging.warning(f"CSV file not found at path: {file_path}")
+        return pd.DataFrame()  # Return an empty DataFrame if file doesn't exist
+
