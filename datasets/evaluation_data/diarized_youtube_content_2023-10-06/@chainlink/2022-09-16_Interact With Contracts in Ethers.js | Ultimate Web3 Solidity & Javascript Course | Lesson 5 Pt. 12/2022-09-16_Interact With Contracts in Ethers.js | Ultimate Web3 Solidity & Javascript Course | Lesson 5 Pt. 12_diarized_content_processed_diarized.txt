@@ -1,0 +1,74 @@
+00:00:09.770 - 00:00:11.322, Speaker A: Now that we've actually deployed our contract.
+00:00:11.386 - 00:00:36.774, Speaker B: We can learn how to interact with our contract through code as well. The same way that we clicked these buttons in remix, we're going to code it out for ourselves here. So if we look at simple storage, we have a button for add person for store, and then we have these view functions as well. The easiest one is going to be the retrieve function, which grabs our favorite number. Retrieve returns favorite number. So we can call that in ethers by doing const.
+00:00:36.972 - 00:00:49.194, Speaker A: Current favorite number equals await contract retrieve. The contract object that we have is.
+00:00:49.232 - 00:00:57.050, Speaker B: What'S returned from our contract factory. As long as we've awaited it, the contract object is going to come with all the functionality described in our ABI.
+00:00:57.130 - 00:00:58.446, Speaker A: That's why we had to pass the.
+00:00:58.468 - 00:01:13.890, Speaker B: ABI to our contract factory. If we look inside our ABI piece here, we can see it has a ton of information on the different functions that we can call and the types that it has and the return types and everything like that. For example, if I look up retrieve.
+00:01:14.390 - 00:01:19.218, Speaker A: I can see down here we have retrieve. We can see that the name of.
+00:01:19.224 - 00:01:34.314, Speaker B: This function is going to be retrieve and the outputs are going to be a UN 256 of type. Un 256. Now this is a little bit difficult to read because it's not formatted. Since we call this Abi, it's going to be a little bit hard to read, but we could change it be.
+00:01:34.432 - 00:01:38.298, Speaker A: JSON and then you'll see it's highlighted a little bit.
+00:01:38.384 - 00:01:40.620, Speaker B: You can even do format document with.
+00:01:41.230 - 00:01:44.042, Speaker A: Prettier and you'll see it actually formats.
+00:01:44.106 - 00:01:45.550, Speaker B: To be a lot easier to read.
+00:01:45.620 - 00:01:50.126, Speaker A: Now we can go back to retrieve and we can see this block of.
+00:01:50.148 - 00:01:53.918, Speaker B: Code here defines what the retrieve function can and can't do.
+00:01:54.004 - 00:01:55.214, Speaker A: I'm going to change it back to.
+00:01:55.252 - 00:02:05.154, Speaker B: ABI and it looks like my formatting has stayed, which is great. This is much easier to read than it was before. As I said, the ABI or the application binary interface is incredibly important for.
+00:02:05.192 - 00:02:06.302, Speaker A: Working with our contracts.
+00:02:06.366 - 00:02:19.814, Speaker B: If we give our code just this huge bytecode thing, it's going to be really hard for any processor to decompile this or understand exactly what the functions are that are going on here. There are decompiler options out there like.
+00:02:19.852 - 00:02:23.994, Speaker A: EthervM IO decompile, that can decompile some.
+00:02:24.032 - 00:02:34.014, Speaker B: Bytecode into the solidity. But it can be really tricky to get it exactly right. So it's much easier just to have the ABI to say, hey, this lump of code, this lump of numbers and.
+00:02:34.052 - 00:02:37.226, Speaker A: Jarbled nonsense is this when we deploy.
+00:02:37.258 - 00:02:51.538, Speaker B: This bytecode to the blockchain and we call functions on it, the code will automatically allow those functions to get called if they do exist. But in order for our code to know that they exist, it's much easier just to give it the ABI so we can get our current favorite number like this.
+00:02:51.624 - 00:03:02.738, Speaker A: Let's go ahead and console log the current favorite number. Now that we've edited this code, we're going to let me zoom out a little bit. Now that we've edited this code, we're.
+00:03:02.754 - 00:03:08.966, Speaker B: Going to connect or ganache instance, we're going to connect a wallet with a private key that we got from the.
+00:03:08.988 - 00:03:10.146, Speaker A: Top of our ganache here.
+00:03:10.188 - 00:03:11.706, Speaker B: We're going to grab the ABI and.
+00:03:11.728 - 00:03:14.410, Speaker A: The binary of our contracts and connect.
+00:03:14.480 - 00:03:35.390, Speaker B: Them to a new contract factory object which is connected to that wallet. So that wallet will be the one to actually deploy the contract. We'll deploy the contract with const contract equals awaitcontractfactory deploy. We will wait one block for that transaction to finish, and in fact we're not going to use transaction receipt. So for now we're just going to delete that part.
+00:03:35.540 - 00:03:36.718, Speaker A: We're not going to do any of.
+00:03:36.724 - 00:03:40.786, Speaker B: This here, so I'm going to delete it for now. However, I'll leave this section commented out.
+00:03:40.808 - 00:03:42.558, Speaker A: In the GitHub repo and then we're.
+00:03:42.574 - 00:04:11.322, Speaker B: Going to call contract retrieve, which should return our current favorite number. Since this is a view function, this contract call won't cost us any gas. If we look at simplestorage Sol, we can see retrieve is a view function. And remember, view and pure functions. If called outside of a contract function call don't cost any gas. We're just reading off the blockchain. We're not changing any variables on chain, we're not changing the state of the blockchain, so this won't cost any gas.
+00:04:11.386 - 00:04:15.790, Speaker A: So let's go ahead and run this. Perfect.
+00:04:15.860 - 00:04:44.530, Speaker B: We get deploying, please wait. And then we get this big number response. So what's this big number response here? Big number is a library that comes with the ethers application that helps us work with numbers. If you actually scroll down, they even have a section saying why can't I just use numbers? You'd expect current favorite number to just be zero, but it returns this weird hex thing that says, is big number true? This weird big number thing. So solidity can't use decimal places, and JavaScript has a hard time with decimal places.
+00:04:44.610 - 00:04:45.782, Speaker A: And this is kind of the more.
+00:04:45.836 - 00:04:53.434, Speaker B: Specific rationale for why not to use numbers. What you'll see a lot of the time instead of numbers is you'll see strings like zero.
+00:04:53.632 - 00:05:01.990, Speaker A: You'll see JavaScript use strings like this or big numbers. Now if I were to try to pass a number like this in JavaScript.
+00:05:02.070 - 00:05:09.338, Speaker B: This number would be too big for JavaScript to understand. So we want to use big numbers or strings when working with ethers. Now we can make this more readable.
+00:05:09.434 - 00:05:12.366, Speaker A: By adding dot to string at the.
+00:05:12.388 - 00:05:14.038, Speaker B: End and printing out the string version.
+00:05:14.074 - 00:05:18.258, Speaker A: Of this big number. Now if I rerun this code, we.
+00:05:18.264 - 00:05:20.034, Speaker B: Can see we get zero, which makes.
+00:05:20.072 - 00:05:22.914, Speaker A: Sense again, because our favorite number gets.
+00:05:22.952 - 00:05:28.710, Speaker B: Initialized to the zero value if not specified, and we haven't called store yet.
+00:05:28.780 - 00:05:31.602, Speaker A: So awesome. So that's working perfectly.
+00:05:31.666 - 00:05:55.440, Speaker B: So this is what our current favorite number is. Let's make this console log a little bit more syntactical. We're going to use something called string interpolation so we can interpolate our string here with variables. Typically in JavaScript when working with strings you use double quotes. However, if you want to mix variables with actual strings, you can use backticks instead. So we're going to use some backticks here and we're going to say current.
+00:05:55.970 - 00:06:00.222, Speaker A: Favorite number, put a colon here, and.
+00:06:00.276 - 00:06:05.746, Speaker B: To tell JavaScript that this is a variable that we want to read, we put a little dollar sign and a.
+00:06:05.768 - 00:06:13.362, Speaker A: Bracket around it like this. Now if we run this code again saying deploying, please wait, and we get.
+00:06:13.416 - 00:06:25.126, Speaker B: Current favorite number is zero because Javascript goes okay, this is a string ah, dollar sign, curly brace. Looks like this is going to be some variable or some Javascript that you want me to interpret and close it.
+00:06:25.148 - 00:06:26.934, Speaker A: Off and then back to it. Cool.
+00:06:26.972 - 00:06:29.178, Speaker B: So our current favorite number is going to be zero.
+00:06:29.264 - 00:06:29.514, Speaker A: Great.
+00:06:29.552 - 00:06:33.226, Speaker B: So let's update on the contract the number by calling the store function.
+00:06:33.328 - 00:06:43.258, Speaker A: So we'll say const, transaction response equals await, contract, store, and we'll add seven.
+00:06:43.344 - 00:07:11.170, Speaker B: Now since seven is a small number, you can just pass it like seven, but passing it like seven in a string also works. Again, this is because if we wanted to pass some crazy massive number, Javascript would get confused. So it's usually best practice to pass variables to contract functions as strings, even though that might be a little bit confusing. Ethers is smart enough to know that this seven string is actually seven the number. Then we can do const, transaction, received.
+00:07:11.330 - 00:07:18.038, Speaker A: Equals await, transactionresponse wait one.
+00:07:18.204 - 00:07:23.718, Speaker B: So we'll wait one block here. This is similar to us doing contract deploytransaction.
+00:07:23.814 - 00:07:26.074, Speaker A: Wait, the syntax here is a little.
+00:07:26.112 - 00:07:40.282, Speaker B: Bit different than what we saw up here because this is using a contract factory and this is calling a function on a contract. So when we call the function on the contract, we get a transaction response. When we wait for the transaction response to finish, we get a transaction receipt.
+00:07:40.346 - 00:07:57.438, Speaker A: Now I can do const, updated favorite number equals await contract retrieve and then console log. Updated favorite number is and we'll do.
+00:07:57.464 - 00:07:58.834, Speaker B: A little string interpolation.
+00:07:58.962 - 00:08:00.854, Speaker A: Updated favorite number.
+00:08:00.972 - 00:08:08.710, Speaker B: Like that. Now let's go ahead and run this. So in this process, what are we doing? We're deploying the contract. We're getting the initial value.
+00:08:08.860 - 00:08:11.114, Speaker A: We're going to update our contract by.
+00:08:11.152 - 00:08:20.438, Speaker B: Calling store, which is going to cost gas. So this is a transaction, we're going to get the transaction response, then we're going to get the transaction receipt.
+00:08:20.534 - 00:08:22.870, Speaker A: We're not going to do anything with the transaction receipt.
+00:08:22.950 - 00:08:29.998, Speaker B: I want to ingrain in you all that these two are different, transaction response and transaction receipt. And you'll see why in the future.
+00:08:30.084 - 00:08:31.546, Speaker A: And then we'll get the updated favorite.
+00:08:31.578 - 00:08:33.310, Speaker B: Number and then we're just going to print it out.
+00:08:33.380 - 00:08:37.486, Speaker A: So let's do this. Boom. And perfect deploying.
+00:08:37.518 - 00:08:47.894, Speaker B: Please wait. Current favorite number is zero, updated favorite number is seven. And if we go to our Ganache instance, we go to transactions. We can see we now have a.
+00:08:47.932 - 00:08:52.674, Speaker A: Contract call at the top we have the sender, the contract address, the gas.
+00:08:52.722 - 00:09:18.060, Speaker B: Price, all this stuff, and we see our transaction data right here. So this transaction data is what gets sent in that data slot of our transaction object. Ethers is just doing that on the back end for us so that we don't have to make that big transaction object there. All right, awesome. You've successfully deployed a contract to your own local ganache instance or your own Javascript virtual machine. This is great.

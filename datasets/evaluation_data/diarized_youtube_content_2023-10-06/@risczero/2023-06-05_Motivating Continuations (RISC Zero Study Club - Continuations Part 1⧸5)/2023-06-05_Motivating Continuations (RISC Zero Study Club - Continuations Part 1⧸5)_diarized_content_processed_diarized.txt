@@ -1,0 +1,35 @@
+00:00:00.810 - 00:00:12.778, Speaker A: All right, well, good morning, everybody, or at least good morning in my area. Thanks for joining. I'm Frank Lob, the CTO and co founder of Persero. Yeah, today we're going to talk about continuations, which is an exciting new feature.
+00:00:12.874 - 00:00:16.126, Speaker B: To allow large programs to be run.
+00:00:16.308 - 00:00:41.690, Speaker A: Efficiently within the RCKVM. All right. So, yeah, some motivating sort of background material. The problem we saw that bitcoin was an interesting solution to basically using economic means in order to solve the sort of, how do we verify that other people are computing things correctly?
+00:00:43.150 - 00:00:45.162, Speaker B: But we ran into some problems with that.
+00:00:45.216 - 00:01:01.114, Speaker A: It wasn't exactly without issue. There's not really any privacy. The programming model was very limited in bitcoin, and it really just doesn't scale.
+00:01:01.162 - 00:01:01.422, Speaker B: Right.
+00:01:01.476 - 00:01:50.720, Speaker A: The idea is that everybody has to rerun all of the computations, and so doesn't really lend itself to being able to sort of farm out the work to lots of different participants. Zero knowledge gives us the possibility of solving a lot of these problems, but in its current state, it's kind of hard for developers to access because they need to have sort of expertise around how to build these arithmetic circuits, which are kind of difficult to build and to maintain. And a lot of the times, you don't really get full Turing completeness. So, yeah, it's just kind of hard to develop these circuits. So we wanted to try a different approach, which is basically build a zero knowledge vulture machine based off of the RISC five ISA instruction set.
+00:01:52.610 - 00:01:55.826, Speaker B: Yeah. So based off of these sort of.
+00:01:55.848 - 00:02:04.690, Speaker A: Things that we've seen in the past, we wanted to try to leverage a lot of the experience that we've learned over decades of computer engineering.
+00:02:06.310 - 00:02:08.806, Speaker B: So, yeah, some of the things that.
+00:02:08.828 - 00:02:22.940, Speaker A: We'Ve learned over the years. Right. Open source seems to be here and here to stay. Lots of people are using it. I think corporations, individuals, all sorts of people realize its importance and its power.
+00:02:24.190 - 00:02:25.478, Speaker B: Computer hardware.
+00:02:25.654 - 00:02:50.626, Speaker A: There's this kind of general theme here, which is that generality seems to be better than specific, or at least generality seems to win out in the long term. You kind of see this in machine learning. You can see this in various other things where basically generality seems to be the thing that once you have a general thing, you really get a lot.
+00:02:50.648 - 00:02:54.862, Speaker B: More power out of it. So scale also matters.
+00:02:55.006 - 00:03:01.186, Speaker A: The different kind of problems and different kind of solutions exist at different levels of scale.
+00:03:01.378 - 00:03:03.462, Speaker B: So we wanted to try to figure.
+00:03:03.516 - 00:03:18.698, Speaker A: Out how can we deal with scale? How can we make scaling really possible in decentralized systems and in general. So, yeah, let's take a look at the Apple two real quick, just to kind of show basically if we look.
+00:03:18.704 - 00:03:23.370, Speaker B: At, we look at how much computation.
+00:03:23.450 - 00:03:48.070, Speaker A: Has grown, like the appetite for computation and the appetite for data just keeps going up and we seem to find more and more uses of that computation. Right. And so initially we could say these old style machines weren't capable of doing very much. But as the hardware has grown, so has the demand and the capabilities of the software.
+00:03:49.290 - 00:03:53.830, Speaker B: And so yeah, we can kind of see the Linux kernel is pretty big.
+00:03:53.900 - 00:03:57.406, Speaker A: The parameters going to GPT-3 or even bigger.
+00:03:57.538 - 00:03:59.820, Speaker B: So scale seems to matter.
+00:04:01.630 - 00:04:05.386, Speaker A: Of course, trying to get zero knowledge to scale is a pretty hard problem.
+00:04:05.488 - 00:04:18.794, Speaker B: So let's kind of talk through that. A lot of the xero knowledge proof systems are based off of the current techniques.
+00:04:18.842 - 00:04:24.306, Speaker A: To try to make them run faster has to do with the number of constraints. It's like one of the main sort.
+00:04:24.328 - 00:04:39.970, Speaker B: Of parameters around how well your proof system is working. There's sort of this scaling ceiling in our case based off of the field that we chose.
+00:04:40.050 - 00:05:06.720, Speaker A: So we're using this baby bear field, which basically is. It only allows up to two to the 28 values. This is where the cycle limit kind of comes from that you might be familiar with if you used the ZKBM. Currently we only allow sort of 16 million cycles before the cryptographic system can't even represent numbers past that point.
+00:05:08.370 - 00:05:10.606, Speaker B: People have tried to use recursion in.
+00:05:10.628 - 00:05:21.570, Speaker A: Order to kind of solve some of these problems, but it's a little tricky to use. Yeah, it's tricky in practice.
+00:05:23.350 - 00:05:26.726, Speaker B: So, yeah. What if we could figure out a.
+00:05:26.748 - 00:05:41.446, Speaker A: Way to make zero knowledge proof systems or the programs that run within these systems kind of automatic? What if we could automatically make these things scale in such a way that developers don't even have to think about it?
+00:05:41.628 - 00:05:43.640, Speaker B: So that's kind of what we come up with here.
+00:05:45.610 - 00:06:03.086, Speaker A: There's like ICB, there's incremental computing, there's these ways of base. Looking at it from the proof systems point of view, how do we make the proof system scale? I think what we did is took a more engineering approach. So we've got the CKBM. How can we get the ZKBM? If we look at the ZKBM, is.
+00:06:03.108 - 00:06:05.694, Speaker B: There a way to sort of make.
+00:06:05.732 - 00:06:09.130, Speaker A: The program execute in a way that we can make scale.

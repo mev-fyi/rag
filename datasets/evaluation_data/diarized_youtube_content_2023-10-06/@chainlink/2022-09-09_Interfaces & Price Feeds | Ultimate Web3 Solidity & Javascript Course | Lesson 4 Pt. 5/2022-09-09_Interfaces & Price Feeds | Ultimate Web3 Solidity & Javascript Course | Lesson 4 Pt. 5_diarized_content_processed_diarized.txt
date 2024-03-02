@@ -1,0 +1,47 @@
+00:00:11.050 - 00:00:39.542, Speaker A: Now, in order for us to figure out if our message dot value is actually greater than the minimum USD that we set, we actually have to convert our message value from its layer one ethereum to the USD equivalent. So how are we actually going to do that? Well, first we're going to need to get the price of Ethereum or Phantom or avalanche or whatever layer one blockchain that we're working with. So let's create a function to get that price, to get that conversion rate.
+00:00:39.676 - 00:00:43.674, Speaker B: So we'll do function get price, and.
+00:00:43.712 - 00:00:57.120, Speaker A: This is going to be the function that we use to get the price of Ethereum in terms of USD. So we can convert our message value to USD. And then we're also going to do a function called get conversion rate.
+00:01:00.530 - 00:01:01.886, Speaker B: And these are both going to be.
+00:01:01.908 - 00:01:42.266, Speaker A: Public functions so that we can go ahead and call them and test them and do whatever we want with them. So in order to get the price, we're going to have to use one of these chainlink data feeds to get the pricing information. And we can look right here at this contract to see what using one of these chainlink price feeds looks like. What we're actually doing when we're interacting with this chainlink price feed is we're actually reading from one of these contracts. There's a contract out there called the aggregator contract that is a function called latest round data which returns a whole bunch of data, but namely this int price. And this int price is what we are interested in. Let's look at our get price function and figure out how do we actually call this.
+00:01:42.266 - 00:02:00.274, Speaker A: Since this is an instance of us interacting with a contract outside of our project, we're going to need two things. What are those two things? We're going to need the AbI of the contract and also the address of the contract. So the address of the contract is going to be easy.
+00:02:00.392 - 00:02:01.506, Speaker B: We can get the address of the.
+00:02:01.528 - 00:02:05.534, Speaker A: Contract from the contract addresses section of the Chainlink data feeds.
+00:02:05.662 - 00:02:11.646, Speaker B: Let's scroll on down to rink b and we can find the Eth USD.
+00:02:11.758 - 00:02:17.014, Speaker A: Address on Rinkbee and we'll create this contract so that it works on Rinkbe. So we're going to grab this address.
+00:02:17.132 - 00:02:18.818, Speaker B: We'Re going to copy it, and we're.
+00:02:18.834 - 00:03:04.678, Speaker A: Going to move back to our code here and we're going to paste the address here. So great, we have the address. Now we have the address of the other contract that we want to interact with. Now, how do we get the ABI? Well, what we did before with simple storage was we imported the entire contract into our code here, that's something that we could do, but that's actually a lot of code. So what's something that we could do instead? Remember, if we're looking at remix and we look at one of the contracts that we compiled before the ABI is really just kind of this list of the different functions and interactions you can have with a contract. The ABI itself doesn't actually need to include any of the logic, it just needs to include hey, here are the different functions that you can call. For example in this contract we can call fund, we have get conversion rate, we have get price.
+00:03:04.678 - 00:03:29.066, Speaker A: They're not implemented yet, but they will be eventually. Now there technically is another way to interact with contracts without the ABI, but for now we're just going to ignore that. So how can we get the ABI? There's a concept in solidity called an interface. And let's look at an example of an interface. If we go to GitHub.com smartcontract kitchainlink, we can see a number of different contracts in the chainlink repository.
+00:03:29.178 - 00:03:35.822, Speaker B: We can go to contracts src v zero eight interfaces and we'll go to.
+00:03:35.876 - 00:04:11.434, Speaker A: Aggregator v three interface sol and if we look at the solidity in here we can see a whole bunch of function declarations, but none of the logic is actually implemented in this. This is what's known as an interface. If we compile this, we'll actually get the ABI of a contract because it defines all the different ways we can interact with a contract. It doesn't actually say what these functions do, which is fine though because we don't need to know what the functions actually do. Those are going to be stored in the contract. So what we can do is we can grab this interface from the code.
+00:04:11.632 - 00:04:13.334, Speaker B: And paste it into our remix.
+00:04:13.382 - 00:04:30.754, Speaker A: Now hold on, if you're following along, you don't have to copy paste this with me because I'm going to show you an easier way in just a second. So for now feel free to go ahead and just watch. But once we have this interface, aggregator v three interface, we can now use this to make API calls. So now we could say aggregator v.
+00:04:30.792 - 00:04:34.866, Speaker B: Three interface at this address and the.
+00:04:34.888 - 00:04:44.886, Speaker A: Combination of these two give us that aggregator v three contract with whatever code is here. If at this contract address, this aggregator v three interface is valid, we could.
+00:04:44.908 - 00:04:49.042, Speaker B: Do something like version. Let's look at this interface.
+00:04:49.106 - 00:04:51.542, Speaker A: Is there a version function? There sure is.
+00:04:51.676 - 00:04:53.466, Speaker B: So that means we could call the.
+00:04:53.488 - 00:04:56.358, Speaker A: Version function on this contract.
+00:04:56.454 - 00:05:01.050, Speaker B: So let's actually go ahead and copy this into a different section. I'm going to create a new function.
+00:05:01.200 - 00:05:03.914, Speaker A: Called get version just to illustrate this.
+00:05:04.032 - 00:05:10.974, Speaker B: It's going to be a public, it's going to be a view and it's going to return the Un 256 and.
+00:05:11.012 - 00:05:13.102, Speaker A: We'Re going to split it up into two steps here.
+00:05:13.236 - 00:05:22.098, Speaker B: But we're going to say aggregator v three interface price feed. So we're creating a variable of type.
+00:05:22.184 - 00:05:29.240, Speaker A: Aggregator v three interface equals aggregator v three interface at this address.
+00:05:30.970 - 00:05:36.162, Speaker B: And then we're going to return price feed version.
+00:05:36.226 - 00:05:42.086, Speaker A: Now I'm going to go ahead and deploy this contract to rinkpee just to show you what this get version is going to return.
+00:05:42.188 - 00:05:43.494, Speaker B: But you don't have to follow along.
+00:05:43.532 - 00:06:14.718, Speaker A: Here if you don't want because again we're working with the testnet. You can just watch if you like. For this section we are going to test a little bit more sparse since we're going to be mainly using the testnet since we're going to be working with an actual chainlink oracle network. Once we move over to hard hat and with javascript all this testing locally will be a lot easier and a lot faster. You're more than welcome to go ahead and fiddle and try and test a lot of this stuff as we go along, but just note that it might take a little bit longer to do some of the testing on a testnet. Let's delete that last fundraise contract. We're going to deploy this one, we're.
+00:06:14.734 - 00:06:16.162, Speaker B: Going to scroll up, we're going to.
+00:06:16.216 - 00:06:17.890, Speaker A: Switch to injected web3.
+00:06:17.960 - 00:06:21.446, Speaker B: We're going to switch from COVID to rink b.
+00:06:21.548 - 00:06:28.786, Speaker A: And the reason we want to make sure we're on rink b is because this address is specific to rinkby. The contract that we're looking to interact.
+00:06:28.818 - 00:06:30.870, Speaker B: With might not be at this address.
+00:06:30.940 - 00:06:41.094, Speaker A: On every single chain. We want to make sure we're on the rinkby chain for this because if some other contract is there on a different chain, this version function obviously won't exist and this function could error.
+00:06:41.142 - 00:06:46.210, Speaker B: So let's go ahead, we'll go to fundme, we're going to deploy this to the rinkby chain.
+00:06:46.310 - 00:06:55.098, Speaker A: Again, you don't have to follow along with me here, you can just watch. And once that contract has been deployed, we now have a view function called get version and we can see it's.
+00:06:55.114 - 00:06:58.146, Speaker B: Returning the variable four showing us that.
+00:06:58.168 - 00:07:05.074, Speaker A: This is the fourth version of a price feed. So this is a really easy way for us to interact with contracts that.
+00:07:05.112 - 00:07:07.154, Speaker B: Exist outside of our project.
+00:07:07.272 - 00:07:20.566, Speaker A: We use one of these interfaces which can get compiled down to the ABI. And then we combine that ABI with the address to call a function. As we work with these interfaces more and more, they'll start to make more and more sense. So if it's a little confusing to.
+00:07:20.588 - 00:07:22.274, Speaker B: You right now, don't get discouraged.
+00:07:22.322 - 00:07:24.100, Speaker A: The more you work with it, the easier it'll become.

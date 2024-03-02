@@ -1,0 +1,25 @@
+00:00:10.250 - 00:00:25.186, Speaker A: One of the most common libraries that was used for the longest time was this library called Safemath Sol, and you'll probably see it a lot of different places. We're going to go off on a quick little tangent here and teach you about Safemath. So let's close fundme and close ice.
+00:00:25.218 - 00:00:31.894, Speaker B: Converter, and let's create a new file called Safemathtester Sol.
+00:00:32.012 - 00:00:44.138, Speaker A: And let's start with some basic stuff in here. Safemath was all over the place before version 0.8 of solidity, and now it's almost in no contracts. What happened? Why is Safemath no longer used as much?
+00:00:44.224 - 00:00:46.758, Speaker B: Well, let's create a sample contract.
+00:00:46.854 - 00:01:14.258, Speaker A: This is a section that you don't have to follow along if you don't want to code along with me, but if you want to, you absolutely still can. This is going to be a contract we are going to deploy on a JavaScript virtual machine. We can use any version of solidity before version 0.8 of solidity. So for example, we'll use pragma Carrot 0.6.0 and we'll create contract SafeMathtester Sol. Now if I create a unint eight.
+00:01:14.344 - 00:01:17.542, Speaker B: And I set it to public big.
+00:01:17.596 - 00:01:21.042, Speaker A: Number and I set this to 255, oops.
+00:01:21.106 - 00:01:30.434, Speaker B: Safe math tester let's go ahead and compile safe math tester with 0.6.7 pragma solidity.
+00:01:30.562 - 00:01:45.166, Speaker A: The maximum size of a uint eight is going to be 255. This is going to be the biggest number that we can fit in an un eight. And if I were to deploy this to a JavaScript, VM or even a test network, save math tester, let's go.
+00:01:45.188 - 00:01:46.240, Speaker B: Ahead and deploy it.
+00:01:47.010 - 00:01:53.026, Speaker A: If I hit big number, we're going to get 255. But what happens if I create a.
+00:01:53.048 - 00:01:57.682, Speaker B: Function called add that sets big number.
+00:01:57.816 - 00:02:00.740, Speaker A: Equal to big number plus one?
+00:02:01.190 - 00:02:05.054, Speaker B: Let's save that, delete that old contract, and deploy.
+00:02:05.182 - 00:02:15.030, Speaker A: Well, right now big number is 255. What happens when we add one to big number? When 255 is the max size a uint eight can be.
+00:02:15.180 - 00:02:17.458, Speaker B: Well, let's hit add and now let's.
+00:02:17.474 - 00:03:02.118, Speaker A: Check what big number is. Big number gets reset to zero. So what's going on? Well, prior to version 0.8 of solidity, unsigned integers and integers ran on this concept of being unchecked, which means that if you passed the upper limit of a number, it would just wrap around and start back from the lowest number it could be. So if I call add a whole bunch more times and hit big number, now it's eight. If I were to hit this add button a ton more times and get it back to 255, it would then continue to wrap over to zero. So one of the most popular libraries that was out there was this safe math library which would basically check to make sure that you weren't wrapping around a UN 256 or an INT 256.
+00:03:02.204 - 00:03:03.414, Speaker B: Basically it was a way to say.
+00:03:03.452 - 00:03:10.714, Speaker A: Hey, you've reached the max this number can be, and now your transaction is going to fail. If we switch this to 0.8 of.
+00:03:10.752 - 00:03:18.330, Speaker B: Solidity, delete the old contract, we'll go switch this to 0.8, we'll go ahead and compile it.
+00:03:18.480 - 00:03:24.734, Speaker A: And now we deploy this to a JavaScript Vm. If I hit big number, we get 255.
+00:03:24.852 - 00:03:27.086, Speaker B: But if we hit add, it actually.
+00:03:27.188 - 00:03:58.630, Speaker A: Fails and we still get 255. In version 0.8 of solidity, they added this bit where it automatically checks to make sure if you're going to do what's called overflow or underflow on a variable, we can actually revert back to the unchecked version by using an unchecked keyword. So if we wrap this big number equals big number plus one in this unchecked bracket, let's delete our old contract, we'll compile, we'll redeploy, we hit big numbers, 255. Now we hit add, we hit big number again.
+00:03:58.700 - 00:04:02.602, Speaker B: It reverted back to zero. So that's a little bit more about.
+00:04:02.656 - 00:04:43.650, Speaker A: Safe math, checked and unchecked. So in version zero point 76 and below, this code that you see in front of you is going to be the exact same as this code in 0.8 and above with this unchecked keyword. Now you might be thinking in newer versions of solidity. Why would I use this unchecked keyword? Well, you'll find out later that this unchecked keyword makes your code a little bit more gas efficient. So if you're absolutely positive that your math is never going to reach the top or bottom limits of a number, then it might make sense for you to use the unchecked keyword. Let's head back over to our fundme contract, where we are now using the price converter library that we just created.

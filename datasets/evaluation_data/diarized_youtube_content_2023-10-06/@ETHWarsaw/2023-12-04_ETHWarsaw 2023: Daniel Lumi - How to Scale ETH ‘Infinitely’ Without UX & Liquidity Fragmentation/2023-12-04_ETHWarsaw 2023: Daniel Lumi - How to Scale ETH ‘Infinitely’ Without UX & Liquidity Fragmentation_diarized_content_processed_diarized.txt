@@ -1,0 +1,345 @@
+00:00:01.050 - 00:00:03.018, Speaker A: Welcome to my speech on scaling ETH.
+00:00:03.114 - 00:00:06.510, Speaker B: Infinitely without UX and liquidity fragmentation.
+00:00:06.850 - 00:00:09.886, Speaker A: So first, as any good programmer, I.
+00:00:09.908 - 00:00:12.030, Speaker B: Actually really hate the word infinite.
+00:00:12.370 - 00:00:13.498, Speaker A: It's marketing.
+00:00:13.594 - 00:00:16.846, Speaker B: Nothing really scales infinitely, but what we.
+00:00:16.868 - 00:00:21.098, Speaker A: Can try to do is scale eth linearly according to the instances of rollups.
+00:00:21.114 - 00:00:25.730, Speaker B: Or execution sharding without UX and liquidity fragmentation chain.
+00:00:25.890 - 00:00:30.966, Speaker A: So first a little bit about me. I'm a consultant and researcher specializing in.
+00:00:30.988 - 00:00:34.854, Speaker B: ZK L two s privacy and dows. Most of what I work on right.
+00:00:34.892 - 00:00:37.638, Speaker A: Now is decentralizing provers and sequencers as.
+00:00:37.644 - 00:00:43.674, Speaker B: Well as how to maintain atomic interoperability and fractal ZKL three s. So today.
+00:00:43.712 - 00:00:47.254, Speaker A: We'Ll be talking about how does blockchain currently scale?
+00:00:47.382 - 00:00:49.862, Speaker B: How do we get it to scale infinitely?
+00:00:50.006 - 00:00:53.278, Speaker A: And then what do blockchains look like in the future?
+00:00:53.364 - 00:00:55.360, Speaker B: As well as when is that going to happen?
+00:00:56.130 - 00:00:57.680, Speaker A: So why this talk?
+00:00:58.850 - 00:01:01.018, Speaker B: I'm a bit of a grumpy programmer.
+00:01:01.114 - 00:01:03.582, Speaker A: So I always looked at blockchain like.
+00:01:03.716 - 00:01:05.482, Speaker B: This shit doesn't scale.
+00:01:05.626 - 00:01:07.346, Speaker A: And the reality is we have very.
+00:01:07.368 - 00:01:08.722, Speaker B: Few users right now.
+00:01:08.776 - 00:01:29.146, Speaker A: If we ever want to have even like 100 million active users monthly, it's not going to work. Blockchains will burn and you'll be paying thousands of dollars. So how do we actually fix these issues? And it wasn't until the last couple of years that we actually started having really good options and methods to actually make blockchain scale in a sort of.
+00:01:29.168 - 00:01:30.940, Speaker B: Similar fashion to web two.
+00:01:31.550 - 00:01:33.862, Speaker A: So how do blockchains currently scale?
+00:01:33.926 - 00:01:40.822, Speaker B: And this is comparing web two compared to web3, right? Or blockchain. So how does web two scale?
+00:01:40.966 - 00:01:43.534, Speaker A: So let's say apple launches a new.
+00:01:43.572 - 00:01:45.582, Speaker B: Phone and you want to preorder it.
+00:01:45.636 - 00:01:50.574, Speaker A: Maybe the first thousand users go to one server and they preorder the phone.
+00:01:50.692 - 00:01:52.414, Speaker B: And everyone's happy, right?
+00:01:52.532 - 00:02:00.978, Speaker A: But now if there's like 2000 people trying to access the same server, it just kind of burns down, it runs out of resources, crashes, and then no.
+00:02:00.984 - 00:02:02.594, Speaker B: One can order anything, right?
+00:02:02.712 - 00:02:15.814, Speaker A: So what Apple kind of does is they kind of go through like osmosis, they copy the state of the server onto another server and then the next thousand people get it from server number two. And they don't actually need to know.
+00:02:15.852 - 00:02:22.300, Speaker B: What server they get it from, they're just preordering the phone, right? Everyone's happy now.
+00:02:22.990 - 00:02:32.506, Speaker A: So web two scales linear according to the amount of resources that you allocate to it. So if you have server with x resources, you get one x scale and.
+00:02:32.528 - 00:02:42.400, Speaker B: You add another one of those, you get two x and it goes on and on. You have 1000 servers, you get 1000 x scale. So how do blockchain scale compared to this?
+00:02:42.930 - 00:02:54.994, Speaker A: And the whole kind of point in blockchain is we don't really want to trust anyone. So we essentially go through this game of every single server on the network, re executes every single transaction to see.
+00:02:55.032 - 00:03:01.000, Speaker B: The current state, and to come to consensus on. Daniel does not have a million eth. Right.
+00:03:01.530 - 00:03:14.522, Speaker A: And just to give an idea of how this is bad for scalability is, let's say that you have a network with 3000 nodes and a block takes 5 seconds to execute. Essentially you're wasting around the world about.
+00:03:14.576 - 00:03:22.800, Speaker B: 4 hours of re executing the same transactions over and over again. And this is honestly just wasteful and not how web two works.
+00:03:23.170 - 00:03:40.110, Speaker A: So, blockchain's kind of scale linear to the. Or the time that it takes essentially to execute a block, is linear to the amount of transactions. So if you have one transaction, maybe it's that first dot there, and then you have two transactions. That's how much longer it takes to execute that block.
+00:03:40.190 - 00:03:47.780, Speaker B: And that's simplified a bit, because every transaction is different. A uniswap transaction is more expensive than just send transfer.
+00:03:48.170 - 00:03:53.398, Speaker A: But the problem is, because it's a decentralized network, we want a normal computer.
+00:03:53.484 - 00:03:55.986, Speaker B: Like a MacBook, to be able to run the network.
+00:03:56.098 - 00:04:01.754, Speaker A: So we essentially put an artificial limit on this is how many transactions we.
+00:04:01.792 - 00:04:03.190, Speaker B: Allow in a single block.
+00:04:03.270 - 00:04:27.826, Speaker A: And in Ethereum, it's, what is it, 30 million gaps. So it's about 15 to 30 transactions per second, depending on what kind of transactions those are. So essentially, in blockchain, if you have one server, you get that much scalability. But now, if you add two servers, you still only have one x scalability. If you add 3000 servers, it doesn't help with scalability at all.
+00:04:27.848 - 00:04:29.826, Speaker B: It stays static, right?
+00:04:29.928 - 00:04:33.502, Speaker A: It helps with decentralization and it helps with censorship resistance.
+00:04:33.566 - 00:04:37.198, Speaker B: But it doesn't scale the network at all, adding more resources to it.
+00:04:37.384 - 00:04:39.154, Speaker A: So we came up with this concept.
+00:04:39.202 - 00:04:41.750, Speaker B: Of Ethereum 2.0, right?
+00:04:41.900 - 00:04:48.342, Speaker A: And the idea is, okay, let's split up Ethereum into 64 shards. And then we'll split up the validator.
+00:04:48.406 - 00:04:51.190, Speaker B: Committee into 64 chunks.
+00:04:51.270 - 00:04:58.870, Speaker A: And then 160 fourth of each validators, or total validators, validate each separate shard.
+00:04:59.030 - 00:05:01.178, Speaker B: But there is issues with this.
+00:05:01.344 - 00:05:12.190, Speaker A: Each of those 64 shards now has the security of 164th of the whole network. And then the other problem was interoperability. Like, how do these shards talk to each other?
+00:05:12.340 - 00:05:17.374, Speaker B: Do we lose atomic composability like uniswap? Being able to call price feed.
+00:05:17.502 - 00:05:18.866, Speaker A: And we didn't really have a good.
+00:05:18.888 - 00:05:25.086, Speaker B: Plan for how to actually maintain interoperability. And so we scrapped Ethereum 2.0, and.
+00:05:25.128 - 00:05:29.874, Speaker A: That made metallic very sad. So we came up with this newer.
+00:05:29.922 - 00:05:34.738, Speaker B: Concept of scaling eth infinitely, and that's.
+00:05:34.754 - 00:05:57.774, Speaker A: Called the roll up centric Ethereum, right? And the idea is, okay, what if we do execution sharding vertically? So you still have a shard, a roll up, but instead of it running directly on l one, it's a separate blockchain that does computation off chain, and then it submits both the data as well as the proof onto l one.
+00:05:57.812 - 00:06:00.026, Speaker B: To prove that everything ran correctly.
+00:06:00.138 - 00:06:02.714, Speaker A: And again, this is execution sharding.
+00:06:02.842 - 00:06:04.510, Speaker B: It's just a better version.
+00:06:05.170 - 00:06:11.682, Speaker A: And hopefully, since you're here, you know a little bit about how l two s work again.
+00:06:11.816 - 00:06:13.486, Speaker B: So I won't go much into details.
+00:06:13.518 - 00:06:20.882, Speaker A: On this, but again, you have a bunch of transactions on a separate blockchain. The data for that gets posted to l one, as well as a proof.
+00:06:20.946 - 00:06:24.946, Speaker B: Showing that essentially those were executed correctly.
+00:06:24.978 - 00:06:27.000, Speaker A: So when someone tries to withdraw money.
+00:06:27.470 - 00:06:31.130, Speaker B: Ethereum knows that it's like the correct transactions.
+00:06:32.110 - 00:06:37.770, Speaker A: And so in a Rolex centric Ethereum, essentially we get back to kind of.
+00:06:37.840 - 00:06:46.334, Speaker B: Web two, like scaling. These are made up numbers, by the way, just for sake of thought. Like, let's say starknet scales Ethereum by.
+00:06:46.372 - 00:06:51.694, Speaker A: Ten x, and then op is another 20 x, then you get 20 x scaling, and then you add some more.
+00:06:51.732 - 00:06:54.666, Speaker B: Of those, you get 40 x scalings, right?
+00:06:54.708 - 00:07:01.822, Speaker A: And the benefit of this role of centric Ethereum is now each of those shards actually inherits the full security of Ethereum.
+00:07:01.886 - 00:07:04.626, Speaker B: It's not fractionalizing the security of the.
+00:07:04.648 - 00:07:08.054, Speaker A: Network, but then there's lots of problems.
+00:07:08.252 - 00:07:14.422, Speaker B: With this design, right? So we'll just go through these one by one.
+00:07:14.476 - 00:07:21.418, Speaker A: And essentially, let's go through the first one. If you all of a sudden move all of the Ethereum users onto, I.
+00:07:21.424 - 00:07:22.794, Speaker B: Don'T know, scroll or one of these.
+00:07:22.832 - 00:07:30.182, Speaker A: Protocols, at some point, scroll is going to become more expensive of Ethereum, right? It's going to have higher transaction fees than Ethereum.
+00:07:30.246 - 00:07:34.080, Speaker B: And then what's the point of that, right? So how do we fix this?
+00:07:34.450 - 00:07:44.826, Speaker A: So the crackpot team at Starkware had this idea of, let's just make more layers. L three s, l two s, l three s, l. Everyone gets a layer.
+00:07:44.858 - 00:07:54.770, Speaker B: You get a layer, you get a layer, go. And actually, it sounds silly, but it actually helps scale. It's sharding. You just create more and more shards, essentially.
+00:07:55.450 - 00:07:58.738, Speaker A: And this design is called recursive Zk.
+00:07:58.914 - 00:08:03.062, Speaker B: Or fractal hyperbridges, or super chain. We like marketing terms.
+00:08:03.116 - 00:08:12.986, Speaker A: So the idea is that if you bridge from, let's say, l two to l 14, every one of those bridge steps is actually just as secure as.
+00:08:13.008 - 00:08:15.050, Speaker B: Using the Eth l two.
+00:08:15.200 - 00:08:20.266, Speaker A: Right. There's actually no additional security assumptions because each of the bridges use exactly the.
+00:08:20.288 - 00:08:22.246, Speaker B: Same circuit for bridging.
+00:08:22.278 - 00:08:24.094, Speaker A: So you can safely bridge from l.
+00:08:24.132 - 00:08:27.694, Speaker B: Two to l three to l four without worrying about it.
+00:08:27.812 - 00:08:32.794, Speaker A: And actually, it's not even really bridging in this sort of fractal design. It's more of accounting.
+00:08:32.842 - 00:08:35.934, Speaker B: You just kind of mark where the funds are now. Right.
+00:08:35.972 - 00:09:03.818, Speaker A: And this kind of shows it. So let's say you're going from that l five to that other l five, instead of, like, cosmos needing to jump through every single one of those points to get to that new spot. Essentially, in the recursive model, all of the funds are sitting in the same exact bridge contract. So any Zk sync, l three, l four, doesn't actually move the money anywhere. It's sitting on eth l one in.
+00:09:03.824 - 00:09:04.854, Speaker B: The same bridge contract.
+00:09:04.902 - 00:09:08.074, Speaker A: So you can just kind of mark it over like it's not on this.
+00:09:08.112 - 00:09:11.390, Speaker B: L five anymore, it's over here, and you don't have to worry about bridging.
+00:09:12.290 - 00:09:25.458, Speaker A: And also, optimism and Polygon are doing the same version, but instead of going vertically, they're going horizontally. So essentially, you deploy a bunch of l two s onto the same common bridge. And again, the funds are in the.
+00:09:25.464 - 00:09:27.860, Speaker B: Same place, so you can just kind of mark them over.
+00:09:28.390 - 00:09:32.462, Speaker A: And so now with this design, we've fixed fees.
+00:09:32.526 - 00:09:33.042, Speaker B: Right.
+00:09:33.176 - 00:09:38.162, Speaker A: Now, each of those shards has less users, so it doesn't become as expensive.
+00:09:38.226 - 00:09:42.358, Speaker B: As one chain having every user using it at once. Right.
+00:09:42.524 - 00:09:45.250, Speaker A: But now the problem is interoperability.
+00:09:45.410 - 00:09:45.974, Speaker B: Right.
+00:09:46.092 - 00:09:50.294, Speaker A: Both from a UX standpoint of view as well as it might be expensive.
+00:09:50.342 - 00:09:54.774, Speaker B: To move funds from arbitram to Zksync.
+00:09:54.822 - 00:09:59.062, Speaker A: Safely, and it's not composable anymore. It's not a synchronous transaction.
+00:09:59.126 - 00:10:00.306, Speaker B: It's asynchronous.
+00:10:00.438 - 00:10:03.482, Speaker A: So you can have sort of interoperability.
+00:10:03.546 - 00:10:06.910, Speaker B: Of contracts within them. That happens atomically.
+00:10:07.650 - 00:10:10.334, Speaker A: So here's an example of how current.
+00:10:10.452 - 00:10:13.022, Speaker B: L two interoperability works.
+00:10:13.156 - 00:10:14.918, Speaker A: So let's say you have some funds.
+00:10:14.954 - 00:10:30.514, Speaker B: On Starknet, and you want to move it to Zksync. You can just bridge it over with, like, multi chain, right? Right. Now, please don't. Let's not create cross chain bridges. That's a horrible design. There's lots of security risks with cross chain bridges.
+00:10:30.642 - 00:10:42.662, Speaker A: So how do we do this trustlessly? Right, so what we can actually do is you can batch transactions from Starknet l two to l one, and then that sends it to the Starknet bridge.
+00:10:42.726 - 00:10:47.846, Speaker B: Or, sorry, the Zk sync bridge, and the funds appear back on zksync.
+00:10:47.958 - 00:11:02.302, Speaker A: And this way you actually have a trustless bridge design. You don't have to do this individually. We can make bridges that essentially batch ten users into the same bridging transaction. And then essentially the ETh gas cost.
+00:11:02.356 - 00:11:06.530, Speaker B: That you pay is one 10th of an actual bridge transaction.
+00:11:06.870 - 00:11:16.002, Speaker A: Right. And this works, you get the bridge funds, but it's also asynchronous, it's expensive, even if it's one 10th of an ETH transaction cost.
+00:11:16.136 - 00:11:21.400, Speaker B: And it takes a while, especially with optimistic protocols, it might take seven days to do this.
+00:11:22.090 - 00:11:39.654, Speaker A: So it's better. We can kind of solve this in the designs, the fractal or hyperbridge designs, where essentially, again, you have all the funds on the same contract on l one, and then any of the l three s or l two s building on the same bridge contract essentially don't.
+00:11:39.702 - 00:11:42.620, Speaker B: Have to go that way through l one. Right.
+00:11:44.830 - 00:11:45.998, Speaker A: Let's say the money is here in.
+00:11:46.004 - 00:11:49.374, Speaker B: The bridge contract, which is actually a contract on l one.
+00:11:49.492 - 00:11:54.734, Speaker A: So when you want to move it from Coinbase l two to optimistic l two, again, you just kind of mark.
+00:11:54.772 - 00:12:02.526, Speaker B: That it's over there and you don't have to have this. Well, you'd still have to have the seven day delay, but you don't have to pay the same amount of gas fees.
+00:12:02.718 - 00:12:10.966, Speaker A: Right. And this works for bridging, but it's still asynchronous. And now there's Mev. Someone might see seven days before you.
+00:12:10.988 - 00:12:14.818, Speaker B: Move that transaction over that. Oh shit, this guy's going to trade.
+00:12:14.834 - 00:12:16.502, Speaker A: On uniswap and they can front run.
+00:12:16.556 - 00:12:20.060, Speaker B: Your transaction and steal money from you.
+00:12:21.470 - 00:12:22.938, Speaker A: So the way that we could.
+00:12:23.024 - 00:12:25.498, Speaker B: Like one example, the original example of.
+00:12:25.584 - 00:12:47.026, Speaker A: How we could actually fix this asynchronous component is, okay, let's have Coinbase l two and optimism l two use the same sequencer essentially, and this way the sequencer essentially orders transactions from both of the chains. And now you have automacity, the same.
+00:12:47.048 - 00:12:48.930, Speaker B: Way that you have on ethel one.
+00:12:49.080 - 00:12:59.938, Speaker A: And this way you actually have composability and no mev. But now it's a beefy node. If you have 100 different l three s all using the same server, we're.
+00:12:59.954 - 00:13:04.374, Speaker B: Not going to get that much scalability from it. It might be cheaper, but we still.
+00:13:04.412 - 00:13:13.066, Speaker A: Kind of want to keep l two s decentralized. It's not the same kind of security assumptions that you have on normal blockchains, because even if it's not decentralized, they.
+00:13:13.088 - 00:13:14.202, Speaker B: Can'T steal your money.
+00:13:14.336 - 00:13:23.758, Speaker A: But we want some sort of censorship, resistance, and decentralization for the sequencer role. And you can call this one beefy sequencer to rule them all.
+00:13:23.844 - 00:13:28.080, Speaker B: Not a great design, even if the ring had a good thought behind it.
+00:13:28.530 - 00:13:34.194, Speaker A: And so how do we do this? How do we keep decentralization and keep.
+00:13:34.232 - 00:13:35.714, Speaker B: The nodes relatively small?
+00:13:35.832 - 00:13:40.494, Speaker A: So what we can do is we can have one sequencer that is shared.
+00:13:40.542 - 00:13:42.334, Speaker B: Between both of those chains.
+00:13:42.462 - 00:13:45.346, Speaker A: That sequencer doesn't execute the transactions, it.
+00:13:45.368 - 00:13:46.694, Speaker B: Literally just orders them.
+00:13:46.732 - 00:13:49.014, Speaker A: So it puts the Coinbase transaction, then.
+00:13:49.052 - 00:14:01.018, Speaker B: The optimism transaction, and it doesn't actually execute them, which is the expensive part. Ordering is super cheap. And just adding values to, if you've used excel, it's like adding another value to it.
+00:14:01.104 - 00:14:14.590, Speaker A: And so we can keep that server very small, and then every other l three or l two can essentially execute its own transactions later. And this way, each of their sequencers are relatively small.
+00:14:14.660 - 00:14:18.270, Speaker B: They only have to worry about their own state and their own transactions.
+00:14:19.010 - 00:14:47.922, Speaker A: And again, they agree when they're going to insert the transaction. And then you can bridge funds over. And this actually keeps atomic composability and its small nodes. Right. But there's still the issue of like now, Coinbase chain doesn't know the state of optimism. So maybe you submit the transaction to swap eth from Coinbase to optimism chain and then back. But by the time it gets executed.
+00:14:47.986 - 00:14:55.754, Speaker B: It'S like the price has moved and all of a sudden your transactions fails. Now your money's somewhere else, and it becomes a pain in the ass again.
+00:14:55.952 - 00:14:59.706, Speaker A: Because it gets executed later. Anyone that runs nodes for both of.
+00:14:59.728 - 00:15:05.870, Speaker B: Those networks can front run your uniswap transaction, and they have lots of time to do that. So that's not ideal.
+00:15:06.450 - 00:15:09.898, Speaker A: So we can essentially add, if you've.
+00:15:09.914 - 00:15:15.294, Speaker B: Heard of PBS in Ethereum, this is a bit more in depth, just this topic alone.
+00:15:15.342 - 00:15:18.318, Speaker A: But we can essentially have suave style.
+00:15:18.414 - 00:15:21.950, Speaker B: Proposer builder separation, where essentially the suave.
+00:15:22.030 - 00:15:33.702, Speaker A: Builders run nodes for both of the chains. And then they see that, okay, you have a swap coming through, and they're running the state. So they know the state of each chain, and they can actually promise you.
+00:15:33.836 - 00:15:41.580, Speaker B: That this uniswap transaction will not fail. So when it executes a little bit later, it's guaranteed to happen.
+00:15:42.110 - 00:15:45.930, Speaker A: And now you have composability and no filled transactions.
+00:15:46.430 - 00:15:54.814, Speaker B: But Mev is still an issue. Again. Now the suave builders see your transactions coming in and they can be like, oh, we can make some money off of this guy.
+00:15:55.012 - 00:15:57.486, Speaker A: And even without telling the network, they.
+00:15:57.508 - 00:15:59.550, Speaker B: Can again front run your transaction.
+00:15:59.970 - 00:16:02.250, Speaker A: So now we can add threshold.
+00:16:02.330 - 00:16:12.306, Speaker B: Yeah, this is not a simple thing, the interoperability of doing this. But the hope is that again, the user wouldn't have to know anything about this.
+00:16:12.408 - 00:16:14.094, Speaker A: So we can have a new transaction.
+00:16:14.142 - 00:16:17.042, Speaker B: Type called a threshold encryption transaction.
+00:16:17.186 - 00:16:22.534, Speaker A: And essentially you send that transaction with the transaction header public, but now you.
+00:16:22.572 - 00:16:29.894, Speaker B: Encrypt the body so they don't see that you're swapping on uniswap. And at this point they include it.
+00:16:29.932 - 00:16:41.322, Speaker A: In the block like they promised, and then block n plus one essentially. So the next block they decrypt it and then they say, oh shit, I could have made some money off of this swap, but now it's too late.
+00:16:41.386 - 00:16:44.080, Speaker B: It's already included in the chain, right?
+00:16:44.530 - 00:16:47.226, Speaker A: And now you have composability, small nodes.
+00:16:47.258 - 00:16:52.080, Speaker B: And no mev in this sort of roll up centric Ethereum world.
+00:16:52.610 - 00:16:54.366, Speaker A: And a cooler sort of thing that.
+00:16:54.388 - 00:16:57.710, Speaker B: You could do with this. Just to explain why this is exciting.
+00:16:57.790 - 00:17:00.066, Speaker A: Is let's say you have uniswap as.
+00:17:00.088 - 00:17:02.594, Speaker B: L three or uniswap on Ethereum and.
+00:17:02.632 - 00:17:05.154, Speaker A: You want to swap some tokens through it.
+00:17:05.272 - 00:17:07.234, Speaker B: Cool, it works, you get your money.
+00:17:07.352 - 00:17:12.806, Speaker A: But the problem is if 100 people are swapping on Uniswap, all of a sudden your gas fees are going to.
+00:17:12.828 - 00:17:15.080, Speaker B: Get really expensive, right?
+00:17:15.530 - 00:17:26.154, Speaker A: So what you can do with this sort of sharded fractal design is you can dynamically keep creating new instances of uniswap the same way that you do.
+00:17:26.192 - 00:17:30.986, Speaker B: In web two with the Apple server keeps creating new instances as the demand needs it.
+00:17:31.088 - 00:17:41.406, Speaker A: And again, your coins are not in those shards, they're on the lower level. So now you can dynamically swap against any of those instances. And you don't actually even need to.
+00:17:41.428 - 00:17:45.074, Speaker B: Know I'm connecting to this l three or this l three or this l three.
+00:17:45.112 - 00:17:49.106, Speaker A: It's just like through an RPC level we just show a swap happened and.
+00:17:49.128 - 00:17:52.306, Speaker B: Now you have some USDC instead of.
+00:17:52.328 - 00:17:59.602, Speaker A: Eth, and now you actually get a uniswap contract that can scale dynamically, essentially.
+00:17:59.666 - 00:18:03.766, Speaker B: Infinitely as long as you keep adding new instances of it.
+00:18:03.868 - 00:18:07.222, Speaker A: And in the future when that demand goes down, you can actually delete those.
+00:18:07.276 - 00:18:10.106, Speaker B: Instances because it doesn't matter what the.
+00:18:10.128 - 00:18:13.834, Speaker A: State of that specific chart is, it.
+00:18:13.872 - 00:18:15.580, Speaker B: Matters where the money is.
+00:18:16.350 - 00:18:20.998, Speaker A: So now we actually fix, like, interoperability. So all of a sudden, you don't.
+00:18:21.014 - 00:18:22.634, Speaker B: Need to think of which l three.
+00:18:22.672 - 00:18:24.094, Speaker A: Or l 15 you're on.
+00:18:24.132 - 00:18:28.910, Speaker B: It just kind of works. You can trigger a contract and it happens that interaction.
+00:18:29.250 - 00:18:35.498, Speaker A: But now you have all these roll ups, all these l essentially need to.
+00:18:35.524 - 00:18:43.300, Speaker B: Submit their data onto Ethereum. And that's a lot of data. And Ethereum can't really handle that kind of data. So what can we do about that?
+00:18:43.990 - 00:18:47.106, Speaker A: So this guy named Dankrad thought about.
+00:18:47.128 - 00:18:59.446, Speaker B: That, and he's like, wait, we do that already. Every data center uses something called erasure coding, and we could apply the same to blockchain, right?
+00:18:59.628 - 00:19:02.170, Speaker A: So here's kind of how danks writing works.
+00:19:02.240 - 00:19:03.482, Speaker B: And I'm sure you guys have heard.
+00:19:03.536 - 00:19:05.066, Speaker A: About this, and this is more of.
+00:19:05.088 - 00:19:12.662, Speaker B: A mental model than accurate picture of exactly what percentages of erasure encoded data is. And it doesn't go into elliptic curves.
+00:19:12.806 - 00:19:17.086, Speaker A: The idea is currently in Ethereum, every single node on the network needs to.
+00:19:17.108 - 00:19:20.510, Speaker B: Hold all of the data, right? And that's why it becomes a problem.
+00:19:20.580 - 00:19:25.934, Speaker A: Because if you have 15 roll ups putting the data on chain, your node.
+00:19:25.982 - 00:19:28.354, Speaker B: Requirements are going to go up a lot, right?
+00:19:28.472 - 00:19:38.102, Speaker A: So with dank sharding, instead, we can essentially hold just one chunk of the data, right? And then the problem with, if you only hold one chunk of the data.
+00:19:38.156 - 00:19:40.546, Speaker B: Is like, what if this guy disappears.
+00:19:40.658 - 00:19:51.606, Speaker A: Now that blue block is gone, right? So what we can do is we can hold one chunk of data plus another 25% to 50% of erasure coded.
+00:19:51.638 - 00:19:55.514, Speaker B: Data of the data from other people's blocks, right?
+00:19:55.552 - 00:20:04.202, Speaker A: So now if the same guy disappears, the three that are left can essentially use their erasure coded data to reconstruct.
+00:20:04.346 - 00:20:06.320, Speaker B: The missing data, right?
+00:20:07.650 - 00:20:11.406, Speaker A: But now the problem is you're only holding a small part of the data.
+00:20:11.508 - 00:20:17.440, Speaker B: You also have the erasure coded data. But how do you know that all the data in Ethereum's history is.
+00:20:17.810 - 00:20:21.586, Speaker A: Right, and that would be a very big problem. If any of it disappears, because it.
+00:20:21.608 - 00:20:24.478, Speaker B: Would break the blockchain, it could never forward anymore.
+00:20:24.654 - 00:20:28.194, Speaker A: So essentially, you can send some queries.
+00:20:28.242 - 00:20:30.306, Speaker B: To the network, like random queries.
+00:20:30.418 - 00:20:36.760, Speaker A: So let's say there is 100,000 blob data points. You just pick a random number between.
+00:20:37.290 - 00:20:41.706, Speaker B: One and 200,000, right? And that's the data that you're asking for.
+00:20:41.808 - 00:20:50.026, Speaker A: And from the first sample, essentially, if someone returns the data, there's a 50% chance, just statistically, that all of the.
+00:20:50.048 - 00:20:52.926, Speaker B: Data in Ethereum's history is available.
+00:20:53.108 - 00:20:57.582, Speaker A: Then you do this again, random number, you guy, give me some data.
+00:20:57.716 - 00:21:01.854, Speaker B: Now there's a 25% chance that anyone could have lied, right?
+00:21:01.972 - 00:21:08.882, Speaker A: And by the time you do this 30 times, there is essentially a one in a billion chance that that data.
+00:21:08.936 - 00:21:10.498, Speaker B: Might not be available.
+00:21:10.584 - 00:21:12.226, Speaker A: And you can keep doing this as.
+00:21:12.248 - 00:21:14.562, Speaker B: Long as you want. To the point that it's like, even.
+00:21:14.616 - 00:21:15.954, Speaker A: If there is a chance that someone.
+00:21:15.992 - 00:21:21.320, Speaker B: Could have hidden data or deleted data, it's like statistically next to impossible, right?
+00:21:22.010 - 00:21:22.710, Speaker A: And cool.
+00:21:22.780 - 00:21:25.526, Speaker B: Now you know all the data is available, right?
+00:21:25.708 - 00:21:27.734, Speaker A: But what happens if someone actually does.
+00:21:27.772 - 00:21:36.060, Speaker B: Delete the data, right? Like, what if part of that data is gone now you don't have the full version, so. Shit, Ethereum is broken, right?
+00:21:36.670 - 00:21:40.630, Speaker A: So essentially what you need with erasure.
+00:21:40.710 - 00:21:42.922, Speaker B: Coded data and full dank sharding is.
+00:21:42.976 - 00:21:45.066, Speaker A: You need at least 75% of all.
+00:21:45.088 - 00:21:47.262, Speaker B: Of the data to be available to.
+00:21:47.316 - 00:21:51.726, Speaker A: Reconstruct the missing 25%. But the benefit of this is, that.
+00:21:51.748 - 00:21:56.642, Speaker B: Sounds a bit scary, because maybe it does disappear, but the reality is any.
+00:21:56.696 - 00:22:03.746, Speaker A: Person in the world can hold a full copy. And even if most people don't have that data, they can't lie about the.
+00:22:03.768 - 00:22:07.294, Speaker B: Data, they can't just create fake transactions into it.
+00:22:07.352 - 00:22:18.002, Speaker A: Essentially, we can check the data against the hashes. So as long as coinbase or you at home, or literally anyone else holds all the data, we can essentially continue Ethereum.
+00:22:18.066 - 00:22:19.706, Speaker B: And there's no problem.
+00:22:19.808 - 00:22:23.562, Speaker A: Every node storage requirements are smaller, and.
+00:22:23.616 - 00:22:26.540, Speaker B: We'Ll never end up in the situation where the data is not available.
+00:22:27.630 - 00:22:32.166, Speaker A: And a cool part of this dank shorting thing is sometimes we have these shitcoins.
+00:22:32.198 - 00:22:33.694, Speaker B: I mean, sorry if there's anyone that.
+00:22:33.732 - 00:22:39.002, Speaker A: Likes frogs that happen on main net, and all of a sudden gas fees.
+00:22:39.066 - 00:22:45.218, Speaker B: Spike up a crazy amount and shit. That's bad for l two s, right? Maybe l two s can't continue.
+00:22:45.384 - 00:22:54.578, Speaker A: But with Dank sharding, you actually have this sort of two dimensional gas market. The gas market that roll ups use is completely different than the gas market.
+00:22:54.664 - 00:22:57.302, Speaker B: That normal contract execution does.
+00:22:57.356 - 00:22:59.602, Speaker A: So even if there's another shitty nft.
+00:22:59.666 - 00:23:11.050, Speaker B: That spikes up the cost of ethereum, roll ups can continue functioning without any negative externality. So all of a sudden arbitram doesn't stop because there's an NFT mint.
+00:23:11.630 - 00:23:14.060, Speaker A: And so cool, we fix all these issues.
+00:23:14.430 - 00:23:17.050, Speaker B: ETH is infinitely scalable, right?
+00:23:17.200 - 00:23:17.900, Speaker A: Right?
+00:23:19.390 - 00:23:22.170, Speaker B: Not really. We still need to fix other shit on l one.
+00:23:22.240 - 00:23:25.342, Speaker A: And unlike some bitcoin and Salana, people.
+00:23:25.396 - 00:23:41.010, Speaker B: Have been claiming we haven't forgotten about l one. It's just like this is execution. Sharding is the thing we were working on since E 2.0. So that's kind of present. So how do we fix issues in l one? What can we do?
+00:23:41.160 - 00:23:44.686, Speaker A: So the first thing that we can do is we can do parallel execution.
+00:23:44.798 - 00:23:46.666, Speaker B: And localized fee markets.
+00:23:46.798 - 00:23:57.606, Speaker A: And essentially we already have the ability, when we make a transaction, we can declare access list. So we can declare we're about to touch this part of Uniswap, what part.
+00:23:57.628 - 00:24:00.634, Speaker B: Of state we're touching, and this wallet, right?
+00:24:00.672 - 00:24:05.594, Speaker A: And if we declare those, if we're forced to declare those, essentially we can.
+00:24:05.632 - 00:24:07.114, Speaker B: Do two very cool things.
+00:24:07.232 - 00:24:14.622, Speaker A: The first is all of a sudden, any transaction of me sending Miko one etH, you can parallelize all of those.
+00:24:14.676 - 00:24:18.366, Speaker B: Transactions so you can execute them at the same time without worrying about it.
+00:24:18.468 - 00:24:20.506, Speaker A: But that only has limited applications.
+00:24:20.538 - 00:24:29.780, Speaker B: Like maybe if visa wants to run transactions on ETH, parallel execution would be great if we're going to have 100,000 transactions a day or second.
+00:24:30.550 - 00:24:32.414, Speaker A: But for the shared state, you can't.
+00:24:32.462 - 00:24:34.434, Speaker B: Really do anything about that.
+00:24:34.552 - 00:24:36.820, Speaker A: But we can do another cool thing.
+00:24:37.270 - 00:24:39.290, Speaker B: With that called localized fee markets.
+00:24:39.310 - 00:24:50.406, Speaker A: So again, if there's a random frog coin or NFT, that spikes with localized fee markets, essentially that contract's interactions would get much more expensive, but it wouldn't.
+00:24:50.438 - 00:24:56.182, Speaker B: Affect the price of uniswap at all. So people could continue swapping on uniswap without being hurt.
+00:24:56.246 - 00:24:57.754, Speaker A: And again, we can do this on.
+00:24:57.792 - 00:24:58.620, Speaker B: L one.
+00:25:00.670 - 00:25:01.466, Speaker A: If we don't do it.
+00:25:01.488 - 00:25:04.254, Speaker B: On l one, because it'll break some contracts, which it will.
+00:25:04.372 - 00:25:05.854, Speaker A: We can at least do this on.
+00:25:05.892 - 00:25:11.550, Speaker B: L two s. The other thing that we want in ethereum l one is statelessness.
+00:25:11.890 - 00:25:21.390, Speaker A: And essentially we can move the storage structure to something called Berkele trees. And again, right now, the kind of issue for nodes is every single node.
+00:25:21.470 - 00:25:29.478, Speaker B: Needs to hold the entire state of Ethereum, and that's about 1 tb currently.
+00:25:29.644 - 00:25:31.974, Speaker A: It'll keep growing, but you can't really.
+00:25:32.012 - 00:25:38.854, Speaker B: Load 1 tb into ram into memory, so you have to store it on a hard drive. But a normal hard drive is not.
+00:25:38.892 - 00:25:43.046, Speaker A: Fast enough, so you need an SSD hard drive, and a two terabyte SSD.
+00:25:43.078 - 00:25:45.500, Speaker B: Hard drive is kind of expensive, right?
+00:25:45.950 - 00:25:50.586, Speaker A: And if we want this protocol to be decentralized, we can't have that kind.
+00:25:50.608 - 00:25:55.166, Speaker B: Of barriers to entry of like 200 might be cheap for us, but if.
+00:25:55.188 - 00:25:56.926, Speaker A: Someone in a developing country wants to.
+00:25:56.948 - 00:25:59.690, Speaker B: Run a node, that's prohibitively expensive.
+00:25:59.850 - 00:26:13.822, Speaker A: So with statelessness, essentially we create full witnesses of each block. And essentially this way, each node does not need the entire history of Ethereum to run the next transactions.
+00:26:13.886 - 00:26:16.546, Speaker B: They can essentially just download the current state.
+00:26:16.728 - 00:26:20.230, Speaker A: And with that you could essentially have like mobile phones.
+00:26:20.570 - 00:26:26.950, Speaker B: This would take about 1gb per device. So your iPhone would have enough space to be a full node on Ethereum.
+00:26:28.490 - 00:26:33.754, Speaker A: ZK for l one. This is not an if, this is a when this will happen, we will.
+00:26:33.792 - 00:26:39.094, Speaker B: Make Ethereum ZK like the actual execution layer and the consensus layer.
+00:26:39.222 - 00:26:45.626, Speaker A: And the benefit of this is like going back to how blockchains currently scale. Again, we have to kind of limit.
+00:26:45.658 - 00:26:54.002, Speaker B: The amount of transactions that can happen because we don't want it to be Solana supercomputer that runs the network. Right?
+00:26:54.136 - 00:27:16.262, Speaker A: So with ZK, essentially, whoever proves the transaction still has to do a lot of work. But every other node on the network doesn't have to run that transaction at all. They can just verify the proof. And if there's a proof for those transactions, you know, the other guy executed it correctly. Right. And actually we don't even need one.
+00:27:16.316 - 00:27:22.074, Speaker B: Computer to do this. It's really easy to parallelize proving, let's say you have a block of 100.
+00:27:22.112 - 00:27:24.582, Speaker A: Transactions, you can have 100 different computers.
+00:27:24.646 - 00:27:30.430, Speaker B: Proving one transaction completely separate of each other. Not worrying about it in this way.
+00:27:30.500 - 00:27:32.974, Speaker A: The verifiers are small computers as well.
+00:27:33.012 - 00:27:37.226, Speaker B: As any execution nodes are small computers.
+00:27:37.418 - 00:27:39.694, Speaker A: And that's essentially the scalability we can.
+00:27:39.732 - 00:27:42.586, Speaker B: Get in l one from ZK.
+00:27:42.778 - 00:27:50.418, Speaker A: And with this, essentially, again, you could have an iPhone essentially being a full node. You could have your metamask be a.
+00:27:50.424 - 00:27:53.614, Speaker B: Full node on your computer and you wouldn't have to connect to any RPC.
+00:27:53.662 - 00:27:56.350, Speaker A: And we get much more decentralization as.
+00:27:56.360 - 00:28:01.510, Speaker B: Well as then we can increase actually that block limit of how many transactions are allowed.
+00:28:02.490 - 00:28:11.306, Speaker A: In trying roll ups, I'm running low on time, but essentially within trying to roll ups, essentially the consensus of the.
+00:28:11.328 - 00:28:30.526, Speaker B: L one has the rules of the roll up. Instead of being a separate blockchain, they would share the same contract for verifying proofs. This is under active research. It's going to take us 1015 years to come to consensus on how we should do this, but we will have that in the future as well.
+00:28:30.708 - 00:28:40.242, Speaker A: And so how does this affect blockchains in the future? The hope is that by using in production and researching all these topics in.
+00:28:40.296 - 00:28:42.146, Speaker B: L two s, whether it's ZK or.
+00:28:42.168 - 00:28:47.206, Speaker A: Shared sequencing for interop between shards, we can actually use this to apply it.
+00:28:47.228 - 00:28:57.560, Speaker B: Back to Ethereum and we can come up with the execution sharding 2.0. That's actually interoperable and inherits the full security of ethereum. Right?
+00:28:59.050 - 00:29:00.330, Speaker A: So when token.
+00:29:01.390 - 00:29:23.358, Speaker B: Just kidding. When scalable? Soon give us like 1020 years. It's going to take a while. This shit's not easy, but if we do get here, we can actually get blockchain adopted by the world. There's no way visa or normal companies are going to use this if it doesn't scale. And if we do figure this out, you'll see. Vitalik clap.
+00:29:23.358 - 00:29:26.082, Speaker B: It's really fun. It's worth it.
+00:29:26.136 - 00:29:28.354, Speaker A: Just all these years of work and.
+00:29:28.392 - 00:29:31.220, Speaker B: Engineering is enough just to get Vitalik happy.
+00:29:32.150 - 00:29:44.614, Speaker A: And the point of this presentation is, unlike some blockchains, bitcoin, some blockchains, no code is perfect, no protocol is perfect. We need to keep working on this.
+00:29:44.652 - 00:29:50.534, Speaker B: And figuring out some of these scalability issues if we actually want adaptation in the real world.
+00:29:50.652 - 00:29:51.786, Speaker A: And we need to do it in.
+00:29:51.808 - 00:30:02.110, Speaker B: A way that your grandma or your mom can use it. And they don't keep having to switch chains or worry about the security in moving funds between different chains.
+00:30:03.010 - 00:30:05.390, Speaker A: And we talked today a lot about ZK.
+00:30:06.050 - 00:30:17.246, Speaker B: It was a small field of us cryptographers, math nerds that like ZK for a long time. But don't ask a cryptographer how to explain ZK. They'll go into polynomial commitments and private based recursion.
+00:30:17.358 - 00:30:19.474, Speaker A: This is a mostly mathless version of.
+00:30:19.512 - 00:30:21.380, Speaker B: Understanding how ZK works.
+00:30:22.230 - 00:30:27.414, Speaker A: Bridging is a long conversation, whether it's cross chain bridging or an l two.
+00:30:27.452 - 00:30:32.550, Speaker B: S. I do have a speech on that just to break down each security compromise.
+00:30:33.210 - 00:30:35.958, Speaker A: And again, l two s have their own security issues.
+00:30:36.124 - 00:30:42.760, Speaker B: We had a panel at e gathering where we talk with some teams about what their issues are and how to fix those.
+00:30:43.450 - 00:30:50.798, Speaker A: And that's it. You can follow me on Twitter at zklumi. I don't do a lot of shit posting in the small community unity of.
+00:30:50.884 - 00:31:00.140, Speaker B: ZK l two s. We have togrul for that. But I do put up some research sometimes, or any new speeches, and you can follow me there. Thank you.

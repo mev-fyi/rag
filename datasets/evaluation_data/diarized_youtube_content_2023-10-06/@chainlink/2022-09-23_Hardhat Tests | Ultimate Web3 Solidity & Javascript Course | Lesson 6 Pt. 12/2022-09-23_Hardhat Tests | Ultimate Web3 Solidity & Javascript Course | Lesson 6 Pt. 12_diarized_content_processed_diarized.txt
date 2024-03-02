@@ -1,0 +1,66 @@
+00:00:08.890 - 00:00:20.640, Speaker A: Now there's a couple other tasks that are really helpful, you'll see. Before I went ahead and just deleted artifacts and deleted cache manually. Well, to do that yourself, you can also just run yarn hardhead clean.
+00:00:22.690 - 00:00:23.006, Speaker B: And.
+00:00:23.028 - 00:00:26.194, Speaker A: That'Ll delete the artifacts folder and clear out your cache.
+00:00:26.242 - 00:00:28.134, Speaker B: We already know what compile does, but.
+00:00:28.172 - 00:01:14.158, Speaker A: One of the biggest things that hardhead is fantastic for, especially is running tests. Now, we haven't run tests yet so far. However, running tests is absolutely critical to your smart contract development journey, and we're going to spend a lot of time in the future writing really good tests. The reason that writing tests are so important is because we want to make sure our code does exactly what we want it to do, especially in the DeFi and the decentralized smart contract world. All of our code is going to be open source for anybody to interact with and potentially exploit. There are sites like RECt news which go through a ton of previous hacks and how they actually got hacked, and what happened in the smart contract to enable these hacks to occur. So testing.
+00:01:14.158 - 00:02:02.718, Speaker A: So writing really strong tests is always going to be our first line of defense. And we have this sample test js that comes default with the basic package of hardhap. But as you probably already know, we're going to rename this and change it. So we're going to rename this to test deploy JS, and we're going to delete everything in here and start from scratch. We want to be able to test all of our solidity code locally so that we know exactly what it's doing, and we can have a programmatic way to make sure that our code does what we want it to do. So let's write a basic test for our simple storage contract so that we can be sure that it's doing exactly what we want it to be doing. Hardhead testing works with the Mocha framework, which is a JavaScript based framework for running our tests.
+00:02:02.718 - 00:02:42.078, Speaker A: You actually can write tests directly in solidity if you'd like to. There's a bit of back and forth on whether testing with pure solidity is better, or testing with a modern programming language. The argument goes that testing with a modern programming language you have more flexibility to do more stuff to interact and test your smart contracts. But the argument for testing just with solidity is that we want to be as close to the code as possible at the time of recording. Most projects do the vast majority of their testing in a modern programming language like Javascript. So that's what we're going to be using here. So, to get started with our mocha tests, we're going to write a describe function.
+00:02:42.078 - 00:02:48.414, Speaker A: Describe is a keyword that hardhead and mocha will recognize. And it takes two parameters.
+00:02:48.542 - 00:02:51.698, Speaker B: It takes a string, which we're going.
+00:02:51.704 - 00:02:55.622, Speaker A: To just write simple storage for now. And then it also takes a function.
+00:02:55.756 - 00:03:03.846, Speaker B: We could make function test funk and then write some stuff in here and.
+00:03:03.868 - 00:03:08.758, Speaker A: Then pass it to our describe here. But the common convention is going to.
+00:03:08.764 - 00:03:10.666, Speaker B: Be to do is to make it.
+00:03:10.688 - 00:03:13.162, Speaker A: As an anonymous function, which we can.
+00:03:13.216 - 00:03:19.242, Speaker B: Create by typing function, putting an empty parameter here and then some brackets like that.
+00:03:19.296 - 00:03:32.410, Speaker A: So our describe function takes a name, a string, and a function. Another way that you'll often see functions in describe is using that anonymous function syntax. So you might see just these parentheses.
+00:03:32.570 - 00:03:35.210, Speaker B: An arrow, and then some brackets.
+00:03:35.290 - 00:04:09.606, Speaker A: The two of these are going to be basically the same. There are some differences, and this second one is actually best practice. But just know that you might see this arrow syntax in other tests as well. We have describe a simple storage and then our function here, which is going to have all of our tests in it. Inside each one of our describe blocks, we're going to have something called a before each and a bunch of its. Before each function is going to tell us what to do before each of our its. So we're going to have a ton of its, and then we're going to have a before each all of our its are going to be where we actually write the code for running our tests.
+00:04:09.606 - 00:04:15.102, Speaker A: And before each is going to be some code that tells us what to do before each one of these it.
+00:04:15.236 - 00:04:20.238, Speaker B: We can also actually have describes inside.
+00:04:20.324 - 00:04:31.022, Speaker A: Of describes, which again, have more before each and more before its. Having these nested describes can be really helpful for separating and modularizing our tests.
+00:04:31.166 - 00:04:32.498, Speaker B: But for this one, we're just going.
+00:04:32.504 - 00:04:56.460, Speaker A: To have a setup that looks like this. And for this demo, we're only going to have one it. So in order to test our smart contracts before we actually run our test, we're probably going to need to deploy the smart contracts first. So inside of our before each, we're going to pass our before each a function that's going to tell our testing framework what to do before each test. So we're going to pass it an async function like this.
+00:04:56.830 - 00:04:58.710, Speaker B: And in here we want to deploy.
+00:04:58.790 - 00:05:08.894, Speaker A: Our simple storage contract. So to do that, we're going to need to get the ethers framework and do exactly what we did in our deploy script. So in here, we're at the top.
+00:05:08.932 - 00:05:18.078, Speaker B: We'Re going to say const ethers equals require hard hat and import ethers from hardhat.
+00:05:18.174 - 00:05:21.246, Speaker A: Then in our before each function we'll.
+00:05:21.278 - 00:05:36.550, Speaker B: Say await ethers, get contract factory of simple storage and we'll assign this to a const simple storage factory.
+00:05:39.290 - 00:06:37.258, Speaker A: And then we'll run await simplestoragefactory deploy. All right, cool, and let's also assign this to a variable const simple. Now, since right now our simple storage and simple storage factory are scoped just to inside the before each, we actually need to stick these variables outside of the before each so all of our its can interact with them. So instead of having simple storage factory and simple storage be constant variables, we're going to define them outside of the before each with the let keyword and we're going to say let simple storage factory and we're going to initialize it to nothing. And then we'll say let simple storage. Now if you have a whole bunch of lets just initializing another way you can write them in Javascript is just let simple storage factory comma simple storage and that works exactly the same. And then we can get rid of.
+00:06:37.264 - 00:06:40.538, Speaker B: This const keyword because it's not a.
+00:06:40.544 - 00:07:08.678, Speaker A: Constant since we are assigning it. And now we have simple storage factory and simple storage that we can use inside of our it function. Now we have a before each section. So before each one of our tests we're going to deploy our simple storage contract. So we have a brand new contract to interact with for each one of our tests. Now, inside of the it, this is where we're going to say what we want this specific test to do and then describe the code that's going to actually do that. So we're going to say it should.
+00:07:08.764 - 00:07:13.640, Speaker B: Start with a favorite number of zero.
+00:07:14.410 - 00:07:23.740, Speaker A: So this is saying what this test should do and then we're going to add our async function to actually do that. So we'll say async function.
+00:07:24.910 - 00:07:27.686, Speaker B: And in here, this is where we'll.
+00:07:27.718 - 00:07:32.158, Speaker A: Actually write the code to make sure that our contract does exactly this.
+00:07:32.244 - 00:07:43.566, Speaker B: We're going to say const current value equals await simplestorage retrieve. And now in this test we want.
+00:07:43.588 - 00:07:52.114, Speaker A: To say okay, now check to see that this current value is indeed zero. So how do we do that? Well, we can say const expected value.
+00:07:52.312 - 00:07:54.820, Speaker B: Is going to equal zero.
+00:07:55.430 - 00:08:15.098, Speaker A: And what we can do is we can do either. We can use either the assert keyword or the expect keyword, which we're going to import both of these from a package called chi. We actually installed chi automatically when we downloaded the basic parameters when we downloaded the basic packages for hardhapp. So at the top we're going to.
+00:08:15.104 - 00:08:22.342, Speaker B: Say const, expect and assert equals require chi.
+00:08:22.486 - 00:08:54.806, Speaker A: I'm a big fan of using assert as much as possible because I think the syntax makes a little bit more sense, but there will be scenarios where we need to use expect instead. Now, assert has a ton of functions that are built in that help us make sure this is what we expect it to be. So I can do assert equal current value two string, because remember, this is actually going to be a big number, comma expected value. So I'm saying, I'm asserting this retrieve to return zero, which is going to be our expected value. Now, to actually run this, we can.
+00:08:54.828 - 00:08:57.560, Speaker B: Run yarn hard hat test.
+00:08:58.490 - 00:09:06.426, Speaker A: And we see we get an output that looks like this should start with favorite number of zero, and it's indeed passing. You'll notice that if I were to.
+00:09:06.448 - 00:09:08.886, Speaker B: Change this to one and this wasn't.
+00:09:08.918 - 00:09:11.246, Speaker A: Correct, it would break and it would.
+00:09:11.268 - 00:09:13.914, Speaker B: Say our tests are not passing assertion.
+00:09:13.962 - 00:09:26.090, Speaker A: Error expected zero to equal one. It expected zero to equal one, which is not what we want. We want zero to equal zero. So let's run this again.
+00:09:26.260 - 00:09:26.990, Speaker B: Tada.
+00:09:27.070 - 00:09:36.034, Speaker A: Should start with favorite number zero, and it's passing. All right, fantastic. So that's how we wrote one of our tests. Let's write one more test just to make sure that things look good.
+00:09:36.072 - 00:09:40.920, Speaker B: So let's say it should update when we call store.
+00:09:41.530 - 00:09:48.642, Speaker A: Because when we call the store function, we want our favorite number to update. And we'll make this an async function as well.
+00:09:48.796 - 00:09:50.922, Speaker B: And let's add our stuff in here.
+00:09:50.976 - 00:09:58.730, Speaker A: So we'll say const expected value equals seven. We're expecting that when we call store it updates to seven.
+00:09:58.880 - 00:10:03.674, Speaker B: Now we can say const transaction response.
+00:10:03.802 - 00:10:10.414, Speaker A: Equals await simplestorage store. And we can even just pass it.
+00:10:10.452 - 00:10:16.938, Speaker B: The expected value here. And then we'll do await transactionresponse weight one.
+00:10:17.124 - 00:10:22.542, Speaker A: Now let's get the current value. So we'll say const current value equals.
+00:10:22.606 - 00:10:27.750, Speaker B: Await simple storage retrieve.
+00:10:28.330 - 00:10:31.442, Speaker A: And now we're going to assert equal.
+00:10:31.586 - 00:10:38.614, Speaker B: Current value two string comma expected value. And now we can run all these.
+00:10:38.652 - 00:11:28.534, Speaker A: Tests by running yarn hardhead test. And you'll see we ran both of these tests. Now if I have 10,000 tests and I'm only finagling with one test, I can actually just run one test by running yarn hardhat test grep. And I can search for any keywords in any of the text here. So I'm going to grep for the store function because the store keyword isn't in this text for this, it's only in the text for this it so if I do grep store it should only run our second test, which it does indeed. One other way we can run only specific tests is with the only keyword so we can type it only like that and then we can run yarn hard hat test and it should only run this should update when we call.
+00:11:28.572 - 00:11:30.502, Speaker B: Store and it does indeed.
+00:11:30.566 - 00:11:34.538, Speaker A: Then we can go ahead and delete this save, run it again and it.
+00:11:34.544 - 00:11:35.786, Speaker B: Should run all two.
+00:11:35.968 - 00:12:02.602, Speaker A: Fantastic. Now the other way you'll see these tests written is with instead of assert it'll use the expect keyword. So you'll see something like expect current value two string two equal expected value. The two of these lines do exactly the same thing and it's sort of up to you on which one you want to use. And that's all we're going to do for our testing. Now this is fantastic.
+00:12:02.666 - 00:12:11.170, Speaker B: Great job you it's.

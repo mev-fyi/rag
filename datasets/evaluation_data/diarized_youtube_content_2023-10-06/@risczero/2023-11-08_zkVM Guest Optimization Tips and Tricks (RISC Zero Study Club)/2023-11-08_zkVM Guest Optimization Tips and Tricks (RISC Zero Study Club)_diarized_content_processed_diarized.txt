@@ -1,0 +1,271 @@
+00:00:02.490 - 00:00:02.798, Speaker A: Great.
+00:00:02.884 - 00:01:03.786, Speaker B: Yeah, so I'm Victor, one of the engineers at Chrisira. I work on the ZKVN platform and also on cryptography. So this basically is, a lot of people have been asking about ZKVM performance and how to optimize guests, and we actually just released a new optimization guide. And so this study cloud basically is about techniques you can use to upvance your guests, some of the differences between the ZkVM and a physical cpu, and basically some tips and tricks that you can use to more quickly speed up your guest applications. And the kind of the big picture of why do we care about this is our real goal here is to reduce the overall proving time and cost by making the ZkVM guest code run faster. And so if your guest runs faster, the execution is you have a shorter execution. If you have a shorter execution, takes.
+00:01:03.828 - 00:01:07.540, Speaker A: Less time and energy to prove that makes your applications run better.
+00:01:08.550 - 00:01:27.670, Speaker B: All of this content, as I mentioned as well, is also available in our guest optimization guide, which is on the documentation website under the next API version. So the features available will be available in the 00:20 release. But this is kind of like a preview, and a lot of the content.
+00:01:27.740 - 00:01:30.600, Speaker A: Itself about the ZKVM is applicable today.
+00:01:31.290 - 00:01:55.806, Speaker B: All right, another point of housekeeping before we get started is definitely feel free to interrupt at any time. Optimization is a deep and complicated topic. Cryptography is a deep and complicated topic. Optimizing a cryptographic cpu is a deep and complicated topic. So definitely feel free to ask questions at any time. So the first thing the contest wants to is what is kind of the.
+00:01:55.828 - 00:01:57.874, Speaker A: ZkVM at a base level.
+00:01:57.992 - 00:02:10.278, Speaker B: And there are many things you can say about it, but one of the really kind of important things to understand is that essentially is a cpu. Effectively it implements what they call an instruction set architecture, but in particular it.
+00:02:10.284 - 00:02:12.950, Speaker A: Implements the RISC five instruction set architecture.
+00:02:13.850 - 00:02:58.534, Speaker B: Risk five is an open source ISA very similar to X 86, which is all intel cpus, or ARM, which runs basically all laptops, but also now all phones, I mean, but also now some laptops and servers as well. And the biggest difference between a physical cpu in your neurosulphore phone and ZkVM is the fact that the ZKVM uses arithmetic circuits, encryptography instead of silicones and copper. So basically it's a software encryptography implementation of the risk five ISA. But it is still an implementation of the risk five ISA, just like any other kind of like cpu or other.
+00:02:58.572 - 00:03:00.450, Speaker A: Implementation of the architecture.
+00:03:00.610 - 00:04:00.486, Speaker B: And so in that sense, when you're thinking about optimization, just the first thing to think about is that the ZKVM is essentially a cpu. It is a computer, and one of the main ways to kind of measure performance, especially for small programs, is in terms of cycles. A cycle, or clock cycle, is a single step of a cpu's execution, which is also what you see. If you see a cpu runs at 3 ghz, then basically that means it executes 3 billion cycles per second. That's the clock rate. And generally speaking, within one cycle, a CPU can usually do a basic operation. Basic operation might be adding two integers, it could be bitwise operations, it could be something like that, basically taking two registers in the cpu, doing some operation, and then writing them back to an output register.
+00:04:00.486 - 00:04:28.126, Speaker B: So the ZKVM kind of the cycle. We often use cycles per second on the range of hundreds of kilohertz or megahertz as kind of our way of talking about proven performance. And the reason we do that is because the number of cycles that a given program uses to execute is directly.
+00:04:28.158 - 00:04:29.554, Speaker A: Related to the proving time.
+00:04:29.672 - 00:04:39.126, Speaker B: So a program that takes about a billion cycles to run will be about ten times longer than something that takes.
+00:04:39.148 - 00:04:40.854, Speaker A: 100 million cycles to run.
+00:04:41.052 - 00:05:00.334, Speaker B: That's because of the way that cycles translate into witness size. Witness size translates to proof of time. So the general thing to know, to understand here is basically a cycle essentially is a single step or a single operation, and that the number of operations, number of cycles is directly linked to.
+00:05:00.372 - 00:05:02.240, Speaker A: How long the proverb time is going to be.
+00:05:06.050 - 00:05:56.510, Speaker B: And with that, basically we can talk about some general techniques and advice. And so I mentioned before that the ZKVM essentially is a cpu. And the kind of key idea here where we should start is that in general, general purpose automation techniques do work in ZKVM. So things like reducing your allocations, things like reducing number of times you call a routine, just like reducing the work that your program has to do in order to get its job done is always a good idea. The Rust performance book is a great resource. Basically, it's a really good beginner friendly optimization guide specifically designed for rust programming. It talks a lot about rust topics, for example, how to tune the cargo and Rust C compiler.
+00:05:56.510 - 00:06:18.502, Speaker B: And optimization for the ZKVM should basically always start by just applying common good practice techniques. Probably the most important thing to do, which is true both on physical cpus and ZKVM, is to always measure your code repeatedly. You don't want to waste your time.
+00:06:18.556 - 00:06:20.498, Speaker A: Optimizing things that are not the bottleneck.
+00:06:20.594 - 00:06:46.318, Speaker B: If your program, if you have something that's like a super stupid algorithm, it's like quadratic in time or whatever. But really at the end of the day, it only takes up 1% of your execution time. Optimizing at ten x, optimizing at 100 x, optimizing a million x will always result in a less than 1% decrease in the total amount of time that your program executes. And we'll have some more example of.
+00:06:46.324 - 00:06:47.760, Speaker A: This in just a second as well.
+00:06:49.010 - 00:06:59.218, Speaker B: So kind of the core idea here is like every time you're optimizing code, you always want to measure what the actual runtime of it. And don't assume that you know what.
+00:06:59.224 - 00:07:01.090, Speaker A: The ballnecks are a priority.
+00:07:03.830 - 00:07:41.806, Speaker B: And on that topic, we're going to talk about a really simple way to start measuring your code. So basically one of the fastest ways to start measuring your code is just to add print lines to your code. Just like have it print debug statements. And you do that in the ZKVM as well. And so we're actually going to start getting into an example right here to show exactly how you could do that. So I have my editor here, I wrote up a little program to use as an example. So this guest program takes in is a reg x search or substring search.
+00:07:41.806 - 00:08:36.622, Speaker B: And basically it counts the number of occurrences that are in the Haystack string. So this program does a few different steps that we're going to see in a second, which is one that it reads input. The second is that it compiles the needle expression into a radio expression. Then it actually searches the haystack for the needle counts the occurrences. Finally or fourth, it takes a shot to just digest of the haystack that basically used to say, I know of a hash pre image with this number of currents of this substring, for instance, or this regular expression that is, and then it commits all that to the general digest. And we can start right away by basically running this program. And we're going to run it in dev mode.
+00:08:36.622 - 00:08:50.346, Speaker B: Dev mode basically allows us to avoid actually proving the program makes our total execution much faster. And Chicago run. This is the needle, the food and this is our stack.
+00:08:50.478 - 00:08:52.200, Speaker A: Pretty simple one right here.
+00:09:02.590 - 00:09:12.906, Speaker B: And so this is basically, come back from the guess there are four occurrences of the substring foo in the haystack.
+00:09:12.938 - 00:09:15.310, Speaker A: That has that hash image.
+00:09:16.530 - 00:09:35.936, Speaker B: And other questions about this is just get started. This is kind of the baseline we're going to use for the next couple of examples. So let's start by adding some print statements. So I mentioned before that you can do this. So basically, let's say we're going to.
+00:09:35.958 - 00:09:45.810, Speaker A: Use cycles a equals intel on colon, get cycle count.
+00:09:46.660 - 00:09:51.764, Speaker B: And basically this just gets the cycle counts, just the cycle count at this.
+00:09:51.802 - 00:09:52.596, Speaker A: Point in the code.
+00:09:52.698 - 00:10:22.458, Speaker B: So we're going to create a few different points here, say it cycles b. We're going to use these basically to figure out what the actual, the difference, like what, how long each portion of.
+00:10:22.464 - 00:10:29.920, Speaker A: Our program is taking. So here we're going to say.
+00:10:34.500 - 00:10:41.410, Speaker B: Eprint. Ln eprint basically just prints to the standard error. Standard error will appear in the console here.
+00:10:42.980 - 00:11:53.220, Speaker A: A to b is cycle b minus cycle equals a down here. Or make it right.
+00:12:36.230 - 00:13:02.214, Speaker B: So yeah, really simple there. We can see that we have these cycle counts now. So between each of these points. So it looks like reading input, which is a to b, takes about 6500 cycles. Then a to b, which is b to c, which is combined with other extraction, takes about 191,000. So we know that's actually, that's something, their biggest one, you can see it's.
+00:13:02.262 - 00:13:03.580, Speaker A: Much bigger than the rest.
+00:13:04.110 - 00:13:07.100, Speaker B: Searching takes 14,000 and then.
+00:13:10.910 - 00:13:11.418, Speaker A: Paying the.
+00:13:11.424 - 00:13:22.526, Speaker B: Digest to the high stack takes about 25,000. And then finally committing the digest takes about 9500. So that's a really simple fast way.
+00:13:22.548 - 00:13:25.060, Speaker A: To get, to get performance numbers.
+00:13:25.830 - 00:13:41.586, Speaker B: And that's a good place to start whenever you're working. There's a more advanced technique, and starting in version 0.2, if we have a really simple way to activate it, which is that risk zero supports generating PProf.
+00:13:41.698 - 00:13:43.554, Speaker A: Profiles of the execution.
+00:13:43.682 - 00:13:57.678, Speaker B: And PPRF is a tool that is designed for basically looking at cpu execution time. There's a question here, basically that we could be getting some bloats inside of.
+00:13:57.684 - 00:14:00.370, Speaker A: Account from forerunning logic and the syscall output though.
+00:14:00.440 - 00:14:48.094, Speaker B: And the answer is absolutely. Yeah, that definitely does add bullet to the program. If you're talking about orders of magnitude, like 191,000 cycles for instance, is way above what's going to take to do the formatting and the subtraction. So basically you do get measurement error, but the measurement error is probably on the order of, let's say hundreds of cycles, maybe up to 1000. But your order magnitude for the actual work your program is doing is much, much higher. And so the noise basically will not introduce, won't compromise the overall kind of guidance of the measurement you're doing. So this is why it's kind of fast and theory technique, because basically gives you, it's easy to do.
+00:14:48.094 - 00:15:34.718, Speaker B: You can always kind of put those log statements in. However, basically it does not the most precise measurement and does introduce error, as Austin as mentioning. Yeah, so profiling, so profiling is a technique in general that EC used to figure out the performance of programs. So Pprof is an example of this. Linux on Linux is also perf, the perf tool and some other tools as well. And all these tools basically are designed to help you figure out quickly where your program is going, like where the cycle counts, where the time in your program is going. I've definitely encouraged you to read more about Pprop and how it works, but we'll see what does in just a second.
+00:15:34.804 - 00:15:37.578, Speaker A: We'll give you an example in risk.
+00:15:37.594 - 00:15:57.446, Speaker B: Zero supports today as far as in 00:19 if you want to use it a profiler and then 00:20 we are going to release changes that make it much much easier to access those profiles. I'm going to show off how to use the new API in 00:20 using.
+00:15:57.548 - 00:16:01.458, Speaker A: The build of riseroph, the main branch of our Monorepo.
+00:16:01.634 - 00:16:06.666, Speaker B: But basically it kind of sums up to setting an environment variable and give profile out and I'll show you what.
+00:16:06.688 - 00:16:07.980, Speaker A: These profiles look like.
+00:16:08.350 - 00:16:23.998, Speaker B: So going back to this code here, I'm actually going to remove all these changes. So now we're back to now that the logs have gone away and we're going to run the same command again.
+00:16:24.084 - 00:16:29.122, Speaker A: From before, but we're going to set.
+00:16:29.256 - 00:16:47.734, Speaker B: Risk zero pprf out equals profile Pb. So basically this is telling risk zero and the client to basically when it runs it will record information about the execution of the program and write this.
+00:16:47.772 - 00:16:51.320, Speaker A: Profile Pb file as output. So run again.
+00:17:01.500 - 00:17:33.396, Speaker B: And so now we have this profile Pv file and bundled with the go language. Basically Google includes the pprof tool. I've looked for another way to install it. Unfortunately no way installing go is the best way to do see, in order to access the tool, the recommendation is to install Golang, which this tool comes with. And it's a really great tool. It can be used for profiling of.
+00:17:33.418 - 00:17:36.150, Speaker A: Any kind of application, not dust building to be clear.
+00:17:37.000 - 00:18:02.270, Speaker B: So we're going to run it in HTP mode. So basically it runs a local server and lets you look at the output and it's going to open up the profile. This graph view is really helpful. It's great view to use, but it's also a little bit harder to parse right away. So we're going to go over to the flame graph. View this flame graph. Basically this is a view of the call stacks in your application.
+00:18:02.270 - 00:18:34.356, Speaker B: So basically it starts from the top, which is the root and main here. And it goes all the way down to the roots. So basically arch of the leaves, which is exactly where your program is spending its time. So you can see here, for example, it's spending its time, let's say in the drop implementation in radioact syntax. Hi R, hi R concat. Basically these are all kind of functions deep within the Regex library, which we use in our guest code here.
+00:18:34.538 - 00:18:37.656, Speaker A: So use Regex, Reg X and it's.
+00:18:37.678 - 00:18:50.444, Speaker B: Showing us basically where things are going. And if you hover over each of these bars, you can see how wide they are. So for example, the root is 265,000 cycles, which is basically how long our.
+00:18:50.482 - 00:18:52.220, Speaker A: Total program takes to run.
+00:18:52.370 - 00:19:32.116, Speaker B: And then as you go down, you can see individually where things go. And so here is a really important one here, which is the regex from string, which is the build operation. And it's taking about 108,000 cycles right here. If you kind of go along the same level, you can see there's also Regex search taking about 4000 cycles. There is, looks like this is more regex search kind of stuff here. There's the commit function, which is taking about 9000 cycles. And then shot compress, which basically this is where we're compressing, where we are digesting the or shot taking a hash.
+00:19:32.148 - 00:19:35.740, Speaker A: Of the haystack is about 2020, 3000 cycles.
+00:19:37.360 - 00:19:44.204, Speaker B: And this view here as well, you can click on things and it will kind of go for. It'll let you dive deeper into each.
+00:19:44.242 - 00:19:45.292, Speaker A: Little part of it.
+00:19:45.426 - 00:19:51.040, Speaker B: And just in general, I highly encourage you to install this tool. Check it out. It's really useful.
+00:19:51.860 - 00:19:54.530, Speaker A: I've used it a lot in all my performance work.
+00:19:55.300 - 00:19:58.576, Speaker B: And we'll actually use it right now to kind of talk about how you.
+00:19:58.598 - 00:20:00.050, Speaker A: Actually might improve things.
+00:20:01.780 - 00:20:03.472, Speaker B: For the sake of time.
+00:20:03.606 - 00:20:04.624, Speaker A: Let's see.
+00:20:04.822 - 00:20:07.508, Speaker B: So I guess we'll talk about what.
+00:20:07.514 - 00:20:08.324, Speaker A: You might do to improve things.
+00:20:08.362 - 00:20:33.948, Speaker B: Basically the first thing you'll notice here is that the regex construction is taking up about 70% of our time. So see, if we're doing profile work, we don't want to focus on anything that this is like the main thing we want to reduce. So see if it can possibly reduce this work here. We definitely want to do it that will basically improve our program speed by a time. In this case, let's say we're working on an application and you can do.
+00:20:33.954 - 00:20:35.196, Speaker A: This in multiple ways.
+00:20:35.378 - 00:20:56.340, Speaker B: You could have a library that compiles regions at compile time. You could pass them in a serialized form you could use pause resume, which is a feature of the ZKVM as you do work, pause the ZKVM and then resume later. But today we're going to talk about just like, let's just remove that entirely. Let's say we don't actually need to do full reg search.
+00:20:56.410 - 00:20:58.116, Speaker A: Substring search is just fine for us.
+00:20:58.218 - 00:21:10.520, Speaker B: So we're actually going to reduce the functionality of our program to actually make it go faster. And for this one here, I'm just going to go ahead and check out.
+00:21:10.590 - 00:21:27.750, Speaker A: Another commit which is up here. I'll show you the dev first. Sorry, make it bigger again.
+00:21:27.900 - 00:21:34.360, Speaker B: Okay, so here, basically we'll see that. What we're going to do is we're going to remove Regex from.
+00:21:40.730 - 00:21:41.858, Speaker A: Switch the colors.
+00:21:41.954 - 00:21:45.386, Speaker B: So we're going to remove Reg X from our guest application and we're just.
+00:21:45.408 - 00:21:57.556, Speaker A: Going to replace it with subscripts. So now there's no more application and.
+00:21:57.578 - 00:21:58.176, Speaker B: We'Re going to run again.
+00:21:58.218 - 00:22:00.010, Speaker A: We're going to run that application again.
+00:22:03.540 - 00:22:07.052, Speaker B: And so there are four currents of Foo in the string.
+00:22:07.196 - 00:22:11.730, Speaker A: We're going to run go tool again, our PGRF again.
+00:22:13.800 - 00:22:20.756, Speaker B: And we'll see immediately that our program time is now 60,000 cycles, 7000 cycles instead.
+00:22:20.858 - 00:22:21.750, Speaker A: Way better.
+00:22:22.360 - 00:22:38.952, Speaker B: And we have different bottlenecks now. And so now if you're going back to the back in this optimization loop, you'll see that the biggest thing here again is compress. So this means basically that shot two to six of the haystack value in particular is now taking base to the.
+00:22:39.086 - 00:22:40.372, Speaker A: Majority of our time.
+00:22:40.526 - 00:22:56.296, Speaker B: And one of the reasons for this basically is that actually this year we're using the Shaw to create here and we're just using the software implementation. We're not using any kind of like special features whatnot. But the ZKVM actually includes a hardware.
+00:22:56.328 - 00:22:59.090, Speaker A: Accelerated version of trot to g six.
+00:23:00.180 - 00:23:04.400, Speaker B: So basically in order to actually activate it, we're going to change this dependency.
+00:23:04.480 - 00:23:05.110, Speaker A: Here.
+00:23:08.120 - 00:23:11.670, Speaker B: To use the risk zero for.
+00:23:13.240 - 00:23:15.216, Speaker A: Shop two, the shop two grade.
+00:23:15.408 - 00:23:38.744, Speaker B: So GitHub.com risk zero rust crypto hatches tag we want to use is Shaw two version ten 00:10 60 not that you remember all this, I just did this recently.
+00:23:38.792 - 00:23:41.100, Speaker A: Sorry, I remember it personally.
+00:23:42.000 - 00:23:43.916, Speaker B: But you can look it up on.
+00:23:43.938 - 00:24:26.610, Speaker A: Our GitHub app, honestly, or obviously this repo here and let's run around program again. Oops.com the brought again for the plane graph.
+00:24:27.270 - 00:24:37.880, Speaker B: And now you can see that in total we are now using 40,000 cycles. So it's getting better and that shock compressed time has now effectively gone away.
+00:24:38.910 - 00:24:44.026, Speaker A: I can't actually find it anymore. I'm sure it's here.
+00:24:44.208 - 00:24:44.998, Speaker B: I think it's.
+00:24:45.094 - 00:25:02.894, Speaker A: Well, that's it. That's infinite. Oh wait, where is it? Oops. Oh, there it is.
+00:25:02.932 - 00:25:07.146, Speaker B: So here is the self time tank.
+00:25:07.178 - 00:25:10.420, Speaker A: So that's 1500 likes. That's much, much better.
+00:25:12.630 - 00:25:16.100, Speaker B: Okay, so I think there's one more.
+00:25:18.470 - 00:25:19.460, Speaker A: As well.
+00:25:22.070 - 00:25:23.282, Speaker B: That's all the demo I wanted to.
+00:25:23.336 - 00:25:24.178, Speaker A: Show you guys today.
+00:25:24.264 - 00:25:48.346, Speaker B: Basically, this kind of optimization loop is the core way you're going to want to do your work for optimization. This is true both in ZTVM and also in general outside, for outside programs as well. You profile your program, look at what's taking the most time. Think about if you can reduce that time spent there, and then once you've done that reprofile again and just keep.
+00:25:48.368 - 00:25:50.406, Speaker A: On doing this loop over and over again.
+00:25:50.528 - 00:25:53.066, Speaker B: This is kind of the core loop that you're going to use to optimize.
+00:25:53.098 - 00:25:55.278, Speaker A: Your guest programs, which is why I.
+00:25:55.284 - 00:26:25.938, Speaker B: Want to spend time actually really showing that. Okay, so now that we talk about general purpose techniques here, let's talk about the key differences between the ZKVM and CPU. So sometimes these key differences are going to be very important to optimize your programs. For there are many ways in which the ZKVM has different qualities than a physical cpu in terms of its execution. All right, so the first thing we're.
+00:26:25.954 - 00:26:27.158, Speaker A: Going to start with, we're going to.
+00:26:27.164 - 00:26:43.454, Speaker B: Kind of go through a list of these. The first thing we're going to start with is that most risk five operations in the ZKVM take exactly one cycle. This is very unusual compared to most cpus and ISA implementations. On a visual cpu, a divide operation takes about 15 to 40 times as.
+00:26:43.492 - 00:26:45.150, Speaker A: Long as an addition.
+00:26:46.850 - 00:26:51.666, Speaker B: So basically 15 to 40 cycles. On a ZK VM, a divide only.
+00:26:51.688 - 00:26:52.626, Speaker A: Takes two times as long.
+00:26:52.648 - 00:27:00.994, Speaker B: It only takes two cycles. Furthermore, an ad and a multiply both.
+00:27:01.032 - 00:27:02.386, Speaker A: Take exactly one cycle.
+00:27:02.498 - 00:27:05.430, Speaker B: So if you're thinking about optimization.
+00:27:07.850 - 00:27:08.214, Speaker A: And.
+00:27:08.252 - 00:27:49.650, Speaker B: You have the opportunity to basically trade, let's say multiply for a couple of ads. Let's say it's like a multiply by three. And so you want to decide like, okay, well, I could do that in three ads or two ads. Instead, add a value to itself and itself again, that's multiplied by three. Well, that's actually slower in the ZKVM than a multiply, which is unusual compared to most compared to physical cpus. Furthermore, addition as well our division as well has the same qualities, has similar qualities more generally. Addition, comparison, jump, shift left, load and store operations all take exactly one cycle.
+00:27:49.650 - 00:27:59.574, Speaker B: Bitwise operations, division remainder and shift right take two cycles. All the basic operations take either one.
+00:27:59.612 - 00:28:02.070, Speaker A: Or two cycles in the ZKVM.
+00:28:02.810 - 00:28:07.194, Speaker B: Another one that we'll call here is that bit operations are actually slower than.
+00:28:07.232 - 00:28:09.740, Speaker A: Arithmetic operations, so it's good thing to keep in mind.
+00:28:11.870 - 00:28:20.526, Speaker B: Another key difference is that memory access costs one cycle access doesn't, which I'll get into a second.
+00:28:20.628 - 00:28:21.280, Speaker A: But.
+00:28:24.130 - 00:29:12.126, Speaker B: This relative to physical, like the way physical cpus interact to physical memory, is very different. So see, physical memory takes 100 to 150 cycles or so, just as a rough estimate to access. It's also asynchronous. Basically, when the CPU submits, tries to load a value from memory, the cpu will keep doing other work in the background. And this latency, basically going the round trip time to memory is actually a very major point of optimization in traditional programming. So if you're accessing the same value multiple times, it is no faster. Or basically in the ZKVM it only ever takes one cycle to access.
+00:29:12.126 - 00:29:55.290, Speaker B: And so in terms of cycles, it's very fast. The exceptions to this are for paging operations, basically. So memory in the ZKVM is divided into 1 kb pages. Basically it's about 192 megabytes is total user addressable memory. That is divided into what, 192,001 kb pages of memory. Every time you access a page the first time, it needs to be loaded or paged in before the program ends. Any pages that have been written to.
+00:29:55.360 - 00:29:56.620, Speaker A: Need to be paged out.
+00:29:58.370 - 00:30:13.614, Speaker B: One of the reasons we call it pagings and kind of paging is that this is kind of analogous to the way that a computer will read and write memory pages to disk in order to save them either during hibernation or.
+00:30:13.652 - 00:30:14.638, Speaker A: Friends out of memory.
+00:30:14.734 - 00:30:30.966, Speaker B: And so basically when you think about the ZKVM while it's executing continuations, essentially what it does that on each segment, it basically boots. The ZKVM boots the computer at the start of the segment and it shuts down and it kind of goes into.
+00:30:30.988 - 00:30:32.214, Speaker A: Hibernation at the end.
+00:30:32.332 - 00:30:52.126, Speaker B: And when it hibernates, basically it needs to write all memory out to disk effectively. And so that's why we call it paging. And the first time you ever access a page in a segment, it needs to be loaded for the first time. And the last time, basically before the program ends, you need to write it back out again. So you can pick it, so you can, then you can load it back.
+00:30:52.148 - 00:30:53.870, Speaker A: Again in the new segment.
+00:30:55.970 - 00:31:00.202, Speaker B: This paging operations are done by a Merckl tree, which is basically a hashing.
+00:31:00.266 - 00:31:02.718, Speaker A: This is why it takes so a.
+00:31:02.724 - 00:31:16.534, Speaker B: Paging operation takes a variable amount of time, takes between 1094 and 5130 cycles. The average is about 1130 cycles per.
+00:31:16.572 - 00:31:19.330, Speaker A: Page, or about 1.35 cycles per byte.
+00:31:19.410 - 00:31:27.962, Speaker B: That average is if you were to read all of memory from zero to 102,000, then you would end up with.
+00:31:28.016 - 00:31:30.650, Speaker A: That average number of total time spent.
+00:31:31.870 - 00:32:27.782, Speaker B: So in this way, repeatedly accessing the same memory is indeed somewhat cheaper than accessing a very wide range of memory. And so this is kind of the main thing. Thing about if you're taking out a memory access, actually accessing memory itself repeatedly is not really a problem at all. But accessing a very wide range of memory might end up costing you more quite a bit in terms of paging cycles. Another important thing to note is that the ZKVM does not have native floating point operations. So each operation, unlike most cpus nowadays, which implement IEEE floating point in hardware, so that floating point operations are almost as fast as integer operations, the ZKVM.
+00:32:27.846 - 00:32:30.670, Speaker A: Does not have that implementation.
+00:32:31.170 - 00:32:48.094, Speaker B: Floating point is instead implemented in software by the compiler. And so each operation turns into about 60 to 140 cycles of risk, five integer operations in order to actually implement.
+00:32:48.142 - 00:32:52.638, Speaker A: IEEE floating point in software.
+00:32:52.814 - 00:33:13.098, Speaker B: So whenever you can, just try to avoid floating point, and that's not always possible. But if you could ever have a chance to use fixed point or use integers instead, definitely go ahead and do that. Also, that's probably general good general bias. Avoiding floating point is almost always the.
+00:33:13.104 - 00:33:15.340, Speaker A: Right call whenever you can avoid it.
+00:33:20.270 - 00:34:33.118, Speaker B: Unaligned data access is more expensive. So what is kind of an aligned or versus online data access? Well, basically the first thing we're going to talk about is what a word is. So a word is a standard unit of data for operations. So in a 32 bit ISA like risk five risk 532 bits, then a word is four bytes, which is 32 bits, and a 64 bit ISA like X 86 underscore 64. Basically what most intel processors are nowadays, or AMD 64, the word size might be you'll end up with a word size, that is, you end up with a pointer size that is 64 bytes or eight bytes instead. But basically, there's kind of this idea of a standard size of operate unit size of operation, which is, in the case of risk five is going to be four bytes. When a value in memory exists at an address, which is a multiple of four bytes, then it will be considered aligned, if it's offset, is at an address that is not multiple of four bytes.
+00:34:33.118 - 00:35:28.600, Speaker B: So basically say it's address something one, the last digit is one, then it is an unaligned access. The processor can only issue loads and stores of memory at aligned addresses. And so if you want to read from an unaligned address, you actually end up having to read multiple times to implement this. So reading U 32 values, so arrest 32 bit inside integer normally costs one cycle if it's aligned, but if it's unaligned, it costs twelve cycles to access in the CKVM. That's just the way that's part of the software implementation of unaligned reads. So in general, okay, in general.
+00:35:31.210 - 00:35:31.526, Speaker A: The.
+00:35:31.548 - 00:36:45.854, Speaker B: Compiler will help you, will help you make sure all your reads are aligned. Anything you allocate will be aligned by default, and so will basically, so will fields that the compiler puts into a struct. But if you basically you're slicing into binaries, or if you are doing something kind of, or if you're making structs that are very tightly packed with u eight or smaller values, then you need to be careful and make sure that you are not incurring extra cost for unaligned data access. So when another kind of, another kind of performance tip here is that we have these inbreed, we have this inbreed function, basically just the standard way to read data into the CKVM. You see in our guest program here. We use it, we use it here to read two strings from the host. And this read function does two things.
+00:36:45.854 - 00:37:08.274, Speaker B: First of all, it actually copies data from the host, and then also it deserializes it. That's why we're able to get a string value as the output, rather than just an array of bytes on the host side. This is done by essentially using the executor inf builder write function. So we first we write the needle.
+00:37:08.322 - 00:37:09.846, Speaker A: And then we write the haystack and.
+00:37:09.868 - 00:37:12.866, Speaker B: Those basically, correspondingly, we read the needle.
+00:37:12.898 - 00:37:15.160, Speaker A: And then we read the haystack. And guess.
+00:37:17.070 - 00:37:39.518, Speaker B: If you're ever working with byte data, if you're ever working with data that is exclusively just a slice of bytes, then you can avoid the overhead of deserialization, which requires copying, copying your input by using the m read slice function. Looks like the images I had in.
+00:37:39.524 - 00:37:46.858, Speaker A: The slide are not loading. Sorry about that. Here it is.
+00:37:46.944 - 00:37:52.366, Speaker B: So you can use imread slice or stdio read, which do not do any.
+00:37:52.388 - 00:37:53.370, Speaker A: Kind of a cell section.
+00:37:53.450 - 00:37:59.890, Speaker B: So showing you back on this example here, I might change this to a.
+00:38:00.040 - 00:38:39.000, Speaker A: Vector, let needle equals vector eight like this. And then I can use read slice mutable reference to this vector.
+00:38:41.100 - 00:39:10.300, Speaker B: And basically, and get the actual input data. Now what I'm not doing here is that you actually do need to deal with the sizes of things and it's a little bit more overhead to actually do this here. I would need to actually say like needle resize and resize it up to the size that they expect to receive. And so it's a bit more work to do this, but ends up being quite a bit more efficient when you don't need to do digitalization.
+00:39:10.960 - 00:39:20.980, Speaker A: And in the code here, I wonder if you can see it, I think.
+00:39:21.050 - 00:39:43.404, Speaker B: Oh, so in this case here, the cycle count for the reading and this data is actually fairly small. It's about 1000 cycles out of a total of 39,000 cycles. So it's probably not worth doing. And I want to emphasize that because in general for small input data, this.
+00:39:43.442 - 00:39:45.308, Speaker A: Optosition is not worth it.
+00:39:45.474 - 00:39:50.044, Speaker B: Basically it's going to end up making it very more complicated and distillation, actually.
+00:39:50.082 - 00:39:54.800, Speaker A: Something that is rather helpful for your use cases.
+00:39:55.380 - 00:39:58.768, Speaker B: So this is an example of like when you have very large input data.
+00:39:58.854 - 00:40:00.450, Speaker A: It might end up being worth doing.
+00:40:00.980 - 00:40:42.948, Speaker B: This is again something that basically if you read the profile and then see where you're spending time, it is very likely, or is very possible that with larger data you are spending most of the guest time in reading input and desolate input. And this is using read slice instead of read is a way to get around that deserialization cost and copying cost. Another technique you can use is that also when you have large input data and you only need part of it, then you can try using a Merkel tree to basically allow partial access to.
+00:40:42.954 - 00:40:47.216, Speaker A: Your data while still having maintaining a hash of the root.
+00:40:47.408 - 00:40:50.196, Speaker B: So in the warehouse Voldemort example that.
+00:40:50.218 - 00:40:50.950, Speaker A: We have.
+00:40:52.840 - 00:40:57.688, Speaker B: We use murder trees to access a region of an image in.
+00:40:57.694 - 00:40:59.240, Speaker A: Order to do image cropping.
+00:41:00.780 - 00:41:05.784, Speaker B: This greatly improves the total time that the total time this program takes, because.
+00:41:05.822 - 00:41:09.516, Speaker A: It allows us to only read the.
+00:41:09.538 - 00:41:11.468, Speaker B: Data we need instead of the entire.
+00:41:11.554 - 00:41:14.060, Speaker A: Image, which would be extremely expensive.
+00:41:14.560 - 00:41:19.548, Speaker B: So merkle trees are also a very useful technique. When you kind of the characteristics to.
+00:41:19.554 - 00:41:21.616, Speaker A: Look out for is large input that.
+00:41:21.638 - 00:41:23.088, Speaker B: You only need part of, then in.
+00:41:23.094 - 00:41:25.200, Speaker A: That case it may be worth localizing.
+00:41:28.580 - 00:42:20.320, Speaker B: So the question basically is like what would you consider to be a large input data? So that kind of depends on where your cycles are going. So see, if you have a program that takes 50 million cycles and you're spending 30 million cycles on reading input data, which might be in order to get there, you probably have to be on the order of definitely hundreds of kilobytes or a megabyte or more of input data. But this is basically like the best thing to do is just be guided by your profiler here. Basically, if you're thinking like maybe 100 kb or megabytes, then that's probably an area in which basically you start to think about what are some more advanced techniques I can use to reduce the amount of time it takes to read this data.
+00:42:20.470 - 00:42:23.828, Speaker A: Of course, I say that for a.
+00:42:23.834 - 00:42:46.964, Speaker B: 50 million cycle program, but also if your program is taking 1 million cycles and you really want to keep it to under a million cycles, then the same might apply. So basically your input data might be only be, let's say like 10 kb, but that may be large enough relative to your program's total runtime that it's.
+00:42:47.012 - 00:42:49.800, Speaker A: Worth doing things like mercurialization.
+00:42:55.280 - 00:43:47.790, Speaker B: One thing is worth mentioning here as well is a hash evaluation. Using the shutter disk accelerator is a relatively cheap thing to do. So basically it takes six cycles for initialization and then 68 cycles per block of per hash block, which is 64 bytes. And so at 72 cycles per block is kind of a rough number you can use to think about how long it does take to hash something. So relative to reading large data hashing, part of that data is much cheaper. There's also in the optimization guide mentioned before online, we have this neat.
+00:43:50.130 - 00:44:07.050, Speaker A: Table down here of cycle counts for all of the risk five operations plus r equals. So this is useful. All right.
+00:44:10.540 - 00:44:39.316, Speaker B: And this actually gets us to the next thing, which is that the risk, that risk zero's risk five implementation includes a number of extensions. Two of those extensions are a shot 56 compressed circuit compression circuit and a 200 and 656 bit modular multiplication circuit. So using these, you can do some accelerated cryptography. The shop six compress function obviously is.
+00:44:39.338 - 00:44:40.384, Speaker A: Very useful for hashing.
+00:44:40.512 - 00:44:44.790, Speaker B: So whenever you're hashing data like, like you saw in our example before.
+00:44:46.860 - 00:44:47.272, Speaker A: You.
+00:44:47.326 - 00:44:51.332, Speaker B: Can use an accelerated implementation of shotgun.
+00:44:51.396 - 00:44:54.644, Speaker A: Six to great reduced amount of time you're spending hashing.
+00:44:54.692 - 00:45:48.692, Speaker B: So for example, in there example before we went from about 23,000 cycles to about 1000 cycles for hashing. And then the 256 bit modular multiplication accelerator is especially useful for elliptic curve operations. In order to actually support this usage, we maintained forks of a few common cryptography libraries. In particular, we have a fork for the rust crypto shot two crate, the k two six crate, which influenced SeCp k two k one, which is kind of the bitcoin ethereum ECDSA curve. We also have an accelerated implementation of Ed two 5119 Dalic, which is used for Ed DSA signatures and other operations. And we also have a fork of the crypto bigot crate for general purpose.
+00:45:48.836 - 00:45:50.670, Speaker A: Bigots operations as well.
+00:45:51.040 - 00:45:55.356, Speaker B: Basically, any 200 bit module multiplication is.
+00:45:55.378 - 00:45:57.724, Speaker A: The operation that is accelerated, but that.
+00:45:57.762 - 00:46:09.552, Speaker B: Creates a really big advantage. So for example, if ECDSA, if you're doing ECDSA signature, if you're verifying ECDSA signatures in the guest, it goes from taking about like 6 million cycles or so, taking a little under a million.
+00:46:09.606 - 00:46:13.636, Speaker A: Cycles in order to verify an ECSA signature, which is nice.
+00:46:13.818 - 00:46:49.370, Speaker B: We also saw this in the example, in the example before, kind of calling back there when I replaced this shot two implementation with the rift zero fork. Basically that is the shot two crate that we forked to basically allow you to have the same API, but with acceleration. One thing I want to note about this though, is that you shouldn't, don't, don't assume that cryptography is too expensive.
+00:46:49.450 - 00:46:51.966, Speaker A: To run in the ZKVM without it.
+00:46:52.068 - 00:47:09.814, Speaker B: So, as in the example we had before, we were running shot two with just software implementation, no hardware acceleration, and we saw that to about 23,000 cycles, which about increased our total program time by runtime by about half, but still.
+00:47:09.932 - 00:47:11.880, Speaker A: Somewhat reasonable to do.
+00:47:12.490 - 00:47:28.986, Speaker B: And other notable examples is that our zeph implementation, basically. So our zero knowledge EVM implementation uses ketchak without the accelerator. It's only a software implementation of ketchak, but still is a fairly fast, has.
+00:47:29.008 - 00:47:30.380, Speaker A: Fairly fast perpetuate times.
+00:47:31.490 - 00:47:45.074, Speaker B: Additionally, pairing operations and RSA signatures both work in the ZKVM, and we used them examples before without major issue. So if you do cryptography, the accelerators can be very helpful, but they definitely.
+00:47:45.112 - 00:47:48.210, Speaker A: Are not necessary in order to start working with cryptography.
+00:47:51.100 - 00:48:56.588, Speaker B: Another notable kind of going back to the topic of memory, memory access in the ZKVM is synchronous. So usually in a physical cpu, when it's waiting for memory access, it'll keep doing work. This gives rise to things like speculative execution, out of order execution in general. Lots of other kind of interesting techniques implemented in the cpu, all designed to keep the cpu busy while it's waiting for memory access. Memory access in the ZKVM is entirely synchronous. It stops and waits for memory access before it continues working on anything else. And as a practical matter, this means that memory prefetching and other techniques people use to take advantage of the asynchronous memory access do not help performance in.
+00:48:56.594 - 00:49:00.080, Speaker A: The ZKVM and can hurt performance in the ZKVM.
+00:49:03.140 - 00:49:18.692, Speaker B: Similarly, all execution in the ZKVM is single threaded. ZKVM essentially has like one core and one thread execution. Using asynch routines, using walking, using atomic operations will not help performance and basically.
+00:49:18.746 - 00:49:21.140, Speaker A: Will only cost extra cycles.
+00:49:23.980 - 00:50:09.504, Speaker B: And kind of another angle on this as well is that the ZK VVM has no pipelining or instruction level parallelism. Modern cpus are designed to execute many instructions at once. So basically you might have an ALU that can handle, let's say 16 additions at once, and it might actually be running multiple instructions of your program at the same time. In fact, it generally is always the modern cpus are almost always doing multiple operations at once. The ZKVM executes one instruction at a time, and so reordering instructions, avoiding branches. Other techniques designed to keep the pipeline.
+00:50:09.552 - 00:50:13.960, Speaker A: Full have no effect on the ZKVM performance in general.
+00:50:14.030 - 00:50:56.366, Speaker B: Kind of all these three things, that's the synchronicity of the ZKVM. They're implemented this way because there's no need for it. The ZKVM basically runs is the proof performance is bottlenecked by proving time, implementing some kind of asynchrony would not help ZKVM performance overall. So one of the things moving out to a bigger picture here, the main reason people are generally interested in optimizing guests is actually to get fast approving.
+00:50:56.478 - 00:50:58.210, Speaker A: And lower cost proving.
+00:50:59.030 - 00:51:30.586, Speaker B: Another way to get lower cost proving and fast approving is to use hardware acceleration. So RISC here currently influence support for Nvidia gpus. And we previously had support for OS metal with all the hardware accelerators inside Mac laptops and Mac machines, that support is currently kind of not being not supported. Basically there's been some compiler changes recently.
+00:51:30.618 - 00:51:32.046, Speaker A: To the metal that have broken that.
+00:51:32.068 - 00:51:32.880, Speaker B: Support, and.
+00:51:35.810 - 00:51:38.030, Speaker A: It is currently not functional.
+00:51:38.850 - 00:51:55.726, Speaker B: So we do still support it for Nvidia gpus. If you want to use an Nvidia GPU as an accelerator, then installing Risero with Binstall will give you a version of the rest zero vm with CUDA.
+00:51:55.758 - 00:51:57.614, Speaker A: Support cloud into it.
+00:51:57.752 - 00:52:02.278, Speaker B: You also will need the CUDA runtime drivers on the machine that you're going.
+00:52:02.284 - 00:52:03.606, Speaker A: To run the program on.
+00:52:03.788 - 00:52:29.516, Speaker B: If you're building risk zero from source, you can build in the CUDA feature with the CUDA feature flag, you will need the CUDA toolkit on your system. So one last thing that is like some sequence. So basically, if you want to try increasing the performance of your application, one of the first things you should try.
+00:52:29.538 - 00:52:32.024, Speaker A: Is just whidling some compiler flex.
+00:52:32.152 - 00:53:03.268, Speaker B: So if you look at the rust performance book, it has some great information about this. But doing things like setting LTO which is linktime optimization to thin or fat or true, those are all useful kind of things to check out. And sometimes thin is faster than fat, fat is basically is when it does more heavy optimizations but into the larger binary. And so larger binary basically increases the runtime as well. Similarly, optimization level two is sometimes faster.
+00:53:03.284 - 00:53:04.730, Speaker A: Than optimization level three.
+00:53:05.900 - 00:53:08.052, Speaker B: S and z, which are both sides.
+00:53:08.196 - 00:53:09.160, Speaker A: Optimized.
+00:53:10.940 - 00:54:01.620, Speaker B: Are also useful settings to try as well as well as messing up the code gen unit section. So there's a ton of different compiler flags that cargo and rust expose and it's worth trying them out. Additionally, if you ever need a map data structure, the beach remap in the ZKVM is much much faster than the hash map. This is partially related to the fact that branching and memory access are relatively cheap in the ZKVM compared to the physical cpus. And so unlike a lot of times on physical cpus, b tree map which ends up being faster. If you need to hash data, make sure to use the accelerated shock to six. Really easy way to do cycle counts and kind of reducing copying and serialization.
+00:54:01.620 - 00:54:37.424, Speaker B: Deserialization of data is useful gal for and inclusion basically kind of things to remember about how to optimize your guest profile. Your guests to figure out where the cycles are being spent. Start by applying general purpose optimization techniques. Then apply knowledge of the ZKVM internals to optimize even further and continually reprofile and repeat this process just in a loop. Just step 123123 profile step one. And then keep on trying new optimizations.
+00:54:37.472 - 00:54:42.410, Speaker A: So you can get cycle counts down further. That's everything.
+00:54:43.340 - 00:54:44.330, Speaker B: Any questions?
+00:54:50.960 - 00:54:56.510, Speaker C: I've got a quick question if you don't mind. Can you hear me right? I'm just using a different mic.
+00:54:56.980 - 00:54:57.730, Speaker B: Yeah.
+00:54:58.340 - 00:54:59.232, Speaker A: Oh perfect.
+00:54:59.366 - 00:55:17.670, Speaker C: So yeah, I just have a question around basically the implication on the size of the binary towards the actual proof size. Does it just come at the cost of basically wall clock of proving time? Or does it actually affect how large the proof is? Or is this kind of just like a static cost?
+00:55:18.840 - 00:56:03.876, Speaker B: That's a really good question. The binary size has no direct effect on the runtime, either the cycle counts or proving time. What it can affect is it can increase the number of cycles your program spends if your binary is more spread out across memory. So mentioned that the first time you access a page in memory, you have to pay the page in cost. And if your program is more spread out, then you're accessing more pages. And so therefore your page in cycles may increase, thus increasing your total runtime. So it's a little bit of an indirect effect and so it may not always happen.
+00:56:03.876 - 00:56:09.156, Speaker B: Sometimes it's really something you have to kind of try it out, try optimizing your program in different ways and see.
+00:56:09.178 - 00:56:10.820, Speaker A: What happens to the runtime.
+00:56:11.660 - 00:56:37.580, Speaker B: And then on proof size. Proof sizes are constant at least once you add, once you use recursion, which is also which is open source and available in the general implementation. So the way things will work is that with continuations, you're programmably proved one segment at a time and it will have a proof for every segment. And then from there you can compress all those proofs into one proof using recursion.
+00:56:39.600 - 00:57:01.640, Speaker C: Yeah, it makes a lot of sense. Yeah, that makes clarification there. Yeah, I guess I was just curious, in the case outside of kind of continuations, if there's like a very small program, it still is the same size as something that uses the max cycle count of one continuation segment. It is kind of a little bit out of scope of what you're talking about, but maybe I'm just like misunderstanding some of the core primitives.
+00:57:02.060 - 00:57:08.484, Speaker B: So that actually is true, that without recursion and you have a one segment.
+00:57:08.532 - 00:57:09.130, Speaker A: Program.
+00:57:11.260 - 00:57:41.940, Speaker B: The larger cycle counts have an effect on the proof size. It's not linear. Basically this kind of a baseline cost, and then it kind of increases as you scale up number of cycles. But basically. So a program that uses a power of power of two of like two to 24. So basically that's like 16 million cycles. It might be have a receipt that's about twice or three times as large as a receipt as two to 16 or 32,000 cycles.
+00:57:41.940 - 00:57:50.196, Speaker B: Once you use recursion, all receipts are going to be the same size and the recursion receipts are smaller than the.
+00:57:50.218 - 00:57:51.910, Speaker A: Original receipts in the first place.
+00:57:55.480 - 00:58:03.160, Speaker B: Basically with recursion proof sizes are always going to be constant without recursion. Basically you're right that they do vary somewhat.
+00:58:04.880 - 00:58:05.340, Speaker A: Awesome.
+00:58:05.410 - 00:58:06.540, Speaker C: Thanks for the clarification.
+00:58:17.730 - 00:58:18.880, Speaker B: Any other questions?
+00:58:22.080 - 00:58:27.520, Speaker D: There's a question in the chat about is there a way to know how much memory you're using in the guest?
+00:58:29.860 - 00:58:35.872, Speaker B: That's a good question. There is not a built in way to do that. That would be very interesting to do, though.
+00:58:35.926 - 00:58:37.410, Speaker A: That'd be a very interesting one.
+00:58:41.220 - 00:59:01.332, Speaker B: There's not obviously that there's not a directory to that basically you can do some estimates. Cargo has good support for printing the size of your data structures. You can estimate basically how many of those you have in memory. There's no direct, straightforward way to do it. We don't have heap profiles, for instance.
+00:59:01.396 - 00:59:03.050, Speaker A: As a support feature yet.
+00:59:04.300 - 00:59:28.590, Speaker D: One thing to note about the heap in the ZKVM is that we use a bump allocator, so we never really free the memory. So I guess another way to monitor it is to kind of like log out like whenever that allocator is called, just like have some sort of log that says, okay, now we're at this much.

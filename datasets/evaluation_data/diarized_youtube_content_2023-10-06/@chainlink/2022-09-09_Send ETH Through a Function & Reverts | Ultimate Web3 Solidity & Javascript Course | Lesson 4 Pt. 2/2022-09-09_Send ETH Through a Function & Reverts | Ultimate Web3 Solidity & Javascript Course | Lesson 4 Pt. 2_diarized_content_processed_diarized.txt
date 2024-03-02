@@ -1,0 +1,78 @@
+00:00:10.410 - 00:00:18.334, Speaker A: So at this point in remix, you'll have a couple of contracts here. Simple storage, storage, factory, extra storage. Maybe you refreshed remix and these have gone away.
+00:00:18.452 - 00:00:19.774, Speaker B: And in the case, make sure that.
+00:00:19.812 - 00:00:24.830, Speaker A: You just don't have any of those tabs open. We're going to create a new contract called fundme.
+00:00:26.570 - 00:00:28.098, Speaker B: So let's go ahead and start creating.
+00:00:28.114 - 00:00:31.638, Speaker A: Our fund me contract again. We want it to be able to.
+00:00:31.804 - 00:00:40.166, Speaker B: Get funds from users, withdraw funds, and set a minimum funding value in USD.
+00:00:40.278 - 00:00:44.266, Speaker A: This is what we're going to get our contract to do. So first, let's set it up.
+00:00:44.368 - 00:01:00.398, Speaker B: SPDX license identifyer mit. We'll do pragma solidity, we'll do carrot 0.8.8 and we'll do contract fund me. Awesome.
+00:01:00.484 - 00:01:02.686, Speaker A: And we'll compile, see if things look good.
+00:01:02.788 - 00:01:04.334, Speaker B: And they do great.
+00:01:04.452 - 00:01:07.038, Speaker A: Let's keep going. So, before we actually embark on creating.
+00:01:07.054 - 00:01:08.594, Speaker B: All of our functions here, let's just.
+00:01:08.632 - 00:01:10.718, Speaker A: Add the different functions that we're going to implement.
+00:01:10.814 - 00:01:13.314, Speaker B: So we want a function fund for.
+00:01:13.352 - 00:01:15.250, Speaker A: People to actually send money to.
+00:01:15.400 - 00:01:18.386, Speaker B: We want a function withdraw for the.
+00:01:18.408 - 00:01:37.098, Speaker A: Owner of this contract to actually withdraw the funds that different funders actually give us. And that's pretty much it. These are the two main functions that we want this contract to do. We will be implementing more functions to help facilitate these two functions. But let's get started by looking at fund. Let's comment out withdraw for now. And let's just start with fund.
+00:01:37.098 - 00:01:38.746, Speaker A: So we want anybody to be able.
+00:01:38.768 - 00:01:40.122, Speaker C: To call this fund function.
+00:01:40.256 - 00:01:42.090, Speaker A: So we'll make this public.
+00:01:42.240 - 00:01:49.258, Speaker B: So as we mentioned, we want to be able to set a minimum fund amount in USD.
+00:01:49.354 - 00:02:16.002, Speaker A: So there's a lot of things to think about here. First thing we probably want to think about is how do we send eth to this contract? Whenever we create a transaction on any of these EVM blockchains, there's this value field that we can set. Value represents how much ethereum we're going to be sending with our transactions. For example, when we transferred Ethereum between our different accounts, we were actually populating this value parameter with different amounts of Ethereum.
+00:02:16.066 - 00:02:18.134, Speaker C: In fact, every single transaction that we.
+00:02:18.172 - 00:02:20.034, Speaker A: Send will have these fields.
+00:02:20.082 - 00:02:50.462, Speaker C: It'll have a nunce or the transaction count for the account, the gas price, the gas limit that we've seen on Etherscan a two, aka the address that the transaction is sent to. A value which is going to be this amount that we're talking about. It'll also have data which is going to be what we send. If we make a function call or deploy a contract and then it'll have this VRS components. We're not really going to go over these VR and s because this is that cryptographic magic that's happening when a transaction is signed.
+00:02:50.526 - 00:02:52.034, Speaker A: But just know that that's in there.
+00:02:52.152 - 00:03:14.122, Speaker C: For sending value, we can populate some of these fields. The gas limit, for example, is populated to 21,000. Data is going to be empty, and then that two is going to be the address of the transaction we want to send to. For a function call, we can also still populate the way that we want to send, so we can call a function and send a value at the same time.
+00:03:14.176 - 00:03:19.866, Speaker A: In remix, it has a little drop down here for way Gui, Finney and ether we're going to ignore Finney for.
+00:03:19.888 - 00:03:21.354, Speaker B: Now, but of course we have our.
+00:03:21.392 - 00:03:46.566, Speaker A: Way GuI and ether. Again, where one ether is worth this much gui and this much way. The first thing we need to do in order to make a function payable with Ethereum or any other native blockchain currency is we need to mark the function as payable. It's this payable keyword that makes our fund function red, as opposed to having it normal orange. Just like how our wallet can hold funds, contract addresses can hold funds as well.
+00:03:46.668 - 00:03:48.770, Speaker C: Since every time you deploy a contract.
+00:03:48.850 - 00:03:50.422, Speaker A: They get a contract address.
+00:03:50.556 - 00:03:54.246, Speaker C: It's nearly the exact same as a wallet address.
+00:03:54.428 - 00:03:58.310, Speaker A: So both wallets and contracts can hold.
+00:03:58.460 - 00:04:02.886, Speaker C: Native blockchain token like Ethereum. And you'll see that when we deploy.
+00:04:02.918 - 00:04:04.874, Speaker A: This later on in the lesson that.
+00:04:04.912 - 00:04:07.990, Speaker C: It actually will gain a balance of ethereum.
+00:04:08.070 - 00:04:09.626, Speaker B: Now that we have it payable, we.
+00:04:09.648 - 00:04:38.302, Speaker A: Can access this value attribute by using one of the global keywords in solidity with message value. To get how much value somebody is sending, you use message value in your function. Now let's say we wanted to set our message value to a certain value of Ethereum. Let's say we wanted people to send at least one whole ether with all their transactions. Or put another way, if they sent ethereum, they would need to send at least one ethereum.
+00:04:38.366 - 00:04:39.462, Speaker B: How would we implement that?
+00:04:39.516 - 00:04:41.650, Speaker A: Well, we could use something called require.
+00:04:41.730 - 00:04:43.382, Speaker B: We would say we would want to.
+00:04:43.436 - 00:05:24.974, Speaker A: Require the message value is greater than one e 18. There's a couple of things to unpack here. One e 18 is equal to one times ten raised to the 18th, which is also equal to 112-34-5678 910, 1234-5678 this is the value in way of one ethereum. This much way is one eth. So if we wanted the message value to be at least one eth or one polygon or one avalanche, et cetera. We would set it like this require message value is greater than one. This require keyword is a checker.
+00:05:24.974 - 00:05:32.066, Speaker A: It says, hey, is message value greater than one? If not, it's going to revert. It's going to do what's called revert.
+00:05:32.098 - 00:05:32.870, Speaker C: With an error message.
+00:05:32.940 - 00:05:36.086, Speaker B: And we can say didn't send enough.
+00:05:36.188 - 00:05:38.978, Speaker A: We can try deploying this on a JavaScript Vm.
+00:05:39.074 - 00:05:42.642, Speaker B: We'll deploy fundme. We'll hit deploy. Look at fundme.
+00:05:42.706 - 00:05:46.826, Speaker A: We see this fun button is now red. If we call fundme right now and.
+00:05:46.848 - 00:05:48.874, Speaker B: We look at the console, you can.
+00:05:48.912 - 00:05:50.858, Speaker A: See we actually get an error here.
+00:05:50.944 - 00:05:52.630, Speaker B: Call it again. We get an error.
+00:05:52.790 - 00:05:53.978, Speaker A: We get an error here.
+00:05:54.064 - 00:05:55.518, Speaker C: We know that the error is going.
+00:05:55.524 - 00:06:19.814, Speaker A: To be this didn't send enough. So what we need to do is we need to send at least one eth with this fund transaction in order for this require statement to be fulfilled. So back up in the value section we can change this value to one. So that's going to be one ether or this much whey or this much gwe. Now we can hit fund. Oh, actually it needs to be greater than one.
+00:06:19.932 - 00:06:25.766, Speaker B: So let's send two, for example. Now we'll scroll down and now we'll hit fund.
+00:06:25.868 - 00:06:47.038, Speaker A: And we see that that actually passes. The require statement says, if our first section is false, then go ahead, revert with this error. What is reverting? Reverts can be a little bit confusing, so I wouldn't let this section hold you back if it's a little bit confusing. Revert is when it undoes any actions that happened before and sends the remaining gas back.
+00:06:47.124 - 00:06:48.782, Speaker B: So what does that actually look like?
+00:06:48.916 - 00:06:51.198, Speaker A: Well, let's say, for example, we had.
+00:06:51.204 - 00:06:55.554, Speaker B: A Un 256 public number, and in.
+00:06:55.592 - 00:06:59.970, Speaker A: Our fund function we said number equals five.
+00:07:00.120 - 00:07:01.266, Speaker B: If we were to go ahead and.
+00:07:01.288 - 00:07:05.918, Speaker A: Deploy this, let's delete our old contract. Deploy this new contract.
+00:07:06.094 - 00:07:07.670, Speaker B: Our number right now is zero.
+00:07:07.740 - 00:07:19.738, Speaker A: But if we were to call our fund function, number gets set to five. However, if we call fund and this require isn't met, this transaction would revert and undo setting number to five.
+00:07:19.904 - 00:07:22.090, Speaker B: Let's go ahead and look at our logs here.
+00:07:22.240 - 00:07:25.942, Speaker A: We'll keep value to zero so that our fund function reverts.
+00:07:26.086 - 00:07:29.050, Speaker B: We'll call fund, we'll see that this.
+00:07:29.120 - 00:07:40.334, Speaker A: Transaction failed because this require ended up reverting and number is still zero. So then the question becomes, did we actually spend gas? Yes, we spent gas to change number.
+00:07:40.372 - 00:07:43.962, Speaker B: To five, and then any remaining gas.
+00:07:44.026 - 00:07:46.462, Speaker A: We would get returned by this require.
+00:07:46.526 - 00:07:52.302, Speaker B: For example, if we had a ton of computation here, a ton of computation.
+00:07:52.366 - 00:07:56.530, Speaker A: Here, we would have need to send a ton of gas with our fun function.
+00:07:56.680 - 00:07:58.226, Speaker B: But all of the extra gas that.
+00:07:58.248 - 00:08:19.106, Speaker A: We send after this require gets returned the original user after it gets reverted right here. If reverts are a little bit confusing for you here, don't worry too much about it. We'll go over it in future modules. All you need to know right now is that when you do a require statement, if this first section isn't met, the transaction will be canceled and any prior work will be undone, and it'll.
+00:08:19.138 - 00:08:20.506, Speaker C: Send an error message edge.
+00:08:20.618 - 00:08:21.262, Speaker B: So cool.
+00:08:21.316 - 00:08:29.850, Speaker A: Let's delete this number for now, and we'll delete it from the global scope. There's actually another way to do these reverts, which we'll go over later in this contract.

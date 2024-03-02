@@ -1,0 +1,386 @@
+00:00:02.810 - 00:00:18.030, Speaker A: Welcome, everybody, to another session of Risk Zero's study club. Today we have Ben diamond from Ulvitana giving a talk about proximity gaps and their applications to succinct proofs. So, with that, I'll hand things over to Ben.
+00:00:19.010 - 00:00:19.470, Speaker B: Cool.
+00:00:19.540 - 00:00:45.914, Speaker C: Well, I guess I'll do a micro introduction. I basically do cryptography at Ulvetana. We are a startup which is building high performance computing for zero knowledge proof generation. I am here with a number of colleagues from Ulvitana. So we're all excited to be here and appreciate you having me on.
+00:00:46.032 - 00:00:46.810, Speaker B: Paul.
+00:00:49.550 - 00:00:52.400, Speaker C: With that. Should we get into it?
+00:00:54.690 - 00:00:55.600, Speaker B: Let me.
+00:00:58.960 - 00:02:17.140, Speaker C: Okay. Proximity gaps are a sort of coding theoretic phenomenon which has found its way into a number of zero knowledge proof protocols. This includes fry, and by extension, deep Ali, and sort of everything which uses fry, which accounts for a pretty big chunk of zero knowledge proofs in use today. It also gets used in what I like to call the breakdown style of polynomial commitment, which is a different approach. Essentially leads to square root size proofs, but also has a number of concrete efficiency advantages. For the purposes of this talk, I think it will be most effective if I zoom into proximity gaps and give some intuitions for why these get used in broader protocols. But maybe save that for later and try to just get some intuition on the core concept down, because it's pretty tricky.
+00:02:17.140 - 00:02:57.350, Speaker C: But also is a really nice theory and sort of very visually rich area, which I want to convey some of. So that's going to be the outline of the talk. I want to start on describing what proximity gaps are, some of the basic results. And again, intuition for how they get used. But I'm going to save the specifics for later if we get to that. Style wise, I want to keep things very informal. And I don't know if everybody on the call gets microphone access or is it open?
+00:02:57.880 - 00:02:59.860, Speaker A: Yeah, everyone has microphone access.
+00:03:00.010 - 00:03:00.644, Speaker B: Okay, cool.
+00:03:00.682 - 00:03:17.512, Speaker C: So I want to say that getting interrupted with questions is very good, right? Because that keeps me focused on what you want to hear and not what I wrongly guessed you wanted to hear.
+00:03:17.566 - 00:03:17.880, Speaker B: Okay.
+00:03:17.950 - 00:03:22.728, Speaker C: So definitely encourage people to jump in, even if it is naive.
+00:03:22.824 - 00:03:23.084, Speaker B: Right?
+00:03:23.122 - 00:04:11.610, Speaker C: I mean, often what I do in talks is like, look, this is an incredibly naive question, but let's do this. Because turns out that getting basic sanity checks on paper is very good. So please do interrupt and ask things. And for this talk, I want to err on the side of maybe going a bit slower, but having everybody up with me versus me going off and just rambling and everybody has been lost. So that's how I'm going to do this. So let's get started. Any remarks, questions, anything? Okay, let's get started.
+00:04:11.610 - 00:05:16.310, Speaker C: Proximity gaps. Okay, so I'm going to go ahead and try to jump right into the substance of things. I could start by saying what is a code, what is a distance, all that stuff. I think it will actually be more effective if we learn the coding theories sort of on the way as needed. Essentially what we're going to do is we're going to write down a vector space over. We're going to pick a finite field, Fq, and we're going to write down fq to the n. Okay, so this is kind of a simple product of Fq a couple of times with itself n.
+00:05:16.310 - 00:05:55.260, Speaker C: And we're going to write down a linear subspace v in f q to the n. And I'm just going to write v as just a bunch of dots. Okay. Technically, v is a subspace and is linear and so on. And V is what we'll call an NKD code. Okay, so again, I'm going to skip this until we need it, but n, I can say right now, refers to this dimension of the space v lives in. K is V's dimension as an fq vector subspace.
+00:05:55.260 - 00:06:01.232, Speaker C: And d is kind of the key coding theoretic part of this.
+00:06:01.366 - 00:06:01.868, Speaker B: Right?
+00:06:01.974 - 00:06:44.640, Speaker C: Without d, we only have linear algebra. D refers to sort of how far apart these dots are from each other, right? So some, of course, may be much further apart than d, but d refers to the closest that any two ever get. So you have a minimum distance d, which any pair exhibits. Of course, in general, they might be farther than d, and D will show up in various places. But let's just forget about it for now. Anyone want to stop me here or.
+00:06:44.710 - 00:06:45.510, Speaker B: Not yet?
+00:06:46.120 - 00:07:02.264, Speaker D: Yeah, I guess I just want to check my understanding here. Basically you're saying we have a generally an nd grid, essentially, or nd kind of like grid of points, essentially, where those points are valid and they're at least the apart. Is that kind of the idea?
+00:07:02.462 - 00:07:02.824, Speaker B: Yeah.
+00:07:02.862 - 00:07:44.788, Speaker C: So you can think of it as a grid. I like to think of it as a scattering of points, but yes, indeed, actually, these points are a vector subspace. So you could write down an Fq basis and then the grid, it really is a grid, would be the set of all fq combinations of these basis vectors. There will be k of them, right? Remember, k is the dimension of v. But I think for the purposes of the intuition, we want, it's enough to think of them as just a scattering of points. But where, as you said, we have this distance property that we can control how close they get to each other.
+00:07:44.874 - 00:07:45.172, Speaker B: Okay.
+00:07:45.226 - 00:07:55.640, Speaker C: So there are no two points which are less than d away from each other. Does that match your understanding?
+00:07:56.220 - 00:08:07.036, Speaker D: Yeah, totally. It's basically you're saying it isn't a grid. And I guess there's no guarantee so far that actually it's even necessarily regular. But I imagine that in practice, as.
+00:08:07.058 - 00:08:23.090, Speaker C: I said, in practice, it is. I claim that you don't need to really think of it that way for the purposes of the intuition for what we're doing next. But if you want to think of it as a grid, I don't think that will harm anyone.
+00:08:26.520 - 00:08:33.620, Speaker D: I always get this mixed up, but n and k, is k always larger than n or is.
+00:08:33.690 - 00:08:34.020, Speaker B: No.
+00:08:34.090 - 00:08:45.080, Speaker C: Yes. So k is always less than or equal to n. K is the dimension of v as a vector subspace.
+00:08:48.140 - 00:08:48.552, Speaker B: And.
+00:08:48.606 - 00:08:50.830, Speaker C: N is a dimension of the ambient space.
+00:08:51.200 - 00:08:51.950, Speaker B: Right.
+00:08:52.960 - 00:09:36.376, Speaker C: So really this is like a linear map. F q to the K-F-Q to the n. And this thing is injective, right? And the image of the map is what I'm calling v. This is just kind of a linear algebra, right? If I pick a basis for v, then I can just map each k tuple into a combination of those basis vectors. And that essentially is my encoding.
+00:09:36.408 - 00:09:39.284, Speaker B: Map it. Right?
+00:09:39.322 - 00:10:01.984, Speaker C: So something like t zero up to t, k minus one will map to t zero times v zero plus. And this thing, of course, lives in.
+00:10:02.022 - 00:10:02.610, Speaker B: V.
+00:10:06.960 - 00:10:18.290, Speaker C: Okay, so linear map, linear subspace. But again, I claim that we can actually forget about a lot of this and just think of v as a scattering of points with some distance property.
+00:10:21.300 - 00:10:26.004, Speaker B: Cool. Okay.
+00:10:26.122 - 00:11:12.700, Speaker C: So the key question that proximity gaps deals with is let's write down an affine subspace of this space. So a is a subspace of f, q to the n affine. And this is why I'm kind of insisting that we think of v as just dots, because actually v is also a subspace, but that's confusing to think of two. So we're just going to think of one and we're going to call it a. And I'm going to pick what's called a proximity parameter. We're going to call it e. And it's going to be an integer.
+00:11:12.700 - 00:11:31.690, Speaker C: It's going to live in a range zero up to something, which we can get to later. Turns out that how high e can get is an important question, but let's not deal with that now. This will be related to d. This will be related to d.
+00:11:36.140 - 00:11:36.648, Speaker B: Okay.
+00:11:36.734 - 00:11:44.430, Speaker C: Now what is e. Well, what I'm going to do is I'm going to draw a ball of radius e around every one of these code words.
+00:11:45.040 - 00:11:50.124, Speaker E: Can I interrupt and ask a question? I realize I now have. What's the distance metric here?
+00:11:50.162 - 00:11:50.316, Speaker B: Like?
+00:11:50.338 - 00:11:51.592, Speaker E: Is this euclidean.
+00:11:51.656 - 00:12:22.664, Speaker C: Excellent question, great question. It's hamming distance. Okay. Every picture I'm drawing is, I'm exploiting your intuition for euclidean distance, but that's actually not really what's going on. The distance is hamming distance. So what that means is if I have two words, u zero up to u, n minus one and u prime, zero up to u prime, n minus one.
+00:12:22.782 - 00:12:23.064, Speaker B: Right?
+00:12:23.102 - 00:12:25.930, Speaker C: And these are both in f q to the n.
+00:12:28.060 - 00:12:28.472, Speaker B: Okay.
+00:12:28.526 - 00:12:53.760, Speaker C: What is the distance between these? Well, what I do is I go component by component and I ask are they equal or not? And I ask if these components are equal, and so on and so forth. And at the end I get some number of equal components and some number of unequal components.
+00:12:54.580 - 00:12:55.232, Speaker B: Right?
+00:12:55.366 - 00:12:59.220, Speaker C: And I declare the distance between u and u prime.
+00:13:01.160 - 00:13:01.910, Speaker B: Sorry?
+00:13:06.840 - 00:13:11.370, Speaker C: Oh, u prime is equal to.
+00:13:14.780 - 00:13:15.192, Speaker B: The.
+00:13:15.246 - 00:13:22.220, Speaker C: Number of ui prime to the number of unequal components.
+00:13:34.420 - 00:13:41.270, Speaker B: Okay. Yes, great.
+00:13:42.220 - 00:13:45.064, Speaker C: These balls are the full span of.
+00:13:45.102 - 00:13:50.970, Speaker B: A selection of that I'm not sure about.
+00:13:51.500 - 00:13:55.870, Speaker C: There's nothing linear about these balls. It's only coding theoretic. Right.
+00:13:57.360 - 00:13:59.724, Speaker E: But that comes from the hamming distance property.
+00:13:59.842 - 00:14:00.510, Speaker B: Right.
+00:14:00.960 - 00:14:05.740, Speaker E: Like if you have a radius, one ball, it's like all the lines coming out.
+00:14:05.810 - 00:14:06.044, Speaker B: True.
+00:14:06.082 - 00:14:17.970, Speaker C: It's a weird, spiky line thing. Yes, that's true. Which I don't think much about what these actually look like, but yes, it is something like. Yeah, okay. Yes, that is very true.
+00:14:19.380 - 00:14:43.720, Speaker A: Just for context on the recording, because I don't think the chat will be on the recording. There's a comment from Alan in the chat that says these, quote, balls are the full span of a selection of unit vectors, which is the most unballike shape possible. So, yeah, our euclidean intuition about the balls here, it works for our purposes. And also it is a funny thing to call a ball. I agree.
+00:14:43.790 - 00:14:57.980, Speaker C: Funny how not ball like it is. But look, let's do what we can to get the intuitions right. I consider this a justified approximation.
+00:14:59.680 - 00:15:00.044, Speaker B: Right?
+00:15:00.082 - 00:15:05.632, Speaker C: I mean, look, and they are both metrics, so you have the triangle inequality, you have symmetry and basic things like that.
+00:15:05.686 - 00:15:05.952, Speaker B: Right?
+00:15:06.006 - 00:15:13.940, Speaker C: So I think enough intuition carries over that. It's worth it to just make the simplification.
+00:15:14.600 - 00:15:24.520, Speaker A: Yeah. I think the simplification of a ball is the collection of points that are within a certain distance is the right simplification for what we mean by ball.
+00:15:25.100 - 00:15:25.850, Speaker B: Right.
+00:15:31.340 - 00:16:14.914, Speaker C: Good thing to stop me on. Okay, back to this. So we inflate a ball of radius e around each point and for large enough e these will start intersecting my subspace a. And what I'm going to do is write down a region consisting of the kind of submerged part of a. So which part of a is in some ball, any ball, the union of all of them, right. Will intersect a in some part of a. Okay, so each point in the shaded region.
+00:16:14.914 - 00:16:45.266, Speaker C: So each a in each a in the shaded region, there exists a v in the code such that the distance between a and v is less than or equal to e, which is the same as saying that the distance between a and the code is less than.
+00:16:45.288 - 00:16:47.700, Speaker B: Or equal to e. By definition, by the way.
+00:16:51.190 - 00:16:59.640, Speaker C: Okay, right. So again, for each point in a it either is or is not close to some code word, some element of the code.
+00:17:02.850 - 00:17:04.000, Speaker B: Is that fair?
+00:17:06.930 - 00:17:30.886, Speaker C: Okay, what a proximity gap says. Okay, so what we're interested in is the size of this shaded region, the size of this shaded region. So for each e I can write p sub e to be the probability over a uniform in capital a that da comma v is less than or.
+00:17:30.908 - 00:17:36.680, Speaker B: Equal to e. Ah.
+00:17:38.990 - 00:17:39.898, Speaker C: I'm sharing a.
+00:17:39.904 - 00:17:41.820, Speaker B: Copy of myself, it looks like.
+00:17:44.610 - 00:18:55.592, Speaker C: So, okay, and depending on e and on a and on v, this probability can be anything. It can be nothing. It can be something small, or it can be one, or a priority can be anywhere in between. But what a proximity gap says is that this probability is either something small or is one is either a small proportion or the whole space. It can't be something like halfway. Okay, so this is basically the most key intuition that I want to make sure we understand. Why might this kind of thing be useful? One intuition I like to think about is that this is like a soundness test, right? So imagine that we're in the middle of a succinct proof protocol.
+00:18:55.592 - 00:19:18.320, Speaker C: And for honest provers, a is in fact contained in v. Like literally every element of a is a code word. So e can be zero and we still have a complete probability.
+00:19:18.400 - 00:19:19.030, Speaker B: One.
+00:19:19.720 - 00:20:28.202, Speaker C: For dishonest prover, there exists an a star such that a star is far from the code is greater than e. Okay? And imagine that a very bad thing happens if the prover can. So the prover chooses a. Imagine if it's bad, if the prover can get away with an a for which this is true. Well, what the verifier does is just pick a random element in the subspace, okay, absent a proximity gap result. This is not actually safe for the verifier because for all we know, there might just be one bad a lurking somewhere in this space. But if I just pick a random point, I'm going to miss it, right? So there's a low chance that if I just pick a random a from a and I ask is a close.
+00:20:28.256 - 00:20:29.180, Speaker B: To the code.
+00:20:32.930 - 00:21:20.186, Speaker C: Right, then a priori, this is not an effective test because if there's just one bad a star lurking, I'm probably going to miss it. But what the proximity gap result says is that this is actually sound, because if there's even a single bad a star, then this probability is less than one. It can't be one by definition. So it then has to be small. So this set, this shaded region is like the set of false witnesses in the proof. It is the set that would trick the verifier. It's the set of points which are close to the code, even though the whole space is not close to the code.
+00:21:20.186 - 00:21:38.000, Speaker C: It's the set of points which would trick the verifier. But what the proximity gap says is that either the prover is honest or the set of false witnesses is small. Okay, this would be a good point to stop and discuss.
+00:21:41.590 - 00:21:52.222, Speaker D: So basically you're saying in this case that a, which one thing I want to check as well is like it's drawn right now as a contiguous region. But I guess my understanding is that does not need to be a contiguous region.
+00:21:52.306 - 00:21:59.162, Speaker C: Certainly not. In fact, it probably doesn't even look like a region at all because everything is finite and discreet and something like that.
+00:21:59.216 - 00:21:59.626, Speaker B: Right?
+00:21:59.728 - 00:22:14.350, Speaker D: Yeah. Cool. I'll continue to use it as intuition. Basically a, you're saying basically the set of witnesses and this connection to zero knowledge proofs.
+00:22:15.430 - 00:23:24.482, Speaker C: Well, capital a, the subspace is like some object which the prover submits to the verifier in some form. I'm being purposely vague, but you can think of like in practice, a will be generated by some affine basis. So a kind of looks like some vectors and is the affine span of those vectors. In practical zero knowledge proofs, the prover will commit to or transmit, really a matrix, a matrix that looks like u zero, u up to u m minus one or something, right. And those u's are the, are the basis vectors. So what I'm calling a is equal to the affine span of some matrix which the prover will commit to something like that. Making it a bit more abstract.
+00:23:24.482 - 00:23:34.426, Speaker C: You can think of capital a as an object which the prover gives to the verifier in some way. And the verifier is now interested in.
+00:23:34.448 - 00:23:35.020, Speaker B: Learning.
+00:23:37.150 - 00:23:42.134, Speaker C: Is a, the subspace that I just got, is it close to the code or not?
+00:23:42.272 - 00:23:42.960, Speaker B: Right.
+00:23:45.010 - 00:24:37.390, Speaker C: More precisely, is it entirely close to the code? I, the verifier, am very interested in learning this, but I don't want to check each row. In other words, I could check whether, let's say u zero is close and u one is close. And I could go row by row and check whether all of those are close. But it's nice. If I can do a much, much more efficient thing, which is to just get a single random point from this subspace, I will do something like take a random combination of those rows. In practice, the verifier does this for efficiency reasons. Instead of checking the whole space exhaustively, I ask for a random point in the space and I say, is that point close to the code or not?
+00:24:37.540 - 00:24:38.240, Speaker B: Right.
+00:24:38.930 - 00:24:46.466, Speaker C: And this is a reduction which is obviously much more efficient. The question is, is it sound or not?
+00:24:46.568 - 00:24:47.218, Speaker B: Right.
+00:24:47.384 - 00:24:59.494, Speaker C: But the soundness question gets answered by the proximity gap, because what the proximity gap shows is that this condition I care about is the whole space close.
+00:24:59.612 - 00:25:00.182, Speaker B: Right.
+00:25:00.316 - 00:25:25.242, Speaker C: But what I end up checking as a proxy is this random point close. And what the proximity gap says is that the closeness or farness of a random point is a good proxy for the closeness or farness of the farthest point, right? So Ben Sasson and others call this a worst case to average case reduction.
+00:25:25.386 - 00:25:25.838, Speaker B: Right?
+00:25:25.924 - 00:25:42.334, Speaker C: So if what I really care about is the worst point, the farthest point in the whole space, it's actually enough for me to pick a random point instead and ask if that is close or far. And due to the proximity gap.
+00:25:42.382 - 00:25:42.594, Speaker B: Right.
+00:25:42.632 - 00:26:28.046, Speaker C: What the proximity gap tells you is that actually up to some small soundness error, it's enough for me to ask for a random point and check if that's close or not. Why? Well, because if the farthest point is not close, that just amounts to saying that the submerged region is not the whole space. So if the prover is honest, this shaded region would be the entire capital, a entire subspace. If the prover is not honest, there's even a single element that's not submerged. But if that's true, then the vast majority of elements are not submerged. So I can just detect that by picking something random.
+00:26:28.238 - 00:26:33.394, Speaker D: By submerged, you mean close to some code word.
+00:26:33.512 - 00:26:33.938, Speaker B: Exactly.
+00:26:34.024 - 00:26:37.002, Speaker C: Meaning contained in one of these radius e balls.
+00:26:37.086 - 00:26:39.400, Speaker B: Exactly, yeah, got it.
+00:26:43.050 - 00:27:05.230, Speaker D: One thing that's trying to connect here is I usually think of intuitively a proverb provide having a witness a single, essentially a point. And I guess I think of as a point in a space, try and connect how a single witness compares to.
+00:27:05.380 - 00:27:05.694, Speaker B: Yeah.
+00:27:05.732 - 00:27:21.106, Speaker C: So in practice, if the prover is honest, the prover will submit some matrix. If the prover is honest, each row of the matrix will be a code word. It will be literally a dot. Not even close to one, but one.
+00:27:21.208 - 00:27:21.860, Speaker B: Right?
+00:27:24.310 - 00:27:32.182, Speaker C: So the extreme case of this is where my ball can be of radius zero and I still cover all of a.
+00:27:32.316 - 00:27:33.000, Speaker B: Right.
+00:27:33.690 - 00:27:44.698, Speaker C: Actually, that's the behavior of an honest prover. Each point of a is literally a code word. And if that's true, then the witness is the message.
+00:27:44.864 - 00:27:45.194, Speaker B: Right?
+00:27:45.232 - 00:28:16.500, Speaker C: So encoding theory language. Let's go back to this picture. Remember this? We wrote down A-T-A vector with k components and the encoding, this is the encoding function of the. And encoding theory. I start with a message of length k. I encode it and I get a code word of length n. So this looks like u zero up to un minus one.
+00:28:16.500 - 00:28:21.266, Speaker C: These u's are exactly the rows of the matrix.
+00:28:21.458 - 00:28:21.910, Speaker B: Right?
+00:28:21.980 - 00:28:29.400, Speaker C: So if the prover is honest, then each row actually came from some message.
+00:28:31.050 - 00:28:31.414, Speaker B: Right.
+00:28:31.452 - 00:29:16.400, Speaker C: So I'm encoding this row wise. So this is t zero and this is of length k and this thing is of length n. Right. So the witness in practice will be something like these messages that underlie the code words, essentially. Essentially, if I'm the verifier, why do I care so much about your thing being close to the code? I keep saying this, I'm the verifier. I want a to be close to the code. Why? Well, because if it is, then there are well defined messages that live underneath these rows u.
+00:29:16.400 - 00:29:18.670, Speaker C: And those are the witness.
+00:29:19.090 - 00:29:19.454, Speaker B: Right.
+00:29:19.492 - 00:30:06.142, Speaker C: So it really does connect directly to witness extraction. What the verifier essentially does is check that this object that the prover gave me a priority. These use can be like way over here. They can be not even close to any code word at all. But if they are close to a code word, then by decoding that code word, you get a well defined message and that message is the witness. But again, connecting this to cryptography is a long story. I mean, this is kind of a math talk disguised as a cryptography talk, right.
+00:30:06.142 - 00:30:27.000, Speaker C: Because it turns out that these are exactly the techniques you end up needing. But to plug this into its place in a cryptographic protocol takes extra work, which I'm trying to skip, but you're not letting me. Just kidding. But yeah, it's a good question.
+00:30:27.770 - 00:30:28.134, Speaker B: Yeah.
+00:30:28.172 - 00:30:29.750, Speaker C: Does that help clarify.
+00:30:31.530 - 00:30:40.794, Speaker D: Yeah. And it's kind of the anchor that I come from and that other folks come from. It's like, okay, this is the point. I understand how to connect to what I understand.
+00:30:40.992 - 00:30:43.786, Speaker C: Sure. No, totally fair.
+00:30:43.968 - 00:30:45.594, Speaker D: Thanks for answering the question.
+00:30:45.792 - 00:30:46.540, Speaker B: Yeah.
+00:30:48.750 - 00:31:08.820, Speaker C: Good question. Right, so in one sentence, the witness will be essentially the messages underlying these code words. And that's why the verifier is so interested in checking that something is close to the code. Does there even exist a well defined message underlying these elements or not?
+00:31:10.950 - 00:31:11.700, Speaker B: Okay.
+00:31:14.470 - 00:31:19.560, Speaker C: So how are we doing on time? How long does this go, by the way?
+00:31:19.930 - 00:31:29.740, Speaker A: We usually kind of plan on roughly an hour, but it's a relatively loose, like, if you want to end early or go late, both of those are fine options.
+00:31:30.430 - 00:31:33.354, Speaker C: Okay, I'll try to target that and.
+00:31:33.392 - 00:31:35.306, Speaker B: Let'S see what we can get through.
+00:31:35.488 - 00:31:48.160, Speaker A: Yeah, I mean, realistically, like the. Like, a few of us will be happy to stay on as long as you want to present and YouTube will certainly be happy to have a full presentation. So consider your stop time whenever you want to stop.
+00:31:48.850 - 00:31:57.266, Speaker C: Okay, well, let me target a kind of rough stop at the 1 hour mark, but I will be happy to.
+00:31:57.288 - 00:32:01.940, Speaker B: Keep going at that point. Okay.
+00:32:06.490 - 00:32:46.660, Speaker C: Here'S the plan for the next 10 minutes. I'm going to write down. Here is the sort of best statement we have so far of this key result, which is completely not very rigorous. I'm going to start by writing down a more precise version of this and then we're going to do an example. Okay, so bear with me through the precise version. I'm not going to explain everything, but we'll come back to it as we go. So here's a slightly more precise version of the same result, is that on the one hand, we're going to ask about the probability of a.
+00:32:46.660 - 00:32:55.866, Speaker C: If the probability taken over a in the affine subspace of close to the codeness.
+00:32:55.998 - 00:32:56.342, Speaker B: Right.
+00:32:56.396 - 00:33:43.576, Speaker C: So what proportion is close to the code? If this probability is greater than or equal to, sorry, greater than a key threshold, this is like a cut off point. Epsilon, which will depend on e. So epsilon is basically equal to this so called small number. Okay, so if it's bigger than a certain small number, then it's everything. If it's bigger than this, then it's one. But instead of saying it's one, I'm going to say actually an even more precise thing, which I'm going to deal.
+00:33:43.598 - 00:33:44.264, Speaker B: With in a bit.
+00:33:44.302 - 00:34:46.830, Speaker C: Right. I'm going to say that the matrix that I wrote down above, which generates A-U-M minus one, the distance between this and what I'll call v to the m. So this is a notion called correlated agreement. And intuitively you can think of this as saying that every row of this matrix is close to the code and in fact the whole subspace is close to the code. And what exactly this means I'm going to get to in a bit, but you can think of this right hand side as a strong conclusion that basically asserts some combination of properties that we want. Basically it means that the entire subspace a is close to the code. Okay, so here's an example.
+00:34:46.830 - 00:35:14.550, Speaker C: This is due to Ben Sassan, Carman, Ishai Koparti, Saraf 20, although they just published this, by the way, it's now published in the Journal of the ACM. So 23, this is the proximity gaps for Reed Solomon codes. Okay, example, we're going to pick a to be an affine line.
+00:35:19.040 - 00:35:19.452, Speaker B: Okay?
+00:35:19.506 - 00:35:51.220, Speaker C: And I'm going to write down two vectors, call this one u zero and this one u prime. So I'm going to start with a block of zeros. These are all zero for both. Now I'm going to do this weird thing where I'm going to do 12345 up to e plus one and then I'm going to do more zeros.
+00:35:54.920 - 00:35:55.428, Speaker B: Okay.
+00:35:55.514 - 00:36:09.150, Speaker C: And my f fine line is going to be the set of all. So u zero is my sort of fixed offset. And then I have a displacement vector r, sorry, u prime, which I'm going to multiply by this coefficient r.
+00:36:12.430 - 00:36:12.794, Speaker B: So.
+00:36:12.832 - 00:36:47.250, Speaker C: This is a perfectly good affine line. And my displacement I'm going to do is all ones. And then again zeros here. Okay, so I have a block here of total width e plus one. This is going somewhere, trust me. Block of total width e plus one. And my affine line elements look like this, plus r times this.
+00:36:47.250 - 00:37:09.770, Speaker C: And let's call this to be. Okay, so, warm up exercise. What is the distance between u zero and the code? So u zero is just the top row. Ignore this whole bottom thing.
+00:37:20.880 - 00:37:23.904, Speaker A: I want to guess e plus one, but I'm not clear.
+00:37:24.022 - 00:37:25.730, Speaker B: Yeah, nice.
+00:37:27.060 - 00:37:37.888, Speaker C: It could be less so naively, it's e plus one. You technically need to argue something that maybe there's some other code word that actually. Right, because, okay, zero is.
+00:37:37.974 - 00:37:38.610, Speaker B: Sorry.
+00:37:39.080 - 00:37:41.076, Speaker C: Maybe you can say your thought process.
+00:37:41.258 - 00:37:53.268, Speaker A: Yeah, I mean, I assume that zero, like all zero, is definitely a code word. And this clearly has hamming distance at most e plus one. Well, it has hamming distance. Exactly. E plus one from the all zeros term.
+00:37:53.364 - 00:37:54.520, Speaker B: Yes, exactly.
+00:37:54.590 - 00:38:15.312, Speaker C: So zero is a code word. Why? Because it's a linear code. And moreover, this thing has distance. Exactly e plus one. You now need to argue that there isn't some other code word lurking that could be closer. But actually, it's pretty easy to see that as long as these blocks are large enough, the blocks of zeros, we can definitely assert that.
+00:38:15.366 - 00:38:15.680, Speaker B: Right?
+00:38:15.750 - 00:38:37.700, Speaker C: Because any non zero code word must be nonzero at at least d positions. And that's going to muck up these other positions. You're going to end up with much worse distance than you got away from zero, provided that e is relatively small compared to d and that these blocks are large enough.
+00:38:37.770 - 00:38:40.068, Speaker B: Let's skip the details.
+00:38:40.244 - 00:38:54.940, Speaker C: Short answer is you're right. Okay, now what happens as r starts to vary? Let's think about this for like 30 seconds and somebody can venture, let's just do a stream of consciousness.
+00:38:58.100 - 00:38:59.970, Speaker D: Could you repeat what r is?
+00:39:00.900 - 00:39:28.052, Speaker C: R is the parameter. Okay, so what does this look like in a picture? All I did was pick a vector u zero, and then u prime is this displacement vector. Okay, so my affine line consists of u zero plus some multiple of this displacement vector. R controls that multiple.
+00:39:28.196 - 00:39:28.552, Speaker B: Right.
+00:39:28.606 - 00:39:46.290, Speaker C: So this is u zero plus r. Let's call that u one. And this is u zero plus two. R would be here. So r is your kind of one, your parameter that controls the position on this affine line.
+00:39:51.060 - 00:40:04.790, Speaker E: Seems like your distance should mostly stay e plus one, but occasionally be e because you never get farther than e plus one from that zero element. And occasionally one of those intermediate elements hits zero, too.
+00:40:05.160 - 00:40:14.232, Speaker C: Exactly. Okay, let's say more. Can you tell me at how many points. Okay, what you said is that. Yeah, sorry.
+00:40:14.286 - 00:40:15.304, Speaker E: No, go ahead.
+00:40:15.502 - 00:40:25.516, Speaker C: What you said is that it starts at e plus one. It might drop for certain r's. Okay, so what does it drop to? And then how many times does that happen?
+00:40:25.698 - 00:40:29.292, Speaker E: It drops to e. And it's going to tap in e plus one times.
+00:40:29.346 - 00:40:30.270, Speaker C: It's going to happen.
+00:40:30.640 - 00:40:36.672, Speaker E: Q minus one, q minus two, q minus three. Exactly. The places where perfect.
+00:40:36.806 - 00:41:33.650, Speaker C: Boom. So at u sub negative one, this will drop to e, and at u sub negative two, it will drop to e again, and so on up to u sub negative e plus one equals e. And then what happens? It's going to go back, right? Beginning with d of u sub negative e plus two, and v, this is going to go back to e plus one. Okay, so we had a brief stretch in the sun of closeness. How many times? You said it already, e plus one times. And then for the rest, we're going to be back at distance, e plus one.
+00:41:34.500 - 00:41:35.250, Speaker B: Okay.
+00:41:38.520 - 00:41:52.056, Speaker C: So this is a similar picture to before. We're going to draw the balls of radius e. What we showed is that the proportion of this affine line.
+00:41:52.238 - 00:41:52.632, Speaker B: Right?
+00:41:52.686 - 00:42:02.428, Speaker C: So now the shaded region looks like this or something, right. Some balls will intersect it. And really, actually there is only one ball, the one around zero.
+00:42:02.514 - 00:42:05.230, Speaker B: But let's just kind of forget about that.
+00:42:06.160 - 00:42:09.820, Speaker C: So the shaded region now has proportion.
+00:42:10.880 - 00:42:11.630, Speaker B: What?
+00:42:18.040 - 00:42:19.540, Speaker D: E plus one over q?
+00:42:19.690 - 00:42:20.950, Speaker B: Yeah, exactly.
+00:42:21.960 - 00:42:30.048, Speaker C: Proportion. So this p, sub e, which, let me just write this out, is a.
+00:42:30.074 - 00:42:35.176, Speaker B: Probability of a and a such that d of a v is less than.
+00:42:35.198 - 00:43:01.052, Speaker C: Or equal to e equals e plus one over q. Okay, now I challenge everybody on this call to modify this example so that the proportion close to the code becomes e plus two instead of e plus one. And here are the rules of the game.
+00:43:01.106 - 00:43:01.612, Speaker B: Okay?
+00:43:01.746 - 00:43:07.180, Speaker C: You have to do that while keeping some to be e plus one far.
+00:43:07.330 - 00:43:07.644, Speaker B: Right?
+00:43:07.682 - 00:43:41.370, Speaker C: So there still have to be some things which are e plus one far. In other words, I can't just win by making everything be zero or by knocking out one position. I can't just say, like, knock out this position or something, because then nothing would be e plus one far. So some things should still be e plus one far. But the number of things which are e close, meaning e or less distance, I want that number to be e plus two instead of e plus one.
+00:43:54.870 - 00:44:16.338, Speaker A: We have to have less zeros. I guess in this situation, if we have only e plus one, situations that are spaces that are non zero, then I don't see how we can ever get to e plus two. Sorry. E plus two is counting rather than distance here. Never mind. Take it back.
+00:44:16.504 - 00:44:20.370, Speaker C: E plus two, right. Is the number of positions on the line?
+00:44:20.520 - 00:44:21.220, Speaker A: Yeah.
+00:44:22.470 - 00:44:23.074, Speaker B: Great.
+00:44:23.192 - 00:44:33.190, Speaker C: Okay, let me just. All right. I don't want to spoil this, but you might start to feel a kind of universal force pushing against you here.
+00:44:33.260 - 00:44:33.638, Speaker B: Okay.
+00:44:33.724 - 00:44:56.970, Speaker C: The claim is that it's not possible. Okay, this is a proximity gap in action, right? So let's go back to this exact thing that we wrote down. I claim that. Remember this epsilon, this false witness probability. I claim that. What can we set epsilon to? A familiar expression.
+00:44:57.130 - 00:44:57.840, Speaker B: Okay.
+00:45:00.290 - 00:45:10.020, Speaker C: So what just happened? What just happened? For any affine subspace, we ask this question.
+00:45:15.030 - 00:45:15.666, Speaker B: Fix it.
+00:45:15.688 - 00:45:33.050, Speaker C: Proximity parameter e asks for what proportion do we get e or closer to the code. We showed that that proportion can be as high as e plus one while still having elements which are not e close to the code.
+00:45:33.200 - 00:45:33.898, Speaker B: Okay.
+00:45:34.064 - 00:45:51.550, Speaker C: The claim is that this is a completely tight result. Right? So what, the proximity gap result shows is that as soon as the proportion gets more than e plus one, the behavior completely changes.
+00:45:51.700 - 00:45:52.062, Speaker B: Right.
+00:45:52.116 - 00:46:00.082, Speaker C: We actually end up with this conclusion where every element becomes, every element becomes e close to the code, not just some of them, but all of them.
+00:46:00.136 - 00:46:00.354, Speaker B: Right?
+00:46:00.392 - 00:46:31.694, Speaker C: So this thing here cannot exist anymore. Right. This thing here, which is greater than any distance from the code, can't exist and this can't exist. So basically it says, the only way that I can increase this beyond e plus one is by essentially knocking out an entire column and just reducing the size of this block to e instead.
+00:46:31.892 - 00:46:33.280, Speaker B: Of b plus one.
+00:46:40.310 - 00:46:44.900, Speaker C: Okay, is this ringing any bells or how do people feel about this?
+00:46:51.340 - 00:47:10.290, Speaker A: This is one of these topics. I feel like that takes a bunch of repeated exposure before it starts to click. It definitely feels like it is clicking more now than it was before. And it also still feels like there's still a number of clicks yet to come before I feel like I have a full grasp on this.
+00:47:10.980 - 00:47:12.800, Speaker C: Yeah, fair statement.
+00:47:14.260 - 00:47:20.592, Speaker D: I'm also noticing that the distinctly unball like nature coming into play here as well.
+00:47:20.726 - 00:47:21.410, Speaker B: Right.
+00:47:23.720 - 00:47:30.680, Speaker D: But this is very helpful though, as far as intuition. Same sentiment as Paul.
+00:47:31.820 - 00:47:34.328, Speaker C: What was the last thing? I have?
+00:47:34.334 - 00:47:35.732, Speaker D: The same sentiment as Paul.
+00:47:35.796 - 00:47:37.012, Speaker C: Oh, gotcha, gotcha, gotcha.
+00:47:37.076 - 00:47:37.690, Speaker B: Okay.
+00:47:41.760 - 00:48:25.240, Speaker C: Let'S then use this example to stare even more at this key sort of statement and try to make more sense of it. Okay, so this circled thing here is what I referred to as the false witness probability. So this is like the threshold cut off point that divides two completely different behaviors. This is like a very small number, right? Assuming that q is large, this number is small. This number captures. So e. Whenever I say close to the code, you should replace that.
+00:48:25.240 - 00:49:19.860, Speaker C: It's like a macro. Close to the code means distance e or less from the code. And this is the proportion of points which have to be close to the code, or rather the proportion such that once you exceed it, then the proportion of things which are close is either less than that, less than or equal to that, or is the entire space. Another way of saying this is this is the soundness error for a verifier. Right back to this picture. If I'm a verifier and I'm dealing with a dishonest prover, then this circled expression is an upper bound on the soundness error. Because this circled expression represents the probability of the bad region, the shaded region, the region of false witnesses.
+00:49:19.860 - 00:49:30.872, Speaker C: Why is it a false witness? It falsely witnesses the honesty of the prover, despite the dishonesty of the prover.
+00:49:30.936 - 00:49:31.550, Speaker B: Right?
+00:49:32.080 - 00:50:13.790, Speaker C: Because if I pick one of these such things, then I suddenly think, then the prover looks honest, even though they're not. So another exercise I like to do is let's think about this proximity parameter, e. So is a higher e a bigger e better or worse in terms of the strength of the statement, like what happens as e changes? Anybody shout anything out?
+00:50:16.680 - 00:50:21.750, Speaker A: The balls grow, which means the proportion of false witnesses grow.
+00:50:23.000 - 00:50:23.700, Speaker B: Yes.
+00:50:23.850 - 00:50:54.800, Speaker C: So as the balls grow, which does actually multiple things. So on the one hand, it is true that the false witness probability grows, because that probability is e plus one over q. So as e grows, false witness probability grows, which is bad. Right. We want that probability to be as small as possible because it's basically the soundness error.
+00:50:56.100 - 00:50:56.850, Speaker B: Okay.
+00:51:02.340 - 00:51:07.700, Speaker C: But another thing also happens, which is that the conclusion becomes weaker.
+00:51:08.040 - 00:51:08.452, Speaker B: Right?
+00:51:08.506 - 00:51:21.080, Speaker C: Because now the distance that we're asserting this thing is from, the code becomes higher. For a bigger e, we're asserting something weaker.
+00:51:21.900 - 00:51:22.650, Speaker B: Okay.
+00:51:23.100 - 00:51:39.912, Speaker C: But actually the hypothesis also becomes weaker, which is good, right? Because now the notion of closeness we're dealing with is relaxed, so we have a better opportunity of catching. In other words, we've relaxed what qualifies.
+00:51:39.976 - 00:51:40.830, Speaker B: As close.
+00:51:42.560 - 00:51:52.112, Speaker C: To become a bigger set, which is good for the verifier, bad for the prover. If this sounds hard, it's because it is.
+00:51:52.166 - 00:51:52.770, Speaker B: Okay.
+00:51:53.140 - 00:52:07.824, Speaker C: This is the kind of thing that this one statement contains a huge amount of complexity. But maybe I can move on and we can try to continue to digest.
+00:52:07.872 - 00:52:10.150, Speaker B: This as we progress. Okay.
+00:52:12.840 - 00:52:30.700, Speaker A: I wonder whether it'd be helpful to frame some of this in terms of terms like number of queries required in order to ensure proximity test passes. I don't know whether it feels like within scope to dive into that sort of frame.
+00:52:31.440 - 00:52:33.730, Speaker B: Okay, let's see.
+00:52:38.530 - 00:52:53.460, Speaker A: I think what I'm hearing is that as e grows, you don't need to do as sort of intense of a test in order to ensure that you have a proximity gap. So as e grows, you're saying you need to do less.
+00:52:55.430 - 00:52:56.978, Speaker B: Yeah, good question.
+00:52:57.064 - 00:52:58.254, Speaker C: Let's just work it out.
+00:52:58.312 - 00:53:00.120, Speaker B: Let's see what happens. Right.
+00:53:04.010 - 00:53:30.110, Speaker C: I think we want to actually work with the contrapositive of this whole thing, which let me try to write down. So basically it says that if the correlated distance between some matrix and v to the m is greater than e, so assuming the proverb is dishonest, right. Then the probability.
+00:53:32.770 - 00:53:34.670, Speaker B: So this is the contrapositive.
+00:53:39.240 - 00:54:03.090, Speaker C: The probability taken over a, of finding something close is bounded from above by this false witness probability. Okay, is that fair that this is the contrapositive.
+00:54:06.390 - 00:54:08.210, Speaker B: Between these two statements.
+00:54:09.110 - 00:54:39.610, Speaker C: Okay, so this is very good for the verifier. Why? Well, because assuming the prover is dishonest, then I know that this is true. What does that mean? Well, me, the verifier, I can just select a random a. And now two things can happen. Either I get extremely unlucky, right? So either a is in the shaded region.
+00:54:39.690 - 00:54:40.320, Speaker B: Right?
+00:54:41.170 - 00:54:49.840, Speaker C: Which means that this is the same thing as saying that either the distance between a and v is small.
+00:54:50.290 - 00:54:50.954, Speaker B: Right.
+00:54:51.092 - 00:54:53.380, Speaker C: But this happens with low chance.
+00:55:02.000 - 00:55:06.316, Speaker D: And to be precise, about how low it is, it's that number above e plus one over.
+00:55:06.418 - 00:55:07.068, Speaker C: Exactly.
+00:55:07.234 - 00:55:08.910, Speaker B: Got it. Thank you.
+00:55:09.440 - 00:55:17.808, Speaker C: This happens with low chance. Or what can we conclude? We conclude that a is far from the code.
+00:55:17.974 - 00:55:18.448, Speaker B: Right.
+00:55:18.534 - 00:56:02.850, Speaker C: This is exactly what we need. So in other words, either we get astronomically unlucky and we pick something which is close to the code, despite the proverbs dishonesty that's controlled by the false witness probability, or we pick the vast majority of elements which are far from the code. But this is very good news for the verifier. Why? Well, because now we can subject this thing to a proximity test, or even, let's just talk in terms of queries, right. I can just ask the prover. Let's say, for example, like, okay, prover, I have a. Now give me a v.
+00:56:02.850 - 00:56:09.970, Speaker C: If you're honest, a is a code word. Okay, so give me one. Ask for v.
+00:56:12.520 - 00:56:12.884, Speaker B: Right.
+00:56:12.922 - 00:56:44.988, Speaker C: And now we have these kind of two vectors, a zero up to, am sorry, n minus one and v zero up to v. N minus one. And this condition precisely says that, again, we're going to start looking at component by component equality or not.
+00:56:45.154 - 00:56:45.868, Speaker B: Right.
+00:56:46.034 - 00:57:09.270, Speaker C: So this condition says that the proportion of components where inequality happens is bounded from below. So this says that there must be at least.
+00:57:11.080 - 00:57:12.630, Speaker B: Let'S do it this way.
+00:57:16.350 - 00:58:02.170, Speaker C: This says that if I look over the set of all components, the proportion consisting of witnesses to the failure to the dishonesty of the prover. In other words, let's just write it this way. Let's say that these are unequal. And so, so this bracketed range is the ones that are unequal. I can say that with probability greater than e. So the size of the bracketed range is bounded from below by e. These are equal.
+00:58:02.170 - 00:58:13.262, Speaker C: This is great news for the verifier. Why? Well, because I just start querying random positions and comparing them.
+00:58:13.396 - 00:58:14.080, Speaker B: Right.
+00:58:17.330 - 00:58:22.510, Speaker C: So what is the per query probability of catching the prover?
+00:58:29.100 - 00:58:32.010, Speaker E: One minus c minus one over q? I think.
+00:58:32.620 - 00:58:37.020, Speaker C: Yeah, it's something. Yes, the denominator is going to be n, I think.
+00:58:37.090 - 00:58:40.990, Speaker B: Right. Per query prob.
+00:58:46.730 - 00:58:48.120, Speaker C: What did you say again?
+00:58:51.050 - 00:58:56.220, Speaker E: I'm wondering, but what I had said was one minus e minus one over q was the thing I had said.
+00:58:57.790 - 00:59:00.586, Speaker C: Okay, I think it's just based on.
+00:59:00.608 - 00:59:08.766, Speaker A: The distance of the code itself rather than do we even need to bring in e? Isn't it just like k over n or one minus k over n or.
+00:59:08.788 - 00:59:26.578, Speaker C: No, we do need e. Right. So e is the guarantee we have at how far a is, right. So e controls the density of the bad unequal block.
+00:59:26.754 - 00:59:27.480, Speaker B: Right.
+00:59:29.130 - 00:59:56.042, Speaker C: So if I'm the verifier and I'm just picking a random position, either this one or this one, and I'm going to choose one to query, then what I want is to catch the prover in one of the unequal positions because that means I caught the prover. What the prover wants is for me to miss the unequal positions. So the probability should be greater than e over n per query.
+00:59:56.106 - 00:59:57.440, Speaker B: I think that's it, right.
+00:59:58.370 - 01:00:55.660, Speaker C: The probability of catching. Okay, so now we need the one minus in order to handle the prover's success probability. So the per query probability of catching the prover is e over n per query probability of prover succeeding despite the cheating is one minus e over n over n. So this is the soundness error. It's the probability that the verifier accepts despite a dishonest prover. So now if we have kappa queries, the probability of succeeding is now going to be less than one minus e over n to the kappa, right.
+01:00:57.810 - 01:00:58.318, Speaker B: Which.
+01:00:58.404 - 01:01:34.860, Speaker C: Decays exponentially as kappa grows. Does this look right, everyone? So bigger e is better from the query perspective, right? Because as e grows, we gain a stronger guarantee at how far the vector the prover sends is from the code. And farness from the code is good for the verifier because that means there are more positions, more positions, more chances to catch the program.
+01:01:43.170 - 01:01:44.030, Speaker B: Um.
+01:01:46.210 - 01:01:52.802, Speaker C: Okay, can we like, maybe rearticulate some of this stuff or what are you all thinking?
+01:01:52.936 - 01:02:18.490, Speaker A: Yeah, I think. Let me try to rearticulate some of that. As we increase e, each query is more likely to catch a dishonest person. Yes, but there was also a bad thing that happened that I'm struggling to articulate right now. There's like a positive point to this and a negative point to increasing e, I think.
+01:02:18.640 - 01:02:19.340, Speaker B: Okay.
+01:02:23.070 - 01:02:51.330, Speaker C: This is the kind of thing that you see in zero knowledge proofs where you do a union bound of bad events, right? So basically, if I'm the verifier then either one bad event happens, in which case I throw up my hands and I've lost. Okay, but then you assume that bad event doesn't happen and ask about the probability that a further bad event does happen.
+01:02:51.480 - 01:02:52.130, Speaker B: Right.
+01:02:52.280 - 01:03:43.410, Speaker C: So this is a common thing. So these are the two things we're dealing with. So I'm the verifier. A dishonest prover will submit an a, a matrix, an affine space, capital a that is not completely closed. So I, the verifier, will choose a random point. So it's completely true that in this universe, bigger e is better because it means that the word a is farther, which means easier to detect its distance. The bad thing that can happen is that I pick a false witness.
+01:03:43.410 - 01:04:39.718, Speaker C: So you, the proverb, send me a space a which is not completely close to the code, but some small proportion is close. What can go wrong is that when I randomly pick an a from your space, I pick one which is close to the code. If I do that, then this doesn't work anymore because this entire analysis relied on there being more than e, more than e, discrepancies, more than e, bad positions. That's only true if the distance between a and v is more than e. But if the distance between a and v is less than or equal to e, I lose my guarantee on the effectiveness of queries. But thankfully, that only happens if I pick a false witness, which is unlikely.
+01:04:39.894 - 01:04:40.282, Speaker B: Right.
+01:04:40.336 - 01:05:32.810, Speaker C: So as proximity parameter increases. Just to summarize, the per query effectiveness conditioned on not picking a false witness becomes better, but also the chances of picking a false witness becomes worse, meaning higher in practice. Actually, the per query effectiveness is more important in practice. This false witness probability is a small contributor to the soundness error and is very easily overcome by just querying more. But it's not for free. In other words, to increase the proximity parameter is not a monotonic gain. It improves the per query soundness, but worsens the constant.
+01:05:37.630 - 01:05:39.130, Speaker B: Sampling soundness.
+01:05:40.850 - 01:06:11.494, Speaker A: That's helpful. Yeah, I guess in thinking about fry security, I think of it as having three error terms, one for an initial batching and then one for the folding along the way, and then one for the queries at the end. And I guess increasing the proximity parameter has, like, a different effect on two of those than the third. Contrary effect on two of those than the third.
+01:06:11.612 - 01:06:11.942, Speaker B: Yeah.
+01:06:11.996 - 01:06:15.866, Speaker C: It will worsen the batching error, as you called it.
+01:06:15.888 - 01:06:16.170, Speaker B: Right.
+01:06:16.240 - 01:06:49.460, Speaker C: So the false witness probability is just the same thing as the batching error, right. It's the probability of picking bad batching constants which cause something to be close to the code, which shouldn't. And so that's the first term you mentioned in fry. There's this intermediate term that comes from the actual fry protocol, which I'm less strong on.
+01:06:51.750 - 01:07:09.346, Speaker A: I think it's equivalent, because at each stage you choose a fry folding factor and then you are doing a linear combination of 16 smaller code words at each step. So it is, I think, functionally equivalent to this false witness probability.
+01:07:09.538 - 01:07:12.674, Speaker C: Yeah, totally agreed. It's just another instance of batching.
+01:07:12.722 - 01:07:12.886, Speaker B: Right.
+01:07:12.908 - 01:07:20.014, Speaker C: So the first goes from many oracles to one oracle. And then the second is sort of folding a single oracle onto itself, which.
+01:07:20.052 - 01:07:41.460, Speaker A: Like, circling back to Victor's question earlier of Victor commented that you think of a witness just as a single point, but in the context of a fry. So after we do the batching, we kind of do have a single point, but then in the context of actually doing the fry protocol, we end up with a bunch of witnesses along the way.
+01:07:42.310 - 01:07:42.770, Speaker B: Yeah.
+01:07:42.840 - 01:07:53.542, Speaker C: So that's exactly the point of batching, right. Is to start with many witnesses, each of which is its own oracle or something like that.
+01:07:53.596 - 01:07:54.102, Speaker B: Right.
+01:07:54.236 - 01:08:00.954, Speaker C: And to collapse them into one so that we can proceed with doing a fry test on it.
+01:08:01.152 - 01:08:01.658, Speaker B: Right.
+01:08:01.744 - 01:08:28.654, Speaker C: Like we could test each oracle individually or something, but that would be massively inefficient. Thankfully, we don't have to because of proximity gaps. So proximity gap is what justifies this batching maneuver, where you take some combination and you only test that combined thing. You subject that to a proximity test instead of the individual things that you combined.
+01:08:28.782 - 01:08:29.460, Speaker B: Right.
+01:08:34.120 - 01:09:10.320, Speaker D: Yeah. One thing I'll say that my understanding that I eventually came to is basically that the subspace is basically parameterized by the verifier challenge queries or the verifier challenge value, if my understanding is correct. And so basically, that's why, basically the verifier is controlling the sampling over the subspace. Because basically the little a within the region a is chosen entirely by those batching challenge values. Is that accurate?
+01:09:10.660 - 01:09:11.744, Speaker B: Yeah. Okay. Right.
+01:09:11.782 - 01:09:15.008, Speaker C: So the verifier samples various random things.
+01:09:15.094 - 01:09:15.484, Speaker B: All right.
+01:09:15.542 - 01:09:19.056, Speaker C: But one thing the verifier samples is these combination coefficients.
+01:09:19.168 - 01:09:19.732, Speaker B: Right.
+01:09:19.866 - 01:09:22.928, Speaker C: Or in some variants, it's the powers of a single element.
+01:09:23.024 - 01:09:23.670, Speaker B: Right.
+01:09:24.520 - 01:09:26.744, Speaker C: But, yeah, exactly what you said.
+01:09:26.782 - 01:09:27.032, Speaker B: Right.
+01:09:27.086 - 01:09:35.240, Speaker C: So that choice of randomness is a choice of a point in some affine space, basically.
+01:09:35.390 - 01:09:36.090, Speaker B: Right.
+01:09:37.340 - 01:10:02.640, Speaker C: When the verifier does, let's say, samples an r zero and an r one or r m minus one. Geometrically, that corresponds to the verifier picking a random point in this affine space. And then you combine everything, so this becomes like the sum of I equals zero, m minus one of r I times ui, and this equals.
+01:10:04.340 - 01:10:05.284, Speaker B: Well, a.
+01:10:05.322 - 01:10:06.564, Speaker C: Is what I've been calling it.
+01:10:06.602 - 01:10:07.190, Speaker B: Right?
+01:10:08.280 - 01:10:22.730, Speaker C: But back to our visual picture. A is just a random point now, right? So this is a kind of uniform distribution. I don't know. Maybe I have this habit of thinking as geometrically as possible that maybe.
+01:10:24.860 - 01:10:25.236, Speaker B: I'm.
+01:10:25.268 - 01:11:06.860, Speaker A: Vibing with this idea of the number of randomnesses that the verifier is providing in order to do the batching is the dimensionality of this your, you introduced that sort of lens to me when we were chatting in Paris and I was like, I like this. And we get a choice between the verifier could just provide a single randomness and we could do the batching just with powers of that randomness, in which case now we have a one dimensional subspace a. Or we could have one random element or two random elements per thing that we're batching together, in which case we have a much larger subspace.
+01:11:07.040 - 01:11:19.684, Speaker C: So just I wanted to clarify one thing you said, basically it's not the dimension of the subspace that changes when we switch to one parameter.
+01:11:19.732 - 01:11:20.600, Speaker B: Batching.
+01:11:22.480 - 01:12:09.230, Speaker C: Of the space of verifier choices now becomes a kind of curve in a. Right, so this is the case where instead of r zero r one up to r m minus one uniform. Instead of doing this, we pick a single r and just do one r squared r cubed. And this is what gets done in practice. R to the m minus one. This corresponds to the verifier picking a random point on a curve which passes through a but doesn't cover all of a. And the verifier's point will be like there or something, right?
+01:12:11.600 - 01:12:20.732, Speaker A: Yeah, that's a good clarification. The subspace a is always the same spot, but we're sampling from some parameterized space within that.
+01:12:20.866 - 01:12:21.852, Speaker B: Absolutely, yes.
+01:12:21.906 - 01:13:17.820, Speaker C: And maybe I can start wrapping it up by just kind of gesturing to some further directions that you can go with these proximity gap results. So one important thing is we mentioned this in Paris, is when I do this instead. Now there's a danger that me, the verifier, remember this shaded region is bad. This is the prover's kind of lucky lottery ticket. If I pick something there, then the prover just got off scot free, right? My goal is to find something not in the shaded region, but the risk I take as the verifier if I do this parameterized batching is that this curve could kind of linger in the shaded region more than disproportionately.
+01:13:17.980 - 01:13:18.544, Speaker B: Right?
+01:13:18.662 - 01:14:35.688, Speaker C: So now my question as the verifier is, is the probability taken over a single random coefficient instead of m many, that I'll call this a sub r, is my kind of corresponding point on this parameterized curve. What is the probability that d of v is less than e? And what is shown in the proximity gaps paper is actually now we need to fork off into if we're dealing with Reed Solomon or not. If we are, then what you end up with is that the false witness probability becomes something like m times what it was. I'll just write e plus one over q, but it's actually more complicated. You essentially lose a factor of m. You lose a factor of m in your false witness probability. And by lose, I mean the probability blows up by a linear factor proportional to m.
+01:14:35.688 - 01:14:38.724, Speaker C: So that's not great news for the verifier.
+01:14:38.852 - 01:14:39.288, Speaker B: Right.
+01:14:39.374 - 01:14:58.050, Speaker C: Because the trade off is that on the one hand, I only had to sample one thing instead of m things, but now I have a weaker guarantee on the false witness probability than I had before. Any thoughts on that? Or what do you all think?
+01:15:02.180 - 01:15:30.724, Speaker D: And just to be clear, the reason you're mentioning Reed Solman, because in particular here is like everything so far, is general to linear codes, including, I guess, what is used in breakdown, which I've not read or understand fully. But basically that this analysis right here of saying how much does this parametric batching increase the error rate is specific to Reed Solomon codes.
+01:15:30.772 - 01:16:42.044, Speaker C: It is specific, yeah. And now there's a whole kind of whole extra side to this of what's known for reed Solomon and what's known in general, maybe I can say just a few comments. So actually, this result here, which I consider to be the key proximity gap result for affine spaces, this has essentially due to roth Zimor 18. This has a kind of interesting history where this shows up in an appendix of an updated version of the Legero paper, which is a amos h. Maybe Mufu is somewhere I'm missing an author I think shows up in the same paper, updated but attributed to pencil, doesn't.
+01:16:42.092 - 01:16:42.690, Speaker B: Like.
+01:16:44.820 - 01:17:28.930, Speaker C: Attributed to Rothsimore. And then I do go ahead and prove this again in my paper with Jim. We actually give a very most thorough possible proof of this result in our paper, which is actually kind of simplified and maybe a bit more exact. Now, in terms of parameterized batching, this result comes from the main proximity gaps paper.
+01:17:33.650 - 01:17:35.150, Speaker B: What is it? Ks.
+01:17:39.340 - 01:18:38.284, Speaker C: There's another paper, an earlier paper called I think worst case to average case reductions, which is Ben Sasson and some others where they give a parameterized batching for general. By the way, this result on proximity gaps over here works for general codes. I'll finally fill in this completely missing piece here. Our general result only works for proximity parameters less than d over three, less than d over three. So I'm going to write d minus one over three floor here. And it is just not known whether this can be improved. So it would be nice if this could be improved to less than d over floor.
+01:18:38.284 - 01:18:41.424, Speaker C: This is the unique decoding radius, which.
+01:18:41.462 - 01:18:43.568, Speaker B: You'Ve maybe heard that term before.
+01:18:43.734 - 01:18:57.264, Speaker C: So the question is, can you do this replacement? If you can, let's talk. No, just kidding. Don't talk to me. Just write it in the paper and.
+01:18:57.322 - 01:18:59.210, Speaker B: Just go become famous yourself.
+01:19:01.180 - 01:19:42.550, Speaker C: For general codes. Now for Reed Solomon codes. It is known due to this paper that we can actually take up to unique decoding d plus one over two, although they have a worse false witness probability of n over q instead of e plus one over q. So they weaken the false witness probability to be n over q, but they improve the proximity parameter to be.
+01:19:44.600 - 01:19:44.916, Speaker B: Up.
+01:19:44.938 - 01:20:19.490, Speaker C: To unique decoding for Reed Solomon. Now for general codes. And then again, this is m times the result for affine batching. So we have m times n over q for general codes. There is some result, but it's really, really bad, actually. It's actually exponential in m, I think, times n over q. Somebody check me on this.
+01:20:19.490 - 01:21:46.170, Speaker C: So not good. And the final thing I'll say, and I think I can spare you all for more, is there's a third kind of batching that Jim and I introduced in our paper. So, from the paper of Jim and myself, we didn't call it this in the paper, but you could call it tensor batching. So any of you who have worked with multilinear polynomials have surely seen this kind of expression, where you start with some log number of variables like r zero up to r one, and you map this to some vector that looks like one minus r zero, dot, dot, dot, one minus r l minus one. And then you sort of go through this in a binary way. So one minus r zero times r l minus.
+01:21:48.430 - 01:21:53.254, Speaker B: Ah, l minus one.
+01:21:53.392 - 01:21:54.894, Speaker C: And at the very end you just.
+01:21:54.932 - 01:21:59.138, Speaker B: Have the product of r zero, r l minus one.
+01:21:59.224 - 01:22:39.600, Speaker C: So this thing is exactly the kind of multilinear Lagrange basis being evaluated at this point. I won't say more, but it's a pretty familiar object, and the idea of me and Jim is to use this thing as our combination vector. So I'll write it this way. So we're going to do this times u zero, this times u one, and this times u m minus one.
+01:22:40.290 - 01:22:40.654, Speaker B: Right.
+01:22:40.692 - 01:23:15.286, Speaker C: And here l is equal to log m. So Jim and I showed that this kind of batching actually works very well. And the loss in the false witness Probability, instead of being linear, is now log. So this has a false witness probability o of log m times e plus one over q. Okay, so that's a pretty complicated result, but I will just leave it at.
+01:23:15.308 - 01:23:17.046, Speaker B: That alliance for now.
+01:23:17.148 - 01:23:25.034, Speaker C: So, yeah, what do you all think? Is this a good place to call it? Or I can just open it up to pure questions mode at this point.
+01:23:25.072 - 01:23:26.800, Speaker B: And not say anything new.
+01:23:27.250 - 01:23:38.310, Speaker D: I have one question about the last thing you just said, which is that basically that login, I guess like additional factor, that is for resolvement codes.
+01:23:38.490 - 01:23:51.620, Speaker C: This is for general codes. Yeah, for general codes, yes. But with proximity parameter only up to less than d over three.
+01:23:53.290 - 01:23:53.702, Speaker B: Right.
+01:23:53.756 - 01:24:08.570, Speaker C: So actually the way the proof ends up working is it uses this result in a black box kind of way. So it inherits, in other words, it inherits both the false witness probability.
+01:24:10.670 - 01:24:10.986, Speaker B: Which.
+01:24:11.008 - 01:25:29.800, Speaker C: Is right here, and the proximity parameter restriction, which is d over three. It inherits both of those. So in other words, general codes. This is the proximity parameter range and this is the false witness probability here. And the point is that if you or somebody makes some fantastic result where you can improve this thing to work for, remember this whole thing here, if you can make this switch, then our result would inherit that, because our result for tensor batching is inheriting the parameters for affine lines. So again, this is a question mark if this can be improved to d.
+01:25:29.870 - 01:25:31.450, Speaker B: Minus one over two.
+01:25:40.580 - 01:25:54.950, Speaker A: Awesome. Thanks, Ben. Yeah, a nice deep dive into proximity gaps, I think will provide some good study material for people looking to dive deep in.
+01:25:56.040 - 01:25:57.956, Speaker B: Cool, thanks.
+01:25:58.058 - 01:26:01.412, Speaker C: Patience of everyone. It was not an easy topic, I think.
+01:26:01.546 - 01:26:20.270, Speaker A: Yeah, and I appreciate the great questions from everyone along the way too. I think at this point maybe I'll pause the recording and if people want to stay online for a kind of casual chat, we can do that. Or if anybody has questions that they feel like. No, I want to ask this before you pause the recording. Could take that.

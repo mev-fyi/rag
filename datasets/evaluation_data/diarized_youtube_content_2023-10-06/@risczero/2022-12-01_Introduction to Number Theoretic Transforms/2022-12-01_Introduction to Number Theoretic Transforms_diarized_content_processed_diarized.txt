@@ -1,0 +1,355 @@
+00:00:00.330 - 00:00:01.802, Speaker A: The number theoretic transform.
+00:00:01.866 - 00:00:05.054, Speaker B: It's one of the critical parts of.
+00:00:05.252 - 00:00:07.086, Speaker A: The fry protocol, which is sort of.
+00:00:07.108 - 00:00:07.920, Speaker B: At the heart.
+00:00:09.810 - 00:00:35.414, Speaker A: Of starks. So what is the number theoretic transform? So, conveniently, a few weeks before I was slated to give this presentation, I saw that the YouTube channel Veritasium had actually made a video on the fast Fourier transform, which is very related to.
+00:00:35.452 - 00:00:37.358, Speaker B: The number theoretic transform.
+00:00:37.554 - 00:01:27.110, Speaker A: The Fourier transform in general is, you can think of it as a way of decomposing a function or a signal down into sort of component parts. In the case of the Fourier transform, the traditional Fourier transform, those are sort of these sine waves that you can see here. And it's something that's useful across many domains of engineering, signal processing. It's really a sort of very broadly useful mathematical idea, and it comes up in starks as well. And so what we'll learn today is sort of more about the specific version of the Fourier transform that is used.
+00:01:27.260 - 00:01:28.540, Speaker B: In risk zero.
+00:01:30.670 - 00:02:10.070, Speaker A: And that is the number theoretic transform. So the veritasium video also mentions briefly the so called discrete Fourier transform, which is the idea that if you're working on a computer, computers are sort of these digital machines that take in discrete data, they discrete chunks of data. And so instead of a continuous signal, a computer is only going to see a bunch of samples out of that data. And so the discrete Fourier transform is an algorithm that can process a signal in that form and break it down.
+00:02:10.140 - 00:02:12.950, Speaker B: Into a bunch of constituent sine waves.
+00:02:13.690 - 00:02:41.674, Speaker A: The number theoretic transform is sort of a modified version of the discrete Fourier transform, but with two big distinctions. And the first is that rather than a continuous signal, right, sort of an amplitude, that's a real number. The number theoretic transform works more over groups and finite fields. So if you came to the study club a couple of weeks ago, Paul.
+00:02:41.722 - 00:02:44.110, Speaker B: Introduced you to finite fields.
+00:02:45.010 - 00:02:47.282, Speaker A: And so that's the first major difference.
+00:02:47.336 - 00:02:50.686, Speaker B: Between the number theoretic transform and the discrete Fourier transform.
+00:02:50.878 - 00:03:11.226, Speaker A: The other sort of major distinction is that the concept of sine waves, or cosine waves, gets replaced by polynomials. You have a composition of sine waves, or you can have an addition of a bunch of polynomials. And it turns out that polynomials are the right sort of analog for a.
+00:03:11.248 - 00:03:13.782, Speaker B: Sine wave when you're talking about finite fields.
+00:03:13.846 - 00:03:15.898, Speaker A: And of course, polynomials are very important.
+00:03:15.984 - 00:03:18.620, Speaker B: For zero knowledge proof systems in general.
+00:03:19.390 - 00:03:24.634, Speaker A: And so I imagine some of you have come to the talks on previous.
+00:03:24.682 - 00:03:34.100, Speaker B: Weeks on these, but Paul has some nice YouTube playlists that sort of go over these things, if you want to go over those.
+00:03:35.990 - 00:03:49.270, Speaker A: So what is the main goal of the number theoretic transform? And it's basically to do with the difference between so called coefficient form and.
+00:03:49.340 - 00:03:52.630, Speaker B: Evaluation form of polynomials.
+00:03:53.610 - 00:04:32.340, Speaker A: So, to produce a stark, a computer has to have a very large polynomial in its memory. Basically, it's a polynomial with a lot of components. And there's basically two ways to write down a polynomial. One way is the more traditional way that you're probably familiar with. You write it down in coefficient form. So I can say I have a polynomial p of x, and that's a three x cubed plus a two x squared plus a one x plus a zero. Right.
+00:04:32.340 - 00:04:35.574, Speaker A: This is a degree three polynomial, because.
+00:04:35.692 - 00:04:38.600, Speaker B: Three is the exponent here.
+00:04:39.370 - 00:04:44.806, Speaker A: And you can see that there are basically four pieces of information that are.
+00:04:44.828 - 00:04:47.286, Speaker B: Needed to convey this polynomial, right?
+00:04:47.308 - 00:04:49.298, Speaker A: We need a three, a two, a.
+00:04:49.324 - 00:04:50.490, Speaker B: One, and a zero.
+00:04:50.560 - 00:04:58.026, Speaker A: So if those four numbers, a three, a two, a one, a zero, are written down in your computer's memory, then.
+00:04:58.128 - 00:05:01.870, Speaker B: You know everything you need to know about the polynomial.
+00:05:03.330 - 00:05:14.510, Speaker A: The other way you could write down a polynomial is in evaluation form. And this is just to say that you can evaluate a polynomial at several points, right?
+00:05:14.580 - 00:05:16.174, Speaker B: A polynomial is a function.
+00:05:16.292 - 00:05:17.826, Speaker A: You can give it a number and.
+00:05:17.848 - 00:05:25.162, Speaker B: It spits out another number, or you can give it a finite field element, and it will spit back out another finite field element.
+00:05:25.326 - 00:05:44.922, Speaker A: And if you take four different locations and you evaluate the polynomial at those locations, then that's essentially as good as giving you the polynomial coefficients, because, as we'll see, there are ways of going.
+00:05:44.976 - 00:05:47.180, Speaker B: Back and forth between these two things.
+00:05:47.550 - 00:06:09.662, Speaker A: And this is really important for the sort of stark software, because it turns out that the person who's producing a stark proof is actually going to have to do operations that involve both of these forms. There will be a list of evaluations.
+00:06:09.726 - 00:06:12.994, Speaker B: And the proverb is going to have.
+00:06:13.032 - 00:06:44.074, Speaker A: To publish some of those. And then there will be a coefficient form that the proverb will transform it back into to do some sort of arithmetic operations on these polynomials, to sort of reduce them. And so, basically, it's very critical that we be able to pass between the coefficient form and the evaluation form, that we should be able to take a coefficient form polynomial and transform it into an evaluation form. And also, if we have an evaluation.
+00:06:44.122 - 00:06:45.118, Speaker B: Form, if we have a bunch of.
+00:06:45.124 - 00:06:47.166, Speaker A: Different evaluations, we should be able to.
+00:06:47.268 - 00:06:50.750, Speaker B: Find the coefficients back from those evaluations.
+00:06:51.490 - 00:06:53.346, Speaker A: And so we need an efficient way.
+00:06:53.368 - 00:06:57.330, Speaker B: Of going basically back and forth between the two versions.
+00:06:59.030 - 00:07:08.310, Speaker A: I guess I'll stop. And I'll just make sure that. Ask if anyone has any questions, assess if anyone's sort of confused by anything.
+00:07:08.380 - 00:07:14.440, Speaker B: Or has any sort of thing they want to resolve before I move on.
+00:07:24.430 - 00:07:37.120, Speaker C: Obviously, we're operating over finite fields in this context. We want to use polynomials as the bases. Could you also use polynomial bases in non finite contexts, like over the real numbers?
+00:07:38.690 - 00:07:56.990, Speaker A: Yeah, sure. So I guess what we're going to see here is that there's a transformation between evaluation form and coefficient form, and that's basically there's four variables and four unknowns.
+00:07:57.150 - 00:07:58.466, Speaker B: At least in this case, it could.
+00:07:58.488 - 00:08:01.954, Speaker A: Be more, but I don't see any.
+00:08:01.992 - 00:08:06.070, Speaker B: Reason why you couldn't do it using real numbers.
+00:08:06.140 - 00:08:09.478, Speaker A: Instead, it would just be, you would just be using the mathematics of the.
+00:08:09.484 - 00:08:16.598, Speaker B: Real numbers or some other field. It doesn't necessarily have to be a finite field, although it does have to.
+00:08:16.604 - 00:08:18.854, Speaker A: Be a system of numbers in which you can divide.
+00:08:18.902 - 00:08:20.058, Speaker B: That actually is important.
+00:08:20.144 - 00:08:21.146, Speaker A: So it does have to be a.
+00:08:21.168 - 00:08:27.870, Speaker B: Field rather than a ring. If you know the mathematical difference between those two things, that's helpful.
+00:08:32.000 - 00:08:44.960, Speaker D: Just ask. So you have these coefficient and evaluation form. Does it mean that it's possible to evaluate the polynomial without knowing the coefficient or not using the coefficient directly?
+00:08:46.740 - 00:09:19.296, Speaker A: Well, it should be possible to evaluate the polynomial at any point given the coefficients. I guess you could say that you do that directly by just sort of multiplying things out. And that's something that I'll show later. But perhaps something that I should emphasize is that the evaluation form is not just a single evaluation of the polynomial.
+00:09:19.348 - 00:09:22.670, Speaker B: But multiple different evaluations. Right.
+00:09:23.360 - 00:09:34.880, Speaker A: If I just give you a single number, a single point at which a particular polynomial is evaluated, that's not enough to tell you the whole polynomial, because there might be many polynomials that pass.
+00:09:34.950 - 00:09:36.210, Speaker B: Through that one point.
+00:09:36.820 - 00:09:39.264, Speaker A: So you actually sort of need quite.
+00:09:39.302 - 00:09:42.688, Speaker B: A bit of information, and there's sort.
+00:09:42.694 - 00:09:54.116, Speaker A: Of a distinction between doing the computation directly and doing it in a way that sort of is the sort of more number theoretic transform way, which is a bit more indirect, but actually gets.
+00:09:54.138 - 00:10:08.364, Speaker B: You a lot of data all at once. I think the question, if I understood correctly, was, if you just start with the evaluation form, can you evaluate at different, at points that are not your.
+00:10:08.402 - 00:10:10.270, Speaker E: X zero, x two, x three?
+00:10:11.200 - 00:10:13.390, Speaker B: Not if you start with your form.
+00:10:14.080 - 00:10:30.556, Speaker A: Okay, I understand. Yeah, that's a good question. Yeah. I'm not sure if there's a real direct way of doing that. One way that you could do it is if you had an evaluation form and you wanted to evaluate at someplace.
+00:10:30.588 - 00:10:33.552, Speaker B: That was not one of the points.
+00:10:33.606 - 00:10:39.444, Speaker A: At which you had evaluated, you could take your evaluation form, and if you had a way of changing that into.
+00:10:39.482 - 00:10:43.188, Speaker B: Coefficient form, you could go into coefficient form.
+00:10:43.354 - 00:10:51.370, Speaker A: And then maybe once you had it in coefficient form, you could then evaluate it at the point you wanted by multiplying things out.
+00:10:51.980 - 00:11:34.870, Speaker C: So I actually have some more context on this, because I was randomly reading about this earlier. Basically, this is a big deal in the snark world right now, where they want to try to eliminate entity from snark generation computations. And there's an evaluation form called the Barry centric evaluation, which does indeed allow you to evaluate a polynomial at different point without going through coefficient form first, and it is better under niche circumstances. Here's actually I just posted in the chat a link to an article by Vitalik on this topic that also links to a paper that has more information as well.
+00:11:36.680 - 00:11:45.530, Speaker B: Yeah, Vitalik's articles are always great. Thanks. Thanks for that. Something I think I didn't know, so I'll probably read that article later.
+00:11:48.880 - 00:11:55.296, Speaker A: Okay, maybe I should move on and talk about how we can go from.
+00:11:55.398 - 00:11:57.730, Speaker B: Coefficient form to evaluation form.
+00:11:59.460 - 00:12:20.120, Speaker A: So, starting with some polynomial, we would like to evaluate it at four different points. And perhaps we can start with a nice concrete example using the finite field f five. So this is the finite field that has five elements. You can think of it basically as.
+00:12:20.190 - 00:12:22.884, Speaker B: The clock arithmetic, or the modular arithmetic.
+00:12:22.932 - 00:12:32.668, Speaker A: That Paul presented a few weeks ago. Whenever you get a number, you take the remainder, dividing by five, and that.
+00:12:32.754 - 00:12:34.670, Speaker B: Gets you your new number.
+00:12:37.360 - 00:12:46.316, Speaker A: So let's choose some random, basically coefficients here. I've sort of chosen them arbitrarily. We have the polynomial three x cubed.
+00:12:46.348 - 00:12:48.690, Speaker B: Plus four x squared plus four x plus one.
+00:12:49.060 - 00:12:51.024, Speaker A: And let's say that we want to.
+00:12:51.062 - 00:12:55.650, Speaker B: Evaluate it at these four points .123 and four.
+00:12:58.020 - 00:13:01.392, Speaker A: So one way we could do this, as I was sort of alluding to.
+00:13:01.446 - 00:13:03.072, Speaker B: Was brute force, right?
+00:13:03.126 - 00:13:16.708, Speaker A: So we can evaluate p one by just sort of multiplying things out, right? We have one cubed, one squared, one. All of those are equal to one. And so if we add all these up, we get twelve, which is equal.
+00:13:16.724 - 00:13:22.140, Speaker B: To two mod five. And so that would tell us b zero directly.
+00:13:22.800 - 00:13:34.284, Speaker A: And then we could do the same thing for evaluating at two. We can do two cubed, two squared two. We can multiply all of these numbers together, and you can use a calculator.
+00:13:34.332 - 00:13:36.160, Speaker B: To check my math if you want.
+00:13:36.230 - 00:13:45.716, Speaker A: This comes out to 49, which is equal to four mod five. And we can do the same thing with three and it comes out to zero mod five. And we can do the same thing.
+00:13:45.738 - 00:13:48.230, Speaker B: With four, and it comes out to three mod five.
+00:13:50.440 - 00:14:01.240, Speaker A: But the sort of vaguely disappointing thing about doing things this way is that it takes actually a lot more time.
+00:14:01.390 - 00:14:03.210, Speaker B: Than you would want to.
+00:14:03.980 - 00:14:13.404, Speaker A: And the reason why this is sort of a very slow algorithm for computing this essentially has to do with the fact that we're doing a lot of.
+00:14:13.442 - 00:14:17.292, Speaker B: Different multiplication operations here, right?
+00:14:17.346 - 00:14:37.668, Speaker A: So for each and every one of these evaluation points, there are four different numbers to raise to a power, four different multiplications to do. And there's four different evaluation points. We're doing at least 16 multiplications right there. It's basically the square of the number.
+00:14:37.754 - 00:14:40.596, Speaker B: Of coefficients that we started with.
+00:14:40.778 - 00:14:59.684, Speaker A: And that's bad because it might be possible for this polynomial, because there's only four elements here. But for the sort of polynomials that we're dealing with, when we run a stark protocol, those can be very long, very high degree polynomials indeed.
+00:14:59.732 - 00:15:00.650, Speaker B: They can be.
+00:15:04.560 - 00:15:07.740, Speaker A: Almost as long as sort of the execution trace of whatever.
+00:15:07.810 - 00:15:10.316, Speaker B: Program you're trying to verify.
+00:15:10.508 - 00:15:23.156, Speaker A: So doing this sort of n squared, quadratic, all of this work, this is not the fastest way of doing things. And we sort of want to look.
+00:15:23.178 - 00:15:24.230, Speaker B: For a better way.
+00:15:25.080 - 00:15:34.084, Speaker A: But before we look for a better way, maybe it's helpful to just sort of realize the structure of the problem.
+00:15:34.202 - 00:15:35.492, Speaker B: As it already exists.
+00:15:35.556 - 00:15:48.396, Speaker A: So let me first point out that this process of multiplication can actually be viewed as a matrix equation or an.
+00:15:48.418 - 00:15:51.870, Speaker B: Equation in linear algebra, if you're familiar with that.
+00:15:53.280 - 00:16:23.236, Speaker A: So what you can see here is a matrix multiplied by a vector, and that gives us another vector. And this matrix here is meant to represent the coefficients that we see in this set of four equations here. So we have ones all down the side here, we have 1234. We have one squared, two squared, three.
+00:16:23.258 - 00:16:27.892, Speaker B: Squared and four squared. And we have one cubed, two cubed, three cubed and four cubed.
+00:16:27.956 - 00:16:43.308, Speaker A: And so we basically make a four x four matrix out of those numbers. And then if we multiply by this vector here, which represents the coefficients, right, these are the four coefficients of the.
+00:16:43.314 - 00:16:45.390, Speaker B: Polynomial in coefficient form.
+00:16:46.880 - 00:16:53.776, Speaker A: Then doing this sort of matrix vector multiplication, that is giving us exactly what.
+00:16:53.798 - 00:16:57.760, Speaker B: We want, it's giving us the vector of evaluations.
+00:16:58.340 - 00:17:04.470, Speaker A: And you might notice that this matrix here, it definitely looks very.
+00:17:07.240 - 00:17:08.164, Speaker B: Structured, right?
+00:17:08.202 - 00:17:21.316, Speaker A: It's what you might sort of call mathematically structured. It's not just a bunch of random elements. Every single element of this column is a one. And this column, you're going 1234, you're.
+00:17:21.348 - 00:17:22.328, Speaker B: Sort of counting up.
+00:17:22.414 - 00:17:52.076, Speaker A: And in this column you're going up by squares. And so there's definitely a pattern. Every single element of this matrix follows a pattern. So let's see if we can sort of isolate what that pattern is. One thing that we can do to make the matrix even sort of more structured is to rewrite things in terms.
+00:17:52.118 - 00:17:53.350, Speaker B: Of powers of two.
+00:17:54.040 - 00:18:14.250, Speaker A: This is something that we sort of saw last week, two weeks ago, I should say, in Paul's presentation about Reed Solomon codes. That was another situation. And because Reed Solomon codes are essentially polynomials, that was another situation where.
+00:18:17.100 - 00:18:17.464, Speaker B: It.
+00:18:17.502 - 00:18:32.268, Speaker A: Turned out to be mathematically useful to think of things instead of just as numbers in this finite field, we can think of them as powers of two. And it turns out that all four of these numbers, 1234, can be rewritten.
+00:18:32.364 - 00:18:33.650, Speaker B: As a power of two.
+00:18:34.660 - 00:18:40.896, Speaker A: So maybe the first thing we can do is we can check, how can.
+00:18:40.918 - 00:18:54.150, Speaker B: We rewrite four as a power of two? Does anyone have a sort of conjecture about what power we can raise two to get four? This is maybe too easy of a question.
+00:18:58.540 - 00:19:00.888, Speaker A: Yeah, two, I think I heard two.
+00:19:00.974 - 00:19:01.672, Speaker B: And that's right.
+00:19:01.726 - 00:19:10.296, Speaker A: So we can replace four by two to the second power. And that gives us basically an equivalent.
+00:19:10.328 - 00:19:11.630, Speaker B: Way of writing four.
+00:19:12.240 - 00:19:15.852, Speaker A: And now we can rewrite three actually.
+00:19:15.906 - 00:19:17.244, Speaker B: As a power of two as well.
+00:19:17.282 - 00:19:26.124, Speaker A: This is maybe a bit harder. And I see a question in chat from Jacob. Was two chosen to be a generator.
+00:19:26.172 - 00:19:28.370, Speaker B: Of the field or for some other reason?
+00:19:29.300 - 00:19:45.376, Speaker A: And the answer is yes, it was chosen to be a generator of the field. If you sort of recall from last week, Paul, there was a bit of discussion about generators. But the nice thing about two is that you can raise it to different powers and you can get every non.
+00:19:45.408 - 00:19:47.930, Speaker B: Zero element of the field.
+00:19:49.660 - 00:19:51.156, Speaker A: And I see an answer in chat.
+00:19:51.188 - 00:19:53.144, Speaker B: For the question of three, and it.
+00:19:53.182 - 00:19:54.984, Speaker A: Says that, yes, two to the third.
+00:19:55.022 - 00:19:56.424, Speaker B: Power is actually three.
+00:19:56.542 - 00:20:00.844, Speaker A: And that's something you can sort of evaluate in your head. Two to the third power is eight.
+00:20:00.962 - 00:20:03.230, Speaker B: And eight mod five is equal to three.
+00:20:04.880 - 00:20:09.800, Speaker A: So we can rewrite that, and we can actually rewrite the twos and ones.
+00:20:09.890 - 00:20:15.330, Speaker B: As powers of two as well. So I'll just do that there.
+00:20:16.020 - 00:20:43.080, Speaker A: And now that we have all of this, we can apply a rule to sort of simplify things. If you have two to the power three to the power three, that's basically that taking an exponent twice is sort of the same thing as multiplying those two exponents, right? Two to the three to the three is actually going to be the same as two to the three times three. And so if I do that rewriting.
+00:20:43.820 - 00:20:47.588, Speaker B: I get this matrix which now has.
+00:20:47.614 - 00:21:18.644, Speaker A: A very sort of, it's a little bit more verbose than what we had before, but it's also a little bit more clear what the sort of structure is here. So now not only is it the case that we have two to the zero down the column, but we also see that we have two to the zero along the top here, and we have one, two, three here, and we have two, four, six here in the bottom row. And we have three, six, nine in.
+00:21:18.682 - 00:21:21.430, Speaker B: This sort of middle row row here.
+00:21:23.720 - 00:21:36.936, Speaker A: Now we notice that the exponents here are very close to being a multiplication table. And this is something I think we.
+00:21:36.958 - 00:21:40.284, Speaker B: Noticed in the talk two weeks ago as well.
+00:21:40.482 - 00:21:47.548, Speaker A: And so if only it were the case that these two rows here were switched around, then it would actually be.
+00:21:47.554 - 00:21:49.912, Speaker B: A perfect multiplication table.
+00:21:50.056 - 00:21:56.816, Speaker A: So I'm going to make one more change, which is to switch those rows around so that we can have that.
+00:21:56.918 - 00:21:58.496, Speaker B: Sort of perfectly line up.
+00:21:58.598 - 00:22:07.796, Speaker A: And that's sort of fine. All I have to do in this sort of matrix multiplication here is I switch these last two rows, I switch around the last two elements of this vector, and I switch around the last.
+00:22:07.818 - 00:22:11.510, Speaker B: Two elements of this vector and everything sort of works out.
+00:22:13.240 - 00:22:21.880, Speaker A: So what we get here is a matrix which is a sort of very special matrix.
+00:22:22.780 - 00:22:28.036, Speaker B: It's known as the DfT matrix or ADfT matrix.
+00:22:28.228 - 00:22:34.364, Speaker A: You could think about a DfT matrix for a different generator, right? For example, three is also a number.
+00:22:34.482 - 00:22:36.140, Speaker B: Which is a generator of this field.
+00:22:36.210 - 00:22:37.356, Speaker A: And so you could think about three.
+00:22:37.378 - 00:22:40.610, Speaker B: To the zero, three to the zero, three to the one, three to the four.
+00:22:41.540 - 00:23:05.588, Speaker A: But all that, we see that to solve this sort of coefficient to evaluation problem, essentially all that we're doing is we have to find a very quick way of multiplying this matrix to this vector. And while this would sort of, in general it would be pretty hard because this is a pretty big matrix, it's.
+00:23:05.604 - 00:23:07.560, Speaker B: An n squared sized matrix.
+00:23:07.980 - 00:23:14.170, Speaker A: The fact that it's so structured. Right, basically every element of this matrix is two to.
+00:23:16.540 - 00:23:23.368, Speaker B: This sort of multiplication table element we conjecture.
+00:23:23.464 - 00:23:25.212, Speaker A: And we'll see that perhaps there's actually.
+00:23:25.266 - 00:23:28.700, Speaker B: A faster way of doing this transformation.
+00:23:32.900 - 00:23:35.008, Speaker A: Before I move on to that, maybe.
+00:23:35.094 - 00:23:36.770, Speaker B: I'll pause for questions again.
+00:23:43.290 - 00:24:09.840, Speaker E: I think I have a quick comment about the size of the matrix as it relates to our system. So we see this example of having four columns, but in reality, in risk zero system, the execution traces are powers of two. So to just give people in the audience who might not be familiar, an idea. This could be very large.
+00:24:10.630 - 00:24:11.380, Speaker B: Yeah.
+00:24:13.510 - 00:24:28.102, Speaker A: That'S definitely an important thing to note, is that four here is the critical number. But instead of four, it would really be the number of cycles, approximately, of.
+00:24:28.156 - 00:24:31.858, Speaker B: Whatever program you wanted to execute.
+00:24:32.034 - 00:24:38.794, Speaker A: And it's also worth noting that instead of f five, right, the field of numbers modulo five, it would actually be.
+00:24:38.832 - 00:24:40.220, Speaker B: A much bigger field.
+00:24:41.150 - 00:24:43.494, Speaker A: In fact, much, much bigger, even bigger.
+00:24:43.542 - 00:24:57.440, Speaker B: Than the number of cycles. Because it's important that you don't randomly get two field elements turning out to be the same when they shouldn't be the same. That's sort of a cryptographically important thing.
+00:25:08.890 - 00:25:17.654, Speaker A: So if there are no real questions about this, I'll move on to sort of presenting how to do this sort.
+00:25:17.692 - 00:25:23.930, Speaker B: Of fast coefficient form to evaluation form trick.
+00:25:25.150 - 00:25:31.242, Speaker A: And I'll present it in a way that's sort of relevant to the other.
+00:25:31.296 - 00:25:33.790, Speaker B: Things that are done in the fry protocol.
+00:25:35.330 - 00:26:35.514, Speaker A: But taking inspiration from this, treating the matrix, I mean, essentially what we've done here, I'll go back, is instead of viewing these numbers as numbers 1234, we're definitely viewing them as powers of two, right? So one is two to the zero, two is two to the one, four is two to the three. Or, sorry, four is two to the two, and three is two to the three. So basically, just taking inspiration from that and seeing that it seems like the correct way of sorting these numbers is to sort them as powers of two, rather than in the traditional way of going 1234, seems like 1243 is a little bit more natural somehow. And so, instead of evaluating p of x for some random x or some arbitrary x, let's think about it in terms of evaluating it for x being two to the k for some k. And we know that for any k.
+00:26:35.572 - 00:26:38.180, Speaker B: We can get any x that we want, basically.
+00:26:40.390 - 00:26:56.182, Speaker A: So a good thing to think about when you're trying to design a fast algorithm is what is a good way of breaking the problem down into sub problems, right. This is sort of the so called divide and conquer method, which is very.
+00:26:56.236 - 00:27:00.050, Speaker B: Sort of powerful throughout algorithms.
+00:27:00.130 - 00:27:01.226, Speaker A: If you ever have to write a.
+00:27:01.248 - 00:27:07.100, Speaker B: Fast algorithm, the divide and conquer method is probably going to be the way that you do it.
+00:27:07.710 - 00:28:15.002, Speaker A: And so we basically need to find a way of the divide and conquer method tells us that if you have a problem, you should try and break it up into similar problems, but of a smaller size. And so what our problem looks like is this polynomial with four components. So how can we break that up into subproblems which consist of solving the same problem for polynomials with fewer elements or fewer coefficients. And one way that might occur to you is that maybe we can take the coefficients from p. Right? We can take three, four, four and one, and we can make new polynomials, smaller polynomials, out of those coefficients. And that turns out to be the critical trick. So what I'm actually going to show you all how to do here is to split this polynomial up into basically the even polynomial and the od polynomial.
+00:28:15.002 - 00:28:25.474, Speaker A: So here I've taken the x cubed part and the x part, those are x to an od power, and I've written them in blue, and then the four x squared part and the one.
+00:28:25.512 - 00:28:33.478, Speaker B: Part I've written in red. And if I rearrange this a little bit, I can put the blue terms.
+00:28:33.564 - 00:28:34.566, Speaker A: Next to each other and the red.
+00:28:34.588 - 00:28:37.046, Speaker B: Terms next to each other, and I.
+00:28:37.068 - 00:28:44.506, Speaker A: Can sort of factor out an x. I see that I have a polynomial here, which is red, and I have.
+00:28:44.528 - 00:28:47.446, Speaker B: Another polynomial here, which is blue.
+00:28:47.558 - 00:28:51.738, Speaker A: And the blue polynomial has half the coefficients that the original polynomial did, and.
+00:28:51.744 - 00:28:54.026, Speaker B: The red polynomial has half the coefficients.
+00:28:54.218 - 00:29:04.974, Speaker A: So this seems like it could be a good potential way of breaking down the problem. And so let me just define these.
+00:29:05.012 - 00:29:06.530, Speaker B: New polynomials.
+00:29:09.030 - 00:29:26.102, Speaker A: Based on what we have here. So I see that I have three and four as the coefficients to my blue polynomial. So I'll make a new polynomial, and I'll use y instead of x to make it clear that we're operating over x squared here.
+00:29:26.156 - 00:29:26.326, Speaker B: Right.
+00:29:26.348 - 00:29:27.606, Speaker A: It seems like we're operating over x.
+00:29:27.628 - 00:29:31.910, Speaker B: Squared here, but we want a polynomial.
+00:29:33.050 - 00:29:34.326, Speaker A: If we just want to talk about.
+00:29:34.348 - 00:29:36.474, Speaker B: A polynomial over one variable, we'll talk.
+00:29:36.512 - 00:29:38.314, Speaker A: About it in terms of p of.
+00:29:38.352 - 00:29:40.490, Speaker B: Y, which is equal to three y plus four.
+00:29:40.560 - 00:29:41.706, Speaker A: And you could think of y as.
+00:29:41.728 - 00:29:44.590, Speaker B: Sort of what's going to stand in for x squared.
+00:29:45.330 - 00:29:47.342, Speaker A: And similarly, we can have this even.
+00:29:47.396 - 00:29:51.200, Speaker B: Polynomial, which is four, y plus one.
+00:29:53.250 - 00:30:39.134, Speaker A: And so the central idea is going to be that if we can evaluate these polynomials for all of the powers of two to the k squared, right? Because for the original polynomial, we wanted to evaluate it on x equals two to the k. For these polynomials, we want to evaluate it on y. And if y is x squared, then we want to evaluate these polynomials on powers of two to the k squared. And what we'll show is that if we can do that, then we can basically compute p of x on any power we want. We can solve our original problem. So let's see how that works. This is sort of the most critical part.
+00:30:39.172 - 00:30:44.880, Speaker B: So I'll pause briefly for questions and see if anyone has anything they want to ask first.
+00:31:00.120 - 00:31:12.824, Speaker A: If no one wants to ask anything, I'll go ahead. So we have p to the X. We'll just write that down. Here we have our definitions for p.
+00:31:12.862 - 00:31:14.250, Speaker B: Od and p even.
+00:31:15.180 - 00:31:21.620, Speaker A: And let's say that we have our evaluations for p OD on two to the zero and two squared, right?
+00:31:21.710 - 00:31:25.836, Speaker B: Rather than on all the individual values, we have it on two to the.
+00:31:25.858 - 00:31:34.344, Speaker A: Zero and two squared. And if we do the math on these, we get the values two for.
+00:31:34.402 - 00:31:35.456, Speaker B: P to the OD on two to.
+00:31:35.478 - 00:31:37.408, Speaker A: The zero and one for p to.
+00:31:37.414 - 00:31:38.960, Speaker B: The OD on two squared.
+00:31:40.260 - 00:31:52.208, Speaker A: And similarly, we can work that out for p even. We can evaluate p even on two to the zero squared, and we get zero. And we can evaluate p even on two to the two squared.
+00:31:52.304 - 00:31:56.288, Speaker B: And we get two. And I've written these in separate colors.
+00:31:56.304 - 00:31:58.788, Speaker A: So that it'll be sort of easier.
+00:31:58.884 - 00:32:01.050, Speaker B: To see what happens next.
+00:32:03.500 - 00:32:07.240, Speaker A: How can we now evaluate px on.
+00:32:07.390 - 00:32:10.650, Speaker B: An arbitrary value that we want to evaluate it on?
+00:32:11.180 - 00:32:33.792, Speaker A: So we can take p of two to the zero. And if we substitute two to the zero in, we get this expression here. But we see that we have two to the zero to the two, and that's really just two to the zero. And similarly, two to the zero to the two here is just two to the zero. So we can replace this two to the zero to the two by two to the zero.
+00:32:33.846 - 00:32:35.608, Speaker B: And that gives us this expression.
+00:32:35.804 - 00:32:46.084, Speaker A: But now we see that the blue here is just this exact evaluation here. And similarly, this red evaluation of four.
+00:32:46.122 - 00:32:47.990, Speaker B: Times two to the zero plus one.
+00:32:49.000 - 00:32:53.512, Speaker A: Is exactly this evaluation here of p to the even or p sub even.
+00:32:53.566 - 00:32:55.144, Speaker B: On two to the zero.
+00:32:55.342 - 00:33:00.524, Speaker A: And so it turns out that just using this purple two and this orange zero, that's all the data that we.
+00:33:00.562 - 00:33:05.950, Speaker B: Need to evaluate p on two to the zero. And it turns out to be two.
+00:33:07.680 - 00:33:19.920, Speaker A: Now let's do it for two to the one. Similarly, we have two to the one squared, and we have two to the one squared here, and that becomes two.
+00:33:19.990 - 00:33:21.840, Speaker B: Squared and two squared.
+00:33:22.260 - 00:33:33.620, Speaker A: And we see that those two values are the evaluations of p odd and p even on two squared that we computed here. So we have the cyan one here.
+00:33:33.690 - 00:33:35.124, Speaker B: And the brown two here.
+00:33:35.242 - 00:33:37.156, Speaker A: And if we substitute those in, we.
+00:33:37.178 - 00:33:43.930, Speaker B: Can evaluate p on two to the one, p on two, which is four.
+00:33:46.940 - 00:33:58.184, Speaker A: We can then do the same thing for two squared. Two squared. Squared is two to the fourth, and two to the fourth is really just the zero, right? If I take two to the fourth.
+00:33:58.232 - 00:34:05.330, Speaker B: That'S 16 and 16 mod five is one. So that's basically the same as two to the zero.
+00:34:05.780 - 00:34:19.412, Speaker A: One sort of trick that you can think of when you're doing field arithmetic or modular arithmetic, is that the numbers in the bases, you can always add.
+00:34:19.466 - 00:34:21.476, Speaker B: Or subtract five from those numbers.
+00:34:21.658 - 00:34:28.116, Speaker A: But for the exponents, you actually add or subtract four.
+00:34:28.218 - 00:34:34.200, Speaker B: Right, which is sort of the totion function. That's just one of those sort of vagaries of field arithmetic.
+00:34:35.420 - 00:34:39.096, Speaker A: So we again get three times two to the zero plus four and four.
+00:34:39.118 - 00:34:40.628, Speaker B: Times two to the zero plus one.
+00:34:40.734 - 00:34:54.096, Speaker A: These are just the evaluations of the purple two and the orange zero. And so we again get an expression that just depends on the orange two, or, sorry, the purple two and the orange zero.
+00:34:54.198 - 00:34:59.330, Speaker B: And we can again evaluate the polynomial for this particular value.
+00:35:00.180 - 00:35:12.116, Speaker A: And the same thing happens again for two cubed. We can basically reduce two to the cubed squared to two squared. And that gives us these evaluations of.
+00:35:12.138 - 00:35:14.500, Speaker B: This od polynomial and this even polynomial.
+00:35:14.920 - 00:35:36.940, Speaker A: And so, basically, in each case, what we see, what we get is that we have here alternating purple and cyan down this column. We have alternating orange and brown down this column. And then we also have an additional multiplicative factor.
+00:35:38.960 - 00:35:50.480, Speaker B: Which is just the input. Right. In this case, it's one two. These are just the powers of two. One is two to the zero, two is two to the one, four is two squared, and three is two cubed.
+00:35:51.780 - 00:36:30.908, Speaker A: And so this is the sort of basic way in which this is only one sort of step of the process, right? You could imagine doing this for a much larger polynomial. And the nice thing about this is, even for a polynomial with potentially millions of coefficients, this process would not take too long, because you only have to do about only a couple of million.
+00:36:30.994 - 00:36:33.760, Speaker B: Operations in order to evaluate this.
+00:36:33.830 - 00:36:43.356, Speaker A: Right? P od. Assuming that we already have p OD.
+00:36:43.388 - 00:36:44.976, Speaker B: On all of these values, and we.
+00:36:44.998 - 00:36:46.356, Speaker A: Already have p even on all of.
+00:36:46.378 - 00:36:47.380, Speaker B: These values.
+00:36:51.800 - 00:37:01.944, Speaker A: Each term, in blue here or in red here, is already computed. And so all we have to do is, for each evaluation that we want to do, we just have to do.
+00:37:01.982 - 00:37:05.960, Speaker B: One multiplication and then one addition and modular arithmetic.
+00:37:06.540 - 00:37:17.724, Speaker A: So it turns out to be very fast to do this this way, you don't have to do a number of operations, which is going up like the.
+00:37:17.762 - 00:37:25.570, Speaker B: Square, which is quadratic in the size of, basically, the problem that you have, which is you don't want to be.
+00:37:25.940 - 00:37:27.696, Speaker A: Multiplying the entire matrix out.
+00:37:27.718 - 00:37:40.070, Speaker B: You want the faster way of doing it, which is what we have here. Um, and so, yeah, so just to.
+00:37:41.160 - 00:38:08.988, Speaker A: I guess, round out the story on the sort of computational, the computational complexity of this problem, we've taken the problem, we've broken it down into two sub problems that are each half of the size. And then we did an amount of work that was not too much work to combine those answers. And if we had a much larger polynomial, what we could do is we could just keep breaking down the problem.
+00:38:09.074 - 00:38:09.804, Speaker B: Right.
+00:38:10.002 - 00:38:41.192, Speaker A: We would break the problem into two problems of half size, and then each of those would be broken down into problems of quarter size. Then each of those would be broken down into problems of one, eight the size and so on. And that would add some overhead. But if you're having the problem at every step, even a very large number, if you keep dividing by two, you'll very quickly get to one. And so the fact that we are doing this sort of recursion only really.
+00:38:41.246 - 00:38:45.928, Speaker B: Adds a logarithmic factor to the size of the problem.
+00:38:46.094 - 00:38:50.864, Speaker A: And so we end up doing much faster than multiplying out the matrix.
+00:38:51.012 - 00:38:53.564, Speaker B: And if you're sort of familiar with.
+00:38:53.602 - 00:38:55.416, Speaker A: Big o notation, this is what's known.
+00:38:55.448 - 00:39:06.610, Speaker B: As n log n time. And really, this is sort of almost equivalent in spirit to being able to do something in linear time.
+00:39:07.300 - 00:39:18.096, Speaker A: So this is definitely a much faster way than the quadratic multiplication, and it's the only thing that makes it possible to do this when you have matrices.
+00:39:18.128 - 00:39:22.150, Speaker B: That are of size, a million by a million.
+00:39:26.000 - 00:40:18.604, Speaker A: And so that is the number theoretic transform. And I'll just sort of give a very quick explanation of how to go the other way. In fact, and I won't be too serious about all of this, I'll just say that, okay, let's say that we have a bunch of evaluations and we want to get the polynomial back. And just to point out, this is sort of what the FFT is most like, I think, because with the FFT, we add a bunch of sine waves, and here we're adding a bunch of monomial terms. We're trying to find a bunch of coefficients for x cubed, for x squared to match the data that we have, basically. So just to remember the matrices, this.
+00:40:18.642 - 00:40:20.930, Speaker B: Was the matrix equation that we had.
+00:40:21.780 - 00:40:23.632, Speaker A: And what we really want to do.
+00:40:23.686 - 00:40:27.490, Speaker B: Is to invert this matrix, right? So.
+00:40:29.380 - 00:40:32.416, Speaker A: If this matrix is m and we multiply it by this vector to.
+00:40:32.438 - 00:40:35.472, Speaker B: Get this result, then to go back.
+00:40:35.526 - 00:40:41.524, Speaker A: From the result to the matrix we started with, we want to multiply by the inverse matrix. We want to do a sort of.
+00:40:41.562 - 00:40:44.070, Speaker B: Matrix that's the opposite of what we had before.
+00:40:45.240 - 00:40:48.456, Speaker A: And so what we need to do is we need to find a way.
+00:40:48.478 - 00:40:51.908, Speaker B: Of inverting this large matrix.
+00:40:52.084 - 00:41:22.916, Speaker A: But it turns out to be very convenient, because this matrix has such a clear structure with its sort of multiplication table exponents, properties, that, in fact, the inverse of the matrix is actually very similar to the matrix itself. So here on the right is actually what the inverse of the matrix on the left is. You basically just replace the twos by threes, and then you multiply the whole.
+00:41:22.938 - 00:41:27.670, Speaker B: Thing by four, or really the inverse of four, but the inverse of four is actually four.
+00:41:28.600 - 00:41:42.824, Speaker A: And so this is all to say, right, you can check, if you want, to ensure that each of the. If I were to multiply this matrix by this matrix, I would actually get.
+00:41:42.942 - 00:41:46.410, Speaker B: The sort of identity matrix that doesn't change a vector at all.
+00:41:48.060 - 00:42:21.840, Speaker A: But the sort of stunning realization is that because these matrices are so similar, I can just apply the same algorithm, but with powers of three instead of powers of two. And that would give me the coefficient out of the evaluations. So it's sort of fascinating that this Fourier analysis problem, the forward problem, is actually the same in some sense as the backward problem. You're just doing it with a slightly different generator. As we mentioned, two is one generator.
+00:42:22.000 - 00:42:26.056, Speaker B: Of this multiplicative group, but three is.
+00:42:26.078 - 00:42:30.792, Speaker A: The inverse of two. And so I just do the same.
+00:42:30.846 - 00:42:37.630, Speaker B: Operation, but with the inverse of the generator, and it gives me back the result.
+00:42:39.520 - 00:42:55.090, Speaker A: And so that is basically a summary of the discrete Fourier transform. So, thanks for coming, and definitely feel free to ask any questions you may have about all of this.
+00:42:58.260 - 00:43:02.690, Speaker B: Yeah, it was great to talk to you all.
+00:43:04.600 - 00:43:05.350, Speaker D: Hi.
+00:43:07.240 - 00:43:41.920, Speaker F: Thank you for your presentation. Very impressive. My question is actually for the last slide you gave, let's say, inverse of the first one. I'm wondering, how can I come up with three and four? Is that easy to get such number, or I need to any rules or any formula I can use to just simply get three and four from the previous matrix.
+00:43:42.580 - 00:43:43.330, Speaker A: Right.
+00:43:44.580 - 00:43:46.290, Speaker B: How do we get three here?
+00:43:49.620 - 00:44:01.396, Speaker A: I could have been more clear about this, I think. But the way that we get three is that three is just the inverse of two. So three is the number that, when multiplied by two, results in one in.
+00:44:01.418 - 00:44:03.300, Speaker B: The finite field that we're working with.
+00:44:03.450 - 00:44:12.600, Speaker A: So how is it possible, when you have a finite field, to, given a particular element of that field, find another.
+00:44:12.670 - 00:44:15.210, Speaker B: Element such that they multiply to one?
+00:44:15.740 - 00:44:40.656, Speaker A: To do this, you use what's called the Euclidean algorithm. So there's basically an algorithm which says that I have two multiplied, but I have two, and I want to find some coefficient to two such that when I have five and some coefficient of.
+00:44:40.678 - 00:44:43.844, Speaker B: Five, they sort of multiply together to get one.
+00:44:43.882 - 00:44:49.860, Speaker A: And so basically there's an algorithm for evaluating the inverse of any particular element.
+00:44:51.240 - 00:44:56.250, Speaker B: In a field, or at least in a prime field.
+00:44:57.020 - 00:45:17.484, Speaker A: So that's how you get three from two. And then what is four here? Four is basically just the size of the field here. How do we get four? I've written it as four here, but you could actually maybe think of it a bit more appropriately as the inverse of four. Or you could think of it as.
+00:45:17.602 - 00:45:20.176, Speaker B: Maybe just negative one would be a.
+00:45:20.198 - 00:45:38.228, Speaker A: Better way of thinking about it. So the key realization is that if I multiply, let's say that I was going to multiply a particular row of the matrix on the left and a.
+00:45:38.234 - 00:45:40.310, Speaker B: Particular column of the matrix on the right.
+00:45:42.920 - 00:45:55.770, Speaker A: If it was an off diagonal row and column, then it would be something like, I would get something like three times two to the zero plus three times two to the one plus three times two squared plus three times two.
+00:45:57.740 - 00:45:58.104, Speaker B: Or.
+00:45:58.142 - 00:46:00.184, Speaker A: Sorry, that would be if I were on diagonal.
+00:46:00.232 - 00:46:01.820, Speaker B: Sorry, let me amend that statement.
+00:46:04.560 - 00:46:36.516, Speaker A: If I were to multiply a row, if I were to multiply a row and a column, that were to find the coefficient here, basically, the easiest way to think about it, maybe, is to just remember that the upper left most cell of the identity matrix has to be one. So if I take a bunch of ones, right, the top row here is.
+00:46:36.538 - 00:46:39.336, Speaker B: A bunch of ones, really, and the.
+00:46:39.358 - 00:47:06.976, Speaker A: Side column here is actually a bunch of ones. And so if I just multiply this matrix by this matrix, I'm going to get something that has a four in the upper leftmost column, because it's just going to be a sum of four different ones. And so I need to take something which is the inverse of the inverse of negative one. Right, the inverse of four, which is negative one. And so four here is sort of.
+00:47:06.998 - 00:47:15.110, Speaker B: Meant to stand in for negative one, which is in the field with five elements. Negative one is the same thing as four.
+00:47:17.240 - 00:47:32.840, Speaker F: Okay, I get your point. So another question actually is where can I apply these rules to metrics? I mean, for general or for some specific situation, I can use this rule.
+00:47:34.380 - 00:48:02.972, Speaker A: So, yeah, what has to be the case in order to apply this rule? So basically it has to be a matrix that has this form of, all of the columns here are sort of ascending powers of a particular the, in the case have, this is known as the DfT matrix.
+00:48:03.036 - 00:48:05.344, Speaker B: Right. The discrete four year transform matrix.
+00:48:05.392 - 00:48:09.636, Speaker A: You can also call it a slightly more general thing to search for is.
+00:48:09.658 - 00:48:11.620, Speaker B: A van Dermond matrix.
+00:48:13.080 - 00:48:38.732, Speaker A: And so basically the rule is it has to be some element where each column are just increasing powers of that element where the power always increases by a fixed amount. So if I look at this column, the power goes from zero to two to four to six and 0246.
+00:48:38.786 - 00:48:40.780, Speaker B: That's a linear progression.
+00:48:41.600 - 00:48:44.696, Speaker A: And the same thing is true with this last row.
+00:48:44.728 - 00:48:48.232, Speaker B: Here it goes. 0369 and that's a linear progression.
+00:48:48.376 - 00:48:51.068, Speaker A: So whenever all of the rows of.
+00:48:51.074 - 00:48:53.030, Speaker B: The matrix are.
+00:48:54.760 - 00:49:06.392, Speaker A: A linear progression that starts at zero, the powers are powers that where the, where the exponent is a linear progression that starts with zero, then it will be possible to do.
+00:49:06.446 - 00:49:28.620, Speaker B: A version of this rule that inverts the matrix. And what you'll get is a matrix where all of the columns are that way, right? So the inverse matrix, the columns are always, we have a linear progression. 0123 a linear progression. 0246 so basically that's just going to be the general rule.
+00:49:30.500 - 00:49:34.608, Speaker F: Oh yeah, I recall that. Thank you very much.
+00:49:34.774 - 00:49:36.290, Speaker B: Yeah, thank you.
+00:49:36.820 - 00:49:42.450, Speaker D: So is this method a recent invention or has it been known for hundreds of years?
+00:49:43.400 - 00:50:23.632, Speaker A: That's a good question. So of course, the sort of use of this technique for the sort of cryptographic process of starks is pretty new. I mean, that's sort of where my expertise lies. It really came about, I think, in 2018 or so was when the research on the stark paper came out. But it's definitely the case that Fourier analysis and the sort of basic ideas behind these transformations, they have a very long history, I think going back even.
+00:50:23.686 - 00:50:25.680, Speaker B: To the 18 hundreds.
+00:50:26.260 - 00:50:29.920, Speaker A: If you watch the veritasium video like.
+00:50:29.990 - 00:50:33.280, Speaker B: I did recently.
+00:50:34.980 - 00:50:38.596, Speaker A: I think it was around the 70s when the sort of.
+00:50:38.618 - 00:50:49.640, Speaker B: Discrete version of the 48 transform was first sort of realized. They realized that it would be a convenient way, I guess, of doing sort of seismic analysis.
+00:50:52.860 - 00:50:54.136, Speaker A: That was the first application.
+00:50:54.238 - 00:51:04.412, Speaker B: It was sort of like sensing earthquake waves, I think. And so that was how it started. And basically that was the first time.
+00:51:04.466 - 00:51:10.156, Speaker A: That this had been implemented as an algorithm. And I guess since then it's been.
+00:51:10.178 - 00:51:11.340, Speaker B: Sort of very useful.
+00:51:15.360 - 00:51:16.110, Speaker D: Thanks.
+00:51:18.560 - 00:51:26.084, Speaker A: So I guess if there are no more questions. Thanks everyone for coming again, we've been.
+00:51:26.202 - 00:51:30.116, Speaker B: Recording this meeting, so hopefully we'll put.
+00:51:30.298 - 00:51:38.052, Speaker A: The meeting up as a YouTube video or a series of YouTube videos on our YouTube channel, and probably I'll also.
+00:51:38.106 - 00:51:40.550, Speaker B: Make the slides available there as well.
+00:51:41.400 - 00:51:42.770, Speaker A: So yeah, thank you all for coming.

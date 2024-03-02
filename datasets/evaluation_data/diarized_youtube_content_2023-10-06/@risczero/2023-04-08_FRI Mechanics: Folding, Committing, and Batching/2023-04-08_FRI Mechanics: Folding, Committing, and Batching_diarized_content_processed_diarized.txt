@@ -1,0 +1,358 @@
+00:00:00.250 - 00:00:39.046, Speaker A: Today, we're going to be looking at Fry. Fry is a pretty important part of our protocol and a number of other modern ZK protocols. And in particular, we're going to be looking at three sort of aspects of fry. There's a commit phase, there's a query phase, and there's this idea called fry batching. So there's a giant stack of references on the first slide. I think I shared the slides in discord, if you want to follow along there. But I'll be posting this to YouTube, as usual.
+00:00:39.046 - 00:00:44.380, Speaker A: And I'll be posting the slides as a comment or in the description of the YouTube page.
+00:00:46.750 - 00:00:49.642, Speaker B: So let's go ahead and get started.
+00:00:49.696 - 00:01:18.150, Speaker A: But before we do, I just want to remind everybody, do please ask questions. These are complicated ideas. And the more questions you ask, the more learning will happen, I think, both for yourself and for the people around you. So you don't need to wait. You can just unmute yourself and jump in with questions. And I will comment that I can't see the chat while I'm presenting. So if there are questions in the chat, if somebody could surface them for me, that would be super helpful.
+00:01:21.610 - 00:01:25.126, Speaker B: So the kind of guiding questions for.
+00:01:25.148 - 00:01:50.730, Speaker A: Today is, what is Fry for, and how does Fry work? So, Fry stands for the fast read Solomon interactive oracle proof of proximity. And I did a talk a few months ago that sort of unpacked that terminology a little bit today. The sort of objective is to look a little bit more closely at the actual mechanics.
+00:01:50.890 - 00:01:59.522, Speaker B: So what Fry is for is proving that a vector commitment is a Reed Solomon code word.
+00:01:59.576 - 00:02:16.006, Speaker A: Or technically, is close to a Reed Solomon code word. You can think of this as a low degree polynomial. So, ZK protocols typically are obsessed with polynomials. Everything in ZK is a polynomial, it seems.
+00:02:16.188 - 00:02:20.906, Speaker B: And if I send a vector, I.
+00:02:20.928 - 00:03:02.946, Speaker A: Need to make sure often that that vector actually corresponds to a low degree polynomial. So Fry is the tool that in risk zero. And in many ZQ protocols, Fry is the tool that convinces the verifier that the commitment is actually a polynomial commitment. So I'll just say a little bit more about this low degreeness here. What we do in the context of risk zero's protocol is we encode some stuff as a polynomial. And then we do some arithmetic to it that sort of checks the constraints. And if those constraints are satisfied, the result of that arithmetic will be a low degree polynomial.
+00:03:02.946 - 00:03:21.740, Speaker A: So by checking that the result is a low degree polynomial, we are effectively checking that the constraints were actually satisfied. So the talk that I did a couple of weeks ago about quotients in VK protocols is the details of the arithmetic that I'm discussing there.
+00:03:23.250 - 00:03:25.646, Speaker B: The way that fry works at a.
+00:03:25.668 - 00:03:56.662, Speaker A: Very sort of high level, and we'll look at this in much more detail as we go, is you sort of fold your commitment into smaller and smaller pieces. So you start with something giant. You turn it into something half the size, and then again half the size, and then again half the size. And then at the end, the verifier does some queries in order to make sure that that folding was actually done properly. So a roadmap for our next hour.
+00:03:56.716 - 00:03:59.446, Speaker B: Ish together, we're going to have a.
+00:03:59.468 - 00:04:40.066, Speaker A: Brief overview of the RISC zero ZKP protocol. We're going to look at Merkel trees as vector commitments. Then we're going to talk about the idea of connecting the dots between a vector commitment or a Merkel commitment with a polynomial commitment. We're going to look at a sort of naive version of this, which is going to serve as motivation for the fry protocol itself. And then we'll spend the bulk of our time actually looking at the inside of fry. The mechanics of the commit phase, the mechanics of the query phase. The commit phase is this folding that I referenced earlier.
+00:04:40.066 - 00:05:17.486, Speaker A: And we're going to describe folding in terms of two kind of key components. First a split and then a mix. So this is the same slide that I've used on a number of presentations before. Just a really sort of bird's eye view of what we do at RiSC zero. We execute the ZKVM. And the ZKVM generates an execution trace, and we encode each column of that execution trace. The execution trace is like a big rectangle, each column of which is like one register of the machine.
+00:05:17.486 - 00:05:42.806, Speaker A: And each row is one clock cycle of the execution. And we take each of the columns and we encode that as a polynomial, as a read Solomon code word. And then we do this stark stuff, this quotient stuff, to those trace blocks. And we need to make sure at the end that the result is still a low degree polynomial is a valid.
+00:05:42.838 - 00:05:44.380, Speaker B: Reed Solomon code word.
+00:05:45.390 - 00:05:49.014, Speaker A: So these steps, in slightly more succinct.
+00:05:49.062 - 00:05:53.118, Speaker B: Description, look like this last time we.
+00:05:53.124 - 00:05:58.846, Speaker A: Looked in detail at this third step, this quotient inside zk. And this time, we're looking at this.
+00:05:58.868 - 00:06:12.850, Speaker B: Last step, the fry protocol questions. Okay, cool. So, on the risk zero receipt, there.
+00:06:12.920 - 00:06:50.670, Speaker A: Lives a thing that we call the seal. And the seal is the zk proof at the heart of our technology. And the seal consists of a bunch of Merkel commitments. So I want to just sort of talk about the idea of Merkel trees as a way to commit to a vector. So let's suppose that we want to commit to some eight term vector. Zk summit is the vector here. I could create a Merkel tree where each leaf is one entry of that vector, and then the root will be the commitment.
+00:06:50.670 - 00:07:05.490, Speaker A: So, the first step of the protocol, we take those columns, we encode them as read solomon code words, and we write the root of those vectors to the seal.
+00:07:05.930 - 00:07:07.490, Speaker B: And then we do a bunch of math.
+00:07:07.570 - 00:07:08.646, Speaker A: And then at the end, we need.
+00:07:08.668 - 00:07:11.542, Speaker B: To convince you that all of these.
+00:07:11.596 - 00:07:16.310, Speaker A: Vector commitments are actually correspond to polynomials.
+00:07:21.540 - 00:07:22.290, Speaker B: So.
+00:07:24.180 - 00:07:39.840, Speaker A: Let me take a second and just unpack what I mean by a polynomial commitment. Rather than thinking of this as just a vector, z and then k and then s, I could instead think of this as a commitment to some polynomial.
+00:07:39.920 - 00:07:45.168, Speaker B: Called f. And f has an evaluation.
+00:07:45.344 - 00:08:12.156, Speaker A: At a particular point. F evaluates to z at one point, and f evaluates to k at another point. F evaluates to s at another point. So I need to mess with my screen here. Sorry. So, the prover is making an assertion that the leaves of this Merkel tree.
+00:08:12.268 - 00:08:17.264, Speaker B: Are evaluations of f. And the sort.
+00:08:17.302 - 00:08:26.916, Speaker A: Of crux of today's presentation is, why should the verifier actually believe that the leaves of this merkel tree are some.
+00:08:27.018 - 00:08:31.060, Speaker B: Polynomial, or are evaluations of some polynomial?
+00:08:33.400 - 00:08:39.080, Speaker A: So the naive solution here is just to send all the data, send the.
+00:08:39.150 - 00:08:44.264, Speaker B: Verifier the evaluations, and then let the.
+00:08:44.302 - 00:09:25.872, Speaker A: Verifier interpolate those evaluations. And interpolation is a technique that converts evaluations of a polynomial into coefficients of a polynomial. So Bolton did a talk a couple of months ago about number theoretic transforms and inverse number theoretic transforms. And that is the interpolation technique that occurs within risk zero. The more efficient solution here is the fry protocol. So the naive solution is just send all the leaves and interpolate. Sending all the leaves is too much data to send the verifier.
+00:09:25.872 - 00:10:09.590, Speaker A: The verifier doesn't want to deal with all of this data. And asking the verifier to do that interpolation is too much of a computational burden for the verifier. So what we're trying to do here is to try to minimize the amount of data we have to have the verifier deal with and try to minimize the amount of computation that the verifier has to do. And Fry gives us a way to convince the verifier that the Merkel commitment corresponds to evaluations of a low degree polynomial. Without dealing with this huge amount of data, and without having to do a huge amount of work. I've said kind of a lot over the past minute or two questions at this point.
+00:10:16.190 - 00:10:16.940, Speaker B: So.
+00:10:19.890 - 00:10:21.680, Speaker A: What does Fry look like?
+00:10:23.010 - 00:10:28.126, Speaker B: Fry, initially, we have a big polynomial here.
+00:10:28.228 - 00:10:55.226, Speaker A: I have a polynomial with 20 evaluations. Maybe this is like a degree ten polynomial. And the verifier doesn't want to deal with something that big. In practice, we're looking at numbers in the hundreds of thousands or millions rather than in the tens. But for sake of simplicity, I'll keep it small here. So the verifier just sends back a.
+00:10:55.248 - 00:10:58.666, Speaker B: Random value, and the prover uses that.
+00:10:58.688 - 00:11:08.506, Speaker A: Random value to construct something smaller. And the verifier says, okay, yeah, that's still kind of big. And so the verifier sends another random.
+00:11:08.538 - 00:11:12.366, Speaker B: Value, and the prover again uses the.
+00:11:12.388 - 00:11:26.898, Speaker A: Random value in order to construct something smaller. And after sufficiently many rounds of this, the verifier says, okay, yeah, that's fine. I can just check that myself. I can do the interpolation. It's not actually so expensive for me.
+00:11:26.904 - 00:11:28.290, Speaker B: To do that interpolation.
+00:11:29.510 - 00:11:39.138, Speaker A: So just to be clear here, these first couple of rounds, the prover is not actually sending all of this data. The prover is just sending a Merkel.
+00:11:39.154 - 00:11:40.440, Speaker B: Route for that data.
+00:11:40.890 - 00:11:42.914, Speaker A: And then at the end, the prover.
+00:11:42.962 - 00:11:52.938, Speaker B: Is actually sending the full data here. So in the example that we're going.
+00:11:52.944 - 00:12:26.166, Speaker A: To look at today, and in the protocol, as it's described in the literature, we go all the way until the polynomial becomes constant. In practice, it's more efficient to stop a bit early. We stop in risk zero when the polynomial has 256 coefficients is the stopping point here. And that means the verifier does have to actually do a nontrivial interpolation. But interpolating, it's going to be like 1000 points. That amount of interpolation is sufficient to.
+00:12:26.188 - 00:12:27.960, Speaker B: Just have the verifier do it.
+00:12:30.490 - 00:12:46.860, Speaker A: So now we're going to start looking at actual polynomials, and there's going to start being a decent amount of algebra on the screen over the next few minutes. So if you have questions about the sort of like, motivation, high level stuff, now is a good time to ask.
+00:12:51.460 - 00:13:00.100, Speaker C: Yeah, is the verifier also keeping and using numerical roots, or is it just eventually using.
+00:13:00.250 - 00:13:01.204, Speaker A: I didn't quite hear your question.
+00:13:01.242 - 00:13:02.390, Speaker B: Can you repeat it?
+00:13:03.000 - 00:13:10.440, Speaker C: Is the verifier the roots that get sent to it? Is it making use of those to verify, or is it just using the leaf?
+00:13:11.260 - 00:13:43.552, Speaker A: In the query phase, the verifier will make use of that information. We will provide some branches of each of those Merkel routes. But in this initial phase that I've described so far, the verifier is literally just pulling a random value. Or in the context of real life protocols, we do this non interactively. And so the hash of that merkel root is going to be the random value.
+00:13:43.606 - 00:13:44.320, Speaker B: That's.
+00:13:44.660 - 00:14:27.904, Speaker A: That's the I'm referencing here. The fiat shamir heuristic is the term here. The prover makes a commitment, and instead of having a real interaction with a verifier, we use just the hash of the commitment as a sort of simulated randomness. The fiat shimmer heuristic comes up all the time in ZK. It's basically the technique for taking an interactive protocol and turning it into something that can be run statically without having to have a verifier and prover dynamically interacting. So in real life, we don't actually wait around for a prover and verifier to have real time communication. We need to be able to just.
+00:14:27.942 - 00:14:33.682, Speaker B: Run this on a machine. Good question.
+00:14:33.816 - 00:14:34.820, Speaker A: Any others?
+00:14:35.350 - 00:14:36.420, Speaker B: For now.
+00:14:40.940 - 00:15:10.656, Speaker A: Okay, so as we're diving into the mechanics here, I want to just point out that we have this explainer on the website, which it had been called constructing a seal. And we've updated the name. It's now called Stark by hand. And in this stark by hand explainer, we have a pretty explicit construction of a simplified version of the risk zero protocol. It's a fibonacci example.
+00:15:10.838 - 00:15:13.156, Speaker B: It's built in Google sheets, and you.
+00:15:13.178 - 00:15:44.936, Speaker A: Can actually sort of look inside each step of the risk zero protocol in order to see the mechanics step by step. And over the course of preparing for this study club talk, we added a couple more lessons to that. It previously had stopped at the beginning of Fry, and now it goes through the mechanics of Fry. Basically, the rest of this presentation is going to walk through lessons eleven and twelve of the stark by hand explainer.
+00:15:44.968 - 00:15:46.030, Speaker B: That'S on the website.
+00:15:48.260 - 00:15:49.010, Speaker A: So.
+00:15:50.740 - 00:15:52.844, Speaker B: I've sort of given a preview.
+00:15:52.892 - 00:16:00.672, Speaker A: Of this a couple of times, but repetition is useful. The protocol proceeds in this way.
+00:16:00.726 - 00:16:03.044, Speaker B: The prover sends a Merkel route to.
+00:16:03.082 - 00:16:38.476, Speaker A: Sort of kick things off. The verifier sends back some randomness. And then I said before that the prover uses that randomness in order to construct a smaller polynomial. Smaller in the sense of its lower degree, and smaller in the sense of the Merkel tree has less leaves. And what I mean, by it uses that randomness to construct something smaller. It first does this thing that I refer to as a split, and then it mixes the results of that split. And this is an iterative process.
+00:16:38.476 - 00:16:44.892, Speaker A: So we do this a number of times. I show it twice here, but it happens more than twice in the context.
+00:16:44.956 - 00:16:49.996, Speaker B: Of the protocol itself. So again, I'll just comment.
+00:16:50.028 - 00:16:54.804, Speaker A: Each polynomial, at least in the example we're using here, has half the number.
+00:16:54.842 - 00:16:57.764, Speaker B: Of coefficients as the previous polynomial, and.
+00:16:57.802 - 00:17:37.708, Speaker A: Each Merkel tree has half the number of leaves as the previous Merkel tree. In the full protocol, or in the risk zero protocol, we actually use a split factor, a folding factor of 16 rather than a factor of two. So it shrinks by a factor of 16 at each step. Okay, let's dive into what splitting actually looks like in the context of a real life polynomial. And this is taken directly from the start by hand explainer. So you can check this out on the website in a little more detail, or certainly more written detail than what's.
+00:17:37.724 - 00:17:39.040, Speaker B: Going to be on these slides.
+00:17:40.100 - 00:17:41.596, Speaker A: So we're looking here at a degree.
+00:17:41.628 - 00:17:45.892, Speaker B: Seven polynomial, which has eight coefficients, and.
+00:17:45.946 - 00:17:48.660, Speaker A: We need to split it into two parts.
+00:17:49.000 - 00:17:49.988, Speaker B: And the way that we're going to.
+00:17:49.994 - 00:18:13.740, Speaker A: Do that is we're going to take the parts that have an even exponent. So the first term here has x to the zero th as an exponent. So even exponents and odd exponents. And we're then going to sort of reduce that to each of these into a smaller polynomial.
+00:18:14.320 - 00:18:19.736, Speaker B: So the blue polynomial here is the.
+00:18:19.778 - 00:18:33.220, Speaker A: First part of the split. The orange polynomial here is the second part of the split. And we've taken a polynomial that had eight coefficients, and we've split it into two polynomial with four coefficients.
+00:18:34.040 - 00:18:35.904, Speaker B: So if you were using a splitting.
+00:18:35.952 - 00:18:45.130, Speaker A: Factor of 16 rather than of two, you would have 16 groups here, and they would each be one 16th the size rather than half the size.
+00:18:46.780 - 00:18:48.520, Speaker B: Questions about splitting.
+00:18:52.450 - 00:18:53.738, Speaker A: Relatively straightforward.
+00:18:53.834 - 00:18:54.960, Speaker B: Oh, yeah, go ahead.
+00:18:56.290 - 00:19:02.866, Speaker C: If you're splitting by 16, do you have a different random coefficient for each of the ones beside the first one or not?
+00:19:03.048 - 00:19:04.930, Speaker A: One more time, you were a little fuzzy.
+00:19:06.150 - 00:19:15.220, Speaker C: If you're splitting by 16 instead of by two, do you have a different random coefficient given by the verifier for each of those or not?
+00:19:16.070 - 00:19:18.754, Speaker A: At this point, there's no randomness yet.
+00:19:18.792 - 00:19:25.210, Speaker B: This is a fully deterministic step at the mixing stage.
+00:19:27.390 - 00:19:31.418, Speaker A: You'll still just have one randomness here, and I'll say a little bit more.
+00:19:31.504 - 00:19:36.160, Speaker B: About the randomness as we get there.
+00:19:36.530 - 00:19:42.110, Speaker A: Both on the next couple of slides. And again at the end of the presentation when we talk about batching.
+00:19:43.330 - 00:19:47.806, Speaker B: But in the mixing here, we do.
+00:19:47.908 - 00:19:52.030, Speaker A: Just have one random variable, regardless of the split vector.
+00:19:53.270 - 00:19:55.890, Speaker B: And we use powers of that randomness.
+00:19:56.950 - 00:19:58.900, Speaker A: I'll reference that later on.
+00:20:00.710 - 00:20:02.594, Speaker B: So, on the last slide, we constructed.
+00:20:02.642 - 00:20:18.890, Speaker A: These two parts through this splitting technique that I referenced. And now we need to combine these two parts into a single polynomial. And the way that we're going to do that is add the polynomials term by term, using the verifier provided randomness.
+00:20:19.310 - 00:20:21.786, Speaker B: So, just to be clear about what.
+00:20:21.808 - 00:20:46.210, Speaker A: I mean by term by term here, if we're using a randomness of twelve. And by the way, these polynomials are, we're thinking over the field of order 97 here. So we're thinking modulo 97 as we continue here. That's just because the example that I built in Google sheets a bunch of months ago used the field of order 97. So, to add term by term.
+00:20:49.110 - 00:20:49.426, Speaker B: The.
+00:20:49.448 - 00:21:27.966, Speaker A: Blue polynomial remains untouched. And the orange polynomial is sort of weighted based on the randomness. So here I show the first couple additions here. Algebraically, the next commitment is going to be the blue polynomial plus the randomness times the orange polynomial. And kai, to get back to your question here, if there was 16 terms in this list here, we would have. The next one would have r squared, and the one after that would have r cubed. The one after that would have r to the fourth.
+00:21:27.966 - 00:21:32.260, Speaker A: So we use powers of the randomness as the weighting for each of those terms.
+00:21:35.770 - 00:21:40.854, Speaker B: So, just expanding that out, this is.
+00:21:40.892 - 00:21:54.090, Speaker A: The same expression in terms of the actual numbers. Now we can group terms and reduce modulo 97. And we get a polynomial that only has four coefficients and is just one polynomial.
+00:21:55.650 - 00:21:57.694, Speaker B: So we've now seen the kind of.
+00:21:57.732 - 00:22:07.860, Speaker A: Core mechanic of the commit phase of fry. You start with a polynomial, you split it into pieces. You use randomness to combine those into a single piece.
+00:22:09.750 - 00:22:24.140, Speaker B: Questions? Cool. So again, by splitting and then mixing.
+00:22:25.680 - 00:22:56.292, Speaker A: The term in the fry paper is just folding these terms, splitting and mixing, I haven't actually seen referenced elsewhere. We use them in the risc zero zkp white paper. They're super helpful for me to conceptualize what's going on here. The language in the original fry paper says something like folding using an algebraic hash function. And the algebraic hash function is this.
+00:22:56.426 - 00:23:07.608, Speaker B: So you're trying to read the fry paper and getting confused by that. Hopefully, this clarifies it a little bit. So, if we repeated this process a.
+00:23:07.614 - 00:23:39.516, Speaker A: Couple more times, we would go from eight coefficients to four coefficients. And then to two coefficients and then to a single coefficient. So we'd have a constant polynomial after three rounds of folding. So let's revisit what actually is getting sent from the prover to the verifier as we're doing this folding. The description that I just gave was in terms of the coefficients of the.
+00:23:39.538 - 00:23:42.144, Speaker B: Polynomial and what the prover is actually.
+00:23:42.182 - 00:23:50.796, Speaker A: Doing with those polynomials at each step is evaluating them over some collection of points, constructing a Merkel tree, and sending.
+00:23:50.828 - 00:23:52.640, Speaker B: The root of that merkel tree.
+00:23:54.440 - 00:24:06.230, Speaker A: So in this sort of 0th round, to kick off the protocol, we called the polynomial f zero. It has eight coefficients. In other words, it's degree seven.
+00:24:07.100 - 00:24:13.690, Speaker B: And in our case, we're committing it over 32 points.
+00:24:14.220 - 00:24:16.056, Speaker A: This is what's referred to as a.
+00:24:16.078 - 00:24:18.440, Speaker B: Blow up factor of eight.
+00:24:18.510 - 00:24:27.470, Speaker A: Oh, sorry, a blow up factor of four. This is matching with our reed Solomon expansion, had a blow up factor of four here.
+00:24:30.320 - 00:24:33.776, Speaker B: And in the next stage, we cut.
+00:24:33.798 - 00:24:44.788, Speaker A: It down to half the number of coefficients, which is not exactly half the degree because of off by one stuff. And similarly, we cut the size of.
+00:24:44.794 - 00:24:49.124, Speaker B: The merkel tree in half, and we continue.
+00:24:49.322 - 00:24:51.876, Speaker A: At the next stage, we have a.
+00:24:51.898 - 00:24:56.084, Speaker B: Degree one polynomial, a linear polynomial with.
+00:24:56.202 - 00:25:06.004, Speaker A: Half the number of leaves in the Merkel tree. And finally, we have a constant polynomial with again half the number of leaves.
+00:25:06.052 - 00:25:07.400, Speaker B: In the Merkel tree.
+00:25:10.170 - 00:25:31.974, Speaker A: So these first few commitments are actually Merkel commitments. This last one I sort of misspoke. A second ago, I said half the number of leaves in the merkel tree. There isn't actually a Merkel tree for this last stage. This is just sent as a plain text commitment. You just sort of send the evaluations.
+00:25:32.022 - 00:25:33.420, Speaker B: At the relevant points.
+00:25:36.790 - 00:25:38.562, Speaker A: What do I mean by the relevant points?
+00:25:38.616 - 00:25:39.220, Speaker B: Here.
+00:25:41.270 - 00:25:59.910, Speaker A: We choose a 32nd root of unity to index our commitments here. So f zero, we evaluate at 28. So 28 is a 32nd root of unity in the field of order 97. So that's a little bit of context to note.
+00:26:00.250 - 00:26:01.686, Speaker B: So what I mean by that is.
+00:26:01.708 - 00:26:09.706, Speaker A: If you just write 28 and then 28 squared and then 28 cubed and then 28 to the fourth, it will take you 32 steps before you get.
+00:26:09.728 - 00:26:11.002, Speaker B: Back to where you started.
+00:26:11.136 - 00:26:13.100, Speaker A: In other words, or I guess.
+00:26:15.650 - 00:26:16.286, Speaker B: 28.
+00:26:16.308 - 00:26:18.094, Speaker A: To the 32nd power is equal to.
+00:26:18.132 - 00:26:21.760, Speaker B: One is the succinct way to describe it.
+00:26:23.250 - 00:26:24.640, Speaker A: So, for this first.
+00:26:26.390 - 00:26:29.694, Speaker B: Commitment, we evaluate.
+00:26:29.742 - 00:26:37.854, Speaker A: F zero at each power of 28. And for the next commitment, we evaluate.
+00:26:37.902 - 00:26:45.240, Speaker B: F one at each power of 28 squared, which has, it's half as many.
+00:26:45.770 - 00:26:50.278, Speaker A: For the next one, we evaluate f two at each power of 28 to.
+00:26:50.284 - 00:26:54.022, Speaker B: The fourth and finally, we evaluate f.
+00:26:54.076 - 00:26:57.990, Speaker A: Three at each power of 28 to the 8th.
+00:27:02.370 - 00:27:13.330, Speaker B: Questions. Okay, it.
+00:27:13.700 - 00:27:32.244, Speaker A: So we've seen the core mechanic of the committing is the mixing and splitting. And after each or, sorry, splitting and mixing, I guess I should say. And after each iteration of that splitting and mixing, we evaluate the results at.
+00:27:32.362 - 00:27:33.590, Speaker B: A number of points.
+00:27:35.240 - 00:28:04.640, Speaker A: And after this, the verifier has received some merkel roots and at the end, some evaluations of polynomial, a constant polynomial. So really has just received some merkel roots and then some raw data. And the verifier needs a mechanism to kind of check that the folding was.
+00:28:04.710 - 00:28:10.108, Speaker B: Done in accordance with the randomness that the verifier actually provided.
+00:28:10.284 - 00:28:14.400, Speaker A: So the queries serve as a random challenge.
+00:28:15.640 - 00:28:22.532, Speaker B: And because we're using a blow up factor of four, each query has about.
+00:28:22.586 - 00:28:53.600, Speaker A: A three four chance of catching a cheating prover. In other words, each query provides about two bits of Security. And I have an asterisk that maybe should be bigger than it is here. This is a massive oversimplification of the security analysis here. But for the context of this talk, I'm more interested in describing the mechanics of Fry than the security analysis of Fry.
+00:28:58.500 - 00:29:04.560, Speaker B: So, as an example, if the verifier.
+00:29:05.240 - 00:29:10.230, Speaker A: Specifies some point g, so this is going to be one of those powers of 28.
+00:29:11.000 - 00:29:15.030, Speaker B: The prover is going to send the.
+00:29:15.800 - 00:29:20.360, Speaker A: Evaluations of the first polynomial at g.
+00:29:20.430 - 00:29:27.928, Speaker B: And negative g along with the associated Merkel branches, and is going to send.
+00:29:28.014 - 00:29:50.606, Speaker A: The evaluations of the next polynomial at g squared and negative g squared again along with the Merkel branches. The next polynomial at g to the fourth and negative g to the fourth. And the verifier already has the evaluations of f cubed at g to the.
+00:29:50.628 - 00:29:52.880, Speaker B: 8Th, is the sort of key point.
+00:29:54.610 - 00:30:05.410, Speaker A: And in addition to checking the Merkel branches, the verifier can check the round by round consistency of those evaluations.
+00:30:06.150 - 00:30:09.510, Speaker B: So, in particular, the evaluation.
+00:30:11.450 - 00:30:16.354, Speaker A: At the second stage is determined by the evaluations.
+00:30:16.402 - 00:30:20.670, Speaker B: At the first stage and the randomness involved.
+00:30:20.850 - 00:30:27.274, Speaker A: So this is the kind of key point here, is that this splitting and.
+00:30:27.312 - 00:30:31.290, Speaker B: Mixing technique can be described locally.
+00:30:31.790 - 00:30:37.886, Speaker A: You don't actually need to know all the coefficients or all the evaluations in.
+00:30:37.908 - 00:30:41.406, Speaker B: Order to be able to check, in.
+00:30:41.428 - 00:30:53.582, Speaker A: A local sense, that this was done faithfully. And this is extremely similar to what's going on in the FFT algorithm or the NTT algorithm.
+00:30:53.646 - 00:30:55.060, Speaker B: They're the same thing.
+00:30:55.670 - 00:31:22.306, Speaker A: NTT is just the finite field version of an FFT, but the efficiency of the FFT algorithm, and in this case, the efficiency of the fry protocol sort of comes down to the fact that if you choose your evaluation points cleverly, in particular, if you use these roots of unity, and then squares and fourth powers and 8th powers of a root.
+00:31:22.338 - 00:31:28.106, Speaker B: Of unity, this particular splitting and mixing.
+00:31:28.138 - 00:31:38.450, Speaker A: Operation is a purely local operation. I'll comment. It's the split part that is essentially the FFT algorithm.
+00:31:40.150 - 00:31:40.900, Speaker B: So.
+00:31:43.030 - 00:31:51.702, Speaker A: The evaluation of f one at g squared, I said, is determined by those two evaluations, f zero of g.
+00:31:51.756 - 00:31:55.618, Speaker B: And f zero of negative g. Similarly.
+00:31:55.794 - 00:32:00.986, Speaker A: The evaluation f, sub two of g to the fourth is determined by the.
+00:32:01.008 - 00:32:01.690, Speaker B: Previous.
+00:32:03.710 - 00:32:06.486, Speaker A: By the evaluations from the previous round.
+00:32:06.678 - 00:32:07.740, Speaker B: And finally.
+00:32:11.630 - 00:32:26.190, Speaker A: The raw data, the unmercalized data that the prover sent at the end of it all should match up with the values sent at the next to last round.
+00:32:27.830 - 00:32:36.100, Speaker B: So queries are the hard part questions at this point. It's sort of a lot that I just went through.
+00:32:40.230 - 00:32:51.834, Speaker D: I have one you mentioned, correct me if I'm wrong, that the risk zero protocol reduces down to a polynomial of 256 coefficients.
+00:32:51.902 - 00:32:52.134, Speaker B: Right.
+00:32:52.172 - 00:32:58.360, Speaker D: I'm guessing that is what sent plain text at the end of the folding process.
+00:32:59.370 - 00:33:00.120, Speaker B: Correct.
+00:33:01.290 - 00:33:16.058, Speaker D: Okay, next question is you've outlined a folding process where the coefficients reduce by like a factor of two. And you mentioned that risk zero reduces by a factor of 16, correct?
+00:33:16.144 - 00:33:16.780, Speaker B: Right.
+00:33:17.490 - 00:33:37.646, Speaker D: What parameters need to change in the folding process to do that? Reduction by 16 instead of a reduction by two, I guess because you're showing, you're splitting even in odd coefficients. What would you split by instead for a reduction of 16?
+00:33:37.838 - 00:33:45.814, Speaker A: So you sort based on the remainder modulo 16. So I would pair the first term with the 17th term and the second.
+00:33:45.852 - 00:33:47.746, Speaker B: Term with the 18th term.
+00:33:47.938 - 00:33:51.218, Speaker A: So in this case I was sorting based on the remainder when you divide.
+00:33:51.234 - 00:33:53.654, Speaker D: By two, and if you want, based.
+00:33:53.692 - 00:34:21.380, Speaker A: On 16, you sort based on the remainder when you divide by 16. And I'll comment at this point also, the number of evaluations sent at each stage here is going to correspond to that splitting factor. So here I was splitting by two and sending two evaluations at each step here. And if I'm in our protocol, we're splitting by a factor of 16 and sending 16 evaluations at each step.
+00:34:24.230 - 00:34:33.666, Speaker D: I'm guessing you also have to make sure that whatever entroputes of unity you're using have to exist within the finite field that you've chosen as well.
+00:34:33.768 - 00:34:34.420, Speaker B: Yeah.
+00:34:35.350 - 00:34:37.000, Speaker D: Align that up as well.
+00:34:37.690 - 00:34:38.102, Speaker B: Yeah.
+00:34:38.156 - 00:34:45.414, Speaker A: There's this term of an FFT friendly finite field or NTT friendly finite field. And that refers to.
+00:34:45.452 - 00:34:45.798, Speaker B: Exactly.
+00:34:45.884 - 00:35:14.450, Speaker A: This is we need to make sure that there exists a root of unity of the particular size that we want in order to be able to do the fry protocol. So the reason that the Goldilocks field and the baby bear field are so nice is because they're a relatively small field for how big of a power of two.
+00:35:14.600 - 00:35:18.174, Speaker B: Or. Sorry. How they have a root of unity.
+00:35:18.222 - 00:35:24.562, Speaker A: With a large power of twoness. I feel like I can say that.
+00:35:24.616 - 00:35:32.966, Speaker B: More precise, more succinctly, but hopefully, I.
+00:35:32.988 - 00:35:34.658, Speaker A: Got my point across there.
+00:35:34.844 - 00:35:35.194, Speaker B: Yeah.
+00:35:35.232 - 00:35:45.100, Speaker A: We need a root of unity with multiplicative order. With a high power of two multiplicative order.
+00:35:46.430 - 00:35:58.910, Speaker D: Is that so? Like, as you're. When you're doing the number of evaluations and you're doing that reduction, you're slowly also finding smaller subgroups?
+00:36:01.590 - 00:36:11.474, Speaker A: Well, we just sort of. Like, if we have a root of unity that, say, has multiplicative order two.
+00:36:11.512 - 00:36:15.758, Speaker B: To the 10th, then, well, I'll say.
+00:36:15.784 - 00:36:19.702, Speaker A: I should say two to the 16th, then the square of that will have.
+00:36:19.756 - 00:36:22.514, Speaker B: Multiplicative order two to the 8th.
+00:36:22.562 - 00:36:45.840, Speaker A: And the square of that will have multiple. I guess the square of that will have multiplicative order two to the 15th. The choice of root of unity at the beginning. Determines the roots of unity moving on down the chain as it's jumbled. I got it.
+00:36:49.010 - 00:36:50.194, Speaker B: Any other questions?
+00:36:50.312 - 00:36:57.380, Speaker A: Or if anybody else feels like they can more want to clarify what was struggling to come out of my mouth just now?
+00:37:05.180 - 00:37:10.956, Speaker B: Okay, cool. So, yeah, we've gotten through the kind.
+00:37:10.978 - 00:37:16.270, Speaker A: Of core mechanics of the fry protocol. The protocol consists of.
+00:37:18.560 - 00:37:22.876, Speaker B: A commit phase, which has a number of rounds.
+00:37:22.988 - 00:37:25.372, Speaker A: And at each round, we do this folding.
+00:37:25.516 - 00:37:29.356, Speaker B: And then after the final commit, there's.
+00:37:29.388 - 00:37:32.800, Speaker A: A number of queries. And for each query.
+00:37:33.320 - 00:37:37.172, Speaker B: So we've seen one query here, and.
+00:37:37.226 - 00:37:48.292, Speaker A: In our case, we have 50 queries, which drives our hundred bits of security. So there's one more aspect of fry.
+00:37:48.356 - 00:37:50.760, Speaker B: That I want to touch on before.
+00:37:50.830 - 00:37:55.480, Speaker A: We close, which is this idea of fry batching.
+00:37:56.060 - 00:38:00.524, Speaker B: So, in practice, we don't actually just.
+00:38:00.562 - 00:38:03.356, Speaker A: Have one polynomial that we're interested in.
+00:38:03.538 - 00:38:07.596, Speaker B: Asserting the low degreeness of.
+00:38:07.778 - 00:38:10.060, Speaker A: We have a number of polynomials.
+00:38:10.740 - 00:38:16.290, Speaker B: So what if you want to run fry on a bunch of polynomials, you batch them.
+00:38:17.460 - 00:38:51.980, Speaker A: So, batching uses this mix operation in order to compress a bunch of polynomials into a single polynomial. And this notion comes up kind of all over the place. It's not limited to this context. It's not limited to fry at all. So, if there's. In terms of Zk tools to have in your tool belt, the idea of using randomness to compress a bunch of things into a single thing is a very common technique.
+00:38:54.080 - 00:38:57.564, Speaker B: So if we just have two, we.
+00:38:57.602 - 00:39:24.310, Speaker A: Batch them and run fry on the result. And the batching here would look exactly as the mixing that I described earlier. I'm switching from f to g here. Just to clarify that the subscripts here are not successive rounds of fry, but rather separate things or separate polynomials that are being batched together.
+00:39:27.260 - 00:39:31.444, Speaker B: If we have more than two polynomials.
+00:39:31.492 - 00:40:01.504, Speaker A: That we want to batch, we have a couple of options. One is called afine batching. And the other is called parametric batching. And this is circling back to the question that Kai asked earlier. In affine batching, we choose a number of independent random numbers. We choose, in this case, n random numbers. Whereas in the parametric batching, we just choose a single random number.
+00:40:01.504 - 00:40:12.980, Speaker A: And we use powers of that random number. So you can run the fry protocol either with affine batching or with parametric batching.
+00:40:15.400 - 00:40:16.870, Speaker B: I believe that.
+00:40:21.720 - 00:40:39.580, Speaker A: The eth stark paper definitely uses affine batching. The original fry or the proximity gaps soundness argument is framed in terms of appion batching. We use parametric batching. I think that plonkey two also uses parametric batching.
+00:40:40.660 - 00:40:41.760, Speaker B: And there's.
+00:40:43.860 - 00:40:59.460, Speaker A: A slight impact in terms of the soundness and a slight impact in terms of the efficiency here. And I'm not going to get into the engineering optimization of why you might choose one or the other. I'll just comment on the fact that.
+00:40:59.530 - 00:41:10.484, Speaker B: We are using parametric batching. So, yeah, that was the hopefully slightly.
+00:41:10.532 - 00:41:15.140, Speaker A: Less intense fire hose of Fry. If you've been trying to consume fry.
+00:41:15.220 - 00:41:18.732, Speaker B: Materials, I certainly have found that learning.
+00:41:18.786 - 00:41:25.580, Speaker A: About fry has been a major challenge. And my aim here has been to make it a little bit easier.
+00:41:27.520 - 00:41:32.380, Speaker B: I think that's the end of my materials.
+00:41:32.460 - 00:41:36.850, Speaker A: So if anybody has any questions, I'm happy to take a few minutes of questions.
+00:41:38.420 - 00:41:52.562, Speaker B: Otherwise, we can close a little early. Sorry, can we see the previous slide? Because you just. Yeah, sorry.
+00:41:52.696 - 00:42:08.534, Speaker A: Thank you. Oh, there's also a question in the chat. Should I read it to you? Or do you want to look at yourself? I'm happy to ask the question in the chat.
+00:42:08.582 - 00:42:15.594, Speaker B: That was me. I was curious if there's some write up or overview of this series, this lecture series.
+00:42:15.642 - 00:42:16.606, Speaker C: I just sort of found out about.
+00:42:16.628 - 00:42:19.566, Speaker A: This today and jumped right in.
+00:42:19.748 - 00:42:20.480, Speaker B: Absolutely.
+00:42:21.330 - 00:42:47.110, Speaker A: Risczero.com study club has links to all the talks that we've done in the past. And the stark by hand explainer is. So the study club, we started with, like, an introduction to finite fields. And then an introduction to Reed Solomon encoding. And then we did one on number theoretic transforms.
+00:42:48.730 - 00:42:49.894, Speaker B: I don't know that I can name.
+00:42:49.932 - 00:42:56.380, Speaker A: All of the ones we've done off the top of my head, but yeah, the risk zero study club is where they live.
+00:42:58.030 - 00:43:03.366, Speaker D: I have one question about constructing the merkel tree.
+00:43:03.558 - 00:43:04.300, Speaker B: Sure.
+00:43:05.390 - 00:43:14.774, Speaker D: When you're doing just how constructing Merkel tree fits into the overall protocol, are you recreating the merkel tree after every fold?
+00:43:14.922 - 00:43:15.620, Speaker B: Yes.
+00:43:16.950 - 00:43:40.730, Speaker A: So you start with Merkel. In this example, the first Merkel tree would have 32 leaves f of 28. F of 28 to the first, f of 28 to the second, and then the second Merkel tree would have 16 leaves f of 28 squared, f of 28 to the fourth. But yeah, we're making a merkel tree for each round of the commit phase.
+00:43:41.310 - 00:43:56.218, Speaker D: So why are you making all of these merkel trees when you just want to send the final Merkel tree, which is this either constant polynomial or fixed degree polynomial?
+00:43:56.314 - 00:44:43.790, Speaker A: The goal is to convince the verifier that the initial set of evaluations is if they were to interpolate that they would get something low degree, and it's not practical to ask them to interpolate such a large set. So we do this folding and folding and folding. They interpolate something quite small, and then they do some spot checks. And based on the fact that the final thing was low degree and the spot checks are satisfied, they are able to be convinced that the original thing, which they never even saw all of the leaves for, was a low degree polynomial.
+00:44:46.290 - 00:45:09.910, Speaker D: Okay, so constructing all of these intermediate Merkel trees are used for spot checking, I guess, in order to. Or I guess the verifier doesn't want to interpolate with a Merkel tree with a really large amount of leaves. It's a lot of work. Rather wait to interpolate on something much smaller.
+00:45:10.330 - 00:45:10.886, Speaker B: Exactly.
+00:45:10.988 - 00:45:14.280, Speaker A: Yeah. Sorry, did I interrupt you?
+00:45:14.970 - 00:45:29.478, Speaker D: But then on each round. Am I misunderstanding? What is the root of each intermediary Merkel tree being used for the spot checks?
+00:45:29.654 - 00:45:50.370, Speaker A: It's being used to validate that these query data are actually from the committed trees. So during the commit phase, we send just the merkel roots, and then during the query phase, the prover sends branches from each of those trees.
+00:45:52.150 - 00:45:58.360, Speaker D: Got you. I think I'll have to dig into querying a little bit more.
+00:45:58.730 - 00:45:59.480, Speaker A: Yeah.
+00:46:01.850 - 00:46:03.126, Speaker B: It'S definitely the sort of thing.
+00:46:03.148 - 00:46:18.620, Speaker A: That I think takes several exposures before it really clicks. And I would encourage you to check out the stark by hand explainer is a bit more detailed than I've presented here.
+00:46:24.000 - 00:46:26.492, Speaker C: My biggest question was about this slide in the bottom.
+00:46:26.546 - 00:46:26.956, Speaker B: Right.
+00:46:27.058 - 00:46:31.230, Speaker C: So, should it be obvious why.
+00:46:34.000 - 00:46:34.364, Speaker B: Is.
+00:46:34.402 - 00:46:38.450, Speaker C: Determined by f two, or is there more?
+00:46:38.980 - 00:46:55.812, Speaker A: It should not be obvious. Yeah, there's a decent amount that I'm sweeping under the rug here. The stark by hand explainer does actually justify that assertion. This is sort of the cleverness behind.
+00:46:55.866 - 00:46:59.876, Speaker B: The FFT algorithm, is that if you.
+00:46:59.898 - 00:47:12.200, Speaker A: Sort the coefficients of a polynomial in this particular way, and you look at roots of unity in this particular way, that things can be computed locally.
+00:47:13.840 - 00:47:18.524, Speaker B: But I can say, I guess, an.
+00:47:18.562 - 00:47:25.470, Speaker A: Even function, the splitting we did before earlier on.
+00:47:26.660 - 00:47:35.452, Speaker B: So these functions here, the blue one, if you plug in three and negative.
+00:47:35.516 - 00:47:37.490, Speaker A: Three, you'll get the same value.
+00:47:39.240 - 00:47:41.716, Speaker B: And the orange one here, if you.
+00:47:41.738 - 00:48:20.770, Speaker A: Plug in three and negative three, you'll get the negative of each other. So we're using kind of the. An even polynomial has the property that f of x equals f of negative x, and an OD polynomial has the property that f of negative x equals negative f of x. And we're making use of that in order to be able to do this local operation. And there are analogous statements that are more complicated but true. When you split this in by 16 instead of by two.
+00:48:26.340 - 00:48:27.168, Speaker B: Great question.
+00:48:27.254 - 00:48:45.690, Speaker A: Yeah, that's definitely the biggest. Well, I think there's two giant sweeping under the rugs that occur in this talk. One of them is around the assertion of two bits of security per query, and the other is around, like, wait, how is this local computation actually working?
+00:48:50.350 - 00:49:04.426, Speaker D: Does this mean when you guys are splitting by factors of 16, that you're also reducing the blow up? Not, sorry, you're not reducing the blow up factor, but the number of evaluation points. It's also getting reduced by a factor of 16.
+00:49:04.618 - 00:49:05.360, Speaker B: Yes.
+00:49:06.050 - 00:49:12.690, Speaker A: Okay, so we don't actually need that many rounds of fry because we're doing splits of 16.
+00:49:13.430 - 00:49:23.860, Speaker D: Why not just up the number of splits you can reduce by 32 or 64? Then what's the constraint of doing that?
+00:49:28.090 - 00:49:58.526, Speaker A: There's some trade offs. Let me think of whether I have a good answer to that question. My understanding is that there is actually some room for optimization here, and I think that bigger splits early on, and then lower splits towards the end work out better. I don't know that I can immediately answer the question of what the trade off is that drives us not to.
+00:49:58.548 - 00:50:02.640, Speaker B: Just use a giant split right off the bat.
+00:50:07.090 - 00:50:12.260, Speaker A: If you ask that question in discord, we can certainly get back to you on that, but I don't think that I can answer it right now.
+00:50:12.710 - 00:50:14.180, Speaker D: Sure, I'll follow up there.
+00:50:23.480 - 00:50:26.310, Speaker A: Any more questions?
+00:50:27.240 - 00:50:30.630, Speaker C: Could you clarify what an evaluation point is?
+00:50:34.540 - 00:50:43.290, Speaker A: Yeah. So where does this direction, I think.
+00:50:47.570 - 00:50:48.320, Speaker B: So.
+00:50:49.170 - 00:50:58.754, Speaker A: This first polynomial, f sub zero, I'm evaluating at each power of 28. And that's what I mean by an evaluation point, is a point at which.
+00:50:58.792 - 00:51:00.610, Speaker B: We'Re evaluating a polynomial.
+00:51:00.970 - 00:51:04.360, Speaker A: And the second polynomial I'm evaluating at.
+00:51:07.050 - 00:51:14.554, Speaker B: Powers of 28 squared, which there's half as many of.
+00:51:14.592 - 00:51:32.958, Speaker A: So I'm just referring to an evaluation point is a point in the domain of the function, or rather a point. The merkel trees consist of evaluations of polynomials. And I'm using the word evaluation point.
+00:51:33.044 - 00:51:33.680, Speaker B: To.
+00:51:35.410 - 00:51:42.154, Speaker A: I'm using the term evaluation to refer to the output, and evaluation point to refer to the input.
+00:51:42.282 - 00:51:45.714, Speaker B: So the evaluation points are the, each.
+00:51:45.752 - 00:51:57.744, Speaker A: Merkel tree is indexed by some collection of evaluation points. Again, the stark by hand explainer makes.
+00:51:57.782 - 00:52:07.742, Speaker B: This a little more explicit. Does that answer your question? Maybe, yeah.
+00:52:07.796 - 00:52:15.710, Speaker C: So to go further, why does the number go down? Why did you start doing 28 and then you did 28 squared?
+00:52:18.450 - 00:52:44.084, Speaker B: Um, at each stage, there will, at each stage, the polynomial is half the size, and the number of points on.
+00:52:44.122 - 00:52:51.348, Speaker A: Which we're evaluating that polynomial is also cut in half. The answer to the question of why.
+00:52:51.514 - 00:52:58.010, Speaker B: Feels a little bit kind of difficult to get at.
+00:52:59.500 - 00:53:13.212, Speaker A: The reason the fry protocol is useful is because it offers a mechanism to make these merkel trees smaller and smaller and smaller while still being able to.
+00:53:13.266 - 00:53:22.752, Speaker B: Make a claim about the original Merkel tree. So maybe that if you want to.
+00:53:22.806 - 00:53:24.704, Speaker A: Continue the line of questioning, I'm happy.
+00:53:24.742 - 00:53:31.682, Speaker B: To toss it back and forth a little bit. Sure.
+00:53:31.736 - 00:53:53.180, Speaker C: I could say some things that I know or think. So, when you're talking about interphalates, you're going from the representation of a polynomial by its coefficients to either the roots of it, or where if you evaluate it at different points, you achieve some value.
+00:53:56.910 - 00:53:58.106, Speaker B: There was a little bit of noise.
+00:53:58.138 - 00:54:14.862, Speaker A: But I'm going to answer what I think I heard was. So, interpolating refers to, if I give you some ordered pairs and ask you what's the polynomial that passes through these ordered pairs? That process is called interpolation.
+00:54:14.926 - 00:54:19.010, Speaker B: So, interpolation translates from evaluation.
+00:54:21.430 - 00:54:29.206, Speaker A: From points and their evaluation to coefficients. Interpolation translates from the evaluation form of.
+00:54:29.228 - 00:54:31.286, Speaker B: A polynomial, which is a vector of.
+00:54:31.308 - 00:54:35.450, Speaker A: Evaluations into the coefficient form of the polynomial.
+00:54:37.550 - 00:54:39.574, Speaker B: And it's expensive.
+00:54:39.702 - 00:54:46.250, Speaker A: And so we need a technique to be able to not make the verifier.
+00:54:47.010 - 00:54:49.498, Speaker B: Do a giant interpolation.
+00:54:49.674 - 00:54:58.974, Speaker A: So the whole scheme here is a way to save the verifier effort. So the prover does the hard work.
+00:54:59.012 - 00:55:00.510, Speaker B: Instead of the verifier.
+00:55:03.810 - 00:55:07.220, Speaker D: Sorry to interrupt. I don't know if you're question.
+00:55:08.950 - 00:55:09.314, Speaker B: Can.
+00:55:09.352 - 00:55:20.280, Speaker D: We talk a little bit about the querying phase when the verifier is verifying Merkel branches, can you describe that process in a little bit more detail?
+00:55:22.330 - 00:55:43.630, Speaker A: The verifying Merkel branches is the same as any old Merkel check. There's nothing kind of special about the verifier. Querying at 28 to the fifth is like asking what's the fifth entry in the Merkel tree? Got you.
+00:55:43.780 - 00:56:10.950, Speaker D: But when you were describing the querying process, the prover was providing evaluations of this g and minus g, minus g squared and minus g squared. How does the verifier use these evaluations to check the merkle branches? Because they're not checking all the leaves. Then you're only getting a few leaves.
+00:56:11.530 - 00:56:29.190, Speaker A: The verifier knows the expected indexing of the merkel tree. So when I say the prover provides f zero of negative g or f zero of g squared, the verifier knows where that should be in the Merkel tree.
+00:56:29.270 - 00:56:29.900, Speaker B: So.
+00:56:33.630 - 00:56:48.434, Speaker A: Yeah, you could frame this like in the example I have here with eight. I have an eight leaf tree here. You could index this as g to the zero w, g to the first, g to the second g cubed, then.
+00:56:48.472 - 00:56:58.390, Speaker D: G one would be the next level of that tree. Or maybe I'm misunderstanding something that's incorrect.
+00:56:59.370 - 00:57:02.920, Speaker A: F sub one would be the next round of.
+00:57:03.690 - 00:57:24.010, Speaker D: Yeah. Would be the next Merkel tree. Yeah, I see. So just by being given g, I can reconstruct essentially all these individual leaves.
+00:57:24.170 - 00:58:18.560, Speaker A: No, the verifier doesn't need to reconstruct the other leaves. The verifier is given, in our case, two leaves from each tree, and then just checks that those leaves are consistent with each other and the rest of the leaves are the verifier can ignore. And that's the sort of magic of the fry protocol, is that the verifier is able to check this assertion about a tree with a million leaves, while only actually seeing a handful of those leaves. We're able to make a conclusion about this giant tree that should correspond to this giant polynomial while only seeing a very small section of it.
+00:58:19.330 - 00:58:30.100, Speaker D: Yeah, I see the paragraph in the starks by hand about checking that evaluations are consistent. I have to go through the algebra just to validate that for myself.
+00:58:32.810 - 00:58:49.206, Speaker A: Yeah, and I don't remember whether I put on the reference list. Justin Thaler just did a talk as part of the ZKP MOOC about Fry a couple of weeks ago, and it's.
+00:58:49.238 - 00:58:50.426, Speaker B: Quite a nice talk.
+00:58:50.608 - 00:58:58.614, Speaker A: I'm going to add that to the slides before I put them online. Well, I guess I already put them online, but I'm going to add them to the slides.
+00:58:58.662 - 00:58:59.980, Speaker B: It's a Google Drive link.
+00:59:04.030 - 00:59:07.578, Speaker A: I'll take one last question if there's another question, and then I want to.
+00:59:07.584 - 00:59:17.686, Speaker B: Run to dinner before my next meeting. You awesome. Thanks for the questions.
+00:59:17.788 - 00:59:35.046, Speaker A: And I just want to sort of comment that it takes a number of repeated exposures to these ideas before they make sense. So awesome questions. Thanks for engaging so deeply with the material, and don't hesitate to follow up.
+00:59:35.068 - 00:59:37.380, Speaker B: With more questions as you're reading. Thank.
