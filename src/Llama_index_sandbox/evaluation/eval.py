@@ -31,9 +31,8 @@ def get_or_create_index(params: Dict[str, Any]) -> Tuple[Any, ServiceContext]:
     service_context: ServiceContext = ServiceContext.from_defaults(llm=llm, embed_model=embedding_model)
     recreate_index = params["recreate_index"]
     if recreate_index:
-        index = create_index(embedding_model_name=params["embedding_model_name"],
-                             text_splitter_chunk_size=params["text_splitter_chunk_size"],
-                             text_splitter_chunk_overlap_percentage=params["text_splitter_chunk_overlap_percentage"],
+        model_details = (params["embedding_model_name"], params["text_splitter_chunk_size"], params["text_splitter_chunk_overlap_percentage"])
+        index = create_index(model_details=model_details,
                              embedding_model=params["embedding_model"],
                              vector_space_distance_metric=params['vector_space_distance_metric'],
                              add_new_transcripts=params["add_new_transcripts"],

@@ -20,7 +20,7 @@ from pypdf import PdfReader
 
 from src.Llama_index_sandbox import root_dir, RESEARCH_PAPER_CSV
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
 
 
 def get_pdf_details(response: requests.Response) -> dict:
@@ -152,6 +152,10 @@ def download_pdf(link, save_dir, optional_file_name=None):
 
 def populate_document_metadata(documents, paper_details_df, file_path):
     # Update 'file_path' metadata and add additional metadata
+    title = os.path.basename(file_path).replace('.pdf', '')
+    # Find the corresponding row in the DataFrame
+    paper_row = paper_details_df[paper_details_df['title'] == title]
+
     for document in documents:
         if 'file_path' in document.metadata.keys():
             del document.metadata['file_path']
@@ -159,9 +163,6 @@ def populate_document_metadata(documents, paper_details_df, file_path):
         if '<|endoftext|>' in document.text:
             logging.error(f"Found <|endoftext|> in {title} with {file_path}")
         document.text.replace('<|endoftext|>', '')
-        # Find the corresponding row in the DataFrame
-        title = os.path.basename(file_path).replace('.pdf', '')
-        paper_row = paper_details_df[paper_details_df['title'] == title]
 
         assert paper_row.iloc[0]['title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['pdf_link']}"
         assert paper_row.iloc[0]['authors'] != np.nan, f"authors is NaN for {paper_row.iloc[0]['pdf_link']}"
@@ -177,6 +178,7 @@ def populate_document_metadata(documents, paper_details_df, file_path):
                 'pdf_link': str(paper_row.iloc[0]['pdf_link']),
                 'release_date': str(paper_row.iloc[0]['release_date'])
             })
+    save_successful_load_to_csv(documents[0], csv_filename='research_papers.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
 
 
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):

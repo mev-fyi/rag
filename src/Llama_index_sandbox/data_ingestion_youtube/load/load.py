@@ -14,7 +14,7 @@ from src.Llama_index_sandbox import root_dir, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
 from src.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
-from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging
+from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging, save_successful_load_to_csv
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
@@ -79,6 +79,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
         #   It will be high (highest too? TBD.) for talks and conferences in YouTube video_transcript format
         #   It will be relatively lower for podcasts, tweets, and less formal content.
+    save_successful_load_to_csv(documents[0], csv_filename='youtube_videos.csv', fieldnames=['title', 'channel_name', 'video_link', 'release_date'])
     return documents
 
 

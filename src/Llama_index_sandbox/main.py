@@ -4,6 +4,8 @@ import logging
 import os
 from llama_index import ServiceContext
 
+import src.Llama_index_sandbox.utils.utils
+from src.Llama_index_sandbox import config_instance
 from src.Llama_index_sandbox.constants import INPUT_QUERIES
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 from src.Llama_index_sandbox.evaluation.config import Config
@@ -16,17 +18,16 @@ from src.Llama_index_sandbox.index import load_index_from_disk, create_index
 
 def initialise_chatbot(engine, query_engine_as_tool, recreate_index, add_new_transcripts=False):
     stream = True
-    config = Config()
-    num_files = config.num_files
-    similarity_top_k = config.NUM_CHUNKS_SEARCHED_FOR_RERANKING[0]
-    text_splitter_chunk_size = config.CHUNK_SIZES[0]
-    text_splitter_chunk_overlap_percentage = config.CHUNK_OVERLAPS[0]
+    num_files = config_instance.num_files
+    similarity_top_k = config_instance.NUM_CHUNKS_SEARCHED_FOR_RERANKING[0]
+    text_splitter_chunk_size = config_instance.CHUNK_SIZES[0]
+    text_splitter_chunk_overlap_percentage = config_instance.CHUNK_OVERLAPS[0]
 
-    embedding_model_name = config.EMBEDDING_MODELS[0]
+    embedding_model_name = config_instance.EMBEDDING_MODELS[0]
     # embedding_model_name = os.environ.get('EMBEDDING_MODEL_NAME_OPENAI')
-    embedding_model = embed.get_embedding_model(embedding_model_name=embedding_model_name)
+    embedding_model = src.Llama_index_sandbox.utils.utils.get_embedding_model(embedding_model_name=embedding_model_name)
 
-    llm_model_name = config.INFERENCE_MODELS[0]
+    llm_model_name = config_instance.INFERENCE_MODELS[0]
     # llm_model_name = os.environ.get('LLM_MODEL_NAME_OSS')
     llm = get_inference_llm(llm_model_name=llm_model_name)
     service_context: ServiceContext = ServiceContext.from_defaults(llm=llm, embed_model=embedding_model)
@@ -40,9 +41,8 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index, add_new_tra
         assert False
 
     if recreate_index:
-        index = create_index(embedding_model_name=embedding_model_name,
-                             text_splitter_chunk_size=text_splitter_chunk_size,
-                             text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage,
+        model_details = (embedding_model_name, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage)
+        index = create_index(model_details=model_details,
                              embedding_model=embedding_model,
                              vector_space_distance_metric=vector_space_distance_metric,
                              add_new_transcripts=add_new_transcripts,
@@ -66,7 +66,7 @@ def initialise_chatbot(engine, query_engine_as_tool, recreate_index, add_new_tra
                                                                                           stream=stream,
                                                                                           query_engine_as_tool=query_engine_as_tool,
                                                                                           log_name=log_name)
-    return retrieval_engine, query_engine, store_response_partial, config
+    return retrieval_engine, query_engine, store_response_partial, config_instance
 
 
 def run():
@@ -89,12 +89,12 @@ def run():
 
     logging.info(f"Run parameters: engine={engine}, query_engine_as_tool={query_engine_as_tool}")
 
-    retrieval_engine, query_engine, store_response_partial, config = initialise_chatbot(engine=engine,
-                                                                                        query_engine_as_tool=query_engine_as_tool,
-                                                                                        recreate_index=recreate_index,
-                                                                                        add_new_transcripts=add_new_transcripts)
+    retrieval_engine, query_engine, store_response_partial, config_instance = initialise_chatbot(engine=engine,
+                                                                                                 query_engine_as_tool=query_engine_as_tool,
+                                                                                                 recreate_index=recreate_index,
+                                                                                                 add_new_transcripts=add_new_transcripts)
     ask_questions(input_queries=INPUT_QUERIES[:10], retrieval_engine=retrieval_engine, query_engine=query_engine,
-                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, chat_history=chat_history, reset_chat=config.reset_chat)
+                  store_response_partial=store_response_partial, engine=engine, query_engine_as_tool=query_engine_as_tool, chat_history=chat_history, reset_chat=config_instance.reset_chat)
     return retrieval_engine
 
 

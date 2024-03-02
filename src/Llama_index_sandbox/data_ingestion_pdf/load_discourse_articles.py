@@ -11,7 +11,7 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
 
 
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
@@ -31,8 +31,9 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
 
-                if '' in document.text:
-                    logging.error(f"Found  in {title} with {file_path}")
+                if not document.text:
+                    logging.error(f"Found empty document text in [{title}] with [{file_path}]")
+                    continue
                 document.text.replace('', '')
 
                 document.metadata.update({
@@ -42,11 +43,29 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                     'pdf_link': str(paper_row.iloc[0]['Link']),
                     'release_date': str(paper_row.iloc[0]['Release Date']),
                 })
+
         else:
+            # Update metadata
             for document in documents:
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
-            logging.warning(f"Failed to find metadata for {file_path}")
+
+                if not document.text:
+                    logging.error(f"Found empty document text in [{title}] with [{file_path}]")
+                    continue
+                document.text.replace('', '')
+
+                document.metadata.update({
+                    'document_type': DOCUMENT_TYPES.ARTICLE.value,
+                    'title': title,
+                    'authors': "",
+                    'pdf_link': "",
+                    'release_date': "",
+                })
+
+            logging.warning(f"Failed to find metadata for [{file_path}], adding only title")
+        # logging.info(f"Loaded metadata for [{title}] with [{file_path}]")
+        save_successful_load_to_csv(documents[0], csv_filename='all_discourse_articles.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
@@ -54,7 +73,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[str, Path], num_files: int = None):
+def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[str, Path] = f"{root_dir}/datasets/evaluation_data/merged_articles.csv", num_files: int = None):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 

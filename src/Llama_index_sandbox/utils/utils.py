@@ -1,3 +1,4 @@
+import csv
 import time
 import logging
 import os
@@ -6,11 +7,15 @@ import inspect
 from datetime import datetime
 from functools import wraps
 import shutil
+from pathlib import Path
 
 from google.oauth2.credentials import Credentials
 from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 
 import subprocess
+
+from langchain.embeddings import OpenAIEmbeddings
+from llama_index.embeddings import HuggingFaceEmbedding
 
 from llama_index.llms import ChatMessage, MessageRole
 
@@ -756,10 +761,8 @@ def copy_and_verify_files():
     for subdir, dirs, files in os.walk(articles_pdf_discourse_dir):
         for file_name in files:
             if file_name.lower().endswith('.pdf'):
-                subdir_name = os.path.basename(subdir)
-                new_file_name = f"{subdir_name}_{file_name}"
                 source_file = os.path.join(subdir, file_name)
-                destination_file = os.path.join(articles_discourse_destination_dir, new_file_name)
+                destination_file = os.path.join(articles_discourse_destination_dir, file_name)
                 try:
                     shutil.copy(source_file, destination_file)
                     print(f"Copied: {source_file} to {destination_file}")
@@ -869,3 +872,42 @@ if __name__ == '__main__':
     # save_data_into_zip()
     # copy_txt_files_to_transcripts()
 
+
+def save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date', 'document_name']):
+    # Define the directory where you want to save the successful loads CSV
+    from src.Llama_index_sandbox import output_dir
+
+    # Create the directory if it doesn't exist
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    csv_path = os.path.join(output_dir, csv_filename)
+    file_exists = os.path.isfile(csv_path)
+
+    if isinstance(documents_details, dict):
+        # Filter documents_details for only the fields in fieldnames
+        filtered_documents_details = {field: documents_details[field] for field in fieldnames}
+    else:
+        filtered_documents_details = {field: documents_details.extra_info[field] for field in fieldnames}
+
+    with open(csv_path, 'a', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # Write header only once if the file does not exist
+        if not file_exists:
+            writer.writeheader()
+
+        # Write the filtered document details to the CSV
+        writer.writerow(filtered_documents_details)
+
+
+def get_embedding_model(embedding_model_name):
+    if embedding_model_name == "text-embedding-ada-002":
+        # embedding_model = OpenAIEmbedding(disallowed_special=())
+        embedding_model = OpenAIEmbeddings(disallowed_special=())  # https://github.com/langchain-ai/langchain/issues/923 encountered the same issue (2023-11-22)
+    else:
+        embedding_model = HuggingFaceEmbedding(
+            model_name=embedding_model_name,
+            # device='cuda'
+        )
+    # else:
+    #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"
+    return embedding_model

@@ -5,14 +5,13 @@ import time
 
 import math
 import multiprocessing
-import os
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from typing import List, Union
 
 from langchain.embeddings import OpenAIEmbeddings
 from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
-from llama_index.schema import TextNode, MetadataMode
+from llama_index.schema import TextNode
 from tiktoken.model import MODEL_TO_ENCODING
 
 from src.Llama_index_sandbox.utils.utils import timeit
@@ -80,20 +79,6 @@ def generate_embeddings(nodes: List[TextNode], embedding_model):
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
         list(executor.map(partial_generate_node_embedding, nodes))
-
-
-def get_embedding_model(embedding_model_name):
-    if embedding_model_name == "text-embedding-ada-002":
-        # embedding_model = OpenAIEmbedding(disallowed_special=())
-        embedding_model = OpenAIEmbeddings(disallowed_special=())  # https://github.com/langchain-ai/langchain/issues/923 encountered the same issue (2023-11-22)
-    else:
-        embedding_model = HuggingFaceEmbedding(
-            model_name=embedding_model_name,
-            # device='cuda'
-        )
-    # else:
-    #     assert False, f"The embedding model is not supported: [{embedding_model_name}]"
-    return embedding_model
 
 
 def construct_single_node(text_chunk, src_doc_metadata):

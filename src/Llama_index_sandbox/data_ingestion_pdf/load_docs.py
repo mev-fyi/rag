@@ -2,19 +2,19 @@ import concurrent.futures
 import logging
 import os
 from functools import partial
-from pathlib import Path
-from typing import Union, Callable
+from typing import Union, Callable, Tuple
 
 import pandas as pd
 import numpy as np
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from pathlib import Path
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, flashbots_title_extraction, \
     ethereum_org_title_extraction, extract_author_and_release_date_ethereum_org, \
     extract_author_and_release_date_flashbots, extract_title, extract_link, extract_author_and_release_date
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
 
 
 def sanitize_metadata_value(value):
@@ -78,6 +78,8 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
             'release_date': extracted_release_date,
             'document_name': filename
         }
+        # Save the successful load details to CSV
+        save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
         return documents, documents_details
     except Exception as e:
         logging.error(f"Failed to load {file_path}: {e}")

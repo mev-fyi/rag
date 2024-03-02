@@ -10,13 +10,13 @@ from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_vector_sto
 import src.Llama_index_sandbox.data_ingestion_pdf.load_docs as load_docs
 from src.Llama_index_sandbox.data_ingestion_pdf import load_discourse_articles
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
-from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config, ARTICLES_DIRECTORY
+from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, config_instance, ARTICLES_DIRECTORY, DISCOURSE_ARTICLES_DIRECTORY
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
 import src.Llama_index_sandbox.data_ingestion_pdf.load_articles as load_articles
 import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
 import src.Llama_index_sandbox.embed as embed
-from src.Llama_index_sandbox import index_dir
+from src.Llama_index_sandbox.evaluation.config import index_dir
 from src.Llama_index_sandbox.utils.utils import timeit
 
 
@@ -57,24 +57,17 @@ def initialise_vector_store(embedding_model_vector_dimension, vector_space_dista
 
 
 @timeit
-def persist_index(index, embedding_model_name, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage):
+def persist_index(index):
     """
     Persist the index to disk.
     NOTE: Given that we use an external DB, this only writes a json containing the ID referring to that DB.
     """
     try:
-        # Format the filename
-        if '/' in embedding_model_name:
-            embedding_model_name = embedding_model_name.split('/')[-1]
-        date_str = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        name = f"{date_str}_{embedding_model_name}_{text_splitter_chunk_size}_{text_splitter_chunk_overlap_percentage}"
-        persist_dir = index_dir + name
-        # check if index_dir and if not create it
-        if not os.path.exists(index_dir):
-            os.makedirs(index_dir)
         # NOTE 2023-09-29: https://stackoverflow.com/questions/76837143/llamaindex-index-storage-context-persist-not-storing-vector-store
         #   Vector Store IS NOT persisted. The method index.storage_context.persist is failing silently since when attempting to
         #   load the index back, it fails since there is no vector json file
+        from src.Llama_index_sandbox import config_instance
+        persist_dir = config_instance.get_index_output_dir()
         index.storage_context.persist(persist_dir=persist_dir)
         # create a vector_store.json file with {} inside
         with open(f"{persist_dir}/vector_store.json", "w") as f:
@@ -131,14 +124,15 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
 
 
 @timeit
-def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage, add_new_transcripts, vector_space_distance_metric, num_files=None):
+def create_index(model_details, embedding_model, add_new_transcripts, vector_space_distance_metric, num_files=None):
     logging.info("RECREATING INDEX")
     # 1. Data loading
-    # pdf_links, save_dir = fetch_pdf_list(num_papers=None)
-    # download_pdfs(pdf_links, save_dir)
+    similarity_top_k = config_instance.NUM_CHUNKS_SEARCHED_FOR_RERANKING[0]
+    embedding_model_name, text_splitter_chunk_size, text_splitter_chunk_overlap_percentage = model_details
+
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files)
     documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files)
+    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files)
     documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files)
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
 
@@ -166,5 +160,5 @@ def create_index(embedding_model_name, embedding_model, text_splitter_chunk_size
     # NOTE: We skip the VectorStoreIndex abstraction, which is a higher-level abstraction
     # that handles ingestion as well. We use VectorStoreIndex in the next section to fast-trak retrieval/querying.
     index = load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dimension=config.EMBEDDING_DIMENSIONS[embedding_model_name], vector_space_distance_metric=vector_space_distance_metric)
-    persist_index(index, embedding_model_name, text_splitter_chunk_size=text_splitter_chunk_size, text_splitter_chunk_overlap_percentage=text_splitter_chunk_overlap_percentage)
+    persist_index(index)
     return index

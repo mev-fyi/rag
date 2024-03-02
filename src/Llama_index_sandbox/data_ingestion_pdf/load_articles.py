@@ -11,7 +11,7 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
 
 
 def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
@@ -47,6 +47,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                 if 'file_path' in document.metadata.keys():
                     del document.metadata['file_path']
             logging.warning(f"Failed to find metadata for {file_path}")
+        save_successful_load_to_csv(documents[0], csv_filename='articles.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
         return documents
     except Exception as e:
         logging.info(f"Failed to load {file_path}: {e}")
