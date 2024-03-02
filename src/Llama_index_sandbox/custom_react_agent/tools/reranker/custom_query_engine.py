@@ -34,7 +34,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         )
         self.merged_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/merged_articles.csv")
         self.updated_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/articles_updated.csv")
-        self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.85'))
+        self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.80'))
         self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '0.70'))
         self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.1'))
 
@@ -106,9 +106,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
         },
     }
     authors_weights = {
-        'Flashbots': 1.05,
-        'EF': 1.05,
-        'Ethereum.org': 1.05,
+        'Flashbots': 1.15,
+        'EF': 1.15,
+        'Ethereum.org': 1.15,
         'default': 1,
     }
 
@@ -116,6 +116,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'Read this before posting',
                                          'Launching mev.fyi, the MEV research chatbot - Meta-innovation - Ethereum Research',
                                          'Launching mev.fyi, the MEV research chatbot',
+                                         'A great idea. Any more presentations? Let me know how you get on',
+                                         '“https” in blockchain: Verifiable Formal Verification of Smart Contracts',
                                          'Should external links be allowed_prohibited_restricted']
 
     edge_case_set = set(edge_case_of_content_always_cited)
@@ -189,7 +191,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             logging.error(f"Error while loading or computing weights: {str(e)}")
             return {}  # Return an empty dictionary in case of an error
 
-    def check_links_and_titles(self, nodes_with_score: List[NodeWithScore]):
+    def penalise_if_discourse_only_or_forum_name_in_title(self, nodes_with_score: List[NodeWithScore]):
         merged_links = set(self.merged_df['Link'].dropna().unique())
         updated_titles = set(self.updated_df['title'].dropna().unique())
         updated_links = set(self.updated_df['article'].dropna().unique())
@@ -241,7 +243,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         nodes_with_score = [node for node in nodes_with_score if node.score >= SCORE_THRESHOLD]
 
         # Call the support method to check links and titles and adjust scores
-        nodes_with_score = self.check_links_and_titles(nodes_with_score)
+        nodes_with_score = self.penalise_if_discourse_only_or_forum_name_in_title(nodes_with_score)
 
         # Populate missing pdf_link based on title matching
         nodes_with_score = self.populate_missing_pdf_links(nodes_with_score)
