@@ -2,6 +2,7 @@ import logging
 import pickle
 from itertools import product
 
+import pandas as pd
 import tldextract
 from llama_index import QueryBundle
 from llama_index.callbacks import EventPayload, CBEventType
@@ -19,7 +20,7 @@ from urllib.parse import urlparse
 from tldextract import extract  # You might need to install this package
 
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
-from src.Llama_index_sandbox.utils.utils import root_directory
+from src.Llama_index_sandbox.utils.utils import root_directory, load_csv_data
 
 
 class CustomQueryEngine(RetrieverQueryEngine):
@@ -31,6 +32,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
             authors_list=self.authors_list,
             authors_weights=self.authors_weights
         )
+        self.merged_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/merged_articles.csv")
+        self.updated_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/articles_updated.csv")
 
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
@@ -88,7 +91,11 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi']
+    edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
+                                         'Read this before posting',
+                                         'Launching mev.fyi, the MEV research chatbot - Meta-innovation - Ethereum Research',
+                                         'Launching mev.fyi, the MEV research chatbot',
+                                         'Should external links be allowed_prohibited_restricted']
 
     edge_case_set = set(edge_case_of_content_always_cited)
 
@@ -161,6 +168,44 @@ class CustomQueryEngine(RetrieverQueryEngine):
             logging.error(f"Error while loading or computing weights: {str(e)}")
             return {}  # Return an empty dictionary in case of an error
 
+    def check_links_and_titles(self, nodes_with_score: List[NodeWithScore]):
+        merged_links = set(self.merged_df['Link'].dropna().unique())
+        updated_titles = set(self.updated_df['title'].dropna().unique())
+        updated_links = set(self.updated_df['article'].dropna().unique())
+
+        for node_with_score in nodes_with_score:
+            link = node_with_score.node.metadata.get('pdf_link', '').strip()
+            title = node_with_score.node.metadata.get('title', '').strip()
+
+            if link in merged_links and link in updated_links and title not in updated_titles:
+                node_with_score.score *= 0.80  # Adjust score if conditions are met
+
+        return nodes_with_score
+
+    def populate_missing_pdf_links(self, nodes_with_score: List[NodeWithScore]):
+        # Load data from CSV files
+
+        # No renaming needed for merged_df as it already has 'Link'
+        # For updated_df, ensure the column used for the link is named 'article', as per the headers
+        # Combine both DataFrames for easier title matching
+        combined_df = pd.concat([
+            self.merged_df[['Title', 'Link']],
+            self.updated_df.rename(columns={'article': 'Link', 'title': 'Title'})[['Title', 'Link']]
+        ], axis=0, ignore_index=True)
+
+        # Create a mapping from titles to links
+        titles_links_mapping = combined_df.dropna(subset=['Title', 'Link']).set_index('Title')['Link'].to_dict()
+
+        for node_with_score in nodes_with_score:
+            if not node_with_score.node.metadata.get('pdf_link'):
+                title = node_with_score.node.metadata.get('title', '').strip()
+                # Match the title and populate pdf_link if a corresponding link exists
+                matched_link = titles_links_mapping.get(title)
+                if matched_link:
+                    node_with_score.node.metadata['pdf_link'] = matched_link
+
+        return nodes_with_score
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
         SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.79'))
@@ -168,6 +213,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         # Filter out nodes below score threshold
         nodes_with_score = [node for node in nodes_with_score if node.score >= SCORE_THRESHOLD]
+
+        # Call the support method to check links and titles and adjust scores
+        nodes_with_score = self.check_links_and_titles(nodes_with_score)
+
+        # Populate missing pdf_link based on title matching
+        nodes_with_score = self.populate_missing_pdf_links(nodes_with_score)
+
         if len(nodes_with_score) < MIN_CHUNKS_FOR_RESPONSE:
             logging.warning(f"Number of nodes below threshold: {len(nodes_with_score)}")
             nodes_with_score = []
@@ -199,7 +251,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             # Special case adjustment
             if document_name in self.edge_case_set:
-                score *= 0.8
+                score *= 0.1
 
             node_with_score.score = score
 
