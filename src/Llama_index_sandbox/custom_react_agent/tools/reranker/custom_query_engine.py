@@ -114,7 +114,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline', 'Introductions', 'community introduction']
+    keywords_to_penalise = ['temp', 'temperature', 'help', 'urgent', 'question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline', 'Introductions', 'community introduction']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
                                          'The news',
                                          'Docs Cheatsheet',
@@ -319,7 +319,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             if document_name in self.edge_case_set:
                 score *= self.doc_to_remove
             for word in self.keywords_to_penalise:
-                if word in document_name.lower():
+                if word.lower() in document_name.lower():
                     score *= self.keyword_to_penalise_multiplier
 
             node_with_score.score = score
