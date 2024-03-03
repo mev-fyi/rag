@@ -114,8 +114,10 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this']
+    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
+                                         'The news',
+                                         'Docs Cheatsheet',
                                          'Read this before posting',
                                          'Launching mev.fyi, the MEV research chatbot - Meta-innovation - Ethereum Research',
                                          'Launching mev.fyi, the MEV research chatbot',
