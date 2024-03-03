@@ -124,6 +124,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'How to Implement Digital Community Currencies with Ethereum?',
                                          'Question: crs download link',
                                          'Questions on the Espresso sequencer',
+                                         'Flashbots Research Workshop #1: Flashbots Research Roadmap',
+                                         'Time-locked 1:1 tokens as rudimentary pseudo-futures',
                                          'Should external links be allowed_prohibited_restricted']
 
     edge_case_set = set(edge_case_of_content_always_cited)
