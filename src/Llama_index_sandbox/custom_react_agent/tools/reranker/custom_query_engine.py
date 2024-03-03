@@ -35,10 +35,10 @@ class CustomQueryEngine(RetrieverQueryEngine):
         )
         self.merged_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/merged_articles.csv")
         self.updated_df = load_csv_data(f"{root_directory()}/datasets/evaluation_data/articles_updated.csv")
-        self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.80'))
-        self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '0.70'))
-        self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.1'))
-        self.keyword_to_penalise_multiplier = float(os.environ.get('KEYWORD_TO_PENALISE_MULTIPLIER', '0.7'))
+        self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.50'))
+        self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '1.5'))
+        self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.0'))
+        self.keyword_to_penalise_multiplier = float(os.environ.get('KEYWORD_TO_PENALISE_MULTIPLIER', '0.4'))
 
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
