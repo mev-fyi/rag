@@ -120,6 +120,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'Docs Cheatsheet',
                                          'Are there products available?',
                                          'Introductions',
+                                         'This topic has been removed',
                                          'Community introductions thread',
                                          'Read this before posting',
                                          'MEVconomics.wtf on March 24th, 2023',
