@@ -1,5 +1,6 @@
 import logging
 import pickle
+from datetime import datetime
 from itertools import product
 
 import pandas as pd
@@ -57,10 +58,10 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'SevenX Ventures': 0.9,
             'Research Day': 0.9,
             'Tim Roughgarden Lectures': 0.9,
-            'default': 0.75,
+            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.85'))
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
-            'default': 1
+            'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.2'))
         },
         f'unspecified_weights': {  # default case for absent metadata
             'default': 0.7
@@ -118,6 +119,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'Launching mev.fyi, the MEV research chatbot',
                                          'A great idea. Any more presentations? Let me know how you get on',
                                          '“https” in blockchain: Verifiable Formal Verification of Smart Contracts',
+                                         'How to Implement Digital Community Currencies with Ethereum?',
+                                         'Question: crs download link',
+                                         'Questions on the Espresso sequencer',
                                          'Should external links be allowed_prohibited_restricted']
 
     edge_case_set = set(edge_case_of_content_always_cited)
@@ -234,6 +238,26 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         return nodes_with_score
 
+    def adjust_scores_based_on_criteria(self, nodes_with_score: List[NodeWithScore]):
+        # NOTE 2024-03-03: can make more versatile e.g. make the condition as env variable too but its good for now
+        BOOST_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '1.3'))
+        CHANNEL_NAMES_TO_BOOST = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'ETHDenver')]  # Example channel names
+        DATE_THRESHOLD = datetime.strptime('2024-02-01', '%Y-%m-%d')
+
+        for node_with_score in nodes_with_score:
+            channel_name = node_with_score.node.metadata.get('channel_name', '').strip()
+            release_date_str = node_with_score.node.metadata.get('release_date', '').strip()
+
+            try:
+                release_date = datetime.strptime(release_date_str, '%Y-%m-%d') if release_date_str else None
+            except ValueError:
+                release_date = None
+
+            if channel_name in CHANNEL_NAMES_TO_BOOST or (release_date and release_date > DATE_THRESHOLD):
+                node_with_score.score *= BOOST_SCORE_MULTIPLIER
+
+        return nodes_with_score
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
         SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.79'))
@@ -247,6 +271,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         # Populate missing pdf_link based on title matching
         nodes_with_score = self.populate_missing_pdf_links(nodes_with_score)
+
+        # Apply scoring adjustments based on channel_name and release_date
+        nodes_with_score = self.adjust_scores_based_on_criteria(nodes_with_score)
 
         if len(nodes_with_score) < MIN_CHUNKS_FOR_RESPONSE:
             logging.warning(f"Number of nodes below threshold: {len(nodes_with_score)}")
