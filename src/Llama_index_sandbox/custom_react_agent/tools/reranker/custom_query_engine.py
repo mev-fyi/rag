@@ -38,6 +38,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         self.discourse_only_penalty = float(os.environ.get('DISCOURSE_ONLY_PENALTY', '0.80'))
         self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '0.70'))
         self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.1'))
+        self.keyword_to_penalise_multiplier = float(os.environ.get('KEYWORD_TO_PENALISE_MULTIPLIER', '0.7'))
 
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
@@ -113,6 +114,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
+    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
                                          'Read this before posting',
                                          'Launching mev.fyi, the MEV research chatbot - Meta-innovation - Ethereum Research',
@@ -307,6 +309,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
             # Special case adjustment
             if document_name in self.edge_case_set:
                 score *= self.doc_to_remove
+            for word in self.keywords_to_penalise:
+                if word in document_name.lower():
+                    score *= self.keyword_to_penalise_multiplier
 
             node_with_score.score = score
 
