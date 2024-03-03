@@ -114,11 +114,15 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline']
+    keywords_to_penalise = ['question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline', 'Introductions', 'community introduction']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
                                          'The news',
                                          'Docs Cheatsheet',
+                                         'Are there products available?',
+                                         'Introductions',
+                                         'Community introductions thread',
                                          'Read this before posting',
+                                         'MEVconomics.wtf on March 24th, 2023',
                                          'Launching mev.fyi, the MEV research chatbot - Meta-innovation - Ethereum Research',
                                          'Launching mev.fyi, the MEV research chatbot',
                                          'A great idea. Any more presentations? Let me know how you get on',
