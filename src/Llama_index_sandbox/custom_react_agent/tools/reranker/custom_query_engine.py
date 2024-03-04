@@ -216,7 +216,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
             title = node_with_score.node.metadata.get('title', '').strip()
 
             # Adjust score based on link and title conditions
-            if link in merged_links and link in updated_links and title not in updated_titles:
+            if link in merged_links and link not in updated_links:
+                #  and title not in updated_titles
                 node_with_score.score *= self.discourse_only_penalty
 
             # Further adjust score if title contains specific keywords
@@ -271,7 +272,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
-        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.79'))
+        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.70'))
         MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '5'))
 
         # Filter out nodes below score threshold
@@ -330,6 +331,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         # Get the top NUM_CHUNKS_RETRIEVED nodes based on score
         top_nodes = heapq.nlargest(NUM_CHUNKS_RETRIEVED, nodes_with_score, key=lambda x: x.score)
+        top_nodes = [node for node in top_nodes if node.score >= SCORE_THRESHOLD]
 
         # Optional logging if in local environment
         if os.environ.get('ENVIRONMENT') == 'LOCAL':
