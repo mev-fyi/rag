@@ -51,6 +51,8 @@ INPUT_QUERIES = [
         # "How do L2 sequencers work?",  # 2
         # "Do an exhaustive breakdown of the MEV supply chain",  # 3
         # "What is ePBS?",  # 4
+        "What is Uniswap v4 relative to Uniswap v3?",
+        "Give me an overview of the protocols in LVR",
         "Make me a sandwich",
         "Tell me about stochastic calculus",
         "How do I grow tomatoes?",

@@ -50,7 +50,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'frontier.tech': 0.95,
             'research.anoma.net': 0.95,
             'dba.xyz': 0.95,
-            'default': 0.9
+            'default': 0.95
         },
         f'{DOCUMENT_TYPES.YOUTUBE_VIDEO.value}_weights': {
             'Flashbots': 1,
@@ -59,13 +59,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'SevenX Ventures': 0.9,
             'Research Day': 0.9,
             'Tim Roughgarden Lectures': 0.9,
-            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.85'))
+            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.90'))
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
             'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.2'))
         },
         f'unspecified_weights': {  # default case for absent metadata
-            'default': 0.7
+            'default': 0.8
         }
     }
     authors_list = {
@@ -352,7 +352,6 @@ class CustomQueryEngine(RetrieverQueryEngine):
             self.log_unique_filenames(top_nodes, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
 
         return top_nodes
-
 
     def adjust_score_for_document_type(self, document_type, authors, link, score, document_name):
         weight_key = document_type.lower() + '_weights'
