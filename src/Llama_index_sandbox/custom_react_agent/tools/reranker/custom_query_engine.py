@@ -212,6 +212,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
         updated_links = set(self.updated_df['article'].dropna().unique())
 
         for node_with_score in nodes_with_score:
+            if node_with_score.node.metadata.get('document_type', '') == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+                continue
             link = node_with_score.node.metadata.get('pdf_link', '').strip()
             title = node_with_score.node.metadata.get('title', '').strip()
 
@@ -241,6 +243,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
         titles_links_mapping = combined_df.dropna(subset=['Title', 'Link']).set_index('Title')['Link'].to_dict()
 
         for node_with_score in nodes_with_score:
+            if node_with_score.node.metadata.get('document_type', '') == DOCUMENT_TYPES.YOUTUBE_VIDEO.value:
+                continue
             if not node_with_score.node.metadata.get('pdf_link'):
                 title = node_with_score.node.metadata.get('title', '').strip()
                 # Match the title and populate pdf_link if a corresponding link exists
@@ -270,10 +274,28 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         return nodes_with_score
 
+    def apply_special_adjustments(self, node_with_score):
+        document_name = node_with_score.node.metadata.get('title', 'UNSPECIFIED')
+
+        # Special case adjustment
+        if document_name in self.edge_case_set:
+            logging.info(f"Special case adjustment for document: [{document_name}]")
+            node_with_score.score *= self.doc_to_remove
+
+        # Keyword penalisation
+        for word in self.keywords_to_penalise:
+            if word.lower() in document_name.lower():
+                logging.info(f"Penalising keyword: {word} in document: [{document_name}]")
+                node_with_score.score *= self.keyword_to_penalise_multiplier
+
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
         SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.70'))
         MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '5'))
+
+        # Apply special case and keyword penalisation adjustments
+        for node_with_score in nodes_with_score:
+            self.apply_special_adjustments(node_with_score)
 
         # Filter out nodes below score threshold
         nodes_with_score = [node for node in nodes_with_score if node.score >= SCORE_THRESHOLD]
@@ -315,14 +337,6 @@ class CustomQueryEngine(RetrieverQueryEngine):
                 )
 
             score *= effective_weight
-
-            # Special case adjustment
-            if document_name in self.edge_case_set:
-                score *= self.doc_to_remove
-            for word in self.keywords_to_penalise:
-                if word.lower() in document_name.lower():
-                    score *= self.keyword_to_penalise_multiplier
-
             node_with_score.score = score
 
         # Optional logging if in local environment
