@@ -353,54 +353,6 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         return top_nodes
 
-    def nodes_reranker_manual(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
-        """
-        Reranks a list of nodes based on their scores, adjusting these scores according to predefined weights.
-        The function considers both document type and author influence in the scoring system.
-
-        - For YouTube videos, the score is adjusted based on the authors' weights as defined in 'authors_weights'.
-        - For articles and other document types, the score is adjusted based on the link's match with 'document_weights'.
-        - If no specific match is found, a default weight is applied.
-
-        Args:
-        nodes_with_score (List[NodeWithScore]): A list of NodeWithScore objects, each containing a node and its associated score.
-
-        Returns:
-        List[NodeWithScore]: The same list of nodes, but reordered based on their adjusted scores, returning only the top results as defined by the 'NUM_CHUNKS_RETRIEVED' environment variable.
-        """
-        NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED'))
-
-        for node_with_score in nodes_with_score:
-            score = node_with_score.score
-            document_type = node_with_score.node.metadata.get('document_type', 'UNSPECIFIED')
-            document_name = node_with_score.node.metadata.get('title', 'UNSPECIFIED')
-            authors = node_with_score.node.metadata.get('channel_name', 'UNSPECIFIED LINK') \
-                if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
-                else node_with_score.node.metadata.get('authors', 'UNSPECIFIED LINK')
-            link = node_with_score.node.metadata.get('video_link', 'UNSPECIFIED LINK') \
-                if document_type == DOCUMENT_TYPES.YOUTUBE_VIDEO.value \
-                else node_with_score.node.metadata.get('pdf_link', 'UNSPECIFIED LINK')
-
-            authors = authors.strip()
-            link = link.strip()
-
-            score = self.adjust_score_for_document_type(document_type, authors, link, score, document_name)
-            score = self.adjust_score_for_authors(authors, score, document_type)
-            node_with_score.score = score
-
-        # reorder the node_with_score objects within the list based on the score
-        # Log unique file names from the top k results of the sorted list
-        if os.environ.get('ENVIRONMENT') == 'LOCAL':
-            self.log_unique_filenames(nodes_with_score[:NUM_CHUNKS_RETRIEVED], f"Initial top {NUM_CHUNKS_RETRIEVED} nodes before rerank")
-
-        nodes_with_score = heapq.nlargest(NUM_CHUNKS_RETRIEVED, nodes_with_score, key=lambda x: x.score)
-
-        # Log unique file names from the top k results of the truncated list
-        if os.environ.get('ENVIRONMENT') == 'LOCAL':
-            self.log_unique_filenames(nodes_with_score, f"Re-ranked top {NUM_CHUNKS_RETRIEVED} nodes")
-
-        # TODO 2023-12-10: if the next node is in the same document, should we still include it or not?
-        return nodes_with_score
 
     def adjust_score_for_document_type(self, document_type, authors, link, score, document_name):
         weight_key = document_type.lower() + '_weights'
@@ -447,11 +399,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         logging.info(f"Logging unique file names and document types in context: {context}")
 
-        # Count occurrences of each title
-        title_count = {}
+        # Count occurrences of each title and collect scores
+        title_scores = {}
         for node in nodes:
             title = node.node.metadata.get('title', 'UNSPECIFIED FILE')
-            title_count[title] = title_count.get(title, 0) + 1
+            if title not in title_scores:
+                title_scores[title] = []
+            title_scores[title].append(node.score)
 
         for node in nodes:
             filename = node.node.metadata.get('title', 'UNSPECIFIED FILE')
@@ -459,13 +413,18 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
             file_key = (document_type, filename)
             if file_key not in unique_files_info:
-                unique_files_info[file_key] = {'chunk_count': title_count[filename], 'index': len(unique_files_info) + 1}
+                unique_files_info[file_key] = {
+                    'chunk_count': len(title_scores[filename]),
+                    'index': len(unique_files_info) + 1,
+                    'scores': title_scores[filename]  # Store the scores for this title
+                }
 
             document_type_count[document_type] = document_type_count.get(document_type, 0) + 1
 
         for file_key, info in unique_files_info.items():
             document_type, filename = file_key
-            logging.info(f"Unique file #{info['index']}: Document Type: [{document_type}], Filename: [{filename}], Chunks Retrieved: [{info['chunk_count']}]")
+            scores_str = ", ".join(f"{score:.2f}" for score in info['scores'])  # Format scores as a comma-separated string
+            logging.info(f"Unique file #{info['index']}: Document Type: [{document_type}], Filename: [{filename}], Chunks Retrieved: [{info['chunk_count']}], Scores: [{scores_str}]")
 
         # Constructing a single string for all document type counts
         document_type_counts_str = ", ".join(f"{doc_type}: {count}" for doc_type, count in document_type_count.items())
