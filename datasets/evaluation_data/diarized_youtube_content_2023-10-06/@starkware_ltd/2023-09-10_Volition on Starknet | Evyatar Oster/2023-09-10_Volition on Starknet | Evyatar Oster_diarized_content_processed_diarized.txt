@@ -1,0 +1,221 @@
+00:00:02.890 - 00:01:22.834, Speaker A: Okay, so in general, the decentralization of Starknet is also by, through the protocol decentralization and in the future, decentralization of every entity in the process of creating the block, the sequencer, the approver and the state update. But we also in the process of the development process of Starknet, meaning we want to transform the core design and core developer from Starqua, what it was in the beginning of Starknet, to the entire community through the process of sniff, the eip of Starnet. Right, the Starknet improvement proposal. So we've started to do it with a snip for transaction v three. This is the first core snip talking about protocol change in Starknet. And the next that we want to do is the volition snip, meaning the volition feature that will be included in one of the next major Starnet versions that we'll talk about in a minute. We want to do it more openly.
+00:01:22.834 - 00:02:59.266, Speaker A: We want to involve the community in the design discussions about the snip, and every involvement is valuable. Okay, so this is like a general disclosure about the workshop, and we encourage you to participate in the community forum and suggest your own designs, et cetera. As for volition, we'll go a little bit about, we'll give a little bit background about what is volition, why it's needed, what is the design that we have in mind at the moment that we've started to implement. And then we'll go over a little bit more of a tricky part of the design, what happened after l two da crisis and how the governance and the consensus can recover from it. And then eventually, if we'll have enough time, we'll try to understand how should we design the ERC 20 under volition? Okay, so what is volition in general? What is volition in general? Volition at the moment, like 95% of the average transaction cost in Starknet is for data availability, cost of l one. Every storage cell that we update on Starknet will be posted on l one as call data for the transaction. The computation became much smaller thanks to validity roll up and validity proof.
+00:02:59.266 - 00:03:58.518, Speaker A: But the l two, data availability remains l one. Data availability remains expensive as it is in ethereum. So let's say transfer in ethereum is about $5, depends on the gas prices, but currently it's about $5. In starknet it would be 0.5. But almost 95% of this half a dollar going to l one data availability update. Okay, so how can we solve it? What can we do to reduce the cost of data availability? What we have in mind is having an additional data availability mode which won't be posted on l one. Only the commitment to this data availability mode will be posted on Ethereum, but the data availability itself will be only part of the l two blocks.
+00:03:58.518 - 00:04:24.914, Speaker A: Okay, we'll soon draw a little bit the state of target and how the commitment look like. But this is the general idea, having some of the data availability, some of the storage posted only on l two blocks, meaning that the cost for data availability will be much cheaper if we.
+00:04:24.952 - 00:04:25.540, Speaker B: Have.
+00:04:28.550 - 00:05:24.850, Speaker A: The state of starknet consists of the classes, the contract classes, and the instances of the classes and the storage. We can basically think of it as two trees, one for the declared contacts, all the new contact that added to Starknet, and one will be the tree of the instances of all the contacts that are actually being used. Every contact we can think of it also, it's actually also a tree for your storage, right? It could have storage. The storage is also a tree. The commitment for the storage of a specific contract is also a tree. So in general, the state of starknet consists of two trees, the declared contract and the deployed contract. I'll draw only the deployed contract.
+00:05:24.850 - 00:05:50.290, Speaker A: So let's say each one of the leaves here is contact. In the contact state, the state of darkness, as we said before, is the hash of both the.
+00:05:51.460 - 00:05:52.850, Speaker C: Can you write what?
+00:05:53.560 - 00:05:54.310, Speaker B: Yeah.
+00:06:07.400 - 00:06:28.490, Speaker A: This is the deployed contact hash of the deployed contact. And this is the declared contact. Is it cleared? Okay, and this is the state commitment for the state of Starknet. Each one of the leaves here is a contact. In the starknet state, every contact has its own storage. So it's another.
+00:06:30.300 - 00:06:31.880, Speaker B: Patricia tree.
+00:06:35.860 - 00:07:44.776, Speaker A: Okay, it's the same for all contacts. Now, if I do an update in a specific storage cell, what will be posted in l one will be the cell that changed the roots contract, the address of the contract and the number of the changes, and the root of the whole tree. Okay, this is the current situation in the design that we are suggesting. We'll have an additional tree. We'll have two trees for data availability. In each, we'll have all the deployed contracts. So the structure of the, if we say that the tree of deployed contact is tree of trees, because each contact is another tree, the structure of the tree will be the same in the l one data availability mode, and in the l two data variability mode.
+00:07:44.776 - 00:09:10.008, Speaker A: Okay, let's say this is contact with the address one x the address one. This will be also the same contract in the same address. Okay? Now if the contract and the storage of the contract volition means that I will have the ability as a developer to choose whether to update the storage in this tree and in this tree. As we said before, we'll post everything on l one. If we'll change this storage cell, we post it on l one and the root of the contract and the root of the entire tree, while in the other data availability mode. In the l two data availability mode, we'll post on l one only. The changes of the root and the changes of the storage inside the contract will post only as part of the l two block and not in the l two.
+00:09:10.008 - 00:10:01.380, Speaker A: Not in the l one data availability. Is it clear or the left one is the l one data availability mode, and this is the l two da. In both trees we have the exact same address, and every contract can have storage in both trees. And I can choose as a developer for every contract whether to update it in the l one da or to update it in the l two da. I can have storage variables in this tree and in this tree. The difference between them is that updating the storage variables in this tree is much cheaper than updating the storage variables in this tree.
+00:10:03.160 - 00:10:09.680, Speaker D: Could you have an arbitrary number of copies of the tree? Like, could you have ethereum da, starknet eigenva?
+00:10:09.760 - 00:10:10.390, Speaker A: Yes.
+00:10:16.940 - 00:10:25.832, Speaker D: There are other modular data availability layers, so like Starknet could build their own, or they could use. Someone could choose to use different layer.
+00:10:25.976 - 00:10:41.708, Speaker A: Yes, this is the plan we plan to have in the future. A lot of data availability modes, but the first version will consist only one additional data availability mode, the l two data availability mode.
+00:10:41.884 - 00:10:42.368, Speaker B: Yes.
+00:10:42.454 - 00:10:50.610, Speaker E: By construction of these trees, it's not guaranteed that there's not a collision between the l one da D and the l two da, right?
+00:10:54.010 - 00:10:56.920, Speaker D: You want them to stay in the same, but not exactly.
+00:10:57.770 - 00:11:03.760, Speaker E: They should have the l two. Data should only have the l two, will it not? The direct storage space?
+00:11:10.180 - 00:11:10.930, Speaker B: Yes.
+00:11:17.740 - 00:11:38.770, Speaker A: It probably won't be the same, but it could be the same if the storage was exactly the same storage. If I would save everything here, both. Everything in every contract, both in the l two da. In the l one da, maybe the route will be the same, but it doesn't matter. I post both routes on l one.
+00:11:43.380 - 00:11:53.892, Speaker C: If I set the value in the first block to l one, and I said send it to l one, and I set that value to ten, on the next block I set that value to 20.
+00:11:53.946 - 00:12:10.910, Speaker A: But you have in the same address you will have. Yeah, the same storage key. Let's say the key is one again, and here the value is ten and here the value is 20. It's possible.
+00:12:16.240 - 00:12:18.300, Speaker C: Does that not make storage proofs?
+00:12:22.680 - 00:12:23.428, Speaker A: No. Why?
+00:12:23.514 - 00:12:27.720, Speaker C: How do I prove to someone what the latest value of that storage.
+00:12:30.630 - 00:12:34.130, Speaker F: Would have a storage proof for the l one state domain.
+00:12:38.170 - 00:12:40.520, Speaker C: So storage proofs will now be.
+00:12:41.070 - 00:12:46.362, Speaker A: You'll need to specify the data availability mode that you are referring to.
+00:12:46.416 - 00:12:47.740, Speaker G: Do you like to sync it.
+00:12:50.030 - 00:12:50.890, Speaker C: Manually?
+00:12:51.470 - 00:13:23.240, Speaker A: To sync what? You may want to sync it and you may want to choose not to sync it. For example, we'll talk at the end about tlc 20 design, but one of the possibilities is to have two balances mapping one in the l one da and one in the l two da. And I want to allow you to have, for example, in one of the design proposal, to have balance in the l two da and in the l one da and to have different balances in each.
+00:13:23.610 - 00:13:28.790, Speaker E: From each contract perspective, you now have a two dimensional key for the storage.
+00:13:29.690 - 00:13:36.390, Speaker F: Yes, you already have those. When you do storage.
+00:13:39.520 - 00:13:40.316, Speaker E: They dress them.
+00:13:40.338 - 00:13:40.910, Speaker C: In.
+00:13:42.960 - 00:13:55.410, Speaker E: Whatever felt with all on l one. But now we have felt comma felt and the first felt type, which we already use.
+00:13:59.660 - 00:14:02.170, Speaker A: I think it's 32.
+00:14:13.980 - 00:14:15.000, Speaker E: Variables.
+00:14:18.160 - 00:14:18.908, Speaker B: Yes.
+00:14:19.074 - 00:14:26.930, Speaker A: When you read or write from the contract, you need to specify what is the data availability mode that you want to read or write for.
+00:14:29.540 - 00:14:30.144, Speaker B: Yes.
+00:14:30.262 - 00:14:51.668, Speaker A: Okay. For example, the ERC 20. Okay. One of the design again will allow you to store to have l one da balance and l two da balance. Why would you want this? Because the l one DA is more safe. We'll talk about it in a bit. And the l two Da, as we said already is much cheaper.
+00:14:51.668 - 00:15:26.772, Speaker A: So I would prefer to pay the fees with the l two da. Right. Because it's cheaper to update the balance. Sorry. Let's say I have 100 east. I would want to save 99 of them on the balance that's stored on l one Da because it's safer. And I will want to store one east on the l two DA because it's cheaper to pay from it and to what?
+00:15:26.906 - 00:15:28.260, Speaker C: Long term storage?
+00:15:28.700 - 00:15:29.450, Speaker B: Yes.
+00:15:31.500 - 00:15:39.564, Speaker A: Exactly. I would, I would need.
+00:15:39.602 - 00:15:40.190, Speaker B: Yes.
+00:15:45.170 - 00:15:48.510, Speaker G: Developer can allow user.
+00:15:56.040 - 00:15:56.836, Speaker A: Sorry.
+00:15:57.018 - 00:15:57.910, Speaker F: For example.
+00:16:04.180 - 00:16:08.770, Speaker G: Can choose which availability used for the.
+00:16:11.110 - 00:16:34.838, Speaker A: Yes, the choice is of the developer and the developer can choose to give it to the users. Right. I think that makes sense. Design reasonable design for ERC 20 will give the users the choice where to store their balance.
+00:16:35.014 - 00:16:41.668, Speaker D: Would this decision be baked into a wallet or maybe there's a default based on a value provided?
+00:16:41.844 - 00:17:07.056, Speaker A: Yes, there are two things that every user will be able to choose for himself. We'll talk a little bit about it, but as for the balance and the LC 20. It's not yet decided. There is no concrete design for the ERC 20. We'll share with you the saw that we have, but it's not closed yet.
+00:17:07.238 - 00:17:08.448, Speaker D: Okay, cool.
+00:17:08.614 - 00:17:13.590, Speaker A: Okay, so another thing that is. Sure.
+00:17:18.950 - 00:17:19.700, Speaker B: Okay.
+00:17:24.390 - 00:17:42.870, Speaker A: It won't be a copy. You need to decide where you want to store it at first. Think of it as a huge storage. You can store it wherever you want, and then you need to decide whether the storage you'll commit to it on the L one Da or in the l two da.
+00:17:43.290 - 00:17:45.874, Speaker C: Each storage key basically gets an additional bit.
+00:17:46.012 - 00:17:46.362, Speaker B: Yes.
+00:17:46.416 - 00:17:48.106, Speaker C: And if the bit is zero, it goes to l one.
+00:17:48.128 - 00:18:00.320, Speaker A: If the bit is exactly. You can write it twice if you want as a developer, but you can write it twice also in the l one dA. If you want to write something in the storage twice, you can do it, right?
+00:18:07.530 - 00:18:08.280, Speaker B: Yes.
+00:18:09.050 - 00:18:22.666, Speaker F: If you imagine the collect, let's say you can do one write operation to have it stored in the l. There's a storage slot that contains this jpeg encoding on the left side, but on.
+00:18:22.688 - 00:18:25.038, Speaker E: The right the value at the same key is zero.
+00:18:25.204 - 00:18:28.080, Speaker F: If you really want to, you can stall again.
+00:18:34.370 - 00:18:37.194, Speaker E: No, you choose to do it, which would be weird.
+00:18:37.242 - 00:18:38.800, Speaker F: That's why you won't do it.
+00:18:39.410 - 00:19:01.006, Speaker D: I think the idea is if you wanted to move it from the left tree to the right, you have the same structure in each tree, if I'm understanding correctly. But the asset is only in one of them. One of them is just known by default. But you can move like you're taking it out of the left tree to put it in.
+00:19:01.028 - 00:19:02.750, Speaker C: Yeah, I don't think you can copy.
+00:19:05.170 - 00:19:08.290, Speaker D: Transfer. Yeah, it was like you would bridge from this contract.
+00:19:15.080 - 00:19:26.600, Speaker E: Value. If I just copy 100 in both fields, it doesn't mean I want to eat, because unsound the RC 20 contract.
+00:19:27.100 - 00:20:08.068, Speaker A: There are two levels here. One is the design and how the storage and the commitment to the state look behind the scene. And the other one is the implementation level. And we need to decide, after we decide on the general design and how the state look like and what we commit to, we need to decide how to define the ERC 721. Right. And we can decide that in the design of the ERC 721, you can store it in both or in one of the two. It depends on what we'll choose to implement there.
+00:20:08.068 - 00:20:37.630, Speaker A: I think that it's more reasonable for NFT, unlike ELC 20, to store it only in one place. You'll have to choose whether your NFT is here or here. And it makes sense that if you have cheap nfds for gaming, you'll store it on the L two DA. And if you have some asset that worth millions of dollars, you'll store it on the L one DA. Okay, but this is a different level of design.
+00:20:44.620 - 00:20:49.390, Speaker E: Or if one of them is not, that is accepted to zero or null or something like that.
+00:20:53.060 - 00:21:39.852, Speaker A: Two more interesting properties of the design. Before we'll go to the risk one, the nons. We said that we have the exact same address in both trees, right? The nons of account contract is in the leaf level. In the contract address, triplet. Actually, the definition of leaf in the contact tree is a commitment to the storage, which is commitment to another tree. The address, sorry, the class hash of the contract and the nons. The nons is actually also duplicated.
+00:21:39.852 - 00:22:17.608, Speaker A: We can use nons both in the l two da and in the l one da. The nons meant to guarantee the uniqueness of transaction. This is why we need to advance it every time in the new design. What will happen is that you'll be allowed to use whatever nodes you want. If you want to advance dell two da nodes, you can choose to use this nodes. And if you want to advance the l one Da nodes, you can choose to advance it. Why? It's nice feature because the reasonable behavior is to always choose to advance the l two da nodes because it's much cheaper.
+00:22:17.608 - 00:23:22.108, Speaker A: And if there is any kind of a crisis that we'll go over in a minute, you can always choose to use the L one da nons and going back to use this non. So your account will always be available for you. So this is one additional feature which is in the protocol level. Another feature in the protocol level before we'll go to implementation of standards like the ERC 20 is the DA mode for fields. We don't yet have the design for the ERC 20, but we want this design to allow us use both l two da and l one da. So in the protocol level, when you submit a transaction, you'll be able to choose not only from where to take the notes, but also from where to take the fees. So if you have funds in the L two DA, you'll be able to pay the transaction fee through this balance.
+00:23:22.108 - 00:23:40.748, Speaker A: So this is in general, the design of the volition and the feature that we want to add. Again in the first major version in stocknet that will include evolution, it will be only one additional data availability tree and not multiple trees.
+00:23:40.864 - 00:23:41.530, Speaker B: Yes.
+00:23:47.820 - 00:24:01.960, Speaker E: Or l two da. But before the user being specified, like specifying which data takes off, they will need to bridge some of their or some of their token holdings or some of the balance number from one DA to the other, right?
+00:24:02.030 - 00:24:02.650, Speaker B: Yes.
+00:24:06.020 - 00:24:10.320, Speaker E: Dumplicate.
+00:24:22.790 - 00:25:21.886, Speaker A: Almost like what governance do from time to time. Okay, so cool design give freedom to users and developers, give us the ability to have much cheaper transactions. We could go from half a dollar for transfer to less than five cents for transaction, which is really cool. But now what are the risks? What are the risks? The risk is the lack of ability to reconstruct data to data availability. How it could happen in the decentralized world. Let's imagine that we have a malicious majority. Majority of the sequencer are malicious and colluding and they decide to have even one transfer, one change in the data availability in the L two data availability mode that they are not sharing with all other sequencer and full nodes.
+00:25:21.886 - 00:26:47.626, Speaker A: What will happen in that case? After the malicious majority attack will finish the honor stick wither won't be able to update and to change dell to data availability mode, right? Is it clear they won't have the data needed to reconstruct and to compute the new route? Okay, this is actually very scary situation. I don't think it's very probable, but it could happen. It's less secure than Ethereum and in this case it's not that only the L two data availability won't be accessible, but the sequencer will be exposed to an attack that for example, do a lot of changes in the L one DA, a lot of computation, and only in the end of the transaction it call to the l two da. What will happen? The sequencer won't able not to execute the transaction and not to prove failure because it's not invalid. It just don't have the data and this is problematic situation. Okay. Also, let's imagine honest contract that use both l two da and l one da.
+00:26:47.626 - 00:28:02.994, Speaker A: Once we have malicious majority attack after the L two Da crisis, after the malicious majority attack, the sequencer won't be able to execute transaction using this contract because whenever it try to access the L two Di mode, it will fail. Okay, so this is our biggest concern from this design. At the moment, what we are thinking about once we have data availability Cris is by governance decision to decide to create a new data availability tree. It will have the same name, but if at the moment we specify da mode one in read write Cisco. When we try to access storage here, from now on, we'll need to specify two. Whenever transactions specify da mode equal one, the transaction will fail. It will be possible to pull failure because it will be added to the OS, the transaction with da mode one is okay to revert.
+00:28:03.042 - 00:28:03.640, Speaker B: Yes.
+00:28:04.570 - 00:28:56.920, Speaker A: And whenever a contract that was already deployed and it tried to get to da mode one, the OS and the sequencer will switch it or redirect it to the new data availability mode. So in practice, what will happen? Every transaction will need. We won't be able to do replay attack because we can't just resend transaction with non zero and l two da da mode equal one because those transactions will fail. We need to use different Da mode. And every contract that we're using, the L two da will have. Once in the first time, we'll try to fetch data from the L two da tree. It will get zero because it will be a new tree completely.
+00:28:56.920 - 00:29:21.290, Speaker A: So those are our current thoughts about how to recover from L two da crisis. In practice, it means that if you develop the contract safely, you will only lose all the assets you have in the L two da. But the contract won't be unusable anymore.
+00:29:21.450 - 00:29:27.090, Speaker E: What if someone is able to give a tree that matches the LGA?
+00:29:28.950 - 00:29:29.906, Speaker A: What do you mean?
+00:29:30.008 - 00:29:34.510, Speaker E: So let's say some outside the full node.
+00:29:34.590 - 00:29:34.978, Speaker B: Yes.
+00:29:35.064 - 00:29:46.466, Speaker E: Is able to give like the sequences glued or even all crashed, whatever. But the full node is able to. It's not technically proposal or validator for the network.
+00:29:46.658 - 00:29:48.790, Speaker C: Even in this current proposal.
+00:29:55.460 - 00:29:55.984, Speaker A: Even if.
+00:29:56.022 - 00:30:22.340, Speaker F: You have order, yes, you can use this information. But eventually it can't be home because I can't create the new Merkel bus. Do we have any hope of the change?
+00:30:22.810 - 00:30:33.900, Speaker A: If you have the data on a full node to entire tree, so it's not a data availability crisis. Just pass the data to the sequencer and everything will be good. The problem is.
+00:30:36.590 - 00:30:38.426, Speaker C: Email them. Yeah, exactly.
+00:30:38.608 - 00:30:40.570, Speaker E: How do I send it to the sequence?
+00:30:44.660 - 00:30:45.410, Speaker B: Yes.
+00:30:47.540 - 00:30:49.280, Speaker F: It will be a governance procedure.
+00:30:49.800 - 00:30:51.396, Speaker C: Yes, I was going to ask that.
+00:30:51.578 - 00:30:55.740, Speaker E: How does that switch?
+00:30:56.560 - 00:31:03.008, Speaker A: Sorry. Come on. How will the governance process will look like?
+00:31:03.094 - 00:31:03.730, Speaker E: Yeah.
+00:31:04.260 - 00:31:06.210, Speaker C: Do you have to back at an hour rate?
+00:31:06.580 - 00:31:29.160, Speaker A: I think it won't. It's a great question. We don't yet have the timeline for recovery from l two data availability crisis. But in my opinion, it will take day or two. You need to have governance decision. Meaning at the moment, for example, for the governance.
+00:31:31.900 - 00:31:32.650, Speaker B: The.
+00:31:35.260 - 00:31:52.770, Speaker A: Decision to upgrade starknet to version eleven or to version twelve was governance decision. And the vote took a few days. So maybe you could rush up the vote, but I don't see how you can vote in less than 24 hours.
+00:31:58.090 - 00:32:03.446, Speaker C: Because there's the other time limit on our one proofs, right? Which is if the proofs expire or.
+00:32:03.468 - 00:32:09.770, Speaker A: Take longer, you can fork document, you can't fork.
+00:32:18.450 - 00:32:26.020, Speaker C: So they update l one, and then there's the crisis. Crisis to resolve that cris takes so long that it triggers the l one.
+00:32:26.390 - 00:32:30.350, Speaker E: But the l four condition is supposed to be only a valid state transition.
+00:32:30.510 - 00:32:30.930, Speaker B: Yes.
+00:32:31.000 - 00:32:36.002, Speaker A: You won't be able to. If you could submit valid state transition, everything is good.
+00:32:36.136 - 00:32:36.722, Speaker B: Yeah.
+00:32:36.856 - 00:32:37.540, Speaker E: Okay.
+00:32:37.850 - 00:32:40.934, Speaker C: Somehow five nodes manage to take over.
+00:32:41.052 - 00:32:41.526, Speaker B: Yes.
+00:32:41.628 - 00:32:46.498, Speaker C: They twiddle, they drop l two dna.
+00:32:46.594 - 00:32:47.240, Speaker B: Yes.
+00:32:48.410 - 00:32:55.316, Speaker C: Honest majority gets powered back. They now can't prove things to l.
+00:32:55.338 - 00:32:59.536, Speaker A: One, but they can prove the dishonest minority.
+00:32:59.568 - 00:33:03.290, Speaker C: Just sit there waiting for that timer to expire and takes over completely.
+00:33:03.660 - 00:33:06.164, Speaker A: No, they still need to, but they have the tree.
+00:33:06.212 - 00:33:07.690, Speaker C: They're just not giving them to you.
+00:33:08.140 - 00:33:24.300, Speaker A: Okay, so they will submit valid proof for state transition. It's okay, because everything they could submit is a valid state transition. No, you still have the validity.
+00:33:28.560 - 00:33:58.980, Speaker C: Attacking minority control to disrupt data available. Okay, now the honest majority regains consensus control. And while they have consensus, they don't let these attackers participate. This minority has the full data required to make an actual request. They can if the fix takes so long that l one state updates, no problem.
+00:34:04.320 - 00:34:34.120, Speaker A: You have two things that I think you missed. One, even if they'll do, say, a state update, it's a valid state update. You still have the guarantee of validity. You just don't know the data, but the transaction is completely valid. Because if they can prove it's valid 1 second, the honest majority will keep advanced the l one DA state. The l one DA state won't stop because I have the entire. I just won't be able to execute transactions that are using the l two da.
+00:34:36.550 - 00:34:48.680, Speaker E: Majority condition. But if it comes back, and if the five people are in the majority, then they would be, they would share.
+00:34:56.650 - 00:35:52.902, Speaker A: So part of our concern about the l two da crisis is more of psychology concerns, right? Because I can build a safe contract that uses only the l one DA, but in blockchain you have a lot of composability. So maybe I'm using another contract that uses another contract, and only one of them uses the l two DA in an unsafe way. In that case, l 2d crisis might paralyze a big portion of the network. How big, we don't actually know. So the current plan is having much longer testnet time for this version. With this feature, we usually have two weeks of testnet. Since of the last versions, we think that we'll need for this feature maybe more than one month.
+00:35:52.902 - 00:35:53.590, Speaker A: A few months?
+00:35:53.660 - 00:35:54.134, Speaker B: Yes.
+00:35:54.252 - 00:36:17.610, Speaker E: We have some vm guarantee that, let's say I have a yacht 20 which absolutely has to be in l one or some contract which is all on l one. But I still want to compose another contract. And I say whenever I do a cross contract call, I want to make sure all the treatings that happen happen on L. If they don't, I don't mind the call referred.
+00:36:17.770 - 00:36:46.778, Speaker A: Yes, it's a great question because this is one of the features that we want to add to the design. Maybe having some kind of decorator for the contract that enforced the contract to use only l one da and to add a syscall that can call. Yes, that you can pass him contract address and ask, is it a pure contract that uses only l one da? Yes.
+00:36:46.864 - 00:36:59.310, Speaker E: Not just l 1d. Maybe the call should be this function that I will call will only do changes to the l one da. I don't mind if some of its variables are maybe specifying, maybe adding.
+00:37:01.010 - 00:37:01.614, Speaker C: Data.
+00:37:01.732 - 00:37:05.134, Speaker F: Safe pole which fails, which reverts if.
+00:37:05.172 - 00:37:13.540, Speaker E: At any point or the other way around. I don't want my gas cost to be too high. So I want only l two of the.
+00:37:16.880 - 00:37:17.790, Speaker F: If possible.
+00:37:20.720 - 00:37:41.696, Speaker A: I think that at the beginning at least, we don't want to give too much power to the l two da. So I don't want to encourage people to use too heavily the l two da. Because I think that people will use l two da. And if most of the network will be on the l two da, it might be a disaster. Once we have an l two DA.
+00:37:41.728 - 00:37:42.420, Speaker B: Crisis.
+00:37:44.440 - 00:37:55.000, Speaker E: I think the full load network should be. There should be a lot more full node nodes. And they have protocol for information dispersed.
+00:37:58.200 - 00:38:14.314, Speaker F: In the case of malicious signature, they have all the signatures in a clip. They will zero networking, which they can then.
+00:38:14.512 - 00:38:15.274, Speaker A: In this case.
+00:38:15.312 - 00:38:18.620, Speaker E: That is not honest.
+00:38:22.420 - 00:38:24.370, Speaker F: In any case, nothing here.
+00:38:28.960 - 00:38:44.850, Speaker A: Once the data went to full nodes, you are fine. You won't have the data availability crisis. The only option for data availability crisis is if the sequencer aren't sharing the data.
+00:38:47.960 - 00:38:48.710, Speaker B: Okay.
+00:38:51.400 - 00:39:02.120, Speaker G: We are talking about sequencer. It's mandatory.
+00:39:11.210 - 00:39:12.680, Speaker A: No, it's okay. It's okay.
+00:39:17.310 - 00:39:28.320, Speaker G: My question, how can we get back by majority who is majority and with malicious, what is different?
+00:39:29.570 - 00:39:31.920, Speaker A: If I understand correct.
+00:39:36.930 - 00:39:51.250, Speaker G: Because the malicious people and the majority of takers something are different. That's why we can decouple. If these are same, we cannot recover.
+00:39:53.670 - 00:39:57.460, Speaker A: Are you asking what happened? If.
+00:39:59.750 - 00:40:02.180, Speaker G: The data ability is.
+00:40:08.240 - 00:40:15.168, Speaker A: Okay? You're asking if the data will be changed by the malicious majority, what will happen?
+00:40:15.254 - 00:40:15.792, Speaker G: Yeah.
+00:40:15.926 - 00:40:16.416, Speaker B: Okay.
+00:40:16.518 - 00:40:41.770, Speaker A: So if the data was changed by the malicious majority, what the malicious majority will do is they won't share the data with other people. And if you don't have the data here, you cannot advance the state of this state. This is the problem and this is the risk that we are having. Did I answer the question?
+00:40:47.830 - 00:40:48.194, Speaker B: Yes.
+00:40:48.232 - 00:41:00.150, Speaker A: We don't have a way to decouple between those once it happened. We need to have a governance decision and to change the protocol. To change the code of the OS and the verifier.
+00:41:02.030 - 00:41:02.394, Speaker B: Yes.
+00:41:02.432 - 00:41:09.254, Speaker A: The governance of. Yeah, of Starknet.
+00:41:09.302 - 00:41:09.900, Speaker B: Yes.
+00:41:19.700 - 00:41:21.404, Speaker A: So you have to change the protocol.
+00:41:21.452 - 00:41:34.790, Speaker C: Exactly like l one da let you recover either way. To recover.
+00:41:37.290 - 00:41:48.234, Speaker D: So a potential issue, you were saying why the CRC 20 needs to be built properly is that part of it is using l two da and part of it's using l one. And if l two is a problem, you'll break the whole thing.
+00:41:48.272 - 00:41:50.006, Speaker B: That was what you suggested? Yes.
+00:41:50.128 - 00:42:02.734, Speaker D: Okay, so that's only relevant in this example we're talking about with this enshrined l two da. So if in the future, sometime like Celestia or something else was used, that wouldn't be relevant, right?
+00:42:02.852 - 00:42:03.374, Speaker B: Yes.
+00:42:03.492 - 00:42:05.386, Speaker D: Relevant for this enshrined da.
+00:42:05.498 - 00:42:05.774, Speaker B: Yes.
+00:42:05.812 - 00:42:29.502, Speaker A: The l two DA is a unique one because it's based on the consensus of Starknet. So once we have an issue with the consensus with Starknet, it grew the protocol in many ways. So we need to give it spatial treatment.
+00:42:29.586 - 00:42:34.090, Speaker D: That's the only reason you can even have this hybridized.
+00:42:38.230 - 00:42:42.100, Speaker A: What do you mean? What do you mean?
+00:42:48.810 - 00:43:09.330, Speaker D: Yes, that's exactly what I was saying. The first thing I ask you about is post base. It's only possible because this DA is built in. This is a strong reason to have an enshrined DA rather than just use some external.
+00:43:17.610 - 00:43:20.230, Speaker F: I feel like there needs to be some block delay.
+00:43:37.880 - 00:44:05.816, Speaker A: No. In the future we will have more than one additional DA, but we still need to understand we don't have the clear design of how it will happen. Okay, for example, let's say that the serial DA that I have is celestia. I need to submit the status to Celestia and then somehow I need to submit Ethereum approved that the data availability was actually submitted to Celestia.
+00:44:05.848 - 00:44:06.430, Speaker B: Right.
+00:44:08.960 - 00:44:21.330, Speaker A: Or if I had data availability committee as the data availability mode, I need to submit Ethereum both the signatures of the data availability committee that they actually have the data.
+00:44:22.980 - 00:44:23.440, Speaker B: Okay.
+00:44:23.510 - 00:44:34.324, Speaker A: So in the future we will have these options, but it won't be in the first version of volition if you zero it out.
+00:44:34.362 - 00:44:41.422, Speaker E: Do you think that I would actually.
+00:44:41.476 - 00:44:50.514, Speaker C: Communicate to them because I imagine there's a status of every, because full notes still have some history in their stuff, right?
+00:44:50.632 - 00:44:51.300, Speaker B: Yes.
+00:44:57.110 - 00:45:27.050, Speaker A: After the data availability crisis. No, it will be a new tree. Yeah, you'll need to update the RPC. No, you'll keep the old database and you'll need to add another three that will start from zero. You won't need to switch, you just need to add another data availability mode. And in the state, if that are.
+00:45:27.120 - 00:45:31.180, Speaker C: In the look, everything except the root for that one.
+00:45:32.590 - 00:45:44.160, Speaker A: Yes, exactly. And in the future you'll have much more than three. Well, we hope it won't happen often at least.
+00:45:45.170 - 00:45:45.920, Speaker B: Yes.
+00:45:47.830 - 00:46:52.310, Speaker A: Okay, so I think we don't have a lot of time, but I do want to go quickly over the thoughts we have on ERC 20. If you have any comments or thought about it, I'll be happy to talk about it later. So the two assumptions for design of the RC 20 is one, we don't want to break existing contracts that are using the API of the RC 20 for get balance transfer allowance. All of those methods. This is one two, we do want to give users the flexibility to have balance on the l two DA, to give them the ability to cheaper transactions. Okay, so we have, let's say four concepts for ERC 20. The first one is maybe the most safest one, but the least flexible.
+00:46:52.310 - 00:47:44.898, Speaker A: In this idea, you have one contract of the ERC 20 token. You have balance on the l one DA. You have balance on the l two DA, but every address can be only in one balance. You have balance or in the l one DA or in the l two DA. The pros of this design is that all the API methods of the ERC 20 remain the same. When I ask balance off, I have clear answer for this request, because it's the entire balance and it's here or there. The biggest con of this suggestion is that you won't be able to pay, for example, to pay fees from the cheaper mode and to gain assets or to gain funds in the more safe mode.
+00:47:44.898 - 00:47:58.710, Speaker A: So if I want to pass you 100 is and you want to accept and I want to transfer it from my l one da, I'll need to pay the fees also from the l one DA. So this is the disadvantage of this suggestion.
+00:47:58.790 - 00:48:00.170, Speaker B: You want philosophy?
+00:48:07.640 - 00:48:52.190, Speaker A: Yes, in this design suggestion, this is the first one we have like three more. No, you will have one contract for ERC 20. Let's say Stark, we have stark token, it's an ERC 20 contract. And you have in the same contract you have balance. That's stored on l one Da and balance stored on l two da. By default, your balance will be on the l one DA, and then you'll be able to choose to move the transfer the fund you have to the l two Da, but your address will be only on one of the balances here or there.
+00:48:55.640 - 00:48:56.196, Speaker B: Yes.
+00:48:56.298 - 00:49:42.612, Speaker A: In this suggestion, rest of the proposals are again one contact, two balances, one in each and every account can have balance in both trees, both l one da balance and l two Da balance. But the question that we have, we need to answer to request in the regular API of the LC 20, we need to have the method to implement the method of get balance, get total supply and transfer and everything else. So we need to decide what will be the default behavior of those methods, right?
+00:49:42.666 - 00:49:43.124, Speaker B: Yes.
+00:49:43.242 - 00:49:57.144, Speaker E: If we allow any contract to have arbitrary use l one and l two at the same time, then even if we set an ERC 20 standard which says all has to be one place, then developers still might not choose.
+00:49:57.262 - 00:50:09.630, Speaker A: Of course you don't have to implement ERC 20, right? You can say I have a token, but it doesn't meet the requirement of ERC 20. It's okay, you can do whatever you want.
+00:50:14.000 - 00:50:15.180, Speaker E: L one balance.
+00:50:16.500 - 00:50:50.840, Speaker A: Yes, exactly. This is one of the proposal we have. What is the disadvantage of your proposal? Once you have data availability cris, this contract, it's not half, it won't be during the crisis, you won't be able to use the CRC 20. Right? Donuts option.
+00:50:53.450 - 00:50:56.320, Speaker E: But can you read the question I got for that?
+00:50:57.410 - 00:50:58.880, Speaker A: How is the code? And same.
+00:51:02.940 - 00:51:03.690, Speaker D: Way.
+00:51:06.460 - 00:51:08.250, Speaker E: But we could also say like that.
+00:51:14.170 - 00:51:32.022, Speaker A: It won't fail because until you don't have the governance decision, maybe this specific sequencer don't have this data, but it doesn't mean that it fails. You can't prove that you try until the governance.
+00:51:32.166 - 00:51:32.860, Speaker B: Yes.
+00:51:36.750 - 00:52:07.362, Speaker A: In short, the three suggestion for DRC 20 in that case is the default mode will always be l one da. Meaning if I ask get balance, it will always take only my l one DA balance and it won't notice the l two Da balance and will have another method in this contract that in those you will need to specify specifically what Da mode you are querying.
+00:52:07.506 - 00:52:08.200, Speaker B: Yes.
+00:52:10.330 - 00:52:34.378, Speaker A: Okay, sorry. So first one is the default mode is always the l one DA. Second is you can choose your own default mode, it will be l one DA, but you can switch your default mode to l two da. And then when I'm querying get balanced, it will fetch the balance from the L two DA, which is the default.
+00:52:34.474 - 00:52:35.166, Speaker B: Yes.
+00:52:35.348 - 00:52:37.294, Speaker D: Like who is choosing in this option.
+00:52:37.332 - 00:52:38.826, Speaker F: Too, where the defaults can be switched.
+00:52:38.858 - 00:52:39.910, Speaker B: Who makes that decision?
+00:52:40.010 - 00:53:30.880, Speaker A: The account and the last option is return the sum of both options. Personally, I think that this is the most risky option because once you have data availability crisis, the LC 20 won't be accessible and it seems risky to me. So I think that we are out of time. But those are our current thought about the LC 20 and the current plan for implementing the volition feature. If you have any comments or thought or new idea, we'll be more than happy to hear them. You can reach out to us directly or post it in the community forum and we'll be happy to talk and chat about it. Thank you.
