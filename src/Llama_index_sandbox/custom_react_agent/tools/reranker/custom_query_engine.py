@@ -43,23 +43,23 @@ class CustomQueryEngine(RetrieverQueryEngine):
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
-            'ethresear.ch': 1,
-            'ethereum.org': 1,
-            'flashbot': 1,
-            'writings.flashbots.net': 1,
-            'frontier.tech': 0.95,
-            'research.anoma.net': 0.95,
-            'dba.xyz': 0.95,
-            'default': 0.95
+            'ethresear.ch': 1.1,
+            'ethereum.org': 1.1,
+            'flashbot': 1.1,
+            'writings.flashbots.net': 1.1,
+            'frontier.tech': 1,
+            'research.anoma.net': 1,
+            'dba.xyz': 1,
+            'default': 1
         },
         f'{DOCUMENT_TYPES.YOUTUBE_VIDEO.value}_weights': {
             'Flashbots': 1,
             'Bell Curve 2023': 0.95,
-            'Fenbushi Capital': 0.9,
-            'SevenX Ventures': 0.9,
-            'Research Day': 0.9,
-            'Tim Roughgarden Lectures': 0.9,
-            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.90'))
+            'Fenbushi Capital': 0.95,
+            'SevenX Ventures': 0.95,
+            'Research Day': 0.95,
+            'Tim Roughgarden Lectures': 0.95,
+            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.95'))
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
             'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.2'))
