@@ -14,7 +14,7 @@ from src.Llama_index_sandbox import root_dir, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
 from src.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
-from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging, save_successful_load_to_csv
+from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging, save_successful_load_to_csv, compute_new_entries
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
@@ -87,7 +87,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
 
 @timeit
-def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, num_files: int = None):
+def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, overwrite=False, num_files: int = None):
     root_dir = root_directory()
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):
@@ -103,7 +103,10 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
     all_documents = []
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"
 
-    youtube_videos_df = pd.read_csv(videos_path)
+    latest_df = pd.read_csv(videos_path)
+    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/youtube_videos.csv")
+    youtube_videos_df = compute_new_entries(latest_df=latest_df, current_df=current_df, left_key='url', right_key='video_link', overwrite=overwrite)
+
     assert youtube_videos_df.shape[0] > 0, "Could not load YouTube videos CSV."
     partial_load_single_transcript = partial(load_single_video_transcript, youtube_videos_df=youtube_videos_df)
     video_transcripts_loaded_count = 0

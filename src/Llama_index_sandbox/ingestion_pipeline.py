@@ -55,14 +55,15 @@ def initialise_pipeline():
 
 
 @timeit
-def create_index(add_new_transcripts=False, num_files=4):
+def create_index(add_new_transcripts=False, num_files=10):
     logging.info("Starting Index Creation Process")
 
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files)
-    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files)
-    documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files)
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files)
+    overwrite = False
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, overwrite=overwrite)
+    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, overwrite=overwrite)
+    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, overwrite=overwrite)
+    documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, overwrite=overwrite)
+    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, overwrite=overwrite)
 
     pipeline = initialise_pipeline()
     nodes = pipeline.run(documents=documents_pdfs + documents_youtube, num_workers=int(os.cpu_count())-3)

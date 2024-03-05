@@ -11,14 +11,19 @@ from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
 
 
-def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
+def load_single_pdf(paper_details_df, file_path, current_df, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
         title = os.path.basename(file_path).replace('.pdf', '').replace('<slash>', '/')
-        paper_row = paper_details_df[paper_details_df['Title'] == title]
+
+        is_in_current_df = True if not current_df[current_df['title'] == title].empty else False
+        if is_in_current_df:
+            return []
+
+        paper_row = paper_details_df[paper_details_df['Title'] == title]  # if there is a match it means that we need to add that title for which we have metadata
 
         if not paper_row.empty:
             assert paper_row.iloc[0]['Title'] != np.nan, f"Title is NaN for {paper_row.iloc[0]['Link']}"
@@ -63,7 +68,7 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
                     'release_date': "",
                 })
 
-            logging.warning(f"Failed to find metadata for [{file_path}], adding only title")
+            logging.warning(f"Failed to find metadata for (no row match) [{file_path}], adding only title")
         # logging.info(f"Loaded metadata for [{title}] with [{file_path}]")
         save_successful_load_to_csv(documents[0], csv_filename='all_discourse_articles.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
         return documents
@@ -73,13 +78,17 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[str, Path] = f"{root_dir}/datasets/evaluation_data/merged_articles.csv", num_files: int = None):
+def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[str, Path] = f"{root_dir}/datasets/evaluation_data/merged_articles.csv", overwrite=False, num_files: int = None):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     all_documents = []
-    paper_details_df = pd.read_csv(articles_aggregates_path)
-    partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df)
+
+    latest_df = pd.read_csv(articles_aggregates_path)
+    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/all_discourse_articles.csv")
+    paper_details_df = compute_new_entries(latest_df=latest_df, current_df=current_df, left_key='Link', overwrite=overwrite)
+
+    partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df, current_df=current_df if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date']))
 
     pdf_loaded_count = 0
     files_gen = directory_path.glob("*.pdf")
@@ -96,10 +105,12 @@ def load_pdfs(directory_path: Union[str, Path], articles_aggregates_path: Union[
             pdf_file = futures[future]
             try:
                 documents = future.result()
+                if not documents:
+                    continue
                 all_documents.extend(documents)
                 pdf_loaded_count += 1
             except Exception as e:
-                logging.info(f"Failed to process {pdf_file}, removing file: {e}")
+                logging.info(f"Failed to process {pdf_file}: [{e}]")
                 os.remove(pdf_file)
 
     logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{DOCUMENT_TYPES.ARTICLE.value}] Discourse files.")

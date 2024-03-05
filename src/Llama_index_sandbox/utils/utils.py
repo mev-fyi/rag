@@ -921,3 +921,25 @@ def load_csv_data(file_path):
         logging.warning(f"CSV file not found at path: {file_path}")
         return pd.DataFrame()  # Return an empty DataFrame if file doesn't exist
 
+
+def compute_new_entries(latest_df: pd.DataFrame, current_df: pd.DataFrame, left_key='pdf_link', right_key='pdf_link', overwrite=False) -> pd.DataFrame:
+    """
+    Compute the difference between latest_df and research_papers,
+    returning a DataFrame with entries not yet in research_papers.
+
+    Parameters:
+    - latest_df (pd.DataFrame): DataFrame loaded from latest_df.csv
+    - current_df (pd.DataFrame): DataFrame loaded from current_df.csv
+
+    Returns:
+    - pd.DataFrame: DataFrame with entries not yet in research_papers.csv
+    """
+    # Assuming there's a unique identifier column named 'id' in both DataFrames
+    # Adjust 'id' to the column name you use as a unique identifier
+    if overwrite:
+        logging.info(f"New to be added to the database found: [{len(latest_df)}]")
+        return latest_df
+    else:
+        new_entries_df = latest_df[~latest_df[left_key].isin(current_df[right_key])]
+        logging.info(f"New to be added to the database found: [{len(new_entries_df)}]")
+    return new_entries_df

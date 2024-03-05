@@ -20,7 +20,7 @@ from pypdf import PdfReader
 
 from src.Llama_index_sandbox import root_dir, RESEARCH_PAPER_CSV
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
 
 
 def get_pdf_details(response: requests.Response) -> dict:
@@ -38,14 +38,6 @@ def get_pdf_details(response: requests.Response) -> dict:
                     paper_title = info.title
                 except Exception as e:
                     logging.info(f"Could not retrieve details with [PyPDF] from: {e}")
-            # if not paper_title:  # If details retrieval still fails, try with PyMuPDF
-            #     try:
-            #         f.seek(0)
-            #         doc = fitz.fitz.open(f)
-            #         info = doc.metadata
-            #         paper_title = info['title']
-            #     except Exception as e:
-            #         logging.info(f"Could not retrieve details with [PyMuPDF] from: {e}")
 
             if not paper_title:  # If details retrieval still fails, try with pdfminer
                 try:
@@ -150,11 +142,15 @@ def download_pdf(link, save_dir, optional_file_name=None):
         return None
 
 
-def populate_document_metadata(documents, paper_details_df, file_path):
+def populate_document_metadata(documents, paper_details_df, current_df, file_path):
     # Update 'file_path' metadata and add additional metadata
     title = os.path.basename(file_path).replace('.pdf', '')
     # Find the corresponding row in the DataFrame
     paper_row = paper_details_df[paper_details_df['title'] == title]
+
+    is_in_current_df = True if not current_df[current_df['title'] == title].empty else False
+    if is_in_current_df:
+        return []
 
     for document in documents:
         if 'file_path' in document.metadata.keys():
@@ -178,18 +174,25 @@ def populate_document_metadata(documents, paper_details_df, file_path):
                 'pdf_link': str(paper_row.iloc[0]['pdf_link']),
                 'release_date': str(paper_row.iloc[0]['release_date'])
             })
+        else:
+            logging.warning(f"Failed to find metadata for [{file_path}], continuing")
     save_successful_load_to_csv(documents[0], csv_filename='research_papers.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
 
 
-def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
+def load_single_pdf(paper_details_df, file_path, current_df, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
-        populate_document_metadata(documents, paper_details_df, file_path)
+        populate_document_metadata(documents, paper_details_df, current_df, file_path)
         return documents
     except Exception as e:
-        logging.info(f"Failed to load {file_path}: {e}")
+        # logging.info(f"Failed to load {file_path}: {e}")
         # Find the corresponding row in the DataFrame
         title = os.path.basename(file_path).replace('.pdf', '')
+
+        is_in_current_df = True if not current_df[current_df['title'] == title].empty else False
+        if is_in_current_df:
+            return []
+
         paper_row = paper_details_df[paper_details_df['title'] == title]
 
         if not paper_row.empty:
@@ -199,24 +202,26 @@ def load_single_pdf(paper_details_df, file_path, loader=PyMuPDFReader()):
             new_file_path = download_pdf(pdf_link, save_dir, title + '.pdf')
             if new_file_path:
                 documents = loader.load(file_path=new_file_path)
-                populate_document_metadata(documents, paper_details_df, file_path)
+                populate_document_metadata(documents, paper_details_df, current_df, file_path)
                 return documents
             else:
                 return []
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
+def load_pdfs(directory_path: Union[str, Path], overwrite=False, num_files: int = None):
     # Convert directory_path to a Path object if it is not already
     # logging.info("Loading PDFs")
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
     all_documents = []
-    research_papers_path = f"{root_dir}/datasets/evaluation_data/paper_details.csv"
 
-    paper_details_df = pd.read_csv(research_papers_path)
-    partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df)
+    latest_df = pd.read_csv(f"{root_dir}/datasets/evaluation_data/paper_details.csv")
+    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/research_papers.csv")
+    paper_details_df = compute_new_entries(latest_df=latest_df, current_df=current_df, overwrite=overwrite)
+
+    partial_load_single_pdf = partial(load_single_pdf, paper_details_df=paper_details_df, current_df=current_df if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date']))
     pdf_loaded_count = 0
 
     # Create a generator for the PDF files
@@ -237,10 +242,12 @@ def load_pdfs(directory_path: Union[str, Path], num_files: int = None):
             pdf_file = futures[future]
             try:
                 documents = future.result()
+                if not documents:
+                    continue
                 all_documents.extend(documents)
                 pdf_loaded_count += 1
             except Exception as e:
-                logging.info(f"Failed to process {pdf_file}, removing file: {e}")
-                os.remove(pdf_file)
+                logging.info(f"Failed to process {pdf_file}: [{e}]")
+                # os.remove(pdf_file)
     logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{DOCUMENT_TYPES.RESEARCH_PAPER.value}] files.")
     return all_documents

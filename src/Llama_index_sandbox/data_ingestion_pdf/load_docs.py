@@ -15,7 +15,7 @@ from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, flashbots_title_extraction, \
     ethereum_org_title_extraction, extract_author_and_release_date_ethereum_org, \
     extract_author_and_release_date_flashbots, extract_title, extract_link, extract_author_and_release_date
-from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
 
 
 def sanitize_metadata_value(value):
@@ -25,10 +25,15 @@ def sanitize_metadata_value(value):
     return str(value).replace('"', '')
 
 
-def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, loader=PyMuPDFReader(),
+def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, current_df, loader=PyMuPDFReader(),
                     debug=False):
     try:
         filename = os.path.basename(file_path)
+
+        is_in_current_df = True if not current_df[current_df['document_name'] == filename].empty else False
+        if is_in_current_df:
+            return [], {}
+
         existing_row = existing_metadata[existing_metadata['document_name'] == filename]
 
         if not existing_row.empty:
@@ -88,7 +93,7 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
+def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, current_df: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
@@ -97,7 +102,7 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
 
     all_documents = []
     partial_load_single_pdf = partial(load_single_pdf, title_extraction_func=title_extraction_func, extract_author_and_release_date_func=extract_author_and_release_date_func,
-                                      author=author, release_date=release_date, pdf_link=pdf_link, existing_metadata=existing_metadata, debug=debug)
+                                      author=author, release_date=release_date, pdf_link=pdf_link, existing_metadata=existing_metadata, current_df=current_df, debug=debug)
 
     pdf_loaded_count = 0  # Initialize the counter
     # Initialize a list to accumulate metadata
@@ -143,7 +148,7 @@ def check_file_exclusion(file_path: Path, title_extraction_func: Callable, exclu
 
 
 @timeit
-def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
+def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, num_cpus: int = None):
     # Configuration for the PDF processing
     config = {
         'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
@@ -195,8 +200,14 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
     all_metadata = []
     # Load existing dataframe if it exists
     csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
+    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv")
     if os.path.exists(csv_path):
-        existing_metadata = pd.read_csv(csv_path)
+        latest_df = pd.read_csv(csv_path)
+        existing_metadata = compute_new_entries(latest_df=latest_df, current_df=current_df, overwrite=overwrite)
+        # Check if existing_metadata is empty
+        if existing_metadata.empty:
+            logging.info("No new entries to process. Exiting...")
+            return []
     else:
         existing_metadata = pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
 
@@ -246,6 +257,7 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
                                                          details['author'], details['release_date'],
                                                          details['pdf_link'], files,
                                                          existing_metadata=filtered_metadata,
+                                                         current_df=current_df,
                                                          num_files=num_files, num_cpus=num_cpus, debug=debug)
         all_docs += all_documents
         all_metadata += all_documents_details
