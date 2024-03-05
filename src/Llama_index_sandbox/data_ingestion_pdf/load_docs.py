@@ -7,6 +7,7 @@ from typing import Union, Callable, Tuple
 import pandas as pd
 import numpy as np
 from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from src.Llama_index_sandbox import root_dir
@@ -91,6 +92,9 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
+    if num_files is not None:
+        files = files[:num_files]
+
     all_documents = []
     partial_load_single_pdf = partial(load_single_pdf, title_extraction_func=title_extraction_func, extract_author_and_release_date_func=extract_author_and_release_date_func,
                                       author=author, release_date=release_date, pdf_link=pdf_link, existing_metadata=existing_metadata, debug=debug)
@@ -120,6 +124,25 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
     return all_documents, metadata_accumulator
 
 
+def check_file_exclusion(file_path: Path, title_extraction_func: Callable, exclude_titles: set, exclude_filenames: set) -> Union[Path, None]:
+    """
+    Check if a file should be excluded based on its title or filename.
+
+    Returns the file path if it should be included, None otherwise.
+    """
+    filename = file_path.name.lower()  # Convert filename to lowercase
+    title = sanitize_metadata_value(extract_title(file_path, title_extraction_func))
+
+    # Check for exclusion based on title and filename
+    if not any(excluded_title.lower() in title.lower() for excluded_title in exclude_titles) and \
+            not any(excluded_filename.lower() in filename for excluded_filename in exclude_filenames):
+        return file_path
+    else:
+        logging.info(f"[Exclusion] Excluding file: [{filename}] with title: [{title}]")
+        return None
+
+
+@timeit
 def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
     # Configuration for the PDF processing
     config = {
@@ -189,19 +212,33 @@ def load_docs_as_pdf(debug=False, num_files: int = None, num_cpus: int = None):
         filtered_metadata.to_csv(csv_path, index=False)
 
         directory_path = os.path.join(root_dir, directory)
-        files_gen = Path(directory_path).glob("*.pdf")
+        # files_gen = Path(directory_path).glob("*.pdf")
         files = []
-        for file_path in files_gen:
-            filename = os.path.basename(
-                file_path).lower()  # Convert filename to lowercase for case-insensitive comparison
-            title = sanitize_metadata_value(extract_title(file_path, details['title_extraction_func']))
+        directory_path = os.path.join(root_dir, directory)
+        # Convert generator to list for parallel processing
+        files_gen = list(Path(directory_path).glob("*.pdf"))
 
-            # Check for exclusion based on title and filename
-            if not any(excluded_title.lower() in title.lower() for excluded_title in exclude_titles) and \
-                    not any(excluded_filename.lower() in filename for excluded_filename in exclude_filenames):
-                files.append(file_path)
-            else:
-                logging.info(f"[{details.get('author')}] Excluding file: [{filename}] with title: [{title}]")
+        # Apply num_files limitation BEFORE the exclusion checks
+        if num_files is not None:
+            files_gen = files_gen[:num_files]
+
+        # Prepare function call
+        partial_check_file_exclusion = partial(check_file_exclusion,
+                                               title_extraction_func=details['title_extraction_func'],
+                                               exclude_titles=set(details.get('exclude_titles', [])),
+                                               exclude_filenames=set(details.get('exclude_filenames', [])))
+
+        # Initialize ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=num_cpus) as executor:
+            # Submit tasks
+            future_to_file = {executor.submit(partial_check_file_exclusion, file_path): file_path for file_path in files_gen}
+
+            # Collect results
+            files = []
+            for future in as_completed(future_to_file):
+                result = future.result()
+                if result is not None:
+                    files.append(result)
 
         logging.info(f"Processing directory: {directory_path} with {len(files)} files")
         all_documents, all_documents_details = load_pdfs(directory_path, details['title_extraction_func'],

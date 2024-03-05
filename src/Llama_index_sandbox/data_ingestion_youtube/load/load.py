@@ -47,7 +47,10 @@ def load_single_video_transcript(youtube_videos_df, file_path):
     )
     # NOTE 2023-10-04: .pdf reader creates many documents while .txt from SimpleDirectoryReader
     #  expectedly creates a single document. which one has the correct behavior? do we care?
-    documents = reader.load_data()
+    # documents = reader.load_data()
+    from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
+    loader = PyMuPDFReader()
+    documents = loader.load(file_path=file_path)
 
     assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
     assert video_data['title'] != np.nan, f"Title is NaN for {video_data['url']}"

@@ -2,8 +2,9 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from llama_index.legacy.readers.base import BaseReader
-from llama_index.legacy.readers.schema.base import Document
+from src.Llama_index_sandbox.custom_pymupdfreader.readers.base import BaseReader
+# from llama_index.legacy.readers.schema.base import Document
+from llama_index.core.schema import Document
 
 
 class PyMuPDFReader(BaseReader):
