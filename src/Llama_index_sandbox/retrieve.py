@@ -10,7 +10,7 @@ from llama_index.legacy.embeddings import OpenAIEmbedding
 from llama_index.legacy.agent.react.formatter import ReActChatFormatter
 from llama_index.legacy.agent.react.output_parser import ReActOutputParser
 
-from llama_index.legacy.callbacks import CallbackManager
+from llama_index.core.callbacks import CallbackManager
 from llama_index.legacy.chat_engine.types import BaseChatEngine
 from llama_index.legacy.embeddings import HuggingFaceEmbedding
 from llama_index.legacy.indices.query.base import BaseQueryEngine

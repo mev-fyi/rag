@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime
 
-from llama_index.legacy.callbacks.base_handler import BaseCallbackHandler
+from llama_index.core.callbacks import CallbackManager, CBEventType, EventPayload
 from llama_index.legacy.callbacks.schema import CBEventType, EventPayload
 from typing import Any, Optional, Dict, List
 import os
@@ -89,13 +89,14 @@ They may need to implement additional safeguards, optimizations, or features, de
 embedding_model_name, text_splitter_chunk_size, chunk_overlap, _ = get_last_index_embedding_params()
 
 
-class JSONLoggingHandler(BaseCallbackHandler):
+class JSONLoggingHandler(CallbackManager):
 
     logs = []
 
     def __init__(self, event_starts_to_ignore: List[CBEventType], event_ends_to_ignore: List[CBEventType], log_name: str, similarity_top_k: int):
-        super().__init__(event_starts_to_ignore, event_ends_to_ignore)
-
+        super().__init__()
+        self.event_starts_to_ignore = []
+        self.event_ends_to_ignore = []
         if not os.path.exists(f"{root_dir}/logs/json"):
             os.makedirs(f"{root_dir}/logs/json")
 

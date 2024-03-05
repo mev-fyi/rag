@@ -66,7 +66,7 @@ class CustomReActAgent(ReActAgent):
             chat_response_copy = copy.deepcopy(chat_response)
 
             # Enforce user question into Action Input
-            response_content = chat_response_copy.raw['choices'][0]['message']['content']
+            response_content = chat_response_copy.raw['choices'][0].message.content
             # NOTE 2023-10-15: we force the input to the query engine to be the user question.
             #  Otherwise, GPT greatly simplifies the question, and the query engine does very poorly.
             if 'Action Input:' in response_content:
@@ -96,7 +96,7 @@ class CustomReActAgent(ReActAgent):
                     response_content = response_content.replace(action_input_part, json.dumps(action_input_json))
 
                     # Update the deep-copied chat_response accordingly
-                    chat_response_copy.raw['choices'][0]['message']['content'] = response_content
+                    chat_response_copy.raw['choices'][0].message.content = response_content
                     chat_response_copy.message.content = response_content  # Update this too
                 except Exception as e:
                     logging.error(f'Error in modifying the Action Input part of the response_content: [{e}]')
@@ -134,7 +134,7 @@ class CustomReActAgent(ReActAgent):
         #     confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
         # else:
         confirmed_response = response
-        self.memory.put(
+        self._memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
         return confirmed_response, last_metadata
@@ -163,6 +163,7 @@ class CustomReActAgent(ReActAgent):
 
         # call tool with input
         reasoning_step = cast(ActionReasoningStep, current_reasoning[-1])
+        self._tools_dict = {tool.metadata.name: tool for tool in self._get_tools(_)}
         tool = self._tools_dict[reasoning_step.action]
         with self.callback_manager.event(
                 CBEventType.FUNCTION_CALL,

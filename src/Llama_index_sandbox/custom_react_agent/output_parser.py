@@ -4,7 +4,7 @@ import re
 from typing import Tuple
 
 from llama_index.core.agent.react.output_parser import ReActOutputParser, extract_tool_use
-from llama_index.core.agent.react.types import ResponseReasoningStep, ActionReasoningStep, BaseReasoningStep
+from llama_index.legacy.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
 from llama_index.legacy.output_parsers.utils import extract_json_str
 
 
@@ -40,7 +40,7 @@ class CustomReActOutputParser(ReActOutputParser):
 
         return thought, answer
 
-    def parse(self, output: str) -> BaseReasoningStep:
+    def parse(self, output: str, is_streaming=False) -> BaseReasoningStep:
         """Parse output from ReAct agent.
 
         We expect the output to be in one of the following formats:
