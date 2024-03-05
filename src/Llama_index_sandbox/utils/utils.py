@@ -15,9 +15,10 @@ from google.oauth2.service_account import Credentials as ServiceAccountCredentia
 import subprocess
 
 from langchain.embeddings import OpenAIEmbeddings
-from llama_index.embeddings import HuggingFaceEmbedding
+from llama_index.legacy import OpenAIEmbedding
+from llama_index.legacy.embeddings import HuggingFaceEmbedding
 
-from llama_index.llms import ChatMessage, MessageRole
+from llama_index.legacy.core.llms.types import ChatMessage, MessageRole
 
 
 import os
@@ -902,7 +903,7 @@ def save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fiel
 def get_embedding_model(embedding_model_name):
     if embedding_model_name == "text-embedding-ada-002":
         # embedding_model = OpenAIEmbedding(disallowed_special=())
-        embedding_model = OpenAIEmbeddings(disallowed_special=())  # https://github.com/langchain-ai/langchain/issues/923 encountered the same issue (2023-11-22)
+        embedding_model = OpenAIEmbedding()  # https://github.com/langchain-ai/langchain/issues/923 encountered the same issue (2023-11-22)
     else:
         embedding_model = HuggingFaceEmbedding(
             model_name=embedding_model_name,

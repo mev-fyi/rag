@@ -2,8 +2,8 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Any
-import llama_index.response.schema as Response
-from llama_index.schema import NodeWithScore
+import llama_index.legacy.response.schema as Response
+from llama_index.legacy.schema import NodeWithScore
 
 import json
 from typing import List, Dict, Any

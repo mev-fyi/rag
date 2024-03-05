@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import Any
 
-from llama_index import VectorStoreIndex
-from llama_index.indices.query.base import BaseQueryEngine
+from llama_index.legacy import VectorStoreIndex
+from llama_index.legacy.indices.query.base import BaseQueryEngine
 
 from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engine import CustomQueryEngine
 

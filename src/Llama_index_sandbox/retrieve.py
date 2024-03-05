@@ -4,20 +4,24 @@ import time
 from functools import partial
 from typing import Optional, Type, Union
 
-from llama_index import VectorStoreIndex, ServiceContext, OpenAIEmbedding
-from llama_index.agent import ReActAgent
-from llama_index.agent.react.formatter import ReActChatFormatter
-from llama_index.agent.react.output_parser import ReActOutputParser
+from llama_index.legacy.indices.service_context import ServiceContext
+from llama_index.legacy.embeddings import OpenAIEmbedding
 
-from llama_index.callbacks import CallbackManager
-from llama_index.chat_engine.types import BaseChatEngine
-from llama_index.embeddings import HuggingFaceEmbedding
-from llama_index.indices.query.base import BaseQueryEngine
-from llama_index.llm_predictor.base import BaseLLMPredictor
-from llama_index.llms import OpenAI, HuggingFaceLLM, ChatMessage, MessageRole
-from llama_index.memory import BaseMemory, ChatMemoryBuffer
-from llama_index.prompts.default_prompts import DEFAULT_SIMPLE_INPUT_PROMPT
-from llama_index.utils import print_text
+from llama_index.legacy.agent.react.formatter import ReActChatFormatter
+from llama_index.legacy.agent.react.output_parser import ReActOutputParser
+
+from llama_index.legacy.callbacks import CallbackManager
+from llama_index.legacy.chat_engine.types import BaseChatEngine
+from llama_index.legacy.embeddings import HuggingFaceEmbedding
+from llama_index.legacy.indices.query.base import BaseQueryEngine
+
+from llama_index.llms.openai import OpenAI
+from llama_index.legacy.llms.huggingface import HuggingFaceLLM
+from llama_index.legacy.core.llms.types import ChatMessage, MessageRole
+from llama_index.legacy.memory.types import BaseMemory
+from llama_index.legacy.memory.chat_memory_buffer import ChatMemoryBuffer
+from llama_index.core.prompts.default_prompts import DEFAULT_SIMPLE_INPUT_PROMPT
+from llama_index.legacy.utils import print_text
 
 from src.Llama_index_sandbox.config import MAX_CONTEXT_LENGTHS
 from src.Llama_index_sandbox.constants import OPENAI_MODEL_NAME, LLM_TEMPERATURE, NUMBER_OF_CHUNKS_TO_RETRIEVE, OPENAI_INFERENCE_MODELS

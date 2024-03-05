@@ -2,7 +2,7 @@
 # Credits to https://gpt-index.readthedocs.io/en/stable/examples/low_level/ingestion.html
 import logging
 import os
-from llama_index import ServiceContext
+from llama_index.legacy import ServiceContext
 
 import src.Llama_index_sandbox.utils.utils
 from src.Llama_index_sandbox import config_instance
@@ -79,7 +79,7 @@ def run():
                                               recompute_weights=True)
     engine = 'chat'
     query_engine_as_tool = True
-    recreate_index = True
+    recreate_index = False
     if recreate_index:
         copy_and_verify_files()
         add_new_transcripts = True

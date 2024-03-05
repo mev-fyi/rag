@@ -13,7 +13,7 @@ import pandas as pd
 import pikepdf
 import requests
 # import fitz
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
 from pypdf import PdfReader

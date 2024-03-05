@@ -1,5 +1,5 @@
-from llama_index import VectorStoreIndex
-from llama_index.vector_stores import PineconeVectorStore
+from llama_index.legacy import VectorStoreIndex
+from llama_index.legacy.vector_stores import PineconeVectorStore
 import logging
 import os
 from datetime import datetime

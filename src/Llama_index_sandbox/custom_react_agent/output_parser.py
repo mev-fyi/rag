@@ -3,9 +3,9 @@ import json
 import re
 from typing import Tuple
 
-from llama_index.agent.react.output_parser import ReActOutputParser, extract_tool_use
-from llama_index.agent.react.types import ResponseReasoningStep, ActionReasoningStep, BaseReasoningStep
-from llama_index.output_parsers.utils import extract_json_str
+from llama_index.core.agent.react.output_parser import ReActOutputParser, extract_tool_use
+from llama_index.core.agent.react.types import ResponseReasoningStep, ActionReasoningStep, BaseReasoningStep
+from llama_index.legacy.output_parsers.utils import extract_json_str
 
 
 class CustomReActOutputParser(ReActOutputParser):

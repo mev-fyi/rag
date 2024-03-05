@@ -4,9 +4,9 @@ dotenv.load_dotenv()
 from typing import Optional, List
 from datetime import datetime
 
-from llama_index.agent.react.formatter import ReActChatFormatter, get_react_tool_descriptions
-from llama_index.agent.react.types import ObservationReasoningStep, BaseReasoningStep
-from llama_index.llms import ChatMessage, MessageRole
+from llama_index.legacy.agent.react.formatter import ReActChatFormatter, get_react_tool_descriptions
+from llama_index.legacy.agent.react.types import ObservationReasoningStep, BaseReasoningStep
+from llama_index.legacy.core.llms.types import ChatMessage, MessageRole
 
 from src.Llama_index_sandbox.prompts import REACT_CHAT_SYSTEM_HEADER, TWITTER_REACT_CHAT_SYSTEM_HEADER, TOPIC_KEYWORDS
 
@@ -20,19 +20,20 @@ class CustomReActChatFormatter(ReActChatFormatter):
 
     def format(
         self,
+        tools,
         chat_history: List[ChatMessage],
         current_reasoning: Optional[List[BaseReasoningStep]] = None,
     ) -> List[ChatMessage]:
         """Format chat history into list of ChatMessage."""
         current_reasoning = current_reasoning or []
 
-        tool_descs_str = "\n".join(get_react_tool_descriptions(self.tools))
+        tool_descs_str = "\n".join(get_react_tool_descriptions(tools))
         current_date = datetime.now().strftime('%Y-%m-%d')
         fmt_sys_header = self.system_header.format(
             current_date=current_date,
             TOPIC_KEYWORDS=TOPIC_KEYWORDS,
             tool_desc=tool_descs_str,
-            tool_names=", ".join([tool.metadata.get_name() for tool in self.tools]),
+            tool_names=", ".join([tool.metadata.get_name() for tool in tools]),
         )
 
         # format reasoning history as alternating user and assistant messages

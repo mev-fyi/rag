@@ -1,5 +1,5 @@
 from typing import Any, Optional, cast
-from llama_index.tools import QueryEngineTool
+from llama_index.legacy.tools import QueryEngineTool
 import logging
 from src.Llama_index_sandbox.custom_react_agent.tools.tool_output import CustomToolOutput
 

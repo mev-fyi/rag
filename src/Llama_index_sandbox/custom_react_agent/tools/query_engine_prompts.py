@@ -1,7 +1,8 @@
 """Prompts for ChatGPT."""
 
-from llama_index.llms.base import ChatMessage, MessageRole
-from llama_index.prompts.base import ChatPromptTemplate
+from llama_index.legacy.llms.base import ChatMessage
+from llama_index.legacy.core.llms.types import MessageRole
+from llama_index.legacy.prompts.base import ChatPromptTemplate
 
 from src.Llama_index_sandbox.prompts import TOPIC_KEYWORDS
 

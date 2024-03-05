@@ -2,11 +2,11 @@ import json
 import logging
 from datetime import datetime
 
-from llama_index.callbacks.base_handler import BaseCallbackHandler
-from llama_index.callbacks.schema import CBEventType, EventPayload
+from llama_index.legacy.callbacks.base_handler import BaseCallbackHandler
+from llama_index.legacy.callbacks.schema import CBEventType, EventPayload
 from typing import Any, Optional, Dict, List
 import os
-from llama_index.llms import MessageRole
+from llama_index.legacy.llms import MessageRole
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload

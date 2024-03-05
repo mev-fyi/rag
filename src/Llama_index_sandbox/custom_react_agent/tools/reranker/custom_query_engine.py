@@ -5,15 +5,15 @@ from itertools import product
 
 import pandas as pd
 import tldextract
-from llama_index import QueryBundle
-from llama_index.callbacks import EventPayload, CBEventType
-from llama_index.indices.base_retriever import BaseRetriever
-from llama_index.response.schema import (
+from llama_index.legacy import QueryBundle
+from llama_index.legacy.callbacks import EventPayload, CBEventType
+from llama_index.legacy.indices.base_retriever import BaseRetriever
+from llama_index.legacy.response.schema import (
     Response,
 )
-from llama_index.query_engine import RetrieverQueryEngine
-from llama_index.response.schema import RESPONSE_TYPE
-from llama_index.schema import NodeWithScore
+from llama_index.legacy.query_engine import RetrieverQueryEngine
+from llama_index.legacy.response.schema import RESPONSE_TYPE
+from llama_index.legacy.schema import NodeWithScore
 from typing import List
 import os
 import heapq

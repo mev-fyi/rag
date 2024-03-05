@@ -1,4 +1,4 @@
-from llama_index.text_splitter import SentenceSplitter
+from llama_index.legacy.text_splitter import SentenceSplitter
 
 from src.Llama_index_sandbox.utils.utils import timeit
 

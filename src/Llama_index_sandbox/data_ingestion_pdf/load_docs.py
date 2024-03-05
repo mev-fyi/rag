@@ -6,7 +6,7 @@ from typing import Union, Callable, Tuple
 
 import pandas as pd
 import numpy as np
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
 from pathlib import Path
 
 from src.Llama_index_sandbox import root_dir

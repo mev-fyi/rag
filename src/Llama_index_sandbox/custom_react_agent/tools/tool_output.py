@@ -1,6 +1,6 @@
 import logging
 
-from llama_index.tools import ToolOutput
+from llama_index.legacy.tools import ToolOutput
 from pydantic import Field
 
 

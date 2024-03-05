@@ -10,8 +10,8 @@ from functools import partial
 from typing import List, Union
 
 from langchain.embeddings import OpenAIEmbeddings
-from llama_index.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
-from llama_index.schema import TextNode
+from llama_index.legacy.embeddings import OpenAIEmbedding, HuggingFaceEmbedding
+from llama_index.legacy.schema import TextNode
 from tiktoken.model import MODEL_TO_ENCODING
 
 from src.Llama_index_sandbox.utils.utils import timeit

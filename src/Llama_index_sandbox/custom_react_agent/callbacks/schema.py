@@ -1,6 +1,6 @@
 from enum import Enum
 
-from llama_index.callbacks import EventPayload
+from llama_index.legacy.callbacks import EventPayload
 
 
 # Enums are not designed to be extended or altered once defined. They are a fixed set of constants, and Python enforces their immutability.

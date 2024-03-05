@@ -5,12 +5,12 @@ import os
 from typing import Optional, List, Tuple, cast, Union, Sequence
 from datetime import datetime
 
-from llama_index.agent import ReActAgent
-from llama_index.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
-from llama_index.callbacks import trace_method, CBEventType, EventPayload
-from llama_index.chat_engine.types import AgentChatResponse
-from llama_index.llms import ChatMessage, MessageRole, ChatResponse
-from llama_index.utils import print_text
+from llama_index.legacy.agent.legacy.react.base import ReActAgent
+from llama_index.legacy.agent.react.types import BaseReasoningStep, ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
+from llama_index.legacy.callbacks import trace_method, CBEventType, EventPayload
+from llama_index.legacy.chat_engine.types import AgentChatResponse
+from llama_index.legacy.core.llms.types import ChatMessage, MessageRole, ChatResponse
+from llama_index.legacy.utils import print_text
 
 from src.Llama_index_sandbox.custom_react_agent.callbacks.schema import ExtendedEventPayload
 from src.Llama_index_sandbox.custom_react_agent.tools.query_engine_prompts import AVOID_CITING_CONTEXT
@@ -43,7 +43,7 @@ class CustomReActAgent(ReActAgent):
         for _ in range(self._max_iterations):
             # prepare inputs
             input_chat = self._react_chat_formatter.format(
-                chat_history=self._memory.get(), current_reasoning=current_reasoning
+                tools=self._get_tools(_), chat_history=self._memory.get(), current_reasoning=current_reasoning
             )
 
             if (last_metadata is None) or (len(input_chat) == 2):  # NOTE 2023-11-20: avoid doing another LLM call if we already have the response from the query engine
@@ -134,7 +134,7 @@ class CustomReActAgent(ReActAgent):
         #     confirmed_response = self.confirm_response(question=message, response=response.response, sources=last_metadata)
         # else:
         confirmed_response = response
-        self._memory.put(
+        self.memory.put(
             ChatMessage(content=response.response, role=MessageRole.ASSISTANT)
         )
         return confirmed_response, last_metadata

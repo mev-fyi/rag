@@ -7,7 +7,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *

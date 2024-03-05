@@ -7,7 +7,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from llama_index import SimpleDirectoryReader
+from llama_index.legacy import SimpleDirectoryReader
 import re
 
 from src.Llama_index_sandbox import root_dir, YOUTUBE_VIDEO_DIRECTORY
