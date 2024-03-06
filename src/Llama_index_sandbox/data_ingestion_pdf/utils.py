@@ -9,6 +9,7 @@ from pdfminer.high_level import extract_text
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+import logging
 
 from src.Llama_index_sandbox.utils.utils import root_directory
 
@@ -158,9 +159,10 @@ def extract_title(file_path, title_extraction_func):
 
 def extract_link(domain_url: str, search_query: str):
     """ Retrieves the URL of the page after performing a search on the domain URL. """
-    driver = return_driver()
 
     try:
+        # TODO 2024-03-06: fix driver not being instantiated
+        driver = return_driver()
         driver.get(domain_url)
         time.sleep(2)  # Wait for the page to load
 
@@ -181,7 +183,8 @@ def extract_link(domain_url: str, search_query: str):
 
         return result_url
     except Exception as e:
-        print(f"Error extracting link: {e}")
+        logging.info(f"Error extracting link: {e}")
+        driver.quit()
         return None
     finally:
         driver.quit()

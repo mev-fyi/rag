@@ -136,6 +136,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'Questions on the Espresso sequencer',
                                          'Flashbots Research Workshop #1: Flashbots Research Roadmap',
                                          'Time-locked 1:1 tokens as rudimentary pseudo-futures',
+                                         'The Story of the Internet, Emergent Networks, and Their Effects with Steven Johnson and Chris Dixon',
                                          'Should external links be allowed_prohibited_restricted']
 
     edge_case_set = set(edge_case_of_content_always_cited)
