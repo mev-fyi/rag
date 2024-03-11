@@ -177,12 +177,13 @@ def populate_document_metadata(documents, paper_details_df, current_df, file_pat
         else:
             logging.warning(f"Failed to find metadata for [{file_path}], continuing")
     save_successful_load_to_csv(documents[0], csv_filename='research_papers.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date'])
+    return documents
 
 
 def load_single_pdf(paper_details_df, file_path, current_df, loader=PyMuPDFReader()):
     try:
         documents = loader.load(file_path=file_path)
-        populate_document_metadata(documents, paper_details_df, current_df, file_path)
+        documents = populate_document_metadata(documents, paper_details_df, current_df, file_path)
         return documents
     except Exception as e:
         # logging.info(f"Failed to load {file_path}: {e}")
