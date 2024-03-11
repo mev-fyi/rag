@@ -36,6 +36,18 @@ def return_driver():
     return driver
 
 
+def return_local_ubuntu_driver():
+
+    CHROME_BINARY_PATH = f'{root_directory()}/src/local_chromium/chrome-linux64/chrome'
+    CHROMEDRIVER_PATH = f'{root_directory()}/src/local_chromium/chromedriver-linux64/chromedriver'
+
+    options = webdriver.ChromeOptions()
+    options.binary_location = CHROME_BINARY_PATH
+
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
+    return driver
+
+
 def return_driver_docker_gce():
     CHROME_BINARY_PATH = f'{root_directory()}/src/chromium/chrome-linux64/chrome'
     CHROMEDRIVER_PATH = f'{root_directory()}/src/chromium/chromedriver-linux64/chromedriver'
@@ -162,7 +174,7 @@ def extract_link(domain_url: str, search_query: str):
 
     try:
         # TODO 2024-03-06: fix driver not being instantiated
-        driver = return_driver()
+        driver = return_local_ubuntu_driver()
         driver.get(domain_url)
         time.sleep(2)  # Wait for the page to load
 

@@ -49,6 +49,7 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
                 extracted_author, extracted_release_date = extract_author_and_release_date(link=link, extract_author_and_release_date_func=extract_author_and_release_date_func)
                 extracted_author = sanitize_metadata_value(extracted_author)
                 extracted_release_date = sanitize_metadata_value(extracted_release_date)
+                logging.info(f"Extracted link: [{link}], author: [{extracted_author}] and release date: [{extracted_release_date}] for title: [{title}] and path [{file_path}]")
             else:
                 link, extracted_author, extracted_release_date = '', '', ''
                 logging.warning(f"Couldn't find title for [{file_path}]")
@@ -115,6 +116,8 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
             pdf_file = futures[future]
             try:
                 documents, documents_details = future.result()
+                if not documents:
+                    continue
                 if documents_details['title'] not in [md['title'] for md in metadata_accumulator]:
                     metadata_accumulator.append(documents_details)
                     pdf_loaded_count += 1

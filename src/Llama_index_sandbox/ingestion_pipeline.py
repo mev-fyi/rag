@@ -76,7 +76,7 @@ def create_index(add_new_transcripts=False, num_files=10):
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, overwrite=overwrite)
 
     pipeline = initialise_pipeline()
-    nodes = pipeline.run(documents=documents_pdfs + documents_youtube, num_workers=int(os.cpu_count())-3)
+    nodes = pipeline.run(documents=documents_pdfs + documents_youtube, num_workers=int(os.cpu_count())-3, show_progress=True)
     logging.info(f"Ingested {len(nodes)} Nodes")
     pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
 
