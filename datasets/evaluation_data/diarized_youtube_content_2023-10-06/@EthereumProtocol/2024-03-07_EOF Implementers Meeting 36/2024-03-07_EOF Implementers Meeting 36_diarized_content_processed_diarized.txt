@@ -1,0 +1,211 @@
+00:00:00.250 - 00:00:55.840, Speaker A: All right, EOF implementers call on 6 March 2024. Guess the first thing we start off with is client updates for Besu we have exchange and create for to do. I've been focusing on making sure it passes the reference tests have been published before I move on to implementing more features. S the big reference test we got done was stack validation. That one took a bit of work because I had to rewrite the entire stack validation section, but it passed all the ones in the pr that I saw at the time. Still need to put together a full collection of all the other get them all merged so we can make sure that the basic and render them get a master omnibus set. I also added a pretty printing function to our EVM tool.
+00:00:55.840 - 00:01:35.740, Speaker A: I don't know if we want to once we get a spec nailed down, if we want to standardize a standard pretty printing format that can be consumed. It's similar to what's seen in some of the reference tests. I can make it conform to that, but as an implementation guide, if you get into something you don't understand, pretty print the EOF and you'll be able to see what's really going on rather than having to hand decode it. So that's something that took a couple of hours for me to write, but it's paid off in dividends and speeding up some of the fixes. Next on my list is dragon. Anything from ret to report or revm to report.
+00:01:36.990 - 00:02:15.750, Speaker B: Yeah, I am in full swing meanotation. I did like frustration, the simpler opcodes, static jumps functions jump f data section swap and basically those things. The thing that I'm currently working on is CUF create Dx create. I probably finish that in a few days and after that I still need to do calls and validation. I still didn't start the validation, but yeah, progressing.
+00:02:16.810 - 00:02:27.130, Speaker A: Cool. Good to hear Hugo's next. So I guess that means Evm one is next. Whoever wants to speak for EVM one?
+00:02:27.280 - 00:03:31.294, Speaker C: Yeah, no major updates from us. We are still working on the calls implementation I think, and x code logic for legacy and adding more tests for tx create. We've renamed create three and create four in implementation and in the tests. And yeah, mostly working on edit mode tests and exporting them for others to consume too. Minor change in the DX create implementation was moving the validation point where validation of unit call happens a bit later after we charge for hashing. Before it was between charging for hashing and IP 360 charge. Now we moved it.
+00:03:31.294 - 00:03:50.390, Speaker C: After all gas checks, now we do have the validation. It seemed this way that it's like slightly fewer chance of dos like scenarios this way. So first we do all the checks, then do this linear pass to do validation.
+00:03:51.290 - 00:03:51.654, Speaker A: Yeah.
+00:03:51.692 - 00:04:07.020, Speaker C: And there's links to corresponding change in the spec, which is like two lines change. I think that's all.
+00:04:08.270 - 00:04:23.314, Speaker A: Cool. Three things I'll bring up after the go around. Great. Renaming, the call renaming and the call return. I think there were some discussions on various discords over the week on that. Just want to finalize on that, but table that. Charles is next on my list.
+00:04:23.314 - 00:04:24.530, Speaker A: Anything from Viper?
+00:04:29.220 - 00:04:39.410, Speaker D: No. I think there might be some spec things that are waiting on me, but I'm not sure. So if anybody is waiting on me for something, just ping me again.
+00:04:40.440 - 00:04:51.112, Speaker A: Okay. Unrelated to EOF, I'd be interested to hear just how much of an impact t store would have on reentrancy, but we can table that for the end quite a lot.
+00:04:51.166 - 00:04:59.080, Speaker D: We could enable it for all contracts, especially with the pricing changes that I've been proposing.
+00:04:59.500 - 00:05:04.670, Speaker A: Okay, Cyrus, are you representing a team?
+00:05:06.480 - 00:05:08.856, Speaker D: No, I'm just here out of curiosity.
+00:05:09.048 - 00:05:29.700, Speaker A: Cool. And Peter's with evm one, so that's everyone on my screen. Okay, so I guess we have the open discussion on spec issues. We have create rename, call, rename, call, return on the list. Anything else people want to bring up? Charles, you said you had some spec items.
+00:05:33.400 - 00:05:41.350, Speaker D: I said things might have fallen off my plate in terms of spec items, so I'm actually depending on other people to.
+00:05:43.720 - 00:05:45.896, Speaker A: Cool. Peter has a hand up.
+00:05:46.078 - 00:06:15.744, Speaker E: Yeah. Let's discuss the call stack debt check in, create and call, and the new calls, which is kind of, we ping pong the spec back and forth. So I think we should stabilize it. And also the eip six six three, which is the exchange one, which is waiting on approval from Alex. And Alex had some concerns. So we either clarify the concerns, maybe, or if no concerns, then we should approve this pr and finalize this as well.
+00:06:15.942 - 00:06:28.500, Speaker A: Okay. Exchange seems the most important from this list. So let's start there. Let's just do this list in reverse order. What was Alex's concerns?
+00:06:29.580 - 00:06:35.610, Speaker E: Yeah, I think Alex, can you speak to that? Was that there's free options in one AP.
+00:06:36.060 - 00:06:38.650, Speaker A: Type to that. If your voice can't handle it.
+00:06:42.780 - 00:07:07.110, Speaker E: You typed, we'll go through this today. Keep forgetting. But are there concerns or do you just want to go through it and approve? Okay.
+00:07:12.990 - 00:07:28.850, Speaker A: So it doesn't appear like there's any changes that need to be done to exchange. So hopefully that'll get merged soon. Call stack depth. You wanted to discuss that. I think that's another discussion I forgot about us having. You want to outline it for us? Yeah.
+00:07:28.920 - 00:08:49.420, Speaker E: So I don't have full background, but I think there was intention to remove this check and have the 63 rule effectively limit the stack death in the new calls. And also, I think we were not fully clear enough, fully clear on whether this Costa depth would remain in EOF create or TX create. And then I think at one point we did change to bring the call stack depth back in the new calls because create uf create and takes create headed at that point. And now we're kind of making the move in the opposite direction. And so I think the arguments to remove it are that the 63 rule, which is now obligatory, limits the call stack depth effectively to it depends on the gas limits. But Andre did this napkin math, I guess, and that was 22 billion gas. So that's quite a lot.
+00:08:51.950 - 00:09:06.050, Speaker A: My calculation is 785,000,000,000 gas. If it's 65, 64, it's raised to 1024 times 100, which I think is the call number for warm. So it's still a large number, but still wisely reasonable.
+00:09:08.150 - 00:09:08.900, Speaker F: Yeah.
+00:09:11.510 - 00:10:18.310, Speaker E: This number not being insanely large is one argument to keep the cost active. The other one that I think I had, I don't know if it's valid, is just to touch legacy behavior as little as possible. And since new and old calls can be intertwined, then in some way this tangentially touches or crosses the legacy behavior. And also what I think you don also brought up is, yeah, the costcap is just a hard limit that we don't need to think about too much to say that we don't let the coastal death become very large due to some weird gaming of the gas behavior. So it's just a hard cup, which is easy to reason about. And it's maybe good to have as a fuse box mechanism.
+00:10:19.370 - 00:11:25.390, Speaker A: Yeah, I'm in favor of keeping the call depth, I think, for one of the reasons you mentioned is Besu does use a lot of the same code for call and for AXC call for EOF. And that would make it easier because all we're changing is what we pull off the stack and what we return in our situations when we fail. So we're trying to reuse as much data as possible. And another thing I mentioned is layer twos could do crazy things with their gas schedules and they could make instead of 100, they can make calls one, but even if they don't make 100, 785,000,000,000 is still reasonable because it fits in a four byte signed integer. So that is something that I could see some people wanting to use because they have the space for. So yeah, it's unreasonable by mainet standards, but not unreasonable by implementation, and I think gets burnt. Pixels actually use that much gas for some of its generation for their benchmark.
+00:11:25.390 - 00:11:37.460, Speaker A: So I think there's still value. We can't rely completely on the 63 64 to provide a cap that will be reached by 1024. And I think we still need a cap. I don't know.
+00:11:38.230 - 00:11:52.760, Speaker B: Another example are tooling that do some fuzzing, something like that. They have very high gas limit, amount of fuzz, a lot. And having gas depth limit matters for them. Example.
+00:11:54.650 - 00:12:08.960, Speaker A: Okay. Any other discussion about keeping or losing the limit?
+00:12:09.860 - 00:12:46.508, Speaker C: Yeah, to me also feels safer, I guess, to keep it for both calls and crates. But an extra question then is whether we want a special status quo for calls which failed because of this limit. This is suggested in the pr because this failure is different from others, because execution didn't start and gas was not consumed for execution. So it's like a light failure of the call. I tend to think that we don't need this extra status code, but I'm not sure.
+00:12:46.674 - 00:12:48.590, Speaker E: Which one would you use instead?
+00:12:49.200 - 00:12:53.020, Speaker C: Regular failure, because it's not a revert, but just a failure.
+00:12:53.920 - 00:13:52.570, Speaker E: However, for a regular failure, there would be all gas consumed. Meaning, I mean, the caller could reasonably decide whether to continue or not based on that piece of information. Because if that's a hard failure, then the color only has, what, 5000 or the 160 fourth of gas left. And when that was the light failure, then they have pretty much all the gas that they descend there initially. So there might be this decision point to be made, to be kept or, I don't know, exposed in this API also, just to make it complete. There's also the second light failure scenario, which is not having enough balance for the value send. So it's not only about the.
+00:13:52.570 - 00:14:05.170, Speaker E: What do you think?
+00:14:06.580 - 00:14:12.420, Speaker A: Yeah, I'm trying to read yellow paper to see what call and create do on call limit reached.
+00:14:15.480 - 00:14:30.010, Speaker E: The new creates have different stack return because they return the address on success and zero on failure. So they're kind of a different case.
+00:14:31.260 - 00:14:32.010, Speaker A: Yeah.
+00:14:32.800 - 00:15:08.500, Speaker E: Whereas the new calls will return zero on success and one on revert, two on the heart failure. And the light failure either goes to. Well, it can also go to one, because the gas implications are the same. At least that would dispel one concerns. But one means that the execution frame begun, which is not the case with the light failure.
+00:15:11.260 - 00:15:41.310, Speaker D: For what it's worth, I don't have a strong opinion on this, but from the compiler perspective, we wouldn't generally care unless people started asking for it. And I think it's a fairly niche case to check whether the. I mean, an exceptional halt is an exceptional halt. Right now we don't even distinguish between revert and exceptional halt. It's okay either way.
+00:15:42.420 - 00:15:50.550, Speaker A: Yeah, from what I read from the yellow paper, it's treated the same as if there's insufficient funds passed in. So that would be a light failure, I think.
+00:15:53.240 - 00:16:04.168, Speaker E: Hold on, about the vipers story. There is no distinction right now between the heart and revert and failure because it's just always zero.
+00:16:04.334 - 00:16:07.796, Speaker D: Yeah, I'm saying we wouldn't really wouldn't.
+00:16:07.828 - 00:16:09.530, Speaker E: If you had the opportunity. Okay.
+00:16:11.500 - 00:16:25.710, Speaker D: We might care about revert versus exceptional failure, but distinguishing further is not really. I mean, usually you just bubble it up or try to bail out.
+00:16:26.160 - 00:16:34.000, Speaker E: Okay, like Godfield, which one would you put the light failures in? Which category?
+00:16:34.500 - 00:16:42.580, Speaker A: Revert doesn't take all gas, whereas exceptional halts do. So I think light failures would go in the same category as reverts.
+00:16:46.910 - 00:16:54.160, Speaker E: The distinction between the collie frame have begun or not is not really that important.
+00:16:56.450 - 00:17:14.050, Speaker C: I don't know. To me it seems two very different situation. One like the cold code reverted somehow and so signals to you that there was some assertion failure and when it didn't started at all, it's like different for a caller.
+00:17:20.280 - 00:17:34.100, Speaker D: Yeah, actually that's a good point. We don't really care actually how much gas the contract used, but whether it was a system failure or user failure. User generated failure.
+00:17:35.240 - 00:17:48.824, Speaker E: Right. The life failure one is fuzzy on that because the insufficient balance can be the user fault.
+00:17:48.872 - 00:17:50.140, Speaker A: That's a user failure.
+00:17:50.480 - 00:17:55.740, Speaker E: Yeah. What they call the call stack dev failure is more system failure.
+00:17:56.720 - 00:18:00.940, Speaker B: So it's a mixed flag, like new tree.
+00:18:02.800 - 00:18:06.050, Speaker E: Yeah, I mean, we're discussing whether or not to add it.
+00:18:10.120 - 00:18:10.836, Speaker A: Would matter a.
+00:18:10.858 - 00:18:21.110, Speaker B: Lot, but if we have distinction between the failure that could happen, we should return proper number. That's going to flag that.
+00:18:24.120 - 00:18:28.890, Speaker A: So if we put a case for this in the spec, we're going to have to write a reference test for it too, so keep that in mind.
+00:18:29.420 - 00:18:44.300, Speaker D: By the way, I don't really understand why we have light failure for the call stack. Depth being 1024, that seems like an exceptional failure.
+00:18:45.520 - 00:18:49.150, Speaker E: It always has been like that. I think someone correct me.
+00:18:50.480 - 00:18:52.140, Speaker A: So consume all gas.
+00:18:56.660 - 00:19:00.592, Speaker E: That would be a change from legacy calls. Might make sense.
+00:19:00.646 - 00:19:03.430, Speaker A: But what do legacy calls do?
+00:19:05.960 - 00:19:07.910, Speaker D: They're exceptional failures. Right.
+00:19:09.880 - 00:19:22.490, Speaker E: Let me look this up just to be extra sure, all of the legacy calls so they return zero, but.
+00:19:25.500 - 00:19:25.864, Speaker A: They.
+00:19:25.902 - 00:19:42.780, Speaker E: Do not consume all gas in the balance case, and also in the ostack debt case, they are light failures, at least in Dav one implementation. I don't know if that's reference.
+00:20:10.120 - 00:20:19.790, Speaker D: Fine, print it. Why?
+00:20:24.800 - 00:20:26.910, Speaker E: By which part? Why what?
+00:20:28.480 - 00:20:34.540, Speaker D: Why don't we treat call depth limit as an exceptional failure?
+00:20:35.760 - 00:20:41.716, Speaker E: No idea. Where are you?
+00:20:41.778 - 00:20:54.500, Speaker B: It doesn't spend all gas. That's the difference from revert or in this case, exception.
+00:20:55.180 - 00:21:00.404, Speaker D: Why is it treated differently from a stack overflow?
+00:21:00.452 - 00:21:01.960, Speaker E: Underflow? Yeah, I don't.
+00:21:11.870 - 00:21:13.760, Speaker B: Maybe it's implementation detail.
+00:21:20.770 - 00:21:26.430, Speaker C: Well, the caller can continue after this. Unlike data stack overflow.
+00:21:31.170 - 00:21:32.174, Speaker E: The caller can.
+00:21:32.212 - 00:21:42.830, Speaker D: Continue, but they have the caller's fault, not the colleague's fault. I see.
+00:21:43.280 - 00:21:45.870, Speaker E: They can continue, but they have barely any gas left.
+00:21:49.540 - 00:21:51.600, Speaker C: But gas is not consumed.
+00:21:52.260 - 00:21:55.890, Speaker D: Andre, you're saying that it's the caller's fault? Right. For these two.
+00:21:56.820 - 00:22:00.320, Speaker E: For operand stack overflow. Underflow.
+00:22:01.000 - 00:22:03.552, Speaker C: No, for call depth limit.
+00:22:03.616 - 00:22:05.012, Speaker E: Right, okay, sorry.
+00:22:05.146 - 00:22:08.480, Speaker C: So that's how it's different from stack overflow.
+00:22:08.640 - 00:22:11.932, Speaker D: So you don't even enter the call in context.
+00:22:12.096 - 00:22:20.200, Speaker E: Okay, yeah, no, we don't. Probably that's the reason.
+00:22:27.900 - 00:22:43.020, Speaker A: The reference test on, like, static call depth isn't very helpful. But they do set the gas limits to an absurdly high, to a ridiculous but not unreasonable 892,000,000,000 gas. So this is testable.
+00:22:43.520 - 00:23:08.764, Speaker D: Yeah. I don't even actually know why. I mean, if it's the caller's fault, then you shouldn't even get a return code. You should just exceptionally halt. That's my opinion. Okay.
+00:23:08.802 - 00:23:20.800, Speaker E: But now, given that the old create and old calls have delight failure, do you want to change this for the new instructions?
+00:23:26.400 - 00:23:49.410, Speaker D: I guess I can see the value of having the extra return code, because in case we not happen. Right. Like, if you're trying to make the call and you're at the end of the call stack and you can't make the call, then all you can do is clean up. All you would want to do is clean up. Sorry.
+00:23:57.360 - 00:24:05.336, Speaker E: Wait, you would like to have the new return code, but consumable gas or cold?
+00:24:05.448 - 00:24:45.790, Speaker D: No, I'm agreeing with you. Just have the light failure. I mean, the only reason you would want to do this, I think, is if you're trying to introspect the EVM state, which I don't know if that's really a good thing, but you can imagine like a script, which is like, do something different if you're at the end of the call stack, some transactions where maybe some of these pathological transactions where you're trying to consume as much gas as possible, you can do something different depending on if you're at the end of the call stack or not. But like, for most user applications, regular applications, you wouldn't really care, right?
+00:24:52.210 - 00:24:53.070, Speaker E: Hmm.
+00:25:15.150 - 00:25:33.040, Speaker D: And kind of the same thing with the send value thing. Normally if you try to send value and you don't actually have the value to send, it's like an error. I don't know why I can't really think of a case where you would want to catch that.
+00:25:37.400 - 00:25:42.550, Speaker E: I don't know. It always works like this.
+00:25:54.260 - 00:26:08.230, Speaker A: I think it's more important that it's well defined, that it makes sense because it's such an edge case. We also want to make sure that we don't create an exploit, but I'm not seeing how we could do that unless we deliberately cause problems. I don't know.
+00:26:12.290 - 00:26:16.560, Speaker D: I mean, the conservative thing is always just like, preserve semantics, right?
+00:26:23.250 - 00:26:41.640, Speaker E: I guess the most in line with the old ones would be to use the revert return code and not consume all gas, but I guess that's the least divergent. Yeah, and we just do not.
+00:26:43.450 - 00:26:43.814, Speaker F: Like.
+00:26:43.852 - 00:27:35.430, Speaker E: Using the language you used. Do not let the color introspect the state of the EVM that led to the return code one. So it might be either a revert in the color frame, the cold frame, or an insufficient balance or a cold spac depth case. And this is equivalent to the alt calls returning zero. So that's like the if that. If we kind of apply this rule, then I guess this would be the outcome.
+00:27:38.090 - 00:27:45.920, Speaker A: Okay. Unless we find problems with it. Let's just go ahead with that rule then.
+00:27:46.290 - 00:27:55.330, Speaker E: Okay. I can spell it out on the channel so we can read it and see how it sounds in writing.
+00:27:56.070 - 00:28:47.754, Speaker A: Okay, next on the list. We kind of touched on this call returns, and I just want to make sure from a user experience perspective that this won't be a problem for the ext calls. We're flipping where zero is failure, one is success, zero is success, and the higher numbers are different forms of failure. In solidity, there is a low level call, delegate call, and static call function. It returns a tuple. One of them is a boolean. My concern is if we flip the EOF switch, do we want to either fail or have solidity mask it? And if so, would they provide an ext call that would preserve the value as an enum? And since we got Charles on the call, it'd be worth asking, does Viper have a similar low level call function.
+00:28:47.754 - 00:28:51.900, Speaker A: Would you map it or does it impact, know how would that work?
+00:28:57.860 - 00:29:19.620, Speaker D: That's interesting, actually, I didn't think about the. So we have raw call, and interestingly, actually we're adding a keyword to viper, which syntactically differentiates between external and internal calls.
+00:29:20.300 - 00:29:20.856, Speaker A: Okay.
+00:29:20.958 - 00:29:47.736, Speaker D: And the name of the keyword is, confusingly actually ext call, which I think was a coincidence, but maybe on one of these calls Peter said it or I said it and then it buried in everybody's subconscious and then it manifested in both implementations. But anyways, I'm wondering first of all if that might be a point of confusion.
+00:29:47.848 - 00:29:55.490, Speaker A: But yes, that's next on the agenda. That's the point I want to make. So let's focus on the values and we'll focus on the name next.
+00:29:56.980 - 00:30:09.300, Speaker D: From the point of view of compiler generated call instructions, we prefer zero success because it reduces an instruction.
+00:30:09.640 - 00:30:23.470, Speaker A: Right. So if you saw you were running in EOF mode and they had a low level call instruction, would you be able to flip it for them, turn it into a boolean off the result?
+00:30:25.040 - 00:30:27.340, Speaker D: We would probably change the API.
+00:30:28.240 - 00:30:32.764, Speaker A: Okay, so you would make them change it. Go ahead.
+00:30:32.802 - 00:31:21.356, Speaker D: Yeah, if we're running an EOf mode. Well, I need to think through this actually. But one thing is if we're running an EOF mode, you reverse the argument of the return values so that they're forced to rewrite the code. But yeah, it could be an issue. I can also check how often people actually check the return value. People usually don't do it unless they, except for these ERC 20 transfer things where a bunch of tokens are like non compliant and they don't return, true or false, they express it in the error condition. I have to think about it.
+00:31:21.356 - 00:31:22.220, Speaker D: Alex.
+00:31:26.740 - 00:32:12.460, Speaker F: It would be fine because the variables in the tuple are typed. So if it's currently a boolean, this would change into like an enum or a number. So users would need to change the use cases. I think at this point users directly don't really use the low level calls, but all the bigger libraries do. So something like soulmate, that's another one. Soulady. Yeah, I think these heavily rely on the xcode because they don't want to have anything done by the compiler, but in many cases they also just use inline assembly directly.
+00:32:12.460 - 00:32:22.850, Speaker F: Yeah, this is a good point. Basically these libraries would need an EOF version, which may be a problem.
+00:32:27.300 - 00:33:03.100, Speaker D: Sorry. I think even if the signatures are changed, it's still very error prone because people are going to have to go through and look for these low level call things and then update it. And it's usually called like success comma result equals raw call or something, right? And if you don't rename that variable to is failure comma, so you have to rename the variable and then change the check too. I think that seems kind of error prone, but doable.
+00:33:05.540 - 00:33:47.710, Speaker F: Yeah, I think the more important outcome of this is that maybe solidity should have some kind of a meta variable to show if you're in UF mode. And there were some ideas to even expose, like the EVM version to the contracts during compilation, but maybe Uf would make sense. The other option is if the low level call is just called differently, like X Call, then it wouldn't compile. But yeah, I think we probably have to have a discussion with Daniel, a proper discussion with Daniel about this.
+00:33:49.520 - 00:34:28.424, Speaker A: Yeah. My thought is if you're doing assembly yolo, you're on your own. But what solidity and Viper could do is they could keep the original call, and depending upon whether you're in EOf or normal mode, if you're in normal mode, you keep doing what you're doing. If you're in EOF mode, you just do a knot on the value and you still get your boolean there. But we introduce also an X call that will preserve the enum as a number, and then that will fail in non EOF mode. So you still have portable code that behaves like you might expect it, and if you really care about what the return value was, you would use xcode. But maybe that's a bad idea.
+00:34:28.424 - 00:34:30.410, Speaker A: I see Alex's hand went right up.
+00:34:32.780 - 00:35:13.848, Speaker F: Yeah, my concern is really the libraries. So it has been painful with open zeppelin. So one example, I mean, it's not a problem of open zeppelin per se, but this has been a problem for like two years back, like three, four years ago, that a lot of the UD projects at the time depended on the open zeppelin libraries. And open zeppelin was not in a position or not willing to update to solidity 0.5 for a longer period of time. So they maintained the libraries on 0.4, and this meant that basically a lot of the ecosystem was still stuck with 0.4
+00:35:13.848 - 00:35:42.080, Speaker F: when the solidity team was working like a year on 0.5. And the same problem could occur with the new calls, because basically all the libraries would need to be changed to be EUF compatible. And that's just a question how to handle it. So maybe the right way to do this is to invite maybe soulmate solady or open Zeppelin or all of them to the call and go through some of the possible solutions.
+00:35:46.340 - 00:36:20.270, Speaker D: I agree with Dano. I think the most same thing to do here is just, I mean, raw call is not actually that low level. So the most same thing to do is just to flip the air condition if we're emitting call two, or there can, but the raw call is configurable so you can add a flag to the signature, which is like use EOF enum. And if you do that then you get the raw error code or the raw return code.
+00:36:20.720 - 00:36:26.110, Speaker A: Yeah, because Python can do variatic return types based on inputs. I'm not sure solidity can.
+00:36:28.480 - 00:36:42.130, Speaker D: We in viper you can't do that in general, but for built ins we can bypass the type system so we can do whatever we want.
+00:36:49.100 - 00:37:07.432, Speaker E: And also the question is what is the main reason to use the low level calls, if that is, for example to have control over the gas parameter or the output buffer that's not present in the new host anymore?
+00:37:07.496 - 00:37:11.120, Speaker D: It used to be used. Sorry, was that a question? Peter?
+00:37:12.500 - 00:37:21.890, Speaker E: Like I thought, by removing the output buffer and gas parameters we are removing the use case or the main use case for low level call. Maybe there's no.
+00:37:25.750 - 00:38:26.280, Speaker F: People, to some extent people use the low level call, but I think more frequently they use inline assembly and the reason is they do this in certain highly optimized cases for like ERC 20 transfers and e transfer, even the signature verification calling the pre compile people tend to do this in inline assembly and not relying on solidity itself, because the measurements show that it's much more efficient if they do it in assembly. Whatever the reason may be, the case is that most of these popular libraries use inline assembly for the calls, which means that they will need to have an UF version, which may be a barrier for adoption. I think that's a key point to maybe discuss and bring some of these people on the.
+00:38:29.550 - 00:38:34.460, Speaker A: Jumps. If your assembly does a jump, guess what, you got to rewrite it.
+00:38:40.500 - 00:38:47.700, Speaker F: They're still structured duel, so they don't have jumps or anything like that. But they do have calls, calls and static calls.
+00:38:52.420 - 00:38:53.664, Speaker A: Carols, you were saying?
+00:38:53.782 - 00:39:39.890, Speaker D: Yeah, something I just thought of, which is related to, which is not the return code, but the return data buffer, which is exactly. If we don't fill in the output buffer then users need to load from return data. And that like right now Viper doesn't expose the return data buffer to users, but we might want to in ext call world and it might be kind of user unfriendly with the exceptional halting for out of bounds, which I don't actually know what the current status of that is.
+00:39:45.710 - 00:40:22.040, Speaker A: Okay, so not much can be made on this until we get solidity on the call. So let's see if we can try and get them in two weeks. Solidity next to last on my list, actually, two things, is the renames. I don't think create renames are too controversial. I already did the changes in basic, but the call once, especially with the external keyword, that does make me wonder if we should open the door again on the call rename and come up with a different, like maybe just the letter X instead of the XT. I don't know.
+00:40:33.820 - 00:40:54.830, Speaker B: From my side, I would really like to have S and D at the start or at the end of the name, because when it's in middle, it's very hard to basically to read it. Other than that, change seemed better than what was previously. Yeah.
+00:40:55.280 - 00:41:08.150, Speaker A: Exe calls out. Ecstatic call. Yeah. I thought we wanted s and D first. E call. Se call, de call.
+00:41:13.060 - 00:41:15.920, Speaker D: I think the reading issue is not as big if it's.
+00:41:16.280 - 00:41:17.590, Speaker B: Yeah, I like that.
+00:41:20.760 - 00:41:22.944, Speaker D: Yeah. Because they're all part of the same series.
+00:41:23.072 - 00:41:33.010, Speaker A: E call, s call, and Ed call. But do you want to spell delegate out every time?
+00:41:35.220 - 00:41:41.570, Speaker E: Can you elaborate on the issue of the Ext prefix? Because it has precedent with ext code.
+00:41:42.820 - 00:42:05.016, Speaker A: So for one, there is the external modifier and solidity. And if you're doing an ext call, it's necessarily an external call, even if it is to yourself. Even if it's an internal, it's a mixed. It's a call. But Charles said he was adding the external keyword. Maybe we stick with external and it's not too bad. I don't just.
+00:42:05.016 - 00:42:08.830, Speaker A: That's one thing that crossed my mind as Charles was mentioning what Viper plans were.
+00:42:09.520 - 00:42:15.180, Speaker F: But even if you target yourself, it becomes an external call. It creates a new frame.
+00:42:16.960 - 00:42:21.340, Speaker A: Right. If it does an actual frame call, and it doesn't just inline it as a jump.
+00:42:24.940 - 00:42:26.520, Speaker F: You mean in solidity?
+00:42:27.020 - 00:42:46.570, Speaker A: In solidity, like, an internal call won't always be external, even though it looks like a function of the call. You could just jump to it. But if you're using Ext call, it will always be an external call. So it lines up there. It still lines up. I mean, maybe we should just stick with Ext.
+00:42:59.790 - 00:43:02.250, Speaker B: I like what Charles proposed.
+00:43:03.470 - 00:43:06.560, Speaker A: E s and Ed. Yeah.
+00:43:08.690 - 00:43:11.440, Speaker B: But I don't have any strong opinion on.
+00:43:17.030 - 00:43:19.490, Speaker F: Where do you have Ext calling? Solidity.
+00:43:22.310 - 00:43:24.980, Speaker A: Ext for external. We don't write it. Go ahead.
+00:43:25.610 - 00:43:37.110, Speaker E: You meant external like in full, right? Not ext. But external was the keyword.
+00:43:37.270 - 00:43:44.080, Speaker A: But Ext stands for external. But it ultimately has the same semantics, so it's not too much of a problem there.
+00:43:53.780 - 00:43:57.810, Speaker E: I don't have anything against the ones that Charles posted. Just want to.
+00:43:58.180 - 00:44:02.768, Speaker A: It looks like Charles is using the word await as well, so I don't think there'll be the name collision.
+00:44:02.944 - 00:44:24.110, Speaker D: No, there was a lot of bench bike shedding over the name and now we've settled on EXp call. I'm okay with the short names because it's assembly and mnemonics are usually short.
+00:44:27.490 - 00:44:50.530, Speaker F: I'm personally not a fan of having delegate call and static call, but it is what it is. What I care more about is being consistent. And even if you look at the exchange instruction that wasn't shortened, generally the EVM doesn't really use shorthands with the exception of the store and loads.
+00:44:50.610 - 00:44:50.854, Speaker D: Right.
+00:44:50.892 - 00:45:01.990, Speaker F: So it's not really fully consistent. But I think that's why I'm leaning towards the non extremely shortened versions.
+00:45:03.370 - 00:45:06.380, Speaker A: Ext call. Exts call. Exd call.
+00:45:08.990 - 00:45:12.534, Speaker F: I mean, I would rather just ex static.
+00:45:12.582 - 00:45:13.926, Speaker A: Ex delegate.
+00:45:14.118 - 00:45:14.860, Speaker F: Yeah.
+00:45:16.990 - 00:45:18.940, Speaker C: That'S my favorite version too.
+00:45:19.730 - 00:45:22.430, Speaker F: It's more mental load with the shorthand.
+00:45:23.090 - 00:45:50.610, Speaker A: Okay. Ext full length. Ext static. Ext delegate, and ext. Okay, that's enough bike shedding, I guess for the day then. Yeah. Anything else people want to discuss? We got ten minutes left.
+00:45:50.610 - 00:45:52.370, Speaker A: We don't have to go the full distance.
+00:45:56.270 - 00:46:00.780, Speaker E: The version that Andre posted is what we take out of this call, right?
+00:46:02.130 - 00:46:02.880, Speaker A: Yes.
+00:46:04.210 - 00:46:10.398, Speaker E: Okay. I can make a PR to the EOF megasc and advertise it on EVM channel again.
+00:46:10.484 - 00:46:11.120, Speaker A: And.
+00:46:14.550 - 00:46:16.850, Speaker E: Charles, Charles.
+00:46:19.350 - 00:46:25.090, Speaker D: If we're discussing other things, I want to see if we can revisit the return data copy.
+00:46:27.290 - 00:46:30.920, Speaker A: Return data copy. Okay, what's your concern? Go ahead and start.
+00:46:31.850 - 00:47:30.780, Speaker D: Oh, it's just what we were discussing earlier, which is if the users are accessing the return data buffer directly, it's going to be kind of confusing because it behaves differently and it's not very user friendly. We can work around it, which is if somebody does raw call, then we do the copy from the return data buffer for them. But yeah, from a UX perspective, if we want to give access to the return data buffer correctly or directly, then it's just not very user friendly. Like the compiler can deal with it. But I worry about users more.
+00:47:46.300 - 00:48:14.250, Speaker A: I don't have any strong opinions on it. Epsilon team have any comments? Is there a proposed for change or just a notation that it's user unfriendly sufficient.
+00:48:19.410 - 00:48:42.070, Speaker D: Well the change would be to make it consistent with the other copy instructions. Does anybody know why the current return data copy has the out of bounds behavior? Or was it just like maybe kind of an oversight that the spec diverged from the other copy instructions?
+00:48:44.410 - 00:48:48.006, Speaker F: You mean the current one? That's the proposed one or the live one?
+00:48:48.188 - 00:48:49.560, Speaker D: The live one.
+00:48:50.250 - 00:49:03.420, Speaker F: The live one was deliberate. The idea was that the previous behavior was not good and people wanted to move towards this direction, but it never happened.
+00:49:09.690 - 00:49:23.626, Speaker A: Because every time I watch a solidity traps presentation that's always one of the things they presented there. Yeah.
+00:49:23.648 - 00:49:37.390, Speaker F: I think again it's the question of consistency wins, the less mental load is there if less exceptional cases we have in the ISA. And return data copy is like a big exception.
+00:50:05.480 - 00:50:20.170, Speaker A: So I sense disagreement on it, but I don't sense any vision on it. So I don't know if there's what consensus we should change it or not. So it's kind of a sticky question on that.
+00:50:23.170 - 00:50:36.690, Speaker F: I think solid was really in favor of making it non terminating because right now they have to have like extra code to check the length.
+00:50:44.570 - 00:51:00.270, Speaker D: Yeah, I mean I was kind of in the don't really care camp but yeah, if we want to expose the return data buffer to users it's much better to be consistent.
+00:51:04.850 - 00:51:38.170, Speaker F: Yeah. The risk we have, but I don't think it's an actual risk because if the code still checks for the length that code will still work. It just won't be optimal. But people using return data copy and calls in assembly, they will need to update assembly for the calls anyway. And at the same time they could simplify the return data copy pieces. But if they don't simplify it it should still work. If it's not terminating.
+00:51:40.030 - 00:52:46.592, Speaker D: Yeah. I think in general what happens is you end up needing to do the check. So I think from a UX perspective it's better to fail gracefully because. Yeah, because I'm not sure that there's any savings and then people have to add this check and then the code gets more bloated I guess. But that's all I really wanted to say on it to bring it up for discussion again. If it's not too late to change it, we can reconsider.
+00:52:46.656 - 00:53:05.208, Speaker A: It feels a bit like it's probably too late if solidity is on it, but we can discuss it again next week. With solidity the friction is not necessarily the best, but the gas golfing I.
+00:53:05.214 - 00:53:14.620, Speaker D: Think are actually in agreement. Solidity is also in favor of the zero padding version.
+00:53:18.610 - 00:53:24.020, Speaker A: Okay, so what's the outcome? I was reading specs. We're going to change it.
+00:53:27.760 - 00:53:49.540, Speaker D: I think when we all spoke about return data copy in the previous discussions and when solidity has been on call, basically the conclusion has been the zero padding version is preferable. But to be conservative, just. But the current option was chosen because it's conservative and doesn't change any semantics.
+00:53:52.980 - 00:53:55.600, Speaker A: So solidity and Viper want the zero padded version?
+00:53:57.140 - 00:53:58.530, Speaker D: I would say so.
+00:54:02.340 - 00:54:33.070, Speaker A: Okay. I don't think there's many tests written for this yet, so this is probably the last chance we have to change it. I'll post the proposal to change it to zero padded on EVM along with the other decisions and not decisions we made. Okay. All right, that's all. See everyone next week.
+00:54:34.160 - 00:54:35.230, Speaker D: Thanks, everybody.
+00:54:38.000 - 00:54:46.480, Speaker G: Just one last thing, if I may say. So, do we want to keep the 1600 time? Because in that case, I might have to change the protocol calendar.
+00:54:48.660 - 00:54:50.320, Speaker A: 1500 the current time.
+00:54:50.470 - 00:54:58.260, Speaker G: 1600 the current time, yes. Because in the United States. Yeah. DST.
+00:54:59.000 - 00:55:09.590, Speaker A: Yeah. Non metrics, daylight savings time is going cause problems, which means it's going to be an hour later.
+00:55:11.160 - 00:55:17.030, Speaker G: Earlier. For United States, it is an hour later. Yeah, I just remember. You are right.
+00:55:18.920 - 00:55:24.364, Speaker A: Let's keep the UTC time. I think that's what all core devs does. And let's stick with UTC time.
+00:55:24.562 - 00:55:32.376, Speaker G: Okay. In that case, I will change it for people in the United States. I'm in like protocol calendar, and we'll keep it at 1600 UTC.
+00:55:32.568 - 00:55:34.190, Speaker A: Yeah, sounds good.
+00:55:34.640 - 00:55:35.196, Speaker D: Perfect.
+00:55:35.298 - 00:55:36.110, Speaker G: Thank you.
+00:55:37.040 - 00:55:38.620, Speaker A: Thanks. Bye.
+00:55:39.760 - 00:55:41.720, Speaker F: Thank you, Mike.
