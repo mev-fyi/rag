@@ -24,6 +24,10 @@ from llama_index.legacy.core.llms.types import ChatMessage, MessageRole
 import os
 import subprocess
 
+from llama_index.vector_stores.pinecone import PineconeVectorStore
+from pinecone import Pinecone
+
+
 def root_directory() -> str:
     """
     Determine the root directory of the project. It checks if it's running in a Docker container and adjusts accordingly.
@@ -710,6 +714,37 @@ def del_wrong_subdirs(root_dir):
             shutil.rmtree(subdir)
 
 
+def merge_csv_files_remove_duplicates_and_save(csv_directory=f"{root_directory()}/../mev.fyi//data/links/articles", output_csv_path=f"{root_directory()}/../mev.fyi/data/links/merged_articles.csv"):
+    """
+    Concatenates all CSV files in the given directory, removes duplicates based on the 'Link' column,
+    and saves the resulting DataFrame to the specified output path.
+
+    Args:
+        csv_directory (str): Directory containing CSV files to merge.
+        output_csv_path (str): Path to save the merged and deduplicated CSV file.
+    """
+    # List all CSV files in the directory
+    csv_files = [os.path.join(csv_directory, f) for f in os.listdir(csv_directory) if f.endswith('.csv')]
+    df_list = []
+
+    # Load and concatenate all CSV files
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file)
+        df_list.append(df)
+
+    if df_list:
+        merged_df = pd.concat(df_list, ignore_index=True)
+
+        # Remove duplicates based on 'Link' column
+        deduplicated_df = merged_df.drop_duplicates(subset=['Link'])
+
+        # Save the resulting DataFrame to CSV
+        deduplicated_df.to_csv(output_csv_path, index=False)
+        logging.info(f"Merged and deduplicated CSV saved to: {output_csv_path}")
+    else:
+        logging.warning("No CSV files found in the provided directory.")
+
+
 def copy_and_verify_files():
     # Define the root directory for PycharmProjects
     pycharm_projects_dir = f"{root_directory()}/../"
@@ -733,6 +768,7 @@ def copy_and_verify_files():
     # List of CSV files to copy
     csv_files_to_copy = [
         "paper_details.csv",
+        "docs_details.csv",
         "links/articles_updated.csv",
         "links/merged_articles.csv",
         "links/youtube/youtube_videos.csv",
@@ -922,6 +958,7 @@ def load_csv_data(file_path):
         return pd.DataFrame()  # Return an empty DataFrame if file doesn't exist
 
 
+@timeit
 def compute_new_entries(latest_df: pd.DataFrame, current_df: pd.DataFrame, left_key='pdf_link', right_key='pdf_link', overwrite=False) -> pd.DataFrame:
     """
     Compute the difference between latest_df and research_papers,
@@ -943,3 +980,39 @@ def compute_new_entries(latest_df: pd.DataFrame, current_df: pd.DataFrame, left_
         new_entries_df = latest_df[~latest_df[left_key].isin(current_df[right_key])]
         logging.info(f"New to be added to the database found: [{len(new_entries_df)}]")
     return new_entries_df
+
+
+def load_vector_store_from_pinecone_database(delete_old_index=False):
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+    index_name = "mevfyi"
+    if delete_old_index:
+        # pass
+        pc.delete_index(index_name)
+        # Dimensions are for text-embedding-ada-002
+        from pinecone import ServerlessSpec
+        pc.create_index(
+            "mevfyi",
+            dimension=1536,
+            metric="euclidean",
+            spec=ServerlessSpec(cloud="aws", region="us-west-2"),
+        )
+
+    pinecone_index = pc.Index(index_name)
+    vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
+    return vector_store
+
+
+def load_vector_store_from_pinecone_database_legacy():
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+    index_name = "mevfyi"
+
+    pinecone_index = pc.Index(index_name)
+    # from llama_index.legacy.vector_stores import PineconeVectorStore
+    import llama_index.legacy.vector_stores as legacy_vector_stores
+
+    vector_store = legacy_vector_stores.PineconeVectorStore(pinecone_index=pinecone_index)
+    return vector_store

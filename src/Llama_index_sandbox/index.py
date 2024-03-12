@@ -17,7 +17,7 @@ import src.Llama_index_sandbox.data_ingestion_pdf.chunk as chunk_pdf
 import src.Llama_index_sandbox.data_ingestion_youtube.chunk as chunk_youtube
 import src.Llama_index_sandbox.embed as embed
 from src.Llama_index_sandbox.evaluation.config import index_dir
-from src.Llama_index_sandbox.utils.utils import timeit
+from src.Llama_index_sandbox.utils.utils import timeit, load_vector_store_from_pinecone_database, load_vector_store_from_pinecone_database_legacy
 
 
 @timeit
@@ -97,11 +97,8 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
     # load the latest directory in index_dir
     persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
     logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
-    api_key = os.environ["PINECONE_API_KEY"]
     try:
-        pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-        index_name = "mevfyi"
-        vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
+        vector_store = load_vector_store_from_pinecone_database_legacy()
         index = CustomVectorStoreIndex.from_vector_store(vector_store, service_context)
         logging.info(f"Successfully loaded index {persist_dir} from disk.")
         return index
@@ -113,9 +110,7 @@ def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
             with open(f"{persist_dir}/vector_store.json", "w") as f:
                 f.write("{}")
             try:
-                pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-                index_name = "mevfyi"
-                vector_store = PineconeVectorStore(pinecone_index=pinecone.Index(index_name))
+                vector_store = load_vector_store_from_pinecone_database()
                 index = VectorStoreIndex.from_vector_store(vector_store, service_context)
                 return index
             except Exception as e:

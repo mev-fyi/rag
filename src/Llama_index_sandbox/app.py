@@ -3,7 +3,7 @@ import os
 import uuid
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from llama_index.utils import print_text
+from llama_index.legacy.utils import print_text
 
 from src.Llama_index_sandbox import globals as glb
 import src.Llama_index_sandbox.constants as constants
