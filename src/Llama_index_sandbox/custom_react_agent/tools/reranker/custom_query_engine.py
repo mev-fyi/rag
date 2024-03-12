@@ -294,8 +294,8 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
-        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.70'))
-        MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '5'))
+        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.4'))
+        MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '2'))
 
         # Apply special case and keyword penalisation adjustments
         for node_with_score in nodes_with_score:

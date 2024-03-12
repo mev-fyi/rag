@@ -51,14 +51,15 @@ INPUT_QUERIES = [
         # "How do L2 sequencers work?",  # 2
         # "Do an exhaustive breakdown of the MEV supply chain",  # 3
         # "What is ePBS?",  # 4
+        "What are batch auctions?",
         "What is Uniswap v4 relative to Uniswap v3?",
         "Give me an overview of the protocols in LVR",
-        "Make me a sandwich",
-        "Tell me about stochastic calculus",
-        "How do I grow tomatoes?",
-        "My child is throwing a tantrum, what do I do?",
-        "My dog barks too much, what do I do?",
-        "Tell me about quantum computing",
+        # "Make me a sandwich",
+        # "Tell me about stochastic calculus",
+        # "How do I grow tomatoes?",
+        # "My child is throwing a tantrum, what do I do?",
+        # "My dog barks too much, what do I do?",
+        # "Tell me about quantum computing",
         "What is SUAVE?",  # 5
         "Give me the most exhaustive definition of loss-versus-rebalancing (LVR)",  # 6
         "What are intents?",  # 7
