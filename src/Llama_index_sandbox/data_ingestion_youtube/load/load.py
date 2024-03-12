@@ -87,7 +87,7 @@ def load_single_video_transcript(youtube_videos_df, file_path):
 
 
 @timeit
-def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, overwrite=False, num_files: int = None):
+def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts=True, overwrite=False, num_files: int = None, files_window = None):
     root_dir = root_directory()
     # Convert directory_path to a Path object if it is not already
     if not isinstance(directory_path, Path):

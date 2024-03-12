@@ -18,7 +18,7 @@ from llama_index.core.ingestion import (
     IngestionPipeline,
 )
 from llama_index.core.node_parser import SentenceSplitter
-from src.Llama_index_sandbox.utils.utils import timeit, get_embedding_model, root_directory
+from src.Llama_index_sandbox.utils.utils import timeit, get_embedding_model, root_directory, copy_and_verify_files
 
 
 def load_vector_store_from_pinecone_database():
@@ -56,17 +56,8 @@ def initialise_pipeline():
 
 @timeit
 def create_index(add_new_transcripts=False, num_files=10):
+    copy_and_verify_files()
     logging.info("Starting Index Creation Process")
-    # TODO 2024-03-06: need to locally store the embeddings. That requires going offline since with the pipeline we first delete the index
-    #  then do the embedding and in the same pipeline method, insert the vectors, and only then we persist to the docstore.
-    #  Likewise we can't store the embedding, double it up to the vector index, delete the index, load the pipeline, and re-store the vectors.
-    #  Or can we? with two instances? Or as follows:
-    #   1. Instantiate existing pinecone vector
-    #   2. Embed
-    #   3. Insert vectors (doubled since index not deleted)
-    #   4. Load up another pipeline object where we delete the index, and insert the vectors.
-    #   5. BUT the problem is that loading back, does not yield the Documents object back, it just "loads" the pipeline object.
-    #   6. While running the pipeline and performing the inserts requires having the Documents objects.
 
     overwrite = False
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, overwrite=overwrite)

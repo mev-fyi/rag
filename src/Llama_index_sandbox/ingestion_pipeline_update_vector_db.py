@@ -8,8 +8,6 @@ from src.Llama_index_sandbox import PDF_DIRECTORY, YOUTUBE_VIDEO_DIRECTORY, ARTI
 import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
 import src.Llama_index_sandbox.data_ingestion_pdf.load_articles as load_articles
 from src.Llama_index_sandbox import config_instance
-from pinecone import Pinecone
-from llama_index.vector_stores.pinecone import PineconeVectorStore
 from llama_index.core.storage.docstore import SimpleDocumentStore
 from src.Llama_index_sandbox.data_ingestion_pdf import load_discourse_articles, load_docs
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
@@ -18,29 +16,7 @@ from llama_index.core.ingestion import (
     IngestionPipeline,
 )
 from llama_index.core.node_parser import SentenceSplitter
-from src.Llama_index_sandbox.utils.utils import timeit, get_embedding_model, root_directory, copy_and_verify_files
-
-
-def load_vector_store_from_pinecone_database(delete_old_index=False):
-    pc = Pinecone(
-        api_key=os.environ.get("PINECONE_API_KEY")
-    )
-    index_name = "mevfyi"
-    if delete_old_index:
-        # pass
-        pc.delete_index(index_name)
-        # Dimensions are for text-embedding-ada-002
-        from pinecone import ServerlessSpec
-        pc.create_index(
-            "mevfyi",
-            dimension=1536,
-            metric="euclidean",
-            spec=ServerlessSpec(cloud="aws", region="us-west-2"),
-        )
-
-    pinecone_index = pc.Index(index_name)
-    vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
-    return vector_store
+from src.Llama_index_sandbox.utils.utils import timeit, root_directory, copy_and_verify_files, load_vector_store_from_pinecone_database
 
 
 def initialise_pipeline(add_to_vector_store=True, delete_old_index=False):

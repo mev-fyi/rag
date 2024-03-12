@@ -210,7 +210,7 @@ def load_single_pdf(paper_details_df, file_path, current_df, loader=PyMuPDFReade
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], overwrite=False, num_files: int = None):
+def load_pdfs(directory_path: Union[str, Path], overwrite=False, num_files: int = None, files_window = None):
     # Convert directory_path to a Path object if it is not already
     # logging.info("Loading PDFs")
     if not isinstance(directory_path, Path):
@@ -231,6 +231,8 @@ def load_pdfs(directory_path: Union[str, Path], overwrite=False, num_files: int 
     # If num_files is specified and is not None, convert the generator to a list and slice it
     if num_files is not None:
         files = [next(files_gen) for _ in range(num_files) if files_gen]
+    elif files_window:
+        files = [next(files_gen) for _ in range(files_window[1]-files_window[0]) if files_gen]
     else:
         files = list(files_gen)  # Convert generator to list to process all files
 

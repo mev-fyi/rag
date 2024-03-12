@@ -94,7 +94,7 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, current_df: pd.DataFrame, num_files: int = None, num_cpus: int = None, debug=False):
+def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, current_df: pd.DataFrame, num_files: int = None, files_window = None, num_cpus: int = None, debug=False):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
@@ -151,7 +151,7 @@ def check_file_exclusion(file_path: Path, title_extraction_func: Callable, exclu
 
 
 @timeit
-def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, num_cpus: int = None):
+def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window = None, num_cpus: int = None):
     # Configuration for the PDF processing
     config = {
         'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
