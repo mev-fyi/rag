@@ -72,37 +72,34 @@ def create_index(add_new_transcripts=False, num_files=None):
     copy_docstore()
     logging.info("Starting Index Creation Process")
 
-    overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
+    overwrite = False  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
     num_files = 1
-    files_window = None# (20, 100)
+    files_window = None  # (20, 100)
 
-    # TODO 2024-03-12: the whole process can be largely improved if we batched process end to end the docs to inserting the vectors
-
-    # STEP 1: load all docs
+    # Load all docs
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
     documents_pdfs += load_docs.load_docs_as_pdf(num_files=0, files_window=files_window, overwrite=overwrite)
     documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
-
     documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=1, files_window=files_window, overwrite=overwrite)
-
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=None, files_window=files_window, overwrite=overwrite)
 
-    # STEP 2: EMBED ALL DOCS + SAVE TO DOCSTORE LOCALLY WITHOUT VECTOR STORE (TO BE USED IN STEP 4)
-    pipeline_v1 = initialise_pipeline(add_to_vector_store=True)
-    nodes = pipeline_v1.run(documents=documents_pdfs + documents_youtube, num_workers=15, show_progress=True)
-    if len(nodes) > 0:
-        pipeline_v1.persist(persist_dir=f"{root_directory()}/pipeline_storage")
-    logging.info(f"Processed {len(nodes)} Nodes")
+    all_documents = documents_pdfs + documents_youtube
+    total_docs = len(all_documents)
+    batch_size = max(1, total_docs // 100)  # Ensure batch_size is at least 1
 
-    # STEP 3: SPIN OFF NEW PIPELINE INSTANCE WITH VECTOR STORE WHICH IS DELETED AND CREATED BACK
-    pipeline_v2 = initialise_pipeline()
-    # STEP 4: ADD EMBEDDINGS TO VECTOR STORE
-    if pipeline_v2.vector_store is not None:
-        nodes_to_add = [n for n in nodes if n.embedding is not None]
-        pipeline_v2.vector_store.add(nodes_to_add)
-        logging.info(f"Added {len(nodes_to_add)} Nodes to vector database")
+    pipeline = initialise_pipeline(add_to_vector_store=True)
+    all_nodes = []
 
-    logging.info("Index Creation Process Completed")
+    # Process documents in batches
+    for i in range(0, total_docs, batch_size):
+        batch_documents = all_documents[i:i+batch_size]
+        nodes = pipeline.run(documents=batch_documents, num_workers=18, show_progress=True)
+        all_nodes.extend(nodes)
+        if len(nodes) > 0:
+            pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
+        logging.info(f"Processed batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
+
+    logging.info(f"Processed {len(all_nodes)} Nodes in total")
 
 
 if __name__ == "__main__":
