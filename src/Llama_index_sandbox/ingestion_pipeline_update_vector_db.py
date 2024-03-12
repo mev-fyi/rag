@@ -72,26 +72,27 @@ def create_index(add_new_transcripts=False, num_files=None):
     copy_docstore()
     logging.info("Starting Index Creation Process")
 
-    overwrite = False  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
-    num_files = 1
+    overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
+    num_files = None
     files_window = None  # (20, 100)
 
     # Load all docs
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_docs.load_docs_as_pdf(num_files=0, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=1, files_window=files_window, overwrite=overwrite)
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=None, files_window=files_window, overwrite=overwrite)
+    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, files_window=files_window, overwrite=overwrite)
 
     all_documents = documents_pdfs + documents_youtube
     total_docs = len(all_documents)
-    batch_size = max(1, total_docs // 100)  # Ensure batch_size is at least 1
+    batch_size = max(1, total_docs // 50)  # Ensure batch_size is at least 1
 
     pipeline = initialise_pipeline(add_to_vector_store=True)
     all_nodes = []
 
     # Process documents in batches
     for i in range(0, total_docs, batch_size):
+        logging.info(f"Processing batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
         batch_documents = all_documents[i:i+batch_size]
         nodes = pipeline.run(documents=batch_documents, num_workers=18, show_progress=True)
         all_nodes.extend(nodes)
