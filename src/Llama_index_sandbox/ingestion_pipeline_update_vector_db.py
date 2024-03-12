@@ -34,6 +34,7 @@ def initialise_pipeline(add_to_vector_store=True, delete_old_index=False):
         ],
         vector_store=vector_store,
         docstore_strategy=DocstoreStrategy.DUPLICATES_ONLY,
+        # docstore_strategy=DocstoreStrategy.UPSERTS_AND_DELETE,
         # docstore_strategy=DocstoreStrategy.UPSERTS,
         docstore=SimpleDocumentStore(),
     )
@@ -46,26 +47,30 @@ def initialise_pipeline(add_to_vector_store=True, delete_old_index=False):
     return pipeline
 
 
+def copy_docstore():
+    import shutil
+    from datetime import datetime
+    # Get the current timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+
+    # Define the source and destination paths
+    source_path = f"{root_directory()}/pipeline_storage/docstore.json"
+    destination_dir = f"{root_directory()}/temp/"
+    destination_path = os.path.join(destination_dir, f"docstore_{timestamp}.json")
+
+    # Ensure the destination directory exists
+    os.makedirs(destination_dir, exist_ok=True)
+
+    # Copy the file
+    shutil.copy(source_path, destination_path)
+    logging.info(f"Docstore backup created at {destination_path}")
+
+
 @timeit
 def create_index(add_new_transcripts=False, num_files=None):
     copy_and_verify_files()
+    copy_docstore()
     logging.info("Starting Index Creation Process")
-    # TODO 2024-03-06: need to locally store the embeddings. That requires going offline since with the pipeline we first delete the index
-    #  then do the embedding and in the same pipeline method, insert the vectors, and only then we persist to the docstore.
-    #  Likewise we can't store the embedding, double it up to the vector index, delete the index, load the pipeline, and re-store the vectors.
-    #  Or can we? with two instances? Or as follows:
-    #   1. Instantiate existing pinecone vector
-    #   2. Embed
-    #   3. Insert vectors (doubled since index not deleted)
-    #   4. Load up another pipeline object where we delete the index, and insert the vectors.
-    #   5. BUT the problem is that loading back, does not yield the Documents object back, it just "loads" the pipeline object.
-    #   6. While running the pipeline and performing the inserts requires having the Documents objects.
-
-    # I can simply:
-    #   1. instantiate without vector store
-    #   2. run the pipeline
-    #   3. save to docstore
-    #   4. instantiate a new pipeline, delete the vector store, add the vector store, and add the nodes of the first pipeline to the vector store of the second pipeline
 
     overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
     num_files = 1
@@ -77,7 +82,9 @@ def create_index(add_new_transcripts=False, num_files=None):
     documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
     documents_pdfs += load_docs.load_docs_as_pdf(num_files=0, files_window=files_window, overwrite=overwrite)
     documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=0, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+
+    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=1, files_window=files_window, overwrite=overwrite)
+
     documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=None, files_window=files_window, overwrite=overwrite)
 
     # STEP 2: EMBED ALL DOCS + SAVE TO DOCSTORE LOCALLY WITHOUT VECTOR STORE (TO BE USED IN STEP 4)
