@@ -766,13 +766,16 @@ def copy_and_verify_files():
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
 
     # List of CSV files to copy
-    csv_files_to_copy = [
+    csv_files_to_copy_from_mevfyi_to_rag = [
         "paper_details.csv",
-        "docs_details.csv",
         "links/articles_updated.csv",
         "links/merged_articles.csv",
         "links/youtube/youtube_videos.csv",
         "links/youtube/youtube_channel_handles.txt"
+    ]
+
+    csv_files_to_copy_from_rag_to_mevfyi = [
+        "docs_details.csv",
     ]
 
     # Create the destination directories if they do not exist
@@ -783,9 +786,14 @@ def copy_and_verify_files():
     os.makedirs(articles_discourse_destination_dir, exist_ok=True)  # Ensure the discourse articles destination directory exists
 
     # Copy and verify CSV files
-    for file_name in csv_files_to_copy:
+    for file_name in csv_files_to_copy_from_mevfyi_to_rag:  # from mev.fyi data repo to rag repo
         source_file = os.path.join(csv_source_dir, file_name)
         destination_file = os.path.join(csv_destination_dir, file_name.split('/')[-1])  # Get the last part if there's a path included
+        copy_and_verify(source_file, destination_file)
+
+    for file_name in csv_files_to_copy_from_rag_to_mevfyi:  # from RAG repo to mevfyi data repo, quite hacky
+        source_file = os.path.join(csv_destination_dir, file_name)
+        destination_file = os.path.join(csv_source_dir, file_name.split('/')[-1])  # Get the last part if there's a path included
         copy_and_verify(source_file, destination_file)
 
     # Copy PDF files without size verification
@@ -806,6 +814,7 @@ def copy_and_verify_files():
                 except Exception as e:
                     print(f"Error copying {file_name} from discourse topics: {e}")
 
+    copy_and_rename_website_docs_pdfs()
     print("File copying completed.")
 
 
@@ -850,6 +859,7 @@ def copy_and_rename_website_docs_pdfs():
     root_dir = root_directory()
     source_directories = {
         f'{root_dir}/../mev.fyi/data/flashbots_docs_pdf': f'{root_dir}/datasets/evaluation_data/flashbots_docs_2024_01_07',
+        f'{root_dir}/../mev.fyi/data/suave_docs_pdf': f'{root_dir}/datasets/evaluation_data/suave_docs_2024_03_13',
         f'{root_dir}/../mev.fyi/data/ethereum_org_website_content': f'{root_dir}/datasets/evaluation_data/ethereum_org_content_2024_01_07'
     }
 
