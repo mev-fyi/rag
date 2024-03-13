@@ -2,36 +2,46 @@ import concurrent.futures
 import logging
 import os
 from functools import partial
-from typing import Union, Callable, Tuple
+from typing import Union, Callable
 
 import pandas as pd
-import numpy as np
 from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
-from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, flashbots_title_extraction, \
-    ethereum_org_title_extraction, extract_author_and_release_date_ethereum_org, \
-    extract_author_and_release_date_flashbots, extract_title, extract_link, extract_author_and_release_date
+from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, ethereum_org_title_extraction, extract_author_and_release_date_ethereum_org, \
+    extract_title, extract_link, extract_author_and_release_date, sanitize_metadata_value, check_file_exclusion, flashbots_title_extraction, extract_author_and_release_date_flashbots, suave_title_extraction
 from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
-
-
-def sanitize_metadata_value(value):
-    """Sanitize metadata value to ensure it's not None or np.nan."""
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        return ''
-    return str(value).replace('"', '')
 
 
 def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, existing_metadata: pd.DataFrame, current_df, loader=PyMuPDFReader(),
                     debug=False):
+    """
+    Loads and processes a single PDF file, extracting relevant metadata and content.
+
+    Parameters:
+    - file_path (str): Path to the PDF file.
+    - title_extraction_func (Callable): Function to extract the title from the PDF.
+    - extract_author_and_release_date_func (Callable): Function to extract the author and release date from the PDF.
+    - author (str): The default author if not extracted.
+    - release_date (str): The default release date if not extracted.
+    - pdf_link (str): Link to the PDF file.
+    - existing_metadata (pd.DataFrame): DataFrame containing existing metadata for documents.
+    - current_df (pd.DataFrame): DataFrame containing current session's document metadata.
+    - loader (PyMuPDFReader, optional): PDF reader instance for loading documents.
+    - debug (bool, optional): Enables debug logging if True.
+
+    Returns:
+    - Tuple[List[BaseNode], Dict[str, str]]: A tuple containing a list of processed documents (BaseNode instances) and document details.
+    """
     try:
         filename = os.path.basename(file_path)
 
         is_in_current_df = True if not current_df[current_df['document_name'] == filename].empty else False
         if is_in_current_df:
+            logging.info(f"Skipping file [{filename}] as it is already in the current_df")
             return [], {}
 
         existing_row = existing_metadata[existing_metadata['document_name'] == filename]
@@ -95,6 +105,27 @@ def load_single_pdf(file_path, title_extraction_func: Callable, extract_author_a
 
 @timeit
 def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable, extract_author_and_release_date_func: Callable, author: str, release_date: str, pdf_link: str, files, existing_metadata: pd.DataFrame, current_df: pd.DataFrame, num_files: int = None, files_window = None, num_cpus: int = None, debug=False):
+    """
+    Loads PDFs from a specified directory, processes them in parallel, and extracts metadata and content.
+
+    Parameters:
+    - directory_path (Union[str, Path]): The directory containing PDF files.
+    - title_extraction_func (Callable): Function to extract titles from PDFs.
+    - extract_author_and_release_date_func (Callable): Function to extract author and release dates from PDFs.
+    - author (str): Default author if not extracted.
+    - release_date (str): Default release date if not extracted.
+    - pdf_link (str): Default PDF link.
+    - files (List[Path]): List of PDF file paths to process.
+    - existing_metadata (pd.DataFrame): DataFrame of existing metadata.
+    - current_df (pd.DataFrame): Current session's metadata DataFrame.
+    - num_files (int, optional): Maximum number of files to process.
+    - files_window (Tuple[int, int], optional): Specific window of files to process.
+    - num_cpus (int, optional): Number of CPUs to use for parallel processing.
+    - debug (bool, optional): Enables debug logging if True.
+
+    Returns:
+    - Tuple[List[BaseNode], List[Dict[str, str]]]: A tuple containing a list of all processed documents and their metadata.
+    """
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
@@ -128,30 +159,12 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
                 logging.info(f"Failed to process {pdf_file}, with reason: {e}")
                 # os.remove(pdf_file)
 
-    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents from [{author}].")
+    logging.info(f"Successfully loaded [{pdf_loaded_count}] documents, for all_documents length [{len(all_documents)}], from [{author}].")
     return all_documents, metadata_accumulator
 
 
-def check_file_exclusion(file_path: Path, title_extraction_func: Callable, exclude_titles: set, exclude_filenames: set) -> Union[Path, None]:
-    """
-    Check if a file should be excluded based on its title or filename.
-
-    Returns the file path if it should be included, None otherwise.
-    """
-    filename = file_path.name.lower()  # Convert filename to lowercase
-    title = sanitize_metadata_value(extract_title(file_path, title_extraction_func))
-
-    # Check for exclusion based on title and filename
-    if not any(excluded_title.lower() in title.lower() for excluded_title in exclude_titles) and \
-            not any(excluded_filename.lower() in filename for excluded_filename in exclude_filenames):
-        return file_path
-    else:
-        logging.info(f"[Exclusion] Excluding file: [{filename}] with title: [{title}]")
-        return None
-
-
 @timeit
-def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window = None, num_cpus: int = None):
+def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window=None, num_cpus: int = None):
     # Configuration for the PDF processing
     config = {
         'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
@@ -161,21 +174,9 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             'pdf_link': 'https://ethereum.org/',
             'release_date': '',
             'exclude_titles': [
-                'Content standardization',
-                'Style Guide',
-                'How can I get involved?',
-                'Adding a quiz',
-                '"The Graph: Fixing Web3 data querying"',
-                'Translation Program lang: en',
-                'Content buckets lang: en',
-                'Adding developer tools lang: en',
-                'Contributing',
-                'Language resources',
-                'Code of conduct',
-                'How can I get involved?',
-                'Online communities',
-                'About Us',
-                'The Graph: Fixing Web3 data querying',
+                'Content standardization', 'Style Guide', 'How can I get involved?', 'Adding a quiz', '"The Graph: Fixing Web3 data querying"',
+                'Translation Program lang: en', 'Content buckets lang: en', 'Adding developer tools lang: en', 'Contributing',
+                'Language resources', 'Code of conduct', 'How can I get involved?', 'Online communities', 'About Us', 'The Graph: Fixing Web3 data querying',
             ],  # List of titles to exclude
             'exclude_filenames': ['contributing']  # List of filenames to exclude
         },
@@ -186,24 +187,32 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             'pdf_link': 'https://docs.flashbots.net/',
             'release_date': '',
             'exclude_titles': [
-                'Join Flashbots',
-                'Contributing',
-                'Prohibited Use Policy',
-                'Terms of Service',
+                'Join Flashbots', 'Contributing', 'Prohibited Use Policy', 'Terms of Service',
                 'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
-                'Code of Conduct',
-                'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
+                'Code of Conduct', 'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
 
+            ],  # List of titles to exclude
+            'exclude_filenames': ['policies']  # List of filenames to exclude
+        },
+        'datasets/evaluation_data/suave_docs_2024_03_13': {
+            'title_extraction_func': suave_title_extraction,
+            'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
+            'author': 'SUAVE Docs',
+            'pdf_link': 'https://suave-alpha.flashbots.net/',
+            'release_date': '',
+            'exclude_titles': [
             ],  # List of titles to exclude
             'exclude_filenames': ['policies']  # List of filenames to exclude
         }
     }
 
+    overwrite = True
+
     all_docs = []
     all_metadata = []
     # Load existing dataframe if it exists
     csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
-    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv")
+    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv") if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
     if os.path.exists(csv_path):
         latest_df = pd.read_csv(csv_path)
         existing_metadata = compute_new_entries(latest_df=latest_df, current_df=current_df, overwrite=overwrite)
@@ -254,7 +263,7 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
                 if result is not None:
                     files.append(result)
 
-        logging.info(f"Processing directory: {directory_path} with {len(files)} files")
+        logging.info(f"Processing directory: [{directory_path}] with [{len(files)}] files")
         all_documents, all_documents_details = load_pdfs(directory_path, details['title_extraction_func'],
                                                          details['extract_author_and_release_date_func'],
                                                          details['author'], details['release_date'],
@@ -280,5 +289,5 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    num_cpus = 1  # os.cpu_count()# 1
-    load_docs_as_pdf(debug=True, num_cpus=num_cpus)
+    num_cpus = 18  # os.cpu_count()# 1
+    load_docs_as_pdf(debug=True, num_cpus=num_cpus, overwrite=True)
