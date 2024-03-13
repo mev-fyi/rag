@@ -19,13 +19,18 @@ from llama_index.core.node_parser import SentenceSplitter
 from src.Llama_index_sandbox.utils.utils import timeit, root_directory, copy_and_verify_files, load_vector_store_from_pinecone_database
 
 
-def initialise_pipeline(add_to_vector_store=True, delete_old_index=False):
+def initialise_pipeline(add_to_vector_store=True, delete_old_index=False, new_index=False, index_name="mevfyi-cosine"):
     if add_to_vector_store:
-        vector_store = load_vector_store_from_pinecone_database(delete_old_index=delete_old_index)
+        vector_store = load_vector_store_from_pinecone_database(delete_old_index=delete_old_index, new_index=new_index, index_name=index_name)
     else:
         vector_store = None
 
     embedding_model = OpenAIEmbedding()
+
+    if new_index:
+        docstore_strategy = DocstoreStrategy.UPSERTS
+    else:
+        docstore_strategy = DocstoreStrategy.DUPLICATES_ONLY
 
     pipeline = IngestionPipeline(
         transformations=[
@@ -33,12 +38,10 @@ def initialise_pipeline(add_to_vector_store=True, delete_old_index=False):
             embedding_model,
         ],
         vector_store=vector_store,
-        docstore_strategy=DocstoreStrategy.DUPLICATES_ONLY,
-        # docstore_strategy=DocstoreStrategy.UPSERTS_AND_DELETE,
-        # docstore_strategy=DocstoreStrategy.UPSERTS,
+        docstore_strategy=docstore_strategy,
         docstore=SimpleDocumentStore(),
     )
-    if os.path.exists(f"{root_directory()}/pipeline_storage"):
+    if os.path.exists(f"{root_directory()}/pipeline_storage") and not new_index:
         try:
             pipeline.load(persist_dir=f"{root_directory()}/pipeline_storage")
         except Exception as e:
@@ -68,36 +71,42 @@ def copy_docstore():
 
 @timeit
 def create_index(add_new_transcripts=False, num_files=None):
+    pipeline = initialise_pipeline(add_to_vector_store=True)
+    docstore = pipeline.docstore
+    all_documents = list(docstore.docs.values())  # load docs - without embedding :(( - from docstore, enables a fast load
+
+    pipeline_v2 = initialise_pipeline(add_to_vector_store=True, delete_old_index=False, new_index=True, index_name="mevfyi-cosine")
+
     copy_and_verify_files()
     copy_docstore()
     logging.info("Starting Index Creation Process")
 
-    overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
-    num_files = None
-    files_window = None  # (20, 100)
+    # overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
+    # num_files = None
+    # files_window = None  # (20, 100)
 
     # Load all docs
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, files_window=files_window, overwrite=overwrite)
-
-    all_documents = documents_pdfs + documents_youtube
+    # documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, files_window=files_window, overwrite=overwrite)
+    #
+    # all_documents = documents_pdfs + documents_youtube
     total_docs = len(all_documents)
     batch_size = max(1, total_docs // 50)  # Ensure batch_size is at least 1
 
-    pipeline = initialise_pipeline(add_to_vector_store=True)
+    # pipeline = initialise_pipeline(add_to_vector_store=True)
     all_nodes = []
 
     # Process documents in batches
     for i in range(0, total_docs, batch_size):
-        logging.info(f"Processing batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
         batch_documents = all_documents[i:i+batch_size]
-        nodes = pipeline.run(documents=batch_documents, num_workers=18, show_progress=True)
+        logging.info(f"Processing batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes of length {len(batch_documents)}")
+        nodes = pipeline_v2.run(documents=batch_documents, num_workers=15, show_progress=True)
         all_nodes.extend(nodes)
-        if len(nodes) > 0:
-            pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
+        # if len(nodes) > 0:
+        #     pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
         logging.info(f"Processed batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
 
     logging.info(f"Processed {len(all_nodes)} Nodes in total")
