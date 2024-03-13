@@ -123,6 +123,9 @@ class CustomQueryEngine(RetrieverQueryEngine):
                                          'This topic has been removed',
                                          'Community introductions thread',
                                          'Read this before posting',
+                                         'The comprehensive guide to writing blogposts',
+                                         'We need a system to vet new users of the forum',
+                                         'State of MEV Report - Request for Comments',
                                          'Lesson 5 Part 1 | AI Prompting & Forums - Solidity & Foundry Full Course',
                                          'Effective Debugging Strategies | Ultimate Web3 Solidity & Javascript Course | Lesson 5 Pt. 1',
                                          'Learn Foundational Ethereum Topics with SQL',
@@ -294,7 +297,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
-        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.4'))
+        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.30'))
         MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '2'))
 
         # Apply special case and keyword penalisation adjustments

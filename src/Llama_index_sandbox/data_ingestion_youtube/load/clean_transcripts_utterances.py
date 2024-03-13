@@ -40,6 +40,11 @@ def correct_typos_in_files(log=True):
         "One Inc": "1inch",
         "Pepsi": "PEPC",
         "MVV": "MEV",
+        "layer two": "L2",
+        "east global": "ETH Global",
+        "eastglobal": "ETH Global",
+        "east classic": "ETH Classic",
+        "L one": "L1",
     }
 
     # Walk through root_dir
