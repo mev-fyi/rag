@@ -1,7 +1,11 @@
 import re
 import time
 from datetime import datetime
+from pathlib import Path
+from time import time
+from typing import Optional, Container, Callable, Set, Union
 
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 
@@ -81,7 +85,7 @@ def is_valid_title(title):
 
 
 def flashbots_title_extraction(file_path):
-    text = extract_text(file_path, page_numbers=[0])
+    text = extract_text_pymupdf(file_path, page_numbers=[0])
     title_keyword = 'title: '
     if title_keyword in text:
         start = text.find(title_keyword) + len(title_keyword)
@@ -92,8 +96,34 @@ def flashbots_title_extraction(file_path):
     return clean_title(title)
 
 
+def suave_title_extraction(file_path):
+    text = extract_text_pymupdf(file_path, page_numbers=[0])
+    title_keyword = 'title: '
+    description_keyword = 'description:'
+    hide_title_keyword = 'hide_title:'
+
+    if title_keyword in text:
+        start = text.find(title_keyword) + len(title_keyword)
+        end = text.find('\n', start)
+        title = text[start:end].strip()
+    else:
+        title = text.splitlines()[0].strip() if text.splitlines() else "Unknown Title"
+
+    # Remove everything on the right side of "description:", including "description" itself
+    if description_keyword in title:
+        description_index = title.find(description_keyword)
+        title = title[:description_index].strip()
+
+    # Remove everything on the right side of "hide_title:", including "hide_title" itself
+    if hide_title_keyword in title:
+        hide_title_index = title.find(hide_title_keyword)
+        title = title[:hide_title_index].strip()
+
+    return clean_title(title)
+
+
 def ethereum_org_title_extraction(file_path):
-    text = extract_text(file_path, page_numbers=[0])
+    text = extract_text_pymupdf(file_path, page_numbers=[0])
     title_keyword = 'title: '
     if title_keyword in text:
         start = text.find(title_keyword) + len(title_keyword)
@@ -102,6 +132,19 @@ def ethereum_org_title_extraction(file_path):
     else:
         title = text.splitlines()[0].strip() if text.splitlines() else "Unknown Title"
     return clean_title(title)
+
+
+def extract_text_pymupdf(pdf_file: str, page_numbers: Optional[Container[int]] = None) -> str:
+    import fitz  # PyMuPDF
+    doc = fitz.open(pdf_file)
+    text = ""
+    if page_numbers is None:
+        page_numbers = range(len(doc))
+    for num in page_numbers:
+        page = doc.load_page(num)
+        text += page.get_text()
+    doc.close()
+    return text
 
 
 def extract_author_and_release_date_ethereum_org(link: str):
@@ -205,3 +248,39 @@ def extract_link(domain_url: str, search_query: str):
 def extract_author_and_release_date(link, extract_author_and_release_date_func):
     """Custom function to extract the title from the PDF file."""
     return extract_author_and_release_date_func(link)
+
+
+def sanitize_metadata_value(value):
+    """
+    Sanitizes the metadata value to ensure it's neither None nor np.nan.
+
+    Parameters:
+    - value (Union[str, float, None]): The metadata value to sanitize.
+
+    Returns:
+    - str: A sanitized string value. If the original value is None or np.nan, it returns an empty string.
+    """
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return ''
+    return str(value).replace('"', '')
+
+
+def check_file_exclusion(file_path: Path, title_extraction_func: Callable, exclude_titles: Set[str], exclude_filenames: Set[str]) -> Union[Path, None]:
+    """
+    Determines if a file should be excluded based on its title or filename.
+    Now with added performance logging to understand slow parts.
+    """
+    # Ensure excluded titles and filenames are lowercase outside of this function.
+    filename = file_path.name.lower()
+
+    # Extract and sanitize the title.
+    title = sanitize_metadata_value(extract_title(file_path, title_extraction_func))
+
+    # Check for exclusion based on title and filename.
+    excluded_due_to_title = any(excluded_title in title for excluded_title in exclude_titles)
+    excluded_due_to_filename = any(excluded_filename in filename for excluded_filename in exclude_filenames)
+
+    if not excluded_due_to_title and not excluded_due_to_filename:
+        return file_path
+    else:
+        return None
