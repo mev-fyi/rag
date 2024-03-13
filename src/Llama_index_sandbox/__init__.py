@@ -19,6 +19,7 @@ PDF_DIRECTORY = f"{root_dir}/datasets/evaluation_data/baseline_evaluation_resear
 ARTICLES_DIRECTORY = f"{root_dir}/datasets/evaluation_data/articles_2023-12-05"
 DISCOURSE_ARTICLES_DIRECTORY = f"{root_dir}/datasets/evaluation_data/articles_discourse_2024_03_01"
 FLASHBOTS_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/flashbots_docs_2024_01_07"
+SUAVE_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/suave_docs_2024_03_13"
 ETHEREUM_ORG_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/ethereum_org_content_docs_2024_01_07"
 YOUTUBE_VIDEO_DIRECTORY = f"{root_dir}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
 config_instance = Config()

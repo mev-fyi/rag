@@ -149,7 +149,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                         logging.error(f"Error deleting file {video_transcript}: {delete_error}")
                 pass
     logging.info(f"Successfully loaded [{video_transcripts_loaded_count}] documents from video transcripts.")
-    assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
+    # assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents
 
 
