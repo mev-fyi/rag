@@ -992,20 +992,21 @@ def compute_new_entries(latest_df: pd.DataFrame, current_df: pd.DataFrame, left_
     return new_entries_df
 
 
-def load_vector_store_from_pinecone_database(delete_old_index=False):
+def load_vector_store_from_pinecone_database(delete_old_index=False, new_index=False, index_name="mevfyi"):
     pc = Pinecone(
         api_key=os.environ.get("PINECONE_API_KEY")
     )
-    index_name = "mevfyi"
-    if delete_old_index:
+    if new_index:
         # pass
-        pc.delete_index(index_name)
+        if delete_old_index:
+            logging.warning(f"Are you sure you want to delete the old index with name [{index_name}]?")
+            pc.delete_index(index_name)
         # Dimensions are for text-embedding-ada-002
         from pinecone import ServerlessSpec
         pc.create_index(
-            "mevfyi",
+            name=index_name,
             dimension=1536,
-            metric="euclidean",
+            metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-west-2"),
         )
 
