@@ -111,7 +111,7 @@ def transcribe_and_save(api_key_file_path):
 def worker(api_key, file_paths):
     # Ensure this function and any function it calls are defined at the top level of the module.
     set_api_key(api_key)
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=3) as executor:
         api_key_file_paths = [(api_key, file_path) for file_path in file_paths]
         list(executor.map(transcribe_and_save, api_key_file_paths))  # Force execution with list()
 

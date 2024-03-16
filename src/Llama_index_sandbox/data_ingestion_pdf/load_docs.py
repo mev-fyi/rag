@@ -194,16 +194,16 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             ],  # List of titles to exclude
             'exclude_filenames': ['policies']  # List of filenames to exclude
         },
-        'datasets/evaluation_data/suave_docs_2024_03_13': {
-            'title_extraction_func': suave_title_extraction,
-            'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-            'author': 'SUAVE Docs',
-            'pdf_link': 'https://suave-alpha.flashbots.net/',
-            'release_date': '',
-            'exclude_titles': [
-            ],  # List of titles to exclude
-            'exclude_filenames': ['policies']  # List of filenames to exclude
-        }
+        # 'datasets/evaluation_data/suave_docs_2024_03_13': {
+        #     'title_extraction_func': suave_title_extraction,
+        #     'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
+        #     'author': 'SUAVE Docs',
+        #     'pdf_link': 'https://suave-alpha.flashbots.net/',
+        #     'release_date': '',
+        #     'exclude_titles': [
+        #     ],  # List of titles to exclude
+        #     'exclude_filenames': ['policies']  # List of filenames to exclude
+        # }
     }
 
     overwrite = True
