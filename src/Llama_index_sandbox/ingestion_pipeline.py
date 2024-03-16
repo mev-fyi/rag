@@ -9,7 +9,7 @@ import src.Llama_index_sandbox.data_ingestion_pdf.load as load_pdf
 import src.Llama_index_sandbox.data_ingestion_pdf.load_articles as load_articles
 from src.Llama_index_sandbox import config_instance
 from llama_index.core.storage.docstore import SimpleDocumentStore
-from src.Llama_index_sandbox.data_ingestion_pdf import load_discourse_articles, load_docs
+from src.Llama_index_sandbox.data_ingestion_pdf import load_discourse_articles, load_docs, load_ethglobal_docs
 from src.Llama_index_sandbox.data_ingestion_youtube.load.load import load_video_transcripts
 from llama_index.core.ingestion import (
     DocstoreStrategy,
@@ -19,7 +19,7 @@ from llama_index.core.node_parser import SentenceSplitter
 from src.Llama_index_sandbox.utils.utils import timeit, root_directory, copy_and_verify_files, load_vector_store_from_pinecone_database
 
 
-def initialise_pipeline(add_to_vector_store=True, delete_old_index=False, new_index=False, index_name="mevfyi"):
+def initialise_pipeline(add_to_vector_store=True, delete_old_index=False, new_index=False, index_name="mevfyi-cosine"):
     if add_to_vector_store:
         vector_store = load_vector_store_from_pinecone_database(delete_old_index=delete_old_index, new_index=new_index, index_name=index_name)
     else:
@@ -71,20 +71,23 @@ def copy_docstore():
 
 @timeit
 def create_index(add_new_transcripts=False, num_files=None):
-    copy_and_verify_files()
-    copy_docstore()
-    logging.info("Starting Index Creation Process")
+    # copy_and_verify_files()
+    # copy_docstore()
+    logging.info("Starting Index Load Process")
 
     overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
     num_files = None
     files_window = None  # (20, 100)
 
     # Load all docs
-    documents_pdfs = load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
-    documents_youtube = load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_pdfs = []
+    documents_pdfs += load_ethglobal_docs.load_docs_as_pdf(debug=True, num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    # documents_pdfs += load_discourse_articles.load_pdfs(directory_path=Path(DISCOURSE_ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
+    documents_youtube = []
+    # documents_youtube += load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=add_new_transcripts, num_files=None, files_window=files_window, overwrite=overwrite)
 
     all_documents = documents_pdfs + documents_youtube
     total_docs = len(all_documents)
