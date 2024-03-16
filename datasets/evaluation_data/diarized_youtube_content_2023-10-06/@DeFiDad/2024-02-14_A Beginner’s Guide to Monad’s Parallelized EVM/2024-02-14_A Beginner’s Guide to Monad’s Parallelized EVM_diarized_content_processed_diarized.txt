@@ -1,0 +1,275 @@
+00:00:00.170 - 00:00:04.830, Speaker A: Monad's mission is to make the EVM extremely performant.
+00:00:05.250 - 00:00:11.534, Speaker B: At the present, Ethereum processes about a million transactions per day, and Monad is.
+00:00:11.572 - 00:00:13.486, Speaker A: Taking you know that throughput from a.
+00:00:13.508 - 00:00:17.040, Speaker B: Million transactions per day to a billion transactions per day.
+00:00:19.570 - 00:00:20.954, Speaker C: Welcome to the Edge podcast.
+00:00:21.002 - 00:00:23.006, Speaker D: I'm Defi dad here with nomadic from.
+00:00:23.028 - 00:00:31.766, Speaker C: Four RC today's show spot Lights Monad, a new high throughput chain with a parallelized EVM that's expected to launch in 2024.
+00:00:31.868 - 00:00:33.874, Speaker D: In this episode, we talk with Monad.
+00:00:33.922 - 00:00:36.678, Speaker C: Cofounder Keoni Han about the vision to.
+00:00:36.684 - 00:00:42.374, Speaker D: Build Monad, how its design will enable 10,000 transactions per second, how it differentiates.
+00:00:42.422 - 00:00:46.566, Speaker C: From other L ones, and Ethereum l two s, and what goes into bootstrapping.
+00:00:46.598 - 00:00:49.974, Speaker D: This new moned community prior to main net launch.
+00:00:50.102 - 00:01:17.830, Speaker C: But before we do, just a quick word from our sponsors who make the Edge podcast possible. Introducing rsuite by Swell Network, a native liquid restaking token that gives you access to the Eigen layer ecosystem. Earn Pearls points, and future restaking rewards without locking your liquidity, and enjoy countless defi integrations for earning easy passive yield. Learn more at swellnetwork IO.
+00:01:19.130 - 00:01:50.894, Speaker E: Introducing the mantle liquid staking protocol mantle LSP, a permissionless noncustodial ETH liquid staking protocol deployed on Ethereum l one and governed by mantle. With mantle LSP, users can stake ETH to instantly receive me, earn, yield, and accumulate rewards. The longer you stake me is the value accumulating receipt token that will give you access to expanded yield opportunities. Stake and watch your yield grow with.
+00:01:50.932 - 00:02:44.702, Speaker C: Mantle LSP introducing Kelp DaO, the first liquid restaking platform for LSTs. With kelp, anyone could deposit steph by lido, EFx by stator or Sfrx, ETH by fracs, and mint, a liquid restaking token called RSE. With Rs ETH, you can participate in your favorite DFI platforms and get 100% of all eigen layer points plus kelp miles, a fresh wave of restaking is here. Restaking that's liquid rewarding and convenient. Learn more today at Kelpdow XYZ Slash restake for most of us, our crypto journey started with Metamask, and now with Metamask portfolio, we can do so much more. Metamask portfolio puts you in control. Use the dashboard to see all your assets and balances across your wallets in one place.
+00:02:44.702 - 00:02:49.186, Speaker C: The buy feature allows us to buy crypto assets effortlessly with fiat options such.
+00:02:49.208 - 00:02:50.930, Speaker D: As PayPal or credit card.
+00:02:51.080 - 00:03:17.706, Speaker C: The swap feature allows us to swap any tokens anytime by finding a selection of available rates. The bridge feature allows us to bridge between networks, including Ethereum L Ones and L two s, based on the best price and fastest delivery time. And with the stake feature, anyone in a few clicks can stake ETH and earn rewards. Do more in web three your way with a safe, simple and convenient tool that's all in one place. Track and manage your web three everything.
+00:03:17.808 - 00:03:22.910, Speaker D: At Metamask IO portfolio it all started.
+00:03:22.980 - 00:04:03.610, Speaker F: So simply with cryptokitties and maker on Ethereum, but quickly became complex with more applications and many chains. Today, everyone agrees UX issues are the biggest blocker standing in the way of crypto adoption. Introducing avocado multi chain Ux. Redesigned from the ground up, the first wallet to abstract networks accounts and gas one gas tank to pay transaction fees on all chains in USDC and native access to Instadap's powerful custom defi strategies. Avocado one wallet to rule all chains.
+00:04:04.110 - 00:04:09.094, Speaker C: All right, let's introduce Keoni Hahn, the co founder of Monad Keoni, welcome to the Edge podcast.
+00:04:09.142 - 00:04:09.818, Speaker D: How are you doing?
+00:04:09.904 - 00:04:11.710, Speaker B: Hey, doing well. Thanks for having me.
+00:04:11.780 - 00:04:14.062, Speaker C: We're hoping that this will serve as.
+00:04:14.196 - 00:04:58.406, Speaker D: The most updated, comprehensive guide for folks to understand all things Monad, and so we're going to let you, of course, tell us more of the details to how this design works under the hood. What are some of the pros and cons to that design? Are there any sort of drawbacks to the design choices that have been made? And then also would love to try to understand the tokenomics behind the Monad future token so, that being all said, why don't we kick off with more about your background? Keoni, I know you've worked for quite a while now in crypto prior to Monad. We'd love to learn about that. And then what ultimately prompted you to start building Monad?
+00:04:58.518 - 00:05:01.134, Speaker A: I guess the story starts when I.
+00:05:01.172 - 00:05:17.474, Speaker B: Joined jump trading in late 2013. Jump trading is just a great automated trading firm with a number of different teams and strategies and just very involved in the traditional finance space.
+00:05:17.672 - 00:05:19.246, Speaker A: I joined a team that was mostly.
+00:05:19.278 - 00:05:29.670, Speaker B: Focused on futures trading and ended up becoming the team lead and helping to scale up the team to become a major participant in a number of futures markets.
+00:05:30.010 - 00:05:31.750, Speaker A: Along the way, we ended up building.
+00:05:31.820 - 00:05:42.098, Speaker B: A really performant trading system with tick to trades that were very fast, so packets coming in from the exchange that.
+00:05:42.124 - 00:05:45.882, Speaker A: Have to very quickly make a decision and then send an order out sub.
+00:05:45.936 - 00:05:48.026, Speaker B: Microsecond tick to trade times.
+00:05:48.208 - 00:05:51.898, Speaker A: And just the competitive aspect of participating.
+00:05:51.994 - 00:05:59.786, Speaker B: In markets where latency does really matter pushed us to constantly reinvent our systems.
+00:05:59.818 - 00:06:01.294, Speaker A: And go really low level in terms.
+00:06:01.332 - 00:06:07.614, Speaker B: Of building performance systems, did that for a number of years, and then ended up joining the crypto team at jump.
+00:06:07.662 - 00:06:16.674, Speaker A: In mid 2021, right during the peak of Salana summer. Actually, I think we joined in May.
+00:06:16.712 - 00:06:23.894, Speaker B: And then the DGen Ape academy mint happened on Salana. That was kind of the kicked off.
+00:06:23.932 - 00:06:25.506, Speaker A: A wave of excitement.
+00:06:25.538 - 00:06:33.270, Speaker B: And Solana nfts and I spent about six months in jump crypto, mostly working on Solana Defi.
+00:06:33.430 - 00:06:36.380, Speaker A: And it just became really clear that.
+00:06:37.630 - 00:06:56.382, Speaker B: Solana did offer something that was unique and exciting and offered really low fees, really high throughput, and made a lot of sense for a high frequency trader, but also made a lot of sense for normal, just everyday people as well, because no one likes paying $10 fees.
+00:06:56.446 - 00:06:58.446, Speaker A: To make a swap on uniswap.
+00:06:58.558 - 00:07:02.126, Speaker B: And in the real world, people hate paying $3 ATM fees.
+00:07:02.318 - 00:07:05.074, Speaker A: It just makes sense to push the.
+00:07:05.112 - 00:07:13.078, Speaker B: Scalability so that fees are much lower. And in the process of exploring the.
+00:07:13.084 - 00:07:14.518, Speaker A: Landscape, just realized that there was a.
+00:07:14.524 - 00:07:16.898, Speaker B: Huge need for performant EVM.
+00:07:17.074 - 00:07:27.466, Speaker A: So I ended up leaving jump at the beginning of 2022 and along with two other people. So my former coworker James, who I.
+00:07:27.488 - 00:07:29.930, Speaker B: Started working with at Jump in 2014.
+00:07:30.270 - 00:07:33.334, Speaker A: As well as my MIT classmate Eunice.
+00:07:33.462 - 00:07:38.026, Speaker B: Who I met in 2010, who has a fintech product management background.
+00:07:38.138 - 00:07:41.406, Speaker A: Together, the three of us ended up going on to start Monad labs, which.
+00:07:41.428 - 00:07:47.140, Speaker B: Is an effort to make the EVM really performant. I'll pause there for a second, but.
+00:07:48.070 - 00:07:54.578, Speaker A: Just basically started out exploring crypto, learning about Solana, and then realizing that there.
+00:07:54.584 - 00:07:56.350, Speaker B: Was a need for much more performant EVM.
+00:07:56.430 - 00:08:33.842, Speaker G: Very cool. I didn't realize that you and your other co founders had known each other that long. That's really cool that you have such a history and friendship there. I think you kind of touched on some of the reasons already, but I want to dive right into why we need Monad in this kind of like, sea of l two s that we're seeing crop up l ones. I guess this is kind of like getting at what are the differentiators as far as Monad versus l two s, as far as Monad versus other l ones? Yeah, maybe tackle that any way you want.
+00:08:33.976 - 00:08:45.506, Speaker B: Monad's mission is to make the EVM extremely performant. At the present, Ethereum processes about a million transactions per day, and Monad is.
+00:08:45.528 - 00:08:48.354, Speaker A: Taking that throughput from a million transactions.
+00:08:48.402 - 00:08:50.998, Speaker B: Per day to a billion transactions per day.
+00:08:51.164 - 00:08:52.822, Speaker A: And the reason I'm sort of giving.
+00:08:52.876 - 00:08:59.702, Speaker B: Everything in terms of days rather than transactions per second is because I think it allows us to reason more clearly.
+00:08:59.766 - 00:09:03.942, Speaker A: About an application that is really successful.
+00:09:04.006 - 00:09:20.878, Speaker B: That's like number one on the iOS App Store. That's an application with hundreds of thousands, at least, most likely millions of daily active users. So if you imagine an app with a million daily active users, with 50 transactions per user per day, that's 50 million transactions per day, which then, if.
+00:09:20.884 - 00:09:22.394, Speaker A: You want to translate back to transactions.
+00:09:22.442 - 00:09:26.802, Speaker B: Per second, is 500 tpS. So it's just really clear that any.
+00:09:26.856 - 00:09:30.306, Speaker A: App that is achieving a level of.
+00:09:30.328 - 00:09:47.154, Speaker B: Mass user adoption where it's kind of jumped the chasm and is being used by non crypto natives, it's going to need a lot more throughput than what we have right now. And then just maybe to say a quick bit about Monad, maybe in comparison.
+00:09:47.202 - 00:09:48.774, Speaker A: To some of the other directions that.
+00:09:48.812 - 00:09:50.698, Speaker B: For example, layer twos are taking, I.
+00:09:50.704 - 00:09:55.706, Speaker A: Think it's really exciting that Monad is just able to do something that's in.
+00:09:55.728 - 00:10:01.370, Speaker B: A different direction from other projects that's very orthogonal, and that hopefully can ultimately.
+00:10:02.910 - 00:10:05.454, Speaker A: Actually interact with other efforts that other.
+00:10:05.492 - 00:10:09.226, Speaker B: Folks are doing in other directions quite seamlessly.
+00:10:09.418 - 00:10:10.762, Speaker A: But at the end of the monad.
+00:10:10.826 - 00:10:36.662, Speaker B: Is an effort to go really deep and rebuild the execution stack from the ground up in C plus plus introducing a number of architectural improvements that ultimately make execution much, much more performant. And that's just a different direction from sort of the fractal scaling approach of roll ups, where roll ups are all about building separate environments that ultimately still.
+00:10:36.716 - 00:10:40.186, Speaker A: Inherit some aspects of ethereum security, for.
+00:10:40.208 - 00:10:50.474, Speaker B: Example from data availability or from Ethereum settlement. So it's just a different direction that I think is ultimately, we've always felt was needed in the space.
+00:10:50.592 - 00:10:53.526, Speaker A: And more recently that I think is.
+00:10:53.568 - 00:10:54.858, Speaker B: Getting more and more attention.
+00:10:54.954 - 00:11:52.570, Speaker G: Yeah, I totally agree, especially with what you said at the beginning, just kind of framing it up. The way I look at it is you really have to look at it like, what would a breakthrough app look like? And if you're preparing for success, if you think you're going to be successful and you are comparing to web two apps, and that's what we're all shooting for and hoping we'll attain one day, you really have to start at those foundational levels and look at things through an honest lens and say, well, can the current infrastructure stack handle what we're shooting for? And if the answer is no, then, which I think is the answer that you arrived at, then you need to go build something. Can you also maybe touch on, we were talking a bit about before the pod started just about state and just kind of some other reasons why you wanted to build Monad. That was really interesting as well.
+00:11:52.660 - 00:11:58.980, Speaker A: I think there's a lot of excitement right now about parallel execution, and people.
+00:11:59.750 - 00:12:04.142, Speaker B: For good reason, are excited about the fact that if we can make execution.
+00:12:04.206 - 00:12:06.914, Speaker A: More performant, then we can actually just.
+00:12:06.952 - 00:12:08.486, Speaker B: Squeeze a lot more work into the.
+00:12:08.508 - 00:12:11.734, Speaker A: Same amount of time and ultimately allow.
+00:12:11.852 - 00:12:14.694, Speaker B: A single unit of blockchain, I. E.
+00:12:14.732 - 00:12:16.134, Speaker A: A single layer one or a single.
+00:12:16.172 - 00:12:30.746, Speaker B: Layer two, to serve more users, basically making the computation more dense. And in the process of, that's been Monad's goal all along as well. So when we first got started, one.
+00:12:30.768 - 00:12:32.166, Speaker A: Of the first things that we actually.
+00:12:32.208 - 00:12:34.990, Speaker B: Did was implement parallel execution.
+00:12:35.490 - 00:12:36.878, Speaker A: So I'll touch on that for a.
+00:12:36.884 - 00:12:42.560, Speaker B: Second and then I'll go to your question about state, because I think it's helpful. Parallel execution is.
+00:12:44.850 - 00:12:46.510, Speaker A: The practice of running.
+00:12:46.580 - 00:12:49.310, Speaker B: Many transactions in parallel.
+00:12:49.810 - 00:12:51.706, Speaker A: In the case of Monad, it's optimistic.
+00:12:51.738 - 00:13:51.766, Speaker B: Parallel execution, where many transactions are run in parallel as if they were independent, and this process generates a bunch of pending results. And the pending results keep track of the inputs to those transactions and the outputs, I. E. Any of the pieces of state that were read in in the course of that transaction, as well as any pieces of state that have been mutated through the course of that transaction. So generate a bunch of these pending results in parallel, and then go through them one by one in the original order of the transactions, and commit them, ensuring that for each of those pending results, that the inputs have not since changed due to one of the previous results that's been committed. So this practice basically ensures that the parallel execution produces the same end result as if those transactions were just run one after the other, I. E.
+00:13:51.766 - 00:13:52.898, Speaker B: In serial fashion.
+00:13:52.994 - 00:13:54.134, Speaker A: We always get to the same end.
+00:13:54.172 - 00:14:02.090, Speaker B: Result, and in the event that there is a conflict, then that work just ends up getting rescheduled, just to talk about the rescheduling for a second.
+00:14:02.160 - 00:14:05.642, Speaker A: Also, people are worried whenever they hear this.
+00:14:05.696 - 00:14:08.522, Speaker B: I think one of the first things they worry is like, oh, what happens.
+00:14:08.576 - 00:14:12.126, Speaker A: If every single transaction is related to.
+00:14:12.148 - 00:14:15.870, Speaker B: One another, and therefore you're constantly having to reschedule.
+00:14:16.450 - 00:14:18.234, Speaker A: So the thing I want to emphasize.
+00:14:18.282 - 00:14:54.854, Speaker B: Here is that rescheduling is quite cheap because the amount of computation being done in a typical transaction is actually quite small. It's adding numbers together or doing multiplication or maybe computing a hash. These are actually quite cheap from a typical computing perspective, so it's not a lot of CPU time. But what is expensive is having to potentially go read values from state like going to the SSD and pulling them. But when re executing those state dependencies are almost always in cache, I. E. They're in memory.
+00:14:54.982 - 00:14:57.974, Speaker A: So that going back to the memory.
+00:14:58.022 - 00:15:18.430, Speaker B: To look up that value is much faster. So reexecutions are basically a lot cheaper. Just to kind of summarize parallel execution, run many transactions, generate pending results, commit them in the original order, and in the event that there is a conflict, and reschedule and re execute the work. But re execution is quite cheap.
+00:15:18.510 - 00:15:42.794, Speaker D: Keoni, I wanted to run you through some rapid fire questions, and the first one was actually if you could just dumb down what parallel EVM means. I think you just clearly covered that. Maybe you can just give us a quick answer though on what's the end result of that, the benefits for the average user? Is it fair to say that 10,000 transactions per second or so, this is all a part of that?
+00:15:42.992 - 00:15:45.114, Speaker A: And yeah, thanks for calling that out.
+00:15:45.152 - 00:15:51.740, Speaker B: So the end result is Monad is a new bytecode EVM compatible layer one.
+00:15:52.190 - 00:15:53.658, Speaker A: So it's a new layer one that's.
+00:15:53.674 - 00:16:32.022, Speaker B: Fully compatible for any smart contract that's been built for Ethereum already that can be dragged and dropped into this new environment without any changes, that offers over 10,000 transactions per second of throughput, 1 second block times, and single slot finality. So it's basically a really fast blockchain with really high throughput that is fully backward compatible, both for Ethereum smart contracts and also for all the tooling that's used in the Ethereum ecosystem. For example ether scan or metamask or the graph or other tools that interact with the blockchain.
+00:16:32.166 - 00:16:59.438, Speaker D: Another term that I've seen come up in Twitter, by the way. I would highly recommend folks follow Keoni. We'll put this into the show notes. It's Keoni and then the letter HD. He's got a great Twitter account for kind of talking through all things Monad, but it's also very entertaining. One of the terms, though, I've seen you mention is pipelining. Can you talk to us about what that refers to in the context of Monet?
+00:16:59.534 - 00:17:21.414, Speaker B: Pipelining is the act of basically utilizing the resources of a system more efficiently by creating stages of work that can be completed in parallel. So a good example in the real world of pipelining is say you come back from a long trip and you have four loads of laundry to do.
+00:17:21.612 - 00:17:23.146, Speaker A: Then the naive thing to do would.
+00:17:23.168 - 00:17:35.550, Speaker B: Be to put the first load in the washer and then move it to the dryer and then fold it and then put it back in your closet and do all that first for the first load before starting on the second load.
+00:17:35.890 - 00:17:37.406, Speaker A: But of course, if you do that.
+00:17:37.428 - 00:17:41.566, Speaker B: It'S going to take many hours to get those four loads of laundry done.
+00:17:41.668 - 00:17:43.998, Speaker A: So the smarter thing that everyone just.
+00:17:44.084 - 00:17:56.322, Speaker B: Intuitively knows to do is to just progress the four loads in stages in parallel. So after the first load finishes in the washer, you move it to the dryer and then put the second load in the washer.
+00:17:56.386 - 00:18:00.006, Speaker A: And then that's literally exactly what pipelining is.
+00:18:00.028 - 00:18:13.690, Speaker B: But just in the context of a computer. In the context of a computer, pipelining is the process of creating multiple stages of work. For example, in a blockchain, there's the.
+00:18:13.760 - 00:18:17.420, Speaker A: Process of coming to consensus, which is.
+00:18:18.510 - 00:18:30.670, Speaker B: There are hundreds or thousands of nodes distributed around the world. Consensus involves those nodes talking to each other, voting before finally coming to agreement. That's one kind of work.
+00:18:30.740 - 00:18:32.270, Speaker A: And then a separate kind of work.
+00:18:32.340 - 00:18:40.674, Speaker B: Is the process of each of those machines actually going and executing all the transactions and getting the end state after that.
+00:18:40.792 - 00:18:42.882, Speaker A: So in Monad, just as one example.
+00:18:42.936 - 00:19:20.894, Speaker B: Of pipelining, and there are actually several monad, separates consensus and execution. So the nodes first come to agreement about the official ordering, I. E. Consensus. And then as soon as that completes, then two things can happen. One is consensus can start on the next block, but then in parallel, execution can happen over that list of transactions that's just been agreed upon. And the reason why this is a big unlock in terms of performance is because in most blockchains, the budget for execution is a very small fraction of the block time, because consensus actually ends up taking most of the time.
+00:19:21.012 - 00:19:23.994, Speaker A: So in a system like most blockchains.
+00:19:24.042 - 00:19:30.260, Speaker B: Where execution and consensus are interleaved, the budget for execution is actually very small.
+00:19:30.630 - 00:19:33.618, Speaker A: I'll say that again, because I think I kind of said it in a confusing way.
+00:19:33.704 - 00:19:46.886, Speaker B: So in most blockchains, execution and consensus are interleaved, and the process is first, the leader will execute the list of transactions and get to the end state. Then there's a phase of consensus where.
+00:19:46.908 - 00:19:49.900, Speaker A: All the other nodes are talking to each other, communicating around the world.
+00:19:50.270 - 00:19:56.838, Speaker B: This could take hundreds of milliseconds or even seconds, depending on the particular consensus mechanism.
+00:19:57.014 - 00:19:58.746, Speaker A: And then at the end of all.
+00:19:58.768 - 00:20:17.742, Speaker B: That, then that's the end of the block. And so, as you can see, consensus ends up taking up most of that time. So the actual budget for execution is quite limited. In Ethereum, for example, the blocks are every 12 seconds, but the execution budget, and this is a rough number, but basically the gas limit chosen to correspond.
+00:20:17.806 - 00:20:19.042, Speaker A: To a certain amount of time.
+00:20:19.096 - 00:21:01.770, Speaker B: That amount of time is about 100 milliseconds. So that literally means that in a twelve second block time only 100 milliseconds, I e 1% of the time is allocated for execution. And that's one of the key reasons why ethereum throughput is very, very limited, because it's actually only a very small fraction of the time that's allocated to execution. In Monad, execution is moved out of that hot path of consensus into a separate swim lane, ie, pipelining, where the nodes first come to agreement about the official ordering of transactions, aka consensus. And then once that completes, then two things can happen in parallel. One is consensus on the next block, and the other thing is execution on the set of transactions that's just been agreed upon.
+00:21:01.850 - 00:21:22.038, Speaker G: I'm just curious how your conversations have gone with, I guess, other ethereum devs. L two devs is the value prop a tough sell? Is it really easy? What are you seeing in those conversations about people wanting to onboard to Monad when it's up and live?
+00:21:22.124 - 00:21:28.620, Speaker B: Yeah, I think people are generally very supportive and excited about the vision. I think that.
+00:21:30.670 - 00:21:32.780, Speaker A: It'S honestly a pretty.
+00:21:33.550 - 00:21:45.914, Speaker B: Easy sell in the sense that everyone wants lower fees, everyone wants higher throughput. It reminds me of this commercial from.
+00:21:45.952 - 00:21:56.446, Speaker A: Like the 2000s when I was a kid that I really liked, which was, I'm struggling to remember the brand.
+00:21:56.478 - 00:22:18.522, Speaker B: So this is not an effective commercial from that perspective. But basically there are these turtles called the slowskis, and they are basically complaining because they switched to this Internet provider and the speed was too fast. And basically there's a series of commercials where these turtles, animatronic turtles, were being.
+00:22:18.576 - 00:22:20.860, Speaker A: Like, this is too fast for me.
+00:22:22.910 - 00:22:33.246, Speaker B: I liked it the way it was. Basically, no one is like the slow skis, no one wants higher fees, no one wants limited throughput. I think at the end of the.
+00:22:33.268 - 00:22:33.840, Speaker A: Day.
+00:22:35.650 - 00:22:38.858, Speaker B: When speaking with application developers, there's.
+00:22:38.874 - 00:22:41.710, Speaker A: Just the excitement from the fact that.
+00:22:41.860 - 00:22:43.634, Speaker B: Not only will fees be a lot.
+00:22:43.672 - 00:22:47.010, Speaker A: Lower and transactions are much more plentiful.
+00:22:47.670 - 00:22:55.870, Speaker B: Which literally makes the user experience more pleasant, which makes it easier to acquire more users.
+00:22:55.950 - 00:23:00.326, Speaker A: But it's also that building on Monad then opens up a wider realm of.
+00:23:00.348 - 00:23:18.634, Speaker B: Possibilities in terms of what could actually be built. Because a lot of times when having to build for the web three environment, one has to consider gas fees and gas optimization. And that's a huge consideration for building smart contracts. And ultimately there's a ton of work.
+00:23:18.672 - 00:23:20.854, Speaker A: That goes into kind of like gas.
+00:23:20.902 - 00:23:23.258, Speaker B: Optimization, gas golfing, and a lot of.
+00:23:23.264 - 00:23:24.766, Speaker A: That actually kind of goes away so.
+00:23:24.788 - 00:23:28.138, Speaker B: People can focus on building more expansive designs.
+00:23:28.234 - 00:24:13.198, Speaker G: Keoni I just want to talk a little bit too about, I guess, like the validator network that you're building or bootstrapping to kind of secure, you know, the discussion just about decentralization, how much is needed. There's a spectrum of decentralization. I don't think anybody can articulate what is the right amount, what is not enough? Well, maybe they can. What is not enough, but I feel like it's always very vague. So kind of like, on that note, what are the tradeoffs, if any, of a high throughput throughput chain? And how do you view this ongoing debate that is always in discussion around crypto, Twitter about validator requirements and that?
+00:24:13.284 - 00:24:40.934, Speaker B: Yeah, I think that decentralization, there's a couple of key considerations. Number one would be the number of nodes participating in consensus. Number two would be the hardware requirements. So the actual cost of running a node, whether one that participates in consensus or one that's just listening and maintaining all of the active state, processing all the transactions. And then I think a third one.
+00:24:40.972 - 00:24:44.134, Speaker A: Is actually just the composition of the.
+00:24:44.172 - 00:25:40.166, Speaker B: Validator set and a good balance between professional validator companies as well as grassroots validators, like community driven validators. Those are some of the major things that I think about with respect to Monad. It has been extremely important from the start. It's our mission to make the EVM really performant, but the other mission is to maintain a very high degree of decentralization. I think there's always like easy way and a hard way, and the easy way to achieve performance gains is to basically make choices that ultimately centralize the network. For example, the extreme example would be if the network only had one computer, then you could eliminate all of the overhead of consensus, and you could make that one computer have really high amounts.
+00:25:40.198 - 00:25:44.010, Speaker A: Of RAM, a really beefy CPU.
+00:25:45.070 - 00:26:11.858, Speaker B: You could crank up different parameters and deliver performance that way, but that wouldn't be decentralized. So I think the challenging thing about building a really performant layer, one that adheres to the principles of decentralization and has properties that are highly decentralized, is that it's going to involve hundreds or thousands of nodes spread globally around the world.
+00:26:12.024 - 00:26:13.746, Speaker A: Like that's another way to cheat, is.
+00:26:13.768 - 00:26:24.614, Speaker B: By keeping all the nodes very close to one another, because then the overhead of consensus is much less because the nodes, literally, the messages don't have to travel very far.
+00:26:24.812 - 00:26:27.330, Speaker A: And we see that with certain blockchains.
+00:26:27.410 - 00:26:30.318, Speaker B: That basically have majority of their stake.
+00:26:30.354 - 00:26:31.706, Speaker A: Weight or over two thirds of their.
+00:26:31.728 - 00:27:23.046, Speaker B: Stake weight in one geography, basically really close to each other. It's a way of putting a finger on the scale. So with Monad, fully decentralization from all facets like high number of nodes, hundreds of nodes, fully geographically distributed, not just relying on having all the stake weight in one geography and not relying on high hardware requirements. So for Monad, the hardware requirements are pretty similar to Ethereum's. That was core to the overall design requirements from the beginning. So with Monad, the requirement is 32 gigs of RAM, which is pretty similar to Ethereum's requirement of 16 gigs of RAM and much, much lower than, for example, Salana, which requires right now 256 gigs of RAM. That's important because RAM is extremely expensive.
+00:27:23.046 - 00:27:37.374, Speaker B: A high performance SSD, two terabytes is about $200, whereas two terabytes of RAM is over $20,000. So basically, just making performance gains through.
+00:27:37.412 - 00:27:39.646, Speaker A: Algorithmic improvements rather than through hardware on.
+00:27:39.668 - 00:28:07.590, Speaker H: Monat DFI enables a whole new world of trading and yield opportunities. Sometimes we all wish we had a little bit bigger of a budget so we can make the most out of it. That's why we created blueberry. Blueberry lets you access the best opportunities on Ethereum all in one easy to use terminal. You can access five X, ten X, or even 20 x your money in one click, more than any other lending market. So you can maximize your earnings only on blueberry.
+00:28:10.350 - 00:29:17.440, Speaker I: Maverick protocol provides innovative liquidity solutions for token projects to customize, automate and incentivize their liquidity with the highest efficiency in DeFi, all powered by Maverick Amm. Why has Maverick become the first choice for all kinds of token projects, from stablecoins to LRTs as the first dynamic distribution Amm Maverick Amm provides automated liquidity movement modes which move your liquidity to follow price, keeping it where it does the most good. This enables Maverick powered pools to process higher volume with lower TVL requirements and means that Maverick supports the highest capital efficiency for LRTs. Like we ETH, Maverick AMM also supports non uniform liquidity distributions, making it easy to concentrate liquidity in shapes that fit each project's individual needs. Finally, Maverick boosted positions maximize incentive efficiency for protocols looking to bootstrap their token liquidity to precise strategic areas of a liquidity pool. Token communities like Lido, Aave, Swell, Ethify and Kelpdao have been bootstrapping TvL and maintaining peg using maverick tools. Ready to build liquidity with maximal efficiency? Go to app mav xyz theedgepodcast today.
+00:29:21.170 - 00:29:58.602, Speaker D: Keeley I want to shift gears to talk a little bit more then about the fees on the future. Monad L one just a bit more about what we need to know as users. You talked a little bit earlier about the moned consensus. Maybe we start there anything else there to sort of dumb down for us about the consensus and then how that leads us to fees. Any sort of predictions for what fees might look like on Monad. And then if you're able to, would love to get your thoughts on how a monad token figures into all of.
+00:29:58.656 - 00:30:21.540, Speaker B: Yeah, I think regarding Monad BFT, which is the high performance consensus mechanism that we've built from scratch in rust, just say at the end of the day, a blockchain has two major components. Those are execution and consensus. And we've talked at length here about the execution system.
+00:30:21.910 - 00:30:22.660, Speaker A: And.
+00:30:25.210 - 00:30:27.990, Speaker B: When we started out building Monad.
+00:30:28.570 - 00:30:30.726, Speaker A: We had a lot of opinions about.
+00:30:30.908 - 00:30:58.510, Speaker B: How execution should work and enabling parallel execution. Building a high performance state database that underneath that execution layer actually makes the execution really performant, because actually the key bottleneck for execution is state access. So it was really important to build this custom database, which we call MonadDB, to enable performant parallel execution.
+00:30:59.650 - 00:31:03.086, Speaker A: But we also realized that it's also.
+00:31:03.268 - 00:31:05.458, Speaker B: Vital for the consensus part of the.
+00:31:05.464 - 00:31:06.834, Speaker A: Blockchain to be able to keep up.
+00:31:06.872 - 00:31:22.870, Speaker B: With that execution throughput. Consensus is basically the problem of getting hundreds or thousands of nodes that are globally distributed to have agreement about the official work that needs to be done, like the official list of transactions.
+00:31:23.210 - 00:31:24.966, Speaker A: And they need to do that in.
+00:31:24.988 - 00:31:56.978, Speaker B: A way that's safe. So that even if a portion of the nodes are malicious and actively sending confusing messages to try to break the rest of the network, to break the consensus, that cannot end up happening. So with Monad BFT, it is a derivative of the hot stuff consensus mechanism, meaning that communication is mostly linear. So in comparison to tendermint, which is, I feel, another consensus mechanism that a.
+00:31:56.984 - 00:31:58.418, Speaker A: Lot of blockchains use and a lot.
+00:31:58.424 - 00:32:07.230, Speaker B: Of people are familiar with, tendermint is quadratic in communication, meaning that every node has to talk to every other node to vote.
+00:32:07.390 - 00:32:09.698, Speaker A: And that means that the total, if.
+00:32:09.704 - 00:32:37.306, Speaker B: There'S n nodes in the network that are participating in consensus, that means that n squared messages are going to have to get sent every time a block gets produced. And because of that n squared communication complexity in tendermint, it really limits the size that the network can grow to. So most tendermint chains are up to about 100 nodes participating in consensus. I see a lot of the tenement.
+00:32:37.338 - 00:32:42.574, Speaker A: Based blockchains that really focus on high.
+00:32:42.612 - 00:32:52.738, Speaker B: Performance, have even fewer nodes than that, like on the order of 40 or 50 nodes, perhaps geographically concentrated. With Monad, we didn't want that.
+00:32:52.824 - 00:32:54.898, Speaker A: We wanted there to be hundreds of.
+00:32:54.904 - 00:32:58.390, Speaker B: Nodes participating in consensus. That's really important to decentralization.
+00:32:58.730 - 00:33:01.254, Speaker A: So ultimately, after a lot of research.
+00:33:01.372 - 00:33:42.398, Speaker B: We ended up deciding to start from hot stuff. Hot stuff is a linear communication protocol, meaning that if there's n nodes in the network, then there's only n times some multiplier factor of messages that need to be sent. Generally the flow of information is there's a rotating leader. So the leader for a particular slot is previously chosen through a leader election process. That leader then creates a block proposal. So an official list of transactions, official ordering, sends it out to everyone, to all the other nodes. So kind of a fan out approach.
+00:33:42.398 - 00:33:52.290, Speaker B: And then all the other nodes, they evaluate whether that block proposal is valid and then send their votes, fan in all to the next leader.
+00:33:52.370 - 00:33:54.406, Speaker A: So it's like leader, fan out to.
+00:33:54.428 - 00:34:02.860, Speaker B: All the other nodes and then fans back in to the next leader. Just some other quick things to mention about Monad BFT. That's a pipeline process.
+00:34:03.790 - 00:34:08.474, Speaker A: So that means that this process of.
+00:34:08.512 - 00:34:19.338, Speaker B: Collecting votes and disseminating the aggregate votes from one block proposal that can piggyback on top of the block proposal that's being set out for the next block.
+00:34:19.514 - 00:34:21.466, Speaker A: So it saves a lot of communication.
+00:34:21.578 - 00:34:31.874, Speaker B: That will otherwise need to be done separately. And also, Monad BFT completes in two rounds, as opposed to the original hot stuff algorithm, which completes in three.
+00:34:32.072 - 00:34:33.954, Speaker A: There's probably a lot more technical detail.
+00:34:34.072 - 00:34:41.570, Speaker B: Definitely recommend checking out the docs. And if you have any questions, just feel free to send me a DM or hop into our discord.
+00:34:41.730 - 00:34:43.746, Speaker A: But at a very high level, Monad.
+00:34:43.778 - 00:34:54.134, Speaker B: BFT is linear communication rather than quadratic, which allows the network to grow to hundreds to thousands of nodes. And it's really performance that keep up with execution.
+00:34:54.262 - 00:35:16.562, Speaker D: Keoni, what would you then forecast for fees for future users of Monad? And again, I'm not sure if there's anything you can share about how the Monad token would end up working within all of this. I'm assuming it's going to be like a gas token that will be using it to pay fees the way we do on something like an Ethereum L one.
+00:35:16.696 - 00:35:30.326, Speaker B: Yeah, I think that my expectation for the dollar cost for executing a transaction on Monad is on the order of. Well, I guess it really depends on.
+00:35:30.348 - 00:35:31.682, Speaker A: The complexity of the transaction.
+00:35:31.746 - 00:36:12.340, Speaker B: So let's take uniswap v two transaction uniswap V two swap, which is about 150,000 gas. That costs somewhere between five and $50 on Ethereum main net, sometimes more when the gas fees are really spiking on L two s. Right now, I've seen that be on the order of potentially a couple of dollars on Monad. I expect that that same transaction will be less than a cent. And the reason for that cost reduction is because the throughput on monad is much higher. So there's much more block space.
+00:36:12.710 - 00:36:13.460, Speaker A: And.
+00:36:15.690 - 00:36:20.326, Speaker B: In any blockchain where there's a.
+00:36:20.348 - 00:36:22.054, Speaker A: Bunch of block space, that's basically the.
+00:36:22.092 - 00:36:29.078, Speaker B: Supply of a precious resource block space. And then there's demand coming from people submitting transactions.
+00:36:29.254 - 00:36:31.514, Speaker A: So in an environment where there's much.
+00:36:31.552 - 00:36:33.738, Speaker B: More supply, it means that we can.
+00:36:33.744 - 00:36:40.474, Speaker A: Handle much more demand. But also, even in the months into.
+00:36:40.512 - 00:36:42.794, Speaker B: Mainnet, I would expect, or years into.
+00:36:42.832 - 00:36:44.766, Speaker A: Mainnet, I would expect that there's so.
+00:36:44.788 - 00:36:51.418, Speaker B: Much supply that the supply demand ends up clearing at a price that is still very low in dollar trims.
+00:36:51.514 - 00:37:24.970, Speaker G: Keoni kind of on that line of thinking, something that always interests me is things that weren't possible in web two that you can now do in web three. But now I think we're evolving even to, okay, what new things are possible via a high throughput chain like you've been describing to us, that maybe couldn't have been possible before. That's kind of like stuff that I like to think about and what is coming or what are you personally excited about that you think you can deliver with mana that maybe doesn't exist in the market?
+00:37:25.120 - 00:37:26.940, Speaker A: I think one very.
+00:37:28.830 - 00:37:40.190, Speaker B: Top of mind example is a fully on chain limit order book. Because at the end of the day, right now, most crypto users are using centralized exchanges.
+00:37:40.530 - 00:37:42.914, Speaker A: I think the fraction of people using.
+00:37:42.952 - 00:37:54.562, Speaker B: The blockchain to the fraction of people that are trading crypto on Coinbase or finance is like one to 50 or something crazy like that.
+00:37:54.696 - 00:37:56.246, Speaker A: So there's just a lot of people.
+00:37:56.268 - 00:38:07.946, Speaker B: That are using centralized exchanges and have never used a Dex before. If crypto is to succeed, if decentralized apps are to eat the world and.
+00:38:08.048 - 00:38:10.330, Speaker A: Take over many services that are currently.
+00:38:10.400 - 00:38:29.934, Speaker B: Centralized, then we need to deliver a similar or better user experience than the centralized apps give us. And one example, this fully on chain limit order book is a good example because there are some things that decentralized apps give us that we don't have.
+00:38:29.972 - 00:38:33.294, Speaker A: In centralized apps, like the ability to.
+00:38:33.332 - 00:38:35.330, Speaker B: Self custody one's own assets.
+00:38:35.910 - 00:38:37.922, Speaker A: That would be probably the first thing that comes to mind.
+00:38:37.976 - 00:38:53.490, Speaker B: Second is full composability so that other applications can build on top of that order book on Solana serum was is a fully on chain limit order book that showed the power of Solana.
+00:38:53.570 - 00:38:54.566, Speaker A: And actually there are a lot of.
+00:38:54.588 - 00:39:08.762, Speaker B: Other applications that composed on top of serum and would atomically swap through serum while doing some other more complicated functionality on top. That's the power of composability. So I think in general, the reason.
+00:39:08.816 - 00:39:10.726, Speaker A: Why we haven't seen fully on chain.
+00:39:10.758 - 00:39:25.854, Speaker B: Limit order books proliferate in the EVM space is because of cost. Because market makers would constantly have to be updating their quotes to stay near top of book in order to have competitive pricing. And the cost of all those updates.
+00:39:25.902 - 00:39:26.962, Speaker A: Would just be way too much.
+00:39:27.016 - 00:39:36.866, Speaker B: Because as I was mentioning before, a pretty simple transaction that costs 150,000 gas still costs $0.10 on existing or ten.
+00:39:36.888 - 00:39:38.626, Speaker A: Or more cents on existing l two.
+00:39:38.648 - 00:39:40.246, Speaker B: S. So for a market maker to.
+00:39:40.268 - 00:39:41.446, Speaker A: Have to pay $0.10 every time they.
+00:39:41.468 - 00:39:58.454, Speaker B: Want to update their order, they're sending tens to hundreds of thousands of updates per day. When quoting across many markets, that's just going to be way too much money. So with Monad, where the cost of each update would be a fraction of a cent, that business model becomes much more feasible.
+00:39:58.582 - 00:40:19.620, Speaker G: I want to touch a bit on just community building. I feel like Monad has been doing a great job pre product building such a big community and I guess creating buzz. How do you approach or think about that? And like, I'm curious, how important do you think that is to overall success?
+00:40:19.990 - 00:40:24.660, Speaker B: I think the community is a massive part of Monad's success.
+00:40:25.030 - 00:40:27.246, Speaker A: And more generally, community is a massive.
+00:40:27.278 - 00:40:39.546, Speaker B: Part of crypto success. Like the reason why Bitcoin or Ethereum or Dogecoin or Cardano or all the.
+00:40:39.568 - 00:40:43.562, Speaker A: Projects that are really famous and really.
+00:40:43.616 - 00:40:45.734, Speaker B: Successful, it's because they have a massive.
+00:40:45.782 - 00:40:47.514, Speaker A: Community of people that care a lot.
+00:40:47.552 - 00:40:49.642, Speaker B: About the ideals of the project.
+00:40:49.776 - 00:40:52.666, Speaker A: And I think crypto is just unique.
+00:40:52.698 - 00:41:01.578, Speaker B: In the sense that there are a lot of fans and people actually make friends online. In this day and age, everyone talks.
+00:41:01.594 - 00:41:02.946, Speaker A: About how hard it is to make.
+00:41:02.968 - 00:41:18.454, Speaker B: Friends as an adult, but in crypto, I'm not saying that it's totally easy to make friends. It depends on who you are, your personality, but it is actually something that's really special. I've made a lot of friends that.
+00:41:18.492 - 00:41:20.246, Speaker A: I've never met in person, or some.
+00:41:20.268 - 00:41:25.320, Speaker B: That I've now met in person, just strictly online. So I think that's really cool.
+00:41:25.690 - 00:41:28.840, Speaker A: Clearly has value in our society today.
+00:41:29.610 - 00:41:37.514, Speaker B: But yeah, at the end of the day. I also think of it as there's this technology, and there's people who care.
+00:41:37.552 - 00:41:39.558, Speaker A: About the ideals of the technology, ideals.
+00:41:39.574 - 00:41:44.398, Speaker B: Of decentralization, want to see decentralized apps take over the world.
+00:41:44.564 - 00:41:45.950, Speaker A: I think the way that that actually.
+00:41:46.020 - 00:42:12.806, Speaker B: Happens is through community. It's through individual users using those services and then red pilling their friends on crypto, pilling their friends on using these services as well. I think, yeah, it would be easy to mid curve the importance of community, but I feel like both the left curve and the right curve really understand.
+00:42:12.988 - 00:42:17.614, Speaker A: The massive importance of community in achieving Crypto's mission.
+00:42:17.682 - 00:43:16.138, Speaker D: Yeah, we were just talking with, gosh, who was this? Oh, it was a founder from an Ethereum l two called Mode. And one of the points we all arrived at, and I think you're sort of speaking to that here, is that if we assume with all this open source tech that the best tech will be adopted over the long term, you really start to understand the scope of how important building a community that rallies around each other. Even as I say it sounds like bullshit. It always has sounded like bullshit. But the longer you're in crypto, it is that left right curve sort of meme where you start out saying community is so important. First year anyone's ever been in crypto, they find themselves saying this. And then you almost start to drift away from that over time, because there's so much detail, there's so much nuance to all the tech being built.
+00:43:16.138 - 00:44:17.918, Speaker D: And then you sort of come back around and arrive at this same conclusion, that if this tech again is open source and it's being adopted, and we also consider the fact that it's just going to be very difficult to continue to bootstrap new communities as certain tech takes hold. Certain l ones, l two s, and every other l you can think of in the future becomes stickier and stickier. So anyways, yeah, it's funny how we all sort of share in that same common thought. But, Keoni, I think this is a great place for us to start to wrap up. First off, just thank you so much for talking us through all the detail behind Monad. We spend a lot of time prepping for these podcasts, and we're really excited, as longtime EVM users, to learn more about the optimizations made by Monad. And I can say I've candidly learned a lot here today, so hopefully listeners feel the same way.
+00:44:17.918 - 00:44:54.842, Speaker D: I want to remind our listeners, though, that they should first learn more about Monad. By going to Monad XYZ, they should follow the Monad Twitter account. It's just Monad. They should follow Keoni on Twitter. It's Keoni and then the letter HD. All of that's in our show notes, so you can easily reference that there and then. I would love for us to close out with just the most important question is when do you foresee Monad main net going live? And then anything else you can tell us about in terms of milestones in the next few months or the next year that we can look forward to.
+00:44:54.976 - 00:45:10.814, Speaker A: I expect Monad to go live in 2024 in the second half of this year. We'll be going live with a public testnet in the coming months. Don't want to give an exact date.
+00:45:10.852 - 00:45:13.486, Speaker B: Because then I'll curse myself and it.
+00:45:13.508 - 00:45:24.306, Speaker A: Won'T end up well anyway, everyone on the team is working really hard to get the public testnet up and running as soon as possible, but I think you could just expect a lot of.
+00:45:24.328 - 00:45:27.042, Speaker B: Things to come in this calendar year.
+00:45:27.176 - 00:45:39.810, Speaker C: Thanks everyone for tuning in. If you're a talented founder or developer, please consider reaching out to our team at Fourthrevolution Capital. And for future episodes of the Edge podcast, please check out our link tree at Edge pod.
