@@ -18,10 +18,20 @@ from src.Llama_index_sandbox.data_ingestion_pdf.utils import sanitize_metadata_v
 from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
 
 
-def load_single_pdf(file_path, existing_metadata: pd.DataFrame, current_df, loader=PyMuPDFReader(), debug=False):
+def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loader=PyMuPDFReader(), debug=False):
     try:
         parent_dir_name = os.path.basename(os.path.dirname(file_path))
         filename = os.path.basename(file_path)
+
+        # Check if the file is already in the database or not
+        database_df = database_df.copy()
+        database_df['extracted_domain'] = database_df['pdf_link'].apply(lambda x: urlparse(x).netloc if pd.notnull(x) else None)
+        matching_filenames = database_df[database_df['document_name'].str.contains(filename, na=False)]
+        is_in_database_df = not matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name].empty
+
+        if is_in_database_df:
+            logging.info(f"Skipping file [{filename}] as it is already processed")
+            return [], {}
 
         # Ensure comparison strings are not empty or NaN
         existing_metadata = existing_metadata.dropna(subset=['document_name', 'pdf_link'])
@@ -32,18 +42,9 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, current_df, load
         # Now add the new column to the copy of the DataFrame
         existing_metadata['extracted_domain'] = existing_metadata['pdf_link'].apply(lambda x: urlparse(x).netloc if pd.notnull(x) else None)
 
-        # First, match on filename to potentially reduce the number of comparisons
+        # Check if we have the .pdf metadata or not
         matching_filenames = existing_metadata[existing_metadata['document_name'].str.contains(filename, na=False)]
-
-        # Then, further refine by matching the extracted domain with parent_dir_name
         matching_entries = matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name]
-
-        # is_in_current_df = not current_df[current_df['document_name'] == filename].empty
-        # is_in_existing_metadata = not matching_entries.empty
-
-        # if is_in_current_df or is_in_existing_metadata:
-        #     logging.info(f"Skipping file [{filename}] as it is already processed")
-        #     return [], {}
 
         # If no matching entry is found in existing_metadata, log a warning
         if not matching_entries.empty:
@@ -93,7 +94,7 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, current_df, load
 
 
 @timeit
-def load_pdfs(directory_path: Union[str, Path], files, existing_metadata: pd.DataFrame, current_df: pd.DataFrame, domain: str, num_files: int = None, files_window = None, num_cpus: int = None, debug=False):
+def load_pdfs(directory_path: Union[str, Path], files, existing_metadata: pd.DataFrame, database_df: pd.DataFrame, domain: str, num_files: int = None, files_window = None, num_cpus: int = None, debug=False):
     if not isinstance(directory_path, Path):
         directory_path = Path(directory_path)
 
@@ -101,7 +102,7 @@ def load_pdfs(directory_path: Union[str, Path], files, existing_metadata: pd.Dat
         files = files[:num_files]
 
     all_documents = []
-    partial_load_single_pdf = partial(load_single_pdf, existing_metadata=existing_metadata, current_df=current_df, debug=debug)
+    partial_load_single_pdf = partial(load_single_pdf, existing_metadata=existing_metadata, database_df=database_df, debug=debug)
 
     pdf_loaded_count = 0  # Initialize the counter
     # Initialize a list to accumulate metadata
@@ -131,15 +132,17 @@ def load_pdfs(directory_path: Union[str, Path], files, existing_metadata: pd.Dat
 
 
 @timeit
-def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window=None, num_cpus: int = None):
-    overwrite = True
-
+def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window=None, num_cpus: int = None, config_names=None):
     all_docs = []
+    all_metadata = []
     csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
-    current_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv") if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
+    database_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv") if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
     existing_metadata = pd.read_csv(csv_path) if os.path.exists(csv_path) else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
 
-    for name, config in site_configs.items():
+    # Filter site_configs based on config_names if provided, else use all
+    selected_configs = {key: site_configs[key] for key in config_names} if config_names else site_configs
+
+    for _, config in selected_configs.items():
         base_url = config.get('base_url')
         domain = urlparse(base_url).netloc
         directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain)
@@ -149,14 +152,25 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             files = files[:num_files]
 
         logging.info(f"Processing directory: [{directory_path}] with [{len(files)}] files")
-        all_documents, all_documents_details = load_pdfs(directory_path, files=files, existing_metadata=existing_metadata, current_df=current_df, domain=domain, num_files=num_files, num_cpus=num_cpus, debug=debug)
+        all_documents, all_documents_details = load_pdfs(directory_path, files=files, existing_metadata=existing_metadata, database_df=database_df, domain=domain, num_files=num_files, num_cpus=num_cpus, debug=debug)
         all_docs.extend(all_documents)
+        all_metadata += all_documents_details
 
-    logging.info(f"Successfully loaded [{len(all_docs)}] documents from all domains.")
+    # Save to CSV
+    df = pd.DataFrame(all_metadata)
+    csv_path = os.path.join(root_dir, 'pipeline_storage/docs.csv')
+    if os.path.exists(csv_path):
+        existing_df = pd.read_csv(csv_path)
+        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=['pdf_link'])
+    else:
+        combined_df = df
+    combined_df.to_csv(csv_path, index=False)
+
+    logging.info(f"Successfully loaded [{len(all_docs)}] documents from selected domains.")
     return all_docs
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     num_cpus = 1  # os.cpu_count()# 1
-    load_docs_as_pdf(debug=True, num_cpus=num_cpus, overwrite=True)
+    load_docs_as_pdf(debug=True, num_cpus=num_cpus, overwrite=False)

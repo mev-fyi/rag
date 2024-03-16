@@ -282,7 +282,7 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
     csv_path = os.path.join(root_dir, 'datasets/evaluation_data/docs_details.csv')
     if os.path.exists(csv_path):
         existing_df = pd.read_csv(csv_path)
-        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=['title'])
+        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=['pdf_link'])
     else:
         combined_df = df
 
