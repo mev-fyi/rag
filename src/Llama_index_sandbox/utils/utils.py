@@ -756,6 +756,7 @@ def copy_and_verify_files():
     articles_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/article_thumbnails/")
     research_paper_thumbnails_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/research_papers_pdf_thumbnails/")
     papers_pdf_source_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/papers_pdf_downloads/")
+    ethglobal_docs_dir = os.path.join(pycharm_projects_dir, "mev.fyi/data/ethglobal_hackathon/")
 
     # Define the destination directories
     csv_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/")
@@ -764,6 +765,7 @@ def copy_and_verify_files():
     articles_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
     papers_pdf_thumbnails_destination_dir = os.path.join(pycharm_projects_dir, "rag_app_vercel/app/public/research_paper_thumbnails/")
     papers_pdf_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/baseline_evaluation_research_papers_2023-11-21/")
+    ethglobal_docs_destination_dir = os.path.join(pycharm_projects_dir, "rag/datasets/evaluation_data/ethglobal_docs_2024-03-16/")
 
     # List of CSV files to copy
     csv_files_to_copy_from_mevfyi_to_rag = [
@@ -813,6 +815,13 @@ def copy_and_verify_files():
                     print(f"Copied: {source_file} to {destination_file}")
                 except Exception as e:
                     print(f"Error copying {file_name} from discourse topics: {e}")
+
+    # Copy ethglobal docs in rag
+    if os.path.exists(ethglobal_docs_destination_dir):
+        shutil.rmtree(ethglobal_docs_destination_dir)  # Removes the entire directory tree
+
+    # Now use copytree to copy everything from the source to the destination directory.
+    shutil.copytree(ethglobal_docs_dir, ethglobal_docs_destination_dir)
 
     copy_and_rename_website_docs_pdfs()
     print("File copying completed.")
@@ -896,28 +905,7 @@ def copy_and_rename_website_docs_pdfs():
                     print(f"Copied and renamed {source_file.split('/')[-1]} to {target_file.split('/')[-1]}")
 
 
-if __name__ == '__main__':
-    pass
-    copy_and_verify_files()
 
-    # copy_and_rename_website_docs_pdfs()
-
-    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    # clean_fullwidth_characters(directory)
-    # move_remaining_mp3_to_their_subdirs()
-    # merge_directories(directory)
-    # delete_mp3_if_text_or_json_exists(directory)
-
-    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
-    # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
-    # # clean_mp3_dirs(directory=directory)
-    # del_wrong_subdirs(directory)
-    # move_remaining_txt_to_their_subdirs()
-    # move_remaining_json_to_their_subdirs()
-    # print_frontend_content()
-    # delete_mp3_if_text_or_json_exists(directory)
-    # save_data_into_zip()
-    # copy_txt_files_to_transcripts()
 
 
 def save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date', 'document_name']):
@@ -1026,3 +1014,28 @@ def load_vector_store_from_pinecone_database_legacy(index_name=os.environ.get("P
 
     vector_store = legacy_vector_stores.PineconeVectorStore(pinecone_index=pinecone_index)
     return vector_store
+
+
+
+if __name__ == '__main__':
+    pass
+    copy_and_verify_files()
+
+    # copy_and_rename_website_docs_pdfs()
+
+    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    # clean_fullwidth_characters(directory)
+    # move_remaining_mp3_to_their_subdirs()
+    # merge_directories(directory)
+    # delete_mp3_if_text_or_json_exists(directory)
+
+    # directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
+    # pdf_dir = f"{root_directory()}/datasets/evaluation_data/baseline_evaluation_research_papers_2023-10-05"
+    # # clean_mp3_dirs(directory=directory)
+    # del_wrong_subdirs(directory)
+    # move_remaining_txt_to_their_subdirs()
+    # move_remaining_json_to_their_subdirs()
+    # print_frontend_content()
+    # delete_mp3_if_text_or_json_exists(directory)
+    # save_data_into_zip()
+    # copy_txt_files_to_transcripts()
