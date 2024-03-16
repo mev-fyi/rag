@@ -2,7 +2,6 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-from time import time
 from typing import Optional, Container, Callable, Set, Union
 
 import numpy as np

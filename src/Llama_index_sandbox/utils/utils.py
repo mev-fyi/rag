@@ -745,6 +745,44 @@ def merge_csv_files_remove_duplicates_and_save(csv_directory=f"{root_directory()
         logging.warning("No CSV files found in the provided directory.")
 
 
+def clean_and_save_config(source_file_path, destination_file_path):
+    # Regular expressions to match imports and function definitions
+    import_re = re.compile(r'^\s*(from|import)\s+')
+    skip_line_re = re.compile(r'^(.*def |.*@|\s*with\s+|\s*for\s+|\s*if\s+|\s*try:|\s*except\s+|\s*lambda|\s*=\s*|\s*return)')
+    # Matches lines containing specific function keys in the dictionary
+    function_key_re = re.compile(r'.*:\s*(partial|lambda).*|\s*\'(html_parser|crawl_func|fetch_sidebar_func)\':\s*')
+
+    cleaned_lines = []
+    dict_nesting_level = 0
+
+    with open(source_file_path, 'r') as file:
+        in_site_configs = False
+        for line in file:
+            # Check if the line is the start of the site_configs dictionary
+            if 'site_configs = {' in line:
+                in_site_configs = True
+                dict_nesting_level = 1  # Starting the dictionary increases the nesting level
+                cleaned_lines.append(line)
+                continue
+
+            if in_site_configs:
+                # Increase or decrease dict_nesting_level based on the braces
+                dict_nesting_level += line.count('{') - line.count('}')
+
+                # If dict_nesting_level drops to 0, we've reached the end of the dictionary
+                if dict_nesting_level == 0:
+                    cleaned_lines.append(line)  # Include the line with the closing brace
+                    break  # Exit the loop as we've copied the entire dictionary
+
+                # Skip lines based on patterns (import, def, function calls, and specific keys)
+                if not (import_re.match(line) or skip_line_re.match(line) or function_key_re.match(line)):
+                    cleaned_lines.append(line)
+
+    # Write the cleaned content to the destination file
+    with open(destination_file_path, 'w') as file:
+        file.writelines(cleaned_lines)
+
+
 def copy_and_verify_files():
     # Define the root directory for PycharmProjects
     pycharm_projects_dir = f"{root_directory()}/../"
@@ -773,11 +811,15 @@ def copy_and_verify_files():
         "links/articles_updated.csv",
         "links/merged_articles.csv",
         "links/youtube/youtube_videos.csv",
-        "links/youtube/youtube_channel_handles.txt"
+        "links/youtube/youtube_channel_handles.txt",
+        "docs_details.csv",
     ]
 
+    clean_and_save_config(source_file_path=f"{csv_source_dir}../src/populate_csv_files/get_article_content/ethglobal_hackathon/site_configs.py",
+                                 destination_file_path=f"{csv_destination_dir}site_configs.py")
+
     csv_files_to_copy_from_rag_to_mevfyi = [
-        "docs_details.csv",
+        # "docs_details.csv",
     ]
 
     # Create the destination directories if they do not exist
@@ -1014,7 +1056,6 @@ def load_vector_store_from_pinecone_database_legacy(index_name=os.environ.get("P
 
     vector_store = legacy_vector_stores.PineconeVectorStore(pinecone_index=pinecone_index)
     return vector_store
-
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ from pathlib import Path
 from src.Llama_index_sandbox import root_dir
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import is_valid_title, ethereum_org_title_extraction, extract_author_and_release_date_ethereum_org, \
-    extract_title, extract_link, extract_author_and_release_date, sanitize_metadata_value, check_file_exclusion, flashbots_title_extraction, extract_author_and_release_date_flashbots, suave_title_extraction, ethglobal_title_extraction, extract_author_and_release_date_ethglobal
+    extract_title, extract_link, extract_author_and_release_date, sanitize_metadata_value, check_file_exclusion, flashbots_title_extraction, extract_author_and_release_date_flashbots, suave_title_extraction
 from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
 
 
@@ -183,30 +183,30 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             ],  # List of titles to exclude
             'exclude_filenames': ['contributing']  # List of filenames to exclude
         },
-        'datasets/evaluation_data/flashbots_docs_2024_01_07': {
-            'title_extraction_func': flashbots_title_extraction,
-            'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-            'author': 'Flashbots Docs',
-            'pdf_link': 'https://docs.flashbots.net/',
-            'release_date': '',
-            'exclude_titles': [
-                'Join Flashbots', 'Contributing', 'Prohibited Use Policy', 'Terms of Service',
-                'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
-                'Code of Conduct', 'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
-
-            ],  # List of titles to exclude
-            'exclude_filenames': ['policies']  # List of filenames to exclude
-        },
-        'datasets/evaluation_data/suave_docs_2024_03_13': {
-            'title_extraction_func': suave_title_extraction,
-            'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-            'author': 'SUAVE Docs',
-            'pdf_link': 'https://suave-alpha.flashbots.net/',
-            'release_date': '',
-            'exclude_titles': [
-            ],  # List of titles to exclude
-            'exclude_filenames': ['policies']  # List of filenames to exclude
-        },
+        # 'datasets/evaluation_data/flashbots_docs_2024_01_07': {
+        #     'title_extraction_func': flashbots_title_extraction,
+        #     'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
+        #     'author': 'Flashbots Docs',
+        #     'pdf_link': 'https://docs.flashbots.net/',
+        #     'release_date': '',
+        #     'exclude_titles': [
+        #         'Join Flashbots', 'Contributing', 'Prohibited Use Policy', 'Terms of Service',
+        #         'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
+        #         'Code of Conduct', 'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
+        #
+        #     ],  # List of titles to exclude
+        #     'exclude_filenames': ['policies']  # List of filenames to exclude
+        # },
+        # 'datasets/evaluation_data/suave_docs_2024_03_13': {
+        #     'title_extraction_func': suave_title_extraction,
+        #     'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
+        #     'author': 'SUAVE Docs',
+        #     'pdf_link': 'https://suave-alpha.flashbots.net/',
+        #     'release_date': '',
+        #     'exclude_titles': [
+        #     ],  # List of titles to exclude
+        #     'exclude_filenames': ['policies']  # List of filenames to exclude
+        # },
     }
 
     overwrite = True
@@ -292,5 +292,5 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    num_cpus = 18  # os.cpu_count()# 1
+    num_cpus = 4  # os.cpu_count()# 1
     load_docs_as_pdf(debug=True, num_cpus=num_cpus, overwrite=True)

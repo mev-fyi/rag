@@ -22,5 +22,6 @@ FLASHBOTS_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/flashbots_docs_
 SUAVE_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/suave_docs_2024_03_13"
 ETHEREUM_ORG_DOCS_DIRECTORY = f"{root_dir}/datasets/evaluation_data/ethereum_org_content_docs_2024_01_07"
 YOUTUBE_VIDEO_DIRECTORY = f"{root_dir}/datasets/evaluation_data/diarized_youtube_content_2023-10-06/"
+ETHGLOBAL_DOCS = f"{root_dir}/datasets/evaluation_data/ethglobal_docs_2024-03-16/"
 config_instance = Config()
 output_dir = config_instance.get_index_output_dir()
