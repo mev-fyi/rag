@@ -145,7 +145,13 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
     for _, config in selected_configs.items():
         base_url = config.get('base_url')
         domain = urlparse(base_url).netloc
-        directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain)
+
+        # check if the key base_name is in the config
+        if 'base_name' in config:
+            base_name = config.get('base_name')
+            directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain+base_name)
+        else:
+            directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain)
 
         files = list(Path(directory_path).rglob("*.pdf"))  # Use rglob for recursive search if needed
         if num_files is not None:
