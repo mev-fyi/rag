@@ -75,13 +75,14 @@ def create_index(add_new_transcripts=False, num_files=None):
     # copy_docstore()
     logging.info("Starting Index Load Process")
 
-    overwrite = True  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
+    overwrite = False  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
     num_files = None
     files_window = None  # (20, 100)
 
     # Load all docs
     documents_pdfs = []
-    documents_pdfs += load_ethglobal_docs.load_docs_as_pdf(debug=True, num_files=num_files, files_window=files_window, overwrite=overwrite)
+    config_names = None  # ['chainlink_ccip']
+    documents_pdfs += load_ethglobal_docs.load_docs_as_pdf(debug=True, num_files=num_files, files_window=files_window, overwrite=overwrite, config_names=config_names)
     # documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
     # documents_pdfs += load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
     # documents_pdfs += load_articles.load_pdfs(directory_path=Path(ARTICLES_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)
@@ -91,7 +92,7 @@ def create_index(add_new_transcripts=False, num_files=None):
 
     all_documents = documents_pdfs + documents_youtube
     total_docs = len(all_documents)
-    batch_size = max(1, total_docs // 50)  # Ensure batch_size is at least 1
+    batch_size = max(1, total_docs // 30)  # Ensure batch_size is at least 1
 
     pipeline = initialise_pipeline(add_to_vector_store=True)
     all_nodes = []
@@ -107,6 +108,7 @@ def create_index(add_new_transcripts=False, num_files=None):
         logging.info(f"Processed batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
 
     logging.info(f"Processed {len(all_nodes)} Nodes in total")
+    logging.info("Index Load Process Completed")
 
 
 if __name__ == "__main__":

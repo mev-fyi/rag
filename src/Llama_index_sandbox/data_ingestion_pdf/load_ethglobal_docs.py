@@ -51,7 +51,7 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loa
             documents_details = matching_entries.to_dict('records')[0]
             doc_title = documents_details.get('title', filename.replace('.pdf', '').replace('-', ' '))
             title = sanitize_metadata_value(doc_title)
-            extracted_author = sanitize_metadata_value(documents_details['authors'])
+            extracted_author = sanitize_metadata_value(documents_details.get('authors', '.'.join(urlparse(documents_details.get('pdf_link')).netloc.split('.')[-2:]))) # write domain.extension by default
             link = sanitize_metadata_value(documents_details['pdf_link'])
             extracted_release_date = sanitize_metadata_value(documents_details['release_date'])
         else:

@@ -783,6 +783,30 @@ def clean_and_save_config(source_file_path, destination_file_path):
         file.writelines(cleaned_lines)
 
 
+def copy_files_with_tree(source_dir, destination_dir, file_extension='.pdf'):
+    import shutil
+    for root, dirs, files in os.walk(source_dir):
+        # Constructing destination directory path based on the current root path
+        relative_path = os.path.relpath(root, source_dir)
+        current_destination_dir = os.path.join(destination_dir, relative_path)
+
+        # Ensure the destination directory exists
+        os.makedirs(current_destination_dir, exist_ok=True)
+
+        # Iterate through files in the current directory
+        for file_name in files:
+            if file_name.lower().endswith(file_extension):
+                source_file_path = os.path.join(root, file_name)
+                destination_file_path = os.path.join(current_destination_dir, file_name)
+
+                try:
+                    shutil.copy(source_file_path, destination_file_path)
+                    # print(f"Copied: {source_file_path} to {destination_file_path}")
+                except IOError as e:
+                    print(f"Unable to copy file. {e}")
+                except Exception as e:
+                    print(f"Unexpected error: {e}")
+
 def copy_and_verify_files():
     # Define the root directory for PycharmProjects
     pycharm_projects_dir = f"{root_directory()}/../"
@@ -843,8 +867,8 @@ def copy_and_verify_files():
     # Copy PDF files without size verification
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
-    copy_all_files(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
-    copy_all_files(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
+    copy_files_with_tree(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
+    copy_files_with_tree(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
     # New: Copy and rename articles from discourse subdirectories
     for subdir, dirs, files in os.walk(articles_pdf_discourse_dir):

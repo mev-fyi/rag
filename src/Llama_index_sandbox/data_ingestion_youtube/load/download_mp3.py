@@ -19,7 +19,8 @@ from src.Llama_index_sandbox.utils.utils import authenticate_service_account, mo
 
 from concurrent.futures import ThreadPoolExecutor
 
-executor = ThreadPoolExecutor(max_workers=os.cpu_count())
+# executor = ThreadPoolExecutor(max_workers=os.cpu_count())
+executor = ThreadPoolExecutor(max_workers=5)
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -205,6 +206,7 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
         api_key (str): Your YouTube Data API key.
         yt_channels (List[str]): A list of YouTube channel names.
     """
+    clean_mp3s()
     service_account_file = os.environ.get('SERVICE_ACCOUNT_FILE')
     credentials = None
 
@@ -255,11 +257,16 @@ async def run(api_key: str, yt_channels: Optional[List[str]] = None, yt_playlist
     #         await process_video_batches(channel_name, video_info_list, dir_path, youtube_videos_df)
 
     # clean up because downloaded file names have full-width characters instead of ASCII
+    clean_mp3s()
+
+
+def clean_mp3s():
     directory = f"{root_directory()}/datasets/evaluation_data/diarized_youtube_content_2023-10-06"
     clean_fullwidth_characters(directory)
     move_remaining_mp3_to_their_subdirs()
     merge_directories(directory)
     delete_mp3_if_text_or_json_exists(directory)
+
 
 
 def get_youtube_channels_from_file(file_path):
