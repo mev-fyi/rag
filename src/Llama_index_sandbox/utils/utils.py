@@ -813,9 +813,11 @@ def process_and_copy_csv(csv_source_dir, destination_dir):
     import shutil
     import csv
     import json
+
     csv_file_path = os.path.join(csv_source_dir, "docs_details.csv")
     json_output_path = os.path.join(destination_dir, "docs_mapping.json")
 
+    # Copy the CSV file to the destination directory
     shutil.copy(csv_file_path, destination_dir)
 
     url_to_docname_mapping = {}
@@ -824,7 +826,7 @@ def process_and_copy_csv(csv_source_dir, destination_dir):
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
             pdf_link = row['pdf_link'].strip()  # Ensure no trailing whitespace
-            document_name = row['document_name'].strip()  # Ensure no trailing whitespace
+            document_name = row['document_name'].strip().replace('.pdf', '.png')  # Replace .pdf with .png
             url_to_docname_mapping[pdf_link] = document_name
 
     # Log the mapping for verification
@@ -834,6 +836,7 @@ def process_and_copy_csv(csv_source_dir, destination_dir):
         json.dump(url_to_docname_mapping, json_file, indent=4)  # Pretty print for easier manual verification
 
     print(f"CSV copied and mapping saved to {json_output_path}")
+
 
 
 def copy_and_verify_files():

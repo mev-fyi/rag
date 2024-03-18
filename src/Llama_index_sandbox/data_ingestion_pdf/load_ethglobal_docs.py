@@ -27,7 +27,7 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loa
         database_df = database_df.copy()
         database_df['extracted_domain'] = database_df['pdf_link'].apply(lambda x: urlparse(x).netloc if pd.notnull(x) else None)
         matching_filenames = database_df[database_df['document_name'].str.contains(filename, na=False)]
-        is_in_database_df = not matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name].empty
+        is_in_database_df = not matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name.split('-')[0]].empty
 
         if is_in_database_df:
             logging.info(f"Skipping file [{filename}] as it is already processed")
@@ -44,7 +44,7 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loa
 
         # Check if we have the .pdf metadata or not
         matching_filenames = existing_metadata[existing_metadata['document_name'].str.contains(filename, na=False)]
-        matching_entries = matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name]
+        matching_entries = matching_filenames[matching_filenames['extracted_domain'] == parent_dir_name.split('-')[0]]
 
         # If no matching entry is found in existing_metadata, log a warning
         if not matching_entries.empty:
@@ -76,8 +76,6 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loa
                 'release_date': extracted_release_date
             })
 
-        if debug:
-            logging.info(f'Processed [{filename}] with named [{title}]')
         documents_details = {
             'title': title,
             'authors': extracted_author,
@@ -87,6 +85,8 @@ def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loa
         }
         # Save the successful load details to CSV
         save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
+        if debug:
+            logging.info(f'Processed [{filename}] with named [{title}]')
         return documents, documents_details
     except Exception as e:
         logging.error(f"Failed to load {file_path}: {e}")

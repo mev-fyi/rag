@@ -81,7 +81,7 @@ def create_index(add_new_transcripts=True, num_files=None):
 
     # Load all docs
     documents_pdfs = []
-    config_names = None  # ['chainlink_ccip']
+    config_names = None  # ['chainlink_data_feeds', 'chainlink_vrf']
     documents_pdfs += load_ethglobal_docs.load_docs_as_pdf(debug=True, num_files=num_files, files_window=files_window, overwrite=overwrite, config_names=config_names)
     # documents_pdfs += load_docs.load_docs_as_pdf(num_files=num_files, files_window=files_window, overwrite=overwrite)
     # documents_pdfs += load_pdf.load_pdfs(directory_path=Path(PDF_DIRECTORY), num_files=num_files, files_window=files_window, overwrite=overwrite)

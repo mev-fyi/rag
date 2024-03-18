@@ -114,9 +114,12 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    keywords_to_penalise = ['temp', 'contribute', 'temperature', 'help', 'urgent', 'question', 'questions', 'read this', 'community introduction']
+    keywords_to_penalise = ['temp', 'contribute', 'temperature', 'help', 'urgent', 'question', 'questions', 'read this', 'community introduction', 'docs', 'style']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
                                          'The news',
+                                         'Docs Style Guide',
+                                         'Uniswap v4 and the DAO',
+                                         'data feeds getting started',
                                          'Docs Cheatsheet',
                                          'Are there products available?',
                                          'Introductions',
