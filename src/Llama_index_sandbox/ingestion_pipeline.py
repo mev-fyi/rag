@@ -70,9 +70,9 @@ def copy_docstore():
 
 
 @timeit
-def create_index(add_new_transcripts=False, num_files=None):
-    # copy_and_verify_files()
-    # copy_docstore()
+def create_index(add_new_transcripts=True, num_files=None):
+    copy_and_verify_files()
+    copy_docstore()
     logging.info("Starting Index Load Process")
 
     overwrite = False  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update

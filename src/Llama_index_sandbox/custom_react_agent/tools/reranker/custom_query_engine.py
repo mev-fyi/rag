@@ -114,13 +114,14 @@ class CustomQueryEngine(RetrieverQueryEngine):
         'default': 1,
     }
 
-    keywords_to_penalise = ['temp', 'temperature', 'help', 'urgent', 'question', 'questions', 'wiki', 'about', 'read this', 'FAQ', 'guideline', 'Introductions', 'community introduction']
+    keywords_to_penalise = ['temp', 'contribute', 'temperature', 'help', 'urgent', 'question', 'questions', 'read this', 'community introduction']
     edge_case_of_content_always_cited = ['Editorial content: Strategies and tactics | Sonal Chokshi',
                                          'The news',
                                          'Docs Cheatsheet',
                                          'Are there products available?',
                                          'Introductions',
                                          'This topic has been removed',
+                                         'Ways to contribute',
                                          'Community introductions thread',
                                          'Read this before posting',
                                          'The comprehensive guide to writing blogposts',

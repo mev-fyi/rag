@@ -15,7 +15,7 @@ from pathlib import Path
 from src.Llama_index_sandbox import root_dir, ETHGLOBAL_DOCS
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_pdf.utils import sanitize_metadata_value, check_file_exclusion
-from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries
+from src.Llama_index_sandbox.utils.utils import timeit, save_successful_load_to_csv, compute_new_entries, save_metadata_to_pipeline_dir
 
 
 def load_single_pdf(file_path, existing_metadata: pd.DataFrame, database_df, loader=PyMuPDFReader(), debug=False):
@@ -162,17 +162,7 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
         all_docs.extend(all_documents)
         all_metadata += all_documents_details
 
-    # Save to CSV
-    df = pd.DataFrame(all_metadata)
-    csv_path = os.path.join(root_dir, 'pipeline_storage/docs.csv')
-    if os.path.exists(csv_path):
-        existing_df = pd.read_csv(csv_path)
-        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=['pdf_link'])
-    else:
-        combined_df = df
-    combined_df.to_csv(csv_path, index=False)
-
-    logging.info(f"Successfully loaded [{len(all_docs)}] documents from selected domains.")
+    save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/docs.csv', drop_key='pdf_link')
     return all_docs
 
 

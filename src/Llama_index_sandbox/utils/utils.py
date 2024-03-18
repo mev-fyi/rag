@@ -807,6 +807,35 @@ def copy_files_with_tree(source_dir, destination_dir, file_extension='.pdf'):
                 except Exception as e:
                     print(f"Unexpected error: {e}")
 
+
+def process_and_copy_csv(csv_source_dir, destination_dir):
+    import os
+    import shutil
+    import csv
+    import json
+    csv_file_path = os.path.join(csv_source_dir, "docs_details.csv")
+    json_output_path = os.path.join(destination_dir, "docs_mapping.json")
+
+    shutil.copy(csv_file_path, destination_dir)
+
+    url_to_docname_mapping = {}
+
+    with open(csv_file_path, mode='r', encoding='utf-8') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for row in csv_reader:
+            pdf_link = row['pdf_link'].strip()  # Ensure no trailing whitespace
+            document_name = row['document_name'].strip()  # Ensure no trailing whitespace
+            url_to_docname_mapping[pdf_link] = document_name
+
+    # Log the mapping for verification
+    print("URL to Document Name Mapping:", url_to_docname_mapping)
+
+    with open(json_output_path, mode='w', encoding='utf-8') as json_file:
+        json.dump(url_to_docname_mapping, json_file, indent=4)  # Pretty print for easier manual verification
+
+    print(f"CSV copied and mapping saved to {json_output_path}")
+
+
 def copy_and_verify_files():
     # Define the root directory for PycharmProjects
     pycharm_projects_dir = f"{root_directory()}/../"
@@ -867,6 +896,7 @@ def copy_and_verify_files():
     # Copy PDF files without size verification
     copy_all_files(articles_pdf_source_dir, articles_pdf_destination_dir)
     copy_all_files(papers_pdf_source_dir, papers_pdf_destination_dir)
+    process_and_copy_csv(csv_source_dir, f"{root_directory()}/../rag_app_vercel/app/public/")
     copy_files_with_tree(articles_thumbnails_source_dir, articles_thumbnails_destination_dir, file_extension='.png')
     copy_files_with_tree(research_paper_thumbnails_source_dir, papers_pdf_thumbnails_destination_dir, file_extension='.png')
 
@@ -969,9 +999,6 @@ def copy_and_rename_website_docs_pdfs():
                     # Copy the file
                     shutil.copy2(source_file, target_file)
                     print(f"Copied and renamed {source_file.split('/')[-1]} to {target_file.split('/')[-1]}")
-
-
-
 
 
 def save_successful_load_to_csv(documents_details, csv_filename='docs.csv', fieldnames=['title', 'authors', 'pdf_link', 'release_date', 'document_name']):
@@ -1080,6 +1107,19 @@ def load_vector_store_from_pinecone_database_legacy(index_name=os.environ.get("P
 
     vector_store = legacy_vector_stores.PineconeVectorStore(pinecone_index=pinecone_index)
     return vector_store
+
+
+def save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/docs.csv', drop_key='pdf_link'):
+    # Save to CSV
+    df = pd.DataFrame(all_metadata)
+    csv_path = os.path.join(root_dir, dir)
+    if os.path.exists(csv_path):
+        existing_df = pd.read_csv(csv_path)
+        combined_df = pd.concat([existing_df, df]).drop_duplicates(subset=[drop_key])
+    else:
+        combined_df = df
+    combined_df.to_csv(csv_path, index=False)
+    logging.info(f"Metadata with # of unique videps [{combined_df.shape[0]}] saved to [{csv_path}]")
 
 
 if __name__ == '__main__':

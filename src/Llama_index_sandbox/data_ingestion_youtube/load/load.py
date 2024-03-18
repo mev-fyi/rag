@@ -14,7 +14,7 @@ from src.Llama_index_sandbox import root_dir, YOUTUBE_VIDEO_DIRECTORY
 from src.Llama_index_sandbox.constants import *
 from src.Llama_index_sandbox.data_ingestion_youtube.load import create_transcripts_from_raw_json_utterances
 from src.Llama_index_sandbox.data_ingestion_youtube.load.clean_transcripts_utterances import correct_typos_in_files
-from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging, save_successful_load_to_csv, compute_new_entries
+from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_logging, save_successful_load_to_csv, compute_new_entries, save_metadata_to_pipeline_dir
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
@@ -68,22 +68,21 @@ def load_single_video_transcript(youtube_videos_df, file_path):
         document.text.replace('<|endoftext|>', '')
         # Update metadata
         document.metadata.update({
-            # TODO 2023-10-04: is there an impact of different metadata keys across documents?
-            #  Necessarily, multi-document agents deal with several document types?
             'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
             'title': video_data['title'],
             'channel_name': video_data['channel_name'],
             'video_link': video_data['url'],
             'release_date': video_data['published_date']
         })
-        # TODO 2023-10-05: how do i explictly tell the document type as video? should i store the youtube transcripts as a separate index?
-        #       (1) i would want to avoid the case where the agent only looks as paper index
-        #       (2) on the other hand i want the agent to quickly reference video content if it is specifically asked for
-        # TODO 2023-09-27: add relevance score as metadata. The score will be highest for research papers, ethresear.ch posts.
-        #   It will be high (highest too? TBD.) for talks and conferences in YouTube video_transcript format
-        #   It will be relatively lower for podcasts, tweets, and less formal content.
     save_successful_load_to_csv(documents[0], csv_filename='youtube_videos.csv', fieldnames=['title', 'channel_name', 'video_link', 'release_date'])
-    return documents
+    documents_details = {
+            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
+            'title': video_data['title'],
+            'channel_name': video_data['channel_name'],
+            'video_link': video_data['url'],
+            'release_date': video_data['published_date']
+    }
+    return documents, documents_details
 
 
 @timeit
@@ -101,6 +100,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
         logging.info("Skipping transcript creation from raw json utterances")
 
     all_documents = []
+    all_metadata = []
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"
 
     latest_df = pd.read_csv(videos_path)
@@ -132,11 +132,12 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
         for future in concurrent.futures.as_completed(futures):
             video_transcript = futures[future]
             try:
-                documents = future.result()
+                documents, all_documents_details = future.result()
                 # if documents is an empty list then continue
                 if not documents:
                     continue
                 all_documents.extend(documents)
+                all_metadata += all_documents_details
                 video_transcripts_loaded_count += 1
             except Exception as e:
                 logging.info(f"Failed to process {str(video_transcript).replace(root_dir, '')}, passing: {e}")
@@ -149,6 +150,8 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                         logging.error(f"Error deleting file {video_transcript}: {delete_error}")
                 pass
     logging.info(f"Successfully loaded [{video_transcripts_loaded_count}] documents from video transcripts.")
+
+    save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/youtube_videos.csv', drop_key='video_link')
     # assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents
 
