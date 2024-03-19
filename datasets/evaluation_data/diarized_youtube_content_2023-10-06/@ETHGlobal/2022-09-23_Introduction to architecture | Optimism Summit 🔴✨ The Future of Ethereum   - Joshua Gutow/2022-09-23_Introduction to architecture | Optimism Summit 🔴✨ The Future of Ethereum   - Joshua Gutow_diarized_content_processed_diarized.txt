@@ -24,7 +24,7 @@
 00:04:05.728 - 00:04:07.878, Speaker B: Proposer is Op proposer.
 00:04:07.974 - 00:04:10.378, Speaker D: And then we don't have a challenge agent.
 00:04:10.464 - 00:04:12.250, Speaker B: And the fault proof is Canon.
-00:04:12.750 - 00:04:28.910, Speaker D: So Op Node and Op Get are kind of the things that produce blocks in that's, like your full node on Ethereum, op batcher submits L two transactions to L one. Then the proposer submits output routes and this is what enables withdrawals.
+00:04:12.750 - 00:04:28.910, Speaker D: So Op Node and Op Get are kind of the things that produce blocks in that's, like your full node on Ethereum, op batcher submits L two transactions to L1. Then the proposer submits output routes and this is what enables withdrawals.
 00:04:28.990 - 00:04:31.506, Speaker B: And then we talked a little bit.
 00:04:31.528 - 00:04:43.240, Speaker D: About Canon and have talked more about Canon in the past. But that is the fault proof system. And the challenge agent is just a simple agent that interacts with the fault proof system.
 00:04:44.090 - 00:04:44.550, Speaker C: Cool.
@@ -57,18 +57,18 @@
 00:09:47.490 - 00:09:49.770, Speaker B: So on the left here, you have.
 00:09:49.840 - 00:10:02.430, Speaker D: Different consensus clients for Ethereum talking to each other through the beacon chain. Then l one clients on ethereum have a sync protocol. They have a transaction pool.
 00:10:03.250 - 00:10:05.920, Speaker B: And then on the l Two side.
-00:10:07.090 - 00:10:19.342, Speaker D: We gossip out L Two blocks for the opioid. And then we actually use a lot of the same sync mechanisms, transaction pools, all that, when l Two execution engines.
+00:10:07.090 - 00:10:19.342, Speaker D: We gossip out L2 blocks for the opioid. And then we actually use a lot of the same sync mechanisms, transaction pools, all that, when l Two execution engines.
 00:10:19.406 - 00:10:21.060, Speaker B: Are talking to each other.
 00:10:23.270 - 00:10:58.970, Speaker D: So getting into the details of this Engine API, which is what connects the Op node to Op Geth. It has two extensions, and these extensions are to some of the payload attributes or like fields. So we have two more fields when we're calling Fork twist update, but the rest of it's basically the same. And then gen API is actually really simple. There's four calls, one of which we don't use at all because we don't have a transition. So it's just not relevant to the new payload. Call is just insert a new block into the execution layer.
 00:10:58.970 - 00:11:23.800, Speaker D: Simple fork choice. Update is a little more complex because it does two things at once. It sets a head block, including kind of safe and finalized blocks. And if you give it an optional parameter, it starts the block building process and it returns back kind of reference to that inflight block. And if you want to get that inflight block that it's building, you just call Get.
 00:11:24.890 - 00:11:27.394, Speaker B: So and that's basically it.
-00:11:27.532 - 00:12:06.520, Speaker D: This is pretty standard API. It's specified by Ethereum, and it makes it really easy to include new execution clients. Op Aragon, that's not that much work to pour it over 1000 line diff. And then eventually we only have one roll up node right now. But it wouldn't be that hard to create a new roll up node that spoke this API and worked with any execution engine. So deposits and batches. So we've briefly spoken about deposits as kind of a way to get money into L Two.
+00:11:27.532 - 00:12:06.520, Speaker D: This is pretty standard API. It's specified by Ethereum, and it makes it really easy to include new execution clients. Op Aragon, that's not that much work to pour it over 1000 line diff. And then eventually we only have one roll up node right now. But it wouldn't be that hard to create a new roll up node that spoke this API and worked with any execution engine. So deposits and batches. So we've briefly spoken about deposits as kind of a way to get money into L2.
 00:12:06.520 - 00:12:10.518, Speaker D: These are going to be a lot faster now because we're reading them a.
 00:12:10.524 - 00:12:13.862, Speaker B: Lot closer to the chain TIFF, but.
 00:12:13.916 - 00:12:43.202, Speaker D: They also serve another purpose. And the sequencer basically cannot delay deposits outside of a certain range and has to eventually include them. If you're interested in more details about the specifics of how this works, I gave a talk at ECC that does a really deep dive into bedrock and goes through all this and why this is true. But the net result of this is.
 00:12:43.256 - 00:12:48.626, Speaker B: That the chain advances even if the.
-00:12:48.648 - 00:13:35.634, Speaker D: Sequencer doesn't want it to. And then this enables censorship resistance, and then if you never had a sequencer again, you could still unwind the chain through deposits. So deposits also do a lot more than just mint money on L Two. They're fully featured transactions. So anything you can do with a normal transaction, you can do with a deposit. And so typically, you actually wouldn't use deposits that much to do this because deposits just get included on L One kind of one transaction at a time and actually have some state execution on L One versus kind of direct L Two transaction. When we batch those, we take a bunch of those, we compress them, and then we just shove it in Call data of L One.
-00:13:35.634 - 00:13:42.626, Speaker D: So direct L Two transactions tend to be cheaper, and that's kind of the typical flow. But if you need to, deposits are.
+00:12:48.648 - 00:13:35.634, Speaker D: Sequencer doesn't want it to. And then this enables censorship resistance, and then if you never had a sequencer again, you could still unwind the chain through deposits. So deposits also do a lot more than just mint money on L2. They're fully featured transactions. So anything you can do with a normal transaction, you can do with a deposit. And so typically, you actually wouldn't use deposits that much to do this because deposits just get included on L One kind of one transaction at a time and actually have some state execution on L One versus kind of direct L2 transaction. When we batch those, we take a bunch of those, we compress them, and then we just shove it in Call data of L One.
+00:13:35.634 - 00:13:42.626, Speaker D: So direct L2 transactions tend to be cheaper, and that's kind of the typical flow. But if you need to, deposits are.
 00:13:42.648 - 00:13:50.422, Speaker B: Always there, P to P. So here.
 00:13:50.476 - 00:14:13.070, Speaker D: We kind of described how sequencers gossips out blocks. And so the feature that's enabled here is that if you're just a replica on the network and you're subscribing to these unsafe blocks or blocks that the sequencer has just created, your view of the network is incredibly up to date. And so you can opt to choose to insert these blocks.
 00:14:13.570 - 00:14:16.346, Speaker B: Now, as part of kind of inserting.
@@ -90,7 +90,7 @@
 00:16:39.168 - 00:16:52.882, Speaker D: To the data that you expect, does compression, how you get low fees and then just submits them on Dell One. Easy peasy. And then having that be so easy.
 00:16:52.936 - 00:16:58.018, Speaker B: Is basically like small modular architecture. That's the theme here.
 00:16:58.184 - 00:17:22.218, Speaker D: So now the proposer fault proofs and challenge agents. So this is a group of kind of three, which will be at least three different code bases and a couple of different agents. But what's here is this is everything that's required to enable withdrawals. So the proposer is kind of the entry point into withdrawals. So it reads State from L two.
-00:17:22.304 - 00:17:24.490, Speaker B: And then puts it onto L one.
+00:17:22.304 - 00:17:24.490, Speaker B: And then puts it onto L1.
 00:17:24.640 - 00:17:49.666, Speaker D: And then after, if you put it onto L One and no one says, this is invalid, it's then assumed to be valid. That's the optimistic part of our roll up. And that kind of validity then enables withdrawals. And if it's not valid, then you.
 00:17:49.688 - 00:17:52.846, Speaker B: Go through the challenge game and the fault proof.
 00:17:52.958 - 00:18:09.590, Speaker D: So it's not yet live. See some Canon talks that norswap's given for more information about this. But the fault proof is what secures the bridge. This is how you say someone submits something that's invalid as a proposal.
@@ -121,7 +121,7 @@
 00:22:45.060 - 00:22:50.626, Speaker D: There's a couple more details in there around, like gas accounting, but not quite.
 00:22:50.648 - 00:22:52.020, Speaker B: Relevant for this talk.
 00:22:52.790 - 00:22:56.054, Speaker D: So then if you're submitting direct to.
-00:22:56.092 - 00:23:00.166, Speaker B: L Two transaction, you send out your.
+00:22:56.092 - 00:23:00.166, Speaker B: L2 transaction, you send out your.
 00:23:00.188 - 00:23:07.270, Speaker D: Transaction, it gets to the sequencer, and then the sequencer has a set of transactions in kind of its local mem pool.
 00:23:07.690 - 00:23:10.460, Speaker B: And then it creates a block based on that.
 00:23:10.830 - 00:23:24.926, Speaker D: Then once the sequencer has created its block, the batcher sees, hey, there's a new block. We need to go submit it to l One. So then it takes it combines it with a bunch of other blocks, does.

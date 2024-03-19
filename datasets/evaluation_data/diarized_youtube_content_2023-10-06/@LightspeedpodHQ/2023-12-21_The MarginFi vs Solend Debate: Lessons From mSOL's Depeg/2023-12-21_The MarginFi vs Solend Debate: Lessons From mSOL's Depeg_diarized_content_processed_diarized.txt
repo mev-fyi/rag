@@ -1,0 +1,979 @@
+00:00:00.170 - 00:00:15.642, Speaker A: All of this stuff is incredibly serious, right? There's $350,000,000 supplied in Margin Phi today. It's one protocol in a sea of protocols, right. In a space that has struggled for validation from the mainstream.
+00:00:15.706 - 00:00:15.886, Speaker B: Right?
+00:00:15.908 - 00:00:30.210, Speaker A: We're still incredibly early. We have a lot of institutional players that are evaluating the resiliency of our platform. I wanted to build around these issues, to fix them, to iterate, and to show the capacity that we have to build resilient systems.
+00:00:30.290 - 00:00:50.726, Speaker C: This episode is brought to you by marinade. Marinade is the most optimal way to stake on Solana. You can use their liquid staking token mSol. Or if you want to stake without any of the DeFi or peg risk, use our new product called Marinade native. It's the easiest way to stake your soul. Go check out marinade today. What's up, everybody? Welcome to another episode of Lightspeed.
+00:00:50.758 - 00:00:54.626, Speaker D: Today we're joined by Ruder from Solan and Edgar from Marginfi.
+00:00:54.678 - 00:01:00.366, Speaker E: Guys, welcome to the show. Thanks. Hello. Thanks for having us pumped to have you on.
+00:01:00.388 - 00:01:13.730, Speaker D: The community has been waiting to have this podcast, so I'm very excited to have you on. I think Ruder is on 07:00 a.m. Time and Edgar is at 11:00 p.m. At night. So everybody better enjoyed this episode for that effort. I'm sure everyone knows what Margin Phi and so lend is. We might go into detail.
+00:01:13.730 - 00:01:30.342, Speaker D: We will go into detail on that. But they're both borrowing and lending protocols that are on Salana very successful. But the reason why we're having this episode is not only to explore those protocols, but to talk about the risk engines and all of this kind of started about a week ago or so. I think it's a week and a half ago. This was December twelveth.
+00:01:30.406 - 00:01:31.980, Speaker E: So, yeah, seven days ago.
+00:01:32.910 - 00:02:09.430, Speaker D: There was some drama that happened in the Salana ecosystem very quickly. So to introduce the parties, there's MSOL, which is marinade soul marinade. There's marinade and judo. They're the two liquid staking providers. And staking providers in Salana, MSOL is a liquid staking token. And a lot of users were going throughout Solana Defi and using MSOL as collateral, which is what we want, a lot of them were using pretty high leverage because especially with the points ecosystems that we have throughout Solana right now, you have a large incentive to interact with these DeFi protocols a lot. And sometimes they're providing MSOL as collateral, and then they are borrowing against that to take out maybe more souL or USDC and actually looping that trade to get some really high leverage.
+00:02:09.430 - 00:02:51.102, Speaker D: Obviously, MSOL is a liquid staking token. It's a derivative of SOL. So usually those trade at around the same value. We've seen even in Ethereum ecosystem, sometimes the LST and the underlying assets sometimes dpeg shortly for market reasons, et cetera. But at the end of the day, they should converge. But during that, we had a whale who sold about $8 million worth of MSOL suddenly on the market on December twelveth. Instead of unstaking the MSOL and then just selling it that way, or without doing it, OTC just sold it on the market, and there wasn't enough liquidity, and it led to, I think, around a 15% DPEG, which affected all the MSOL that was this collateral and DFI, and it led to liquidations throughout Salana.
+00:02:51.102 - 00:03:03.126, Speaker D: Every protocol handled this slightly differently. And that's why we have you two on, because we want to talk about how did your project handle that liquidation that we saw there, and then also just how your protocol was built to deal with that type of scenario in the first place.
+00:03:03.228 - 00:03:47.350, Speaker F: Maybe the sequence of events we should explain a bit more. So what happened was the guy, or whatever sold market sold for whatever reason, and that caused a massive red candle. And I tweeted about it, and I put a lot of question marks, and I was like, what the hell? And then somebody from Soland, so ox Ripley's co tweeted it, right? And then he said, this is why Soland uses the sole oracle for pricing staked sole assets. Liquidity for staked sole assets can be shaky at times. Everything running smoothly here. And then that mixed some, or caused some mixed reaction, some people from not actually just margin, but probably most notably margin. And so that's kind of where it all started.
+00:03:47.350 - 00:03:50.198, Speaker F: So let's maybe kind of replay, if.
+00:03:50.204 - 00:03:51.654, Speaker E: I could jump in.
+00:03:51.772 - 00:03:57.174, Speaker G: Yeah. Since it's relevant, because, yeah, there's definitely been a lot of misunderstanding about why.
+00:03:57.212 - 00:03:59.078, Speaker E: We do this, and it is a.
+00:03:59.084 - 00:04:05.914, Speaker G: Very nuanced topic, not really fit for Twitter. So it's pretty good that we're doing a podcast like this, that we can.
+00:04:05.952 - 00:04:07.290, Speaker E: Explain it more in depth.
+00:04:07.790 - 00:04:12.590, Speaker G: Even people like Frankie had some issues understanding.
+00:04:14.370 - 00:04:14.782, Speaker E: Yeah.
+00:04:14.836 - 00:04:21.738, Speaker G: The underlying thing is that we use the Solana Oracle instead of the MSOL.
+00:04:21.754 - 00:04:27.486, Speaker E: Oracle for the MSO asset. And the reason for that is that it's a lot more reliable.
+00:04:27.598 - 00:04:30.446, Speaker G: So throughout the last two years, we've.
+00:04:30.478 - 00:04:40.142, Speaker E: Seen many issues with the MSO oracle, and this is to be expected somewhat, given that there are way more quotas.
+00:04:40.206 - 00:04:47.366, Speaker G: On the sole oracle, for example, there's 31 versus 14. The confidence intervals are typically 80% to.
+00:04:47.388 - 00:04:49.534, Speaker E: 90% higher for soul.
+00:04:49.682 - 00:05:00.902, Speaker G: And historically, as I said, there have just been a lot of issues with MSOL, probably like half a dozen to a dozen times. There have been like minor DPEGs and whatnot.
+00:05:00.966 - 00:05:04.926, Speaker E: So throughout all these issues, we just.
+00:05:04.948 - 00:05:09.306, Speaker G: Realized that it's safer to use the underlying. And of course, there are some trade.
+00:05:09.338 - 00:05:10.946, Speaker E: Offs, but basically, at the end of.
+00:05:10.948 - 00:05:12.826, Speaker G: The day, we believe that the trade.
+00:05:12.858 - 00:05:14.340, Speaker E: Offs are in favor of this.
+00:05:15.190 - 00:05:25.298, Speaker G: So to go into slightly more detail, this is still resilient, because Soland is underestimating the price of the sole. The price of Sol is always going.
+00:05:25.304 - 00:05:26.870, Speaker E: To be lower than MSOL.
+00:05:27.290 - 00:05:32.374, Speaker G: So a DPEG would have to be quite significant more than that underestimate for.
+00:05:32.572 - 00:05:34.642, Speaker E: This to be problematic for Soland.
+00:05:34.786 - 00:05:38.270, Speaker G: So in this recent example, nothing happened on Soland.
+00:05:38.290 - 00:05:41.130, Speaker E: There were no wrongful liquidations, or any.
+00:05:41.200 - 00:05:45.180, Speaker G: Liquidations really, because the buffer was enough.
+00:05:46.030 - 00:05:47.340, Speaker E: To account for that.
+00:05:51.070 - 00:05:59.054, Speaker G: It's pretty weird looking to use the different asset price, but in this case it's actually okay because MSOL is not.
+00:05:59.092 - 00:06:02.686, Speaker E: Borrowable, because you could imagine usually if.
+00:06:02.708 - 00:06:06.066, Speaker G: You'Re underestimating the price of an asset, then that would let people borrow more.
+00:06:06.088 - 00:06:15.678, Speaker E: Than they should, right? But it's not borrowable, so that's not an issue here. And then to explore the issues with.
+00:06:15.704 - 00:06:18.898, Speaker G: This a little bit, hypothetically, if MSOL.
+00:06:18.914 - 00:06:31.240, Speaker E: Went to zero, Seoul would probably crash as well. In which case, using the MSOL, Oracle alone wouldn't save you from bad debt. If Soul is crashing, you're going to have issues anyway.
+00:06:32.010 - 00:06:42.446, Speaker G: But granted, pretending that soul didn't crash, we do have other mitigations in place that would limit damage. So, for example, we have a global outflow limit, which we added in B.
+00:06:42.468 - 00:06:44.586, Speaker E: Two, that limits the amount of funds.
+00:06:44.618 - 00:06:49.466, Speaker G: That can be withdrawn in a short period of time, similar to how wormhole.
+00:06:49.498 - 00:06:51.230, Speaker E: Has something similar for bridging.
+00:06:53.190 - 00:07:01.794, Speaker G: And also, basically, the probability of MSOL just getting hacked and going to zero is basically this tiny, tiny, non zero.
+00:07:01.912 - 00:07:11.174, Speaker E: Possibility like epsilon, because the contracts are super simple, and you can't compare something.
+00:07:11.212 - 00:07:19.490, Speaker G: Like that to USt as McBrandon did. It's quite a different situation. So, yeah, basically those are the reasons.
+00:07:19.570 - 00:07:23.654, Speaker E: To sum it up, it is a trade off, but we'd rather protect users.
+00:07:23.702 - 00:07:25.962, Speaker G: From real recurring issues that we've seen.
+00:07:26.096 - 00:07:30.714, Speaker E: Multiple times in the past. Irrational dpegs like this, just a whale.
+00:07:30.762 - 00:07:46.334, Speaker G: Selling something off, or like piss Oracle issues due to quotas, just having issues. And yeah, we'd rather protect users from these real things versus this theoretical issue that we have other mitigations in place anyway, and it's super unlikely.
+00:07:46.382 - 00:07:58.014, Speaker E: So it's really a pragmatic, practical approach to our risk. And basically, I was just a little bit disappointed that McBrandon and margin fi.
+00:07:58.062 - 00:08:00.386, Speaker G: Decided to publicly attack us about this.
+00:08:00.488 - 00:08:01.894, Speaker E: Which just shows a.
+00:08:01.932 - 00:08:03.894, Speaker G: A lack of understanding of how our.
+00:08:03.932 - 00:08:11.114, Speaker E: Risk management works and a lack of goodwill, especially since there was an actual.
+00:08:11.152 - 00:08:16.140, Speaker G: Oversight that we found on your side, a real loss of funds vulnerability with.
+00:08:16.670 - 00:08:23.886, Speaker E: The way that the WST oracles were handled. So, yeah, just want to lay that.
+00:08:23.908 - 00:08:27.360, Speaker G: Out and we can have a discussion about it.
+00:08:27.890 - 00:08:47.006, Speaker D: Got one thing I would like to add, Edgar, maybe before we can hear from you is ruder, maybe can you just explain for listeners that maybe don't know how all this works that well and that you were talking about? MSOL should basically always follow the price or be slightly above the underlying. And a large part of that is just because there's arbitragers that would come in because of how the epoch period.
+00:08:47.038 - 00:08:48.114, Speaker E: Is only two and a half days.
+00:08:48.152 - 00:08:54.198, Speaker D: Could you maybe just explain that how a DPEG can happen, but it should not last for a sustained period of time, and they should, at the end.
+00:08:54.204 - 00:08:55.350, Speaker E: Of the day, converge?
+00:08:55.690 - 00:08:58.534, Speaker G: Yeah, for sure. So MSOL started off one to one.
+00:08:58.572 - 00:09:04.314, Speaker E: With SOL, but as staking rewards are accrued, basically the price of MSOL goes up.
+00:09:04.432 - 00:09:08.474, Speaker G: And this is in contrast to another approach that has been taken, which is.
+00:09:08.592 - 00:09:12.654, Speaker E: Rebasing tokens, which basically instead, the price.
+00:09:12.692 - 00:09:13.966, Speaker G: Of the asset is always the same.
+00:09:13.988 - 00:09:16.586, Speaker E: But your balance is always increasing.
+00:09:16.778 - 00:09:18.874, Speaker G: For example, this is how staked ETH.
+00:09:18.922 - 00:09:22.906, Speaker E: Works on Ethereum with Lido, and that's.
+00:09:22.938 - 00:09:24.414, Speaker G: Why they have, like, wrapped staked ETH.
+00:09:24.462 - 00:09:27.540, Speaker E: Which converts it into the msol style thing.
+00:09:28.150 - 00:09:32.606, Speaker G: And so basically, these are like different assets that get traded.
+00:09:32.638 - 00:09:37.830, Speaker E: They have different tickers, and prices are just determined by order books.
+00:09:38.650 - 00:09:57.178, Speaker G: So it is always possible that someone can trade something out of where its theoretical underlying value is. But yes, with MSol, there is an epoch. So every period you can unstake, you can stage your soul for unstaking, and.
+00:09:57.184 - 00:09:58.570, Speaker E: Then at the end of that period.
+00:09:59.310 - 00:10:07.040, Speaker G: You can get it back, basically. So you can redeem the underlying, which creates this arbitrage opportunity. Anytime that it.
+00:10:08.370 - 00:10:14.686, Speaker E: You know, this really means that the.
+00:10:14.708 - 00:10:18.410, Speaker G: Intrinsic value of MSOL is pretty tethered to the underlying.
+00:10:18.490 - 00:10:48.730, Speaker D: So, to make it simple, for example, you saw that MSOL was trading at a steep discount, like it did in this scenario, but you had a strong belief that it was going to regain its peg because the marinade contracts, for example, are not hacked. You could buy MSOL on the market, which is, say, trading at $0.80 on the dollar, and you go put that and try to unstake soul, and you'd receive that sole that's trading at 100% of the value, and you would capture that arbitrage. So, Edgar, I'd love to just hear your thoughts on how you think about this and maybe some of the trade offs between the two strategies.
+00:10:50.370 - 00:10:51.760, Speaker H: Yeah, definitely.
+00:10:53.570 - 00:10:57.280, Speaker A: First of all, thank you for having me on. I've been obviously thinking about this problem.
+00:10:58.530 - 00:11:02.994, Speaker H: More holistically, definitely quite a bit since.
+00:11:03.032 - 00:11:04.500, Speaker A: We had the conversation online.
+00:11:05.430 - 00:11:11.054, Speaker H: Oracles are also just a very critical.
+00:11:11.182 - 00:11:19.154, Speaker A: Component in a lot of defi systems, and I think a component that has had stability issues on a number of fronts throughout their entire existence.
+00:11:19.202 - 00:11:19.654, Speaker B: Right.
+00:11:19.772 - 00:11:27.614, Speaker A: And so I think it's easy to understand why they're a point of anxiety in relying on these systems.
+00:11:27.682 - 00:11:28.300, Speaker B: Right.
+00:11:29.710 - 00:11:33.466, Speaker A: With MSOL specifically, and our view on.
+00:11:33.648 - 00:11:41.726, Speaker H: How we think about pricing assets, in my view, the number one challenge that.
+00:11:41.748 - 00:11:44.922, Speaker A: A lending protocol has in front of itself is managing solvency risk.
+00:11:44.986 - 00:11:45.646, Speaker B: Right?
+00:11:45.828 - 00:11:49.518, Speaker A: Solvency risk, in principle, is pretty simple.
+00:11:49.604 - 00:11:50.190, Speaker B: Right.
+00:11:50.340 - 00:11:54.258, Speaker A: It's the risk that liabilities on the platform outpace the value of assets on.
+00:11:54.264 - 00:12:08.726, Speaker H: The platform and that lenders, those that have deposited into the platform, are not able to withdraw their full value that they've lended. From an addressable market perspective, I think.
+00:12:08.748 - 00:12:13.906, Speaker A: That lenders outnumber borrowers on a user.
+00:12:13.938 - 00:12:18.250, Speaker H: Basis, something like 99.9% to one.
+00:12:18.320 - 00:12:19.034, Speaker B: Right.
+00:12:19.232 - 00:12:22.042, Speaker H: When we think about how we're building.
+00:12:22.096 - 00:12:39.614, Speaker A: Margin Phi, in the long run, from an app perspective, from a user experience perspective, we are primarily thinking about lenders, because if you look at the way that an average person interacts with the personal finance system in front of them.
+00:12:39.652 - 00:12:42.190, Speaker H: Right, crypto or not crypto, the very.
+00:12:42.260 - 00:12:49.314, Speaker A: First piece to building passive wealth is compounding that wealth through lending it out.
+00:12:49.352 - 00:12:51.362, Speaker H: Somewhere and accruing some kind of yield, right?
+00:12:51.496 - 00:12:57.878, Speaker A: This was when I pitch margin fi. When I pitch Defi to the friends that I have that are outside of.
+00:12:57.884 - 00:13:00.626, Speaker H: Crypto, I always bring up the bank.
+00:13:00.658 - 00:13:03.858, Speaker A: Account that was supposed to give them all this yield.
+00:13:03.954 - 00:13:04.694, Speaker H: Right?
+00:13:04.892 - 00:13:07.126, Speaker A: And the way that it kind of never happened.
+00:13:07.228 - 00:13:07.638, Speaker B: Right.
+00:13:07.724 - 00:13:13.642, Speaker A: Even though bank accounts, technically, at least in the US and in many other places around the world, they do provide.
+00:13:13.696 - 00:13:15.370, Speaker H: Some kind of yield for your capital.
+00:13:16.030 - 00:13:18.074, Speaker A: Generally speaking, this idea that we were.
+00:13:18.112 - 00:13:20.910, Speaker H: Sold on, that there would be yield.
+00:13:22.130 - 00:13:25.086, Speaker A: For our money that we have to.
+00:13:25.108 - 00:13:27.102, Speaker H: Put away, didn't really come true.
+00:13:27.156 - 00:13:27.374, Speaker B: Right.
+00:13:27.412 - 00:13:36.194, Speaker A: And I think that lending platforms like Marginfi, like Soland, like Aave, like compound, like others in the space, are an.
+00:13:36.232 - 00:13:39.298, Speaker H: Important bridge to this problem.
+00:13:39.384 - 00:13:39.634, Speaker B: Right.
+00:13:39.672 - 00:13:42.530, Speaker H: And to helping users attain that real yield.
+00:13:43.510 - 00:13:46.614, Speaker A: That means that when we think about.
+00:13:46.652 - 00:13:49.858, Speaker H: Risk, we are often thinking about the lenders.
+00:13:49.954 - 00:14:10.662, Speaker A: I would actually say that we, generally speaking, prioritize lenders. Before we prioritize borrowers, we found borrowers to be much more sophisticated players, ones that are a lot more flexible to manage the implementation of their various strategies and generally adaptable.
+00:14:10.726 - 00:14:10.954, Speaker B: Right.
+00:14:10.992 - 00:14:16.910, Speaker A: And so they can kind of live with a higher bar for action and.
+00:14:16.980 - 00:14:19.230, Speaker H: Reaction to the market.
+00:14:19.380 - 00:14:20.766, Speaker A: They're generally happy to do that.
+00:14:20.788 - 00:14:21.774, Speaker H: They're happy to pay for it.
+00:14:21.812 - 00:14:22.400, Speaker B: Right.
+00:14:22.930 - 00:14:25.506, Speaker A: One of the most common points of feedback we get these days is that.
+00:14:25.528 - 00:14:32.738, Speaker H: Borrowers are willing to pay more on our platform than they're building today, than they're paying today.
+00:14:32.904 - 00:14:36.110, Speaker A: And that just speaks to the elasticity of their behavior.
+00:14:36.190 - 00:14:36.820, Speaker B: Right.
+00:14:37.190 - 00:14:39.286, Speaker A: With respect to Oracle's, to address your.
+00:14:39.308 - 00:14:43.960, Speaker H: Question directly, Garrett, we like to price.
+00:14:44.570 - 00:14:48.518, Speaker A: Assets to their market price agnostic of.
+00:14:48.684 - 00:14:50.358, Speaker H: What asset we're talking about.
+00:14:50.444 - 00:14:51.126, Speaker B: Right.
+00:14:51.308 - 00:14:54.230, Speaker H: That doesn't just mean MSOL, it also.
+00:14:54.300 - 00:14:57.638, Speaker A: Means, or any other LST, it also means stablecoins.
+00:14:57.734 - 00:14:58.426, Speaker B: Right?
+00:14:58.608 - 00:15:02.462, Speaker A: If you look at these are, these.
+00:15:02.516 - 00:15:09.882, Speaker H: Are assets that are designed to be pegged to the US dollar in practice.
+00:15:09.946 - 00:15:12.366, Speaker A: Are generally pretty close, but have seen.
+00:15:12.388 - 00:15:13.710, Speaker H: DPEGs on their own.
+00:15:13.860 - 00:15:21.154, Speaker A: Now, to Ruder's point, I think there are some interesting trade offs. And ultimately these trade offs are like.
+00:15:21.192 - 00:15:24.446, Speaker H: Subjective questions that need to be answered.
+00:15:24.478 - 00:15:28.402, Speaker A: By protocol designers, by the communities that support those protocols.
+00:15:28.466 - 00:15:29.078, Speaker B: Right.
+00:15:29.244 - 00:15:31.414, Speaker A: I think it's very valid to say.
+00:15:31.452 - 00:15:43.786, Speaker H: Look, we want to protect against some kind of DPEG because we feel that.
+00:15:43.968 - 00:15:55.470, Speaker A: The asset will come back to some theoretical price and we can save our borrowers from liquidation on that front.
+00:15:55.540 - 00:15:56.110, Speaker B: Right.
+00:15:56.260 - 00:16:02.378, Speaker A: It's a valid perspective and I can see how that perspective gets backed up.
+00:16:02.484 - 00:16:03.140, Speaker B: Right.
+00:16:03.670 - 00:16:07.506, Speaker H: At the same time, finance as an.
+00:16:07.528 - 00:16:10.660, Speaker A: Industry, I think, is a dangerous place where.
+00:16:12.950 - 00:16:15.870, Speaker H: A lot of theory has fallen apart.
+00:16:16.030 - 00:16:23.186, Speaker A: We saw this in 2008, right? Sometimes even down to just the distribution assumptions that are made under the risk.
+00:16:23.218 - 00:16:25.302, Speaker H: Models that are put together.
+00:16:25.356 - 00:16:25.574, Speaker B: Right.
+00:16:25.612 - 00:16:27.286, Speaker A: This is one reason why all of.
+00:16:27.308 - 00:16:29.746, Speaker H: The modeling that we do off chain.
+00:16:29.778 - 00:16:51.354, Speaker A: That helps us decide on the risk parameters, they're implemented, marginify. And I'm happy to talk about that if that's interesting. But we're leveraging tail risk scenarios, right? And there's a lot of time spent on designing what a tail risk scenario means, because assuming that things will continue to go well is, I think the antithesis of risk modeling.
+00:16:51.402 - 00:16:51.614, Speaker B: Right?
+00:16:51.652 - 00:16:53.598, Speaker H: At least from my perspective.
+00:16:53.774 - 00:17:00.926, Speaker A: And so to that end, we continue to look at market prices regardless of the asset that we're considering.
+00:17:00.958 - 00:17:03.826, Speaker H: Now, this does mean that in a.
+00:17:03.848 - 00:17:12.626, Speaker A: Scenario where MSOL dpegs for long enough and users are liquidated and then MSOL.
+00:17:12.658 - 00:17:24.378, Speaker H: Repegs, in theory, assuming that the duration risk is something that the platform could handle, things would be better.
+00:17:24.464 - 00:17:24.810, Speaker B: Right.
+00:17:24.880 - 00:17:38.286, Speaker A: There would be less liquidations, but liquidating users earlier, from our perspective, is a matter of safety. Right. It's a position that we take to say, look, the first thing that we.
+00:17:38.308 - 00:17:41.774, Speaker H: Want to protect is insolvency on the platform.
+00:17:41.892 - 00:17:42.330, Speaker B: Right.
+00:17:42.420 - 00:17:57.870, Speaker A: Ultimately, that affects the lenders positively more than anything else. And we are willing to forego the opportunity to boost the potential solvency that.
+00:17:57.960 - 00:18:02.722, Speaker H: Borrowers have on the platform in order to maintain safety.
+00:18:02.786 - 00:18:03.350, Speaker B: Right.
+00:18:03.500 - 00:18:05.878, Speaker A: This could be viewed as like a more conservative view.
+00:18:05.964 - 00:18:06.262, Speaker B: Right.
+00:18:06.316 - 00:18:14.714, Speaker A: And I think we're fine with that. I think lending in general is a conservative effort, but it's something that we think is important to react to in.
+00:18:14.752 - 00:18:16.650, Speaker H: Case MSOL doesn't peg back.
+00:18:16.720 - 00:18:17.340, Speaker B: Right.
+00:18:17.710 - 00:18:19.862, Speaker A: Which we've seen with other assets.
+00:18:19.926 - 00:18:20.298, Speaker B: Right.
+00:18:20.384 - 00:18:22.382, Speaker A: There's a number of deepgs that we can talk about.
+00:18:22.436 - 00:18:25.626, Speaker H: Historically speaking, in the case of MSOL.
+00:18:25.658 - 00:18:31.934, Speaker A: Specifically margin Phi didn't have any meaningful liquidations, and that's because the market price.
+00:18:31.972 - 00:18:33.360, Speaker H: Oracle that we use.
+00:18:35.430 - 00:18:39.006, Speaker A: Follows an exponential moving average with a 1 hour time window.
+00:18:39.038 - 00:18:39.330, Speaker B: Right.
+00:18:39.400 - 00:18:47.650, Speaker A: And all that means is that it reacts a little bit more slower than market price does to factor in for stochastic volatility.
+00:18:47.730 - 00:18:53.782, Speaker H: Now, that in itself is not quite as conservative as it could be, even.
+00:18:53.836 - 00:18:55.682, Speaker A: If we're following the line of argument.
+00:18:55.746 - 00:19:00.134, Speaker H: That the market price is what should be looked at.
+00:19:00.172 - 00:19:23.086, Speaker A: Right. And so you can start seeing immediately how the last layer, and I don't know if you guys had a chance to read gauntlet published an article today. Tarun wrote it on just risk management in Defi, kind of high level themes there. Implementation approaches. One of the great points that he made that I think is the hardest to explain more broadly is that the.
+00:19:23.108 - 00:19:25.610, Speaker H: Last line of risk management is always subjective.
+00:19:25.690 - 00:19:26.414, Speaker B: Right.
+00:19:26.612 - 00:19:31.426, Speaker A: You can take best practice approaches, you can take a principle to implementation, but at the end of the day, you.
+00:19:31.448 - 00:19:33.086, Speaker H: Have to make business calls.
+00:19:33.278 - 00:19:40.834, Speaker A: And so we do make a business call to run a market oracle, but also to run it under a moving average implementation.
+00:19:40.882 - 00:19:43.400, Speaker H: And we like that middle that we find with that.
+00:19:45.610 - 00:19:47.186, Speaker E: Yeah, I'd like to take a minute.
+00:19:47.218 - 00:19:56.490, Speaker G: To respond to some of. So I think our number one goal is to be practical about risk management.
+00:19:57.550 - 00:20:03.034, Speaker E: And basically we feel that the MSOL.
+00:20:03.082 - 00:20:05.614, Speaker G: Oracle in its current state, is not.
+00:20:05.652 - 00:20:08.046, Speaker E: The best way to secure hundreds of millions of dollars.
+00:20:08.228 - 00:20:11.742, Speaker G: Of course, pricing assets exactly to their.
+00:20:11.796 - 00:20:13.870, Speaker E: Market price is the ideal.
+00:20:14.390 - 00:20:17.506, Speaker G: If the oracle was more reliable, we.
+00:20:17.528 - 00:20:19.074, Speaker E: Would definitely switch to it.
+00:20:19.272 - 00:20:21.410, Speaker G: But unfortunately, that's not the case, especially.
+00:20:21.480 - 00:20:23.666, Speaker E: Given what we've seen in the past.
+00:20:23.768 - 00:20:27.014, Speaker G: And just this last week, a single.
+00:20:27.132 - 00:20:28.440, Speaker E: Player who is.
+00:20:30.250 - 00:20:31.574, Speaker G: Called a whale by.
+00:20:31.612 - 00:20:34.066, Speaker E: Us, but that's actually a really small user.
+00:20:34.098 - 00:20:38.554, Speaker G: Like, there are tons of people in the world that can affect the price like that.
+00:20:38.592 - 00:20:39.180, Speaker E: Right.
+00:20:40.670 - 00:20:45.366, Speaker G: And this is like an unintentional side effect, but imagine if someone was doing this maliciously.
+00:20:45.398 - 00:20:53.726, Speaker E: Right? Basically, I'd also like to say we.
+00:20:53.748 - 00:21:14.850, Speaker G: Wouldn'T really say we could prioritize lenders over borrowers. I think we value everyone. And again, this is the practical approach that we've taken, that we feel that given all the trade offs, this basically results in less issues. And just want to respond to something you said as well.
+00:21:14.920 - 00:21:19.960, Speaker E: You mentioned liquidating early, like you prefer to liquidate early.
+00:21:20.410 - 00:21:22.694, Speaker G: In many cases, liquidating too early is.
+00:21:22.732 - 00:21:24.546, Speaker E: The same as wrongful liquidation.
+00:21:24.738 - 00:21:26.326, Speaker G: We've seen some oracle issues in the.
+00:21:26.348 - 00:21:32.520, Speaker E: Past where the prices were off by like ten, even 20% for no good reason.
+00:21:33.290 - 00:21:35.894, Speaker G: And the way that pith quoters quote.
+00:21:35.942 - 00:21:37.514, Speaker E: Is a little bit of a black box.
+00:21:37.632 - 00:21:39.546, Speaker G: So we don't really know exactly what.
+00:21:39.568 - 00:21:40.720, Speaker E: Was going on there.
+00:21:41.330 - 00:21:51.534, Speaker G: But liquidating too early, too eagerly can result in wrongful liquidations, which we definitely.
+00:21:51.572 - 00:21:56.930, Speaker E: Want to avoid for our borrowers, as well as we want to keep lenders safe.
+00:21:58.150 - 00:21:59.906, Speaker G: And then finally, you mentioned that you.
+00:21:59.928 - 00:22:04.002, Speaker E: Guys use the EMA, which it definitely.
+00:22:04.056 - 00:22:07.766, Speaker G: Has some benefits, but it also has some trade offs as well.
+00:22:07.788 - 00:22:20.502, Speaker E: Right, because you mentioned. Yeah, you would be liquidating more slowly, which in the context of a competitive environment, that basically means you'd be the last to start liquidating.
+00:22:20.646 - 00:22:22.714, Speaker G: And potentially that could be really bad.
+00:22:22.752 - 00:22:25.866, Speaker E: If there are any cascading effects. Right.
+00:22:26.048 - 00:22:30.494, Speaker G: You'd essentially be liquidating at the worst prices, and your users would be getting.
+00:22:30.532 - 00:22:33.200, Speaker E: The worst end of the stick. So.
+00:22:33.730 - 00:22:35.600, Speaker G: Yeah, I just want to mention those.
+00:22:40.510 - 00:22:41.260, Speaker B: Um.
+00:22:43.230 - 00:22:44.694, Speaker H: Well, I mean, in the context.
+00:22:44.742 - 00:22:48.846, Speaker A: Of, like, an MSOL situation, not as early, not as. Not as late as you guys would be.
+00:22:48.868 - 00:22:49.150, Speaker B: Right.
+00:22:49.220 - 00:22:57.126, Speaker H: Because the whole proposition here is that using the solaracle helps maintain a stable.
+00:22:57.178 - 00:23:00.014, Speaker A: Price on the platform and therefore doesn't open up positions to liquidation.
+00:23:00.062 - 00:23:00.466, Speaker B: Right.
+00:23:00.568 - 00:23:12.150, Speaker A: So it's like the one theoretical side of the spectrum is the second that market price hits underneath a liquidation threshold.
+00:23:12.650 - 00:23:16.534, Speaker H: Things are exposed to liquidation that instant second right.
+00:23:16.732 - 00:23:20.754, Speaker A: Market price on its own is something that, the definition of that is something we can debate.
+00:23:20.802 - 00:23:21.446, Speaker B: Right.
+00:23:21.628 - 00:23:25.206, Speaker A: Because assets don't have one price in the world. Right.
+00:23:25.228 - 00:23:30.758, Speaker H: Like if you look up the price of bitcoin, that is a theoretical price that doesn't actually exist.
+00:23:30.934 - 00:23:32.554, Speaker A: The price for any given asset is.
+00:23:32.592 - 00:23:33.980, Speaker H: What you can get for it.
+00:23:34.830 - 00:23:38.014, Speaker A: The market price for a given asset is what you can get for it.
+00:23:38.052 - 00:23:39.470, Speaker H: On a given exchange.
+00:23:40.690 - 00:23:46.874, Speaker A: But as you move along the spectrum, you start to employ some kind of moving average approach.
+00:23:46.922 - 00:23:47.470, Speaker B: Right.
+00:23:47.620 - 00:23:56.706, Speaker A: And it is true that you could have a smaller time window for a moving average. We like the 1 hour time window. I mean, it's far from finalized, I.
+00:23:56.728 - 00:23:57.730, Speaker H: Think, in the long run.
+00:23:57.800 - 00:23:58.478, Speaker B: Right.
+00:23:58.664 - 00:24:07.906, Speaker A: Oracles are definitely focused on stability. Most of all, we think pith is head and shoulders above any other oracle.
+00:24:07.938 - 00:24:11.350, Speaker H: Implementation that I've seen in crypto.
+00:24:12.010 - 00:24:19.238, Speaker A: And not only do we like the data providers that are behind the scenes, we built relationships with a good portion.
+00:24:19.254 - 00:24:20.954, Speaker H: Of them as we've gotten to know.
+00:24:20.992 - 00:24:41.774, Speaker A: Them and become more reliant on the infrastructure, but some of our related entities are data providers themselves. And recently we've been pushing for more providers. I don't know if you guys saw this on public. This is something that Mac is running as well, pushing for more providers to start contributing to pith.
+00:24:41.822 - 00:24:42.034, Speaker B: Right.
+00:24:42.072 - 00:24:44.706, Speaker A: Because one of the best ways to.
+00:24:44.728 - 00:24:47.602, Speaker H: Improve the robustness of an oracle platform.
+00:24:47.736 - 00:24:50.326, Speaker A: Is to diversify the data providers, and.
+00:24:50.348 - 00:24:55.622, Speaker H: It'S something that we've proactively started trying to help.
+00:24:55.676 - 00:24:55.942, Speaker B: Right.
+00:24:55.996 - 00:24:58.406, Speaker A: Not just from an internal perspective, but.
+00:24:58.508 - 00:25:01.654, Speaker H: From a partnership perspective, as know.
+00:25:01.692 - 00:25:03.546, Speaker A: Obviously, because I know I'm shilling pith a lot.
+00:25:03.568 - 00:25:05.690, Speaker H: We've had great conversations with switchboard.
+00:25:06.190 - 00:25:15.374, Speaker A: They're an oracle provider that we use and we love for a different set of reasons. I think they come at Oracle implementation and general service providing from a different.
+00:25:15.412 - 00:25:18.190, Speaker H: Perspective or product offering from a different perspective.
+00:25:18.610 - 00:25:26.674, Speaker A: I think ultimately this involves making some kind of liquidation and user smoothness experience trade off.
+00:25:26.712 - 00:25:27.058, Speaker B: Right.
+00:25:27.144 - 00:25:37.220, Speaker H: You can always be safer if you liquidate earlier. I don't think I agree with the notion of the term wrongful liquidation, and.
+00:25:38.310 - 00:25:42.946, Speaker A: That is unless it speaks to a mechanism failure.
+00:25:43.058 - 00:25:43.720, Speaker B: Right.
+00:25:44.090 - 00:25:47.938, Speaker A: Mechanism design, I think, can create unfavorable liquidations.
+00:25:48.034 - 00:25:48.294, Speaker B: Right.
+00:25:48.332 - 00:25:54.586, Speaker H: Maybe liquidations that users are not happy with, but the term wrongful liquidation, in.
+00:25:54.608 - 00:25:58.294, Speaker A: My view, should be reserved for mechanism failure.
+00:25:58.342 - 00:26:00.870, Speaker H: Right, where mechanisms don't act as designed.
+00:26:01.030 - 00:26:03.826, Speaker A: And you get problems from that perspective.
+00:26:03.878 - 00:26:04.046, Speaker G: Right.
+00:26:04.068 - 00:26:10.174, Speaker A: I think the difference between liquidating earlier or later, that's much more subjective, comes.
+00:26:10.212 - 00:26:11.166, Speaker H: With the trade offs that we've been.
+00:26:11.188 - 00:26:12.030, Speaker E: Discussing.
+00:26:14.130 - 00:26:16.078, Speaker G: Yeah, I mean, to expand on.
+00:26:16.084 - 00:26:21.890, Speaker E: The wrongful liquidation part. I think in this specific example scenario.
+00:26:22.870 - 00:26:39.078, Speaker G: It was more of just a price movement and the oracle was reflecting what was happening on the markets in the past. We have seen oracle staleness issues and just weird pricing that doesn't match up with anything that we actually see on.
+00:26:39.084 - 00:26:52.234, Speaker E: The market, which we would use the term wrongful liquidation for. And that said, I know, I realize I've been mentioning pith and our oracles a lot.
+00:26:52.352 - 00:26:54.714, Speaker G: I also want to say that we love them as well.
+00:26:54.752 - 00:27:01.934, Speaker E: We've worked with Pith and Switchford super closely since we launched. We were actually using pith in their.
+00:27:01.972 - 00:27:03.038, Speaker G: Beta and I think we were like.
+00:27:03.044 - 00:27:04.362, Speaker E: The first project that launched.
+00:27:04.426 - 00:27:05.646, Speaker G: We'd launched like a day or two.
+00:27:05.668 - 00:27:11.506, Speaker E: After they went to Mainnet. We were basically blocked to launch by that.
+00:27:11.608 - 00:27:14.260, Speaker G: So, yeah, we really love them and.
+00:27:14.710 - 00:27:17.426, Speaker E: We think that they do amazing work as well.
+00:27:17.528 - 00:27:38.298, Speaker F: All right, so I want to wrap up this oracle chat and the incident in a sense with the want because I think we got a little technical on multiple fronts there. I do want to maybe do a final section for just takeaways. Right. So I want each of you to.
+00:27:38.304 - 00:27:39.100, Speaker G: Kind of maybe.
+00:27:41.550 - 00:28:02.420, Speaker F: Discuss maybe, because people are obviously listening to this, maybe they want to use Solana Defi Solana borrow lend. Maybe they're bigger players, maybe they're smaller players, whatever. What should they take away from this incident and how you guys approach risk management in general? And we can do, I guess, Edgar first and unruoter after?
+00:28:03.750 - 00:28:04.162, Speaker B: Sure.
+00:28:04.216 - 00:28:04.820, Speaker H: Yeah.
+00:28:06.630 - 00:28:10.134, Speaker A: I think the main takeaway is that as an industry, we should be talking.
+00:28:10.172 - 00:28:11.750, Speaker H: Way more about risk management.
+00:28:13.050 - 00:28:18.742, Speaker A: We had a bunch of conversation online. Tarun published an article. Ruder and I are on this call.
+00:28:18.876 - 00:28:20.338, Speaker H: We should 100 exit.
+00:28:20.434 - 00:28:21.174, Speaker B: Right.
+00:28:21.372 - 00:28:25.146, Speaker A: The conversation in general, and I think, I was thinking from the perspective of.
+00:28:25.168 - 00:28:28.074, Speaker H: A user, if I'm going into this.
+00:28:28.192 - 00:28:36.078, Speaker A: Situation, I'm trying to figure out which platform to trust. There is a sea of information. It, I think can be 100 times.
+00:28:36.164 - 00:28:39.646, Speaker H: Cleaner than it is today. I think all of this can be.
+00:28:39.668 - 00:28:42.320, Speaker A: Communicated to users much, much better.
+00:28:43.090 - 00:28:44.894, Speaker H: That's the main takeaway for me.
+00:28:45.012 - 00:28:46.326, Speaker A: It's pretty abstract.
+00:28:46.458 - 00:28:46.754, Speaker B: Right.
+00:28:46.792 - 00:28:48.754, Speaker A: I think the second thing I would.
+00:28:48.792 - 00:28:56.754, Speaker H: Think about is who cares about this, right? Which developers, which teams are taking the.
+00:28:56.792 - 00:29:02.530, Speaker A: Time to talk about it, to highlight their progress, their evolution?
+00:29:02.610 - 00:29:03.240, Speaker B: Right.
+00:29:04.490 - 00:29:07.926, Speaker A: I'll call us out here. This is something I think we can be doing a lot better.
+00:29:08.028 - 00:29:08.680, Speaker B: Right.
+00:29:09.130 - 00:29:33.342, Speaker A: We've done a ton of risk management work behind the scenes. We're running some really interesting multilayered forecasting models that are looking at tailor risk scenarios when it comes to market depth, when it comes to depth, recovery time when it comes to price. You know, Camino's got a great dashboard that highlights a ton of interesting data points that users can go and access.
+00:29:33.396 - 00:29:34.270, Speaker H: That we don't have.
+00:29:34.340 - 00:29:34.574, Speaker B: Right.
+00:29:34.612 - 00:29:46.498, Speaker A: I think we could be doing a lot better on that front, visualizing this information, and it's inspiring to see people kind of pushing in this direction. So to me, the takeaway here, right, is like, we could debate a lot.
+00:29:46.504 - 00:29:48.034, Speaker H: Of these details, but I think in.
+00:29:48.072 - 00:29:52.918, Speaker A: General, this conversation needs to be happening a lot more and it needs to.
+00:29:52.924 - 00:29:55.030, Speaker H: Be synthesized a lot better for users.
+00:29:56.650 - 00:30:00.710, Speaker G: Yeah, I'd agree that risk management could definitely be talked about more.
+00:30:00.780 - 00:30:03.138, Speaker E: It's a little bit of a tragedy.
+00:30:03.234 - 00:30:07.786, Speaker G: Of capitalism or something where. And what I mean by that is.
+00:30:07.808 - 00:30:10.394, Speaker E: That that kind of content doesn't get.
+00:30:10.432 - 00:30:17.854, Speaker G: All the engagement, right. Like, people want to see you being risk on and launching shitcoins and doing those types of things, right?
+00:30:17.892 - 00:30:22.478, Speaker E: High LCVs, but it's kind of a.
+00:30:22.484 - 00:30:27.938, Speaker G: Thankless job too, right? No one appreciates it until you save.
+00:30:28.024 - 00:30:32.514, Speaker E: Millions of dollars from loss, but if.
+00:30:32.552 - 00:30:34.434, Speaker G: You do save them, no one notices it.
+00:30:34.472 - 00:30:35.060, Speaker B: Right.
+00:30:37.030 - 00:30:42.470, Speaker G: It's a little bit of a tricky one to get everyone talking about it. So I definitely appreciate your efforts in.
+00:30:42.540 - 00:30:44.534, Speaker E: Trying to get this out more, and.
+00:30:44.652 - 00:30:52.566, Speaker G: We want to support you and do this as well. It's also kind of funny. I've noticed everyone says security is number one.
+00:30:52.748 - 00:30:54.426, Speaker E: Many teams say that, and I was.
+00:30:54.448 - 00:30:58.714, Speaker G: Just thinking, like, there's no way that everyone is actually, like, security is actually.
+00:30:58.752 - 00:31:00.780, Speaker E: Number one for that many people, right.
+00:31:02.030 - 00:31:04.126, Speaker G: And it's a bit of an unfortunate thing.
+00:31:04.148 - 00:31:06.954, Speaker E: It's just like crypto is this unique.
+00:31:07.002 - 00:31:18.126, Speaker G: Asset class that has so many security considerations that everyone wanting to build something has to be an expert in all these different things, but maybe someone just.
+00:31:18.148 - 00:31:21.380, Speaker E: Wants to build a cool social app or a cool game.
+00:31:21.830 - 00:31:23.810, Speaker G: And yet security still has to be.
+00:31:23.880 - 00:31:25.330, Speaker E: Their number one priority.
+00:31:26.150 - 00:31:27.506, Speaker G: But it's tough to do because not.
+00:31:27.528 - 00:31:33.910, Speaker E: Everyone can have a background in risk management and smart contract security, et cetera.
+00:31:34.810 - 00:31:37.346, Speaker G: But what I'd say the biggest takeaway.
+00:31:37.458 - 00:31:39.942, Speaker E: They should take from here is that.
+00:31:40.076 - 00:31:55.886, Speaker G: For Soland, the number one goal that we have is being practical about risk management. We'd rather save users from losing money unnecessarily than taking on some kind of theoretical stance just because it's correct by.
+00:31:55.908 - 00:32:04.154, Speaker E: The books, which shown in this example here, how we're using the soul oracle to price MSOL.
+00:32:04.282 - 00:32:05.786, Speaker G: Basically, just given all the trade offs.
+00:32:05.818 - 00:32:15.586, Speaker E: We feel that it's a safer choice for now, but in the future, when situation improves, then we can change that.
+00:32:15.608 - 00:32:26.174, Speaker C: As a listener of this show, I'm sure you own some soul. And if you do, the question is, are you staking? If you want to get started with staking, you should check out marinade, which is the most optimized way to stake your soul today. Staking by yourself and choosing one validator.
+00:32:26.222 - 00:32:27.374, Speaker A: That puts you at a lot of risk.
+00:32:27.422 - 00:32:48.262, Speaker C: You don't know if that validator goes offline. You have to constantly monitor it. You might not get the best risk adjusted return. Said use Marinade, who monitors all the validators throughout Salana, then chooses over the top 100 best validators to delegate to. So all you have to do is go to marinade. They'll automatically delegate your stake in the most optimized way across. These validators have the best risk adjuster reward that's based on inflation, also fees and MeV.
+00:32:48.262 - 00:33:12.542, Speaker C: So once you choose Marinade, there's two ways to do it. If you want to play with DeFi, they have a liquid staking token called MSOL Marinade Sol. If you just stake with Marinade, you choose the liquid staking option, and you'll get your capital back immediately that you can play throughout Defi. Now, some people don't want that Defi contract risk. They don't want that peg risk between the LST and the underlying asset. They just want to stake and earn rewards. Well, Marinade has a product called Marinade Native, which is a way for you to get the best parts of Marinade, but without that LST and Defi risk.
+00:33:12.542 - 00:33:25.298, Speaker C: Marinade's been around for over two years. They have four audits from some of the top security firms in crypto, and they're also the largest LST provider in Solana. So why not get started today? Go check them out, put a link in the show notes, go play around. You'll see why Marinade's only possible on Solana.
+00:33:25.394 - 00:33:25.798, Speaker E: Now.
+00:33:25.884 - 00:33:26.762, Speaker D: Let's get to the show.
+00:33:26.816 - 00:33:33.338, Speaker F: I agree. Obviously, we need to talk more about risk, but I'm probably going to get a little spicy here because there's definitely a disagreement here.
+00:33:33.424 - 00:33:33.818, Speaker E: Right?
+00:33:33.904 - 00:33:51.314, Speaker F: I think one of you believes the other's approach is maybe too theoretical, or there's something that you would do differently. And so if we were to just dumb that down to anybody listening who doesn't understand borrow and lend, what is that core philosophical difference? What is causing all these disagreements between.
+00:33:51.352 - 00:33:55.774, Speaker E: The two parties here? I think my hunch is that Salen.
+00:33:55.822 - 00:34:00.162, Speaker G: Has been around for a while and we went through many, many different incidents.
+00:34:00.306 - 00:34:03.766, Speaker E: So just to list a couple, there.
+00:34:03.788 - 00:34:12.298, Speaker G: Was a lot of Salana downtime network issues. There's one that was like 17 hours, but for some time there was one like every week.
+00:34:12.384 - 00:34:19.290, Speaker E: And that was basically an incident for us. There were multiple oracle mispricings that caused incidents.
+00:34:19.950 - 00:34:22.070, Speaker G: And then later there was the deep.
+00:34:22.150 - 00:34:23.382, Speaker E: In you of UST.
+00:34:23.526 - 00:34:35.566, Speaker G: At the time, Solan had UST as an asset listed. So that was a pretty crazy market scenario. There was a collapse of three AC plus all the contagion. There was the collapse of FTX, of.
+00:34:35.588 - 00:34:38.914, Speaker E: Course, the price of Seoul dropping from.
+00:34:38.952 - 00:34:41.506, Speaker G: 250 to like $10 in a pretty.
+00:34:41.528 - 00:34:46.690, Speaker E: Short period of time. Also with FTX, there was so BTC.
+00:34:47.350 - 00:34:50.098, Speaker G: That just suddenly became unbacked and we.
+00:34:50.104 - 00:34:57.734, Speaker E: Had to deal with that. So basically, through dealing with all these issues, we found that the best way.
+00:34:57.772 - 00:34:59.366, Speaker G: To protect against these things is to.
+00:34:59.388 - 00:35:03.480, Speaker E: Be very on top of things and quick thinking.
+00:35:04.330 - 00:35:07.434, Speaker G: And that you can try to prepare as much as you want.
+00:35:07.472 - 00:35:10.614, Speaker E: You can choose your oracles super meticulously.
+00:35:10.662 - 00:35:13.034, Speaker G: But something like it's not going to stop these things from happening.
+00:35:13.072 - 00:35:14.326, Speaker E: At the end of the day, there's.
+00:35:14.358 - 00:35:18.586, Speaker G: Going to be some intervention that you all have to take for these idiosyncratic.
+00:35:18.618 - 00:35:23.550, Speaker E: Type events that are very hard to predict. And each one is super unique.
+00:35:24.290 - 00:35:26.666, Speaker G: And I think this kind of goes back to what you were saying, Edgar.
+00:35:26.698 - 00:35:33.940, Speaker E: About Turin's paper where he mentioned that things are very. I forget how he said it, but.
+00:35:35.270 - 00:35:36.498, Speaker G: Yeah, I think he was alluding to.
+00:35:36.504 - 00:35:43.234, Speaker E: This, basically that there are these very one off risks that happen. So I think this is what drives.
+00:35:43.282 - 00:35:45.080, Speaker G: Our philosophy on these things.
+00:35:47.130 - 00:35:48.920, Speaker E: Yeah, go ahead.
+00:35:52.670 - 00:35:53.754, Speaker H: I think you make a good point.
+00:35:53.792 - 00:35:56.186, Speaker A: Right. There's a disagreement, but we're both saying.
+00:35:56.208 - 00:35:57.420, Speaker H: The same things, right?
+00:35:58.590 - 00:36:01.046, Speaker A: I think both sides seem like they'd.
+00:36:01.078 - 00:36:07.070, Speaker H: Rather operate in a more practical way, in a more actionable way than a more theoretical way.
+00:36:07.140 - 00:36:07.470, Speaker B: Right.
+00:36:07.540 - 00:36:08.574, Speaker A: I don't disagree with that.
+00:36:08.612 - 00:36:13.614, Speaker H: I don't disagree that looking at more.
+00:36:13.652 - 00:36:18.222, Speaker A: Tangible, grounded data, making decisions based off that data is smarter.
+00:36:18.286 - 00:36:18.900, Speaker B: Right.
+00:36:19.750 - 00:36:25.570, Speaker A: I think the things that we prioritize underneath that abstract layer.
+00:36:25.910 - 00:36:28.562, Speaker H: How we actually go about doing that.
+00:36:28.616 - 00:36:30.358, Speaker A: From our perspectives, I think is different.
+00:36:30.444 - 00:36:31.080, Speaker B: Right.
+00:36:32.650 - 00:36:35.122, Speaker A: Margin Phi is definitely newer than Soland.
+00:36:35.186 - 00:36:35.846, Speaker B: Right?
+00:36:36.028 - 00:36:37.222, Speaker H: No question there.
+00:36:37.356 - 00:36:40.790, Speaker A: I've been working on risk engines for.
+00:36:40.860 - 00:36:42.470, Speaker H: A little over a decade.
+00:36:42.990 - 00:37:31.846, Speaker A: Personally started my career at Goldman Sachs. Right. I was working on leverage risk models. Looking at it was a $90 billion platform at the time. We were talking about individual vehicles that were from 300 million to 7 billion in size. And we were looking at institutional bees, how to solve that balance of risk and reward that comes with leverage for them, right. Post the recession, right, in an industry that was just absolutely scarred by the experiences that they went through in eight, where a lot of their theoretical assumptions fell apart, right? Maybe not as spicy in this group, but when I talk about why we decided to build on Solana, why we.
+00:37:31.868 - 00:37:35.114, Speaker H: Like high performance infrastructure, I talk about.
+00:37:35.152 - 00:37:39.702, Speaker A: How risk management, to Ruder's point, about reacting quickly, talk about how risk management.
+00:37:39.766 - 00:37:41.660, Speaker H: Is really like two things, right?
+00:37:42.110 - 00:37:45.258, Speaker A: If you take an analogy, you're flying a plane, let's say it's like a.
+00:37:45.344 - 00:37:57.374, Speaker H: Cool fighter jet, whatever, and you're flying through the fog. You kind of have two things you can rely on to not run into something, right? One is the sensors that you build, right.
+00:37:57.492 - 00:38:05.714, Speaker A: Sensors can tell you what's going on in the front, and maybe you don't see it with your own eyes, right? But you have some idea with some.
+00:38:05.832 - 00:38:08.258, Speaker H: Predictability of what's in front of you.
+00:38:08.424 - 00:38:17.426, Speaker A: And then the second thing that you have is you have the steering wheel, right, or whatever it's called in a plane. I've been telling this analogy so much, I still don't know what the steering.
+00:38:17.458 - 00:38:20.934, Speaker H: Wheel in the plane is called. So that's why I'll take that one on me.
+00:38:21.132 - 00:38:24.226, Speaker A: But at the end of the day, right, no matter how good your sensors.
+00:38:24.258 - 00:38:26.966, Speaker H: Are, if you're flying and your sensors.
+00:38:26.998 - 00:38:28.746, Speaker A: Don'T catch something and something comes out.
+00:38:28.768 - 00:38:31.194, Speaker H: Of the clouds, you can jerk the steering wheel, right.
+00:38:31.232 - 00:38:32.806, Speaker A: And the speed at which your steering.
+00:38:32.838 - 00:38:36.758, Speaker H: Wheel reacts and pulls your plane to the side. That's critical.
+00:38:36.854 - 00:38:37.500, Speaker B: Right.
+00:38:37.970 - 00:38:45.182, Speaker A: And both sides of this problem are important to work on, right. Our risk models, like I mentioned, the conditional value risk that we look at.
+00:38:45.236 - 00:38:47.130, Speaker H: The market depth, the depth of recovery.
+00:38:47.210 - 00:38:58.126, Speaker A: Those are our sensors, right. We look at, like I mentioned, tailor risk scenarios. I think, like Salana, for example, we assume that on any given day, Salana.
+00:38:58.158 - 00:38:59.682, Speaker H: Will drop 80% right.
+00:38:59.736 - 00:39:09.400, Speaker A: Over the course of the next 24 hours. It's double the historical drop that we've seen Salana ever do, right? And that's just like a starting point for us, right?
+00:39:09.930 - 00:39:10.742, Speaker H: That's fine.
+00:39:10.796 - 00:39:18.234, Speaker A: But at the end of the day, no matter how good your sensors are, you need a steering wheel that can jerk you in the right direction when.
+00:39:18.272 - 00:39:19.590, Speaker H: Things come out of the clouds.
+00:39:19.670 - 00:39:23.846, Speaker A: And I think that's actually a big part of that, is high performance infrastructure.
+00:39:24.038 - 00:39:25.646, Speaker H: That's Solana, right.
+00:39:25.748 - 00:39:28.334, Speaker A: It's also the high performing liquidators that.
+00:39:28.372 - 00:39:32.042, Speaker H: Sit off chain and that contribute to your protocol.
+00:39:32.106 - 00:39:32.766, Speaker B: Right.
+00:39:32.948 - 00:39:36.814, Speaker A: We spend quite a bit of time building high performance infrastructure across the board.
+00:39:36.852 - 00:39:40.258, Speaker H: We've got a great team with relevant backgrounds for it.
+00:39:40.424 - 00:39:57.014, Speaker A: They really love the opportunities that Solana and the infrastructure around it gives them to run, and I think that's a key part to solvency risk again. Yeah, for me, because I listened to Ruder and I. And we're not the only ones, right. Saying a lot of the same high.
+00:39:57.052 - 00:39:58.866, Speaker H: Level kind of principles.
+00:39:59.058 - 00:40:05.142, Speaker A: And to Ruder's point, everybody in the industry says that security is number one, that risk management is. You don't see anybody being like, hey.
+00:40:05.196 - 00:40:07.466, Speaker H: I have a lending platform, and I.
+00:40:07.488 - 00:40:12.058, Speaker A: Hope it blows up. I'm trying to build something that explodes. People are not going to say that, right.
+00:40:12.224 - 00:40:17.214, Speaker H: I think what it takes is going one step deeper and saying, okay, do.
+00:40:17.252 - 00:40:26.062, Speaker A: I align with this team's methodology? Do they seem to me like they're prioritizing, then, you know, thinking about your actions from there?
+00:40:26.116 - 00:40:41.240, Speaker D: Edgar, I'd have two follow up questions just for the audience. You talk about the speed of liquidations and how important that is. Can you explain? I'm assuming that's important because, one, you don't want bad debt for the protocol, and then also you need liquidator profitability. Can you talk about those two things and how important they are?
+00:40:42.570 - 00:40:46.870, Speaker A: Yeah, for sure. So, I mean, I think liquidator profitability.
+00:40:47.370 - 00:40:57.194, Speaker H: Is the number one most important metric from the liquidator perspective, right. As a liquidator, your job is to.
+00:40:57.312 - 00:41:14.650, Speaker A: Shoot for opportunities that you have to liquidate positions. Those opportunities are determined initially by protocol constraints, right? So on Marginfi, we have the concept of a health ratio. Your health ratio goes below zero, you're exposed to liquidations.
+00:41:14.730 - 00:41:16.946, Speaker H: The protocol makes that decision, right?
+00:41:17.048 - 00:41:28.910, Speaker A: And from there, it's on third party liquidators that are sitting outside of margin Phi, right. The protocol to go ahead and liquidate your position.
+00:41:29.000 - 00:41:35.190, Speaker H: Now, this is really interesting, right? Because when folks think about risk management.
+00:41:35.530 - 00:41:39.160, Speaker A: When it comes to lending protocols, they're often thinking about the protocol itself.
+00:41:39.930 - 00:41:42.954, Speaker H: But the protocol itself, at least under.
+00:41:42.992 - 00:41:47.818, Speaker A: Traditional circumstances, can't liquidate positions entirely on its own, right?
+00:41:47.904 - 00:41:54.910, Speaker H: Like when a position goes below zero with its health ratio, in that moment.
+00:41:54.980 - 00:41:57.262, Speaker A: In that immediate moment, nothing happens.
+00:41:57.396 - 00:41:57.838, Speaker B: Right.
+00:41:57.924 - 00:41:59.934, Speaker A: And it needs to wait for a.
+00:41:59.972 - 00:42:03.600, Speaker H: Third party liquidator to come and liquidate that position.
+00:42:05.250 - 00:42:15.810, Speaker A: Gauntlet wrote about this in their article today. This can be framed as a principal agent problem. You, liquidators, as agents, they optimize for.
+00:42:15.880 - 00:42:22.360, Speaker H: Incentives that matter to them, right? From a liquidator perspective, what matters to you is profitability. And I think that.
+00:42:24.170 - 00:42:29.778, Speaker A: It sounds kind of obvious, right? Like, okay, we have a liquidator, or there are a bunch of liquidators, they're.
+00:42:29.794 - 00:42:31.438, Speaker H: Going to go and liquidate for profitability.
+00:42:31.554 - 00:42:33.446, Speaker A: I think what really matters is understanding.
+00:42:33.478 - 00:42:44.800, Speaker H: That if liquidators are not confident in the moment that they will be profitable, they won't choose to participate in a liquidation scheme, right?
+00:42:45.330 - 00:43:01.470, Speaker A: And that means that in the worst moments, where there are issues that cause liquidators to lose faith in their profitability or to run measurements against, look at their analytics, recognize that they can liquidate.
+00:43:01.550 - 00:43:03.390, Speaker H: But they won't be profitable liquidating.
+00:43:03.470 - 00:43:03.858, Speaker B: Right.
+00:43:03.944 - 00:43:05.362, Speaker A: Those are moments that we should expect.
+00:43:05.416 - 00:43:09.634, Speaker H: Liquidators not to liquidate, and we should.
+00:43:09.672 - 00:43:12.962, Speaker A: Expect those parameters to be built into liquidators programmatically.
+00:43:13.026 - 00:43:13.350, Speaker B: Right?
+00:43:13.420 - 00:43:17.640, Speaker A: Like, if I'm building a liquidator myself, I'm just Edgar the engineer, right?
+00:43:18.090 - 00:43:20.134, Speaker H: I am building a liquidator that will.
+00:43:20.172 - 00:43:21.946, Speaker A: Check to make sure I'm profitable on.
+00:43:21.968 - 00:43:26.554, Speaker H: Every single liquidation, and if I'm not profitable on that liquidation in a given.
+00:43:26.592 - 00:43:28.150, Speaker A: Moment, I'm not liquidating.
+00:43:28.230 - 00:43:28.618, Speaker B: Right?
+00:43:28.704 - 00:43:32.700, Speaker H: And that means that I could be.
+00:43:33.070 - 00:43:40.362, Speaker A: Removing myself from a group of actors that's been relied on to maintain solvency for this lending protocol.
+00:43:40.426 - 00:43:40.798, Speaker B: Right?
+00:43:40.884 - 00:43:51.266, Speaker A: I think this is, like, a really important incentive problem to solve, for. It is the crux of our risk engines. When we look at market depth, when.
+00:43:51.288 - 00:43:56.594, Speaker H: We look at depth recovery time, when we forecast tail risk scenarios, there we.
+00:43:56.632 - 00:44:00.246, Speaker A: Are benchmarking everything we do off of.
+00:44:00.268 - 00:44:02.854, Speaker H: The idea that liquidators will only take.
+00:44:02.892 - 00:44:08.774, Speaker A: Action if they are profitable and will immediately step out of the game if.
+00:44:08.812 - 00:44:11.026, Speaker H: They find themselves to be unprofitable.
+00:44:11.138 - 00:44:46.894, Speaker A: I think this is, like, incredibly important and still very under discussed part of lending protocols. And I think there's a lot more that can be done on the liquidator front to incentivize them from the protocol perspective, it's something that we hope to push and speak a lot more about at margin going forward. But historically speaking, liquidator profitability, obviously, I think the key metric to touch on, Gary, your mention of high performance and kind of, of liquidators winning those liquidations in a situation where the liquidator environment.
+00:44:46.942 - 00:44:51.202, Speaker H: Is competitive, the speed that your liquidator.
+00:44:51.266 - 00:44:58.726, Speaker A: Can operate at, how performant those trading systems are, is critical towards your individual.
+00:44:58.908 - 00:45:07.322, Speaker H: Profitability as a liquidator right? Now. Note that it's a good scenario if liquidations are competitive, right.
+00:45:07.456 - 00:45:10.074, Speaker A: And generally speaking, in the good times.
+00:45:10.192 - 00:45:13.318, Speaker H: Liquidations continue to be competitive.
+00:45:13.414 - 00:45:21.470, Speaker A: Lots of liquidators are shooting for those profitable opportunities. What is important from our perspective.
+00:45:26.130 - 00:45:26.494, Speaker H: We.
+00:45:26.532 - 00:45:28.666, Speaker A: Think less about helping liquidators in profitable.
+00:45:28.698 - 00:45:30.930, Speaker H: Times, in good times we think that.
+00:45:31.000 - 00:45:37.426, Speaker A: The market will compete on its own there. I'm constantly thinking about tailor risk scenarios, right. Like, my entire day is waking up.
+00:45:37.448 - 00:45:38.418, Speaker H: And going all right.
+00:45:38.504 - 00:45:41.318, Speaker A: Like, Salana plummets 80% in a day.
+00:45:41.404 - 00:45:41.894, Speaker B: Right.
+00:45:42.012 - 00:45:47.094, Speaker H: Market depth is at P 95 bad.
+00:45:47.212 - 00:45:47.880, Speaker B: Right.
+00:45:49.930 - 00:45:51.318, Speaker A: Everyone's pulling out.
+00:45:51.404 - 00:45:52.950, Speaker H: Things are cascading.
+00:45:53.110 - 00:46:03.050, Speaker A: We work with a team called Fibonacci finance, if you guys are familiar. They provide a decent amount of the data that we use for our systems.
+00:46:03.390 - 00:46:05.994, Speaker H: We've talked to them about contagion risk.
+00:46:06.042 - 00:46:06.350, Speaker B: Right.
+00:46:06.420 - 00:46:14.910, Speaker A: Understanding how waterfall liquidations across platforms in an ecosystem can affect margin phi in this case.
+00:46:14.980 - 00:46:15.550, Speaker B: Right.
+00:46:15.700 - 00:46:23.458, Speaker A: I think those tailor scenarios are pretty much all that matters from a risk management perspective. Obviously, you balance business interests on the.
+00:46:23.464 - 00:46:24.994, Speaker H: Other side, but, yeah.
+00:46:25.032 - 00:46:28.946, Speaker A: For me, I'm a lot more worried about what it takes for liquidators to.
+00:46:28.968 - 00:46:31.266, Speaker H: Continue liquidating when things get tough than.
+00:46:31.288 - 00:46:33.106, Speaker A: I am about what it takes for.
+00:46:33.128 - 00:46:35.080, Speaker H: Liquidators to win when things are good.
+00:46:35.610 - 00:46:38.982, Speaker A: I'm going to drink some of this. I got European McDonald's for the second.
+00:46:39.036 - 00:46:44.570, Speaker H: Time in my life, so if you see me with the coke, it's just taking advantage.
+00:46:45.550 - 00:46:46.058, Speaker E: Nice.
+00:46:46.144 - 00:46:51.862, Speaker G: Some things I'd like to add there. So I think it's important to clarify.
+00:46:51.926 - 00:46:57.920, Speaker E: That it's not about the fastest liquidation. It's about the best execution as well.
+00:46:58.530 - 00:47:01.722, Speaker G: Because being the fastest just encourages spam.
+00:47:01.866 - 00:47:05.002, Speaker E: You get liquidators doing spray and pray.
+00:47:05.146 - 00:47:19.874, Speaker G: And because of this, they use Dex only liquidity and end up getting pretty bad execution, and especially for larger sizes. So this is something we saw, given that liquidations initially on Salan V one.
+00:47:19.992 - 00:47:22.930, Speaker E: Were all about whoever lands first wins.
+00:47:23.990 - 00:47:28.006, Speaker G: But in Salan V two, we change it to this kind of auction model.
+00:47:28.108 - 00:47:34.700, Speaker E: Where basically the bonus that the liquidators get is slowly increasing over time.
+00:47:35.950 - 00:47:46.666, Speaker G: And so whoever feels that they can liquidate with good execution such that it is profitable, they're able to take advantage.
+00:47:46.698 - 00:47:47.440, Speaker E: Of that.
+00:47:49.490 - 00:48:03.454, Speaker G: And win that liquidation, whereas, let's say, someone else who doesn't have access to centralized exchange liquidity has a lot of slippage. They wouldn't be able to liquidate, and so they don't win that liquidation. So, yeah, I just want to emphasize.
+00:48:03.502 - 00:48:06.914, Speaker E: That it's not just about speed for.
+00:48:06.952 - 00:48:09.460, Speaker G: Liquidation, it's speed and execution as well.
+00:48:09.990 - 00:48:14.130, Speaker E: Another point that's, I think, pretty interesting.
+00:48:14.200 - 00:48:16.440, Speaker H: Is that I like the auction model.
+00:48:17.130 - 00:48:17.590, Speaker E: Nice.
+00:48:17.660 - 00:48:18.440, Speaker G: Thank you.
+00:48:18.970 - 00:48:19.814, Speaker A: My support there.
+00:48:19.852 - 00:48:20.422, Speaker B: Go ahead.
+00:48:20.556 - 00:48:21.240, Speaker E: Nice.
+00:48:22.650 - 00:48:24.566, Speaker G: So one thing we saw during the.
+00:48:24.588 - 00:48:31.254, Speaker E: FTX Cris is that all of the third party liquidators basically left because Soland.
+00:48:31.302 - 00:48:40.634, Speaker G: Was mostly run by the liquidations were mostly run by third party liquidators. Like, when we first launched, we created.
+00:48:40.682 - 00:48:44.638, Speaker E: A reference implementation of a liquidator that.
+00:48:44.644 - 00:48:47.394, Speaker G: We open sourced, and we encouraged people.
+00:48:47.432 - 00:49:02.274, Speaker E: To take it, improve it, and run them. And so we had many, many people running liquidators, but it was very interesting that they all left when there's a lot of uncertainty.
+00:49:02.322 - 00:49:04.466, Speaker G: So another key thing is that it's.
+00:49:04.498 - 00:49:07.606, Speaker E: Not just about profitability, it's about the.
+00:49:07.628 - 00:49:12.326, Speaker G: Expectation of profit, because during FTX, it was actually an extremely lucrative time to.
+00:49:12.348 - 00:49:14.650, Speaker E: Run liquidators and our bots.
+00:49:15.390 - 00:49:17.626, Speaker G: You could have made in a day what you would have in like the.
+00:49:17.648 - 00:49:22.234, Speaker E: Whole year, if not more. But a lot of people were just.
+00:49:22.432 - 00:49:33.310, Speaker G: There'S so much uncertainty around exchanges and just everything, so much chaos in the markets that a lot of people just stopped liquidating. And that was pretty problematic.
+00:49:33.970 - 00:49:39.442, Speaker E: So, yeah, since then, we've improved our liquidator a lot.
+00:49:39.496 - 00:49:41.566, Speaker G: We have a super high performance liquidator.
+00:49:41.678 - 00:49:52.680, Speaker E: And we also still have some third party ones that are competing. And it's better for the whole system since it improves everyone.
+00:49:53.370 - 00:49:57.670, Speaker G: But, yeah, we have much better high performance liquidation engine.
+00:49:57.740 - 00:50:12.886, Speaker A: Right now, we run all of our risk models off of the idea that only the in house liquidators that we manage ourselves on the core team are operating. We effectively assume that every third party liquidator will leave if things get uncertain.
+00:50:12.918 - 00:50:13.258, Speaker B: Right.
+00:50:13.344 - 00:50:18.734, Speaker A: Which I think it's what you have to do, because there is so much.
+00:50:18.772 - 00:50:22.222, Speaker H: Uncertainty and the expectation, the sentiment can change so quickly.
+00:50:22.276 - 00:50:25.738, Speaker A: Right. That relying on them, I think, is dangerous from a risk perspective.
+00:50:25.914 - 00:50:27.278, Speaker H: It's a conservative view, but I think.
+00:50:27.284 - 00:50:27.950, Speaker A: It'S the right one.
+00:50:28.020 - 00:50:31.778, Speaker G: I don't know how much time, more time we have left on this, but there is some other stuff I want.
+00:50:31.784 - 00:50:37.762, Speaker E: To touch on during this episode, if I may. Yep, go ahead. Okay, cool.
+00:50:37.816 - 00:50:43.800, Speaker G: So I guess to set the stage a little bit, the whole reason we're here is due to some Twitter drama, right?
+00:50:44.490 - 00:50:47.398, Speaker E: So start off with Ripley's from our.
+00:50:47.404 - 00:50:56.646, Speaker G: Team posting something about how we do things technically. And then McBrenan, from your team, retweeted it saying that this is why he's.
+00:50:56.758 - 00:50:59.500, Speaker E: Forget the colorful language he used, but.
+00:51:00.350 - 00:51:02.326, Speaker G: It'S kind of disparaging our risk management.
+00:51:02.358 - 00:51:06.080, Speaker E: And whatnot, why he's terrified of whatever.
+00:51:07.010 - 00:51:19.634, Speaker G: Rather than bringing this up to us privately. And this kind of highlights a pattern that we've been seeing from marginfi, basically many examples of people from marginfi making.
+00:51:19.672 - 00:51:21.090, Speaker E: Things up about Soland.
+00:51:21.750 - 00:51:31.154, Speaker G: So some examples. A couple of months ago, there was a tweet that was saying that all Solen TVL is just Alameda and of course that's not true.
+00:51:31.192 - 00:51:32.726, Speaker E: If you actually take a look at.
+00:51:32.748 - 00:51:45.754, Speaker G: Things coupled with that was like, oh, Celen, V two has no TVL. It's all in V one, which also isn't true because it's an in place upgrade. So it's the same liquidity. And we even were back channeled by.
+00:51:45.792 - 00:51:52.730, Speaker E: An ecosystem project that you told OKX not to work with us because we're, quote, sketchy.
+00:51:53.550 - 00:51:57.502, Speaker G: So this has been a pattern. And we have talked about this before.
+00:51:57.636 - 00:52:06.478, Speaker E: Edgar, one on one through DMs and in the call, and I remember you said that you let people on the.
+00:52:06.484 - 00:52:10.894, Speaker G: Team speak their minds and that you try to verify everything internally as vigorously.
+00:52:10.942 - 00:52:14.098, Speaker E: As possible, which is a little bit.
+00:52:14.104 - 00:52:15.314, Speaker G: Hard to believe because some of these.
+00:52:15.352 - 00:52:19.106, Speaker E: Things are very obviously not true, and.
+00:52:19.128 - 00:52:24.294, Speaker G: It doesn't take too much to actually verify them. And basically, our approach on this was.
+00:52:24.332 - 00:52:30.146, Speaker E: That we just ignored all this for a long time, for months, just hoping.
+00:52:30.178 - 00:52:42.300, Speaker G: That it would go away, I suppose, or not thinking that it was too big of a deal. But it really ramped up and continued, and it got to a point where we kind of had to respond because.
+00:52:43.950 - 00:52:45.214, Speaker E: You guys have been growing a lot.
+00:52:45.252 - 00:52:46.574, Speaker G: There's a lot of engagement on this.
+00:52:46.612 - 00:52:59.006, Speaker E: Type of stuff, and it's been pretty damaging as well. So, yeah, I'd like to address that. And basically, Edgar, we've chatted, and I.
+00:52:59.028 - 00:53:00.846, Speaker G: Feel like you're a really good person.
+00:53:00.948 - 00:53:06.306, Speaker E: And the way that you act is especially, is super different from other people on your team.
+00:53:06.488 - 00:53:07.858, Speaker G: But I want to point out that.
+00:53:07.944 - 00:53:15.126, Speaker E: It creates a little bit of a good cop bad cop routine, whether it's intentional or not, where basically you let.
+00:53:15.308 - 00:53:20.262, Speaker G: Brendan on the loose, making a lot of drama, and then you're super nice.
+00:53:20.316 - 00:53:35.866, Speaker E: About things, but you don't do anything to stop it. And in many ways, the inaction of doing anything about it, your inaction is endorsement in itself. And, yeah, I think it would be.
+00:53:35.888 - 00:53:39.706, Speaker G: Really great for everyone in the Solan ecosystem. Since I've gotten a lot of private.
+00:53:39.738 - 00:53:55.602, Speaker E: DMs about this as well, I think it'd be really good if we could set this aside. And we never really came out attacking you guys.
+00:53:55.656 - 00:53:57.042, Speaker G: I think every time we've said anything.
+00:53:57.096 - 00:54:07.030, Speaker E: It'S been in response. So, yeah, it'd be great to improve things for everyone. I think the drama is fun to watch for everyone.
+00:54:07.180 - 00:54:12.454, Speaker G: Got a lot of engagement on this podcast, teasing, as you were saying before we started recording.
+00:54:12.502 - 00:54:19.738, Speaker E: But, yeah, I think this would be great to clear up and have a.
+00:54:19.744 - 00:54:22.554, Speaker G: More collaborative ecosystem going forward.
+00:54:22.672 - 00:54:30.094, Speaker A: We've had conversations about this internally, multiple times. Definitely. In the past week, since all this.
+00:54:30.132 - 00:54:35.294, Speaker H: Conversation has gone on, the intention was.
+00:54:35.332 - 00:54:39.186, Speaker A: Never to antagonize anybody. The intention is not to run like.
+00:54:39.208 - 00:54:40.820, Speaker H: A good cop bad copper team.
+00:54:41.990 - 00:54:45.426, Speaker A: I am not going to say that our execution is perfect on anything.
+00:54:45.528 - 00:54:46.178, Speaker B: Right.
+00:54:46.344 - 00:54:50.630, Speaker A: We're constantly working on trying to improve the way that we do things.
+00:54:50.780 - 00:54:54.294, Speaker H: We disagree internally on the team a ton.
+00:54:54.412 - 00:54:56.680, Speaker A: And I think with such ferocity that.
+00:54:57.370 - 00:55:00.034, Speaker H: If folks were part of the private.
+00:55:00.082 - 00:55:02.134, Speaker A: Conversations that we have, I think it.
+00:55:02.172 - 00:55:07.718, Speaker H: Help them recognize how much we defend.
+00:55:07.814 - 00:55:11.718, Speaker A: Our own views and opinions internally amongst ourselves.
+00:55:11.814 - 00:55:12.460, Speaker B: Right.
+00:55:12.910 - 00:55:19.886, Speaker A: As much as we talk about our perspectives publicly. Look, the one thing that maybe the.
+00:55:19.908 - 00:55:24.606, Speaker H: Thing that I was thinking about this.
+00:55:24.628 - 00:55:25.758, Speaker A: Over the weekend, maybe the thing that.
+00:55:25.764 - 00:55:28.594, Speaker H: We'Ll disagree on the most is the.
+00:55:28.632 - 00:55:33.854, Speaker A: Value of private conversation versus public. I think, you know, from an ecosystem.
+00:55:33.902 - 00:55:39.826, Speaker H: Perspective, like from a partnership perspective, I do think finance is a multi venue play.
+00:55:39.928 - 00:55:45.142, Speaker A: I think that's really important. It's a really strong belief I have. I think if marginfi is the only.
+00:55:45.196 - 00:55:48.166, Speaker H: Lending platform on Solana or within the.
+00:55:48.188 - 00:55:53.250, Speaker A: Relevant space where we're compared, I think that's a problem.
+00:55:53.340 - 00:55:55.114, Speaker H: I think it's a huge problem, right.
+00:55:55.152 - 00:56:06.862, Speaker A: I think there needs to be like a critical mass of multiple venues, and so all we want is folks around us building comparable solutions that we think.
+00:56:06.916 - 00:56:09.998, Speaker H: Are of good quality.
+00:56:10.084 - 00:56:10.334, Speaker B: Right.
+00:56:10.372 - 00:56:15.246, Speaker A: We're solutions that can take different implementations, but that we think, generally speaking, is.
+00:56:15.268 - 00:56:22.660, Speaker H: Of the right quality. That said, I think that public conversation is super, super important.
+00:56:23.270 - 00:56:30.886, Speaker A: And I'll tell you this story from a different kind of angle. We had a conversation with a team.
+00:56:30.988 - 00:56:33.080, Speaker H: Over the weekend, I won't mention who.
+00:56:33.450 - 00:56:34.790, Speaker A: It doesn't really matter.
+00:56:34.940 - 00:56:37.138, Speaker H: They brought something up to us privately.
+00:56:37.314 - 00:56:40.454, Speaker A: And they said, hey, we're bringing this.
+00:56:40.492 - 00:56:41.438, Speaker H: Up to you privately.
+00:56:41.554 - 00:56:42.266, Speaker B: Right.
+00:56:42.448 - 00:56:49.114, Speaker A: Kind of as a note to this private public conversation that has happened last.
+00:56:49.152 - 00:56:50.410, Speaker H: Week off of Twitter.
+00:56:51.230 - 00:56:52.346, Speaker A: And I got to be honest with.
+00:56:52.368 - 00:56:56.362, Speaker H: You, my thought when I read that was, I wish you brought it up publicly.
+00:56:56.506 - 00:56:57.054, Speaker B: Right.
+00:56:57.172 - 00:56:57.840, Speaker A: Because.
+00:57:00.610 - 00:57:03.726, Speaker H: I get the idea that this.
+00:57:03.748 - 00:57:05.594, Speaker A: Is creating unnecessary drama.
+00:57:05.642 - 00:57:10.434, Speaker H: I get that perspective. I think what's more important here is.
+00:57:10.472 - 00:57:12.770, Speaker A: The fact that this is spurring public.
+00:57:12.840 - 00:57:15.490, Speaker H: Conversation and highlighting.
+00:57:17.510 - 00:57:22.482, Speaker A: The opportunities for improvement across the entire ecosystem.
+00:57:22.546 - 00:57:23.014, Speaker B: Right.
+00:57:23.132 - 00:57:26.054, Speaker H: I have never felt better than this.
+00:57:26.092 - 00:57:35.114, Speaker A: Past week when a number of folks from the Solen team and from other teams started really poking at marginfi and.
+00:57:35.152 - 00:57:37.610, Speaker H: Finding the smallest bugs.
+00:57:38.030 - 00:57:38.874, Speaker A: We've been on fire.
+00:57:38.912 - 00:57:40.122, Speaker H: It's been great, right?
+00:57:40.256 - 00:57:49.630, Speaker A: I'm sitting here, I'm going, this is what a community effort to really battle, test the resiliency of something feels like.
+00:57:49.700 - 00:57:50.078, Speaker B: Right.
+00:57:50.164 - 00:57:53.770, Speaker A: Because to me, all of this stuff is incredibly serious.
+00:57:53.850 - 00:57:54.142, Speaker B: Right.
+00:57:54.196 - 00:58:03.582, Speaker A: There's $350,000,000 supplied in margin Phi today. It's one protocol in a sea, in an industry of protocols.
+00:58:03.646 - 00:58:04.210, Speaker B: Right.
+00:58:04.360 - 00:58:08.002, Speaker H: That's incredibly serious capital in a space.
+00:58:08.056 - 00:58:12.754, Speaker A: That has struggled for validation from the mainstream.
+00:58:12.802 - 00:58:13.014, Speaker H: Right.
+00:58:13.052 - 00:58:34.198, Speaker A: We're still incredibly early. We have a lot of institutional players that are evaluating the resiliency of our platform, of this industry in general. I'm not interested in meritocracy from the perspective of, hey, do the margin Phi guys, does the team try hard?
+00:58:34.304 - 00:58:34.670, Speaker B: Right?
+00:58:34.740 - 00:58:38.926, Speaker H: Do they put in work? I flew to Europe to work in.
+00:58:38.948 - 00:58:50.138, Speaker A: Person with our CTO because we have work streams that we're pushing on in this moment. And I up and left and flew halfway around the world because sometimes that's.
+00:58:50.154 - 00:58:50.834, Speaker H: Just what it takes.
+00:58:50.872 - 00:58:51.074, Speaker B: Right.
+00:58:51.112 - 00:58:53.358, Speaker H: But it doesn't matter if we don't execute.
+00:58:53.454 - 00:58:53.954, Speaker B: Right?
+00:58:54.072 - 00:59:02.662, Speaker A: And so I'm just extremely execution oriented. I've been in, a lot of our guys come from mission critical industries, from mission critical backgrounds where we've seen people.
+00:59:02.796 - 00:59:06.466, Speaker H: Great people, put in a ton of effort and fail.
+00:59:06.578 - 00:59:06.998, Speaker B: Right.
+00:59:07.084 - 00:59:09.158, Speaker A: Fail terribly sometimes, and sometimes at the.
+00:59:09.164 - 00:59:11.850, Speaker H: Cost of many people around us.
+00:59:11.920 - 00:59:12.202, Speaker B: Right.
+00:59:12.256 - 00:59:39.950, Speaker A: And so I guess we've just kind of, as an organization, we've just learned not to think about much more than execution right now. That said, I think we're happy to. We've made the decision already internally that we'll have conversations more privately. We're happy to put in more work to make sure that the right information is being passed on and that the conversation is constructive.
+00:59:40.030 - 00:59:40.660, Speaker B: Right.
+00:59:41.110 - 00:59:43.826, Speaker H: But please, to anybody watching this, to.
+00:59:43.848 - 00:59:49.346, Speaker A: Anybody on this call, if you guys see a flawed margin, like put it on the front page of the New.
+00:59:49.368 - 00:59:52.166, Speaker H: York Times every single time, because I.
+00:59:52.188 - 00:59:58.840, Speaker A: Want to see it as fast as possible, I want to hear about it as fast as possible, and I want to give our team the opportunity.
+01:00:01.230 - 01:00:03.514, Speaker H: To build around these issues, to fix them.
+01:00:03.552 - 01:00:06.294, Speaker A: To iterate, and to show the capacity.
+01:00:06.342 - 01:00:08.570, Speaker H: That we have to build resilient systems.
+01:00:10.270 - 01:00:12.362, Speaker E: Yeah, I guess.
+01:00:12.416 - 01:00:16.286, Speaker G: One quick note. You mentioned that people solen have been.
+01:00:16.388 - 01:00:18.414, Speaker E: Poking at margin Phi and that we.
+01:00:18.452 - 01:00:19.770, Speaker G: Found the smallest bugs.
+01:00:19.850 - 01:00:23.534, Speaker E: I think it's a bit interesting to.
+01:00:23.572 - 01:00:27.030, Speaker G: Downplay it like that because the bug actually was a value at risk.
+01:00:27.130 - 01:00:30.290, Speaker E: The issue with the wrapped stake ETH Oracle.
+01:00:30.630 - 01:00:33.714, Speaker G: So, yeah, I wouldn't downplay it like that.
+01:00:33.752 - 01:00:38.740, Speaker A: I mean, it was the same oracle situation that you guys had with.
+01:00:39.210 - 01:00:46.002, Speaker G: No, no, it's quite different. We can get into it. Basically, you guys are using the stake.
+01:00:46.066 - 01:00:49.334, Speaker E: ETH Oracle price, which that is.
+01:00:49.452 - 01:00:54.330, Speaker G: Earlier, at the beginning of the conversation, we talked about the rebasing approach versus.
+01:00:55.310 - 01:01:14.000, Speaker E: The asset that's increasing in price. So it was using the rebasing token price, which is basically pegged to ETH. It's like trades slightly above just due to market stuff, maybe like 1.3, but then the actual wrap stake ETH is like 1.15.
+01:01:14.610 - 01:01:16.538, Speaker G: So that's quite a significant difference.
+01:01:16.644 - 01:01:19.598, Speaker E: And the asset actually was borrowable.
+01:01:19.774 - 01:01:25.106, Speaker G: On Soland, MSOL is not borrowable and therefore underpricing it actually does open you.
+01:01:25.128 - 01:01:25.940, Speaker E: Up to.
+01:01:27.670 - 01:01:29.894, Speaker G: People being able to borrow more than they should and just walk.
+01:01:29.932 - 01:01:32.370, Speaker E: Away, leaving the protocol with bad debt.
+01:01:32.450 - 01:01:43.802, Speaker G: So it's quite a different situation there. And as for just the general public discourse, I do agree with you that.
+01:01:43.936 - 01:01:46.746, Speaker E: Putting things publicly is good, but I.
+01:01:46.768 - 01:01:47.946, Speaker G: Feel that the way that you guys.
+01:01:47.968 - 01:01:50.122, Speaker E: Have been doing it has been more.
+01:01:50.176 - 01:01:55.398, Speaker G: Slanderous than anything else is not really constructive, especially given that a lot of.
+01:01:55.424 - 01:01:58.480, Speaker E: Things have just been flat out wrong, just made up.
+01:01:59.650 - 01:02:01.726, Speaker G: And another thing I'd like to say.
+01:02:01.748 - 01:02:08.538, Speaker E: Is we basically had this conversation a couple of months ago in private and you were saying the same things, that.
+01:02:08.644 - 01:02:15.874, Speaker G: We'Re going to do better, we'll be constructive, I'm going to talk to the team. But nothing really changed. We continued having these kinds of issues.
+01:02:15.992 - 01:02:19.634, Speaker E: So TBH, I won't really believe this.
+01:02:19.672 - 01:02:25.926, Speaker G: Until I see it in your actions in the next couple of months publicly. So I think it's really great what.
+01:02:25.948 - 01:02:27.974, Speaker E: You'Re saying, but I've kind of heard.
+01:02:28.012 - 01:02:30.840, Speaker G: It before and didn't really pan out.
+01:02:34.030 - 01:02:45.566, Speaker A: I'll check back in. We can make a public or private statement on the SC Oracle. I know it's an isolated pool for us. My understanding is that this is all.
+01:02:45.588 - 01:02:50.970, Speaker H: A conversation of oracle abstraction effectively.
+01:02:51.050 - 01:02:51.630, Speaker B: Right.
+01:02:51.780 - 01:02:57.434, Speaker H: And we were leveraging an oracle abstraction.
+01:02:57.482 - 01:02:59.050, Speaker A: Very similar to what you guys were.
+01:02:59.060 - 01:03:00.610, Speaker H: Doing with MSOL and soul.
+01:03:01.030 - 01:03:03.714, Speaker A: Again, I will check in on the details there.
+01:03:03.752 - 01:03:05.890, Speaker H: I know that bug was fixed.
+01:03:06.390 - 01:03:10.138, Speaker A: I'm glad it got brought up again. I'm going to come back to my perspective.
+01:03:10.174 - 01:03:13.922, Speaker H: Like, I'm glad it got brought up. I'm glad it got brought up publicly.
+01:03:13.986 - 01:03:16.614, Speaker A: I'm glad it got brought up as soon as possible.
+01:03:16.732 - 01:03:17.400, Speaker B: Right.
+01:03:18.890 - 01:03:31.082, Speaker A: There were other UI bugs that have been highlighted. We've got a 3000 person telegram community which puts just as many messages into the telegram a day that's constantly highlighting other issues.
+01:03:31.136 - 01:03:33.446, Speaker H: I wasn't just talking about the Soland.
+01:03:33.478 - 01:03:46.682, Speaker A: Effort, although I'm grateful for your guys'contribution. Look, I think we are going to continue to. On my mind is the solvency of marginfi.
+01:03:46.746 - 01:03:47.454, Speaker B: Right.
+01:03:47.652 - 01:03:52.658, Speaker A: I want lenders to maintain their solvency. I want them to be able to.
+01:03:52.664 - 01:03:55.074, Speaker H: Get their funds back. I want borrowers to have a good.
+01:03:55.112 - 01:04:16.010, Speaker A: Experience on the platform. I'm happy to continue to manage ecosystem relationships appropriately. I think if the success of anything we're doing comes down to the relationships of a few people, I think we failed massively on the decentralization front.
+01:04:16.080 - 01:04:16.602, Speaker B: Right.
+01:04:16.736 - 01:04:21.482, Speaker A: And so all I'm thinking about is the autonomous systems that we're building. That's really what's on my mind.
+01:04:21.536 - 01:04:24.318, Speaker E: I am hoping that we can have.
+01:04:24.404 - 01:04:31.214, Speaker G: Better relationships in the future. I did want to kick that off a little bit by saying three things.
+01:04:31.252 - 01:04:39.550, Speaker E: I like about marginfi. So number one, I saw your light mode.
+01:04:39.630 - 01:04:41.106, Speaker G: I think it's a really great idea.
+01:04:41.208 - 01:04:49.006, Speaker E: And quite well executed, I think. Yeah, it really simplifies the UI for new users.
+01:04:49.198 - 01:04:50.754, Speaker G: I think you guys are really ambitious.
+01:04:50.802 - 01:04:56.502, Speaker E: Team who ship a lot, you guys are super active and yeah, you've been.
+01:04:56.556 - 01:04:57.382, Speaker G: Doing a lot of things.
+01:04:57.436 - 01:05:09.178, Speaker E: And third thing is you've had some really impressive growth, which have to commend that. So, yeah, hopefully this can be a.
+01:05:09.184 - 01:05:12.618, Speaker G: Good kickoff to a better relationship. I just want what's best for the.
+01:05:12.624 - 01:05:14.814, Speaker E: Solana ecosystem, and I think a more.
+01:05:14.852 - 01:05:16.942, Speaker G: Collaborative environment is better for everyone.
+01:05:17.076 - 01:05:30.260, Speaker A: Well, I appreciate the compliments. I know the team worked super hard on the new UI. Look, code is open source, right? Please feel free to reference it if it becomes interesting.
+01:05:30.790 - 01:05:33.534, Speaker H: That's to you and anybody else who's.
+01:05:33.582 - 01:05:41.266, Speaker A: Listening and interested in it. We're always experimenting with new things. I will say that the Solend UI.
+01:05:41.298 - 01:05:46.086, Speaker H: Is still my personal favorite. I don't know, I just like it.
+01:05:46.268 - 01:05:54.806, Speaker A: But we're not building for me. And I often disagree with a number of perspectives across the team.
+01:05:54.828 - 01:05:56.314, Speaker H: And that's why we have a world.
+01:05:56.352 - 01:06:02.262, Speaker A: Class design team, world class front end engineering team that I think kind of leads that effort.
+01:06:02.406 - 01:06:10.526, Speaker H: They're much better at me than those things. At those things. But yeah, look, I think this is.
+01:06:10.548 - 01:06:11.802, Speaker A: Definitely a collaborative industry.
+01:06:11.866 - 01:06:12.480, Speaker B: Right?
+01:06:14.610 - 01:06:24.322, Speaker A: Anything we do, we do with intention. We'll continue to do that. The execution will be as good as we can make it, and we'll continue to make it better.
+01:06:24.376 - 01:06:31.986, Speaker D: Well, guys, I think that was really well said and thank you for both coming on. I think that says a lot. I know we probably want to close up, but I have something that I promised the research analysts that I'd ask.
+01:06:32.008 - 01:06:33.798, Speaker G: You guys, this has to do a.
+01:06:33.804 - 01:07:05.278, Speaker D: Little bit more in just like looking forward and kind of the future of lending protocols. Edgar, you mentioned that you prioritize, for example, liquidity providers or the lenders on your protocol. And one thing that we've been seeing happen in Ethereum and some of their spaces is professionalization of the LP providers. So like uniswap is a very good example. It went from kind of being a lazy LP to now you have to actively manage your position with concentrated liquidity. And then we've also see Blur. They have their product blend that relies on sophisticated actors to provide liquidity as well, which is like customized LTVs and which assets you want to provide.
+01:07:05.278 - 01:07:26.806, Speaker D: I'm curious on how you think the future of lending on your protocols will look like. Will the LPs continue to be in this position where you just assume it's almost a lazy position to just provide liquidity? And maybe with that, I don't know if this is part of it or not, but you mentioned that concept of cross collateralized pools versus isolated pools, and maybe if you could tie those together and just how you think the future of your protocols will look like.
+01:07:26.908 - 01:07:32.522, Speaker G: I think we've seen an interesting trend in the lending space that people start.
+01:07:32.576 - 01:07:35.274, Speaker E: Off risk on when they're new, and.
+01:07:35.312 - 01:07:37.254, Speaker G: Then they become more and more risk.
+01:07:37.302 - 01:07:38.890, Speaker E: Off as they operate.
+01:07:39.950 - 01:07:53.278, Speaker G: So many examples of this. One example is compound v three, which really added more restrictions in v three than in v two to isolate risk better.
+01:07:53.444 - 01:07:55.854, Speaker E: And I think this is a really.
+01:07:55.892 - 01:07:57.858, Speaker G: Interesting trend, and I've been thinking a.
+01:07:57.864 - 01:08:04.500, Speaker E: Ton about that after the chaotic markets that we saw last year around this time.
+01:08:05.510 - 01:08:10.310, Speaker G: And I've been thinking a lot about p to p kind of order book.
+01:08:10.380 - 01:08:15.622, Speaker E: Based loans, and kind of similar to.
+01:08:15.676 - 01:08:23.878, Speaker G: What blur has done with blend. And basically the problem with pool to peer, which is the model that we're.
+01:08:23.894 - 01:08:32.986, Speaker E: All using right now, is that the risk is pooled by everyone and you.
+01:08:33.008 - 01:08:36.078, Speaker G: Don'T know who your counterparty is, right. Your counterparty is everyone else in the.
+01:08:36.084 - 01:08:38.142, Speaker E: Pool, which could be anyone.
+01:08:38.196 - 01:08:40.334, Speaker G: It could be a really safe guy.
+01:08:40.452 - 01:08:49.666, Speaker E: Who manages their position very well, or it's like a Turbo dgen. And by employing a more p to.
+01:08:49.688 - 01:08:54.946, Speaker G: P strategy, you can limit your risk exposure a lot more because you have.
+01:08:54.968 - 01:09:04.486, Speaker E: More control over who your counterparty is. So yeah, it's been something that we've been thinking about a lot, and I.
+01:09:04.508 - 01:09:26.954, Speaker G: Do believe that it's yet to be explored enough. We haven't seen enough of that yet, but I know some projects are doing something in that vein, like Morpho and Aginal. I don't know if I'm saying that correctly. And we're looking into that as well. We've been having a lot of discussions.
+01:09:27.002 - 01:09:30.350, Speaker E: Internally about how to design something like this that doesn't.
+01:09:32.130 - 01:09:33.930, Speaker G: Reduce the UX.
+01:09:34.090 - 01:09:34.702, Speaker B: Right.
+01:09:34.836 - 01:09:37.586, Speaker E: Because the V two model in which.
+01:09:37.608 - 01:09:42.782, Speaker G: Everything is pooled, the reason why it's so strong is that it's super capital efficient.
+01:09:42.846 - 01:09:43.460, Speaker B: Right.
+01:09:43.990 - 01:09:46.158, Speaker G: And that counts for a lot in terms of usability.
+01:09:46.254 - 01:09:52.290, Speaker E: So it's great if you can make a super secure thing, but I guess.
+01:09:52.360 - 01:09:54.418, Speaker G: The most secure thing in the world is a rock.
+01:09:54.514 - 01:09:56.790, Speaker E: Right, but how useful is a rock?
+01:09:57.370 - 01:09:58.726, Speaker G: Maybe not the best example because we.
+01:09:58.748 - 01:10:00.280, Speaker E: Built cities out of them, but.
+01:10:02.490 - 01:10:02.854, Speaker B: If.
+01:10:02.892 - 01:10:06.134, Speaker G: It'S just a brick, like, if it has no functionality, it's unhackable.
+01:10:06.182 - 01:10:09.718, Speaker E: But, yeah, how useful is that? Ruder.
+01:10:09.734 - 01:10:36.420, Speaker D: Is it fair to say that having P to p actually reduces an attack vector? Because right now you have governance controlled by tokens. And I actually know, like a year ago with Soland, there was an issue with a whale making some votes on chain. And right now for different lending protocols, you use on chain voting with tokens to determine what the LTBs are, what assets should be added, et cetera. Because you're looking at this pool model and it controls that risk for everyone that's providing liquidity versus this p to p, every liquidity provider gets to choose for themselves.
+01:10:37.190 - 01:10:51.838, Speaker G: Yeah, definitely. Governance is a really important aspect of this. I think that ungovernance is an idea that has a lot of merit to it. If you have a system that doesn't.
+01:10:51.874 - 01:10:56.314, Speaker E: Require intervention, that is super good for.
+01:10:56.352 - 01:11:17.374, Speaker G: Many reasons, people can build on top of it without having to be worried about that, about things changing underneath them. And the security assumptions are made super explicit up front. And yeah, I think it's a tricky situation here as well, because the Dow.
+01:11:17.502 - 01:11:27.346, Speaker E: Risk governance model is quite difficult to pull off. Well, like we see on Ethereum, like.
+01:11:27.368 - 01:11:31.078, Speaker G: Aave, they have a Dow for any.
+01:11:31.164 - 01:11:37.846, Speaker E: Small change to parameters requires elaborate voting process.
+01:11:37.948 - 01:11:39.622, Speaker G: And we saw this being a real.
+01:11:39.676 - 01:11:46.060, Speaker E: Issue with the curve incident where the founder had a massive position and.
+01:11:47.790 - 01:11:49.818, Speaker G: Everyone on Twitter knew that something had to.
+01:11:49.824 - 01:11:50.666, Speaker E: Be done about it.
+01:11:50.768 - 01:11:57.838, Speaker G: Gauntlet, I'm sure they identified this problem ahead of time, but it's like they.
+01:11:57.844 - 01:12:02.026, Speaker E: Couldn'T really do anything about it because they had to go through this governance.
+01:12:02.058 - 01:12:03.546, Speaker G: Which actually even got rejected.
+01:12:03.578 - 01:12:10.334, Speaker E: Like their suggestion to mitigate things was rejected in the name of decentralization.
+01:12:10.462 - 01:12:14.546, Speaker G: And on Solana, we've seen projects take.
+01:12:14.568 - 01:12:16.420, Speaker E: A different approach where.
+01:12:20.650 - 01:12:21.602, Speaker G: The labs entity.
+01:12:21.666 - 01:12:33.100, Speaker E: Is the risk manager and does a lot of sophisticated work to ensure that things are running smoothly, but I think.
+01:12:34.590 - 01:12:40.006, Speaker G: A different approach is to just do away with all of this voting process entirely.
+01:12:40.198 - 01:12:49.194, Speaker E: Obviously there's some real trade offs here, but I think it's a very interesting model that the market could use a little bit more diversity.
+01:12:49.322 - 01:13:24.220, Speaker F: I have a final question. This is for the Dgens, so I'm sure you can predict what's coming. So I'm curious, now that DFI 2.0 is back, right? You both tweet pretty positively about DFI being back, and Salana is kind of seeing this new wave of growth, what do you think the role of tokens will play in the next year for the ecosystem? And what is your philosophy on this, points and token, meta and Solana teams launching them more and more?
+01:13:26.350 - 01:13:33.370, Speaker E: Yeah, look, I think tokens are really important in crypto. They're the lifeblood.
+01:13:35.890 - 01:13:37.646, Speaker G: We wouldn't be where we are today.
+01:13:37.748 - 01:13:40.462, Speaker E: As an industry without tokens bringing people.
+01:13:40.516 - 01:13:57.026, Speaker G: In all this excitement. And yeah, points is this new meta that has emerged in the last year, basically pioneered by Blur as they took on OpenSea. They added a points program to create.
+01:13:57.048 - 01:14:05.734, Speaker E: A lot of hype and tease a token launch. And I think it works really well.
+01:14:05.772 - 01:14:13.734, Speaker G: But it can be a little bit problematic, especially when the period is so extended. This period of just building hype.
+01:14:13.782 - 01:14:14.730, Speaker E: Building hype.
+01:14:15.150 - 01:14:15.946, Speaker G: No token yet?
+01:14:15.968 - 01:14:21.500, Speaker E: No token yet. And if the points program is just.
+01:14:21.870 - 01:14:28.094, Speaker G: A placeholder for some planned token launch with like a defined timeline, I think it's okay if it's like a short period of time.
+01:14:28.212 - 01:14:34.734, Speaker E: But the way that some projects have been taking advantage of points has been.
+01:14:34.932 - 01:14:36.710, Speaker G: A little bit predatory in my opinion.
+01:14:36.810 - 01:14:45.074, Speaker E: Where it feeds off of the high expectations from users who basically it's a.
+01:14:45.112 - 01:14:51.446, Speaker G: Complete black box for them. They have no idea what they're going to get. It's kind of this unspoken thing.
+01:14:51.468 - 01:14:53.634, Speaker E: Everyone knows that they're farming for tokens.
+01:14:53.762 - 01:15:08.410, Speaker G: So you can't just say don't use the platform if you don't want to farm or don't expect anything because everyone knows it's like the quiet part, right? Everyone knows that people are farming this for tokens.
+01:15:09.710 - 01:15:15.726, Speaker E: But yeah, basically the parts where the payoff, the actual rewards are unknown and.
+01:15:15.748 - 01:15:23.674, Speaker G: The timeline is arbitrary. And all these things can also be changed retroactively. Specifically, let's say a project was intending.
+01:15:23.722 - 01:15:43.190, Speaker E: To give out a certain amount of rewards, but then prices pump by five X, then they can just reduce the rewards that they end up paying out by five x rather than letting the users get the benefit. So the way that Solen has approached.
+01:15:43.690 - 01:15:45.826, Speaker G: Incentives is initially we had a liquidity.
+01:15:45.858 - 01:15:49.174, Speaker E: Mining program where we just paid out.
+01:15:49.212 - 01:15:55.546, Speaker G: Tokens for incentivizing certain behaviors on the platform. And then more recently we turned that.
+01:15:55.568 - 01:16:00.774, Speaker E: Into a points program where we would give out a basket of rewards.
+01:16:00.902 - 01:16:05.834, Speaker G: So in the last round, the last season, we gave out Solen tokens, pith.
+01:16:05.882 - 01:16:09.774, Speaker E: Tokens, and also tensorians, which pretty crazy.
+01:16:09.812 - 01:16:12.000, Speaker G: They'Re at 110 sol now.
+01:16:13.490 - 01:16:17.886, Speaker E: But our approach has been quite different in that from the start, we were.
+01:16:17.908 - 01:16:19.966, Speaker G: Upfront about what the rewards are going to be.
+01:16:20.068 - 01:16:21.966, Speaker E: We said it's going to be minimum.
+01:16:22.158 - 01:16:28.146, Speaker G: This and that's not going to change. I mean, it could go up and it did. We added more rewards later as we.
+01:16:28.168 - 01:16:33.494, Speaker E: Finalized partnerships, but it can never go down. And the timeline is known up front.
+01:16:33.532 - 01:16:34.566, Speaker G: Like we said, it would be three.
+01:16:34.588 - 01:16:38.280, Speaker E: Months and the rewards actually were distributed three months later.
+01:16:41.470 - 01:16:42.874, Speaker G: I don't think points are going away.
+01:16:42.912 - 01:16:48.460, Speaker E: Anytime soon because it's such a superpower for projects to use.
+01:16:48.910 - 01:16:50.314, Speaker G: But I do think it's a little.
+01:16:50.352 - 01:17:01.726, Speaker E: Bit an abuse of this by leading people on for so long. And I wish for users that we.
+01:17:01.748 - 01:17:12.834, Speaker G: Would not do this, but I don't really see that happening because it's just too profitable for projects to keep doing this. But what I've been trying to do on Twitter and in different venues is.
+01:17:12.872 - 01:17:15.090, Speaker E: Put some pressure on this to hopefully.
+01:17:15.910 - 01:17:17.794, Speaker G: Change the view on this.
+01:17:17.832 - 01:17:36.474, Speaker E: And maybe one day we'll all agree that points are bad, which there's been a lot of discussion around this, especially recently, that it's not the best for users, and we can hopefully evolve to something that actually is fair for everyone.
+01:17:36.592 - 01:17:39.590, Speaker H: Look, points are not new to crypto.
+01:17:39.750 - 01:17:42.294, Speaker A: Sorry, they're new to crypto. They weren't invented in crypto.
+01:17:42.342 - 01:17:42.940, Speaker B: Right.
+01:17:43.390 - 01:17:46.400, Speaker A: Incentive systems have existed long before web3.
+01:17:47.410 - 01:17:53.630, Speaker H: What you see with incentive systems that.
+01:17:53.700 - 01:18:01.794, Speaker A: Specifically pertain to startups, and I'm thinking about the good things and the mistakes that I've seen. My time at Uber, my time in.
+01:18:01.832 - 01:18:06.626, Speaker H: Silicon Valley around that, my time in.
+01:18:06.648 - 01:18:08.986, Speaker A: Crypto as a user, as an observer.
+01:18:09.038 - 01:18:26.314, Speaker H: My time as a participant in crypto, is that creating closed end incentive systems is a valuable opportunity to capture long.
+01:18:26.352 - 01:18:42.506, Speaker A: Term users who really integrate into using your product, who integrate into your community, who ultimately are the foundation, the bedrock of the platform that grows.
+01:18:42.618 - 01:18:43.280, Speaker B: Right.
+01:18:44.450 - 01:18:48.574, Speaker H: Incentive systems also can be super dangerous.
+01:18:48.622 - 01:19:02.374, Speaker A: They can muddy success metrics, they can mislead teams and communities into thinking that there's product market fit where there's not. And they can entirely change the type.
+01:19:02.412 - 01:19:06.840, Speaker H: Of user who uses your platform, which.
+01:19:07.210 - 01:19:19.238, Speaker A: Can just completely change the experience, especially with products that have strong market effects, strong network effects like those in crypto, it can completely change the experience for all users.
+01:19:19.254 - 01:19:26.430, Speaker H: On a mean look at what happened after the Jito token launches.
+01:19:27.730 - 01:19:35.870, Speaker A: Everybody from outside of Solana hears about airdrop farming, and a number of spammy.
+01:19:37.190 - 01:19:49.418, Speaker H: User archetypes start permeating this ecosystem, right? It's not healthy if those folks farming.
+01:19:49.534 - 01:19:58.258, Speaker A: Airdrops are not intending to be long term users, right? If they don't become long term users.
+01:19:58.354 - 01:20:01.980, Speaker H: It'S just a pump and dump. Crypto has seen this a thousand times, right?
+01:20:02.350 - 01:20:07.450, Speaker A: Look, from my perspective, margin Phi is.
+01:20:07.520 - 01:20:10.314, Speaker H: A decentralized protocol in the making, right?
+01:20:10.512 - 01:20:12.954, Speaker A: Fundamentally, that means that a token has.
+01:20:12.992 - 01:20:21.930, Speaker H: To exist and should fuel the operations.
+01:20:22.090 - 01:20:41.654, Speaker A: Of a decentralized protocol, right? Be involved in governance, be involved in utility. We've seen interesting models with protocols leveraging native tokens as forms of gas within the protocol, other types of really interesting.
+01:20:41.852 - 01:20:43.830, Speaker H: Kind of dimensions of utility.
+01:20:44.250 - 01:20:56.538, Speaker A: Governance has been a long standing worst stream in crypto. There have been some decent governance architectures. There have been a lot of unhealthy ones. We think that much more effective ones.
+01:20:56.624 - 01:20:59.020, Speaker H: Can be designed in the future.
+01:20:59.950 - 01:21:02.970, Speaker A: But the key thing that I'm thinking.
+01:21:03.040 - 01:21:09.690, Speaker H: About is rewarding users who are contributing.
+01:21:09.850 - 01:21:26.686, Speaker A: To the foundation and the infrastructure that is becoming margin phi, right? I'm not interested in inefficiently spending incentive capital, whether that's tangible capital, whether that's.
+01:21:26.718 - 01:21:30.598, Speaker H: Social capital, I'm just not interested in it, right?
+01:21:30.764 - 01:21:57.482, Speaker A: There are tons of pump and dumps, tons of opportunities for free mercenary money in crypto. I think all of that is arbitrage. That is a mark of an inefficient ecosystem that is getting more efficient over time, right? Arbitrage always closes. Fundamentally, the nature of arbitrage is that as systems become more efficient, that arbitrage opportunity gets smaller.
+01:21:57.626 - 01:22:00.026, Speaker H: Where real wealth is built, where it's.
+01:22:00.058 - 01:22:01.966, Speaker A: Compounded, and where quality of life is.
+01:22:01.988 - 01:22:05.360, Speaker H: Improved, is in growing the actual pie.
+01:22:06.470 - 01:22:12.594, Speaker A: In actually creating and compounding value. And incentive systems should be just an.
+01:22:12.632 - 01:22:14.162, Speaker H: Input to that, right?
+01:22:14.296 - 01:22:17.406, Speaker A: When you look at how successful incentive.
+01:22:17.438 - 01:22:19.910, Speaker H: Systems have worked outside of crypto.
+01:22:21.610 - 01:22:21.974, Speaker E: Where.
+01:22:22.012 - 01:22:23.394, Speaker A: We'Ve seen kind of the most mature.
+01:22:23.442 - 01:22:27.494, Speaker H: Incentive systems, you see that incentivizing long.
+01:22:27.532 - 01:22:43.910, Speaker A: Term contribution, long term participation, often with more abstract value proposition, is what is most effective, right? Because generally speaking, mercenaries have extremely low risk tolerances.
+01:22:43.990 - 01:22:46.158, Speaker H: They're looking to quantify how much they.
+01:22:46.164 - 01:22:47.978, Speaker A: Can make on a very short timeline.
+01:22:48.074 - 01:22:51.600, Speaker H: So they can get in, get out, do something else, right?
+01:22:52.210 - 01:22:55.242, Speaker A: I don't think that's healthy for early stage projects.
+01:22:55.306 - 01:22:55.920, Speaker B: Right.
+01:22:56.230 - 01:22:59.314, Speaker H: As an early stage project, why would.
+01:22:59.352 - 01:23:13.766, Speaker A: You be interested in capturing that mercenary usage, that mercenary liquidity, for what ultimately is a really short time period, right. I think what's much healthier is to attract the people that are in it.
+01:23:13.788 - 01:23:16.870, Speaker H: For the long run and then importantly.
+01:23:17.850 - 01:23:20.742, Speaker A: Provide a system that rewards them with.
+01:23:20.796 - 01:23:23.510, Speaker H: Compounded wealth in the long run.
+01:23:23.580 - 01:23:24.246, Speaker B: Right?
+01:23:24.428 - 01:23:29.946, Speaker A: And so that when I think about point systems, that's really what I think about. But point systems to me are just.
+01:23:29.968 - 01:23:32.746, Speaker H: Like a subclass of incentive systems more broadly right.
+01:23:32.928 - 01:23:41.946, Speaker A: Now, look, across the whole industry, I think points kind of took off, right? Blur did it, we did it, Jito.
+01:23:41.978 - 01:23:44.046, Speaker H: Did it, everybody started doing it.
+01:23:44.228 - 01:23:49.010, Speaker A: And there's a lot of copycats, right. That folks, teams that are just implementing things.
+01:23:49.080 - 01:23:53.394, Speaker H: I think without a principled vision, you'll always have that.
+01:23:53.432 - 01:23:53.634, Speaker B: Right.
+01:23:53.672 - 01:23:56.690, Speaker A: And I think those systems are bound to disappoint.
+01:23:57.990 - 01:24:02.870, Speaker H: Again, this is one of the important.
+01:24:02.940 - 01:24:05.666, Speaker A: Values of having a free market, of having permissionless systems.
+01:24:05.698 - 01:24:08.534, Speaker H: Like people can choose and propose to.
+01:24:08.572 - 01:24:15.722, Speaker A: Do what they want to do, and the community, the general public, can respond accordingly to it.
+01:24:15.776 - 01:24:16.282, Speaker B: Right?
+01:24:16.416 - 01:24:32.446, Speaker A: So I'm not going to argue for the censorship of permissionless systems. I think permissionless systems are incredibly important to keep permissionless. I will say that there are some folks doing this in a principled fashion with long term vision, and there are.
+01:24:32.468 - 01:24:34.000, Speaker H: Folks who are not doing that.
+01:24:35.010 - 01:24:36.080, Speaker E: Well said.
+01:24:36.690 - 01:24:57.880, Speaker D: Well, I can say this, at least with the airdrop season and also point season, it's way more fun. So we'll take the good and the bad of it, but that was really well said. Guys, thanks so much for coming on. I think this is really important conversation to have and also just for the ecosystem and other projects in the space. I know there's some drama on Twitter. I think this conversation is awesome. I personally learned a lot from both of you on this, so thanks so much for coming on.
+01:24:59.210 - 01:25:04.806, Speaker G: Yeah, thank you. And Edgar, let me know what size shirt McBrannon wears.
+01:25:04.838 - 01:25:05.980, Speaker E: I'll send him a.
+01:25:10.910 - 01:25:12.938, Speaker A: He's a, he's an extra large.
+01:25:13.024 - 01:25:14.640, Speaker H: He's a men's extra large.
+01:25:15.090 - 01:25:17.280, Speaker G: All right, I think we got some of those.
+01:25:20.450 - 01:25:23.438, Speaker A: If we gave out margin merch, I.
+01:25:23.444 - 01:25:26.078, Speaker H: Would give you some, but it's kind.
+01:25:26.084 - 01:25:29.982, Speaker A: Of a principle of ours. The only way you get margin merch is to join the core team.
+01:25:30.036 - 01:25:34.258, Speaker H: So I don't want to break policy, but maybe in the future.
+01:25:34.424 - 01:25:37.634, Speaker D: All right, guys, thanks again for coming on. We'll see you next time.
+01:25:37.672 - 01:25:42.590, Speaker C: All right, I've got a little ending note here first. Thank you so much for listening the full episode. If you really liked it, hit subscribe.
+01:25:42.670 - 01:25:44.334, Speaker D: But secondly, make sure you sign up for dash.
+01:25:44.382 - 01:25:56.090, Speaker C: This is blockwork's biggest institutional conference, happening in London in March. I've included a link in the show notes and also discount code. Get 20% off. Make sure to use lights 20 when you sign up. All right, I'll see you there. And I'll see you next time on Lightspeed.
