@@ -24,7 +24,7 @@ from src.Llama_index_sandbox.utils.utils import timeit, load_vector_store_from_p
 def initialise_vector_store(embedding_model_vector_dimension, vector_space_distance_metric='cosine') -> PineconeVectorStore:
     api_key = os.environ["PINECONE_API_KEY"]
     pinecone.init(api_key=api_key, environment=os.environ["PINECONE_API_ENVIRONMENT"])
-    index_name = "mevfyi"
+    index_name = "mevfyi-cosine"
 
     # Check if the index already exists
     existing_indexes = pinecone.list_indexes()
@@ -95,20 +95,16 @@ def load_nodes_into_vector_store_create_index(nodes, embedding_model_vector_dime
 @timeit
 def load_index_from_disk(service_context) -> CustomVectorStoreIndex:
     # load the latest directory in index_dir
-    persist_dir = f"{index_dir}{sorted(os.listdir(index_dir))[-1]}"
-    logging.info(f"LOADING INDEX {persist_dir} FROM DISK")
     try:
         vector_store = load_vector_store_from_pinecone_database_legacy()
         index = CustomVectorStoreIndex.from_vector_store(vector_store, service_context)
-        logging.info(f"Successfully loaded index {persist_dir} from disk.")
+        logging.info(f"Successfully loaded index from disk.")
         return index
     except Exception as e:
         logging.error(f"Error: {e}")
         # To accommodate for the case where the vector_store.json file is not persisted https://stackoverflow.com/questions/76837143/llamaindex-index-storage-context-persist-not-storing-vector-store
         if "No existing llama_index.vector_stores.simple" in str(e):
             # create a vector_store.json file with {} inside
-            with open(f"{persist_dir}/vector_store.json", "w") as f:
-                f.write("{}")
             try:
                 vector_store = load_vector_store_from_pinecone_database()
                 index = VectorStoreIndex.from_vector_store(vector_store, service_context)

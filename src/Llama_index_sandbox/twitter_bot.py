@@ -15,6 +15,7 @@ from src.Llama_index_sandbox.custom_react_agent.tools.reranker.custom_query_engi
 from src.Llama_index_sandbox.twitter_utils import safe_request, split_response_into_tweets, TWEET_CHAR_LENGTH, TWEET_CHAR_LENGTH_FOR_LINE_RETURN, vitalik_ethereum_roadmap_2023, take_screenshot_and_upload, lookup_user_by_username, connect_to_endpoint, extract_command_and_message, create_shared_chat, fetch_username_directly
 from src.Llama_index_sandbox.utils.gcs_utils import set_secrets_from_cloud
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 
@@ -90,7 +91,8 @@ class TwitterBot:
         while True:
             response = connect_to_endpoint(url, params, self.bearer_token)
             if response:
-                tweets = response.get('includes', [])['tweets']  # check a link to find about expansions and includes https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
+                tweets = response.get('includes', {'tweets': []})['tweets']  # check a link to find about expansions and includes https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/api-reference/get-users-id-tweets
+                random.shuffle(tweets)  # Shuffle the tweets list to randomize its order
                 fetched_tweet_ids = []
                 invalid_tweets = []
                 # First return the list of tweet IDs where the user mentioned the bot

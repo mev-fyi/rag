@@ -20,7 +20,10 @@ from src.Llama_index_sandbox.utils.utils import authenticate_service_account, mo
 from concurrent.futures import ThreadPoolExecutor
 
 # executor = ThreadPoolExecutor(max_workers=os.cpu_count())
-executor = ThreadPoolExecutor(max_workers=5)
+executor = ThreadPoolExecutor(max_workers=15)
+api_key = os.environ.get('YOUTUBE_API_KEY')
+if not api_key:
+    raise ValueError("No API key provided. Please provide an API key via command line argument or .env file.")
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -283,9 +286,9 @@ def main():
 
     args = parser.parse_args()
 
-    api_key = args.api_key or os.environ.get('YOUTUBE_API_KEY')
-    if not api_key:
-        raise ValueError("No API key provided. Please provide an API key via command line argument or .env file.")
+    # api_key = args.api_key or os.environ.get('YOUTUBE_API_KEY')
+    # if not api_key:
+    #     raise ValueError("No API key provided. Please provide an API key via command line argument or .env file.")
 
     yt_channels_file = os.path.join(root_directory(), 'datasets/evaluation_data/youtube_channel_handles.txt')
 
