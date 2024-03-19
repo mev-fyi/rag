@@ -61,7 +61,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'SevenX Ventures': 0.95,
             'Research Day': 0.95,
             'Tim Roughgarden Lectures': 0.95,
-            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.95'))
+            'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.90'))
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
             'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.2'))
@@ -269,25 +269,33 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def adjust_scores_based_on_criteria(self, nodes_with_score: List[NodeWithScore]):
         BOOST_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '1.3'))
+        PENALTY_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '0.9'))
         CHANNEL_NAMES_TO_BOOST = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'ETHDenver')]  # Example channel names
+        CHANNEL_NAMES_TO_PENALISE = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'Chainlink')]  # NOTE 2024-03-19: chainlink is absolutely everywhere in most results, need to tune that down.
         DATE_THRESHOLD = datetime.strptime('2024-02-01', '%Y-%m-%d')
 
         for node_with_score in nodes_with_score:
             channel_name = node_with_score.node.metadata.get('channel_name', '').strip()
-            release_date_str = node_with_score.node.metadata.get('release_date', '').strip()
+            if channel_name in CHANNEL_NAMES_TO_PENALISE:
+                node_with_score.score *= PENALTY_SCORE_MULTIPLIER
+            if channel_name in CHANNEL_NAMES_TO_BOOST:
+                release_date_str = node_with_score.node.metadata.get('release_date', '').strip()
+                try:
+                    release_date = datetime.strptime(release_date_str, '%Y-%m-%d') if release_date_str else None
+                except ValueError:
+                    release_date = None
 
-            try:
-                release_date = datetime.strptime(release_date_str, '%Y-%m-%d') if release_date_str else None
-            except ValueError:
-                release_date = None
-
-            if channel_name in CHANNEL_NAMES_TO_BOOST or (release_date and release_date > DATE_THRESHOLD):
-                node_with_score.score *= BOOST_SCORE_MULTIPLIER
+                if release_date and release_date > DATE_THRESHOLD:
+                    node_with_score.score *= BOOST_SCORE_MULTIPLIER
 
             pdf_link = node_with_score.node.metadata.get('pdf_link', '').strip()
-            pdf_link_domain = urlparse(pdf_link).netloc
-            if pdf_link_domain in self.site_domains or 'docs' in pdf_link.lower() or 'documentation' in pdf_link.lower():
-                node_with_score.score *= BOOST_SCORE_MULTIPLIER
+            if pdf_link == '':
+                continue
+            else:
+                pdf_link_domain = urlparse(pdf_link).netloc
+                if pdf_link_domain in self.site_domains or 'docs' in pdf_link.lower() or 'documentation' in pdf_link.lower():
+                    node_with_score.score *= BOOST_SCORE_MULTIPLIER
+                    logging.info(f"Boosting score for document: [{node_with_score.node.metadata.get('title', 'UNSPECIFIED')}] from [{pdf_link}]")
 
         return nodes_with_score
 
@@ -296,18 +304,18 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
         # Special case adjustment
         if document_name in self.edge_case_set:
-            logging.info(f"Special case adjustment for document: [{document_name}]")
+            logging.info(f"Applying [{self.doc_to_remove}] score to document: [{document_name}]")
             node_with_score.score *= self.doc_to_remove
 
         # Keyword penalisation
         for word in self.keywords_to_penalise:
             if word.lower() in document_name.lower():
-                logging.info(f"Penalising keyword: {word} in document: [{document_name}]")
+                logging.info(f"Penalising keyword: [{word}] in document: [{document_name}]")
                 node_with_score.score *= self.keyword_to_penalise_multiplier
 
     def nodes_reranker(self, nodes_with_score: List[NodeWithScore]) -> List[NodeWithScore]:
         NUM_CHUNKS_RETRIEVED = int(os.environ.get('NUM_CHUNKS_RETRIEVED', '10'))
-        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.30'))
+        SCORE_THRESHOLD = float(os.environ.get('SCORE_THRESHOLD', '0.68'))
         MIN_CHUNKS_FOR_RESPONSE = int(os.environ.get('MIN_CHUNKS_FOR_RESPONSE', '2'))
 
         # Apply special case and keyword penalisation adjustments
