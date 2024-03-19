@@ -20,6 +20,7 @@ import heapq
 from urllib.parse import urlparse
 from tldextract import extract  # You might need to install this package
 
+from datasets.evaluation_data.site_configs import site_configs
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 from src.Llama_index_sandbox.utils.utils import root_directory, load_csv_data
 
@@ -39,6 +40,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
         self.forum_name_in_title_penalty = float(os.environ.get('FORUM_NAME_IN_TITLE_PENALTY', '1.5'))
         self.doc_to_remove = float(os.environ.get('DOC_TO_REMOVE', '0.0'))
         self.keyword_to_penalise_multiplier = float(os.environ.get('KEYWORD_TO_PENALISE_MULTIPLIER', '0.4'))
+        self.site_domains = {urlparse(config['base_url']).netloc for config in site_configs.values()}
 
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
@@ -266,7 +268,6 @@ class CustomQueryEngine(RetrieverQueryEngine):
         return nodes_with_score
 
     def adjust_scores_based_on_criteria(self, nodes_with_score: List[NodeWithScore]):
-        # NOTE 2024-03-03: can make more versatile e.g. make the condition as env variable too but its good for now
         BOOST_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '1.3'))
         CHANNEL_NAMES_TO_BOOST = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'ETHDenver')]  # Example channel names
         DATE_THRESHOLD = datetime.strptime('2024-02-01', '%Y-%m-%d')
@@ -281,6 +282,11 @@ class CustomQueryEngine(RetrieverQueryEngine):
                 release_date = None
 
             if channel_name in CHANNEL_NAMES_TO_BOOST or (release_date and release_date > DATE_THRESHOLD):
+                node_with_score.score *= BOOST_SCORE_MULTIPLIER
+
+            pdf_link = node_with_score.node.metadata.get('pdf_link', '').strip()
+            pdf_link_domain = urlparse(pdf_link).netloc
+            if pdf_link_domain in self.site_domains or 'docs' in pdf_link.lower() or 'documentation' in pdf_link.lower():
                 node_with_score.score *= BOOST_SCORE_MULTIPLIER
 
         return nodes_with_score

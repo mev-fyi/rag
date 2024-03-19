@@ -18,71 +18,75 @@ from src.Llama_index_sandbox.utils.utils import timeit, root_directory, start_lo
 
 
 def load_single_video_transcript(youtube_videos_df, file_path):
-    # Process the title from the file path
-    title = str(os.path.basename(file_path).replace('_diarized_content_processed_diarized.txt', '')).split('_')[1].strip()
+    try:
+        # Process the title from the file path
+        title = str(os.path.basename(file_path).replace('_diarized_content_processed_diarized.txt', '')).split('_')[1].strip()
 
-    # Ensure any sequence of more than one space in title is replaced with a single space
-    title = re.sub(' +', ' ', title)
+        # Ensure any sequence of more than one space in title is replaced with a single space
+        title = re.sub(' +', ' ', title)
 
-    # Similarly, replace sequences of spaces in the DataFrame's 'title' column
-    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
-    youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
+        # Similarly, replace sequences of spaces in the DataFrame's 'title' column
+        youtube_videos_df['title'] = youtube_videos_df['title'].str.replace(' +', ' ', regex=True)
+        youtube_videos_df['title'] = youtube_videos_df['title'].str.replace('"', '', regex=True)
 
-    # Now look for a match
-    video_row = youtube_videos_df[youtube_videos_df['title'] == title]
+        # Now look for a match
+        video_row = youtube_videos_df[youtube_videos_df['title'] == title]
 
-    if video_row.empty:
-        # logging.info(f"Could not find video transcript for {title}. Passing.")
-        return []
+        if video_row.empty:
+            logging.info(f"Could not find video transcript for {title}. Passing.")
+            return [], {}
 
-    # Safely access the first row if it exists
-    video_data = video_row.iloc[0] if not video_row.empty else None
+        # Safely access the first row if it exists
+        video_data = video_row.iloc[0] if not video_row.empty else None
 
-    if video_data is None:
-        logging.info(f"No data found for video transcript with title [{title}].")
-        return []
+        if video_data is None:
+            logging.info(f"No data found for video transcript with title [{title}].")
+            return [], {}
 
-    reader = SimpleDirectoryReader(
-        input_files=[file_path]
-    )
-    # NOTE 2023-10-04: .pdf reader creates many documents while .txt from SimpleDirectoryReader
-    #  expectedly creates a single document. which one has the correct behavior? do we care?
-    # documents = reader.load_data()
-    from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
-    loader = PyMuPDFReader()
-    documents = loader.load(file_path=file_path)
+        reader = SimpleDirectoryReader(
+            input_files=[file_path]
+        )
+        # NOTE 2023-10-04: .pdf reader creates many documents while .txt from SimpleDirectoryReader
+        #  expectedly creates a single document. which one has the correct behavior? do we care?
+        # documents = reader.load_data()
+        from src.Llama_index_sandbox.custom_pymupdfreader.base import PyMuPDFReader
+        loader = PyMuPDFReader()
+        documents = loader.load(file_path=file_path)
 
-    assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
-    assert video_data['title'] != np.nan, f"Title is NaN for {video_data['url']}"
-    assert video_data['channel_name'] != np.nan, f"channel_name is NaN for {video_data['url']}"
-    assert video_data['url'] != np.nan, f"url is NaN for {video_data['url']}"
-    assert video_data['published_date'] != np.nan, f"published_date is NaN for {video_data['url']}"
+        assert video_row.iloc[0]['channel_name'] != video_row.iloc[0]['title'], f"Channel name and title are the same for {video_row.iloc[0]['title']}"
+        assert video_data['title'] != np.nan, f"Title is NaN for {video_data['url']}"
+        assert video_data['channel_name'] != np.nan, f"channel_name is NaN for {video_data['url']}"
+        assert video_data['url'] != np.nan, f"url is NaN for {video_data['url']}"
+        assert video_data['published_date'] != np.nan, f"published_date is NaN for {video_data['url']}"
 
-    # Update 'file_path' metadata and add additional metadata
-    for document in documents:
-        if 'file_path' in document.metadata.keys():
-            del document.metadata['file_path']
+        # Update 'file_path' metadata and add additional metadata
+        for document in documents:
+            if 'file_path' in document.metadata.keys():
+                del document.metadata['file_path']
 
-        if '<|endoftext|>' in document.text:
-            logging.error(f"Found <|endoftext|> in {title} with {file_path}")
-        document.text.replace('<|endoftext|>', '')
-        # Update metadata
-        document.metadata.update({
-            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
-            'title': video_data['title'],
-            'channel_name': video_data['channel_name'],
-            'video_link': video_data['url'],
-            'release_date': video_data['published_date']
-        })
-    save_successful_load_to_csv(documents[0], csv_filename='youtube_videos.csv', fieldnames=['title', 'channel_name', 'video_link', 'release_date'])
-    documents_details = {
-            'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
-            'title': video_data['title'],
-            'channel_name': video_data['channel_name'],
-            'video_link': video_data['url'],
-            'release_date': video_data['published_date']
-    }
-    return documents, documents_details
+            if '<|endoftext|>' in document.text:
+                logging.error(f"Found <|endoftext|> in {title} with {file_path}")
+            document.text.replace('<|endoftext|>', '')
+            # Update metadata
+            document.metadata.update({
+                'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
+                'title': video_data['title'],
+                'channel_name': video_data['channel_name'],
+                'video_link': video_data['url'],
+                'release_date': video_data['published_date']
+            })
+        save_successful_load_to_csv(documents[0], csv_filename='youtube_videos.csv', fieldnames=['title', 'channel_name', 'video_link', 'release_date'])
+        documents_details = {
+                'document_type': DOCUMENT_TYPES.YOUTUBE_VIDEO.value,
+                'title': video_data['title'],
+                'channel_name': video_data['channel_name'],
+                'video_link': video_data['url'],
+                'release_date': video_data['published_date']
+        }
+        return documents, documents_details
+    except Exception as e:
+        logging.error(f"Error: [{e}]: Failed to process {file_path}")
+        return [], {}
 
 
 @timeit
@@ -158,4 +162,4 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
 
 if __name__ == '__main__':
     start_logging('log_prefix')
-    load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=False, num_files=None)
+    load_video_transcripts(directory_path=Path(YOUTUBE_VIDEO_DIRECTORY), add_new_transcripts=False, num_files=None, overwrite=True)

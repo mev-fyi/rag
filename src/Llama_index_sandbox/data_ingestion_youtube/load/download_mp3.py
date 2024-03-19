@@ -268,17 +268,16 @@ def clean_mp3s():
     delete_mp3_if_text_or_json_exists(directory)
 
 
-
 def get_youtube_channels_from_file(file_path):
     with open(file_path, 'r') as file:
         channels = file.read().split(',')
     return channels
 
 
-if __name__ == '__main__':
+def main():
     copy_and_verify_files()  # make sure to copy files to get the latest youtube_csv
     parser = argparse.ArgumentParser(description='Fetch YouTube video transcripts.')
-    parser.add_argument('--api_key', type=str, help='YouTube Data API key')
+    parser.add_argument('--api_key', type=str, help='YouTube Data API key')  # to be moved back to main() to use CLI arguments
     parser.add_argument('--channels', nargs='+', type=str, help='YouTube channel names or IDs')
     parser.add_argument('--playlists', nargs='+', type=str, help='YouTube playlist IDs')
 
@@ -302,4 +301,8 @@ if __name__ == '__main__':
             "No channels or playlists provided. Please provide channel names, IDs, or playlist IDs via command line argument or .env file.")
 
     asyncio.run(run(api_key, yt_channels, yt_playlists))
+
+
+if __name__ == '__main__':
+    main()
 
