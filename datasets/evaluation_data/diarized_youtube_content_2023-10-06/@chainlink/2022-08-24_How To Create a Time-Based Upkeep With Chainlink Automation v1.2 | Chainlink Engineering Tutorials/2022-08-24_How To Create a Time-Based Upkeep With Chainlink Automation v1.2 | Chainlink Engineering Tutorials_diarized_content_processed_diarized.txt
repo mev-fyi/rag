@@ -1,0 +1,126 @@
+00:00:00.490 - 00:00:24.882, Speaker A: Hi, I'm Richard, one of the developer advocates at Chainlink Labs. And today we're going to take a look at an update to Keepers. Now, maybe you're like me and you know, on a regular Tuesday you're just browsing the Chainlink documentation and you come across these Chainlink keeper release notes.
+00:00:25.066 - 00:00:27.954, Speaker B: You say, whoa, what's changed?
+00:00:28.002 - 00:00:31.906, Speaker A: What's new? Let's dive into that and see what's new with keepers.
+00:00:32.098 - 00:00:33.126, Speaker B: If you head on over to the.
+00:00:33.148 - 00:00:44.220, Speaker A: Documentation and look at the Keepers release notes, you can dig in and see what exactly is new with keepers. But I want to jump right in and head on over to Keepers chain link.
+00:00:44.670 - 00:00:46.598, Speaker B: When we head there, we'll be prompted.
+00:00:46.614 - 00:00:50.894, Speaker A: To connect our wallet. So let's go ahead and do that first, and then we'll take a look.
+00:00:50.932 - 00:01:00.618, Speaker B: At what's new with keepers. So here everything looks mostly the same, but when we register a new upkeep.
+00:01:00.714 - 00:01:31.878, Speaker A: We'Re presented with this new option, trigger. This is amazing, in my opinion, because one of the most common use cases that I use are time based trigger mechanisms. And that used to mean dealing with block hashes and trying to figure out how to do all that within a contract using check upkeep with those block hashes to see if enough time had passed on a blockchain in order to trigger that upkeep. Now you can do that right here through this UI.
+00:01:31.974 - 00:01:33.066, Speaker B: I'm going to head back to the.
+00:01:33.088 - 00:02:01.540, Speaker A: Documentation and we'll take a look at creating a time based automation. Now this will walk you through all the different steps that you need about connecting your wallet, how to register and everything like that. But let's look at creating a keeper compatible contract. This is what we used to have to do every single time. We used to have to create a check upkeep function and then we had to create a perform upkeep function.
+00:02:01.910 - 00:02:03.986, Speaker B: Right? You remember that?
+00:02:04.168 - 00:02:24.038, Speaker A: Well, you can still do that if you need some sort of more complex logic behind what's going to trigger an upkeep if it's not just time based, you can still use those two functions, but we want to use that time based function. How can we make a contract and do that? Let's take this sample contract and we'll.
+00:02:24.054 - 00:02:26.314, Speaker B: Modify it and go from there.
+00:02:26.432 - 00:02:27.878, Speaker A: So we have our sample contract.
+00:02:27.974 - 00:02:30.938, Speaker B: If we click open and remix, we'll.
+00:02:30.954 - 00:02:56.550, Speaker A: Get it popped open in. Remix and remix is an online IDE for developing solidity smart contracts. We've got our contract here and we'll know that this one is based upon the way that we used to always use keepers by creating a keeper compatible contract with check upkeep and perform upkeep both as functions available within the contract.
+00:02:57.210 - 00:02:59.350, Speaker B: Now we don't need those anymore.
+00:02:59.690 - 00:03:09.894, Speaker A: This is a good example, I think for showing this change because this contract, it checks upkeep based upon the block timestamp the last time that we did.
+00:03:09.932 - 00:03:11.670, Speaker B: Something, and an interval.
+00:03:11.830 - 00:03:20.702, Speaker A: So when we deploy this contract, we set the interval. That's what the constructor does. The constructors run every time you deploy a contract. And in this case we pass in.
+00:03:20.756 - 00:03:24.266, Speaker B: An interval to the constructor based upon.
+00:03:24.298 - 00:03:29.822, Speaker A: That interval, you then will check the block timestamp. And the last time that we actually.
+00:03:29.876 - 00:03:32.894, Speaker B: Performed upkeep and compare them to see.
+00:03:32.932 - 00:03:38.930, Speaker A: If enough seconds have passed in order to need upkeep. Again, this is a perfect use case.
+00:03:39.000 - 00:03:42.654, Speaker B: For that time based upkeep.
+00:03:42.782 - 00:04:02.570, Speaker A: So how do we go about doing this? I think probably the best way to start is by creating a new function to count, right? That's what this contract is doing. It's taking a counter, starting it at zero, and then it's increasing it at a regular interval. So let's do that. Let's create a new function and we'll call it count. And it won't need to take anything.
+00:04:02.640 - 00:04:12.320, Speaker B: In because we're just going to be increasing that counter. And so we'll just say counter equals counter plus one.
+00:04:12.930 - 00:04:20.318, Speaker A: Now what type of function does this need to be? We can let anybody run this.
+00:04:20.404 - 00:04:25.266, Speaker B: So we'll say external and that should be it, right?
+00:04:25.288 - 00:04:30.766, Speaker A: We have this function, count. It's an external function and we don't.
+00:04:30.798 - 00:04:41.078, Speaker B: Need check upkeep anymore. For this use case, we don't even need perform upkeep. We can get rid of both of these.
+00:04:41.164 - 00:05:02.330, Speaker A: Our contract just got a whole lot simpler. So anytime that we want to increase our counter we just call count. Fantastic. Let's go ahead here and see what we have. As far as compiling, we have a warning. It's saying that it should not be a keeper compatible interface anymore.
+00:05:02.410 - 00:05:04.960, Speaker B: That's true. We don't need that as well.
+00:05:05.890 - 00:05:12.138, Speaker A: We don't need last timestamp and we don't need interval. We'll set those in the keeper's interface.
+00:05:12.234 - 00:05:13.970, Speaker B: So we can get rid of them as well.
+00:05:14.120 - 00:05:24.446, Speaker A: Suddenly this contract just became really, really simple. So we create a constructor and let's.
+00:05:24.478 - 00:05:29.558, Speaker B: Clean it up all the way. We have our constructor, it's going to.
+00:05:29.564 - 00:05:35.970, Speaker A: Set the counter equal to zero. It's a public variable that we can see. And then we have a function to increase that counter.
+00:05:36.050 - 00:05:36.806, Speaker B: That's it.
+00:05:36.908 - 00:05:42.470, Speaker A: That's all that the other version of this contract was doing. Using checkupkeep and perform upkeep.
+00:05:42.550 - 00:05:44.646, Speaker B: This one much simpler.
+00:05:44.758 - 00:05:50.102, Speaker A: And if you're using a use case like this where you just need to perform an action based upon time passing.
+00:05:50.246 - 00:05:52.426, Speaker B: This is all you need. So we're good here.
+00:05:52.448 - 00:06:01.470, Speaker A: We've got our green checkmark. That means it compiled correctly. We'll need to deploy this. So let's do an injected provider. I'm going to be deploying it to.
+00:06:01.540 - 00:06:16.494, Speaker B: The Fuji avalanche test network. Just picked one and we have my account. We need to make sure we deploy the counter contract. Let's go ahead and do that. We'll approve this transaction.
+00:06:16.542 - 00:06:19.394, Speaker A: We should see it pop up here. We've got another green checkmark.
+00:06:19.442 - 00:06:20.790, Speaker B: That means we're good to go.
+00:06:20.940 - 00:06:23.282, Speaker A: We have two values here. We have counter.
+00:06:23.426 - 00:06:24.982, Speaker B: It'll tell us that we've counted zero.
+00:06:25.036 - 00:06:26.646, Speaker A: Times and we have count.
+00:06:26.828 - 00:06:30.330, Speaker B: This will actually increment the counter. So let's do that.
+00:06:30.400 - 00:06:33.510, Speaker A: Go ahead and make sure everything's working before we head over to keepers.
+00:06:33.670 - 00:06:35.466, Speaker B: Cool, awesome.
+00:06:35.568 - 00:06:52.046, Speaker A: We have counted one time. Now let's head over to keepers and what will we need over there? So we're going to be using time based triggering for this contract. Now we'll need to give it the.
+00:06:52.068 - 00:06:55.426, Speaker B: Address of our contract and this is.
+00:06:55.448 - 00:07:06.806, Speaker A: Going to give us a couple of interesting options here. So if we had verified this contract on the network that we're working on, it will populate the values of the.
+00:07:06.828 - 00:07:08.278, Speaker B: Functions that it can call.
+00:07:08.444 - 00:07:10.690, Speaker A: We haven't verified this contract.
+00:07:10.850 - 00:07:11.890, Speaker B: Are we out of luck?
+00:07:11.970 - 00:07:24.698, Speaker A: We're not. We can get the ABI the application binary interface. It essentially gives keepers and other applications interacting with your contract the information about hey, what does this contract do?
+00:07:24.784 - 00:07:29.066, Speaker B: How do I interact with it? If we head back to Ethereum we.
+00:07:29.088 - 00:07:31.574, Speaker A: Can see under the compilation tab here.
+00:07:31.632 - 00:07:34.154, Speaker B: Under the compiler we have an ABI.
+00:07:34.282 - 00:07:39.946, Speaker A: Now make sure that you pick the correct contract. This contract is counter.
+00:07:40.058 - 00:07:41.182, Speaker B: So we'll need to make sure we.
+00:07:41.236 - 00:07:44.002, Speaker A: Select that and then we'll click on.
+00:07:44.056 - 00:07:47.300, Speaker B: Copy for the ABI, head back to.
+00:07:47.990 - 00:08:03.080, Speaker A: The keepers window over here, paste it in and click next. At this point it should give you all of the functions that you can call. Now our contract's pretty simple. It has one function, it's called count. So we'll use that function.
+00:08:03.530 - 00:08:04.278, Speaker B: Right.
+00:08:04.444 - 00:08:08.662, Speaker A: We've told it what function we want to call. Now we need to tell it how.
+00:08:08.716 - 00:08:11.866, Speaker B: Often do we want to call this function?
+00:08:12.048 - 00:08:14.406, Speaker A: When it comes to automating smart contracts.
+00:08:14.438 - 00:08:16.586, Speaker B: On the blockchain, we're going to have.
+00:08:16.608 - 00:08:25.600, Speaker A: To wait for blocks to be verified. Right. And blocks to be mined on that blockchain. That can affect how quickly we can do things.
+00:08:26.290 - 00:08:27.962, Speaker B: I'm going to run this every minute.
+00:08:28.106 - 00:08:49.798, Speaker A: The Fuji test network is pretty fast. Some other networks, it takes a little bit longer for those block confirmations to come in. That's just something to keep in mind. The syntax here is the same as Cron. If you're not familiar with Cron, there's a basic breakdown of it over here. It has five different values. It's got minutes, hours, days of the.
+00:08:49.804 - 00:08:53.240, Speaker B: Month, the month, and then day of the week.
+00:08:54.170 - 00:09:01.478, Speaker A: Now you can get really fancy with Cron schedules and there are some tools out there that are fantastic.
+00:09:01.654 - 00:09:08.986, Speaker B: If you're not familiar with Cron, head on over to Crontab Guru and you.
+00:09:09.008 - 00:09:11.514, Speaker A: Can kind of get an idea of what is happening.
+00:09:11.712 - 00:09:13.046, Speaker B: They have an example in here.
+00:09:13.088 - 00:09:18.926, Speaker A: We'll just talk through it real quick. So the minutes is five, the hours is four, the rest are stars. Stars means always.
+00:09:19.108 - 00:09:28.314, Speaker B: So this says at four, five, every day, every day of the month, every month of the year, every day of the week, right.
+00:09:28.372 - 00:09:34.014, Speaker A: You can get some pretty interesting things going on. So this one would run at midnight.
+00:09:34.142 - 00:09:38.054, Speaker B: Five minutes past it on the, like.
+00:09:38.092 - 00:09:39.426, Speaker A: Every day in August.
+00:09:39.538 - 00:09:41.010, Speaker B: Only in August.
+00:09:41.170 - 00:09:42.646, Speaker A: Every day and every day of the.
+00:09:42.668 - 00:09:50.458, Speaker B: Week in August, the 8th month at 1415 on the first of the month.
+00:09:50.624 - 00:09:52.266, Speaker A: This is a great place to kind.
+00:09:52.288 - 00:10:02.166, Speaker B: Of get an easy, human readable output from cron tabs. So let's head back here. We want to run this and I'm.
+00:10:02.198 - 00:10:07.342, Speaker A: Going to say every 1 minute. And this is what I mean by interesting things.
+00:10:07.396 - 00:10:12.046, Speaker B: We can divide up every minute divided by one.
+00:10:12.068 - 00:10:14.030, Speaker A: So that's going to say every 1 minute, right.
+00:10:14.100 - 00:10:16.738, Speaker B: If we had just one, then it.
+00:10:16.744 - 00:10:24.210, Speaker A: Would only run on the first minutes of the hour. So at 1 minute past the hour, but we want every 1 minute.
+00:10:26.650 - 00:10:27.798, Speaker B: We'Ll click next.
+00:10:27.884 - 00:10:31.686, Speaker A: And this is very similar to what the keepers used to look like, right?
+00:10:31.708 - 00:10:35.462, Speaker B: So we'll say count every.
+00:10:35.516 - 00:10:42.374, Speaker A: Now let's do something more fun. Make every minute count. We'll give it a gas limit.
+00:10:42.422 - 00:10:46.342, Speaker B: 1000, 550,000 should be plenty.
+00:10:46.486 - 00:10:48.220, Speaker A: We'll pop in some link.
+00:10:48.590 - 00:10:49.578, Speaker B: Do you need link?
+00:10:49.664 - 00:10:52.106, Speaker A: If you don't have link, you can get it from the faucet right here.
+00:10:52.128 - 00:10:56.414, Speaker B: We've got a link to the link faucet right there.
+00:10:56.532 - 00:11:02.542, Speaker A: We do ask for your email address. That's to email you in case your keeper starts to run out of link.
+00:11:02.596 - 00:11:10.202, Speaker B: Or there's a problem with. And you can give it a project.
+00:11:10.256 - 00:11:32.238, Speaker A: Name if you need to. We'll click register upkeep. We'll need to approve this on the blockchain. We'll wait for that approval process. We'll need to approve one more time to actually request the upkeep as well. So this will transfer the link from our wallet to the Keepers subscription that we've got going on here and it will set up our upkeep and then.
+00:11:32.244 - 00:11:38.082, Speaker B: We can view that upkeep. So if we take a look here.
+00:11:38.136 - 00:11:51.622, Speaker A: We can see the history. We can see hey, we set up our upkeep and we funded it. We have. When it's going to run, based upon our cron expression, we've got all that information. We also have the ability to say.
+00:11:51.676 - 00:11:55.154, Speaker B: Hey, I don't want to run this every minute.
+00:11:55.202 - 00:11:57.718, Speaker A: That's way too often. Maybe every hour.
+00:11:57.884 - 00:11:58.886, Speaker B: We can go in here and we.
+00:11:58.908 - 00:12:07.034, Speaker A: Could edit the upkeep, change things. We can add more link if we need to. We can edit that gas limits. That will be important too.
+00:12:07.072 - 00:12:09.366, Speaker B: If you have a function that costs.
+00:12:09.398 - 00:12:28.146, Speaker A: More gas than your gas limit, your upkeep won't run. Just a few things to keep in mind. But you can see here we've performed our upkeep already. So if we head back to remix, go back to our contract, right? Last time we ran counter once and then we had one on our counter. If we check now, we can see.
+00:12:28.168 - 00:12:31.026, Speaker B: Our counter is two and again, in.
+00:12:31.048 - 00:12:35.720, Speaker A: Just a minute we'll be able to see that our counter has increased again.
+00:12:36.170 - 00:12:38.006, Speaker B: So just like that, we've taken our.
+00:12:38.028 - 00:12:47.750, Speaker A: Contract and we've automated it using keepers time based triggers to create that decentralized.
+00:12:48.490 - 00:12:53.082, Speaker B: Automation of our smart contract. I think that's really cool.
+00:12:53.216 - 00:13:07.406, Speaker A: This use case, I'm stoked about it because I do this a lot where I want to just have something trigger on a regular interval, a regular cadence. And having the ability to do that is awesome. And it simplifies the contracts down so much.
+00:13:07.508 - 00:13:12.078, Speaker B: Right? Look at this thing. It's tiny. When you compare that to this.
+00:13:12.244 - 00:13:23.920, Speaker A: My goodness, it's so much easier to understand, so much cleaner because our use case is so simple. So thanks for watching another tutorial and for checking out the new keepers version one.
+00:13:24.570 - 00:13:27.300, Speaker B: I'm Richard and I'll catch you in the next one.

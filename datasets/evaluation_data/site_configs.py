@@ -666,4 +666,14 @@ site_configs = {
         'content_selector': '#content',
         'img_selector': '.img_ev3q',
     },
+    'cargo': {
+        'base_url': 'https://doc.rust-lang.org/cargo/index.html',
+        'content_selector': '#content',
+        'img_selector': '.img_ev3q',
+    },
+    'rust': {
+        'base_url': 'https://doc.rust-lang.org/book/',
+        'content_selector': '#content',
+        'img_selector': '.img_ev3q',
+    },
 }

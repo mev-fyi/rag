@@ -1,0 +1,116 @@
+00:00:00.570 - 00:00:01.120, Speaker A: Hey.
+00:00:03.330 - 00:01:04.302, Speaker B: So sorry for the delay. Had a bug needed to fix it before. We'll be able to push the complete release with some of the features that were already fixed but not yet delivered. No worries a bit. So the good thing is that I now know the complete order of how it goes with our block processing. So I'll be able to provide you with the document later today. And as we implemented it on the is multiple side, we can now be sure that this is the set of checks that are done to each transaction before anything else and only after this set of checks we are processing any kind of block and there are only 123-4567 of them.
+00:01:04.356 - 00:01:07.866, Speaker C: I think seven checks been done.
+00:01:07.908 - 00:01:57.860, Speaker B: You mean seven checks like block pool, null sender, not enough gas in the block gas limit with given gas limit transaction already in block ape 38 60 transaction size over maximid code size tender is contract invalid, none expected. Something else that are the main like seven thingies and also have enough funds goes the last and that's it. Yeah. By the way, I had a question for the validation or non validation mode. Do we check the sender is contract now or we skip this check?
+00:02:00.550 - 00:02:09.400, Speaker C: We have been skipping that check. I haven't checked from the get is. I think get is still doing that. So skipping it as it's in the R spec.
+00:02:10.010 - 00:02:14.280, Speaker B: So if we have validation on, do we still skip it?
+00:02:15.530 - 00:02:19.500, Speaker C: Yeah, that's the only difference there.
+00:02:20.750 - 00:02:28.220, Speaker B: All right. Could you add a test for that so that we'll be able to have a regression for it?
+00:02:29.230 - 00:02:38.526, Speaker C: I think I have checked for that, but I can see it, but I can check if I have it because.
+00:02:38.628 - 00:02:44.660, Speaker B: This is definitely there and we shall somehow disable it then. All right, we'll do that.
+00:02:45.030 - 00:02:45.826, Speaker C: Yeah.
+00:02:46.008 - 00:02:57.510, Speaker B: So that's it with me, just like right now. A few minutes ago, found how to fix the issue with the block processing on my side and we'll.
+00:02:59.290 - 00:03:02.614, Speaker C: That I was just sharing that. Some block hash issue.
+00:03:02.732 - 00:03:40.020, Speaker B: Yeah, so Sina actually found this issue earlier that week and I was looking all around to fix it and finally I've got it right now. So I'll push out the updated docker image later today and we'll be able to finally check all the fixed issues on it. Hopefully everything now will be fixed. The new one that was last thing that broke it was the nuns check. And nuns check is also now fixed. So maybe even hashes would agree, but I'll check it a bit later.
+00:03:41.430 - 00:03:48.280, Speaker C: That was the case where the nether might completely crash on the test suite, I guess.
+00:03:49.370 - 00:03:59.110, Speaker B: Yeah, that shall be fixed. With this release, just wait till the evening and I'll provide an updated docker image.
+00:03:59.930 - 00:04:07.740, Speaker C: Nice. I haven't been working since I was on holiday for one week, so there's no really updates from me.
+00:04:12.680 - 00:04:44.360, Speaker D: Yeah. As for me, I didn't do so much. Well, I was trying out the tests last two weeks and found that they were failing. Then Kimmy fixed them and yeah, then I could run the test and found these issues like the errors in element and I reported to Oleg.
+00:04:44.520 - 00:04:44.940, Speaker C: Yeah.
+00:04:45.010 - 00:04:45.788, Speaker B: Thank you.
+00:04:45.954 - 00:04:46.670, Speaker C: Yeah.
+00:04:47.600 - 00:05:19.000, Speaker D: So basically that's it from me. So if these crash errors are fixed today, maybe we can try to dump the block for some of these like for a sample test case and then check the block details for gas and othermind. And we can probably find some differences that we can start fixing.
+00:05:20.620 - 00:05:21.032, Speaker B: Yeah.
+00:05:21.086 - 00:05:21.592, Speaker A: Perfect.
+00:05:21.726 - 00:05:32.268, Speaker B: I'll be with you. I think I will provide the docker image updated in around 2 hours. In 2 hours we'll be able to check that. Perfect. Awesome.
+00:05:32.354 - 00:05:38.700, Speaker C: Is there some standard output dump that you can create that should be the same with get a network?
+00:05:42.990 - 00:05:45.500, Speaker D: I didn't get the question quite.
+00:05:47.870 - 00:05:59.040, Speaker C: I guess both nodes can do some tracing and can you run the multicol with tracing and then you could see why the hashes might be different. Or is that you are dumping the state or something like that.
+00:05:59.570 - 00:06:36.860, Speaker B: Basically I think that multicol would be this very thing that would allow us to check because we'll have for each transaction all its parameters and the block hash shall be different only if something is wrong with the transactions or the block header. So we'll be able to just go through whatever multiple outputs to us about the block and the transactions, and we'll be able to find where the difference is, be it in transactions or block headers, for example. And we'll be able to go from there. I think it will be the first step.
+00:06:38.270 - 00:07:08.098, Speaker D: Yeah. Just what I mean is specifically that we don't return every field of the block in the multiple result. So we would need to print some extra stuff. I'm not exactly sure how to do it. I'm guessing the easiest way is just to add a print and run the test. I'm actually wondering if we can run individual tests in hive. That should be possible.
+00:07:08.098 - 00:07:09.550, Speaker D: That would make it easier.
+00:07:09.710 - 00:07:20.120, Speaker C: Yeah, you can ask it to run one test. You can, when you run test, you can just put the name of the test and it will just run that.
+00:07:20.490 - 00:07:41.390, Speaker D: Awesome. So yeah, I think what I'm going to do is just add a print statement to get to dump the block. And at the end of the processing and then we can compare that to nevermind.
+00:07:45.020 - 00:07:51.580, Speaker C: But yeah, if you are lucky then we just run the test after all fixes and then they are all matching magically.
+00:07:52.640 - 00:07:54.350, Speaker D: Oh yeah, that would be beautiful.
+00:07:56.640 - 00:07:58.620, Speaker B: Yes. Best case scenario.
+00:08:03.850 - 00:08:21.420, Speaker C: I had one question in the specs. At the moment we are returning that the base fee for the block. Base block fee. Is that something that we should remove from the spec or do we want to return it?
+00:08:25.800 - 00:08:29.670, Speaker B: I remember I had a question about some naming in there.
+00:08:32.360 - 00:08:54.430, Speaker C: At the moment the namings are matching the spec as current thing, but we are trying to change the namings and I would then change the spec if the naming test go true. But I don't know what the status of those. For example with block phase fee should be returned for the block or not.
+00:08:56.660 - 00:08:59.760, Speaker D: I think it's not a real field on the block.
+00:09:01.860 - 00:09:08.560, Speaker C: Is it that when you are getting block RPC call you are not getting the block base fee?
+00:09:08.720 - 00:09:09.430, Speaker D: No.
+00:09:11.080 - 00:09:19.708, Speaker C: Is it that you always need to calculate yourself? That's interesting because you can get the other base fees with the block.
+00:09:19.904 - 00:09:27.400, Speaker D: So I think we are adding a new method for it is blob base v if I'm not mistaken.
+00:09:28.380 - 00:09:36.780, Speaker C: Okay, that's weird. Why you want to make a new one and not just add it to the kind of the get block?
+00:09:37.840 - 00:09:46.290, Speaker D: Well, get block is supposed to return the block fields and block base is not part of it.
+00:09:49.160 - 00:10:04.600, Speaker C: Yeah, but you can calculate from those. But yeah, you can calculate from the excess blob cash and you can calculate by just making that call and making the calculation. It's just more difficult for the user that they need to do the calculation.
+00:10:05.900 - 00:10:26.850, Speaker D: But also normally you would not need the block base fee of the existing blocks you want to estimate for including your next transaction. And that's what, if I'm not mistaken, the blob base fee method does. It will tell you what will the future blob base fee be.
+00:10:29.220 - 00:10:59.370, Speaker C: But we don't have the same thing for the normal base fees. At least I'm calculating the transaction fee as I'm getting the previous blocks base fee and then I'm doubling it. And that's my estimate for the good transaction price. But I guess with blobs it's not going to work the same. But I would imagine isn't the adjusting logic completely the same for plops and that is for the transaction as well?
+00:11:01.340 - 00:11:04.796, Speaker B: I had a question by the way about that.
+00:11:04.978 - 00:11:15.710, Speaker C: So I don't really understand consistency. Why we are making the plops works differently than the base fee when it's kind of for me at least apparel works exactly the same.
+00:11:18.780 - 00:11:27.020, Speaker D: Um, wait, so okay, let me, I'm trying to dig up the documents.
+00:11:28.720 - 00:11:33.170, Speaker C: But yeah, this more criticism for the plop spec and not to kind of multicolor stuff.
+00:11:34.660 - 00:12:13.660, Speaker B: Yeah, just to jump on that while sin is searching for the docs. So there is a validator index in withdrawals, and somehow if you look at ETH multicol, it is consistently mostly camel ish case like. And suddenly the underscores started to appear all around in the, for example, validator index. For us, it's currently camel case and not the underscore thingy. Let me show you into the comments.
+00:12:15.600 - 00:12:17.580, Speaker C: Do we have validator index?
+00:12:18.340 - 00:12:44.970, Speaker B: Yeah, we do. It is in schemas execute, and it is currently written as validator like lower dash index instead of validator index. And as I see currently in the chat discussion, you are also discussing calculate blob fee. I had a question about that.
+00:12:45.660 - 00:12:53.210, Speaker C: Yeah, you are right about the vibration index. I'm not sure where that comes from.
+00:13:02.000 - 00:13:21.780, Speaker B: Yes. So for me, the main question is, how do we want to write it? Do we want to break apart a little bit and have camel case mixed with underscore, or do we want to keep it more uniform?
+00:13:25.890 - 00:13:32.900, Speaker C: I'm not sure where that validation underscore index comes from. I don't know if. Is it used somewhere else and I got it from there.
+00:13:36.670 - 00:13:40.330, Speaker B: Yeah, good question. So it is in schema's execute.
+00:13:40.830 - 00:13:57.000, Speaker C: Yeah, I see it, but I wonder why I have named it like that. Is it that? Because I got it from somewhere, but it's that same syntax. Yeah, it's in the conscious specs. It's called validator index.
+00:13:58.780 - 00:13:59.800, Speaker B: Oma.
+00:14:07.900 - 00:14:18.530, Speaker C: Like in these specs, it's validation underscore index. And I guess get is also getting from there. I don't know why it's named like that.
+00:14:19.620 - 00:14:22.576, Speaker B: All right, we'll update our site for that.
+00:14:22.758 - 00:14:26.960, Speaker C: Do you know in that nettermind, is it like that in other methods?
+00:14:27.120 - 00:14:31.990, Speaker B: Currently it looks like it is. Without underscore, it's like Camel case.
+00:14:33.400 - 00:14:36.550, Speaker C: Wonder if there's some other method where you can get that.
+00:14:38.220 - 00:14:41.720, Speaker B: Is there any method that would return you the withdrawals?
+00:14:43.420 - 00:14:45.770, Speaker A: What's the problem? What are we talking about?
+00:14:46.300 - 00:15:28.840, Speaker B: So in our code base, we have validator index serialized as camel case, validator Capital I index. And in the RPC standard docs, we have validator lower dash index. Oh, that's weird. So the question is, is there any method that would be actually utilized currently by clients that would rely on camel case validator index or this is changeable as keyword array and Sina point to the fact that in the official standard it is validator underscore index.
+00:15:29.340 - 00:15:42.300, Speaker A: So generally JSON don't use underscores. I don't see that. Never seen that kind of maybe never is about too much. But I generally don't see that kind of patterns.
+00:15:42.720 - 00:15:45.612, Speaker B: Totally agree. So the question is what do we.
+00:15:45.666 - 00:15:47.980, Speaker A: Maybe it's me, maybe I'm in my bubble.
+00:15:48.720 - 00:15:54.210, Speaker D: I mean, guess is also returning camel case. So maybe just spec is wrong.
+00:15:55.380 - 00:16:05.412, Speaker C: Yeah, I just look from the other IFs and they are using test with the underscore and I think that's where I have gotten it. But yeah, I can rename it.
+00:16:05.466 - 00:16:31.260, Speaker A: Yeah, but are they using underscore in some internal naming or like public names of the JSON RPC items? I haven't because I see in EIPC as private names of some values often use underscores. But I haven't seen underscores in like public RPC JSon.
+00:16:33.920 - 00:16:43.408, Speaker C: Okay, yeah, in the quick no specs and the get block details. There's also without underscore. Yeah, I rename. Cool.
+00:16:43.494 - 00:16:45.650, Speaker B: Yay cool. Thank you.
+00:17:03.080 - 00:17:12.810, Speaker C: Did you find any other that kind of problems? There's also block gas, USD UN 64.
+00:17:14.460 - 00:17:38.752, Speaker B: Yeah, I had a question with the data types. So we are using unit 64 while you asked for the unit 256. So yeah, the question is do we want to keep for it blob got.
+00:17:38.806 - 00:17:40.370, Speaker C: Used specs or where.
+00:17:43.960 - 00:17:50.164, Speaker A: In practice. Because we are serializing that to string, right? Yeah.
+00:17:50.202 - 00:17:51.350, Speaker B: Nobody will know.
+00:17:51.720 - 00:18:08.108, Speaker A: So it won't matter because in practice you won't get beyond 264 number length. So if you serialize it to a string, that's whatever, right? It's a number and string and it will be always.
+00:18:08.194 - 00:18:22.800, Speaker B: Yeah, but if anyone would ever look at the spec and then try to create a fuzzer that would actually rely on data type sizes, then he would immediately see this discrepancy.
+00:18:28.150 - 00:18:30.114, Speaker A: Will he be able to achieve that.
+00:18:30.152 - 00:18:41.320, Speaker B: Kind of values with this multicol? No problem. You just put it in there as you can mock anything. You can put longer numbers wherever you want.
+00:18:46.670 - 00:18:48.060, Speaker A: In gas used.
+00:18:48.430 - 00:18:53.900, Speaker B: Well, maybe not in the blob gas used, but you can try to achieve this situation.
+00:18:54.990 - 00:19:09.406, Speaker A: No, because you will have to probably have too many data or too many yet for blob. Too many, too big blobs. Right. How big the blob would have to be to exceed this? I don't know.
+00:19:09.588 - 00:19:23.380, Speaker C: Isn't there limit on how much blob a single blob can use? Is it max three blobs that can be included at one block. So if you make three huge blobs, then can they ever beep that much? That big.
+00:19:25.190 - 00:19:28.262, Speaker B: But it is gas used.
+00:19:28.316 - 00:19:34.470, Speaker C: Just isn't there a limit on how big one blob can be? I think there is, yeah.
+00:19:34.620 - 00:19:42.090, Speaker D: Both on how big a blob can be and how many blobs you can include in a tree.
+00:19:42.830 - 00:20:00.110, Speaker C: I guess six. Okay. I had three is the one that is kind of being aimed at. I don't mind to rename it 64 if that's better.
+00:20:05.070 - 00:20:10.670, Speaker A: What do we use internally? Calculator.
+00:20:11.170 - 00:20:26.754, Speaker C: I don't know if there's spec that is claiming what it should be, that should be followed. I would imagine that you can fork Ethereum and then add more blobs and then it could have this issue.
+00:20:26.952 - 00:20:44.940, Speaker A: Yeah. Ethereum will potentially increase the number of blobs. Right. Just thinking if it's reasonable. Because if you would have to put two terabytes per block, for example, to X 64, then it's not really reasonable to do that. Right.
+00:20:46.830 - 00:21:24.086, Speaker C: So our type is un $64.
+00:21:24.188 - 00:21:56.860, Speaker A: So current map, max blob gas per block is 786. Okay, so it's the number of kilobytes. Right. So in order to X three, it's the number of bytes. So I don't see people exceeding two to the power of 64 bytes.
+00:21:57.680 - 00:22:04.590, Speaker B: Yeah, no question with that. My only beef was with the APC standard.
+00:22:09.710 - 00:22:11.740, Speaker C: Well, we can use 64.
+00:22:14.920 - 00:22:20.020, Speaker A: That's 16 million petabytes per block. I don't think it would be exceeded.
+00:22:23.700 - 00:22:25.650, Speaker C: Well, maybe we scale that much.
+00:22:27.540 - 00:23:06.470, Speaker A: Well, maybe in the future, you never know. 6400 kb should be enough for everyone, right? Yeah, but 64 bit addressing was introduced, what, like, few decades? Two decades ago. And it still holds. And we are still far from going over. I still don't see 128 cpUs. If you don't. Can't seem to, of course, but that's not 128 bit CPUs.
+00:23:17.920 - 00:23:26.060, Speaker C: It's the same with the index. That's also two five six. Is that transaction index.
+00:23:38.460 - 00:23:47.284, Speaker A: Yeah. So internally, blob gas used. We use 64 just to verify is.
+00:23:47.342 - 00:23:54.000, Speaker C: Get same or if the get doesn't make a difference, I don't know.
+00:23:54.610 - 00:23:57.520, Speaker D: No, it's also un 64.
+00:23:57.910 - 00:24:13.360, Speaker C: Okay, I rename it. Cool. Did we have anything else to discuss?
+00:24:15.650 - 00:24:17.360, Speaker B: Mike is typing something.
+00:24:22.930 - 00:24:26.270, Speaker C: He's not. He's sick.
+00:24:29.780 - 00:24:30.690, Speaker B: All right.
+00:24:35.650 - 00:24:41.198, Speaker C: Let'S talk next week and inform us when you are getting the new version up.
+00:24:41.364 - 00:24:42.080, Speaker B: Yes.
+00:24:44.450 - 00:24:50.098, Speaker C: Cool. Talk to you later. Okay, bye.

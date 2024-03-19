@@ -1,0 +1,267 @@
+00:00:01.690 - 00:00:18.080, Speaker A: Hello and welcome everyone. I am Peter Robinson and this is the Ethereum engineering group meetup today. We've got Dr. David Highland Wood who is going to tell us a bit about cross chain. So, David, can you please introduce yourself?
+00:00:19.330 - 00:01:16.614, Speaker B: Hi, yeah, I'm David. I have been around the block chain space for about five years now. Started at consensus with Peter and Joanne and Frank all on the call. I have since left and I'm working in a university at the moment, but I still consult very much in this space and try to keep current. A couple of the people that are probably going to join us today, including Peter and I, were on the Uniswap Foundation's cross chain bridge committee recently to evaluate a number of cross chain bridge solutions for Uniswap's use. And so some of what I'm going to present today came out of that work. Their final report is going to be available later this week, so I can't talk too much publicly about it until that comes out.
+00:01:16.614 - 00:01:20.520, Speaker B: But it's coming soon. So that's me.
+00:01:20.970 - 00:01:21.574, Speaker C: Yeah.
+00:01:21.692 - 00:01:25.014, Speaker A: So thank you. I can't wait for the report to come out, actually.
+00:01:25.052 - 00:01:26.822, Speaker B: Yeah, it's exciting. It's good report.
+00:01:26.956 - 00:01:37.114, Speaker A: It's good report. A lot of work gone into it. All right. So are you happy for people to ask questions at any time or should they wait to the end?
+00:01:37.232 - 00:01:54.142, Speaker B: I am absolutely happy to be interrupted. I won't be able to see the chat if I'm presenting my slides. So, Peter, if you could just let me know when there are questions and. Yeah, I'm happy to take questions along the way. And I'm happy to take questions at the end, too.
+00:01:54.276 - 00:02:06.390, Speaker A: Yeah. And so maybe pause at the end of each section as well and then just we can check in on what's in the chat and do that just in case I miss it. All right, so please present your slides.
+00:02:14.140 - 00:02:16.650, Speaker C: Are you able to see those? Yes.
+00:02:17.180 - 00:02:22.404, Speaker B: Okay, so I'm going to talk about design approaches to bridge agnostic cross chain.
+00:02:22.452 - 00:02:27.272, Speaker C: Messaging solutions, which is a bit of a mouthful.
+00:02:27.336 - 00:02:31.516, Speaker B: So we probably need some context to understand that.
+00:02:31.698 - 00:02:36.432, Speaker C: So basically we've ended up with a lot of blockchains. Right?
+00:02:36.486 - 00:03:01.496, Speaker B: When you ask the web how many blockchains we have today, the answer is over a thousand. And those thousand are going to include public private hybrid consortium chains, everything from bitcoin, ethereum to hyperledger instances and cardano and experiments, earth banks and everything else. So it's quite a complicated ecosystem and.
+00:03:01.518 - 00:03:07.416, Speaker C: It'S hard to map out today. And so when we have all these.
+00:03:07.438 - 00:03:19.240, Speaker B: Blockchains, we get to this fundamental problem of how do we transfer coins, information, NFTs, et cetera, in between chains.
+00:03:19.400 - 00:03:20.924, Speaker C: And that means we need some sort.
+00:03:20.962 - 00:03:45.220, Speaker B: Of bridge between the chains. And these are typically called cross chain bridges. Crosschain bridges are most often used to transfer cryptocurrencies or messages, specifically messages in the context of, say, governing solutions, which is what uniswap was after. Particularly.
+00:03:47.800 - 00:03:51.270, Speaker C: A generic bridge kind of looks like this.
+00:03:51.640 - 00:03:55.744, Speaker B: This happens to be out of Axelr's documentation.
+00:03:55.792 - 00:03:59.016, Speaker C: Axelr is a cross chain bridge, and.
+00:03:59.038 - 00:04:47.016, Speaker B: You can see that a user here buys ETH, and the Ethereum blockchain is the custodian for that ETH. And there is some kind of authorizing agent, in this case labeled multisig, and it's watching that request to transfer ETH to some destination chain. When that request is made, that entity, that authorizing agent, it might be a validator network, it might be a private blockchain, it might be an actual multi SIG with people. It might be automated, it might not be. When that authorization occurs, it issues a command on the destination chain to the.
+00:04:47.038 - 00:04:51.370, Speaker C: Debt issuer, which then is going to.
+00:04:52.780 - 00:05:40.890, Speaker B: Give the user some kind of wrapped ETH on that new chain. And so basically it's going to hold cryptocurrency on one chain, it's going to wrap it and represent it on another chain. In terms of the messaging flow, if all you're doing is sending messages instead of buying cryptocurrencies or exchanging cryptocurrencies, it works pretty much the same way, except you don't need that wrapping function. You're just sending a message through the same pipeline. A generic bridge architecture generally looks something like this. They vary widely, which is why they're relatively hard to compare. But users interact with whatever chain they're on.
+00:05:40.890 - 00:06:50.800, Speaker B: They're then talking to a series of contracts, and these contracts will exist for each chain, each bridge, each infrastructure component, all the libraries, et cetera, that implement, typically a bridge at a layer two level. And then those contracts will talk to some kind of authorizing agent. Typically that's a validator network on a private chain, but it can be done purely at the L two level as well. If it's got an L one backbone, then there are typically relayers that then relay it off to the other chain, and that logic flow from the previous slide ensues. So that's what a bridge is. Now, it's never that simple, because now what we've ended up with is not only a lot of blockchains, but a lot of different blockchain bridges or cross chain bridges. And what we find is that not all bridges deal with all chains.
+00:06:50.800 - 00:07:12.920, Speaker B: And so if you want to transfer currency or send messages between two chains, you're now having to figure out what the subset of bridges are that support those chains. And you're having to make a choice about which one you want to use. So it gets complicated, and it gets complicated pretty quickly, unfortunately.
+00:07:15.260 - 00:07:20.410, Speaker C: So crosschain bridges are really big business.
+00:07:21.660 - 00:07:30.104, Speaker B: They're worth a lot of money. And because they're big business and because billions of dollars flow back and forth.
+00:07:30.152 - 00:07:33.336, Speaker C: Between the various chains, they're a hacking.
+00:07:33.368 - 00:07:35.800, Speaker B: Target, and they get hacked a lot.
+00:07:35.970 - 00:07:39.040, Speaker C: So if we look at the biggest.
+00:07:40.180 - 00:07:49.620, Speaker B: Monetary losses of the last year, what we find is that the vast majority of them were attacks against bridges.
+00:07:51.560 - 00:07:54.596, Speaker C: And so if you look at the.
+00:07:54.618 - 00:08:39.280, Speaker B: Numbers here, they're pretty scary. According to reports from security firms desoin and certic, hackers made off with more than $2 billion in 130 different exploits in the first eight months of 2022 bitmark, they lost $196,000,000 hack and just a million dollars less than Euler. And it didn't even make the slide. Nor did Nomad's $190,000,000 hack, or Beanstalk's $181,000,000 hack. You get the idea. And so this is a big money. Some of that has been recoverable.
+00:08:39.280 - 00:08:53.592, Speaker B: Some chains, poly, particularly wormhole, have done a pretty good job in recovering this. And so it's not quite as dire as it looks, but it's a long.
+00:08:53.646 - 00:08:54.890, Speaker C: Way from being good.
+00:08:56.780 - 00:09:27.200, Speaker B: You'll see that the one thing that's not on this slide, that's on this slide that's not a bridge, is the Sam Bankman fried FDX failure. And so there are other ways to lose a lot of money in this space other than bridge hacks. But bridge hacks have tended to dominate recently. So now we can parse out the title of the talk. So we're going to look at design approaches to bridge agnostic crosschain messaging solutions. Why do we want to do that?
+00:09:27.270 - 00:09:31.636, Speaker C: Because crosschain bridges have been hacked a lot.
+00:09:31.818 - 00:09:36.212, Speaker B: They have certain classes of vulnerabilities that we're going to look at.
+00:09:36.346 - 00:09:37.396, Speaker C: And so we're going to look at.
+00:09:37.418 - 00:09:48.440, Speaker B: Ways to design solutions that allow crosschain messaging and crosschain cryptocurrency transactions that are bridge agnostic.
+00:09:48.860 - 00:10:00.044, Speaker C: That's the talk. Okay, so if we look at the most common forms of bridge hacks, what.
+00:10:00.082 - 00:10:02.510, Speaker B: We get is this list.
+00:10:06.340 - 00:10:09.040, Speaker C: A hacker can generate fake events.
+00:10:09.380 - 00:10:47.900, Speaker B: Often that's a fake deposit or depositing valueless token, and trying to get something that's actually valuable back. Positive valueless token, you get, like, real e back or something. And that was present in wormhole hack. The BSC hack, broadly speaking, the Euler hack. Another one is message verification bugs, where people are generating messages, and those messages aren't being validated properly upon receipt. And this is what happened in poly.
+00:10:50.240 - 00:10:54.312, Speaker C: Another common problem is access control bugs.
+00:10:54.456 - 00:11:36.652, Speaker B: And this was part of the polyhack as well, and with Ronan. And so this occurs when people can access bits of your contracts that they really shouldn't. And this is just a security problem in the design of contracts and their dependencies, right. When people are writing contracts, they often have a pretty good understanding of their contract code, but they don't necessarily have a good understanding of their library dependencies. And this can lead to that.
+00:11:36.706 - 00:11:37.308, Speaker C: Can.
+00:11:37.474 - 00:11:43.550, Speaker B: In some cases, this will create message verification bugs, but more often, access control bugs is the problem.
+00:11:44.320 - 00:11:47.184, Speaker C: Now, in Ronan's case, the way those.
+00:11:47.222 - 00:12:18.036, Speaker B: Access control bugs were exploited was actually because the hackers were able to take over a quorum of validators. And this happened because the validators weren't as independently operated as one would hope. A couple of companies operated a number of validators, and they had a relationship between those. Those organizations.
+00:12:18.148 - 00:12:21.108, Speaker C: And so once somebody's keys got hacked.
+00:12:21.284 - 00:13:10.904, Speaker B: The hacker was able to take over a number of validators, and then they were able to use that relationship with a partner company, take over a bunch of their validators, and then exploit an access control bug. And then, of course, this all started at Ronan with the leak of a private key that was then exploited to take control of the validators, then took control of access. This private key leak also happened in the Harmony hack. All this stuff's available online. All the hacks are pretty well documented. So Cointelegraph chain analysis. Some of the auditing companies have done.
+00:13:10.942 - 00:13:15.324, Speaker C: A really nice job with deconstructing these.
+00:13:15.362 - 00:13:35.040, Speaker B: Various hacks and how they occurred, and then what happened after that. I do have links to all of my sources, but they're in the speaker's notes or the slides, so if anybody wants them, let me know, and I can copy those into the chat or get them to you out of band.
+00:13:38.260 - 00:13:45.060, Speaker C: So now we've got 2023.
+00:13:45.210 - 00:13:46.676, Speaker B: That was last year, right?
+00:13:46.778 - 00:13:50.870, Speaker C: All these bridge hacks were last year. So what do we see this year?
+00:13:51.500 - 00:13:53.656, Speaker B: And in the first quarter of this.
+00:13:53.678 - 00:13:56.936, Speaker C: Year, January, February, March, what we saw.
+00:13:57.038 - 00:14:13.208, Speaker B: Was about $119,000,000 in stolen crypto. But interestingly, it wasn't in bridge hacks anymore, and we'll talk about how the bridges responded to these hacks. They did close a lot of bugs.
+00:14:13.304 - 00:14:17.504, Speaker C: In late 2022, but these early 2023.
+00:14:17.542 - 00:14:38.404, Speaker B: Hacks have all been pretty much against NFTs. And that's interesting because it suggests that the bridges are getting a little better in protecting themselves. And we're not really seeing the hackers focus on the bridges because they're not.
+00:14:38.442 - 00:14:41.496, Speaker C: As easily exploitable as they used to.
+00:14:41.518 - 00:15:25.552, Speaker B: Be, doesn't mean they're safe, just means they're better. So let's look now at bridge agnostic architectures. What can we do to just avoid being reliant on any one bridge? So I'm going to go through three of these in general. The first is a proposal. It's an ERC Ethereum request for comments 51 64. It's the 5164th comment on the Ethereum ERC system. And this one looks particularly at cross chain execution.
+00:15:25.552 - 00:15:46.124, Speaker B: So how can we create a bit of a standard for crosschain execution that stabilizes how people go about this? And we can use that standard to have the whole community weigh in, address the approach, address the bugs, get it.
+00:15:46.162 - 00:15:49.084, Speaker C: Right, and then let anybody who wants.
+00:15:49.122 - 00:16:15.110, Speaker B: To create a bridge that's compliant with the standard. ERC 51 64 has been in the review stage since September last September 2022, and it has a reference implementation on GitHub, which is GitHub.com pooltogether ERC 51 64. It's worth looking at.
+00:16:15.960 - 00:16:20.628, Speaker C: It's also a little on the basic side.
+00:16:20.714 - 00:16:32.308, Speaker B: You need to implement a fair bit as a user in order. Basically, what you're doing is making your own bridge.
+00:16:32.484 - 00:16:34.664, Speaker C: You may want to make your own.
+00:16:34.702 - 00:16:39.644, Speaker B: Bridge, and you may feel that you can secure it and operate it and upgrade it and track it with the.
+00:16:39.682 - 00:16:42.750, Speaker C: Time, in which case this is for you.
+00:16:43.600 - 00:16:54.050, Speaker B: If you're already operating a bridge, if you're a bridge company, a lot of companies are looking very seriously at implementing this and coming around this community standard.
+00:16:54.420 - 00:16:55.170, Speaker C: But.
+00:16:57.620 - 00:17:24.750, Speaker B: It'S not an Ethereum standard yet. Even if it becomes one, it won't be universally adopted. So keep that in mind. Generally, the way it works is this. You've got a sending chain and receiving chain. You have a contract that is going to send a message, and that message is either going to be money or text, and you're going to then.
+00:17:26.880 - 00:17:27.752, Speaker C: Dispatch.
+00:17:27.816 - 00:17:39.808, Speaker B: A message with that message signature that I've included there to some chain ID, add its two address, and then it's going to have a payload of a.
+00:17:39.814 - 00:17:43.424, Speaker C: Bunch of call data you'll notice that.
+00:17:43.462 - 00:18:17.756, Speaker B: That method signature is payable, and so you're not necessarily doing this for free. When the message dispatcher receives that message, it's going to dispatch it to a message executor on some receiving chain. When it does that action, it's going to emit a message dispatched event back to the sending contract. When the message executor then is going.
+00:18:17.778 - 00:18:21.324, Speaker C: To authenticate the message dispatcher, it does.
+00:18:21.362 - 00:19:47.560, Speaker B: That via EIP 27 71, which is the secure protocol for native meta transactions. And in this case, that metatransaction is basically a transaction that may include other information, right? It goes between chains, the message is authenticated, messages get executed exactly once and in any order, and that's guaranteed by the ERC 51 64 protocol. So that means that if you wish to create a system for yourself and you wish messages to be able to be sent more than once, maybe you're just dealing with text messages, you're not dealing with currency. Say you've got governance messages and you want the multiple copies to go through. You'd have to send that message more than once yourself. You'd have to make that message different at the protocol level in order to get through more than once. And if you want them ordered, you would have to include your own nonce in the metadata and track that yourself in your own contracts.
+00:19:47.560 - 00:20:29.684, Speaker B: ERC 51 64 doesn't do that bit for you. Okay, now there's also a dispatch message batch function which has appeared to dispatch message, and it basically has the same signature. The difference is instead of accepting a single call data, it accepts a bunch of them, accepts a batch or an array of them, and that's just an optimization. The reference implementation has a contract on.
+00:20:29.722 - 00:20:34.632, Speaker C: GitHub called executoraware sol that you can.
+00:20:34.686 - 00:21:00.384, Speaker B: Inherit from to make the writing of the sending contract much easier. And so the reference implementation, I think is pretty good. There's still a lot of community discussion around this. Generally speaking, this ERC has been pretty stable for about the last nine months, so it's not yet accepted as an EIP, but it's getting there.
+00:21:00.582 - 00:21:04.416, Speaker C: It wouldn't surprise me if it did.
+00:21:04.438 - 00:21:10.230, Speaker B: Eventually get to that status. We'll talk a little bit more about who's implementing this a little later in the talk.
+00:21:12.280 - 00:21:13.988, Speaker C: Now, the second approach I'm going to.
+00:21:13.994 - 00:21:53.388, Speaker B: Talk about is hashi. For any japanese speakers on the call, that character says hashi in Japanese and Chinese, actually, and hashi means bridge. It can also mean chopsticks. But hashi is a bridge aggregator. It's created by gnosis. And they intended to create this thing they call block header oracle.
+00:21:53.564 - 00:21:56.752, Speaker C: And so if you think about it.
+00:21:56.806 - 00:22:44.704, Speaker B: Bridges generally need to read the state of another chain. And so they need some kind of oracle that's going to tell them what the blockheaders are for, some other chain that they're watching or observing or sending messages to. And that's what they're trying to look at here. That's what gnosis is trying to look at here. And so Hashi was created specifically to implement this concept of what they call a arrajo, a redundant array of independent hash oracles. So instead of having one oracle that they have to trust, and that's a decentralized single point of failure, they instead have this group of oracles, this redundant array of independent oracles that are all.
+00:22:44.742 - 00:22:51.350, Speaker C: Watching the blockheaders on whatever chains that they care about.
+00:22:52.200 - 00:23:30.096, Speaker B: The bridges then together operating within the Hashi aggregator, have to agree on the messages that are to pass between these bridges before the protocol can proceed. And so Hashi started with ERC 51 64, but then they deviated from it due to their own specific requirements. So where ERC 51 64 tells you, basically, this is a standard way to get a message from bridge A to bridge B, sorry, from chain A to.
+00:23:30.118 - 00:23:36.556, Speaker C: Chain B. Ashi generally uses that approach.
+00:23:36.668 - 00:24:20.572, Speaker B: To get a message from chain A to chain B, but it adds the functionality to aggregate a bunch of different bridges together that might be implemented quite differently from ERC 51 64 with different implementations with totally different architectures. And then it aggregates those bridges and coordinates their message traffic. So this is the basis for Hashi's statement that they don't require standardization of the bridges. And that's why they're moving away from ERC 51 64, because they don't think that standardizing that message protocol is necessarily.
+00:24:20.636 - 00:24:21.730, Speaker C: The way to go.
+00:24:22.100 - 00:24:35.236, Speaker B: Now, Hashi is not ready for implementation yet or production. It's not particularly far along, but it's a really interesting idea. And I actually quite like their design.
+00:24:35.418 - 00:24:36.724, Speaker C: Some of the things they say about.
+00:24:36.762 - 00:25:20.144, Speaker B: It in their documentation is they're really trying to provide two things. They're trying to provide what they call additive security. So every new bridge in the aggregation can ideally be implemented differently. And then instead of just sort of creating a new bridge with a new set of trade offs, a different set of trade offs from some other bridge, the cooperation of those differently implemented bridges who have to agree with one another, this is really what a message says before the protocol proceeds can provide additive security. In other words, the aggregation of these different implementations. Agreeing improves security in the aggregate.
+00:25:20.192 - 00:25:24.596, Speaker C: I think that's right. And then they've tried to create a.
+00:25:24.618 - 00:25:59.744, Speaker B: Standardized approach at the lowest level of common bridge actions, which is reading the block headers from various chains. The drawback of this approach is now instead of dealing with one bridge, you're dealing with a variety of bridges. And in order to do that you're going to have some higher gas costs, right? Because now you're talking to a number of bridges and you might have potentially slower bridging times because you have to pay all those gas costs, take all those actions across the various bridges and.
+00:25:59.782 - 00:26:03.072, Speaker C: Then check the results across them.
+00:26:03.126 - 00:26:12.772, Speaker B: So you get some benefits from the jumping up a level of abstraction. There are some practical economic costs and.
+00:26:12.826 - 00:26:14.630, Speaker C: Timing costs in doing that.
+00:26:16.360 - 00:26:50.160, Speaker B: Now the third approach I'm going to talk about is MMA, the multi message aggregation ridge agnostic solution. And so this started about January. It's been running for half a year. GitHub link is there. It's a non ERC 51 64 alternative attempting to gain traction with bridge operators like Hashi. It's still under active development. There's still a lot of discussion between the vendors.
+00:26:50.160 - 00:26:57.148, Speaker B: Generally speaking, it's a bridge aggregator in competition to Hashi.
+00:26:57.244 - 00:26:58.770, Speaker C: And it kind of looks like this.
+00:27:00.740 - 00:27:05.556, Speaker B: The sender sends a message to this contract, multi message sender contract on the.
+00:27:05.578 - 00:27:09.510, Speaker C: Left, and it's got a series of.
+00:27:11.020 - 00:27:39.804, Speaker B: Endpoints that are going to talk to equivalent endpoints on the destination chain. And in between that group of endpoints you're going to have a series of bridges. And these can be any of the bridges that already exist. It could be a poly or Axelr or wormhole or whoever. And the idea is you just use these existing bridges, you have a standardized.
+00:27:39.852 - 00:27:42.784, Speaker C: Way of sending messages to them and.
+00:27:42.822 - 00:28:33.820, Speaker B: Then on the destination chain you have a standardized way of receiving messages and aggregating them into this multimessage receiver on the right. And that's going to then result in your message being sent out. That multimessage receiver will only pass the message out to that contract on the right if the bridges agree, or if, depending on the way that you've set your message up, if a quorum of them agrees, whatever quorum you decide to set. So that's MMA. MMA has at least two groups that are trying for MMA compliant implementations. There's seller, their state guardian network, and Hyperlane. And their implementation is still in progress.
+00:28:33.820 - 00:28:48.004, Speaker B: The image here on the right is Hyperlane's general architecture. The thing to look at in their architecture is this mailbox contract the thing.
+00:28:48.042 - 00:28:55.384, Speaker C: About hyperlane that I would personally be a little concerned about if I were.
+00:28:55.422 - 00:29:03.556, Speaker B: A user of it, is they have a fairly small multi sig. I can't remember if it's three of.
+00:29:03.598 - 00:29:06.012, Speaker C: Six or four of six that has.
+00:29:06.066 - 00:29:21.196, Speaker B: Control over those mailbox contracts. And so if they decided to implement a change, to approve a change to the code of those contracts, they would then have control over the message flow.
+00:29:21.228 - 00:29:24.208, Speaker C: And of course, the currency flow, at.
+00:29:24.214 - 00:29:59.420, Speaker B: Least until they get caught. So using something like hyperlane as a bridge, or any of these others that have various problems, the bridges that have various problems, using them singly, can create these kind of security concerns. Using them in aggregate through something like MMA or hashi, is attempting to abstract above the layer of the bridge. If the bridges don't agree in their various different implementations, it doesn't really matter if one gets hacked. It just stops message flow through the bridge agnostic solution.
+00:30:00.640 - 00:30:01.550, Speaker C: Of course.
+00:30:03.520 - 00:31:16.596, Speaker B: You might recognize that if you stop message flow by hacking a given bridge or a certain number of bridges within your multiple bridge solution, you still have a liveness issue there, right? If you stop the flow, you stop people from being able to transfer money, conduct governance, do all these things that we do with cross chain technologies. So that leads us into our conclusion nicely. What is the state of these bridge agnostic solutions in the ecosystem? I would contend that they're pretty promising because they abstract us away from the kind of economic hacky risks that we saw in 2022. And that's important because just because hackers aren't targeting bridges in 2023 doesn't mean that they're in good shape yet. And it doesn't mean that as they upgrade and change, new problems won't be.
+00:31:16.618 - 00:31:21.060, Speaker C: Found or might be introduced, so called bad fix injection.
+00:31:21.500 - 00:31:28.410, Speaker B: So that's certainly possible. So, abstracting away from any given bridge is still a good idea.
+00:31:30.700 - 00:31:34.476, Speaker C: Even if we have bridges that are.
+00:31:34.578 - 00:31:47.616, Speaker B: Good, we don't yet have enough bridges to really participate in a multi bridge solution that's ready for fielding today. Having just gone through this process with.
+00:31:47.638 - 00:31:53.232, Speaker C: Uniswap, we didn't come up with three.
+00:31:53.286 - 00:31:55.424, Speaker B: Or four or five bridges that were.
+00:31:55.462 - 00:32:01.460, Speaker C: Just secure, happily passing our assessment framework.
+00:32:02.760 - 00:32:04.708, Speaker B: Really ready to be trusted to a.
+00:32:04.714 - 00:32:07.792, Speaker C: High level, that we could then aggregate.
+00:32:07.856 - 00:33:09.416, Speaker B: Via one of these bridge agnostic solutions. I think that's going to happen, but it's not ready in June of 2023. So look for that to phase in over the next year, or 18 months, probably. And once we get to that point where you've got three or five really solid bridges that are really ready for primetime, that everybody likes their governance and the state of the code and their contracts, and they've addressed all those common areas for security vulnerabilities. Now, you put those together into a bridge agnostic solution like MMA or Hashi. Maybe they implement ERC 51 64, maybe they don't. Now you've got some way of guaranteeing high safety and high liveness across between the various chains that you are concerned about.
+00:33:09.598 - 00:33:11.464, Speaker C: And that would be. That would be great.
+00:33:11.502 - 00:33:12.584, Speaker B: That would be a much better world.
+00:33:12.622 - 00:33:16.110, Speaker C: Than we're currently living in. Now.
+00:33:18.560 - 00:33:29.872, Speaker B: The problem, of course, is when you try to create some kind of standard, not everybody follows along. So whether this is ERC 51 64.
+00:33:29.926 - 00:33:34.604, Speaker C: Or Hashi or MMA, those are just three solutions.
+00:33:34.652 - 00:33:42.470, Speaker B: Somebody might develop a new solution tomorrow, and there are a couple out there that are a little less mature than those three.
+00:33:43.640 - 00:33:51.304, Speaker C: And you already see the community diverging a bit.
+00:33:51.342 - 00:34:23.920, Speaker B: So hyperlane and seller implementing MMA, but they're not guaranteed to work together. They haven't been tested together yet. Gnosis started with ERC 51 64 and then deviated from it. And that's kind of interesting because you might see others do the same. So some of the other people that are talking about implementing ERC 51 64 now may not be compatible across the various groups.
+00:34:24.340 - 00:34:29.924, Speaker C: So that's where we are at the moment.
+00:34:30.122 - 00:34:33.716, Speaker B: Immature, yet promising is about the best.
+00:34:33.898 - 00:34:35.110, Speaker C: I can give you.
+00:34:36.600 - 00:34:49.736, Speaker B: Now. That's it for me. Peter, do you want to jump back on video here? And I don't see any questions in the chat, but I'm happy to take questions now.
+00:34:49.918 - 00:34:56.140, Speaker A: Yeah, why don't you do questions now whilst we're in the flow? There's a few in the chat.
+00:34:57.840 - 00:34:58.364, Speaker C: All right.
+00:34:58.402 - 00:34:59.532, Speaker B: I'm not seeing them, but I believe.
+00:34:59.586 - 00:35:20.020, Speaker A: Yeah, I'll read them out to you. Let's see, I'll probably. Just a sec. Does MMA need to translate a single message to many forms of messages based on different bridges in the multi message sender?
+00:35:21.640 - 00:35:25.636, Speaker B: No. So the purpose of these endpoints in.
+00:35:25.658 - 00:35:29.350, Speaker C: The MMA architecture is to.
+00:35:31.260 - 00:35:32.120, Speaker B: Wrap.
+00:35:33.900 - 00:35:34.408, Speaker C: A.
+00:35:34.494 - 00:35:52.588, Speaker B: Given MMA message in whatever format that the individual bridges need and then unwrap it on the other side. So the sender and receiver deal with an MMA message, and the contents of that can be application specific. It's just a call data.
+00:35:52.674 - 00:35:53.310, Speaker C: Right.
+00:35:54.000 - 00:36:24.010, Speaker B: But these endpoints are bridge specific. So AmB one matches whatever bridge infrastructure one is. AMB two matches bridge infrastructure two, et cetera, on down. And so those are the contracts that are going to be responsible for sending that message on through the given bridge. And they're going to do that level of wrapping and unwrapping for you.
+00:36:24.940 - 00:36:25.736, Speaker C: Yeah.
+00:36:25.918 - 00:36:31.160, Speaker A: Which hopefully is very lightweight because you wouldn't want to be paying for lots of gas on Ethereum.
+00:36:33.420 - 00:36:41.340, Speaker B: In most cases it is. In a couple of cases it's less, though. Right? Normally it's just a matter of adding or subtracting some metadata.
+00:36:42.240 - 00:36:42.892, Speaker C: Yeah.
+00:36:43.026 - 00:36:55.120, Speaker A: All right, next question is from Ben. Here are agnostic bridges, mainly trusted, trustless or hybrid or both bridge designs?
+00:36:57.140 - 00:37:09.492, Speaker B: That's an interesting question. I could get all philosophical with you and challenge you about what trustless really.
+00:37:09.546 - 00:37:13.416, Speaker C: Means, and I'm kind of tempted to.
+00:37:13.438 - 00:37:19.320, Speaker B: Go down that road specifically because layer zero, for example, calls itself trustless.
+00:37:20.140 - 00:37:26.204, Speaker C: And when we went in and looked at layer zero in some depth, what.
+00:37:26.242 - 00:37:36.930, Speaker B: We found is, I would not call it a trustless architecture. The reason for that was because.
+00:37:41.460 - 00:37:41.776, Speaker C: There.
+00:37:41.798 - 00:37:46.480, Speaker B: Were situations where a given party, single.
+00:37:46.550 - 00:37:52.964, Speaker C: Party, could break liveness in the protocol. Right.
+00:37:53.002 - 00:37:58.144, Speaker B: So just as a refresher, for those people who don't live in distributed computing.
+00:37:58.192 - 00:38:02.904, Speaker C: World, safety is the guarantee that good.
+00:38:02.942 - 00:38:16.296, Speaker B: Things are going to happen. Liveness is the guarantee that bad things won't. So do I have that backward? Peter, you're looking.
+00:38:16.398 - 00:38:23.310, Speaker A: Yeah, I would have thought safety is good things happen, bad things don't happen, liveness is things keep on happening.
+00:38:26.340 - 00:38:47.300, Speaker B: Yeah, we can argue that offline, but fundamentally, if you look this up on Wikipedia, if you Google safety and liveness properties, there's a Wikipedia page on it. And generally speaking, bad things happening include the protocol stopping.
+00:38:48.760 - 00:38:53.590, Speaker A: Yeah, protocol stopping is like a bad.
+00:38:58.840 - 00:38:59.564, Speaker C: Slurry.
+00:38:59.632 - 00:39:08.860, Speaker B: Let me pop the stack here a little bit. So we were talking about trustless versus. Versus trustful systems.
+00:39:09.280 - 00:39:10.030, Speaker A: Yeah.
+00:39:14.640 - 00:40:02.696, Speaker B: My caveat is not every protocol that calls itself trustless is actually trustless. Instead, I would say that protocols that call themselves trustless are all attempting to be trustless, and some of them are better at it than others. So, look, if you have some kind of zero knowledge system, you may say, look, our intent is to be trustless. You implement this zero knowledge system and you don't have to trust anybody. That's the whole point of zero knowledge systems. But you might implement it badly, or you might design your solution badly. You might introduce a protocol level bug or a software bug in the process of implementation, and that can break that trustless assumption.
+00:40:02.888 - 00:40:13.216, Speaker C: So in a bridge agnostic sense, if.
+00:40:13.238 - 00:40:33.808, Speaker B: You'Re doing something like M A and Hashi and you're aggregating a bunch of bridges, some of them might be trustful, some of them might be trustless. They can mix and match. You're abstracting above the layer of the bridge. And so having different types of implementations in those bridge types is actually a benefit.
+00:40:33.904 - 00:40:34.176, Speaker C: Right.
+00:40:34.218 - 00:40:43.064, Speaker B: Because if all of them give you the same answer, or a quorum of them give you the same answer, then you're getting the benefit of really being.
+00:40:43.102 - 00:40:46.764, Speaker C: Able to trust that different bridges have.
+00:40:46.802 - 00:40:49.816, Speaker B: Come up with the same solution, even though they're radically different systems.
+00:40:49.848 - 00:40:55.774, Speaker C: That's a good. Yep.
+00:40:55.822 - 00:41:02.482, Speaker A: Yep. There are a few more questions in there, and I will go to those, but I have a question for you, David.
+00:41:02.546 - 00:41:03.160, Speaker C: Sure.
+00:41:03.610 - 00:41:51.320, Speaker A: So, in my experience of metamask bridging, where allowing funds to be bridged across chains, invariably people choose the cheapest option, the absolute cheapest, in fact, independent of anything, people choose the cheapest option because they all look commodity. If I use this multi bridge architecture, surely the cost of bridging is going to be at least, say, if it's a two or three system like you've got on the screen here, surely it's got to be at least three times as expensive to do this bridge, even though it's more secure. Will people do that trade off of cost for security?
+00:41:52.250 - 00:41:53.880, Speaker B: That's an excellent question.
+00:41:56.730 - 00:41:59.750, Speaker C: It depends on the user. Right.
+00:41:59.820 - 00:42:24.394, Speaker B: So most of these systems, almost all of the systems that I've looked at, whether bridges or bridge agnostic solutions, all of them pass on the gas costs to the end user. They require the user to pay the gas costs. I would suggest that if you're transferring.
+00:42:24.522 - 00:42:33.682, Speaker C: Money, currency from one bridge to another, then obviously you're incentivized to have really.
+00:42:33.736 - 00:42:52.658, Speaker B: Low gas costs, but you're recognizing that you might lose your funds. So you might do a whole series of small transactions versus one big multi gazillion dollar transaction. Because if you do a multi gazillion dollar transaction and that transaction gets lost, you're in trouble.
+00:42:52.754 - 00:42:53.400, Speaker C: Right.
+00:42:54.330 - 00:43:05.310, Speaker B: And so there are absolutely economic decisions to get made. And I would say, generally speaking, people will follow the low cost solution.
+00:43:05.810 - 00:43:08.846, Speaker C: But the way we got into a.
+00:43:08.868 - 00:43:16.878, Speaker B: Lot of these bridge agnostic solution discussions wasn't for currency transfers, it was for governance messages.
+00:43:17.054 - 00:43:17.634, Speaker C: Yeah.
+00:43:17.752 - 00:43:30.470, Speaker B: What you're trying to do is govern a big web three system, then you might be absolutely willing to pay for security because you're trying to govern your.
+00:43:30.540 - 00:43:33.874, Speaker C: Infrastructure, and it might be really critical.
+00:43:33.922 - 00:43:40.310, Speaker B: To you not to introduce yet another way to cause trouble in your architecture.
+00:43:43.080 - 00:43:47.408, Speaker A: Yeah, that makes sense. That makes sense for plain messaging.
+00:43:47.584 - 00:43:48.310, Speaker C: Yes.
+00:43:54.220 - 00:44:20.080, Speaker A: Anyway, rather than me going down my line of questioning, let's do some other ones that are queued here. So I think Hashi's bridges are mainly trusted since oracles are used, posed as a guess? I mean, if they're oracles, it's sort of like an m event, isn't.
+00:44:23.380 - 00:44:24.130, Speaker C: This?
+00:44:24.660 - 00:45:11.810, Speaker B: Hashi started with trying to abstract away from having to trust a given oracle. Right? So they're trying to get this redundant array of oracles to agree on blockheader information. And so they're doing that because they recognized they had this single point of failure, this trusted system that they were reliant on. And if somebody hacks the oracle, it's outside of your control. You're going to trust the answer you get. And that's really what they're trying to do here, is to abstract away from a centralized subcomponent. Does that answer the question?
+00:45:15.620 - 00:45:18.290, Speaker C: I think so. Yeah, I think so too.
+00:45:18.740 - 00:45:20.704, Speaker B: Whoever asked the question, please ask it again.
+00:45:20.742 - 00:45:28.514, Speaker C: If I didn't answer it, what's next?
+00:45:28.552 - 00:45:30.760, Speaker A: Peter? Yeah, the next one is.
+00:45:33.450 - 00:45:34.178, Speaker C: So layer.
+00:45:34.194 - 00:45:46.700, Speaker A: Zero can not only cross EVM chains but also non EVM chains with a single click. Any comments on that, secure or not?
+00:45:49.710 - 00:45:56.880, Speaker B: I didn't say that layer zero is insecure, so please don't take my statements as that simple.
+00:45:57.410 - 00:45:59.994, Speaker C: What I said was there are cases.
+00:46:00.042 - 00:47:08.466, Speaker B: Where, there are even degenerate cases where the default configuration of layer zero can be insecure in that you have to trust the given relayer operator if you're using the default relayer, which is a single entity, and that relayer can break liveness but not safety. Depending on the oracle you choose, you might put the oracle in a position where they can break safety or liveness. And so obviously, if you choose to use layer zero and you choose to use a decentralized relayer of size and complexity and a decentralized oracle of size and complexity, you can absolutely address these problems. And Layer zero's team is actively working on exactly that, enabling this in their default configuration. And we expect to see that in the next three or six months. So it's not that layer zero isn't.
+00:47:08.578 - 00:47:18.226, Speaker C: Trustless or isn't secure or isn't a good bridge. It is. It's just there are issues in their.
+00:47:18.268 - 00:47:22.538, Speaker B: Default configuration for pedantic people like me that are worried about how such a.
+00:47:22.544 - 00:47:25.340, Speaker C: Thing might get hacked. Now.
+00:47:27.150 - 00:47:30.140, Speaker B: Separately to that, in terms of.
+00:47:31.490 - 00:47:33.360, Speaker C: The chain support.
+00:47:35.250 - 00:47:42.030, Speaker B: Anything that's on the cosmos infrastructure is going to have wide applicability to a lot of chains, both EVM and non EVM.
+00:47:42.770 - 00:47:47.540, Speaker C: And that's a big ecosystem, right?
+00:47:48.230 - 00:47:58.596, Speaker B: And I am not so thoroughly familiar with that big, complex ecosystem that I.
+00:47:58.618 - 00:48:03.140, Speaker C: Could guarantee there aren't some pairs of.
+00:48:03.290 - 00:48:30.136, Speaker B: Bridges where the individual implementation of the adapters aren't a bit fast and loose, or the bridge itself can't be secure because the chain itself can't allow totally great security on that bridge. The real solution to all this stuff is to recognize that all these chains.
+00:48:30.168 - 00:48:32.990, Speaker C: Are implemented in different ways.
+00:48:34.400 - 00:48:41.904, Speaker B: They all have limitations and trade offs. They were all designed for some purpose. And the more things you support, the.
+00:48:41.942 - 00:48:46.444, Speaker C: More you guarantee that not just ignorance.
+00:48:46.492 - 00:49:24.270, Speaker B: Of the complexity, but the details of the individual implementations on top of the details of the individual trade offs and architecture. They're going to be holes somewhere. Practically speaking, whether they get exploited is a function of whether or not they get found. That doesn't mean that layer zero shouldn't provide all that functionality. They've got a perfectly great business doing perfectly great work. You just have to recognize that that level of complexity comes with security trade offs a priori. It's just going to happen.
+00:49:24.660 - 00:49:54.440, Speaker A: Yeah. All right, let's move on to the next one, which I think I know the answer to this one. Well, I've got my perspective. Are bridges primarily relying on relayers for gasless transactions or implementing the advantages of account abstraction? So ERC 4337 and gas delegated transactions.
+00:49:55.500 - 00:50:31.428, Speaker B: Yeah. So when I put up this generic bridge architecture slide, I put a relayer component in here, not because it's universal, but because it's common. So not every bridge uses relayers. Not every bridge uses a defined subset of relayers. In some cases anybody can choose to relay besides the default set of relayers. In some cases relayers just aren't a present component. So it's really more complex than I'm making it out to be here.
+00:50:31.428 - 00:50:43.864, Speaker B: I was just trying to present the general idea on the way that most people implement it. So your point is well taken. You're entirely right, it just wasn't my point.
+00:50:44.062 - 00:50:48.520, Speaker A: Yeah, why don't we flip to the end slides?
+00:50:49.900 - 00:50:51.930, Speaker B: Okay, let's do that.
+00:50:54.400 - 00:50:56.270, Speaker C: Here we go. Over to you.
+00:50:57.120 - 00:51:07.824, Speaker A: Yeah, the merch store is still open. Yes, all good. Merch. Anyone wants a t shirt, it's just a few clicks away. All right, next slide.
+00:51:07.862 - 00:51:11.280, Speaker B: If anyone wants to see Peter modeling one of these shirts, he can just.
+00:51:11.350 - 00:51:14.370, Speaker C: Stand up a. Yeah, stand back.
+00:51:16.180 - 00:52:06.800, Speaker A: The bytecode one. Yeah, I definitely should have the option for the bytecode one. If you understand what the bytecode is, please tell me and I'll give your job. But maybe we need to wait for the next bull market for that t shirt. All right, next slide. Ok, so in two weeks time we've got Frank Cassay, who is going to talk about open problems in roll ups and talk about the issues that the roll up ecosystem is facing and, I don't know, maybe proffer some ideas on how things can be fixed. We've got Jane Windall, who's going to give a talk on ERC 65 51.
+00:52:06.800 - 00:52:30.356, Speaker A: And we've got Philip talking about the bridge aggregation. And there is likely to be an extra talk or two slotted in in the middle of all that as well, which are in the midst of being. But. Yep. If you go to the next. Yep. If you're here today, we're on YouTube.
+00:52:30.356 - 00:53:06.790, Speaker A: If you're watching this on YouTube, you can join the Meetup group and come along live. And then you have the opportunity to ask tricky questions live, which can be very. Yeah, so that's the end of the slides and you might as well click off the unshare, as it were. So are there any more questions for David golden opportunity international, more renowned researcher? You've got him on the spot. Tricky questions away.
+00:53:13.470 - 00:53:14.406, Speaker C: There you go, David.
+00:53:14.438 - 00:53:17.340, Speaker A: I think we're all out of tricky questions for.
+00:53:18.670 - 00:53:26.070, Speaker B: So that's probably because people know I'm going to hedge if they catch me. Had some.
+00:53:26.160 - 00:53:27.600, Speaker C: You have your hand up.
+00:53:28.530 - 00:54:02.940, Speaker D: Yes, I do. I think I attended a very early discussion on cross chain bridge design and I'm just wondering, across the bridge ecosystem, is there any particular design that seems to be preferred, that seems to have given us maybe more security conscious features across design? Because it feels like it's the wild, wild west at this point in time and there's so many different bridges out there and there's less standardization of the kind of design? That's my take on it.
+00:54:04.750 - 00:54:06.490, Speaker B: Yeah, it's an excellent.
+00:54:06.990 - 00:54:09.930, Speaker D: Is there any design you've noticed that's become quite prominent?
+00:54:10.830 - 00:54:13.114, Speaker C: I had hoped to be able.
+00:54:13.232 - 00:54:54.760, Speaker B: First of all, I'm glad to see you ask a question, since you're up at 330 in the morning, to listen to the talk from the UK. Look, the ecosystem is complicated and it's full of trade offs. There are aspects of certain bridges that I really, really like. One of the people asking a question talked about Faye, I guess, was asking about, or noting that layer zero can deal with non EVM chains as well, and that's an important piece of functionality, the kind of things that we ran across that we really, really like.
+00:54:55.870 - 00:55:00.202, Speaker C: I would say that I'm a big.
+00:55:00.256 - 00:55:28.354, Speaker B: Fan of decentralized governance because it's harder to hack than centralized governance. So the chains that had a three of four or four of six kind of multi sig. And I don't know who those individuals are. And if I did know who those individuals are, I could just bribe them or threaten them or whatever to get them to do what I wanted. That can be a scary thing.
+00:55:28.392 - 00:55:29.970, Speaker C: From a governance perspective.
+00:55:30.810 - 00:55:33.238, Speaker B: Decentralized governance fixes that problem.
+00:55:33.324 - 00:55:38.870, Speaker C: But on the other side of that particular coin.
+00:55:41.130 - 00:55:59.518, Speaker B: We'Ve got ten years or so now more of dows, and we've seen that decentralized governance can lead to certain kinds of sociological governance failure. And generally with the dows that have failed, sometimes they'll get deadlocked because they just don't have enough people out in.
+00:55:59.524 - 00:56:03.214, Speaker C: The ecosystem willing to participate, and so.
+00:56:03.252 - 00:56:20.266, Speaker B: They can't reach quorum, and thus their dow will just stop. And so now you've got this problem where decentralized governance has these advantages, but also has disadvantages, and centralized governance has some advantages but has some disadvantages.
+00:56:20.398 - 00:56:23.160, Speaker C: And how do we deal with that?
+00:56:24.250 - 00:56:58.226, Speaker B: Last year I was working with, alongside finance for their AMKT token launch. And in their governance model, I was dealing with this sort of layered set of fallbacks from starting with the DAO and decentralized governance. But if it gets deadlocked, it falls back under certain circumstances down to these more centralized approaches in an attempt to mitigate against these problems. But the bridges generally choose a governance model, and they haven't really solved this problem because it's not solved in the general community yet.
+00:56:58.408 - 00:57:00.354, Speaker C: Now, the other thing I really like.
+00:57:00.552 - 00:57:25.402, Speaker B: In the bridges, I would say of the bridges that exist right now, how people have organized their validator sets is really interesting. Some validator sets are big, some validator sets are small. Some validator sets are pretty independent. Some validator sets are not so independent. I quite like validator sets that are.
+00:57:25.456 - 00:57:31.322, Speaker C: Big, that are independent, that have some.
+00:57:31.376 - 00:58:29.590, Speaker B: Kind of competition to get into the active validator set. Often that's via some sort of proof of stake model. And then if you do that, you can run into what's known as the validators dilemma. What happens if somebody just buys a bunch of stake and they end up controlling a lot of validators or a validator, and it has so much staking power that it can just outvote others. And so the implementation of quadratic voting on top of that kind of large validator set that competes to stay in the active set gets slashed if it isn't live or doesn't do the right thing, and then has a quadratic suppression of its voting power. Now you can balance it in such a way that you get this really dynamic, active validator set where all the incentives are just working. I would say the one that's kind of best to breed right now is axilar.
+00:58:29.590 - 00:58:39.700, Speaker B: I don't like all aspects of Axelr, but I love what they've done with their validator community. So hopefully that answers your question.
+00:58:44.290 - 00:58:54.542, Speaker A: All right, well, thank you very much, David, for your talk. Thank you to everyone for coming along and have a great rest of your day.
+00:58:54.676 - 00:59:01.740, Speaker C: Bye bye. Thanks, everybody. Thank you. Bye bye. Thank you. Bye, everyone.
