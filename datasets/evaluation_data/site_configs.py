@@ -676,4 +676,59 @@ site_configs = {
         'content_selector': '#content',
         'img_selector': '.img_ev3q',
     },
+    'syncswap': {
+        'base_url': 'https://syncswap.gitbook.io/syncswap',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'syncswap_second_selector': {
+        'base_url': '.lg\:flex-row > div:nth-child(2)',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'zerolend': {
+        'base_url': 'https://docs.zerolend.xyz/',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'muteio': {
+        'base_url': 'https://wiki.mute.io/mute/koi-overview/master',
+        'content_selector': 'div.r-13awgt0:nth-child(2) > div:nth-child(1)',
+        'img_selector': '.img_ev3q',
+    },
+    'zkswap': {
+        'base_url': 'https://docs.zkswap.finance/',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'mavxyz': {
+        'base_url': 'https://docs.mav.xyz/',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'reactorfusion': {
+        'base_url': 'https://docs.reactorfusion.xyz/',
+        'content_selector': 'div.r-18u37iz:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'velocore': {
+        'base_url': 'https://docs.velocore.xyz/',
+        'content_selector': '#gitbook-main-content',
+        'img_selector': '.img_ev3q',
+    },
+    'solidity': {
+        'base_url': 'https://docs.soliditylang.org/en/v0.8.25/',
+        'content_selector': '.document',
+        'img_selector': '.img_ev3q',
+    },
+    'reth': {
+        'base_url': 'https://paradigmxyz.github.io/reth/',
+        'content_selector': '#content',
+        'img_selector': '.img_ev3q',
+    },
+    'mevio': {
+        'base_url': 'https://docs.mev.io/',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
 }
