@@ -1,0 +1,578 @@
+00:00:00.000 - 00:00:40.098, Speaker A: Hello, everyone. Welcome to another episode of the index podcast, where the three of us come together every couple weeks to discuss on chain data, chart crimes and metrics that move the crypto industry, and us three. That is hildoby, resident data wholesale at Dragonfly, denning on chain data, corgi at flashbots, me, boxer, community powers at Yoon. And today we have our very special guest, Michael, sports fan at Optimism labs, with us to discuss, or as they are commonly known, blobs. Michael, maybe if you could quickly introduce yourself and what you do at optimism, and then we can just dive right into the topic.
+00:00:40.274 - 00:00:41.226, Speaker B: Yeah, for sure. Yeah.
+00:00:41.248 - 00:00:56.462, Speaker C: Thanks for having me. I'm Michael, data analyst at Op Labs. Been there for a little over two years. Kind of touch anything on chain data in the optimism ecosystem. So recently at Blobs, EIP 4844 has been my obsession over the last month, last few weeks.
+00:00:56.516 - 00:00:57.342, Speaker B: So, yeah.
+00:00:57.396 - 00:00:58.542, Speaker C: Excited to talk about it here.
+00:00:58.596 - 00:01:20.566, Speaker A: Yeah, I'm very excited to hear about this topic because I've been kind of seeing this pop up on my Twitter title over the last few days, but I frankly don't have that much of an idea what this is or what this even means. So maybe what's the deal with EIP 4844? Michael, if you had to like, 60 seconds in an elevator, what would your pitch be?
+00:01:20.748 - 00:01:42.778, Speaker C: Yeah, so 60 seconds. A part of what roll ups do is they post transaction data to a layer where the roll up in the l two can read that data later. So historically, this data has all been posted to layer one in call data. So, meaning just post a transaction to Ethereum. There's this whole big blob of data sets. Paid, expensive, layer one gas prices. Perfect.
+00:01:42.864 - 00:01:44.910, Speaker B: The inception of all these roll ups.
+00:01:45.330 - 00:01:51.918, Speaker C: So what EIP 4844 does, it says for every L1 block, there's be this extra space where you can post data.
+00:01:52.084 - 00:01:54.122, Speaker B: And in this case, it's just static.
+00:01:54.186 - 00:01:56.062, Speaker C: Data, no code execution.
+00:01:56.206 - 00:01:58.786, Speaker B: It disappears after 18 days, just like.
+00:01:58.888 - 00:02:03.150, Speaker C: Spot to post data. And because of that, there's some properties that make it cheaper.
+00:02:03.230 - 00:02:09.430, Speaker B: It's a completely separate gas market. There's this whole separate how much data can be used per blob.
+00:02:10.250 - 00:02:12.746, Speaker C: So it's just like a completely separate gas market, separate spot for all of.
+00:02:12.748 - 00:02:13.766, Speaker B: Us to post data.
+00:02:13.948 - 00:02:16.274, Speaker C: And right now it is very cheap.
+00:02:16.322 - 00:02:18.642, Speaker B: Which makes roll up user transactions very cheap.
+00:02:18.706 - 00:03:12.198, Speaker A: Okay, that is a lot of buzwords. So maybe if we can find an analogy, I think for roll ups in general, I kind of have this idea of a highway in my head where it's like Ethereum, mainnet is the highway. And then if you think about individual transactions. So if I make a trade on uniswap to maybe trade my ETH for die, that's just me driving in a car and I just go on the highway. And then if you think about roll ups pre this block market or EIP 4844, you could kind of think of them like bundling a bunch of transactions together in a bus and then sending that bus on the highway. So it actually is kind of like not perfect, I think, because the bus only has part of the passengers or whatever. But in the end it's kind of like, okay, we settle transactions on main net, like transactions that have been committed on these roll ups via a bus.
+00:03:12.198 - 00:03:19.420, Speaker A: And now if we think about the block market, it's kind of like now we actually have a bus lane. Is that kind of like a correct way to think about this?
+00:03:20.110 - 00:03:21.034, Speaker B: It could be, yeah.
+00:03:21.072 - 00:03:29.598, Speaker C: Like a bus lane in the sense. And the bus lane was priced by how many buses are there? And there's not many buses right now. So it's pretty cheap to use the.
+00:03:29.604 - 00:03:30.510, Speaker B: Bus lane right now.
+00:03:30.580 - 00:03:48.134, Speaker A: Yeah. Currently there's no bus lane is just very empty. Okay, so no more normal buses on the normal highway, I guess. Or like maybe some, we're going a bit, some of the buses still stay.
+00:03:48.172 - 00:03:50.102, Speaker C: There, but a lot of the buses have moved off.
+00:03:50.236 - 00:04:12.878, Speaker A: Okay, so going back from that to the actual specifics here, I called this EIP 4844 earlier. So maybe if somebody, maybe not you, Michael, maybe Dobby, if you can quickly, what's an EIP? Maybe just like 20 seconds take on that.
+00:04:13.044 - 00:04:49.260, Speaker D: So it's like an ethereum improvement proposal, which anyone can submit and then are open for discussion. And once there's consensus on one of them, it is slated to be part of the next upcoming ethereum release. So Eip 4844 was one of them. And that is the blobs update. The full process of how the discussion takes place is a bit more complex, but I think we don't necessarily need to go over this here. It's essentially how Ethereum upgrades are being made and how those are discussed, how those are proposed. So you can check the full history on those.
+00:04:49.260 - 00:05:01.020, Speaker D: There's even some more popular ones that could be like, I think ERP 20 was for ERC 20s, same for NFTs with EOS and so on.
+00:05:03.950 - 00:05:07.070, Speaker E: And they usually take more than a few years to implement.
+00:05:08.050 - 00:05:25.022, Speaker C: Yeah, this one's actually interesting for me. It was the first real EIP that I at least observed some of the beginning to end. Remember at ETH Denver two years ago, proto at the OP Labs team was like, oh, at East Denver, want to kind of prototype this potential EIP, help make roll up costs cheaper?
+00:05:25.086 - 00:05:28.798, Speaker B: I think ever since I started at Op Labs, one of the big focuses.
+00:05:28.814 - 00:05:32.726, Speaker C: There'S another EIP idea proposal that predated this. It's called 4488.
+00:05:32.748 - 00:05:34.278, Speaker B: That was just trying to make the.
+00:05:34.364 - 00:05:36.098, Speaker C: Layer one cost for data cheaper.
+00:05:36.194 - 00:05:37.458, Speaker B: That's a really good adoption.
+00:05:37.554 - 00:05:41.578, Speaker C: Four, eight, six, show more what it looks like. But proto ding sharding was another kind.
+00:05:41.584 - 00:05:47.302, Speaker B: Of take on that. Yeah, but remember, like ETH Denver two years ago, we were in this big Airbnb.
+00:05:47.366 - 00:06:05.154, Speaker C: I'm off on the side playing some Xbox game of like, chefs. You had to go work with your team and cook food. I don't know what's going on. The other side is like all these smart people writing up like 4844 specs on a window. So it was very much a pure, like, I don't know what I'm doing here, but I'm here. Nothing to contribute at the time.
+00:06:05.192 - 00:06:07.698, Speaker B: But, yeah, now I understand it.
+00:06:07.784 - 00:06:08.562, Speaker C: I didn't then.
+00:06:08.616 - 00:06:36.682, Speaker A: Yeah. Okay. So it kind of took a long time for this to actually take shape, but now we're here. And I think it was part of the Dankun upgrade. So there's not only one eip that went live during this, but there's a few other changes to the network as well. But this was the most notable because it has such a big impact on roll ups and what that impact actually is. We're going to get into that, but maybe there's one last buzword that's kind of flying around here.
+00:06:36.682 - 00:06:59.586, Speaker A: So we have eip four eight four. We've explained that blops are just the actual data that we now post on Mainnet in this special lane in the analogy that we made up. And then there's also like this proto dank sharding. So I think this is the first kind of implementation of dank sharding. Or like, Michael, maybe. Can you actually explain this to me?
+00:06:59.608 - 00:07:05.622, Speaker C: Yeah, I'm actually not as familiar with that. You can get into it, but yeah, you can get into what a blob actually is.
+00:07:05.676 - 00:07:09.414, Speaker B: Like how this blob term kind of came to be.
+00:07:09.612 - 00:07:11.720, Speaker A: Yeah, that's interesting as well.
+00:07:13.210 - 00:07:15.574, Speaker C: At least with protodink sharding now being.
+00:07:15.612 - 00:07:20.278, Speaker B: Like, this is the first prototype of what a shard could look like.
+00:07:20.444 - 00:07:23.066, Speaker C: But in this one, at least how I think about it, is maybe for.
+00:07:23.088 - 00:07:26.650, Speaker B: The analogy before the bus is the blob.
+00:07:27.150 - 00:07:30.694, Speaker C: So for each block, there's a certain amount of blobs that can go into each block.
+00:07:30.742 - 00:07:34.998, Speaker B: So at most, there can be six blobs per block. And a blob, actually, which I didn't.
+00:07:35.014 - 00:07:54.850, Speaker C: Know at the time, also learned two years ago, is that a blob is actually a technical term. It's like a backron or something, but it's like a binary large object, I think is the term for. It refers to. I think it's like 128 data, 125 data. So every roll up, when they are posting blobs, they have to purchase a full blob.
+00:07:55.510 - 00:07:56.018, Speaker B: Yeah.
+00:07:56.104 - 00:08:05.286, Speaker C: No more than six. The blob limit per block is six blobs. The target is three. So following like, a 1559 style pricing, if there's more than three blobs per.
+00:08:05.308 - 00:08:07.606, Speaker B: Block, price should go up, or if.
+00:08:07.628 - 00:08:11.266, Speaker C: It hits some threshold, price goes up. And if there's less than three blobs.
+00:08:11.298 - 00:08:14.086, Speaker B: Per block, price should go down. Yeah.
+00:08:14.108 - 00:08:17.834, Speaker C: So we'll get into that, I'm sure. Show. Talk about how often blobs have been used so far.
+00:08:17.872 - 00:08:19.846, Speaker B: But still, at least as of recording.
+00:08:19.878 - 00:08:21.274, Speaker C: Have not hit blob congestion yet.
+00:08:21.312 - 00:08:23.114, Speaker B: So still some room to go, more.
+00:08:23.152 - 00:08:24.330, Speaker C: Room for more buses.
+00:08:24.670 - 00:08:30.106, Speaker E: When you say the fee goes up or down, it's the blob based fee, and it's separate from the base fee.
+00:08:30.138 - 00:08:30.238, Speaker B: Yeah.
+00:08:30.244 - 00:08:34.478, Speaker C: So it's a blob based fee. So that's an interesting part of this I kind of alluded to before.
+00:08:34.644 - 00:08:34.926, Speaker B: Yeah.
+00:08:34.948 - 00:08:37.022, Speaker C: This does create a separate gas market.
+00:08:37.076 - 00:08:38.766, Speaker B: So it is like the first instance.
+00:08:38.798 - 00:08:45.986, Speaker C: I think we've seen on Ethereum of a multidimensional fee market. Just meaning that there are two gas prices to be concerned about. So there is a general L1.
+00:08:46.008 - 00:08:48.414, Speaker B: Based fee, which we've been used to forever.
+00:08:48.462 - 00:08:49.846, Speaker C: It's like what the gas price is.
+00:08:49.868 - 00:08:51.798, Speaker B: For using L1, but then the.
+00:08:51.804 - 00:08:54.550, Speaker C: Cost for blobs, there's a separate blob base fee.
+00:08:54.890 - 00:09:00.358, Speaker B: So I guess whenever you're thinking about what's the cost to a roll up? Yeah, there is some cost to the.
+00:09:00.364 - 00:09:05.526, Speaker C: L1 transaction that points to the blob, which we should get into too. There is some cost to the L1 transaction.
+00:09:05.558 - 00:09:07.594, Speaker B: You pay L1 gas prices for that.
+00:09:07.712 - 00:09:12.362, Speaker C: But then the cost for posting your blob into blob space, there's some base fee for that.
+00:09:12.496 - 00:09:17.262, Speaker B: So we've been referring to is that since there still has not been a.
+00:09:17.396 - 00:09:19.966, Speaker C: Sustained blob usage above three blobs per.
+00:09:19.988 - 00:09:21.934, Speaker B: Block, the blob base fee has been.
+00:09:21.972 - 00:09:25.146, Speaker C: At the minimum, which is one way. So usually you're used to gas prices.
+00:09:25.178 - 00:09:29.602, Speaker B: Being quoted in gui away is like one e to the nine way.
+00:09:29.736 - 00:09:32.674, Speaker C: So if you look at it like, pricing it in GUI, the gas price.
+00:09:32.712 - 00:09:35.026, Speaker B: For blobs has been one times ten.
+00:09:35.048 - 00:09:38.294, Speaker C: To the negative nine, as close to zero as possible in Ethereum terms.
+00:09:38.412 - 00:09:38.838, Speaker B: Yeah.
+00:09:38.924 - 00:09:44.342, Speaker A: So with all of those technical details, what actual problem are we solving here?
+00:09:44.396 - 00:09:48.294, Speaker C: Yeah, I can potentially show up, pull up our first chart of the day.
+00:09:48.492 - 00:09:50.060, Speaker B: To go into it.
+00:09:51.230 - 00:10:23.774, Speaker C: So I'm pulling up now from like a whole large, way too long super chain dashboard that we have at op Labs. This one chart that I'm showing now is just summing up the total data fees that are paid by a roll up, what all their costs are, whether it's l one gas, like you mentioned, blob gas, like we mentioned. And I'm just hovering over a chart. You can see there's pretty much. This whole chart is a black bar. There's like some little instances of blue, some little instances of gray. But what black on this chart refers to is l one call data fees.
+00:10:23.774 - 00:11:06.770, Speaker C: So when roll ups were posting all this compressed transaction data onto l one, you can see here that could varies, but most cases, like 95, 99% of the total fee is just putting those transactions onto Ethereum. And there's been occasionally, sometimes there's roll ups that are overcharging, undercharging. This margin kind of has fluctuated a little bit historically for op chains, which is what this chart is showing. So summation of op, main, net, base, Zora, and mode. And so, yeah, this chart now is just showing the last 30 days. So you can see up until the upgrade, there's this huge black bar referring to just posting data on l one ethereum. And then what has been probably a theme of a lot of these four.
+00:11:06.770 - 00:11:36.774, Speaker C: Four dashboards is it looks like there's a data error on March 14, PI day, when the upgrade went live. On the op chains, at least. You go from these huge black bars to just nothing. And if you zoom in, you can see very little. There is some little light gray, which is like l one overhead fees, which in this case are just. You submit an L1 transaction, there is some just floor gas used per transaction. So on ethereum, the minimum gas per transaction is 21,000 gas.
+00:11:36.774 - 00:11:50.510, Speaker C: So if you do an ETH transfer, you'll spend 21,000 gas. So for every time blobs are submitted, the op batch submitter is doing just 21,000 gas transaction, which just contains the points to those blobs.
+00:11:51.010 - 00:11:51.326, Speaker B: Yeah.
+00:11:51.348 - 00:12:24.086, Speaker C: So the costs just go essentially as close to zero as possible. And you can see even here now, the blob fees, this black line call data fees. So on March 13, across these four op chains that I mentioned, they spend 167 ETH in call data fees. On March 13, on March 14, that went to zero. It looks like the total data fee was a little bit over like, 1.5 E. And that's even a little skewed because this day also contains some hours before the chains migrated.
+00:12:24.086 - 00:12:30.326, Speaker C: So going to March 15, this is probably the first full, complete day of just blob data posting.
+00:12:30.518 - 00:12:30.874, Speaker B: Yeah.
+00:12:30.912 - 00:13:06.390, Speaker C: These chains spent zero point 47 e plus something e to the negative ten in blobs in their data costs. And so those savings all pass on to the users. That's where you saw transaction fees go to less than $0.01 temporarily. But essentially, the cost of posting transaction data on Ethereum was 95 plus percent of roll ups costs. That cost goes to zero overnight, at least temporarily. And that just makes like the whole, I think of it as like the whole cost structure of this roll up business just completely got slashed.
+00:13:08.750 - 00:13:35.154, Speaker E: Exciting times. Bunch of questions. So, first of all, your chart says call, or like, is that typhoon call data? Okay, never mind. So my way of understanding of the total l two fee is basically, there is a L2 execution fee, as your dashboard is showing. There's also the cost. Layer one is posting, sorry. Layer two is posting back to the layer one.
+00:13:35.154 - 00:14:05.050, Speaker E: And then they need to pretty much estimate it beforehand and charge user. And later on there might be positive or negative, as in like, they might overestimate it, or they might be underestimated. And that's why your chart on L1 data feed is showing that there is a potentially overhead. Sometimes there is net margin. Sometimes I see the net margin fee could be negative. So that's probably when the L two is underestimating, if I'm understanding correctly.
+00:14:05.550 - 00:14:06.154, Speaker B: Yeah.
+00:14:06.272 - 00:14:15.646, Speaker C: So at least how the op chains work. So each chain will set fee scalers. So historically, it's been just the L1 fee scaler. So you take the size of your.
+00:14:15.668 - 00:14:18.506, Speaker B: Transaction, multiply it by some amount, multiply.
+00:14:18.538 - 00:14:23.518, Speaker C: That by the gas price, and that's what you charge to users on the L two side, and then eventually you got to pay for that.
+00:14:23.524 - 00:14:27.778, Speaker B: On the L1 side, there is some delay of does the L1 gas price move?
+00:14:27.944 - 00:14:31.774, Speaker C: What we most often see, causing, at least on data margin, to go negative.
+00:14:31.822 - 00:14:35.006, Speaker B: Sometimes is where the transactions don't compress.
+00:14:35.038 - 00:14:42.790, Speaker C: As well as you expect them to compress. That's what we're seeing down negative. Like there's been some apps, I think op mainnet was the one driving this.
+00:14:42.860 - 00:14:44.706, Speaker B: Some apps that sent a high volume.
+00:14:44.738 - 00:14:45.922, Speaker C: Of pre compressed transactions.
+00:14:45.986 - 00:14:55.354, Speaker B: So it's kind of being undercharged there. Led to some negative margin. Negative margin, at least on priority fees only. Go for it.
+00:14:55.472 - 00:15:13.418, Speaker E: How long usually is the delay of the layer one posting? I guess it's different by per l two chain maybe. Like how long does op labs send afterwards? And is that a fixed number or does the chain actually adjust or optimize based on gas fee volatility?
+00:15:13.594 - 00:15:19.506, Speaker B: I'm curious. Yeah, let me see. So there chart somewhere here.
+00:15:19.608 - 00:15:29.286, Speaker C: Yeah, so I'm showing a chart here, like average seconds between l one data transactions. So historically you can see like for base and op main net, it's been.
+00:15:29.308 - 00:15:37.270, Speaker B: About like 60 seconds to 100 ish seconds. So minutes, a minute and a half between these l one data submissions.
+00:15:38.010 - 00:15:41.686, Speaker C: And so, yeah, sets a function of each chain. There's various kind of parameters in there.
+00:15:41.708 - 00:15:43.306, Speaker B: Like how long are they willing to.
+00:15:43.328 - 00:15:48.470, Speaker C: Wait at most between submitting transactions or based on actual data compression?
+00:15:48.550 - 00:15:52.954, Speaker B: How long does it take you to fill up a whole frame of data.
+00:15:52.992 - 00:15:54.206, Speaker C: Or channel of data to then post.
+00:15:54.228 - 00:15:56.718, Speaker B: To the L1? Right.
+00:15:56.804 - 00:15:58.378, Speaker C: And then see some of these chains.
+00:15:58.474 - 00:16:09.170, Speaker E: Yeah, it's interesting. Is that actually like, say, the way to read this chart, is that right after the upgrade, the posting frequency has been much higher because maybe it's cheaper.
+00:16:10.630 - 00:16:20.338, Speaker B: Yeah. So kind of like two things happening here, I guess. One is like, imagine the blobs are.
+00:16:20.344 - 00:16:22.646, Speaker C: A little bit larger than what you could fit in L1 call data.
+00:16:22.668 - 00:16:23.494, Speaker B: So there's more.
+00:16:23.612 - 00:16:33.046, Speaker C: And meaning this is like the op chains. You can show another chart too, are posting, or at least targeting, trying to post six blobs per l one data transaction. So that's a way just to optimize.
+00:16:33.158 - 00:16:37.002, Speaker B: How much l one gas you're paying per transaction on L two.
+00:16:37.056 - 00:16:40.838, Speaker C: So if you can do six blobs for one L1 transaction, or one.
+00:16:40.864 - 00:16:48.880, Speaker B: Blob per l one transaction, six blobs per one L1 transaction is a little cheaper there. So you see that happening.
+00:16:49.730 - 00:16:58.260, Speaker C: But then for this chart specifically, there's also this parameter of the max timeout window per chain. So how long they're willing to wait before submitting transaction data.
+00:16:58.950 - 00:17:02.994, Speaker B: Yeah, that window got extended as part of a parameter change in here.
+00:17:03.112 - 00:17:04.658, Speaker C: Seems like chains that are a little.
+00:17:04.664 - 00:17:11.654, Speaker B: Bit lower throughput transaction wise. So mode and Zora are submitting less frequently. Oh, I see.
+00:17:11.692 - 00:17:14.070, Speaker E: So actually they're posting much less frequent.
+00:17:15.210 - 00:17:16.710, Speaker B: Yeah, less frequently than before.
+00:17:16.780 - 00:17:20.042, Speaker C: So like 3000 seconds between which.
+00:17:20.176 - 00:17:25.834, Speaker B: Yeah, maybe I got to put this in minutes to make that calculation easier. Okay.
+00:17:26.032 - 00:17:38.480, Speaker E: Does that actually delay any security guarantee, like if they're posting 4000 seconds? And also, how would that, does that affect the 18 days of blob kind of thing?
+00:17:39.730 - 00:17:42.526, Speaker B: Yes. I think the main difference here is.
+00:17:42.548 - 00:17:49.026, Speaker C: From a UX perspective, if there's like a centralized exchange or any kind of cross chain bridge that's waiting to see.
+00:17:49.048 - 00:17:54.900, Speaker B: Those transactions posted on layer one. Yeah, that would be some kind of delay there.
+00:17:55.430 - 00:17:59.454, Speaker C: I think the benefit that these chains get like it is a trade off. In my opinion.
+00:17:59.502 - 00:18:02.070, Speaker B: The benefit that these chains get by.
+00:18:02.140 - 00:18:03.606, Speaker C: Extending their window a little bit is.
+00:18:03.628 - 00:18:05.254, Speaker B: That they can use blobs and use.
+00:18:05.292 - 00:18:11.442, Speaker C: L1 gas space or l one gas way more effectively or way more efficiently and reduce cost for users that way.
+00:18:11.516 - 00:18:13.180, Speaker B: So yeah, there's a trade off between.
+00:18:14.030 - 00:18:18.922, Speaker C: When do some of these actors who want to see the data on l one before reacting, like trading that off.
+00:18:18.976 - 00:18:24.346, Speaker B: Versus user transaction fees. Right now these chains are posting batches.
+00:18:24.378 - 00:18:28.446, Speaker C: A little less frequently. And if their transaction volume does increase, then they'll fill up their blobs and.
+00:18:28.468 - 00:18:31.786, Speaker B: Their data transactions more frequently.
+00:18:31.978 - 00:18:35.518, Speaker C: And we'll see kind of go down even to Zora after day one has.
+00:18:35.604 - 00:18:36.578, Speaker B: Fallen a little bit, which could be.
+00:18:36.584 - 00:18:38.686, Speaker C: A parameter change, could be more transactions.
+00:18:38.878 - 00:18:39.860, Speaker B: Yeah, definitely.
+00:18:41.910 - 00:18:55.960, Speaker D: Isn't it like with Zora mode that they're just seeing fewer transactions and thus waiting for the blocks to be filled up and thus posting less frequently, whereas base and Obanet are seeing more in general?
+00:18:56.490 - 00:18:56.806, Speaker B: Yeah.
+00:18:56.828 - 00:19:13.214, Speaker C: So I can show this going up to the top a little bit. Yeah, the main unit here is really transaction data. So really like how large are the transactions? Unless anything's weird, it should be fairly consistent with just general transactions per day. Now I scroll up a little bit towards the top here.
+00:19:13.252 - 00:19:14.750, Speaker B: Two charts side by side.
+00:19:14.900 - 00:19:17.486, Speaker C: On the left, we'll see like l two gas used per second.
+00:19:17.588 - 00:19:24.046, Speaker B: That's like a pure computation measure. Kind of irrelevant for now in terms of transaction data.
+00:19:24.148 - 00:19:27.326, Speaker C: But on the far right, we see transactions per day by all these chains.
+00:19:27.358 - 00:19:32.594, Speaker B: So, yeah, see like historically, base OPMA net around four hundred K per day.
+00:19:32.712 - 00:19:34.226, Speaker C: Zora around 85K.
+00:19:34.328 - 00:19:36.466, Speaker B: Mode had been between 50 and had.
+00:19:36.488 - 00:19:42.086, Speaker C: A spike up to 100K around the time of the upgrade. But yeah, then on March 16, base.
+00:19:42.108 - 00:19:44.200, Speaker B: Peaked to 2 million transactions per day.
+00:19:44.650 - 00:19:45.766, Speaker C: So each of these roll ups are.
+00:19:45.788 - 00:19:52.300, Speaker B: Seeing a little bit more increased usage and. Yeah, so definitely interesting trend to track over time too.
+00:19:53.950 - 00:19:57.766, Speaker C: What happens with these chains when fees go to zero? There's this whole topic of induced demand.
+00:19:57.798 - 00:20:00.122, Speaker B: Like you increase supply, you make costs lower.
+00:20:00.176 - 00:20:01.750, Speaker C: Does that naturally bring more demand?
+00:20:01.830 - 00:20:04.858, Speaker B: I think naturally you'd expect some arbitrage.
+00:20:04.874 - 00:20:09.898, Speaker C: Bots to spike up immediately just since their break. Even cost is cheaper as transactions get cheaper.
+00:20:10.074 - 00:20:19.086, Speaker B: Yeah. What I'm excited to see is what kind of applications use cases do these lower fees bring, especially with what I'm.
+00:20:19.118 - 00:20:22.238, Speaker C: Excited about is seeing transactions decrease farcaster.
+00:20:22.254 - 00:20:23.618, Speaker B: Frame transactions come out.
+00:20:23.704 - 00:20:27.634, Speaker C: Some of these account abstraction or smart wallets, things that Coinbase is working on.
+00:20:27.672 - 00:20:29.526, Speaker B: They demoed something during ETH Denver where.
+00:20:29.548 - 00:20:31.846, Speaker C: You could pay fees with your Coinbase account.
+00:20:32.028 - 00:20:37.014, Speaker B: So I think there's hopefully all these things centering around lower fees that could.
+00:20:37.212 - 00:20:39.226, Speaker C: Potentially lead to more demand on L.
+00:20:39.248 - 00:20:43.210, Speaker B: Two s, but definitely brings more challenges as well. Dealing with l two congestion.
+00:20:44.590 - 00:20:51.610, Speaker E: One last question. I realized overhead gas was not what I was thinking. So what is it in the first chart?
+00:20:52.670 - 00:20:53.546, Speaker B: Yeah, I'll go back down.
+00:20:53.568 - 00:21:00.462, Speaker C: So overhead gas. Yeah, here, this little light gray bar here just refers to the non call.
+00:21:00.516 - 00:21:02.560, Speaker B: Data paid on L1.
+00:21:02.930 - 00:21:14.882, Speaker C: So the case being even if you send a transaction with zero data. So example being an ETH transfer or just any kind of transaction where the data field zero. So if you go on ether scan, scroll down on a transaction, open up.
+00:21:14.936 - 00:21:17.266, Speaker B: The input tab, you'll see whatever your.
+00:21:17.288 - 00:21:24.466, Speaker C: Data you input into your transaction. Okay, so just for doing that, there is a fixed 21,000 gas no matter what you do. So that's what this overhead is referring.
+00:21:24.498 - 00:21:27.614, Speaker B: To is just that. Fixed 21,000 gas per transaction.
+00:21:27.762 - 00:21:37.500, Speaker E: Whatever other operation that the oplapse was doing that's not related to posting call data or management currently.
+00:21:37.870 - 00:21:42.294, Speaker C: So it's just the flat 21,000 gas per l one transaction.
+00:21:42.342 - 00:21:43.738, Speaker B: Like the minimum, no matter what you.
+00:21:43.744 - 00:21:50.142, Speaker C: Do, you'll pay 21,000 gas plus whatever you do. So it's a way to split out what costs you to user transaction data.
+00:21:50.196 - 00:21:57.294, Speaker B: Versus just how the l one operates. So hypothetically, if you're breaking gas fee.
+00:21:57.342 - 00:21:59.218, Speaker E: Into what exactly it's for.
+00:21:59.304 - 00:22:01.298, Speaker B: I see, yeah, that's kind of the.
+00:22:01.304 - 00:22:04.418, Speaker C: Goal with these charts, is just split things out as much as possible, just.
+00:22:04.424 - 00:22:08.102, Speaker B: So we can try to understand what the fee contributors are.
+00:22:08.236 - 00:22:09.846, Speaker C: And yeah, seeing how historically this l.
+00:22:09.868 - 00:22:11.960, Speaker B: One call data has been almost everything.
+00:22:12.330 - 00:22:14.150, Speaker C: And now goes to zero.
+00:22:14.220 - 00:22:27.354, Speaker B: But yeah, this chart on the right, which shows base fees, execution fees, is really where we're seeing costs come from now. So base fees are just l two congestion. So similar to the L1, based.
+00:22:27.392 - 00:22:30.170, Speaker C: On how much gas he's on l two price can go up, price can go down.
+00:22:30.320 - 00:22:32.858, Speaker B: So that's this red base fee and.
+00:22:32.864 - 00:22:35.246, Speaker C: Then pink priority fees. Here again, similar to the L1.
+00:22:35.268 - 00:22:44.718, Speaker B: If you want your transaction to get in faster, which I think is mostly coming from some type of high frequency actors, now you'll pay priority fees, and.
+00:22:44.804 - 00:22:48.538, Speaker C: You see fees come from there as well. But I expect regular consumers like me.
+00:22:48.564 - 00:22:49.778, Speaker B: Pressing buttons on a thing.
+00:22:49.864 - 00:22:54.498, Speaker C: I have no reason to pay a priority fee. So it's kind of a weird thing to think about in terms of a.
+00:22:54.504 - 00:22:58.120, Speaker B: Normal user, but it is a source of fees for these l two s.
+00:22:59.610 - 00:23:45.966, Speaker A: Okay, so if we go all the way back to the initial question, what's the problem this solves? Maybe if I can quickly repeat back what we've learned here. So before ERP 4844 went live during the Dankun upgrade, optimism users were paying 160 ETH, or let's say on the last day they were paying 160 ETH. And at the highest they were paying like 350 or something ETH in a day to actually post their call data to Ethereum Mainet. And now that we have EIP 4844 live, we can bundle these transactions together in blobs, and those blobs will be posted to Mainnet by the optimism batch sequencer or whatever, like the contract that's actually sitting on l one, and that's.
+00:23:45.998 - 00:23:48.850, Speaker C: Somehow the sequencer is posting or the batch is posting.
+00:23:48.930 - 00:23:55.366, Speaker B: Yeah. And then right now, blobs are essentially, they cost one way per byte, which.
+00:23:55.388 - 00:23:57.400, Speaker C: Is essentially as close to zero as possible.
+00:23:58.330 - 00:24:00.460, Speaker B: The cost posting data went near zero.
+00:24:00.830 - 00:24:38.900, Speaker A: And then we looked at one chart, which was like the frequency of call data that's posted to L1. And in there, we could observe that the frequency of posting the call data on l one has actually gone up for both, for all four chains that you're tracking on this dashboard, which are base optimism mode and Zora. And you are saying this is the case because the blobs actually need to fill up. I don't think I quite understand what is happening there. So maybe if you could shine a light on that, that would be interesting.
+00:24:39.670 - 00:24:40.046, Speaker B: Yeah.
+00:24:40.088 - 00:24:49.046, Speaker C: Here, I think just, even just calling out the increase in mode in Zora. So there's parameters in the batcher that say, either wait until you have this much data to submit, or if you.
+00:24:49.068 - 00:24:51.346, Speaker B: Don'T reach that much data, wait this.
+00:24:51.388 - 00:25:00.154, Speaker C: Long before you submit. And so what, that max window was increased as well. That's just like a parameter change. So I think that's what you're seeing here as well.
+00:25:00.192 - 00:25:02.234, Speaker B: But the goal remains the same, is.
+00:25:02.272 - 00:25:04.926, Speaker C: How can you make these chains as.
+00:25:04.948 - 00:25:07.200, Speaker B: Efficient with how they submit data to L1?
+00:25:07.650 - 00:25:14.018, Speaker C: Ideally, the more efficient you are, the lower you can reduce fees for users on the L two side. And all goes around.
+00:25:14.184 - 00:25:28.870, Speaker A: Yeah. So there's 128 kilobyte size limit, you said. And this is basically the compressed call data. And is it exactly the same, is it the same call data as before the upgrade?
+00:25:29.530 - 00:25:32.870, Speaker C: Yeah, I can pop over to.
+00:25:33.020 - 00:25:37.190, Speaker A: So it's the same messages. They now just drive on the special lane.
+00:25:37.610 - 00:25:38.360, Speaker C: Right.
+00:25:40.030 - 00:25:42.650, Speaker A: You can only send the full bus down the highway.
+00:25:43.150 - 00:25:49.114, Speaker C: Yeah, it's more, it's like you're, you're the roll up. Is the city like the city still.
+00:25:49.152 - 00:25:50.460, Speaker B: Pays for the full bus?
+00:25:50.990 - 00:25:55.486, Speaker C: Ideally more people are in the bus, but if there's only one person in the bus, you still got to pay.
+00:25:55.508 - 00:25:56.238, Speaker B: For the whole bus.
+00:25:56.324 - 00:26:04.100, Speaker C: So in the sense being that roles have to purchase these full blobs, ideally if you want to be as efficient as possible. They're filled with transaction data.
+00:26:05.990 - 00:26:35.980, Speaker A: And we could kind of say, yeah, there's a timeout. So at a certain point the block will still be posted. The optimism still needs, or let's say Zora, because this is actually an applicable example. It's like if there only was one transaction, which doesn't seem very likely, or there only was like 100 transactions on Zora in a certain time period, we could maybe go to a time. I think there's like a 4000 is like the biggest spike here.
+00:26:36.750 - 00:26:37.898, Speaker B: I'll go back down to it.
+00:26:37.904 - 00:26:44.720, Speaker C: But yeah, I think to continue with this analogy, the concept could be that the bus will only wait at the bus stop for so long before it goes.
+00:26:46.850 - 00:27:15.720, Speaker A: I hope our listeners, I think it works relatively well, but we'll see what the comments say. Okay. Basically it's just like TLDR. Everything gets cheaper because we have a special vehicle in which we can now post call data on L1. Okay, so that's very cool. So this has led to a spike in transactions on base. Do you actually know what that was about or.
+00:27:15.720 - 00:27:18.374, Speaker A: I think there was like one commemorative.
+00:27:18.502 - 00:27:37.658, Speaker C: NFT mint for EIP for it on the first day. On day one, I guess days one, two and three base was seeing over a million transactions and got over 2 million on March 16, like three days after the upgrade.
+00:27:37.834 - 00:27:38.174, Speaker B: Yes.
+00:27:38.212 - 00:27:41.840, Speaker C: On day one there was a commemorative NFT mint that actually led to.
+00:27:43.730 - 00:27:44.094, Speaker B: An.
+00:27:44.132 - 00:27:45.794, Speaker C: L two base fee spike on base.
+00:27:45.832 - 00:27:48.018, Speaker B: Which we can get to what causes that.
+00:27:48.184 - 00:27:57.026, Speaker C: And made transactions a little more expensive, way more expensive than the subsent that we'd seen for some period of time that happened.
+00:27:57.128 - 00:27:59.606, Speaker B: And then even since then, I still.
+00:27:59.628 - 00:28:06.934, Speaker C: Need to go way, way deeper into exactly what kind of transaction activity has picked up since the upgrades. That'd be a cool project for someone.
+00:28:06.972 - 00:28:08.886, Speaker B: To go down, at least from poking.
+00:28:08.918 - 00:28:10.138, Speaker C: Around, it seems like there's been a.
+00:28:10.144 - 00:28:13.126, Speaker B: Lot of either a lot of trading.
+00:28:13.158 - 00:28:19.926, Speaker C: Bots or other kind of social applications that have just had a short term.
+00:28:19.958 - 00:28:25.822, Speaker B: Spike in transactions that led to this kind of increase here. Yeah.
+00:28:25.876 - 00:28:48.950, Speaker A: Okay. So the transactions on base, the. The transactions on base actually went up so much that the savings you achieved by having the blobs on l one, or, like, not no longer having to pay the l one, the capacity of base got extended so much that the gas fees on base had to rise.
+00:28:49.850 - 00:28:50.214, Speaker B: Yeah.
+00:28:50.252 - 00:29:14.734, Speaker C: So some similar idea where on L1 there's over some amount of gas is used, price goes up in blobs. My thumbs up thing is still on in blobs, some amount of gas is used, or some amount of blobs are used per block, price goes up. Similar with l two s, some amount of l two gas, which we can think of as computation gas. Kind of the same unit as what you're used to when you talk about gas anywhere else, especially like on L1, when some amount of that is.
+00:29:14.772 - 00:29:17.982, Speaker B: Used, base fees go up. Yeah.
+00:29:18.036 - 00:29:20.094, Speaker C: Similarly, that cost is usually very low.
+00:29:20.132 - 00:29:21.678, Speaker B: But this chart on the left that.
+00:29:21.684 - 00:29:31.634, Speaker C: I'll hover over now is showing gas per second across these four op chains. And right now, the target on every op chain is 2.5 million gas per second. So it's 2 seconds blocks, 5 million.
+00:29:31.672 - 00:29:33.038, Speaker B: Gas, target per block.
+00:29:33.214 - 00:29:44.066, Speaker C: So put that in seconds, 2.5 million gas per second. So over 2.5 million gas used in a block. Price goes up, under, price goes down. He's like, op mainet here has been kind of near congestion or at congestion.
+00:29:44.098 - 00:29:45.894, Speaker B: For a while, whereas all the others.
+00:29:45.932 - 00:29:46.870, Speaker C: Have chains have been below.
+00:29:46.940 - 00:29:49.030, Speaker B: So there essentially was no base fee.
+00:29:49.530 - 00:30:01.686, Speaker C: You can show on another dashboard as well. But on March 14, on PI day, when this upgrade really went live, you see base and OPMA net both spike up above 2.5 million. So at congestion and since have sat.
+00:30:01.718 - 00:30:03.946, Speaker B: Right at the congestion level, other things.
+00:30:03.968 - 00:30:10.954, Speaker C: To look into, they see mode. Now, yesterday, March 17, the time of recording has gotten to 3.2 million gas per block.
+00:30:11.002 - 00:30:16.958, Speaker B: So mode definitely hit some congestion yesterday. Yeah, I can go to another chart.
+00:30:16.974 - 00:30:42.714, Speaker C: To show how that impacts user fees. So this chart or this dashboard here is kind of what we've been looking at just to monitor migration in terms of what's the impact on user experience. So, yeah, like one chart, the very top here is kind of tracking the trailing day before the upgrade went live, what transaction costs were 50. You see the upgrade happens and everything.
+00:30:42.752 - 00:30:44.202, Speaker B: Just kind of plummets back down.
+00:30:44.336 - 00:31:02.334, Speaker C: But as you follow along, like I mentioned, there's this one spike where base had a ton of gas used. Prices went up. So it's like 1635 UTC. On March 14, base transactions went up to $0.57. Median during the same time period. Op main net was about $0.05. Zora was a 10th of a cent.
+00:31:02.334 - 00:31:12.526, Speaker C: So it was a pretty notable spike. But yeah, since then, occasional blips, but things have been pretty close to zero. And these charts are all by minute.
+00:31:12.558 - 00:31:13.794, Speaker B: So it gives us like a really.
+00:31:13.912 - 00:31:26.566, Speaker C: Fine tuned granular view. Do we know, scrolling down further, you can see this base fee spike on L two, which coincides with the transaction cost increase up top, do we know.
+00:31:26.588 - 00:31:31.482, Speaker E: What are the spikes of the transactions for? Like, the breakdown of what are people doing there?
+00:31:31.616 - 00:31:51.870, Speaker C: Yeah, what I was doing is during this time period, I was looking at some dashboards that were showing me what was the most commonly used contracting gas within that last hour. So I think for this spike, I believe this was some type of trading bot. One of these earlier spikes here. Yeah, Mike can be this one here. Was that commemorative mint causing that increase?
+00:31:52.370 - 00:31:53.134, Speaker B: I think we'll see.
+00:31:53.172 - 00:32:20.966, Speaker C: This is definitely a thing to monitor over time. Now we've freed up the bus lanes. I don't know where the analogy for this goes. Free up the bus lanes. Now you worry about the seats. Now, it's not a weird one, too, but essentially the case being, and other people have had good commentary about this is even, again, back to what problems are solved, which I'm making this answer so long. So the problem was that Ethereum data was the bottleneck, like putting transaction data on Ethereum was the bottleneck.
+00:32:20.966 - 00:32:55.890, Speaker C: Making things expensive, that was preventing scaling. You've at least for some time period, mitigated that problem, like, not completely solved yet, but you've mitigated it for some period of time. And so right now, that becomes less of a problem. Now l two, congestion becomes the problem, or it's becoming more of a problem than before. So, yeah, a lot of interesting things to figure out, development wise, of how you go about what to solve next. So, yeah, ways to solve this. There's many different ways.
+00:32:55.890 - 00:33:19.174, Speaker C: I know. Like, the optimism idea is like this whole super chain idea where you have all these multiple l two s all communicating with each other, scale computation with more l two s other ideas could be increasing the gas target or the gas limit of these chains. We'll see where things go and develop. But, yeah, once l two computation or l two activity becomes the bottleneck versus.
+00:33:19.222 - 00:33:21.662, Speaker B: L1 data, what do you do?
+00:33:21.796 - 00:33:24.030, Speaker C: Is the next frontier.
+00:33:26.210 - 00:34:36.450, Speaker A: Yeah, at least we've gotten to this stage. The fact that base immediately went into, like, a fee spike is also that's basically what you would want to see long term, where it's like, now we can think about the engineering problem of how do we increase throughput of all kind of l two EVMs combined? Except instead of thinking about how does this one, l one kind of take all of this call data? So that's very interesting. So I think there's some controversy regarding, basically, I think that's more interesting to dive in first, where it's like, now all of this is free. But how? I think there's, like, a bunch of dashboards that a bunch of wizards have created, where it's like, of course, optimism is posting data, but then there's also starknet, arbitrum, a bunch of other folks have started posting data. How does this fee market actually work, and how many blobs can be posted in a block? Maybe if you can walk us through how that fee market is going to work. We dove into it a bit earlier, but I think there's a lot more meat.
+00:34:37.190 - 00:34:37.746, Speaker B: Yeah, yeah, I know.
+00:34:37.768 - 00:34:46.630, Speaker C: I showed Hildawbi's for a minute, but I'll jump over to Zerox. Rob's here, who probably had one of the most popular dashboards, kind of visualizing the actual blob congestion.
+00:34:46.970 - 00:34:47.382, Speaker B: Yes.
+00:34:47.436 - 00:35:17.986, Speaker C: I'm just showing a chart, a bunch of horizontal and vertical lines, like classic charts go. But you can see there's the two of the main, thicker horizontal lines. One will kind of visualize this target of blobs per block. So this target is three. So, again, if more than three blobs ever used per block, more than three buses in the bus lane, the price of using the bus lane goes up. Less than three buses in the bus lane, price goes down. There is some buffer there where if it goes up temporarily, the price won't go up.
+00:35:17.986 - 00:36:02.106, Speaker C: There's 1559 logic and parameters that go handle all of that. But essentially, what we're monitoring here, we can see, like, vertical blue lines spike up how many blobs are used per block, and you can see certain areas where it gets more concentrated. Like, I'm hovering over one area where you see a lot of concentrated three blob blocks kind of over and over and over again, it seems like recently there was a concentration around like four blobs per block, but still trending. There's a moving average line on this chart that kind of shows the average blobs per block. Saying blobs way too much already has been about like 1.2, I guess, is where these average lines kind of jump up at. So still implying that we're not the right equation.
+00:36:02.138 - 00:36:05.266, Speaker B: Is there like a little bit over.
+00:36:05.288 - 00:36:35.146, Speaker C: Two x growth away from consistent blob usage, from seeing the blobs hit congestion? And once the blobs hit congestion, who knows where that price will go. But at least still for now, we're under this blob target. And so the blob base fee has stayed, which is the cost of using this blob data has stayed at the absolute bare minimum. So yeah, without being too extreme, blobs are as close to free as possible right now and have been since this upgrade took place.
+00:36:35.328 - 00:36:38.042, Speaker A: Okay, can I share a chart afterwards on this?
+00:36:38.096 - 00:37:11.414, Speaker D: I have something. The reason we're not at Target is also because it is an opt in system where chains choose to start posting blobs, and not all chains have opted in yet, or at least even. I think Michael also did some calculation a while back of how if all current chains did opt in, then we would be, I don't know, like halfway to the blobs target still. So we have like margin for more.
+00:37:11.452 - 00:37:12.774, Speaker B: Chains to come in.
+00:37:12.972 - 00:37:14.280, Speaker D: But if you look.
+00:37:16.250 - 00:37:16.966, Speaker B: It'S not one.
+00:37:16.988 - 00:37:27.180, Speaker D: Of those charts, it's one of those charts with labels on them. So wait, if you can let me share my screen quickly, I'll showcase what I mean which.
+00:37:27.550 - 00:37:28.860, Speaker B: Give me 1 second.
+00:37:29.390 - 00:37:31.900, Speaker D: Yeah, so this. Wait, no, this is not it.
+00:37:34.110 - 00:37:35.238, Speaker B: Share the stat.
+00:37:35.334 - 00:37:36.486, Speaker A: Yeah, I just want to show like.
+00:37:36.528 - 00:38:20.578, Speaker D: When chain started to post and you can see how the initial spike was started by Zksync and then starknet kind of is the big poster in all this. It's the one that's been taking most of the blobs originally. They really raised it. The current moving average of number of blobs posted per minute here and then opian maintenance released around midnight UTC and Zoro unmoded quickly after. But since then, I think Arbitrum has also joined, but hasn't impacted all that much. Most of the impact has been from Starknet.
+00:38:20.774 - 00:38:23.726, Speaker B: And if we look here on this.
+00:38:23.748 - 00:39:24.054, Speaker D: Chart, you can see that the vast majority of blobs are posted by Stocknet and actually started to decrease eventually and they optimized their prover, which is a shared prover they use for them, but also some app change using Stocknet. So let me see if you look here. At one point, the 15 minutes moving average was almost a target. That was like a few hours into the upgrade. And it looked like for a while that we were going to get the fee market to kick in and start being moving from that one way original value. But that didn't happen. And now if you look back on here, you can see that we're still now at this point, barely a day in, we're almost going to reach the target.
+00:39:24.054 - 00:39:52.940, Speaker D: And then here we're back to maybe not even half of the target, so we've got some margin to play with it still is that Starknet posts a lot, but they changed it so that it's more optimized. And now if you look on the left chart, you'll see how they started just posting very regularly to a lot less regularly, but in big batches. I think Rob also has a good visualization on this.
+00:39:53.710 - 00:39:56.810, Speaker A: Who set this target? What is this target?
+00:39:58.990 - 00:40:12.830, Speaker D: The well, just like you have targets for the number of gas in the block, in general, you have the same for blobs. You have a target of three way and of three blobs, and a limit of six blobs per block.
+00:40:13.430 - 00:40:43.722, Speaker A: But is this like an OKR that the developers set themselves? What is this actually? Why do we call this target? So there's a limit of six. So theoretically there's space for six blobs from. Yes, optimism could buy all six if they wanted to, I guess. But theoretically, it's like six roll ups can post their blops, or like their blob data in one block. And why is there a target of three? How does that make.
+00:40:43.856 - 00:41:25.330, Speaker D: So if it's between three and six, that's where the EIp one five five dynamics kick in. And you start to see the market change from the one way based fee, so that it's optimized for supply and demand. And those who are willing to pay that fee will be the one submitting. And it also removes any potential spam or anything from happening on the network. So it's just like for the market to kick in in a fair way, where people who are ready to pay those higher fees will be the ones submitting, whereas any potential spam or anything like this is. Okay, I see, alleviated.
+00:41:25.490 - 00:41:31.530, Speaker A: So this is another case of ETH people being horrible at naming things. This is like a threshold. It's not really a target.
+00:41:32.190 - 00:41:34.234, Speaker D: Yeah, I guess.
+00:41:34.272 - 00:41:38.006, Speaker A: Well, yeah, where the fee market kicks.
+00:41:38.038 - 00:41:38.620, Speaker B: In.
+00:41:42.050 - 00:41:49.454, Speaker A: Everything below this line is basically like they're trying to incentivize of people.
+00:41:49.572 - 00:42:22.538, Speaker C: I think it's a target in terms of, yeah, you'd expect if, and we'll see it. Like I showed on a chart before that where op Mainet had been sitting at the target for a while. Even if you look at a chart of how much L1 gas, like Ethereum gas is being used per day, it's kind of sitting right at the target. Like as these markets happen, where price goes up, less demand, price goes down, more demand. So I think of as target as like at full congestion, you should be using this much stuff at a time, whatever that is. Whether it's blobs, whatever else it is. This could be the first eip screen share.
+00:42:22.538 - 00:42:23.420, Speaker C: Go ahead.
+00:42:24.830 - 00:42:29.210, Speaker A: Optimal resource utilization or something like that. That's like the target.
+00:42:32.370 - 00:42:36.954, Speaker C: I'm screen sharing the EIP now and there's some comment of where the target.
+00:42:37.002 - 00:42:41.358, Speaker B: And where the max blobs per block came from.
+00:42:41.524 - 00:42:50.238, Speaker C: And so there's commentary like these targets are initially limited to try to observe the strain on the network and see does the Ethereum network, can it handle.
+00:42:50.334 - 00:42:52.770, Speaker B: All these blobs being posted?
+00:42:53.270 - 00:42:59.398, Speaker C: So yeah, there's some constraint there. But yeah, I was defined in the EIP what these blobs are, and we'll.
+00:42:59.404 - 00:43:01.666, Speaker B: See over time, does the target increase.
+00:43:01.698 - 00:43:03.960, Speaker C: Does the target decrease, what happens there?
+00:43:05.370 - 00:43:25.934, Speaker E: And also it's not necessarily like six roll ups posting six blobs. And it could be like one transaction, have one blob, or I think many blobs, or maybe like one transaction even have six blobs posted by one roll up. Then I think then there is gas auction kicks in. Like whoever is paying higher then will take that block for the transaction with.
+00:43:25.972 - 00:43:27.520, Speaker B: The six blobs yet.
+00:43:27.970 - 00:43:39.778, Speaker C: Yeah, actually still unclear to me. And I think another thing to observe over time is what happens when there's a lot of demand for blobs in a block. Right now blobs do have a base fee. There's no blob priority fee, at least yet.
+00:43:39.864 - 00:43:41.380, Speaker B: We'll see if there is in the future.
+00:43:41.990 - 00:43:49.358, Speaker C: Some of the metrics I was interested in tracking over time is how long does it take for how long are blobs sitting in the memp pool? Or how long are blob transactions sitting.
+00:43:49.374 - 00:43:50.458, Speaker B: In the Memp pool?
+00:43:50.654 - 00:43:53.078, Speaker C: I know some people have some early.
+00:43:53.244 - 00:43:56.294, Speaker B: Attempts at trying to do that, but yeah, it'll be interesting to see over.
+00:43:56.332 - 00:43:59.846, Speaker C: Time, I believe so far it has not. I mean, seems like it's not been.
+00:43:59.868 - 00:44:05.078, Speaker B: An issue yet, but on that topic of how all these different roll ups.
+00:44:05.094 - 00:44:10.826, Speaker C: Are using blobs are a little bit different. It's maybe hard to read now, but I'm just sharing a table. It's just like a summary of the.
+00:44:10.848 - 00:44:16.426, Speaker B: Last seven days of total blob transaction posting per roll up.
+00:44:16.448 - 00:44:21.146, Speaker C: And I'm using Hildavi's labels, so thank you. Hildavi stole the labels from your dashboard.
+00:44:21.178 - 00:44:27.886, Speaker B: So composable data going on here, but even just examples to call out. See rows here, just highlighting.
+00:44:27.918 - 00:44:32.094, Speaker C: So for each roll up here, just some total stats. How many blobs, how many transactions.
+00:44:32.222 - 00:44:36.658, Speaker B: Not super relevant now, but we will see. It's a little different is one of.
+00:44:36.664 - 00:44:40.738, Speaker C: The things we'll see. It's a little different is how many blobs they are posting per l one data transaction.
+00:44:40.834 - 00:44:43.126, Speaker B: So over the history of blobs so.
+00:44:43.148 - 00:44:48.338, Speaker C: Far, bases posted like 5.9 blobs on average per l one transaction.
+00:44:48.434 - 00:44:49.766, Speaker B: Starknet's posted one.
+00:44:49.868 - 00:44:51.114, Speaker C: Arbitrum is averaging six.
+00:44:51.152 - 00:44:52.826, Speaker B: So full blobs every time.
+00:44:52.928 - 00:44:56.586, Speaker C: Opma net 5.85 basin Zora a little bit less than five.
+00:44:56.688 - 00:45:02.906, Speaker B: So there's different levels of efficiency there. Another point is I mentioned there is.
+00:45:02.928 - 00:45:04.166, Speaker C: An L1 transaction.
+00:45:04.278 - 00:45:07.166, Speaker B: That's how you post your blobs. There's an L1 transaction, and in.
+00:45:07.188 - 00:45:08.254, Speaker C: That, there's like a point or two.
+00:45:08.292 - 00:45:09.566, Speaker B: Where those blobs are.
+00:45:09.748 - 00:45:11.966, Speaker C: And so each of these roll ups will use a different amount of l.
+00:45:11.988 - 00:45:13.706, Speaker B: One gas per transaction.
+00:45:13.898 - 00:45:16.274, Speaker C: So you can see all the op chains here.
+00:45:16.312 - 00:45:18.820, Speaker B: Like, this is the overhead that I referred to.
+00:45:19.270 - 00:45:21.698, Speaker C: So this second row here, I'll zoom out a little bit more so you.
+00:45:21.704 - 00:45:26.402, Speaker B: Can actually see the label. As you can see, like base op.
+00:45:26.456 - 00:45:32.226, Speaker C: Main net, Zora mode. All these are using 21,000 gas per blob transaction.
+00:45:32.258 - 00:45:36.738, Speaker B: So just the op batch submitters will just post data to an EOA.
+00:45:36.834 - 00:45:39.800, Speaker C: No contract execution, just a transaction to an address.
+00:45:40.170 - 00:45:44.634, Speaker B: See some of these other roll ups, not all, but some are doing like.
+00:45:44.672 - 00:45:49.954, Speaker C: 100 and 4175, 140,000 gas per block transaction.
+00:45:50.022 - 00:45:52.880, Speaker B: So, yeah, different kind of efficiencies there as well.
+00:45:54.930 - 00:46:12.654, Speaker A: To put this in context, this is also not really that expensive. On Ethereum Mainet, of course, this costs more money, but 140. This is basically computational logic for depositing something on AvA or something. It's not like a huge amount of gas.
+00:46:12.782 - 00:46:13.460, Speaker B: Yeah.
+00:46:15.190 - 00:46:28.738, Speaker A: My ballpark could be off here, but this is not like a crazy, crazy amount of gas. It's still like a normal user could incur this much gas computational costs with a kind of normal transaction on mainet.
+00:46:28.914 - 00:46:29.640, Speaker B: Yeah.
+00:46:31.290 - 00:46:41.902, Speaker C: So still cost will get potentially amortized across. However transactions are calculated. But just interesting in terms of how different stacks are using blobs for now.
+00:46:41.956 - 00:46:44.720, Speaker B: And we'll see how that trends over time.
+00:46:45.090 - 00:47:06.050, Speaker A: So I see in this table, arbitrum is posting six blobs per transaction. So if they choose to publish their blobs, I guess they do six at once, and then they basically fill up the entire block that they post this transaction. Do I understand this correctly?
+00:47:06.550 - 00:47:07.106, Speaker B: Yeah.
+00:47:07.208 - 00:47:18.230, Speaker C: So in this case would be for whatever block and for arbitram or any other submitter that's doing six blobs at once. Yeah, that whole transaction would be. Or that whole block would be arbitram blobs.
+00:47:18.570 - 00:47:22.778, Speaker B: And you can see blob scan you can pull up has a pretty good.
+00:47:22.784 - 00:47:24.074, Speaker C: Way to visualize this.
+00:47:24.192 - 00:47:38.314, Speaker A: So is there kind of data compression going on over multiple of these 128 kilobyte blob blobs? Does the data kind of span over different blobs?
+00:47:38.362 - 00:47:39.200, Speaker B: Do you know.
+00:47:42.530 - 00:48:03.510, Speaker A: That seems like a strange thing. So, in theory, if arbitrum has, like, a real high transaction spike, and I guess they wouldn't post data every block, but every, let's say, ten blocks on main net, they'd post like a six blop transaction and basically pricing all other roll ups out of this. That seems like a very strange dynamic.
+00:48:04.570 - 00:48:10.886, Speaker C: Yeah, we'll see what happens. I think maybe like a good visual of this is how often are these roll ups posting blobs?
+00:48:10.918 - 00:48:11.066, Speaker B: Because.
+00:48:11.088 - 00:48:11.674, Speaker C: Yeah, it is true.
+00:48:11.712 - 00:48:14.074, Speaker B: It's if anyone's posting six blobs per.
+00:48:14.112 - 00:48:16.806, Speaker C: Transaction, if you get those in, you're.
+00:48:16.838 - 00:48:21.562, Speaker B: The only one getting blobs in for that block. So. Yeah.
+00:48:21.616 - 00:48:31.520, Speaker C: How that market evolves over time, who knows? I'll see here how often you can go back to the charging before is how long is there in between.
+00:48:33.250 - 00:48:33.662, Speaker B: Data.
+00:48:33.716 - 00:48:38.994, Speaker C: Transactions per roll up? I think. Yeah, for the op chain, for op minute base, I think it was once every two minutes or so.
+00:48:39.032 - 00:48:41.282, Speaker B: Other chains longer. Yeah.
+00:48:41.336 - 00:48:42.466, Speaker C: Not sure what Arb trim or other.
+00:48:42.488 - 00:48:44.258, Speaker B: Chains are at now, but, yeah, I.
+00:48:44.264 - 00:48:45.474, Speaker C: Guess the closer that gets to 12.
+00:48:45.512 - 00:48:47.700, Speaker B: Seconds, then that becomes more of an issue.
+00:48:48.790 - 00:48:50.434, Speaker A: Yeah, that makes sense.
+00:48:50.552 - 00:48:50.786, Speaker B: Yeah.
+00:48:50.808 - 00:48:54.598, Speaker C: Another cool metric would be how many? Like, what's a blob? Fullness per block, I guess, which is.
+00:48:54.604 - 00:48:56.226, Speaker B: What Hildabi showed earlier.
+00:48:56.338 - 00:49:44.310, Speaker A: Yeah, I do already kind of sense some controversy here where it's like, there's a similar story. There's one story on bitcoin ordinals where it's like somebody just looked at the mempool and just basically front ran all just because somebody ran a script. And similarly, I think there's like a. I don't know how expensive this would be, but couldn't somebody simply run an economic attack here where they're like, oh, I'm just going to post six blobs every block and then all the. I don't know, how does that fee market work? How expensive? I don't expect you to pull up calculations now, but there is a possibility that this is not whitelisted contracts or anything. Anyone can post blobs and therefore somebody could basically congest this special lane.
+00:49:45.210 - 00:49:49.866, Speaker B: Yeah, I guess your minimum cost would be how much is it to post.
+00:49:49.888 - 00:49:56.410, Speaker C: An l one transaction every single block? And then whatever the blob, six blobs is every block.
+00:49:57.230 - 00:50:02.174, Speaker B: And yeah, honestly the incentive is to do it. But I guess if you really wanted.
+00:50:02.212 - 00:50:04.080, Speaker C: To, there's something you could do.
+00:50:04.770 - 00:50:05.710, Speaker B: We'll see.
+00:50:05.860 - 00:50:14.654, Speaker C: Actually maybe on that topic too. We hadn't really seen so far. Knock on wood. A lot of like non, there's been some small instances of non roll up.
+00:50:14.692 - 00:50:17.594, Speaker B: Usage of blobs, but nothing that we.
+00:50:17.652 - 00:50:18.546, Speaker C: Really see notable here.
+00:50:18.568 - 00:50:20.338, Speaker B: I think maybe one good way to.
+00:50:20.344 - 00:50:21.586, Speaker C: See on this chart which one is.
+00:50:21.608 - 00:50:30.662, Speaker B: Other here, even see other other is just that one little dot. So at least right now it's like pretty much all roll ups that are using blobs right now.
+00:50:30.796 - 00:50:32.470, Speaker C: What was controversial actually.
+00:50:32.620 - 00:50:37.046, Speaker B: So before there was an addieth, never, probably a week before blobs came out.
+00:50:37.228 - 00:50:38.614, Speaker C: Myself and a few others put together.
+00:50:38.652 - 00:50:43.014, Speaker B: This cost estimator of how much your transaction could cost post 4844.
+00:50:43.052 - 00:50:44.586, Speaker C: And what we thought was controversial then.
+00:50:44.608 - 00:50:45.894, Speaker B: Was what do you assume the blob.
+00:50:45.942 - 00:50:46.890, Speaker C: Base fee gets to?
+00:50:46.960 - 00:50:49.100, Speaker B: What do you assume the l two base fee gets to?
+00:50:49.470 - 00:50:53.226, Speaker C: Yes, there's some controversy I guess, there around. How can you actually project what these.
+00:50:53.248 - 00:50:58.206, Speaker B: Costs will be once they go live on main net? Yeah, but now I guess what is.
+00:50:58.228 - 00:50:59.898, Speaker C: Like ties all together is you don't.
+00:50:59.914 - 00:51:01.838, Speaker B: Know what the roll up use is.
+00:51:01.844 - 00:51:04.622, Speaker C: Going to be like, how that increases. Will there be any spam?
+00:51:04.766 - 00:51:09.506, Speaker D: Has your estimation been close to current levels or.
+00:51:09.608 - 00:51:09.874, Speaker B: Yeah.
+00:51:09.912 - 00:51:33.226, Speaker D: Do you have any picture on this? I remember the frames on Falcaster. That was really cool. Pulls up a recent transaction of yours and compares it to if blobs were live, how much the transaction cost would have been affected. And it was a huge amount. I don't know this exactly, which is.
+00:51:33.248 - 00:51:36.922, Speaker B: On screen, which is super cool.
+00:51:37.056 - 00:51:47.774, Speaker D: It shows you real usage of like it showed me a recent transfer I had sent money to, I think Danning or something. And it showed me this transfer to Danning would have cost way less.
+00:51:47.892 - 00:51:48.126, Speaker B: Yeah.
+00:51:48.148 - 00:51:57.186, Speaker C: So this is our forecaster frame that we put out. And yeah, I could look through your recent transactions or pull up a sample transaction now. It'll give you an estimate of what.
+00:51:57.208 - 00:52:00.574, Speaker B: That transaction cost during the prior period.
+00:52:00.622 - 00:52:09.202, Speaker C: Before this upgrade where you're posting transaction data. 201 ethereum. And now an estimated cost, what we thought it was going to be potentially after blob.
+00:52:09.266 - 00:52:10.998, Speaker B: So there's no way to know what.
+00:52:11.004 - 00:52:13.670, Speaker C: The blob gas would cost. Like this didn't exist yet.
+00:52:13.740 - 00:52:18.310, Speaker B: Like the thing that's right now at one way, there was this prediction market.
+00:52:18.380 - 00:52:29.850, Speaker C: That was giving you. People were betting on it, what they thought the price was going to be. So we used that as an estimate here and then added on some potential l two congestion. Again, we had no idea what the.
+00:52:29.920 - 00:52:32.282, Speaker B: Increase in demand would be after this went live.
+00:52:32.336 - 00:52:37.486, Speaker C: So, yeah, did some estimation there to give this. And I think so far we've been.
+00:52:37.588 - 00:52:38.958, Speaker B: Either like spot on or a little.
+00:52:38.964 - 00:52:44.910, Speaker C: Bit of an overestimate because this assumes that blob gas actually has a price. Right now it doesn't.
+00:52:45.070 - 00:52:49.586, Speaker B: This assumes about like 0.1 extra l.
+00:52:49.608 - 00:52:52.420, Speaker C: Two GUI base fee and pull up.
+00:52:53.590 - 00:52:55.300, Speaker B: What'S actually been now.
+00:52:56.550 - 00:53:18.486, Speaker C: Yeah. So op mainet and base are now a little bit less than 0.1 base fee right now. So of course we'll still see what it looks like. It could be way different story in a week or two or three weeks from now. We'll be like, remember, one blobs cost zero and l two gas price was low. But at least as of right now, I think that frame has been a little bit of an overestimation, which is nice, because I think we're always nervous.
+00:53:18.518 - 00:53:20.746, Speaker B: About saying it's going to be so.
+00:53:20.768 - 00:53:27.680, Speaker C: Cheap and then it's not. And then people get mad at me. I was willing, I was at a point, I was like, do I back off or do I double down? I was like, I'm going to double down.
+00:53:31.090 - 00:53:58.390, Speaker A: Maybe on that point in general, do you have a dashboard or data on how much cheaper things got on average? And maybe, I guess percentage terms are interesting and I guess this looked almost like 99%. But then if we actually break this down into nominal values, where it's like before uniswap, like simple swap in a uniswap v three pool cost, I don't know, $3. Now it costs $0.10.
+00:53:59.290 - 00:53:59.846, Speaker B: Yeah.
+00:53:59.948 - 00:54:19.710, Speaker C: So back on this dashboard, these are just median gas fees across everything. So, yeah, you see, it's hard to give a percentage or a number. Like people were saying, ten x, 100 x. I don't know how to do, like, multiples and decreases, but 99%, I've got to the point of, do you care if it's 98 or 99% savings or just what is the price? It just is so small at that point. It's just kind of ridiculous.
+00:54:20.610 - 00:54:21.134, Speaker B: But yeah.
+00:54:21.172 - 00:54:53.254, Speaker C: So that's kind of like an overall same chart and logarithmic. Just you can actually see some of the splits because you really can't up here. Yeah, we have to have a list of some sample transactions down here of just like here, like ecotone. So ecotone was the name of the optimism upgrade and the legacy one here and what the savings were. So, yeah, the savings are all 98, 99%. Kind of meaningless, I guess. But we see here simulated Dex trade at the current prices, like three tenths of a cent NFT mint.
+00:54:53.254 - 00:55:14.610, Speaker C: Similar down there as well. What I'm actually very excited about is the cost of deploying contracts. So there's like a median sized contract is now $0.06 doing like a large, beefy contract, about $0.15. But still imagining some apps may take 20 to 30 or so contracts per deployment. The cost to build on chain is cheap now. So you want to build stuff.
+00:55:14.610 - 00:55:16.866, Speaker C: Now's the time, in my opinion, on.
+00:55:16.888 - 00:55:21.220, Speaker A: Optimism on the super chain. Yeah.
+00:55:22.550 - 00:55:39.580, Speaker E: If you take the old number and the current number, it's basically you're seeing like it used to pay 100 x or 200 x, that kind of range. And so basically now you're paying 1%, like one over 100 compared to before or like 0.5% than before.
+00:55:40.430 - 00:55:43.226, Speaker C: Yeah, it's like the percent numbers are kind of ridiculous at that point because.
+00:55:43.248 - 00:55:44.860, Speaker B: It'S just so small.
+00:55:45.230 - 00:56:11.326, Speaker A: Yeah, that is insane. So I should load up a meme token trading wallet on base to profit off of this. Obviously, Michael can't comment on this, but this is basically like Solana level of fees, where it's just like, it's essentially free. I can make 100 Dex trades transactions for what, $0.30 now? That's insane.
+00:56:11.438 - 00:56:15.970, Speaker E: How does it compare to Salana? Actually? It's still more expensive than Solana.
+00:56:17.750 - 00:56:27.814, Speaker C: Probably. I think it was like a node of a dashboard to pull up anything. I saw some people make comparisons there, but one note is these LTOs are seeing much less transaction volume now.
+00:56:27.852 - 00:56:31.866, Speaker B: So I think if there was 20 million transactions on an op chain right.
+00:56:31.888 - 00:56:35.062, Speaker C: Now, I think that would trigger a base fee spike.
+00:56:35.126 - 00:56:39.878, Speaker B: It's all kind of relative, but, yeah, I think this is potentially again, we'll.
+00:56:39.894 - 00:56:40.986, Speaker C: See what it looks like a month from now.
+00:56:41.008 - 00:56:43.486, Speaker B: We look back and be like, wow, look how dumb we were.
+00:56:43.668 - 00:56:45.662, Speaker C: Yeah, lt based fees aren't super high now.
+00:56:45.716 - 00:56:48.160, Speaker B: Blob based fees are one way.
+00:56:48.610 - 00:56:51.434, Speaker C: So this is interesting period.
+00:56:51.482 - 00:56:56.158, Speaker B: So we'll see what I'm interested to see what potential new chains are interested.
+00:56:56.244 - 00:57:01.106, Speaker C: Or in just deploying a chain now they see prices, or what new app developers are now deploying new apps when.
+00:57:01.128 - 00:57:03.202, Speaker B: They see prices get this low.
+00:57:03.336 - 00:57:06.206, Speaker C: Because I think I'd realize that a lot of these things you can talk forever.
+00:57:06.238 - 00:57:07.458, Speaker B: You've been talking for like I don't.
+00:57:07.464 - 00:57:09.446, Speaker C: Know how long, like oh, fees are going to get about to get really.
+00:57:09.468 - 00:57:18.170, Speaker B: Cheap for some period of time. But seeing it live I think is a way different. Yeah, I think a lot of people were surprised. They didn't believe our frame.
+00:57:19.790 - 00:58:17.558, Speaker D: I have another view I can share if you can let me share my screen from courtesy of a friend of ours called Kofi who made a recent website and it shows the basic stuff that you can do across chain and how those cost. And you can see here how the top few so the first five have adopted blobs while zk scroll hasn't yet. And you can see the difference is quite substantial. It's like almost a ten X and relative to op main, net and base like almost 100 x actually. So it is quite substantial of a change. And then compared to Ethereum it's not even on the same level. But this is probably a good view to monitor across chains like how each comparing fees and how those evolve over time with without blobs.
+00:58:17.558 - 00:59:05.734, Speaker D: I think Albatram has another upgrade coming sometimes today I think today for reference recording on like Monday the 18th. And this should, from what I heard also reduce fees once more. Although they already adopted blobs so maybe we'll see them closer to op mainnet and bases fee levels soon. But yeah, that'll be interesting to monitor and see how not only the short term of it just went live, but also most importantly once the fee markets kick in. What the hell does this look like? Are we back right back to when we were before? I don't think so at all. But where do we settle in terms of median fee prices?
+00:59:05.862 - 00:59:25.806, Speaker C: Yeah, I think another good view I can share too. Growth the pie had a good visualization of when all these chains adopted blobs. This is what on the actual day, the upgrade, what was I watching and refreshing over and over and over was this site that Matthias to grow the pipeline together. But similar to the view we showed before of just the op chains, this.
+00:59:25.828 - 00:59:27.246, Speaker B: Is like where you could see all.
+00:59:27.268 - 00:59:40.274, Speaker C: The chains up here. It's like, okay, Starknet was first to boom, go down near zero, I think ZK sync, you'll see somewhere around here, like boom, near zero, base op, main net, Zora. Yeah, so we'll see. I guess you could maybe even sooner.
+00:59:40.322 - 00:59:42.886, Speaker B: Zoom in here now that we're actually.
+00:59:42.908 - 00:59:55.660, Speaker C: Zoomed in on where prices are now and see any upcoming upgrades or any kind of changes these chains make. What happened to fees from here? And as congestion happens, what happens there as well?
+00:59:56.190 - 01:00:24.786, Speaker E: And would you say, like, say if there's more roll up, adopting the blob and the gas fee for blob will go up on layer one over time. And to me it's somewhat, almost kind of a paradox that op chain is trying to do this super chain and op stacks and Condor is deploying like 5000 op chains every day. But over time, then ope roll ups competing with each other, actually going to make it more expensive. I don't know how I feel.
+01:00:24.808 - 01:00:36.438, Speaker C: We're going to need more blobs. It'll be interesting to see. Is it a back and forth of like, l one data was the bottleneck. Now l two congestion is the bottleneck. Okay, now l one data is the.
+01:00:36.444 - 01:00:40.342, Speaker B: Bottleneck again, where do things go? Yeah.
+01:00:40.396 - 01:00:42.054, Speaker C: And what other kind of da solutions exist?
+01:00:42.102 - 01:00:44.794, Speaker B: Like how we evolve from here? Yeah.
+01:00:44.912 - 01:01:10.322, Speaker A: Is there a world where optimism, like if blops get too expensive, or I guess there's like a, because there's not yet a fee market for blops and there's a fee market for just usual call data. So could the roll up theoretically kind of choose to post a blop or a call data depending on where the fees are lower? Is that like a thing that people have thought about?
+01:01:10.456 - 01:01:23.634, Speaker C: Yeah, depends on. I'm not sure how, how easy is to flip back and forth. But yeah, if there's a world where blob gas price gets so expensive and l one call data is cheaper, that'd be a crazy world. But yeah, if it does happen, then maybe it will. Maybe it'll.
+01:01:23.682 - 01:01:26.214, Speaker B: Yeah. And we all look back, but yeah.
+01:01:26.332 - 01:01:29.282, Speaker C: If blobs get more expensive than call data, then yeah, roll it might decide.
+01:01:29.346 - 01:01:37.818, Speaker B: Could it go back to posting to call data? But yeah, that would be, I even know what the blob base you'd have.
+01:01:37.824 - 01:01:39.546, Speaker C: To get to relative for that to.
+01:01:39.568 - 01:01:41.286, Speaker B: Be a case and how much volume.
+01:01:41.318 - 01:01:42.574, Speaker C: There would need to be to get there.
+01:01:42.612 - 01:01:46.042, Speaker B: But yeah, that is a consideration.
+01:01:46.106 - 01:01:47.694, Speaker C: I think some chains are prepared for.
+01:01:47.732 - 01:01:54.654, Speaker B: If they have to go to call data, what do you do? But that would be not ideal.
+01:01:54.782 - 01:02:04.002, Speaker A: Seems very far away. But I guess somebody has thought about this at some point. It seems very unlikely that this would actually happen.
+01:02:04.136 - 01:02:05.842, Speaker B: Yeah. All right.
+01:02:05.896 - 01:02:34.714, Speaker A: I think we've learned about Ern blobs and now there's a lot of trends currently happening on optimism or like in general in the ecosystem we have four, eight, four. So now everything is cheaper. And then we kind of also have frames. You showed a frame earlier where I sadly couldn't mint this frame. But in general, it seems to be more often that people just interact with the chain in more easier ways and especially with frames.
+01:02:34.762 - 01:02:35.374, Speaker B: So maybe.
+01:02:35.412 - 01:02:45.134, Speaker A: Michael, what's your hot take on what, 4844 and cheaper call data or cheaper posting of call data enable now?
+01:02:45.332 - 01:02:48.466, Speaker B: Yeah, I kind of hinted at before, but yeah, there is some of these.
+01:02:48.488 - 01:02:53.234, Speaker C: Easier ux things like whether you're transacting through frames or transacting through some other.
+01:02:53.272 - 01:02:55.714, Speaker B: Kind of friendlier front end, I guess.
+01:02:55.752 - 01:02:59.170, Speaker C: Than bouncing around to a million different websites and clicking buttons.
+01:03:00.070 - 01:03:01.702, Speaker B: I think there's been also some people.
+01:03:01.756 - 01:03:06.600, Speaker C: Waiting to get to a point which I'm excited for and subscribe to. The thought too is at what point do.
+01:03:06.970 - 01:03:09.046, Speaker B: Right now we're used to I send.
+01:03:09.068 - 01:03:16.214, Speaker C: A transaction, I pay the transaction fee for it. At what point do costs become cheap enough where maybe chain developers, app developers.
+01:03:16.262 - 01:03:18.330, Speaker B: Could subsidize those gas fees?
+01:03:18.750 - 01:03:20.426, Speaker C: I think some early examples we'd seen.
+01:03:20.448 - 01:03:22.842, Speaker B: This, there's some trading apps, like options.
+01:03:22.896 - 01:03:27.006, Speaker C: Trading apps that are doing this now, which I think their economics are if.
+01:03:27.028 - 01:03:28.446, Speaker B: We'Re going to make more than the.
+01:03:28.468 - 01:03:32.394, Speaker C: Cost of a gas fee per trade, then absolutely subsidize gas fees.
+01:03:32.442 - 01:03:34.814, Speaker B: And their incentive is get more volume.
+01:03:34.862 - 01:03:39.646, Speaker C: So if that helps you get more volume, then great. But I think, yeah, there's these thoughts.
+01:03:39.678 - 01:03:45.566, Speaker B: Of when are people just going to be not thinking about funding a wallet.
+01:03:45.598 - 01:03:49.878, Speaker C: Or sending their transactions and paying gas fees? I think developer subsidizing fees could be.
+01:03:49.884 - 01:03:50.920, Speaker B: A big one there.
+01:03:51.290 - 01:03:59.960, Speaker C: And as mentioned, there's Coinbase has had some demo for smart wallets. Just thinking of how can you get the time from I want to do something to actually doing.
+01:04:00.650 - 01:04:03.498, Speaker B: Yeah. As quick as possible and as maybe.
+01:04:03.584 - 01:04:05.338, Speaker C: Economically less painful as possible.
+01:04:05.424 - 01:04:05.818, Speaker B: Maybe.
+01:04:05.904 - 01:04:49.394, Speaker E: I have two questions. One is, is there any downside or risk along with the CIP for like say now it's only stored, the blobs only stored for 18 days. And during that period there will be a fraud proof challenge. And then if it went through or whatever. But is there any chance that we need to retrieve any blob data actually past 18 days and now we are not able to. And does that also change any the data infrastructure? Because I know now because you used to be able to query everything from call data. So layer one actually on chain data, but now you need to go to beacon chain and then look at the blob and then be able to make sense of the blob.
+01:04:49.394 - 01:04:54.346, Speaker E: So yeah. Is there any security compromise based on this design?
+01:04:54.528 - 01:05:06.382, Speaker C: Yeah, well I know fault proofs are going live on op testnets. As of the time of recording tomorrow it's like March 19. So I'll be exciting to see. But at least as of right now the op chain is fault proof windows seven days.
+01:05:06.436 - 01:05:10.574, Speaker B: So I think the calculation is if.
+01:05:10.612 - 01:05:50.054, Speaker C: The blob is there 18 days, you need them, need to derive the chain back from them for seven days in order to run fault proofs and things. That should be enough time. But yeah, I think you definitely lose something. Like if you were to run the batch of software and decode all of these transaction batches historically you could just say like cool, I'll hit the L1 address and pull that data and go do it now. Yeah, you would only be able to do that for the last 18 days. It depends on if whatever you're using actually prunes it or you are holding them forever. But yeah, I know a bunch of data providers have stated that they hold the blob.
+01:05:50.054 - 01:06:11.730, Speaker C: So I said it'll work there. But it doesn't change the ability to get transactions from the l two side. I see only risk is like yeah, if your l two shuts down and the RPCs are no longer usable, how do you get all the old transaction data from it? We will see there's just like any case of is the data there forever or is it not there forever?
+01:06:12.790 - 01:07:34.938, Speaker E: I know there's another I think theory, some mev people being speculating, I'm not sure if the theory going to play out. But basically they're saying there's this whole PBS design right now where basically the layer one block builder, they're packing the transaction into a block based on whatever the value they can get from that. Right? So now they're saying because it's all about competing with latency, least latency in layer one actually like blob transaction because they're bigger inside it will add the memory load time when the builder communicating to relay. And hence if the block transaction are not valuable enough, as in like gas will have to be expensive, then block builder might just ignore it in terms of economic incentive. Especially say imagine like in a volatile time, the big block builders who are also high frequency trader, they will want to include their block transaction with their most valuable transaction to do C Arb charge and potentially maybe ignoring all the blobs. And so that might be a, I think block native had a website called Easternow XYZ and they had a metrics called blob contention. And so basically it's saying if there's any blobs that's been waiting for over one block, I think personally that's a too strict of a metrics.
+01:07:34.938 - 01:08:13.874, Speaker E: There's a lot of manpower transactions potentially waiting for a few blocks. And if there's many conditions can cause that happen. Like for example, if the blob gas fee was set too low, or if there's just really congested. So many blobs are submitting from different roll ups that metrics can also blow up. But I think it's interesting that Meb people always have some drama and they're trying to speculating this drama of blob builder will be super mercenary. They're going to ignore blob unless it's going to get very expensive. So I'm curious if you see that going to happen, as in blob will have to be expensive from another angle.
+01:08:14.002 - 01:08:28.794, Speaker C: Yeah, I'll pull up. This is one of the sites I've been looking at to see how long it's taking blobs to get in. This is like ether now's website. You can filter to the type three transactions which are the blob carrying transactions. It looks like this was. They have it labeled an arbitrary block. It was only the mempool for one block.
+01:08:28.794 - 01:08:55.446, Speaker C: But I think, yeah, good points. Things to track over time. If it becomes a problem that blocks or blob carrying transactions are sending them in pool for way longer than any other transactions. Yeah. Curious. Your take too is like the MeV expert. But yeah, I think there would be something if you do see that some of these transactions aren't getting in whatever time you want them to get in, whatever that threshold is.
+01:08:55.628 - 01:08:55.974, Speaker B: Yeah.
+01:08:56.012 - 01:09:14.030, Speaker C: How do you go about that? Is it higher priority fees eventually potential blah. Priority fees? Yeah, who knows? I don't know, I think. But it was definitely something monitored. At least around time of launch is like, okay, are these earlier chains? Like, are they getting their blobs in? Do things look good? Do we have to set high priority fees?
+01:09:15.250 - 01:09:15.838, Speaker B: Yeah, I know.
+01:09:15.844 - 01:09:19.118, Speaker C: It's like a lot of interesting new metrics to track from this.
+01:09:19.284 - 01:09:50.486, Speaker E: Yeah. So quick comments on that. I think I also built a quick dash on June, just checking if the big block builders are doing this or like misbehaving or et cetera. The first few days, or at least in the past week, I think it looked to be looking good. And the ether now metrics has been 0%. Most of the time when I check, I think it's possible still, like theoretically it makes sense, but not from the top, top block builder, because they do actually know that they are playing a reputation game. Everyone's having their eyes on them.
+01:09:50.486 - 01:10:18.050, Speaker E: Like, oh, if you're actually ignoring blobs, what are you doing? You already have like 50 or 70% of network. But I did see in the past when I look into some really high value block from some very smaller builder who are also a searcher, like for example, this builder called ICANN has a block. I think he's also atomic searcher. He's like a front runner or something. I think his searcher name is called a yoink. The MEV contract.
+01:10:18.550 - 01:10:18.962, Speaker D: Yeah.
+01:10:19.016 - 01:10:58.330, Speaker E: And there's another, I think actually a white hat hacker. Coffee babe. Sometimes he has his blog with only three transactions. So like this type of searcher builder, they try to really front run everything and they try to just include as least transaction that's just important. Maybe either for saving the fund or maybe making the arbitrage for themselves, atomic meV, then they will try to make pretty much empty ish block. So to basically make it smaller so the relay pass it on faster. So I think that could happen, but not really actually the targets people are looking at, but still possible, I guess, like when CFI defi price are super volatile.
+01:10:58.330 - 01:11:00.462, Speaker E: So we'll have to keep an eye on.
+01:11:00.516 - 01:11:23.430, Speaker A: Michael, did you see any chart crimes or any kind of false interpretations of the facts? There must have been something during this rather technically complex undertaking that the Ethereum network and all its rollouts kind of undertook, where somebody misinterpreted something. So maybe if you can share a couple of examples.
+01:11:23.850 - 01:11:57.198, Speaker C: Yeah, it could be skewed in a way. Maybe. I've seen like, I think there's a lot of great dashboards by Hildavi Rob that we showed before too, but I could potentially self report myself. Not a chart crime, but a learning in how to present data in a. You know, there's this dashboard for I showed before the ecotone upgrade impact. So at first the only charts I showed were in logarithmic y axis, which the point of it was actually in our war room for the upgrade it was like, showing these charts and, God, I thought it was very fair question. Like, hey, we put these charts in log.
+01:11:57.198 - 01:12:01.218, Speaker C: Once in normal, I can't see what's happening. It's just all zero. It's like, yeah, great idea.
+01:12:01.304 - 01:12:02.002, Speaker B: Put it in log.
+01:12:02.056 - 01:12:24.282, Speaker C: And I like log because I can actually see, like, okay, base got a little more expensive here. Opmit fluctuating back and forth. Zorg got a little more expensive here. But the crime, I guess, that I saw is that this logarithmic chart was screenshotted and shared all over the place. And people were saying, like, oh, it looks like fees are down 50%. The logarithmic chart, they're not down 50%. They're down, like, a lot more.
+01:12:24.282 - 01:12:47.138, Speaker C: Which led me to that. And be like, all right, let's put the normal y axis up here, and then there's the data nerd version down here, which I think is maybe a similar kind of learning for all the data nerds out there. Yeah, I mean, the simple things are the most popular, but, yeah, we'll save our data nerd things for the data nerd section. So, yeah, potentially some miscommunicating of how much fees actually dropped from this.
+01:12:47.224 - 01:12:57.010, Speaker A: But I like, basically, you just shit on all your viewers. You're like, you guys educate yourself. Well, it's.
+01:12:58.570 - 01:13:04.342, Speaker C: You wouldn't expect a logarithmic. I'm coming to you admitting my fault I'm not perfect.
+01:13:04.476 - 01:13:34.654, Speaker A: Fair enough. Yeah, that is sad. Yeah. Logarithmic charts. If you're not a data person, I can see how people just kind of mispresent anything else that was notable. I think the topics is somewhat complex enough for non professionals in quotation marks to even attempt to dive into it. And it's not that much of a high topic, so I wouldn't expect too much bullshit to have happened.
+01:13:34.852 - 01:14:14.382, Speaker D: Yeah, there was the eternal EVM versus Solan discussion where some of the EVM people were like, oh, fees are forever super cheap. And compared to Solana, it's the same fee. And then Solana guys is like, oh, it's temporary. Let's see when the market kicks in. Which technically they're right, but, I mean, somewhere in the middle is probably where I stand, I guess. Yeah, it's definitely, like, a big improvement. It's worth cheering on, but it was far from ever being Solana levels of being able to have 20,000 transactions at.
+01:14:14.436 - 01:14:15.870, Speaker B: Very, very cheap levels.
+01:14:16.610 - 01:14:36.754, Speaker D: But either way, we're moving forward in the right direction. And I think. I'm not a big fan of any maximalists in general. It's just dumb, I think to just be a maximalist for something and say the rest is shit. I think it's better if we all bend together and just enjoy the ride, I guess.
+01:14:36.872 - 01:14:49.000, Speaker C: Yeah, I think one thing people had said with this upgrade, which is very cool, is at least see how long it lasts. But yeah, large parts of the world where using the onchain applications was not feasible, even on l two s. And now it is, at least for some period of time.
+01:14:49.450 - 01:14:51.370, Speaker B: So make the experience better.
+01:14:51.520 - 01:14:53.046, Speaker C: Bring the whole world on chain.
+01:14:53.158 - 01:14:54.326, Speaker B: We're on the path.
+01:14:54.438 - 01:15:01.190, Speaker A: Yeah, I think that's good. Finishing thoughts. I think we can properly end all. Denning has a last.
+01:15:01.360 - 01:15:13.920, Speaker E: Yeah, I just need to share this joke that Michael had on Twitter. So it's about the blob, right? So why you think 45 is afraid of 40?
+01:15:16.390 - 01:15:17.922, Speaker C: Why is 45 afraid of 40?
+01:15:17.976 - 01:15:20.062, Speaker D: I know the answer. I'll let Florida.
+01:15:20.206 - 01:15:20.946, Speaker C: 48.
+01:15:21.048 - 01:15:22.098, Speaker D: 48.
+01:15:22.264 - 01:15:23.122, Speaker A: 44.
+01:15:23.176 - 01:15:24.260, Speaker C: Do you love it?
+01:15:25.210 - 01:15:26.434, Speaker D: I think he's processing.
+01:15:26.482 - 01:15:27.462, Speaker C: He likes it.
+01:15:27.596 - 01:15:40.680, Speaker A: 48. Okay, so 40 is a very violent number. I see something like this. Oh man, that was pretty hard.
+01:15:41.930 - 01:15:48.602, Speaker C: The respect level from here of like, wow, cool blob topics to that joke. Seeing the real me now, that's a.
+01:15:48.656 - 01:16:14.670, Speaker A: Proper dad joke, I think on that note, we can actually end this podcast. Yeah. Thanks so much for sharing your insights, Michael. And I'm sure you'll be back with the next optimism upgrade, or maybe just in a couple of weeks to actually observe how the fee markets evolved and everything. And yeah, just thanks for all your contributions to the data. It's really, really good to see you grinding. I certainly learned a lot in this episode and learned a lot from your dashboard.
+01:16:14.670 - 01:16:30.694, Speaker A: Yeah, really cool how all the super chain vision kind of plays out. Keep doing your thing. Thanks for this episode, guys. And yeah, to the listeners. See you in the next episode in an undetermined amount of time. See you guys.
+01:16:30.732 - 01:16:31.334, Speaker B: Bye bye.
+01:16:31.452 - 01:16:32.180, Speaker C: Thanks for having me.

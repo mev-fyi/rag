@@ -731,4 +731,54 @@ site_configs = {
         'content_selector': 'article.nx-w-full',
         'img_selector': '.img_ev3q',
     },
+    'illuvium': {
+        'base_url': 'https://docs.illuvium.io/staking-v2',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'olympus': {
+        'base_url': 'https://docs.olympusdao.finance/main/overview/intro/',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'olympus_technical': {
+        'base_url': 'https://docs.olympusdao.finance/main/technical/overview/',
+        'content_selector': '.docPage__5DB',
+        'img_selector': '.img_ev3q',
+    },
+    'ibc': {
+        'base_url': 'https://ibc.cosmos.network/main',
+        'content_selector': '.docItemContainer_Djhp',
+        'img_selector': '.img_ev3q',
+    },
+    'cosmostation': {
+        'base_url': 'https://docs.cosmostation.io/apis',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
+    'axelar': {
+        'base_url': 'https://docs.axelar.dev/',
+        'content_selector': '.mainBody',
+        'img_selector': '.img_ev3q',
+    },
+    'dym': {
+        'base_url': 'https://docs.dymension.xyz/',
+        'content_selector': '.docItemContainer_Djhp',
+        'img_selector': '.img_ev3q',
+    },
+    'sei': {
+        'base_url': 'https://www.docs.sei.io/',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
+    'quasar': {
+        'base_url': 'https://docs.quasar.fi/overview/intro',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'stargate': {
+        'base_url': 'https://stargateprotocol.gitbook.io/stargate',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
 }
