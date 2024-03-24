@@ -166,36 +166,36 @@ site_configs = {
         'content_selector': '.main',
         'img_selector': '.img_ev3q',
     },
-    'near_concepts': {
-        'base_url': 'https://docs.near.org/concepts/welcome',
-        'content_selector': '.docItemContainer_Djhp',
-        'img_selector': '.img_ev3q',
-        'next_button_selector': '.pagination-nav__link--next',
-    },
-    'near_web3_apps': {
-        'base_url': 'https://docs.near.org/develop/web3-apps/whatareweb3apps',
-        'content_selector': '.docItemContainer_Djhp',
-        'img_selector': '.img_ev3q',
-        'next_button_selector': '.pagination-nav__link--next',
-    },
-    'near_tools': {
-        'base_url': 'https://docs.near.org/tools/welcome',
-        'content_selector': '.docItemContainer_Djhp',
-        'img_selector': '.img_ev3q',
-        'next_button_selector': '.pagination-nav__link--next',
-    },
-    'near_contracts': {
-        'base_url': 'https://docs.near.org/develop/contracts/whatisacontract',
-        'content_selector': '.docItemContainer_Djhp',
-        'img_selector': '.img_ev3q',
-        'next_button_selector': '.pagination-nav__link--next',
-    },
-    'near_tutorials': {
-        'base_url': 'https://docs.near.org/tutorials/welcome',
-        'content_selector': '.docItemContainer_Djhp',
-        'img_selector': '.img_ev3q',
-        'next_button_selector': '.pagination-nav__link--next',
-    },
+    # 'near_concepts': {
+    #     'base_url': 'https://docs.near.org/concepts/welcome',
+    #     'content_selector': '.docItemContainer_Djhp',
+    #     'img_selector': '.img_ev3q',
+    #     'next_button_selector': '.pagination-nav__link--next',
+    # },
+    # 'near_web3_apps': {
+    #     'base_url': 'https://docs.near.org/develop/web3-apps/whatareweb3apps',
+    #     'content_selector': '.docItemContainer_Djhp',
+    #     'img_selector': '.img_ev3q',
+    #     'next_button_selector': '.pagination-nav__link--next',
+    # },
+    # 'near_tools': {
+    #     'base_url': 'https://docs.near.org/tools/welcome',
+    #     'content_selector': '.docItemContainer_Djhp',
+    #     'img_selector': '.img_ev3q',
+    #     'next_button_selector': '.pagination-nav__link--next',
+    # },
+    # 'near_contracts': {
+    #     'base_url': 'https://docs.near.org/develop/contracts/whatisacontract',
+    #     'content_selector': '.docItemContainer_Djhp',
+    #     'img_selector': '.img_ev3q',
+    #     'next_button_selector': '.pagination-nav__link--next',
+    # },
+    # 'near_tutorials': {
+    #     'base_url': 'https://docs.near.org/tutorials/welcome',
+    #     'content_selector': '.docItemContainer_Djhp',
+    #     'img_selector': '.img_ev3q',
+    #     'next_button_selector': '.pagination-nav__link--next',
+    # },
     'celo': {
         'base_url': 'https://docs.celo.org/developer',
         'content_selector': '.docItemCol_VOVn',
@@ -779,6 +779,84 @@ site_configs = {
     'stargate': {
         'base_url': 'https://stargateprotocol.gitbook.io/stargate',
         'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'lavanetwork': {
+        'base_url': 'https://docs.lavanet.xyz/',
+        'content_selector': '.docItemCol_VOVn',
+        'img_selector': '.img_ev3q',
+        'next_button_selector': '.pagination-nav__link--next',
+    },
+    'cosmwasm': {
+        'base_url': 'https://docs.cosmwasm.com/docs/',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'osmosis_outpost': {
+        'base_url': 'https://docs.osmosis.zone/osmosis-outpost/',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'osmosis_core': {
+        'base_url': 'https://docs.osmosis.zone/osmosis-core',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'osmosis_educate': {
+        'base_url': 'https://docs.osmosis.zone/overview/educate',
+        'content_selector': '.docMainContainer_gTbr',
+        'img_selector': '.img_ev3q',
+    },
+    'akash': {
+        'base_url': 'https://akash.network/docs/',
+        'content_selector': 'div.w-full:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'assetmantle': {
+        'base_url': 'https://docs.assetmantle.one/Overview/',
+        'content_selector': '.md-content',
+        'img_selector': '.img_ev3q',
+    },
+    'canto': {
+        'base_url': 'https://docs.canto.io/',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'fetch': {
+        'base_url': 'https://fetch.ai/docs/guides',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
+    'dydx': {
+        'base_url': 'https://docs.dydx.exchange/',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
+    'stride': {
+        'base_url': 'https://docs.stride.zone/docs/getting-started',
+        'content_selector': '.rm-Article',
+        'img_selector': '.img_ev3q',
+    },
+    'neutron': {
+        'base_url': 'https://docs.neutron.org/',
+        'content_selector': '.docItemCol_VOVn',
+        'img_selector': '.img_ev3q',
+        'next_button_selector': '.pagination-nav__link--next',
+    },
+    'band': {
+        'base_url': 'https://docs.bandchain.org/',
+        'content_selector': '.docItemCol_VOVn',
+        'img_selector': '.img_ev3q',
+        'next_button_selector': '.pagination-nav__link--next',
+    },
+    'secret': {
+        'base_url': 'https://docs.scrt.network/secret-network-documentation',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'irisnet': {
+        'base_url': 'https://www.irisnet.org/docs/',
+        'content_selector': '.theme-default-content',
         'img_selector': '.img_ev3q',
     },
 }
