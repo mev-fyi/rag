@@ -108,6 +108,11 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
     videos_path = f"{root_dir}/datasets/evaluation_data/youtube_videos.csv"
 
     latest_df = pd.read_csv(videos_path)
+    headers = ['title', 'channel_name', 'video_link', 'release_date']
+
+    if not os.path.exists(f"{root_dir}/pipeline_storage/youtube_videos.csv"):
+        logging.info("No existing youtube_videos.csv found. Creating a new one.")
+        pd.DataFrame(columns=headers).to_csv(f"{root_dir}/pipeline_storage/youtube_videos.csv", index=False)
     current_df = pd.read_csv(f"{root_dir}/pipeline_storage/youtube_videos.csv")
     youtube_videos_df = compute_new_entries(latest_df=latest_df, current_df=current_df, left_key='url', right_key='video_link', overwrite=overwrite)
 
@@ -141,7 +146,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                 if not documents:
                     continue
                 all_documents.extend(documents)
-                all_metadata += all_documents_details
+                all_metadata.append(all_documents_details)
                 video_transcripts_loaded_count += 1
             except Exception as e:
                 logging.info(f"Failed to process {str(video_transcript).replace(root_dir, '')}, passing: {e}")
@@ -155,7 +160,7 @@ def load_video_transcripts(directory_path: Union[str, Path], add_new_transcripts
                 pass
     logging.info(f"Successfully loaded [{video_transcripts_loaded_count}] documents from video transcripts.")
 
-    save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/youtube_videos.csv', drop_key='video_link')
+    save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/youtube_videos.csv', drop_key='video_link', headers=headers)
     # assert len(all_documents) > 1, f"Loaded only {len(all_documents)} documents from video transcripts. Something went wrong."
     return all_documents
 
