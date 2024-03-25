@@ -258,7 +258,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
     def adjust_scores_based_on_criteria(self, nodes_with_score: List[NodeWithScore]):
         BOOST_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '1.3'))
         DOCS_BOOST_SCORE_MULTIPLIER = float(os.environ.get('DOCS_BOOST_SCORE_MULTIPLIER', '1.20'))
-        PENALTY_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '0.85'))
+        PENALTY_SCORE_MULTIPLIER = float(os.environ.get('PENALTY_SCORE_MULTIPLIER', '0.85'))
         CHANNEL_NAMES_TO_BOOST = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'ETHDenver')]  # Example channel names
         CHANNEL_NAMES_TO_PENALISE = [os.environ.get('CHANNEL_NAMES_TO_PENALISE', 'Chainlink')]  # NOTE 2024-03-19: chainlink is absolutely everywhere in most results, need to tune that down.
         DATE_THRESHOLD = datetime.strptime('2024-02-01', '%Y-%m-%d')
