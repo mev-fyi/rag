@@ -183,30 +183,6 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
             ],  # List of titles to exclude
             'exclude_filenames': ['contributing']  # List of filenames to exclude
         },
-        # 'datasets/evaluation_data/flashbots_docs_2024_01_07': {
-        #     'title_extraction_func': flashbots_title_extraction,
-        #     'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-        #     'author': 'Flashbots Docs',
-        #     'pdf_link': 'https://docs.flashbots.net/',
-        #     'release_date': '',
-        #     'exclude_titles': [
-        #         'Join Flashbots', 'Contributing', 'Prohibited Use Policy', 'Terms of Service',
-        #         'Welcome to Flashbots hide_title: true description: The home page of the knowledge base keywords: - flashbots -',
-        #         'Code of Conduct', 'js hint: calldata | contract_address | function_selector | logs | hash | undefined',
-        #
-        #     ],  # List of titles to exclude
-        #     'exclude_filenames': ['policies']  # List of filenames to exclude
-        # },
-        # 'datasets/evaluation_data/suave_docs_2024_03_13': {
-        #     'title_extraction_func': suave_title_extraction,
-        #     'extract_author_and_release_date_func': extract_author_and_release_date_flashbots,
-        #     'author': 'SUAVE Docs',
-        #     'pdf_link': 'https://suave-alpha.flashbots.net/',
-        #     'release_date': '',
-        #     'exclude_titles': [
-        #     ],  # List of titles to exclude
-        #     'exclude_filenames': ['policies']  # List of filenames to exclude
-        # },
     }
 
     overwrite = True
@@ -218,6 +194,7 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
     current_df = pd.read_csv(f"{root_dir}/pipeline_storage/docs.csv") if not overwrite else pd.DataFrame(columns=['title', 'authors', 'pdf_link', 'release_date', 'document_name'])
     if os.path.exists(csv_path):
         latest_df = pd.read_csv(csv_path)
+        # TODO 2024-03-25: directly remove the files in all subdirectories from the current_df when not overload instead of checking and skipping
         existing_metadata = compute_new_entries(latest_df=latest_df, current_df=current_df, overwrite=overwrite)
         # Check if existing_metadata is empty
         if existing_metadata.empty:

@@ -45,13 +45,13 @@ class CustomQueryEngine(RetrieverQueryEngine):
     weights_file = f"{root_directory()}/datasets/evaluation_data/effective_weights.pkl"
     document_weights = {
         f'{DOCUMENT_TYPES.ARTICLE.value}_weights': {
-            'ethresear.ch': 1.1,
-            'ethereum.org': 1.1,
-            'flashbot': 1.1,
-            'writings.flashbots.net': 1.1,
-            'frontier.tech': 1,
-            'research.anoma.net': 1,
-            'dba.xyz': 1,
+            'ethresear.ch': 1.2,
+            'ethereum.org': 1.2,
+            'flashbot': 1.2,
+            'writings.flashbots.net': 1.2,
+            'frontier.tech': 1.1,
+            'research.anoma.net': 1.1,
+            'dba.xyz': 1.1,
             'default': 1
         },
         f'{DOCUMENT_TYPES.YOUTUBE_VIDEO.value}_weights': {
@@ -64,7 +64,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             'default': float(os.environ.get('DEFAULT_YOUTUBE_VIDEO_WEIGHT', '0.90'))
         },
         f'{DOCUMENT_TYPES.RESEARCH_PAPER.value}_weights': {
-            'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.2'))
+            'default': float(os.environ.get('DEFAULT_RESEARCH_PAPER_WEIGHT', '1.5'))
         },
         f'unspecified_weights': {  # default case for absent metadata
             'default': 0.8
@@ -257,9 +257,10 @@ class CustomQueryEngine(RetrieverQueryEngine):
 
     def adjust_scores_based_on_criteria(self, nodes_with_score: List[NodeWithScore]):
         BOOST_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '1.3'))
-        PENALTY_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '0.9'))
+        DOCS_BOOST_SCORE_MULTIPLIER = float(os.environ.get('DOCS_BOOST_SCORE_MULTIPLIER', '1.20'))
+        PENALTY_SCORE_MULTIPLIER = float(os.environ.get('BOOST_SCORE_MULTIPLIER', '0.85'))
         CHANNEL_NAMES_TO_BOOST = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'ETHDenver')]  # Example channel names
-        CHANNEL_NAMES_TO_PENALISE = [os.environ.get('CHANNEL_NAMES_TO_BOOST', 'Chainlink')]  # NOTE 2024-03-19: chainlink is absolutely everywhere in most results, need to tune that down.
+        CHANNEL_NAMES_TO_PENALISE = [os.environ.get('CHANNEL_NAMES_TO_PENALISE', 'Chainlink')]  # NOTE 2024-03-19: chainlink is absolutely everywhere in most results, need to tune that down.
         DATE_THRESHOLD = datetime.strptime('2024-02-01', '%Y-%m-%d')
 
         for node_with_score in nodes_with_score:
@@ -282,7 +283,7 @@ class CustomQueryEngine(RetrieverQueryEngine):
             else:
                 pdf_link_domain = urlparse(pdf_link).netloc
                 if pdf_link_domain in self.site_domains or 'docs' in pdf_link.lower() or 'documentation' in pdf_link.lower():
-                    node_with_score.score *= BOOST_SCORE_MULTIPLIER
+                    node_with_score.score *= DOCS_BOOST_SCORE_MULTIPLIER
                     logging.info(f"Boosting score for document: [{node_with_score.node.metadata.get('title', 'UNSPECIFIED')}] from [{pdf_link}]")
 
         return nodes_with_score

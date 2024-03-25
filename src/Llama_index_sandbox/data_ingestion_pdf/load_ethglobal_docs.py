@@ -142,22 +142,23 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
     # Filter site_configs based on config_names if provided, else use all
     selected_configs = {key: site_configs[key] for key in config_names} if config_names else site_configs
 
+    # Get a list of filenames that are already processed
+    already_processed_filenames = set(database_df['document_name'].tolist() + existing_metadata['document_name'].dropna().tolist())
+
     for _, config in selected_configs.items():
         base_url = config.get('base_url')
         domain = urlparse(base_url).netloc
 
-        # check if the key base_name is in the config
-        if 'base_name' in config:
-            base_name = config.get('base_name')
-            directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain+base_name)
-        else:
-            directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain)
+        # Construct the directory path based on the config
+        directory_path = os.path.join(root_dir, ETHGLOBAL_DOCS, domain + config.get('base_name', ''))
 
-        files = list(Path(directory_path).rglob("*.pdf"))  # Use rglob for recursive search if needed
-        if num_files is not None:
-            files = files[:num_files]
+        # Pre-filter the list of PDF files to exclude those already processed
+        all_files = [f for f in Path(directory_path).rglob("*.pdf") if os.path.basename(f) not in already_processed_filenames]
 
-        logging.info(f"Processing directory: [{directory_path}] with [{len(files)}] files")
+        # Further filtering based on `num_files` if specified
+        files = all_files[:num_files] if num_files is not None else all_files
+
+        logging.info(f"Processing directory: [{directory_path}] with [{len(files)}] filtered files from original [{len(all_files)}]")
         all_documents, all_documents_details = load_pdfs(directory_path, files=files, existing_metadata=existing_metadata, database_df=database_df, domain=domain, num_files=num_files, num_cpus=num_cpus, debug=debug)
         all_docs.extend(all_documents)
         all_metadata += all_documents_details
