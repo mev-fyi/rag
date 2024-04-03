@@ -859,4 +859,41 @@ site_configs = {
         'content_selector': '.theme-default-content',
         'img_selector': '.img_ev3q',
     },
+    'astaria': {
+        'base_url': 'https://docs.astaria.xyz/',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'brink': {
+        'base_url': 'https://docs.brink.trade/docs/introduction',
+        'content_selector': '.rm-Article',
+        'img_selector': '.img_ev3q',
+    },
+    'li.fi': {
+        'base_url': 'https://docs.li.fi/',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'cow.fi': {
+        'base_url': 'https://docs.cow.fi/',
+        'content_selector': '.docItemCol_VOVn',
+        'img_selector': '.img_ev3q',
+        'next_button_selector': '.pagination-nav__link--next',
+        'base_name': '-aggregation-protocol',
+    },
+    'carbondefi': {
+        'base_url': 'https://docs.carbondefi.xyz/',
+        'content_selector': '.lg\:flex-row > div:nth-child(2)',
+        'img_selector': '.img_ev3q',
+    },
+    'flood': {
+        'base_url': 'https://docs.flood.bid/',
+        'content_selector': 'article.nx-w-full',
+        'img_selector': '.img_ev3q',
+    },
+    'relay': {
+        'base_url': 'https://docs.relay.link/what-is-relay',
+        'content_selector': '.flex-row',
+        'img_selector': '.img_ev3q',
+    },
 }

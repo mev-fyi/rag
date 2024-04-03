@@ -1,0 +1,410 @@
+00:00:04.080 - 00:00:17.766, Speaker A: Hello, everyone. We are joining here from East Denver with Gil, founder of Lava Network. And I'm excited to dive in and how Lava works. So, Gil, introduce yourself, Lava network, and let's dive in into how it works.
+00:00:17.830 - 00:00:36.444, Speaker B: Yeah, thanks, and thanks for having me. My name is Gail Binder. I'm the co founder and CTO of Lava Networks. We've been building a modular data access layer for blockchains. Basically, it's a way to access data from different blockchains using RPCs and APIs.
+00:00:37.024 - 00:00:40.120, Speaker A: All right, so let's dive in how it works.
+00:00:40.312 - 00:00:40.712, Speaker C: Yeah.
+00:00:40.768 - 00:01:09.304, Speaker B: So in lava, we have a few different roles on the network. We have validators, we have providers who provide data, we have champions who build the access and manifests that define how to access the blockchain data. And we have consumers who access the data.
+00:01:10.764 - 00:01:16.664, Speaker A: So basically, maybe before that, let's like. So, RPC network and kind of data provisioning.
+00:01:17.004 - 00:02:12.414, Speaker B: Yeah, sure. So when a user goes to his wallet on metamask or whatever, they need to see his account balance, they need to send transactions, they need to get the spot price of some kind of pair of tokens. To do that, they have to use RPC. Basically, the user creates a query and traditionally it sends it to an RPC server. An RPC server is usually just a full node of that blockchain that syncs with the other nodes on the blockchain. Let's say we have a lot of nodes and the RPC node is connected and has a local state. It keeps progressing, the blockchain obviously storing the local state, and then he retrieves the data for the user executing his RPC and returns, for example, the account balance.
+00:02:12.414 - 00:02:15.624, Speaker B: So this is the most basic usage of RPC.
+00:02:17.684 - 00:02:23.384, Speaker A: And so, okay, yeah. For the other data types.
+00:02:25.084 - 00:02:25.476, Speaker C: We can.
+00:02:25.500 - 00:02:26.268, Speaker A: Go into the data.
+00:02:26.356 - 00:02:29.144, Speaker B: Yeah, but this is the most basic usage.
+00:02:29.484 - 00:02:29.796, Speaker C: Yeah.
+00:02:29.820 - 00:03:06.802, Speaker B: You can also obviously index data on the backend, for example, to show like a graph. So the way it works in lava is that we have basically a blockchain. The communication is still off chain. So we've built a protocol, a blockchain, an off chain protocol, and we also built a blockchain to coordinate all the nodes and everything like that. So when a consumer sends an RPC call in lava, it sends it directly to the providers on lava. So maybe we should start with giving an example of, let's say, ethereum.
+00:03:06.888 - 00:03:07.350, Speaker C: Yeah.
+00:03:07.462 - 00:03:46.454, Speaker B: So we have a champion. They define a manifest, basically a JSON file with all the different API calls that you can do and RPC calls that you can do on ethereum. So let's for example, say ETH, call ETH. Let's just say getbalance, right? And the list goes on. And this is what makes, by the way, lava modular, is that we have these manifests. Then the champion sends this manifest on chain. And basically we have a list of manifests of all the different blockchains.
+00:03:46.454 - 00:04:19.174, Speaker B: The incentive for the champion is that all the traffic that goes through this specification, basically he can get some portion of the rewards for the traffic. The second thing that we have, we have providers. Providers are basically these node runners in traditional web two, you can think of them as like the DevOps thing that is running all the servers. So in lava we have providers. They basically stake tokens. Let's take them, put them here.
+00:04:21.154 - 00:04:21.490, Speaker C: And.
+00:04:21.522 - 00:04:33.904, Speaker B: They stake on these specs. That gives them the ability to provide users access to these RPC calls.
+00:04:35.644 - 00:05:06.408, Speaker A: Okay, so providers, yeah, it's just for examples, right? It can be in Fuhr, it can be near like Pagoda RPC. They know which types of RPC nodes they're running. So they find out of all of the specs, we call them specs. And they say, okay, I will be providing this spec and for that I need to stake some of the lava tokens. And that pretty much guarantees the quality of service.
+00:05:06.536 - 00:05:31.064, Speaker B: Exactly, yes. So the staking mechanism is there to ensure that the provider is providing quality data. It ensures that they have a stake in what they're providing. So if someone, basically a provider, is trying to provide malicious data or is giving fake data, we have a mechanism, we can talk about it later. It's called conflict detection, to catch it, upload it on chain and slash or jail them for doing that.
+00:05:32.564 - 00:05:46.692, Speaker A: And then from consumer side, I'm assuming now as a user, your wallet will now use a different, will not go directly to infuria, but will now use a different URL. So how does that data flow works?
+00:05:46.788 - 00:05:50.264, Speaker B: Great question. So in lava we have.
+00:05:52.084 - 00:05:52.532, Speaker C: So as.
+00:05:52.548 - 00:06:41.508, Speaker B: I was saying, we have an on chain protocol, right? And we have the off chain protocol. The reason we have the off chain protocol is because when you're using RPC, you need to get a lot of messages, right? You need to send a lot of queries and get a lot of data. If you needed to do that on chain, that wouldn't be very fast, it would be very expensive and slow. So we basically built a way to wrap a query. Let's say we're getting the balance here. Let's go get, we have what we call a consumer server that is like a proxy. It takes the get query wraps it in a protobuf and the user, this what we call a consumer, they sign the message and send it to any of the providers.
+00:06:41.508 - 00:06:53.704, Speaker B: So as I was saying, providers can stake on the network. So let's say we have one provider, two provider, three provider, four providers, and they are all connected to the RPC nodes, right?
+00:06:55.804 - 00:06:57.388, Speaker A: Well the providers are running RPC.
+00:06:57.436 - 00:07:45.474, Speaker B: Yeah, they are running RPC nodes individually and these are all connected to blockchains. So now as a user, they take the protobuf. This is a GRPC protocol. So it's very fast and supports streaming. So it's very nice. The providers, they unwrap the protobuf and send the relay regularly to the RPC node. They get the response back, they wrap it back up, they sign it with their public key that they used with the private key that they used on chain to stake or some other key, but it's associated and they're associated and they get to the user, the user on reps it and sends back the response to the user.
+00:07:46.174 - 00:08:00.312, Speaker A: Okay, so consumer, pretty much in a way your gateways, which are from the client side, they just use gateway URL to send regular RPC requests. And then this is kind of your off chain protocol.
+00:08:00.448 - 00:08:01.576, Speaker B: So we have two ways to do it.
+00:08:01.600 - 00:08:01.808, Speaker C: Right.
+00:08:01.856 - 00:08:15.648, Speaker B: So this is like open source, so you can run your own gateway or we have a typescript implementation of the same consumer code that you can just run here inside the wallet. Inside the wallet, inside the application. Exactly.
+00:08:15.816 - 00:08:24.024, Speaker A: And so, okay, so then on the consumer side, you sign the protobuf as your key and then why are you sending it to multiple providers?
+00:08:24.064 - 00:08:55.028, Speaker B: Well, you only send one at a time. Right. So basically here on the RPC consumer and also here on the SDK, we have what we call the provider optimizer. The provider optimizer, let's call it opt. It probes. So maybe we should start with how do you know which providers to talk to? Yeah, so as I've said, providers stake on chain on a specific spec, which is a blockchain usually, and they stake a certain amount of tokens. So for example, today on Testnet we have like almost 400 providers staked.
+00:08:55.028 - 00:09:37.322, Speaker B: Obviously you're not going to talk to every single provider, it's too many. Also you want to give equal opportunity to providers to talk to different consumers. So we have a pseudo random function that runs on chain like an ARPE SQL, it's called get pairing. And it basically returns every epoch, every 15 minutes a different list of providers based on their stake. It's stake weighted function. So now you get this list and the consumer gets this list and it can start probing these providers. So the first thing it does, the optimizer starts probing based on weight and seeing who replies the fastest and who has the latest block.
+00:09:37.322 - 00:09:42.894, Speaker B: Right. So now they can basically give the consumer the best service possible.
+00:09:44.374 - 00:09:56.790, Speaker A: Okay, so you pretty much check for latency and check that they're presumably up to date. You're not validating like client presume. So you don't know actually they have the latest block. We're just checking that.
+00:09:56.902 - 00:10:15.600, Speaker B: Yeah, but we can, yes, but we can estimate and we can see if someone's like way ahead of somebody else. They also, because as I've said, they sign the replies, they're basically committing to a block hash. So if they're telling you, oh, I'm in block 1 million, you know, the blockchain is at 100. They sign it and then they can be slashed.
+00:10:15.632 - 00:10:16.576, Speaker A: They can present that.
+00:10:16.640 - 00:10:18.096, Speaker C: Okay. Okay.
+00:10:18.120 - 00:10:28.432, Speaker A: So then, so how's providers getting paid? And let's say consumer is paying for this request. So they signing it. How does this get settled on blockchain to actually do the payments?
+00:10:28.608 - 00:10:42.756, Speaker B: So every time a consumer starts talking to a provider, it starts a new session. It's like a random uid, okay. And there's what we call a compute unit. So in addition to the function call as the cost of the call compute units.
+00:10:42.820 - 00:10:43.020, Speaker C: Right.
+00:10:43.052 - 00:10:48.596, Speaker B: So we call it cu and it says, let's say ETH call is ten cu, right?
+00:10:48.620 - 00:10:49.224, Speaker C: Yeah.
+00:10:49.764 - 00:11:23.494, Speaker B: The consumer knows this because it gets the list of all specs and it has it stored locally. And then when you send, let's say we said ETH call to the provider in the protobuf that you sign, you say total cu equals ten. Right. You send it over session, let's say session one, you send it to the provider. The provider checks that your key can use the services and sends back the response. When you want to get another ETH call. Instead of writing ten, you write 20.
+00:11:23.494 - 00:11:34.844, Speaker B: You send it back to the provider. He knows that you already had ten so he can charge you now for 20. At the end of the session, the provider takes the last protobuf, right. And sends it on chain.
+00:11:35.464 - 00:11:35.792, Speaker C: Okay.
+00:11:35.808 - 00:11:46.644, Speaker A: So pretty much consumers kind of tracking how much they used. Providers also per session, tracks how much that session have used already. And then when session is done, you can just settle it on chain.
+00:11:47.104 - 00:11:47.504, Speaker C: Yeah.
+00:11:47.544 - 00:11:51.808, Speaker B: They send a transaction and at the end of like an epoch they get paid.
+00:11:51.936 - 00:11:52.416, Speaker C: Okay.
+00:11:52.480 - 00:11:54.728, Speaker A: And so it's not exactly accurate because.
+00:11:54.776 - 00:11:56.200, Speaker B: We also have subscriptions.
+00:11:56.392 - 00:12:02.640, Speaker A: Yeah, well, I mean even in this model. Right. So as a consumer, do I initiate session on chain as well?
+00:12:02.752 - 00:12:04.456, Speaker B: No, you don't need to lock. No.
+00:12:04.560 - 00:12:10.360, Speaker A: So how's the tokens locked for, let's say my consumer balance is zero.
+00:12:10.512 - 00:12:32.524, Speaker B: A great question. So we initially, we were thinking about how to solve this and we said instead of going for a pay as you go model, which we had initially, let's go for subscriptions. On chain subscriptions. It's like a SaaS, the consumer goes on chain. They buy a subscription for 30 days. The subscription defines how many cus they have. And then every time you do a payment reward.
+00:12:32.524 - 00:12:34.816, Speaker B: Yes, exactly.
+00:12:34.960 - 00:12:51.754, Speaker A: So you pretty much on chain you have somewhere like consumer one has thousand ceu budget and time to life is know, 28 days left kind of thing.
+00:12:51.834 - 00:12:52.514, Speaker B: Exactly, yes.
+00:12:52.594 - 00:12:55.978, Speaker A: And so, and then consumer need to just renew this with the transaction.
+00:12:56.026 - 00:12:58.226, Speaker B: You can buy for a whole year or you can renew it.
+00:12:58.410 - 00:12:58.810, Speaker C: Okay.
+00:12:58.842 - 00:13:04.602, Speaker A: And so, okay, this is cool. How are you pricing this?
+00:13:04.778 - 00:13:26.678, Speaker B: It's a great question. So when we first started, we were like, we looked at all the competitors trying to price it. So we put it in jetgpt and got a good result. I think it's still too early to say. We are hitting mainnet next month and I think the governance of the token will decide the pricing of the packages. This is all determined. All the packages on chain are determined by governance.
+00:13:26.766 - 00:13:54.792, Speaker A: Okay, so pretty much, I mean there is like, I mean for simplicity, there's some smart contract which says, you know, you call subscribe, you attach some amount of lava and so that, I mean, contract, presumably it's just your module in Cosmos SDK, right? Yeah. So you say like duration and do you specify cus or it kind of duration gives you, so think about when.
+00:13:54.808 - 00:14:02.224, Speaker B: You go to a SaaS website and you see like, oh, I'm getting, yeah, I'm subscribing 100 users, $10 per user. So it's the same thing on chain.
+00:14:02.384 - 00:14:05.576, Speaker A: Well, is there like another parameter which is like.
+00:14:05.640 - 00:14:09.312, Speaker B: Yeah, the name of the subscription, the index of the package that they're buying.
+00:14:09.368 - 00:14:10.886, Speaker A: Okay, there's the package in there.
+00:14:10.960 - 00:14:11.694, Speaker C: Got it.
+00:14:14.154 - 00:14:21.054, Speaker A: Okay, so yeah, so there's like some packages that governance defined, which is like 10,000 to use, 100,000 to use.
+00:14:21.354 - 00:14:21.690, Speaker C: Yeah.
+00:14:21.722 - 00:14:38.678, Speaker B: And you have all these parameters as well. Like you can define how big is the pairing list? Is it like five providers? Ten providers for enterprise, they might want to only talk to providers who are KYC or Kybeid. Right. So in the enterprise package they can specify which providers they want, for example.
+00:14:38.806 - 00:14:41.434, Speaker C: Okay, cool.
+00:14:43.334 - 00:15:21.264, Speaker A: Okay, so from provider perspective, I come in, I say, hey, I'm running these five chains. So I'm stake on these five chains. The higher my stake is, the more I will get traffic pretty much. And then I'm pretty much running in lava node, which is kind of a front for receiving requests and I route them to my RPC nodes and this front pretty much accepts requests, routes into RPC and then keeps track of all the sessions for the consumers and then several of them when session is done. Do you have time to live for sessions?
+00:15:22.244 - 00:15:28.068, Speaker B: Yeah, sessions are actually, I think sessions are, you create a new session every epoch.
+00:15:28.156 - 00:15:28.692, Speaker C: Okay.
+00:15:28.788 - 00:15:32.282, Speaker B: Which is 15 minutes on chain and they keep track of the block height of the lava chain.
+00:15:32.348 - 00:15:33.074, Speaker C: I see.
+00:15:34.054 - 00:15:35.994, Speaker B: So they know when an e book is changing.
+00:15:36.774 - 00:15:37.166, Speaker C: Okay.
+00:15:37.190 - 00:15:39.354, Speaker A: So like every 15 minutes they settle.
+00:15:39.814 - 00:15:46.034, Speaker B: Yeah, they have like 2 hours to settle. Actually they can settle later if it's really busy.
+00:15:46.574 - 00:15:47.062, Speaker C: Okay.
+00:15:47.118 - 00:15:53.006, Speaker A: So yeah, I'm just like thinking of the traffic from providers alone, right?
+00:15:53.150 - 00:16:04.210, Speaker B: Yeah, we're saying, yeah. And so it's a lot of traffic. It's very interesting to see. But actually one of the things that we've built, as I've said, we have these specs and then we have this protobuf, right?
+00:16:04.242 - 00:16:04.854, Speaker C: Yeah.
+00:16:05.274 - 00:16:47.690, Speaker B: Now in the spec you can tell the specific query how to parse it. So now you set a parser and the query, both the on chain and the off chain can take a look at the query and take the block, let's say the block height from the query. So that gives us the superpower of basically sending. For example, let's say this provider only has the latest blocks, right? So and let's say this provider is archive, which is more expensive because they have to store a lot more data. They have to store all the states. The consumer when he gets the query can parse the number, the block height and send it to the right provider.
+00:16:47.762 - 00:16:55.986, Speaker A: Okay, so this is done on consumer. Like there's a specialized code or it's part of the spec that you can.
+00:16:56.010 - 00:17:06.334, Speaker B: Route to different nodes in the spec. You define the parser and then the parser sits on the consumer and basically calls into the consumer parser for this specific query.
+00:17:06.874 - 00:17:11.994, Speaker A: But I mean, where is the logic that decides that this provider is archival versus this provider?
+00:17:12.114 - 00:17:20.474, Speaker B: When they stake, they can say, I'm staking for let's say ETH spec with the archive add on.
+00:17:20.594 - 00:17:37.201, Speaker A: Ok, so there's a set of tags pretty much, but there's no like kind of provider could just specify a function. Like it could be provider specify any parser that says like if this condition satisfies, send it to me.
+00:17:37.297 - 00:17:40.641, Speaker B: No, they cannot do that. They would have to modify the spec with governance.
+00:17:40.777 - 00:18:02.842, Speaker A: Yeah, but I'm just saying as an alternative, you can have provider when they stake, also specify a parser for their like route me stuff that looks like this. And so they parse the function, it says yes, route to this provider or not. And then you can maintain pretty much set of parsers. So just kind of allows providers to define better what they want to use.
+00:18:02.898 - 00:18:03.306, Speaker C: Yeah.
+00:18:03.410 - 00:18:46.714, Speaker B: One of the things we have to worry about is what if providers say they have archives but they're returning nothing. So on the spec we also have what we call validations. So it's like a query that is built in, into the spec. They can check that the provider is no line. For example, it can say, let's say give me block zero. And if the provider is not able to do that, anyone can take that query and the response of the query is signed by the provider and they can upload it to the conflict mechanism with the validation of the block zero. And we know the response should be some kind of block.
+00:18:47.934 - 00:18:55.982, Speaker A: So I mean, okay, so yeah, let's talk about challenges pretty much. So there's one is invalid data, right?
+00:18:56.078 - 00:18:56.726, Speaker C: Yes.
+00:18:56.870 - 00:19:00.566, Speaker A: And two is no response.
+00:19:00.710 - 00:19:01.318, Speaker C: Yes.
+00:19:01.446 - 00:19:05.174, Speaker A: All malicious data is invalid, right. So invalid data.
+00:19:05.214 - 00:19:05.366, Speaker C: Yeah.
+00:19:05.390 - 00:19:20.806, Speaker A: So this is the example I'm asking for block zero. This provider is like archival node. So I'll just reply with random block like block 5000. And so this consumer, how does this consumer actually even realizes to do this?
+00:19:20.910 - 00:19:39.614, Speaker B: That's a great question. So it's roll of the dice. It's optimistic, right? Okay, so let's say I'm asking for this block. You reply back with some nothing. Every once in a while I will also randomly ask another guy same question. And because it's a blockchain, the response should be deterministic with the same answer.
+00:19:40.154 - 00:19:49.314, Speaker A: Then if I see a conflict coming in, then I can just submit this to validation. And validation takes pretty much two responses, right?
+00:19:49.434 - 00:19:50.002, Speaker C: Yes.
+00:19:50.138 - 00:19:54.578, Speaker A: Two hashes from two different one query.
+00:19:54.626 - 00:19:56.194, Speaker B: Hash and two response hashes.
+00:19:56.274 - 00:20:03.562, Speaker A: Ok, so yeah, so query and then one response and two response. And so how does the validation know which one slash.
+00:20:03.658 - 00:20:06.168, Speaker B: Ok, that's the voting mechanism, right?
+00:20:06.216 - 00:20:08.160, Speaker A: Oh, so this is just recorded.
+00:20:08.192 - 00:20:30.624, Speaker B: This is a conflict and these are salted. So it's like a commit and reveal hash to see who's right. So we ask basically all the providers to then make the query and return back their answer on chain. They add a salt and then they reveal the salt and in the end whoever's wrong can get slashed.
+00:20:30.704 - 00:20:31.856, Speaker A: Okay, so you pretty much, yeah.
+00:20:31.880 - 00:20:38.744, Speaker B: So then whoever's in the minority, they might not be wrong. Let's hope, let's hope the majority are honest.
+00:20:38.904 - 00:20:39.724, Speaker C: Okay.
+00:20:40.664 - 00:20:53.360, Speaker A: And because I mean the way, the way to, well, we'll talk how to trick this, but. So, okay, so you're pretty much launching this. And so is this has a time period when this validation happens?
+00:20:53.432 - 00:20:53.704, Speaker C: Yes.
+00:20:53.744 - 00:20:56.964, Speaker B: There's like a clock on how long you can do it for.
+00:20:57.144 - 00:21:01.980, Speaker A: And so what happens when there's not enough? Like if providers didn't vote or if.
+00:21:02.012 - 00:21:08.404, Speaker B: There'S not enough answers, they can get slashed. Like the providers can get slashed or jailed for not answering.
+00:21:08.484 - 00:21:08.756, Speaker C: Okay.
+00:21:08.780 - 00:21:12.556, Speaker A: So you're required. If there is a challenge on chain, you need to actually go.
+00:21:12.580 - 00:21:20.784, Speaker B: And like in the future we want to reduce the number. Right now we just choose a random quorum, a stake weight. But in the future we can make it more of like a jury mechanism.
+00:21:21.364 - 00:21:27.912, Speaker A: Okay, so yeah, so this kicks off a process which runs for some t epochs, I'm assuming.
+00:21:27.968 - 00:21:28.604, Speaker C: Yeah.
+00:21:30.824 - 00:21:49.984, Speaker A: And then, so you collect kind of responses from others and you say it's commit reveal. So you collect hashes first and then they reveal it and then you have pretty much whatever majority.
+00:21:51.684 - 00:21:53.700, Speaker B: Rules. Majority rules, exactly.
+00:21:53.732 - 00:21:55.504, Speaker C: Majority slashed.
+00:21:56.124 - 00:22:06.956, Speaker B: Well, slashed or jailed? We don't want to slash usually because it's a very drastic measure and I think it's something we have to test and fine tune on mainnet. The exact parameters.
+00:22:07.020 - 00:22:08.180, Speaker A: Yeah, so far, yeah.
+00:22:08.252 - 00:22:12.900, Speaker B: I mean if somebody keeps giving bad data, they should get slashed at some point.
+00:22:13.012 - 00:22:19.062, Speaker A: So then if there's no response. So as a consumer, I ask this, giving block zero, just don't hear back.
+00:22:19.158 - 00:22:19.390, Speaker C: Yeah.
+00:22:19.422 - 00:22:22.990, Speaker B: So we glimpse over a very important aspect, which is quality of service.
+00:22:23.062 - 00:22:23.454, Speaker C: Yeah.
+00:22:23.534 - 00:22:59.398, Speaker B: So we spoke about Cus, we spoke about the sessions, but also something we called. We have two types. We have passable quality of service and we have excellence. Quality of service. These are two different ones. Passable is basically availability. Is this guy answering? Is this provider answering? Or is it just timing out every single time we have freshness, like where are you in the blockchain? And we can actually also look into the future because we know that every block is, let's say 12 seconds and it's right here in the spec.
+00:22:59.398 - 00:23:31.310, Speaker B: So we know that, okay, most likely you're going to have this block in 6 seconds. You should have it. And we have latency, which is the easiest one. So this consumer, basically the passable is just zero and one s averaged over time. So if this guy does an answer, you create this protobuf for him and you just say zero on the availability over time when you talk to him, sometimes he answers, sometimes he doesn't. Maybe he's going to have 50% availability. When you end the session with him.
+00:23:31.310 - 00:23:49.688, Speaker B: You just basically send him this report card. So to get payment he has to upload it on chain and basically he's going to get, let's say he did very badly. He's only going to get like 50% of the rewards and not the whole 100.
+00:23:49.776 - 00:23:58.072, Speaker A: So you sending them report card, the user sends a report card to provider and provider needs to attach that to when it settles.
+00:23:58.128 - 00:23:58.368, Speaker C: Yes.
+00:23:58.416 - 00:23:59.044, Speaker B: Correct.
+00:23:59.344 - 00:24:00.084, Speaker C: And.
+00:24:01.784 - 00:24:04.822, Speaker A: So they would do that because they want to get paid.
+00:24:04.968 - 00:24:06.914, Speaker B: It's a subjective mechanism.
+00:24:06.954 - 00:24:07.154, Speaker C: Right?
+00:24:07.194 - 00:24:08.346, Speaker A: Yeah, yeah.
+00:24:08.530 - 00:24:17.374, Speaker B: So if they get very bad service, they will send it to the provider. And if the provider sees that I don't want to keep giving service to this user, then you can just stop.
+00:24:18.394 - 00:24:34.030, Speaker A: Ok, so yes, a few questions. One is I cannot send. And so let's say user comes in, sends me first request, I don't reply to it, and then I say, ok, session is closed with just what that one request.
+00:24:34.182 - 00:24:37.950, Speaker B: They can do that. Okay, that's one of the, yeah, we, it's, it's a trade off.
+00:24:37.982 - 00:24:38.518, Speaker C: Right. Yeah.
+00:24:38.566 - 00:24:40.434, Speaker A: So like you can lose a little bit.
+00:24:41.094 - 00:24:43.678, Speaker B: You generally have like hundreds of millions of cus.
+00:24:43.726 - 00:24:44.314, Speaker C: Yeah.
+00:24:44.694 - 00:24:45.630, Speaker A: So it's not much.
+00:24:45.662 - 00:24:46.038, Speaker C: Yeah.
+00:24:46.126 - 00:24:59.274, Speaker A: And then, so then like, I just, you know, stop using this. Presumably if they don't reply to me or if they reply like intermittently. Yeah, like every 10% they drop for.
+00:24:59.314 - 00:25:00.654, Speaker B: I might move to somebody else.
+00:25:01.994 - 00:25:02.714, Speaker C: Okay.
+00:25:02.834 - 00:25:05.818, Speaker A: And then like how, so this report card, how's that enforced?
+00:25:05.986 - 00:25:08.666, Speaker B: Like the consumer, it's. What do you mean?
+00:25:08.810 - 00:25:19.098, Speaker A: Look, when do you send this report as you go, oh, like for every request. And then, so when you submit it, it needs to have that report.
+00:25:19.146 - 00:25:19.858, Speaker B: It has to have it.
+00:25:19.906 - 00:25:20.814, Speaker C: Yes. Okay.
+00:25:21.114 - 00:25:21.986, Speaker A: And it's signed.
+00:25:22.010 - 00:25:22.186, Speaker C: Yeah.
+00:25:22.210 - 00:25:23.250, Speaker A: So that report is signed by.
+00:25:23.282 - 00:25:24.010, Speaker B: It's only the consumer.
+00:25:24.042 - 00:25:24.654, Speaker C: Correct.
+00:25:26.544 - 00:25:38.200, Speaker A: Okay, so yeah, so consumers can potentially say like, oh, you haven't replied to me at all. And then provider just like, okay, I'm not gonna maintain connection to this consumer.
+00:25:38.272 - 00:25:46.644, Speaker B: Exactly. If the consumer is like really, really malicious and he's trying to say, well, this guy is always answering, I'm just not gonna talk to you guys.
+00:25:47.904 - 00:25:52.508, Speaker A: Yeah, so pretty much provider maintains, you know, blacklist of consumers they don't want to work with.
+00:25:52.636 - 00:25:52.940, Speaker C: Yeah.
+00:25:52.972 - 00:26:04.188, Speaker B: But this is more, more effective for the excellence, quality of service this is actually like a zero or one. So if you're under 200 milliseconds, for example, and it's also in the spec.
+00:26:04.276 - 00:26:04.588, Speaker C: Yeah.
+00:26:04.636 - 00:26:31.492, Speaker B: Then you get one if you're, you know, but what if you're very, very fast? What if you're like 20 milliseconds? How do you measure that? So this is what we have the excellence for. So the excellence is very similar, only it uses more objective numbers, objective scores. It's also included in the report. It goes on chain, but it actually affects future pairing, if you remember our pairing list, it affects future pairing with these providers.
+00:26:31.548 - 00:26:32.108, Speaker C: Okay.
+00:26:32.236 - 00:26:35.756, Speaker A: So it's not just stake based. It's also kind of excellent score.
+00:26:35.860 - 00:26:36.116, Speaker C: Yeah.
+00:26:36.140 - 00:26:55.944, Speaker B: So the excellence score is calculated into the provider, and then this is like a reputation, and it's like a half life situation where the newer scores are more effective, affect the overall score over time, and the older ones get decayed.
+00:26:56.244 - 00:27:01.948, Speaker A: So just like a weighted average pretty much over time. And so excellent score.
+00:27:01.996 - 00:27:13.526, Speaker B: How is it computed exactly again, by the consumer? Let's say you have 20 milliseconds, then you will actually write 20 milliseconds. And this will, you can use this objectively against other providers.
+00:27:13.670 - 00:27:14.434, Speaker C: I see.
+00:27:16.694 - 00:27:34.514, Speaker A: But I'm assuming, let's say as a provider, I have 100,000 consumers connecting to me, so I'm going to send 100,000. Session closes, and I need to close the. How's that averaged out on chain across 100,000?
+00:27:34.894 - 00:27:43.120, Speaker B: So it's a really good question. Hopefully it's not going to be 100,000. Usually the consumers are more like in the lower numbers.
+00:27:43.232 - 00:27:45.736, Speaker A: Well, if you assume it's an SDK and it's signed a wallet.
+00:27:45.800 - 00:27:46.024, Speaker C: Yes.
+00:27:46.064 - 00:27:56.720, Speaker B: If it's an SDK, then the SDK will still have a session. You're right. And you're going to have to close it for that. We're going to do aggregations on the provider side.
+00:27:56.792 - 00:27:57.392, Speaker C: Okay.
+00:27:57.528 - 00:28:03.114, Speaker B: We don't do them yet because we usually only have about ten consumers who do all the traffic.
+00:28:03.304 - 00:28:05.038, Speaker A: I mean, you have right now gateways. Right.
+00:28:05.126 - 00:28:06.190, Speaker B: And the gateway is mostly used.
+00:28:06.222 - 00:28:06.834, Speaker C: Yes.
+00:28:07.574 - 00:28:13.190, Speaker A: But, yeah, in general, if we do want to become this decentralized, this will be on the other side.
+00:28:13.302 - 00:28:17.590, Speaker B: As soon as this scales, we will have the aggregations. We already have some research around it.
+00:28:17.742 - 00:28:19.854, Speaker A: So, like, is the gate proof of aggregation?
+00:28:19.894 - 00:28:27.194, Speaker B: Or we can do that, or we can just, we can ask the consumer, can you give me a total of all the sessions?
+00:28:27.774 - 00:28:29.846, Speaker A: Oh, no. But I mean, if you have a lot of consumers.
+00:28:29.910 - 00:28:32.038, Speaker B: Yes, like a lot of independent. How do you aggregate all.
+00:28:32.086 - 00:28:32.502, Speaker C: Yes.
+00:28:32.598 - 00:28:33.774, Speaker B: You're going to have to do some zK.
+00:28:33.854 - 00:28:38.110, Speaker C: Yeah. Okay got it.
+00:28:38.142 - 00:28:39.782, Speaker A: So then you just aggregate all the.
+00:28:39.798 - 00:28:42.422, Speaker B: Signatures from all the users on the provider chain.
+00:28:42.518 - 00:28:43.214, Speaker C: Yeah, exactly.
+00:28:43.294 - 00:28:48.094, Speaker A: Well it's, if you have a z you can just zk proof compress all signatures as a provider.
+00:28:48.214 - 00:28:48.994, Speaker C: Okay.
+00:28:51.174 - 00:28:58.694, Speaker A: That makes sense. And so you can add pretty much new chains by chandium coming in.
+00:28:58.774 - 00:28:59.030, Speaker C: Yeah.
+00:28:59.062 - 00:29:06.888, Speaker A: Saying okay here's a new spec providers then like okay cool, we're going to provide. So probably one of the providers will just do it, be a champion.
+00:29:07.056 - 00:29:07.936, Speaker B: That's a good idea for them.
+00:29:07.960 - 00:29:08.524, Speaker C: Yeah.
+00:29:09.544 - 00:29:40.958, Speaker A: If they support new chain that's not there yet. And then yeah, you have currently specific consumers which are just kind of gateways but then people can spin up their own and presumably that has its own economic model through data and mev as well as if people don't want to be exposed to that, they can use this directly in their wallet or the app and then they can pretty much route their traffic across different providers to minimize themselves.
+00:29:41.046 - 00:30:01.866, Speaker B: So if one's down you can talk to another one. If one's slow you can move on. So you get all the best providers and they basically fight on the arena to get to see who is the best one. Another incentivization model we have is what's called incentivized public RPC. It's basically a pool on chain on the spec.
+00:30:01.970 - 00:30:02.346, Speaker C: Yeah.
+00:30:02.410 - 00:30:27.314, Speaker B: Where anyone can sponsor, send tokens to and define how long they're going to be distributed for. So let's say you send 100,000 tokens to this pool and say I want to distribute them over ten months. So every month this pool will distribute to providers as well. So it's a way for ecosystems to come in and offer this incentive for providers to come in, run nodes and provide service to users.
+00:30:27.814 - 00:30:33.714, Speaker A: And so then like how do I as a consumer say actually don't charge me bills as guys.
+00:30:34.574 - 00:30:39.518, Speaker B: So it's an addition. So a consumer will still pay.
+00:30:39.646 - 00:30:40.174, Speaker C: Okay.
+00:30:40.254 - 00:30:43.874, Speaker B: Right. But the IPRPC is in addition.
+00:30:46.254 - 00:30:55.974, Speaker A: More revenue for providers. It's not actually like taking out and so, okay so, but then you're, you're right now default gateway.
+00:30:56.014 - 00:30:57.086, Speaker B: Like if I go to lava right.
+00:30:57.110 - 00:31:01.430, Speaker A: Now and like set up like I get the RPC URL that they can just use.
+00:31:01.502 - 00:31:02.118, Speaker B: Yeah, exactly.
+00:31:02.166 - 00:31:06.038, Speaker A: That's your, this is, this, yeah, it's your like it's labs.
+00:31:06.086 - 00:31:08.982, Speaker B: We have a subscription. Yeah, we have a subscription on chain.
+00:31:09.038 - 00:31:09.326, Speaker C: Okay.
+00:31:09.350 - 00:31:09.974, Speaker B: That we bought.
+00:31:10.054 - 00:31:10.358, Speaker C: Yeah.
+00:31:10.406 - 00:31:16.200, Speaker B: And that is the private key that we use to sign all the requests we have a few subscriptions, obviously.
+00:31:16.272 - 00:31:16.856, Speaker C: Yeah.
+00:31:17.000 - 00:31:22.520, Speaker A: And so you're providing that like as a, like what's the model there?
+00:31:22.632 - 00:31:23.804, Speaker B: For subscriptions?
+00:31:24.104 - 00:31:26.464, Speaker A: No, for you providing this subscription.
+00:31:26.584 - 00:31:34.392, Speaker B: Oh, so we work with the foundation and this is, we basically have an agreement that we help them run these servers.
+00:31:34.488 - 00:31:34.824, Speaker C: Okay.
+00:31:34.864 - 00:31:35.352, Speaker B: Right.
+00:31:35.488 - 00:31:39.496, Speaker A: So this is separate from this, separate from sensitization.
+00:31:39.600 - 00:31:40.184, Speaker C: Okay.
+00:31:40.304 - 00:31:42.248, Speaker B: This goes directly to the provider.
+00:31:42.336 - 00:31:48.480, Speaker A: That's what I was asking. So you have separately say like hey, we can set up a subscription for the ecosystem.
+00:31:48.512 - 00:31:51.504, Speaker B: Us or anybody wants to be a gateway on lava can do it.
+00:31:51.624 - 00:31:52.364, Speaker C: Okay.
+00:31:52.784 - 00:32:10.400, Speaker A: And through that you say okay, well now up to this many cus and so like you have API key here that now you can actually rate limit on the consumer side and then pretty much provide a service.
+00:32:10.472 - 00:32:10.728, Speaker C: Yes.
+00:32:10.776 - 00:32:42.054, Speaker B: These are usually dedicated subscriptions by governance. They have a lot of cus so that you can bring in free users. Because if you look at other, if you look at web two type providers like Alchemy and Fira, they all have a free package. How do you do a free package in web3? So we have this partnership and basically we have the big whale subscription and then we give them access. And IPRC is another way to bring all these providers to give this free service.
+00:32:42.874 - 00:32:45.250, Speaker C: Okay, cool.
+00:32:45.362 - 00:32:58.622, Speaker A: And then probably worth mentioning, this doesn't need to be RPC, right. This can be like any index or data. This can be like an API. Pretty much anything that you can specify as a specific that you can have to put the provider in front.
+00:32:58.678 - 00:32:59.674, Speaker B: Yes, correct.
+00:33:00.654 - 00:33:01.554, Speaker A: And so.
+00:33:04.374 - 00:33:07.278, Speaker B: I guess anything that has deterministic data.
+00:33:07.326 - 00:33:21.954, Speaker A: Yeah, deterministic data and mostly reads. Right. Although you do support. So for reads this makes sense. For sending transactions. You send transaction here, you don't expect any response.
+00:33:24.004 - 00:33:28.636, Speaker B: You usually get a response from the RPC that is sending a transaction. Obviously you don't know if it's included.
+00:33:28.740 - 00:33:36.628, Speaker A: Well, so that's my question. Like how do you, there's no way for you to guarantee to slash for the provider not sending.
+00:33:36.676 - 00:33:36.884, Speaker C: Correct.
+00:33:36.924 - 00:33:55.136, Speaker B: We don't have a way to do that. But what we do with transaction is actually we usually spray them off just two of the providers. The reason is the non session. So when you talk to, this is a stickiness issue, consistency issue. When you talk to, when you are trying to send a transaction, you have to get your nonce, right?
+00:33:55.160 - 00:33:55.552, Speaker C: Yeah.
+00:33:55.648 - 00:33:58.928, Speaker B: So my nonce is the account number on the blockchain. Let's say I'm one.
+00:33:59.016 - 00:33:59.684, Speaker A: Yeah.
+00:34:00.304 - 00:34:23.136, Speaker B: When I send a transaction I have to send this number along my transaction. And then when I get a response back I need to increase it plus one. But the way worlds work is that they ask again the RPC, what's my nouns? But if you and the first pass go to this provider, and the second pass go to the second 2nd provider, you might get a different answer.
+00:34:23.280 - 00:34:23.608, Speaker C: Why?
+00:34:23.656 - 00:34:49.163, Speaker B: Because the first transaction was not yet included, or even if it was included, the second RPC maybe not received a block. So then the user sees this annoying message, oh, incorrect nonce. So one of the ways to solve, there's a few ways to solve it. One is stickiness saying, okay, as soon as you send a transaction, we're going to stick you to this. The consumer can say we're going to optimize and just stick you to this provider. The second way is just to send to everyone. To everyone.
+00:34:49.163 - 00:34:53.003, Speaker B: And that guarantees better execution probably, yeah.
+00:34:53.663 - 00:34:54.523, Speaker C: Okay.
+00:34:55.223 - 00:34:59.503, Speaker A: And then is sending transaction costs to use as well. How are you charging?
+00:34:59.543 - 00:35:00.159, Speaker C: It's very low.
+00:35:00.231 - 00:35:01.323, Speaker B: But it's very low.
+00:35:01.783 - 00:35:05.043, Speaker C: Okay, all right, that makes sense.
+00:35:06.143 - 00:35:11.097, Speaker B: And generally if providers don't send the cus, no one's going to end up using the service and they're not going to get paid.
+00:35:11.175 - 00:35:11.834, Speaker C: Yeah.
+00:35:12.974 - 00:35:16.514, Speaker B: So we think of providers, they should be usually honest participants.
+00:35:17.054 - 00:35:17.574, Speaker C: Yeah.
+00:35:17.654 - 00:35:28.358, Speaker A: And like if they're not honest, over time they get, so is there for me as a consumer to send that? Like, hey, I've been trying to use this provider but they like completely down.
+00:35:28.406 - 00:35:55.388, Speaker B: So like inside this protobuf we have something called reports. And if you are getting more reports from consumers over a few epochs, then you have served RPC to other users, you will get jailed. So basically, let's say I'm talking to you and there's a lot of reports, and these reports, you can send them in any protocol to any provider. So you can send, oh, so I.
+00:35:55.396 - 00:35:59.180, Speaker A: Can send like that, I report for Providerone, I can send it to provider two.
+00:35:59.212 - 00:36:13.414, Speaker B: Yeah, I can say, oh, this is the report list. This guy is not answering. So if you, if the number of Cus over inside the reports, if the number of Cus served over time is.
+00:36:13.794 - 00:36:18.242, Speaker A: Less than reports, okay, yeah, exactly. So in theory, but there's like a.
+00:36:18.258 - 00:36:20.618, Speaker B: Multi, there's a multiplier there obviously.
+00:36:20.746 - 00:36:31.826, Speaker A: So like just if I want to like grief one specific provider, yes, I need to pretty much, I will be just sending reports all the time.
+00:36:31.890 - 00:36:34.050, Speaker B: All the time. Send reports. This guy doesn't answer.
+00:36:34.122 - 00:36:35.324, Speaker A: This guy doesn't answer.
+00:36:35.474 - 00:36:36.192, Speaker B: Quality of service.
+00:36:36.248 - 00:36:36.552, Speaker C: Yeah.
+00:36:36.608 - 00:36:44.184, Speaker A: And so how do you, because like I can create, you know, infinite number of consumers to do that.
+00:36:44.264 - 00:36:46.680, Speaker B: Well you would, you're gonna have to have a subscription for each one.
+00:36:46.752 - 00:36:47.296, Speaker A: For each one, yeah.
+00:36:47.320 - 00:36:47.624, Speaker C: Right.
+00:36:47.704 - 00:36:51.160, Speaker B: So there's like a cost fine tuning.
+00:36:51.192 - 00:36:51.456, Speaker C: Right.
+00:36:51.520 - 00:36:58.768, Speaker B: So if it costs $20 to buy this and there's like 100 consumers and they are all not malicious.
+00:36:58.816 - 00:36:59.240, Speaker C: Yeah.
+00:36:59.352 - 00:37:01.312, Speaker B: Then you would need to, you know.
+00:37:01.368 - 00:37:03.316, Speaker A: You buy another, you need to work.
+00:37:03.380 - 00:37:11.264, Speaker B: More with that provider than all the report. Have a lot of reports against him, more than the actual service the provider gave in CEus.
+00:37:12.524 - 00:37:13.304, Speaker C: Yeah.
+00:37:13.724 - 00:37:29.404, Speaker A: Well, I mean, the reason why would I do this is another provider. I want to kick somebody out with higher stake and so I would be incentivized to send a bunch of reports so I can like buy a bunch of subscriptions.
+00:37:31.504 - 00:37:37.880, Speaker B: Hope that you get them in the pairing, which reduces the pairing is also binding.
+00:37:37.912 - 00:37:38.080, Speaker C: Right.
+00:37:38.112 - 00:37:39.832, Speaker A: Like you cannot connect to someone who's.
+00:37:39.848 - 00:37:42.456, Speaker B: Not the provider checks is this guy in my pairing.
+00:37:42.520 - 00:37:42.928, Speaker C: Exactly.
+00:37:42.976 - 00:37:43.920, Speaker B: And the other way around.
+00:37:44.032 - 00:37:44.696, Speaker C: Got it.
+00:37:44.800 - 00:37:51.768, Speaker A: Well, yeah, I mean, probably the people you want to kick out is like at the top who has highest quality of service and the most stake.
+00:37:51.816 - 00:37:52.884, Speaker C: Right. Yeah.
+00:37:53.684 - 00:37:59.356, Speaker B: Bring them down. You'll have to coordinate between all the subscriptions or, well, you need to get.
+00:37:59.380 - 00:38:01.464, Speaker A: A bunch of subscriptions, for example, to do that.
+00:38:01.844 - 00:38:11.996, Speaker B: But if it's in the top, it's unlikely that he's not going to be serving a lot of ceus to other users. So it's unlikely that your report, Ceus is going to be enough to bring it down.
+00:38:12.020 - 00:38:18.932, Speaker A: Yeah, well, I mean, you can do it by like spinning up a public consumer that is serving actually a bunch.
+00:38:18.948 - 00:38:27.410, Speaker B: Of others, but you're going to have to pay a lot to do that. Right. So I think on mainnet it's a, it's a question of like fine tuning the pricing.
+00:38:27.482 - 00:38:28.826, Speaker C: Yeah, yeah.
+00:38:28.850 - 00:38:39.978, Speaker A: And like, I mean, you probably will see if like, it's like a bifurcation of like highest quality of service, high stake, getting jailed. It's probably like somebody's playing with us.
+00:38:40.026 - 00:38:40.802, Speaker C: Okay. Yeah.
+00:38:40.858 - 00:38:51.764, Speaker A: And then I guess the other interesting thing is, I mean, you mentioned a couple of times is that, I mean, it's blockchain, so it's eventually consistent. So you do have different RPC nodes at a different state.
+00:38:51.844 - 00:38:52.268, Speaker C: Correct.
+00:38:52.356 - 00:38:53.636, Speaker A: Especially for faster chains.
+00:38:53.740 - 00:38:54.308, Speaker B: Yes.
+00:38:54.436 - 00:39:02.756, Speaker A: Like 1 second blocks, for example. And so you do get actually different response from yes.
+00:39:02.820 - 00:39:35.244, Speaker B: So remember we were talking about the parser for each call. So when you do get latest on lava, we actually parse that and the provider parses that and it changes that to his latest block. And when he applies back, he shows you this is the RPC block that you got and the consumer also keeps track of the destination blockchain, block height, so that it knows. And he can also say if it's 1 second, it's been 5 seconds, it should be 105.
+00:39:36.664 - 00:39:38.120, Speaker A: This is part of the optimizer.
+00:39:38.152 - 00:39:38.544, Speaker C: Pretty much.
+00:39:38.624 - 00:39:46.954, Speaker B: It's part of the optimizer, yes. There's like a, when a provider finishes talking, when he talks to a consumer in his signature. Also, what's my latest block?
+00:39:47.034 - 00:39:47.370, Speaker C: Okay.
+00:39:47.402 - 00:39:52.610, Speaker B: And block hash. And this can be used against him, by the way, if he lies about it.
+00:39:52.762 - 00:39:54.842, Speaker A: Well, if he like, gives completely wrong cache.
+00:39:54.898 - 00:39:55.186, Speaker C: Yeah.
+00:39:55.250 - 00:39:56.642, Speaker B: If the block has like.
+00:39:56.698 - 00:40:00.258, Speaker A: Yeah, but you cannot use it. If like, if they just stale.
+00:40:00.426 - 00:40:06.218, Speaker B: Yes, if it's stale, it's okay. The RPC consumer optimizer will probably not talk to you.
+00:40:06.226 - 00:40:07.034, Speaker A: Yeah, it'll just like stop.
+00:40:07.074 - 00:40:07.854, Speaker C: Yeah, yeah.
+00:40:09.544 - 00:40:12.712, Speaker B: I'm just like, they optimize. You can set a few different strategies.
+00:40:12.768 - 00:40:13.056, Speaker C: Right.
+00:40:13.120 - 00:40:17.964, Speaker B: You can go for latency, you can go for freshness, availability.
+00:40:18.664 - 00:40:19.564, Speaker C: Okay.
+00:40:19.864 - 00:40:31.964, Speaker A: Yeah, I'm just, the direction of thinking was more like, can I pretty much spam with forks for a pc node to try to get it to be slashed?
+00:40:32.824 - 00:40:33.928, Speaker B: Spam it with forks.
+00:40:34.016 - 00:40:34.216, Speaker C: Yeah.
+00:40:34.240 - 00:40:40.288, Speaker A: So I'll create a fork on a chain. Right. You know, for some chains.
+00:40:40.456 - 00:40:44.896, Speaker B: I mean, not anymore. If this fast finality is going to be tough.
+00:40:44.920 - 00:40:45.524, Speaker C: Yeah.
+00:40:46.424 - 00:40:50.776, Speaker A: Well, you can create for like in Solana, for example, creating forks is super easy.
+00:40:50.840 - 00:40:51.088, Speaker C: Right.
+00:40:51.136 - 00:41:03.232, Speaker A: And so I'll be a peer to peer node for this CPC. I'll be sending these forks. They're running quicker. So when somebody asking, right, it's not.
+00:41:03.248 - 00:41:05.318, Speaker B: The final block, but yeah, my slot.
+00:41:05.366 - 00:41:22.766, Speaker A: Is very high and so people pretty much get something that's like the main chain continues of this. So they got like misinformation. This validator is not getting slashed because valid fork just like reworked out of it.
+00:41:22.790 - 00:41:28.814, Speaker B: That's difficult. That's difficult to solve with these types of blockchains. Right. Because, well, it's also on ethereum.
+00:41:28.894 - 00:41:29.726, Speaker A: Ethereum, exactly.
+00:41:29.790 - 00:41:38.184, Speaker B: You can have a reorg and you can have a partition state. But this is for any RPC service. It's not something we could solve. Right. We just don't want to slash this.
+00:41:38.224 - 00:41:46.432, Speaker A: Well, I'm just saying like as a, as a malicious actor who wants to bring a specific provider down, I can like getting, you know.
+00:41:46.608 - 00:41:58.480, Speaker B: No, but if he, if he provides a true block, like a block that is actually valid, it should not be slashed. Right. But here it's a different question. It's a question of how many people, how many validators have voted for this slot, right?
+00:41:58.512 - 00:42:03.520, Speaker A: Well, I'm saying nobody voted because I just produced this blog and I never showed it to anyone except this node.
+00:42:03.632 - 00:42:04.944, Speaker B: Yeah, no, I see what you're saying.
+00:42:05.064 - 00:42:06.584, Speaker A: I'm Griffin with a fork. Pretty much.
+00:42:06.664 - 00:42:07.792, Speaker B: Yeah, that's interesting.
+00:42:07.888 - 00:42:15.112, Speaker A: And I do this every time I have a. So the question is then the results, because this is different state.
+00:42:15.168 - 00:42:15.408, Speaker C: Right.
+00:42:15.456 - 00:42:21.040, Speaker A: So this RPC will rework like next second or next 12 seconds.
+00:42:21.072 - 00:42:54.224, Speaker B: But so one thing that we could do that we have is that you can ask for a quorum from the consumer. So a consumer can say, I don't want a response. If this is this type of blockchain where there's a lot of fork griefing, I want to have a quorum of at least two responses or three responses before pushing it down back to the user. This is one way to solve this. The other way is to look at what's the actual threshold, how many actual signatures are in this block and ask that from the provider, from the RPC.
+00:42:55.034 - 00:42:58.730, Speaker A: Well, that's just latency. That's why you're just waiting for finale.
+00:42:58.922 - 00:42:59.226, Speaker C: Yeah.
+00:42:59.250 - 00:43:03.530, Speaker A: I mean, in Solana specifically, you're producing your own blocks in parallel.
+00:43:03.562 - 00:43:03.986, Speaker C: Right. Yeah.
+00:43:04.010 - 00:43:05.474, Speaker A: Like you can be in there.
+00:43:05.634 - 00:43:09.170, Speaker B: Solana is one of the most difficult chains to provide RPC for. I'll just.
+00:43:09.282 - 00:43:09.974, Speaker C: Yeah.
+00:43:11.994 - 00:43:29.078, Speaker A: Yes. Okay, cool. I mean, this all makes sense and kind of provides a way to pretty much access decentralized pool of RPC providers. They can permissionlessly come in and participate. You can permissionlessly launch new networks, which is really cool and new API.
+00:43:29.166 - 00:43:40.374, Speaker B: One cool feature is that if you look at this SDK, which is our actual final vision is not to go through any gateway. Just use the SDK directly from the browser. You actually don't need any central server.
+00:43:40.454 - 00:43:41.006, Speaker C: Exactly.
+00:43:41.110 - 00:43:43.502, Speaker A: You just load a list from the blockchain.
+00:43:43.558 - 00:43:43.934, Speaker C: Yeah.
+00:43:44.014 - 00:43:45.262, Speaker B: You don't need to talk to the blockchain.
+00:43:45.318 - 00:43:47.200, Speaker A: Well, to your blockchain.
+00:43:47.262 - 00:44:25.164, Speaker B: Yeah. So forget about lava blockchain for 1 second. You produce a snapshot of all the validators of lava and they all have to provide service for lava RPC. You create a snapshot every month. They are staked on this stake and they can only unbond over three weeks or four weeks. And then you just load that file on your SDK, you can load it from a server, you can load it locally, you can create your own snapshot and then you can just use this protocol which already has the conflict detection quality of service to talk to lava. Lava RPC providers call it lol, lava over lava.
+00:44:26.304 - 00:44:30.040, Speaker C: Okay, I see. Yeah.
+00:44:30.072 - 00:44:40.474, Speaker A: So I mean, and then ideally you have like a very cheap, like, client. Like when validators rotate that, you can just update this.
+00:44:41.814 - 00:44:51.838, Speaker B: There's a few ways to do it. We're just doing with a file. And we can ask the validators, the providers for lava networks, back the unbonding time. We can make it like six months.
+00:44:51.926 - 00:44:58.302, Speaker A: Yeah, but I mean, I mean, you can update the validator set here. Right?
+00:44:58.358 - 00:44:59.150, Speaker B: You could also do that.
+00:44:59.182 - 00:44:59.534, Speaker C: Yes.
+00:44:59.614 - 00:45:01.318, Speaker A: By just clicking the validators and.
+00:45:01.366 - 00:45:03.554, Speaker B: But then you need to run stuff. It's more.
+00:45:04.414 - 00:45:08.376, Speaker A: Well, it's just the signatures of validators of a new validator set.
+00:45:08.480 - 00:45:09.224, Speaker C: Yeah, you could do that.
+00:45:09.264 - 00:45:16.016, Speaker B: You can rely on some snapshot block, some height that you trust and update the valid reset based on signatures.
+00:45:16.040 - 00:45:19.152, Speaker C: Yeah, yeah.
+00:45:19.168 - 00:45:31.384, Speaker A: It's just like, I mean, usually it's kind of this like valid update pretty much lite client. So you have new validator set that's signed by the super majority of previous validators.
+00:45:31.424 - 00:45:36.622, Speaker B: Yeah, actually, I think comet, BFT and Cosmos SDK, they have a lite client.
+00:45:36.718 - 00:45:37.166, Speaker C: Yeah, exactly.
+00:45:37.190 - 00:45:37.710, Speaker B: I think they have a type.
+00:45:37.742 - 00:45:38.726, Speaker A: I mean, Cosmos has that.
+00:45:38.750 - 00:45:39.754, Speaker B: Yeah, yeah.
+00:45:41.494 - 00:45:41.878, Speaker C: Yeah.
+00:45:41.926 - 00:45:52.794, Speaker A: We have that for new as well. It's very useful for bridges and for other stuff. Okay, lava over lava. Yeah, that's it.
+00:45:53.974 - 00:45:54.754, Speaker C: All right.
+00:45:55.254 - 00:45:56.914, Speaker A: Anything else we should know?
+00:45:57.214 - 00:46:09.604, Speaker B: No, I think we covered a lot. There's obviously a lot of fine details in, in the protocol. So every one of these aspects we've worked on a long time trying to make sure it's reliable.
+00:46:10.864 - 00:46:13.928, Speaker A: Yeah, but I mean, the high level is like because of chain.
+00:46:13.976 - 00:46:14.160, Speaker C: Right.
+00:46:14.192 - 00:46:27.048, Speaker A: This is like, it's kind of an overlay network on regular pc, but it allows to route to any provider and then you have a blockchain, which is like actually doing settlement and kind of economics.
+00:46:27.096 - 00:46:40.266, Speaker B: And I think the superpower is like being able to parse the queries and say, oh, this is, this block number. Oh, this is a trace function and being able to route them, but also to validate the responses.
+00:46:40.410 - 00:46:43.130, Speaker A: Yeah, no, that's very powerful.
+00:46:43.162 - 00:46:43.854, Speaker C: For sure.
+00:46:46.154 - 00:47:04.502, Speaker A: And, yeah, I mean, I think you can probably continue expanding this functionality to consumers, able to reason more about what providers do. Yeah, really cool. All right, well, hopefully this was educational. And check out lava. Yeah, lava net XYZ.
+00:47:04.558 - 00:47:05.318, Speaker B: Yeah, exactly.
+00:47:05.446 - 00:47:07.726, Speaker A: And try it out for your applications.
+00:47:07.870 - 00:47:08.390, Speaker B: Amazing.
+00:47:08.462 - 00:47:09.174, Speaker C: Thank you. Thank you.

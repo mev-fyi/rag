@@ -1,0 +1,716 @@
+00:00:00.080 - 00:00:31.982, Speaker A: I really do think Solana is, like, extremely optimized for a payments layer, the locality of free markets, plus atomic composability and the other instant finality. In a sense, it's super fast. Those are the three key things that you need. It's a very, very strong narrative that l two s fundamentally can't really compete on structurally because of the bridging that is one of the main benefits of a giant global state machine, which is that payments are much less of a headache for everybody involved, including the developers.
+00:00:32.118 - 00:01:08.356, Speaker B: Before we get moving on today's episode, just a quick disclaimer. The views expressed on this podcast by either myself, my co host, or any guests are their personal views and do not represent the views of any associated organization. Nothing in the episode should be construed or relied upon as financial, technical, tax, legal, or any other advice. Okay, let's jump into the episode. All right, what's up, everyone? Welcome back to another episode of Lightspeed. You've got another weekly roundup with Myrt and myself. We'll be discussing all things Solana and probably bleeding into the ethereum side this week.
+00:01:08.356 - 00:01:19.164, Speaker B: 4844 was a couple of weeks ago. We've been following that quite closely on the show. Got some updates around how we've seen transaction fees change on l two s and sort of like what that ecosystem.
+00:01:19.204 - 00:01:22.964, Speaker C: Looks like, and then some other interesting updates on the l two side.
+00:01:23.084 - 00:01:26.636, Speaker B: But let's kick things off, Mert, with starting on Solana.
+00:01:26.820 - 00:01:30.116, Speaker C: Solana has been filled with transaction volume.
+00:01:30.140 - 00:01:35.878, Speaker B: Lately, and because of that, we've seen a rise in the amount of failed transactions. So maybe if I can throw it.
+00:01:35.886 - 00:01:37.814, Speaker C: To you to kick it off with.
+00:01:37.974 - 00:01:45.798, Speaker B: Just explaining what a failed transaction is, what a drops transaction is, and what the difference between the two are, and.
+00:01:45.806 - 00:01:47.886, Speaker D: Then we can kind of talk about.
+00:01:47.910 - 00:01:49.514, Speaker C: Some statistics around that.
+00:01:50.774 - 00:01:51.270, Speaker E: Sure. Yeah.
+00:01:51.302 - 00:01:59.518, Speaker D: This is a relatively complex topic, but I'll try to make it as simple as possible. So I'll start from the point of.
+00:01:59.526 - 00:02:00.206, Speaker A: View of the user.
+00:02:00.270 - 00:02:03.368, Speaker D: So let's say you are a just.
+00:02:03.496 - 00:02:04.568, Speaker A: On your phantom wallet.
+00:02:04.616 - 00:02:06.248, Speaker D: Maybe you go on Jupiter and you.
+00:02:06.256 - 00:02:07.832, Speaker A: Connect your wallet, you make a swap.
+00:02:07.928 - 00:02:15.724, Speaker D: And there are three things that can happen, okay? One is the trade goes through successfully, right? Transaction successful, all is good.
+00:02:16.104 - 00:02:16.844, Speaker E: Two.
+00:02:17.344 - 00:02:24.240, Speaker D: Or the second is you make the transaction and it fails, and then it.
+00:02:24.272 - 00:02:27.044, Speaker A: Shows you in your wallet that, hey, this fails.
+00:02:27.344 - 00:02:28.100, Speaker E: Okay?
+00:02:28.232 - 00:02:32.660, Speaker A: And the reason for that generally, especially if you're on Jupiter, is because your.
+00:02:32.692 - 00:02:36.044, Speaker D: Slippage was exceeded, right?
+00:02:36.084 - 00:02:43.748, Speaker A: So let's say you said your max you're good with is 5% slippage. But let's say you're beeping some shit coin and the price moved way more.
+00:02:43.836 - 00:02:46.252, Speaker D: Than that within the time from clicking.
+00:02:46.268 - 00:02:48.436, Speaker A: The button and for the transaction to.
+00:02:48.460 - 00:02:51.596, Speaker D: Execute, the smart contract sees this, it.
+00:02:51.620 - 00:02:54.356, Speaker A: Sees your slippage tolerance and says, okay, no, I'm going to fail this because.
+00:02:54.380 - 00:03:00.414, Speaker D: The user does not want this. So that's actually intended so that you don't get worse execution.
+00:03:00.754 - 00:03:01.194, Speaker E: Okay?
+00:03:01.234 - 00:03:03.306, Speaker D: And then the third reason this can.
+00:03:03.330 - 00:03:04.786, Speaker A: Happen, or the third thing that can.
+00:03:04.810 - 00:03:25.082, Speaker D: Happen is you make the transaction and it doesn't appear anywhere, and that means the transaction was actually dropped. And the app that you're using should communicate this to you because they can tell. So those are the three options, okay? Now, obviously going to ignore the successful case here. The interesting cases are the second and.
+00:03:25.098 - 00:03:26.442, Speaker A: The third case, because those are both.
+00:03:26.498 - 00:03:52.806, Speaker D: Technically failed transactions, but they're actually completely different things. So when you see the charts on the Internet that say something like, here's a red chart, and it says 50% to 70% of transactions on Solana fail, okay, what that's actually saying is there's a lot of bots on Solana that.
+00:03:52.830 - 00:03:55.054, Speaker A: Try to capture arbitrage opportunities.
+00:03:55.214 - 00:03:57.302, Speaker D: So there's like an arbitrage opportunity, and.
+00:03:57.318 - 00:03:59.354, Speaker A: There'S maybe 100 bots, they all race.
+00:03:59.814 - 00:04:04.886, Speaker D: Once the arbitrage is captured, those bots are like, wait a minute, now, there's.
+00:04:04.910 - 00:04:07.470, Speaker A: No point for me to execute this trade.
+00:04:07.502 - 00:04:15.286, Speaker D: I'm going to fail on purpose, right? So that it's not a bad execution for them. And that's actually the source of pretty.
+00:04:15.310 - 00:04:17.526, Speaker A: Much all of the failed transactions, is.
+00:04:17.550 - 00:04:42.052, Speaker D: Because our bots are trying to get arbitrage on chain. And while it's technically accurate to say x percent of transactions fail, what's actually inaccurate is to say the following things. One is you can't say that this is like fake TPS or something. And the reason is because the failed transactions still take up the exact same.
+00:04:42.108 - 00:04:44.244, Speaker A: Path, or take the exact same path.
+00:04:44.324 - 00:04:52.132, Speaker D: As a successful transaction. They get executed on the validator. They consume fees, they consume block space.
+00:04:52.268 - 00:04:56.916, Speaker A: They go through the exact same pipelines. So in terms of a systems point of view, like, if you're just looking.
+00:04:56.940 - 00:05:04.764, Speaker D: At as a systems engineer, the load scale, throughput characteristics are all the same.
+00:05:04.884 - 00:05:05.300, Speaker E: Okay?
+00:05:05.332 - 00:05:07.556, Speaker A: So you can't say like, oh, this is like a live Miss failure or.
+00:05:07.580 - 00:05:08.984, Speaker D: Something that doesn't make sense.
+00:05:09.394 - 00:05:11.546, Speaker A: And then people will actually use that.
+00:05:11.570 - 00:05:20.018, Speaker D: Chart to say, well, the user experience is bad, but that's actually not true because the vast majority, and I believe.
+00:05:20.066 - 00:05:24.842, Speaker A: It'S like 92% of that chart is bots. So it's actually, what you're seeing is.
+00:05:24.898 - 00:05:26.546, Speaker D: Not what users are seeing.
+00:05:26.730 - 00:05:27.458, Speaker E: Okay.
+00:05:27.586 - 00:05:30.214, Speaker A: Users might be seeing the drop transactions.
+00:05:30.834 - 00:05:32.330, Speaker D: Which is a totally different thing, because.
+00:05:32.362 - 00:05:33.226, Speaker A: They wouldn't have made it to that.
+00:05:33.250 - 00:05:34.342, Speaker D: Chart to begin with.
+00:05:34.498 - 00:05:34.814, Speaker E: Right?
+00:05:34.854 - 00:05:42.238, Speaker D: So, to recap, the chart on its own is just some set of data, but you can interpret it in a few ways.
+00:05:42.286 - 00:05:43.646, Speaker A: And the way people are interpreting it.
+00:05:43.670 - 00:05:48.774, Speaker D: From, let's say the Cardano and Algorand came to crypto, Twitter are saying that.
+00:05:48.814 - 00:05:50.518, Speaker A: This is like a system failure. It's not.
+00:05:50.566 - 00:05:53.394, Speaker D: It's literally intended by the smart contracts.
+00:05:53.934 - 00:05:56.354, Speaker A: And they're saying it's bad user x experience.
+00:05:56.734 - 00:05:58.662, Speaker D: But it's also not, because you can.
+00:05:58.678 - 00:06:03.224, Speaker A: Actually run the numbers on this. Only about 8% of user transactions actually fail.
+00:06:03.374 - 00:06:03.716, Speaker E: Okay.
+00:06:03.740 - 00:06:07.204, Speaker D: They might get delayed, but only about.
+00:06:07.244 - 00:06:09.584, Speaker A: Eight, actually, because you can see this with the signers.
+00:06:11.164 - 00:06:23.668, Speaker D: The actual problem that's going on, that you can infer from that chart, is that spamming the chain costs the arbitrage bots little to nothing. So they will keep doing it.
+00:06:23.716 - 00:06:24.356, Speaker E: Okay?
+00:06:24.500 - 00:06:26.668, Speaker A: That is the takeaway from that chart.
+00:06:26.756 - 00:06:30.196, Speaker D: And so that's the problem.
+00:06:30.260 - 00:06:32.476, Speaker A: Of course the problem, and it needs to be fixed.
+00:06:32.580 - 00:06:35.196, Speaker D: But for example, even if you just.
+00:06:35.220 - 00:06:36.900, Speaker A: Go back to maybe the Jito airdrop.
+00:06:37.012 - 00:06:38.980, Speaker D: When the network wasn't as congested, the.
+00:06:39.012 - 00:06:41.692, Speaker A: Failure rate was still around 50% then as well.
+00:06:41.788 - 00:06:50.492, Speaker D: People don't realize this, but the failure rate has been this high for quite a long time. But people weren't falsely conflating it with.
+00:06:50.548 - 00:06:52.344, Speaker A: The user experience that you see today.
+00:06:52.804 - 00:06:54.706, Speaker D: Which is actually a completely different thing.
+00:06:54.820 - 00:06:55.446, Speaker E: That is.
+00:06:55.550 - 00:06:58.342, Speaker D: And so I'll get to that now, which is the third thing, which is.
+00:06:58.358 - 00:07:00.654, Speaker A: The user transactions getting dropped altogether.
+00:07:00.774 - 00:07:14.966, Speaker D: Okay, so that's the problem there is with the networking layer of Solana, right on Ethereum, the transactions go to some mempool. They might get stale. And if they get stale, obviously, they're probably not going to be included in the block or it doesn't really make.
+00:07:14.990 - 00:07:17.374, Speaker A: Sense for the block builders for that economic activity.
+00:07:17.414 - 00:07:23.536, Speaker D: The incentives don't make sense on Solana, the blocks are built continuously, meaning there's.
+00:07:23.560 - 00:07:25.136, Speaker A: A block leader that says, hey, send.
+00:07:25.160 - 00:07:28.184, Speaker D: Me all your transactions now. And that's what happens.
+00:07:28.224 - 00:07:30.648, Speaker A: There is no, like, discrete auction that takes place.
+00:07:30.776 - 00:07:33.400, Speaker D: And since that can happen, people span.
+00:07:33.432 - 00:07:35.768, Speaker A: The leaving the living shit out of.
+00:07:35.776 - 00:07:41.204, Speaker D: The block leader like insane spam. And what that does is.
+00:07:43.304 - 00:07:44.008, Speaker A: Overwhelms the.
+00:07:44.016 - 00:07:56.850, Speaker D: Leader such that it doesn't make, let's say, the right choices impacting the block transactions that might have a higher fee will actually get dropped, especially if like.
+00:07:56.882 - 00:07:58.522, Speaker A: A bot was faster to get to.
+00:07:58.538 - 00:08:00.018, Speaker D: It than a user.
+00:08:00.146 - 00:08:00.946, Speaker E: Okay?
+00:08:01.130 - 00:08:02.906, Speaker D: And there's a lot of problems there.
+00:08:02.930 - 00:08:04.146, Speaker A: At the, at the networking layer, the.
+00:08:04.170 - 00:08:09.898, Speaker D: Quick layer, and that is actually that problem. But that's a totally separate problem.
+00:08:10.066 - 00:08:13.426, Speaker A: And to be clear, for users, that is, obviously, it doesn't matter what we.
+00:08:13.450 - 00:08:18.106, Speaker D: Call it, it's a bad experience regardless. And obviously that's true.
+00:08:18.170 - 00:08:18.774, Speaker E: Right?
+00:08:19.474 - 00:08:20.898, Speaker A: We're super cognizant of that.
+00:08:20.946 - 00:08:28.586, Speaker D: And there are quite a few fixes going live, actually, some minor patches are going live pretty regularly as well, some.
+00:08:28.610 - 00:08:29.746, Speaker A: Of them even running on the Jito.
+00:08:29.770 - 00:08:31.614, Speaker D: Client, which doesn't need the Anzac client.
+00:08:33.314 - 00:08:37.426, Speaker A: But it's important to understand that when you see a failed transaction on a.
+00:08:37.450 - 00:08:40.978, Speaker D: Block explorer or a wallet, that means.
+00:08:41.026 - 00:08:46.060, Speaker A: It actually made it onto the chain. It just failed for the exact purpose.
+00:08:46.092 - 00:08:48.844, Speaker D: That the smart contract developer told it to fail.
+00:08:49.004 - 00:08:49.516, Speaker E: Right.
+00:08:49.620 - 00:08:52.852, Speaker D: If I want to call the circles.
+00:08:52.908 - 00:08:55.084, Speaker A: Program for USCC, let's say, and say.
+00:08:55.124 - 00:08:57.780, Speaker D: Give me all the money, the transaction.
+00:08:57.812 - 00:08:58.890, Speaker A: Might go unchained, but circles are going.
+00:08:58.892 - 00:09:00.172, Speaker D: To be like, no, you don't have.
+00:09:00.188 - 00:09:00.892, Speaker A: The right permission for this.
+00:09:00.908 - 00:09:09.222, Speaker D: I'm going to fail this transaction. That's just how that works. But in any case, these are all being fixed, and I think it'd be.
+00:09:09.238 - 00:09:10.934, Speaker A: Fun to come back to this within.
+00:09:10.974 - 00:09:18.274, Speaker D: A few months, once the networking layer has been improved a bit, and there's better economic incentives for not staying in the chain.
+00:09:18.894 - 00:09:21.758, Speaker B: Okay, so I like the context you set there.
+00:09:21.806 - 00:09:24.846, Speaker C: And so there's two scenarios.
+00:09:24.950 - 00:09:30.558, Speaker B: One, let's start with the third, which is the one you just touched on, which is drop transaction.
+00:09:30.646 - 00:09:33.342, Speaker C: That is very much so, a poor.
+00:09:33.398 - 00:09:48.622, Speaker B: Ux issue that Solana is dealing with. And when, like, I've had this problem, other people have had this problem. And like most people, especially like you think of like a very simple, plain user, they don't want to have to know whether their transaction failed or was dropped.
+00:09:48.638 - 00:09:50.166, Speaker C: Like that shouldn't even matter to them.
+00:09:50.310 - 00:10:01.238, Speaker B: This should be like a very core protocol level problem, and I think it is for the most part, with, except for the frequency at which people are experiencing drop transactions.
+00:10:01.286 - 00:10:06.276, Speaker C: And so my question to you is why, uh, during certain periods, do we.
+00:10:06.300 - 00:10:12.108, Speaker B: See increases in, um, dropped transactions? Like, let's say there was, uh, a.
+00:10:12.116 - 00:10:13.900, Speaker C: Very popular NFT mint.
+00:10:14.012 - 00:10:30.116, Speaker B: Uh, that was like everybody was spamming to get into this NFt mint. And I would just want to send, um, you know, one of my friends, USDC. So I had nothing to do with this Nft mint. Would the likelihood that my transaction gets dropped. Uh, assuming that I was sending my transaction at the same time as this.
+00:10:30.140 - 00:10:32.140, Speaker C: NFT mint, would the likelihood that my.
+00:10:32.172 - 00:10:39.144, Speaker B: Transaction gets dropped increase during this NfT mint relative to like just a random point in time when things were relatively.
+00:10:39.764 - 00:10:41.584, Speaker C: At an equilibrium of activity?
+00:10:42.564 - 00:10:44.620, Speaker D: So what it's dependent on is the.
+00:10:44.652 - 00:10:46.388, Speaker A: Connections that the block leader has.
+00:10:46.476 - 00:10:48.260, Speaker D: So if you think of the block.
+00:10:48.292 - 00:10:51.020, Speaker A: Leader, let's say it's Coinbase cloud, okay.
+00:10:51.092 - 00:11:01.026, Speaker D: It'S going to be proposing a nice block. It's accepting the transactions and connections for everybody. If there are bots that are abusing those connections, like let's say there's opening.
+00:11:01.050 - 00:11:03.482, Speaker A: Them, closing them, opening them, closing them, opening them, closing them, et cetera, such.
+00:11:03.498 - 00:11:11.802, Speaker D: That they're overwhelming the block leader or saturating those and pruning the other valid ones, like there's some bugs there, then it doesn't matter.
+00:11:11.898 - 00:11:14.882, Speaker A: Your transaction likelihood or inclusion likelihood is.
+00:11:14.898 - 00:11:18.122, Speaker D: Going to, it's just chance at that point. It's like, did I land it at.
+00:11:18.138 - 00:11:19.826, Speaker A: That exact window where the connection was?
+00:11:19.850 - 00:11:27.006, Speaker D: Like, was it pruned? Did it get in, get there in time? Like how long? What was the network paying?
+00:11:27.030 - 00:11:27.142, Speaker E: Like?
+00:11:27.158 - 00:11:28.630, Speaker A: There's a bunch of different factors there.
+00:11:28.662 - 00:11:36.318, Speaker D: That kind of contribute to the overall outcome. But that's the core issue, which is the connections to the validator, the block leader.
+00:11:36.406 - 00:11:40.238, Speaker C: And so it matters, the connections that.
+00:11:40.366 - 00:11:46.674, Speaker B: Matter to me are the ones, okay? So I wrote through Phantom, which basically uses the RPC that I select on.
+00:11:47.054 - 00:11:52.208, Speaker C: My application Ui, most likely. And so the connections that would be.
+00:11:52.256 - 00:11:58.844, Speaker B: Relevant to me as the user is my selected RPC, their ability to get my transaction to the leader, is that correct?
+00:12:01.024 - 00:12:03.744, Speaker A: It's, it's kind, I mean, there's a.
+00:12:03.784 - 00:12:09.152, Speaker D: Point there, but it's not totally that simple. Your RPC, what they will do is.
+00:12:09.168 - 00:12:16.592, Speaker A: They will forward the transaction to the block leader and the next three block leaders. And so they have to open a.
+00:12:16.608 - 00:12:36.158, Speaker D: Connection for that to happen. Maybe they afford to relay or something, but if somebody else is already abusing those connections, there's no deterministic way to guarantee that you will win those connections. Now, what you can do is you.
+00:12:36.166 - 00:12:37.702, Speaker A: Can open up a staked connection.
+00:12:37.838 - 00:12:50.194, Speaker D: A staked connection does get prioritized, and you get up to x percent bandwidth based on your stake that you have for that connection. And so you do have like x of a say, let's say.
+00:12:50.314 - 00:12:55.586, Speaker A: But there's some bugs in that, so it doesn't work exactly as you might imagine.
+00:12:55.770 - 00:12:59.706, Speaker D: And so then you put it all together, right?
+00:12:59.730 - 00:13:01.290, Speaker A: You have network jitter you have these.
+00:13:01.322 - 00:13:10.774, Speaker D: Kind of implementation bugs, and you have these dynamic competition races, let's say. And the end result is like, okay.
+00:13:10.854 - 00:13:13.558, Speaker A: We'Re not exactly sure who is going to win this.
+00:13:13.726 - 00:13:19.606, Speaker D: It's very difficult to say. What we do know is you can abuse the system. And when you abuse the system, like.
+00:13:19.630 - 00:13:21.110, Speaker A: Arbitrage bots do, because they don't care.
+00:13:21.142 - 00:13:22.998, Speaker D: All they care about is because they.
+00:13:23.006 - 00:13:24.198, Speaker A: Can spam the chain a billion times.
+00:13:24.246 - 00:13:29.254, Speaker D: Per day and cost, like, I don't know, let's say a few hundred dollars. There's need to land that one transaction.
+00:13:29.294 - 00:13:30.926, Speaker A: To make like $600,000.
+00:13:31.030 - 00:13:32.874, Speaker D: So that incentive is totally off.
+00:13:34.474 - 00:13:40.282, Speaker A: And so what we're doing now, and what we're testing this out with, like, Jito, for example, and then Solana labs.
+00:13:40.298 - 00:13:45.922, Speaker D: Itself, or Anza, slow patches to the networking layer.
+00:13:46.098 - 00:13:48.242, Speaker A: A fire dancer actually already has a.
+00:13:48.258 - 00:13:56.010, Speaker D: Network layer that would, that would help fix this. Obviously, that's kind of far out right now, but they actually already, I think.
+00:13:56.042 - 00:13:57.586, Speaker A: Richard tweeted, Richard is one of the people on fire.
+00:13:57.610 - 00:13:58.574, Speaker D: Answer to that.
+00:13:58.954 - 00:14:02.666, Speaker A: If they were to use a networking stack provided by fire, these problems would.
+00:14:02.690 - 00:14:04.116, Speaker D: Mostly be alleviated anyways.
+00:14:04.250 - 00:14:04.924, Speaker E: So.
+00:14:06.824 - 00:14:08.616, Speaker A: That'S the issue that we're trying.
+00:14:08.640 - 00:14:09.764, Speaker D: To solve right now.
+00:14:10.184 - 00:14:12.416, Speaker A: And the reason it's not consistent is.
+00:14:12.440 - 00:14:17.080, Speaker D: Because obviously these bots, especially, they are.
+00:14:17.112 - 00:14:18.968, Speaker A: Active during meme point season where there's.
+00:14:19.016 - 00:14:21.512, Speaker D: A pool on radium and they can just go there.
+00:14:21.528 - 00:14:22.568, Speaker A: And if they're the first, they can.
+00:14:22.576 - 00:14:24.080, Speaker D: Just dump on everybody after.
+00:14:24.272 - 00:14:25.776, Speaker A: So that is an important race.
+00:14:25.880 - 00:14:29.918, Speaker D: But if new tokens aren't being launched, let's say they don't have an incentive to do that.
+00:14:30.056 - 00:14:30.962, Speaker E: And if they don't have an incentive.
+00:14:30.978 - 00:14:35.574, Speaker D: To do that, then users get more of a better experience on the network.
+00:14:36.674 - 00:14:37.186, Speaker E: Gotcha.
+00:14:37.210 - 00:14:40.978, Speaker B: Okay, then let's back up to the failed transaction state.
+00:14:41.026 - 00:14:44.874, Speaker C: And so when a regular user experiences.
+00:14:44.914 - 00:14:59.690, Speaker B: This problem, I think you laid out why bots experience this problem quite clearly. But I want to dive into when a regular user experiences this problem because I don't think this is a Solana specific problem. I think it's just amplified because of some interesting dynamics of Solana. Let's start with like how.
+00:14:59.882 - 00:15:03.242, Speaker C: Yeah, let's start with Solana. So if you go to the Jupiter.
+00:15:03.298 - 00:15:05.714, Speaker B: Front end or the radium front end or whatever, and you go try to.
+00:15:05.754 - 00:15:07.746, Speaker C: Place a trade, you will set your.
+00:15:07.770 - 00:15:12.122, Speaker B: Slippage tolerance and default just generally for like a half percent if it's not.
+00:15:12.138 - 00:15:15.410, Speaker C: Like auto, and if you send a.
+00:15:15.562 - 00:15:17.346, Speaker B: Half percent slippage swap to try to.
+00:15:17.370 - 00:15:26.068, Speaker C: Buy, you know, geo bowdoin or whatever it may be, that you have to think about the amount of liquidity versus that pool has.
+00:15:26.116 - 00:15:26.276, Speaker B: Right.
+00:15:26.300 - 00:15:28.820, Speaker C: And so we have these like 200.
+00:15:28.852 - 00:15:38.412, Speaker B: Plus million dollar meme coins that are sitting on like sub $2 million of liquidity. And so you have extreme volatility in the prices of these tokens. Extreme volatility.
+00:15:38.548 - 00:15:39.924, Speaker C: And so when you try to place.
+00:15:40.004 - 00:15:45.436, Speaker B: A swap with a half percent slippage, there is a very good chance that by the time you get that transaction.
+00:15:45.460 - 00:15:47.980, Speaker C: To the leader, that you have exceeded.
+00:15:48.052 - 00:15:57.704, Speaker B: Your slippage and say the price that I was willing, the lowest price I was willing to accept has now moved, and now my transaction is no longer valid. And so that is why a user would see this.
+00:15:57.744 - 00:16:00.552, Speaker C: And because if you look at the.
+00:16:00.568 - 00:16:04.296, Speaker B: Liquidity profile of Solana meme coins relative to something like an ETH mainnet meme.
+00:16:04.320 - 00:16:06.680, Speaker C: Coin, it is completely different.
+00:16:06.792 - 00:16:11.184, Speaker B: And I don't necessarily have a good take as to why that dynamic has played out.
+00:16:11.264 - 00:16:18.128, Speaker C: But you see sub 1% on liquidity to total market cap of a lot.
+00:16:18.136 - 00:16:19.074, Speaker B: Of these meme coins.
+00:16:19.184 - 00:16:23.022, Speaker C: And you really, you don't tend to see this on um, on like, even.
+00:16:23.078 - 00:16:26.478, Speaker B: Even the, even the ETH l two s. Like there was a meme coin that just launched on base the other.
+00:16:26.526 - 00:16:30.022, Speaker C: Day, uh, where the, like, the person who launched it burned a half million.
+00:16:30.078 - 00:16:35.902, Speaker B: Dollars of Ethereum, of ETH to, to launch this and put it in the LP. And you just do not see that on Solana.
+00:16:35.998 - 00:16:38.446, Speaker C: They are much smaller, more rapid, there's.
+00:16:38.510 - 00:16:40.566, Speaker B: Way more of them. And I, that probably is just a.
+00:16:40.590 - 00:16:42.406, Speaker C: Nature of like, if you're someone who's.
+00:16:42.430 - 00:16:45.462, Speaker B: Launching these meme coins, you have the ability to launch a large number of.
+00:16:45.478 - 00:16:47.476, Speaker C: These, rather than like a selective few.
+00:16:47.630 - 00:16:49.112, Speaker B: And we looked at the stats a.
+00:16:49.128 - 00:16:53.044, Speaker C: Couple of episodes ago, there was 8500 new meme coins a day.
+00:16:53.424 - 00:16:54.992, Speaker B: And so because you have these very.
+00:16:55.048 - 00:16:58.960, Speaker C: Low liquidity profiles, you see these extreme.
+00:16:59.032 - 00:17:01.288, Speaker B: Price volatility, this extreme price volatility.
+00:17:01.416 - 00:17:05.976, Speaker C: And that is why your slippage will often get hit, which is now roping.
+00:17:06.000 - 00:17:07.336, Speaker B: In the Jito discussion weve had.
+00:17:07.400 - 00:17:09.224, Speaker C: This is why people were just saying.
+00:17:09.264 - 00:17:16.130, Speaker B: All right, screw it, id rather just get my transaction in. Ill set five to 10% slippage and just know im getting that price. And that's what the trader was okay.
+00:17:16.162 - 00:17:21.002, Speaker C: With because they wanted to get their trade executed. Um, and so it is interesting to.
+00:17:21.018 - 00:17:22.546, Speaker B: Kind of see the dynamics play out.
+00:17:22.570 - 00:17:30.570, Speaker C: And so because I agree with you, like a failed transaction for that reason, is not like necessarily a bad user.
+00:17:30.602 - 00:17:36.170, Speaker B: Experience for like from the chain's perspective. Like, the user made a request and the chain delivered on that request, that.
+00:17:36.202 - 00:17:39.906, Speaker C: It was the request itself, setting a very, like a very.
+00:17:40.050 - 00:17:43.006, Speaker B: A tight slippage on a very volatile asset.
+00:17:43.110 - 00:17:54.502, Speaker C: That was the thing that was bound to fail. And so I get why it gets dunked on quite a lot. And I want to get your take on if the.
+00:17:54.678 - 00:17:56.022, Speaker B: Because I guess we kind of touched.
+00:17:56.038 - 00:17:59.514, Speaker C: On this, but judo turning off their mempool.
+00:17:59.934 - 00:18:05.870, Speaker B: I think that was March 8. We did see, like, a slight uptick in the amount of failed transactions. I'll go ahead and share screen here.
+00:18:05.942 - 00:18:11.796, Speaker C: So March 8 is here, and we did see a slight, like, there was a spike.
+00:18:11.900 - 00:18:14.092, Speaker B: There was a spike in the number of failed transactions.
+00:18:14.148 - 00:18:16.076, Speaker C: And so I can't, like, you know.
+00:18:16.100 - 00:18:17.316, Speaker B: It'S not to new all time highs.
+00:18:17.340 - 00:18:19.140, Speaker C: It's not just some exuberant number.
+00:18:19.212 - 00:18:20.596, Speaker B: But one of the fears of turning.
+00:18:20.620 - 00:18:26.812, Speaker C: Off the mempool was like, all right, if you know, some of these bots will just go back to spamming, it's.
+00:18:26.828 - 00:18:27.916, Speaker B: Hard to say that's really happened.
+00:18:27.940 - 00:18:28.864, Speaker C: Yes or no.
+00:18:29.324 - 00:18:30.764, Speaker B: And I guess to give more context.
+00:18:30.804 - 00:18:34.068, Speaker C: To the viewer here, here's the ratio.
+00:18:34.156 - 00:18:45.302, Speaker B: Of failed transactions that we have in orange. Uh, two successful transactions here in blue. Um, so, but this is on 180 day timeframe, so 180 goes. 180 days ago, we were in the.
+00:18:45.318 - 00:18:47.910, Speaker C: Neighborhood of about 40% failed, and now.
+00:18:47.942 - 00:18:50.446, Speaker B: We'Re higher up towards that 70% fail.
+00:18:50.590 - 00:18:59.118, Speaker C: And specifically on March 8, you did see this start of this move lower from about, um, you know, 50% failure.
+00:18:59.166 - 00:19:08.840, Speaker B: To closer to 70. So it does seem like there was some uptick. Uh, I haven't done the work at all outside of, like, this quick query, uh, to see what the difference was like.
+00:19:08.982 - 00:19:10.076, Speaker C: And we're still seeing a lot of.
+00:19:10.100 - 00:19:14.132, Speaker B: Activity in the jitto block engine as far as searchers providing tips to validators.
+00:19:14.188 - 00:19:21.904, Speaker C: So I'm just curious, like, how did the removal of the mempool change this landscape in your mind?
+00:19:24.604 - 00:19:39.444, Speaker D: Well, I think if you ask the Jito team or really even just myself, it's not that clear that it's the mempool that's causing, or let's say that is the main catalyst.
+00:19:40.384 - 00:19:42.368, Speaker A: There is just generally more activity.
+00:19:42.416 - 00:19:45.040, Speaker D: I believe Luke set a chart with.
+00:19:45.112 - 00:19:47.440, Speaker A: The number of tokens being launched actually.
+00:19:47.512 - 00:20:08.194, Speaker D: Increasing, which might actually be a different part of this picture, which represents it more accurately. So it's super difficult to tell these things, I think. So anything I would just say would be like a tarot card reading, I believe. But, you know, maybe if you. But going back to your point, about.
+00:20:09.894 - 00:20:10.246, Speaker E: Yeah.
+00:20:10.270 - 00:20:14.390, Speaker A: So look, I tell people, okay, this is happening because of slippage, right?
+00:20:14.422 - 00:20:16.414, Speaker D: This is a liquidity problem, and people.
+00:20:16.454 - 00:20:18.030, Speaker A: Dunk on me and whatnot.
+00:20:18.062 - 00:20:24.094, Speaker D: And it's like, okay, the one counterargument you could make is maybe this slippage.
+00:20:24.134 - 00:20:25.974, Speaker A: Problem wouldn't be there if the transaction.
+00:20:26.014 - 00:20:32.770, Speaker D: Was included in the block as soon as possible. Um, it's like, okay, but again, that.
+00:20:32.802 - 00:20:35.930, Speaker A: Now that goes to the networking issue that I was talking about, so it's.
+00:20:35.962 - 00:20:51.818, Speaker D: Actually a different thing. Um, and also, like, I do think most people on Solana are relatively unsophisticated compared to Ethereum, where like, look, if you're trading on Ethereum mainnet and you're.
+00:20:51.906 - 00:20:53.346, Speaker A: Willing to pay dollar 20 for a.
+00:20:53.370 - 00:21:03.374, Speaker D: Swap or whatever, you probably know what you're doing, kind of, that you're willing to pay that price on Solana since it's so easy, right?
+00:21:03.414 - 00:21:04.950, Speaker A: That's, there's two sides of accessibility.
+00:21:05.022 - 00:21:09.998, Speaker D: There's, you get everybody involved, but everybody you don't self select for the people.
+00:21:10.046 - 00:21:13.662, Speaker A: Who are going to, like, be sophisticated enough to understand some of these nuances.
+00:21:13.838 - 00:21:14.150, Speaker E: Right?
+00:21:14.182 - 00:21:17.254, Speaker D: Like, most people on Solana probably didn't.
+00:21:17.294 - 00:21:18.294, Speaker A: Even know what slippage was.
+00:21:18.334 - 00:21:28.482, Speaker D: Honestly, if I'm being honest, highly, just from, based on what I've seen, and like, most people trade through, like, these.
+00:21:28.538 - 00:21:31.654, Speaker A: TG bots anyways, which have like, really bizarre settings.
+00:21:33.274 - 00:21:53.438, Speaker D: So I think there's a lot of maybe compared to like, web two, I think there's a lot of blame on the underlying web3 system itself, the blockchain, as opposed to like any sort of criticism on the app layer. I just don't see that that often.
+00:21:53.606 - 00:21:53.910, Speaker E: Right.
+00:21:53.942 - 00:22:08.942, Speaker D: Like, people directly blame like, either the RPC or the system or the blockchain right away. But I rarely see people just questioning the app itself. And it's like, actually the app has much more control over the UX than you might think.
+00:22:09.078 - 00:22:09.422, Speaker E: Right.
+00:22:09.478 - 00:22:11.074, Speaker A: That's kind of the point of the app.
+00:22:11.994 - 00:22:14.258, Speaker D: So anyways, I'll stop there.
+00:22:14.346 - 00:22:22.490, Speaker B: Yeah, I want to, quick, I want to keep moving. Um, just because we, there is a lot of interesting things to talk about. But one of the things that we.
+00:22:22.522 - 00:22:28.738, Speaker C: Discussed was, um, the, where these errors are occurring.
+00:22:28.786 - 00:22:35.314, Speaker B: So I quickly threw it together, this query, uh, that shows like the contract that the error. So this looks at every failed transaction.
+00:22:35.434 - 00:22:37.906, Speaker C: And then, uh, for a given period.
+00:22:37.970 - 00:22:56.658, Speaker B: It'S just pulling the two contracts that are the two instructions that has the most failed transactions in a single day. So it's looking at the instruction error on the executing account within the instructions.
+00:22:56.706 - 00:22:58.922, Speaker C: And so I show this because you'll.
+00:22:58.938 - 00:23:02.370, Speaker B: See two rows for every day. So the 25th has two rows, 24th.
+00:23:02.402 - 00:23:03.734, Speaker C: Two rows, and so forth.
+00:23:04.234 - 00:23:06.866, Speaker B: This is a radium contract and this is a Jupiter contract.
+00:23:06.970 - 00:23:09.190, Speaker C: So to your point, the top two.
+00:23:09.262 - 00:23:11.190, Speaker B: Slippage or the top two most failed.
+00:23:11.222 - 00:23:20.518, Speaker C: Accounts every day have to do with slippage. And so it is a nod in the direction of, hey, like, this probably.
+00:23:20.566 - 00:23:31.502, Speaker B: Is the app layers issue and they need to see more on their end to fix it. And then, so that is like the failure on where the transaction is landing. Now, the other side of this is.
+00:23:31.518 - 00:23:32.990, Speaker C: Who is sending the transaction.
+00:23:33.142 - 00:23:41.086, Speaker B: And so this is the, again, looking at only failed transactions and saying the breaks, the total transactions into two groups.
+00:23:41.150 - 00:23:45.806, Speaker C: The failed transactions from the signers that.
+00:23:45.830 - 00:23:47.334, Speaker B: Had the most transactions.
+00:23:47.374 - 00:23:48.934, Speaker C: It puts them in the top 50.
+00:23:49.094 - 00:23:59.478, Speaker B: And then takes everybody else. So 50 accounts make up this orange segment here, and everybody else with the failed transactions in an a makes up this blue segment here. And it's about 50 50.
+00:23:59.526 - 00:24:01.078, Speaker C: So again, to your point, these are.
+00:24:01.086 - 00:24:04.602, Speaker B: All bots that are experiencing these failed transactions at scale.
+00:24:04.718 - 00:24:07.818, Speaker C: And so it is causing a problem on the network.
+00:24:07.906 - 00:24:25.066, Speaker B: We do need to fix the networking layer. Uh, and, but it isn't this. It's not the average user that is the one experiencing these problems, although they still do. And that is the point that I think is, is the hardest, because even me as someone like, I've had failed transactions on or dropped transactions on, just trying to send USDC and like, that is super frustrating.
+00:24:25.130 - 00:24:29.186, Speaker C: That is the really poor ux point that needs to get fixed immediately.
+00:24:29.290 - 00:24:37.054, Speaker B: Um, fee mechanism needs to kind of change the, the, that there's, that's being discussed. And of course, what, uh, the 1.18.
+00:24:37.094 - 00:24:38.830, Speaker C: Upgrade is coming to fix the scheduler.
+00:24:38.862 - 00:24:40.222, Speaker B: Help solve some of that jitter problem.
+00:24:40.278 - 00:24:43.926, Speaker C: So fixes are in order here. But I do think it's important to.
+00:24:43.990 - 00:24:45.554, Speaker B: Put the context around this.
+00:24:46.654 - 00:24:48.158, Speaker C: And so, yeah, I think there's, I.
+00:24:48.166 - 00:24:58.790, Speaker B: Guess we can kind of move on from the failed transaction side of things into some brighter news, which is circle announced that they have launched their CCTP program on Solana. And so you can now seamlessly bridge.
+00:24:58.822 - 00:25:02.500, Speaker C: From Solana to all of their connected change, which is most of the l.
+00:25:02.532 - 00:25:04.628, Speaker B: Two s and ethereum, as well as.
+00:25:04.676 - 00:25:06.372, Speaker C: The cosmos ecosystem through noble.
+00:25:06.508 - 00:25:12.628, Speaker B: That is a huge advancement. And I'm excited to run the data on that. I haven't had a chance yet today. I was hoping to do it before.
+00:25:12.676 - 00:25:15.660, Speaker C: This, but I'm excited to see how.
+00:25:15.692 - 00:25:22.824, Speaker B: Those flows come through and really what that changes. But curious on your take on getting the circle CCTV integration live on Solana.
+00:25:23.924 - 00:25:29.726, Speaker D: Yeah, I think, well, obviously I'm quite biased here, but I have worked in.
+00:25:29.750 - 00:25:37.046, Speaker A: Payments or digital payments, I would say most of my working career in some regard, like mostly banks and startups with.
+00:25:37.070 - 00:25:43.834, Speaker D: Payments and then Coinbase did some payments at Coinbase as well, actually. And obviously I work with them today.
+00:25:44.654 - 00:25:47.654, Speaker A: I really do think Solana is extremely.
+00:25:47.774 - 00:25:52.286, Speaker D: Optimized for a payments layer because the.
+00:25:52.310 - 00:26:00.284, Speaker A: Locality of free markets plus atomic composability and like, the instant finality in a sense. Right? Like, it's super fast.
+00:26:00.944 - 00:26:03.524, Speaker D: Those are like the three key things that you need.
+00:26:04.344 - 00:26:06.456, Speaker A: And Solana has those.
+00:26:06.560 - 00:26:07.256, Speaker E: And you can see this.
+00:26:07.280 - 00:26:13.664, Speaker D: Like, there are stats on Solana's stable volumes, like USDC, which are a little inflated, actually.
+00:26:13.704 - 00:26:14.400, Speaker A: Not a little inflated.
+00:26:14.432 - 00:26:19.656, Speaker D: They're definitely inflated because I believe there's.
+00:26:19.840 - 00:26:25.370, Speaker A: Artemis has some stable volumes that count Phoenix's orders that are canceled, which don't.
+00:26:25.402 - 00:26:35.178, Speaker D: Really mean stable volume. But even disregarding that, there's still quite a bit of stable volume, especially USDC.
+00:26:35.346 - 00:26:37.122, Speaker A: And I think USDC folks know this.
+00:26:37.178 - 00:26:50.214, Speaker D: I think I tweeted this morning something like, Salon is the best chain for payments and a circle director Peter said.
+00:26:50.294 - 00:26:53.622, Speaker A: USC San Salana will replace inefficient payments everywhere.
+00:26:53.758 - 00:26:54.438, Speaker E: Right?
+00:26:54.606 - 00:26:58.502, Speaker A: And that is true because payments are, like, hilariously inefficient.
+00:26:58.598 - 00:27:08.278, Speaker D: I dont know if people understand how payments in real life work, but theyre so stupid. In fact, this is actually one of.
+00:27:08.286 - 00:27:10.934, Speaker A: The stories for why I started building crypto in the first place.
+00:27:11.054 - 00:27:32.366, Speaker D: I was building payments, a digital card for entrepreneurs at one of my former positions. And we need to send money to Australia. And to send to Australia, you need to route the money through all these different weird jurisdictions. I was like, what the hell is that? I said, why do I need to play this weird graph game where I can just directly transfer it through the blockchain right away?
+00:27:32.510 - 00:27:33.302, Speaker E: And they were like, oh, no, the.
+00:27:33.318 - 00:27:34.278, Speaker D: Blockchain is a scam.
+00:27:34.406 - 00:27:35.674, Speaker E: And I was like, what?
+00:27:36.254 - 00:27:47.698, Speaker D: It clearly solves this problem. So that's a fun story. So, like, obviously, you know, people have.
+00:27:47.786 - 00:27:52.770, Speaker A: Their thoughts on USCC. Like, oh, well, it's not true. Decentralized. It's like, no, like, obviously it's not.
+00:27:52.802 - 00:27:54.826, Speaker D: It's literally a centralized entity.
+00:27:54.890 - 00:27:55.786, Speaker A: That's obvious.
+00:27:55.930 - 00:28:05.698, Speaker D: That does not mean that it's like, crypto isn't just for, there's obviously a.
+00:28:05.706 - 00:28:08.216, Speaker A: Lot of cypherpunk ideals that motivate a lot of us.
+00:28:08.330 - 00:28:15.944, Speaker D: But that is not the only purpose of crypto. It also helps people gain economic freedom, as Coinbase would say.
+00:28:16.244 - 00:28:18.020, Speaker A: I can send money to my dad.
+00:28:18.172 - 00:28:37.608, Speaker D: With USDC in Turkey with basically no fees and instantly via Solana. I think thats really underrated and pretty awesome. And so overall its really good to see like this cascading effect of news.
+00:28:37.696 - 00:28:38.104, Speaker A: Obviously.
+00:28:38.144 - 00:28:43.632, Speaker D: First was visa with Solana and then there was Shopify pay and then Paxos.
+00:28:43.688 - 00:28:46.072, Speaker A: And PayPal are piloting their stable on.
+00:28:46.088 - 00:28:58.560, Speaker D: Solana as well and then now this. And there's token extensions which give like stablecoin issuers a lot of leverage as well. And so it'll be interesting to see that narrative play out.
+00:28:58.592 - 00:28:59.992, Speaker A: I do think it's a very, very.
+00:29:00.048 - 00:29:10.480, Speaker D: Strong narrative that l two s fundamentally can't really compete on structurally because of the bridging that is one of the.
+00:29:10.512 - 00:29:13.048, Speaker A: Main benefits of a giant global state.
+00:29:13.096 - 00:29:16.600, Speaker D: Machine, which is that payments are much.
+00:29:16.632 - 00:29:19.644, Speaker A: Less of a headache for everybody involved, including the developers.
+00:29:20.504 - 00:29:20.976, Speaker E: Yeah.
+00:29:21.040 - 00:29:25.240, Speaker B: As someone who recently is in the process of buying a house, so I'm.
+00:29:25.272 - 00:29:28.688, Speaker C: Probably a market top just waving the red flag there.
+00:29:28.816 - 00:29:32.960, Speaker B: Uh, the actual process of getting money from a bank account, from your bank.
+00:29:32.992 - 00:29:39.288, Speaker C: Account into someone else's bank account, is, is brutally painful. Um, I ended up dropping off a.
+00:29:39.376 - 00:29:47.960, Speaker B: Handwritten check because that was actually the easier right route than going through this whole process of just enabling wire transfers on a particular account. An absolute nightmare of an experience.
+00:29:48.072 - 00:29:49.760, Speaker C: And so that it really is the.
+00:29:49.792 - 00:29:52.032, Speaker B: Refreshing point of like, it's that breath of fresh air.
+00:29:52.048 - 00:29:56.100, Speaker C: You're like, all right, some of this shit is actually worth the time we're putting into it.
+00:29:56.232 - 00:29:59.172, Speaker B: Um, and I agree with you that the base layer should be like this.
+00:29:59.228 - 00:30:03.780, Speaker C: Maximally decentralized, um, maximally is subjective.
+00:30:03.852 - 00:30:05.692, Speaker B: Uh, but this decentralized base layer, that.
+00:30:05.708 - 00:30:08.024, Speaker C: Is censorship resistant and that can like.
+00:30:08.564 - 00:30:10.516, Speaker B: Stand the test of time while being.
+00:30:10.540 - 00:30:11.956, Speaker C: A scalable and useful layer.
+00:30:12.060 - 00:30:16.564, Speaker B: Uh, that enables anything to be built on top of it. You get the optionality to do whatever.
+00:30:16.604 - 00:30:18.068, Speaker C: The hell you want on top of it.
+00:30:18.156 - 00:30:24.368, Speaker B: Um, some of that may be good, some of that may be bad, some of that, babe, may be intentionally malicious, but that is what the point of.
+00:30:24.376 - 00:30:25.920, Speaker C: The base layer is, to not say.
+00:30:25.952 - 00:30:37.880, Speaker B: Hey, you can do this and you can't do this, and have these opinionated claims as to what gets built on top of, and you're going to see centralized things get built. And I think that's very useful. But I guess one thing I want to quickly touch on before we jump.
+00:30:38.072 - 00:30:40.800, Speaker C: Ship here is in the name of.
+00:30:40.872 - 00:30:49.376, Speaker B: Being able to do anything you want on a open and permissionless blockchain, you can have questionable things being done. We had a recent meta, if you.
+00:30:49.400 - 00:30:52.200, Speaker C: Will, of like, racist and obscenely offensive.
+00:30:52.272 - 00:30:57.520, Speaker B: Meme coins getting launched on Solana. And there's been some very negative pushback towards that is because it's a question.
+00:30:57.552 - 00:30:59.808, Speaker C: Of like, these are obviously not bad.
+00:30:59.856 - 00:31:07.656, Speaker B: This kind of stuff happens on social media. It's not like a blockchain phenomenon that people are being rude and offensive. Like that is, that exists everywhere in.
+00:31:07.680 - 00:31:10.416, Speaker C: Real life, face to face and especially.
+00:31:10.480 - 00:31:19.380, Speaker B: Online, when people can just kind of hide behind screens. There's been a debate around, should these be censored on the front end level?
+00:31:19.412 - 00:31:22.564, Speaker C: Again, the application level, and curious what.
+00:31:22.604 - 00:31:24.744, Speaker B: Your thoughts are on this whole new.
+00:31:25.164 - 00:31:27.372, Speaker C: Series of events that have unfolded.
+00:31:27.548 - 00:31:31.892, Speaker D: I think probably what's happening is there's probably three or four bored kids in.
+00:31:31.948 - 00:31:36.836, Speaker A: Eastern Europe that are just like, ah, this is hilarious. I think that's what's happening, right?
+00:31:36.900 - 00:31:38.780, Speaker D: I don't think people are coordinating hate.
+00:31:38.812 - 00:31:40.284, Speaker A: Attacks or anything that's not happening.
+00:31:40.324 - 00:31:43.944, Speaker D: I think it's just kids being stupid or just really weird people.
+00:31:45.124 - 00:31:49.664, Speaker A: And then it's obviously, people love to talk about random things on the Internet.
+00:31:50.004 - 00:31:52.636, Speaker D: And so then everybody's amplifying it, and.
+00:31:52.660 - 00:31:54.764, Speaker A: The more attention you give it, the more it multiplies.
+00:31:54.924 - 00:32:01.628, Speaker D: And it's obviously a touchy subject, rightfully. And so it ends up being very.
+00:32:01.676 - 00:32:05.076, Speaker A: Very, and then the memo champs will say, oh, this is now hate speech.
+00:32:05.100 - 00:32:07.252, Speaker D: And they'll make doctored things because they.
+00:32:07.268 - 00:32:08.464, Speaker A: Need to get their engagements.
+00:32:09.094 - 00:32:43.626, Speaker D: And so it just keeps going on like that. But then it opens up the conversation like, okay, fundamentally, a blockchain, by its definition, is a decentralized sensor resistance platform, okay? Network. So if people want to publish something, they should be able to publish whatever they want, okay? On the blockchain network, however, publish, publishing something and distributing it are completely separate things, right? Like, I can, in my own house right now, say whatever illegal things that.
+00:32:43.650 - 00:32:45.226, Speaker A: I want to say, right?
+00:32:45.250 - 00:32:52.202, Speaker D: I can make all sorts of hateful speeches, whatever. And I can, I have the right to do that. But of course I don't have the.
+00:32:52.218 - 00:32:53.586, Speaker A: Right to say, hey, come listen to.
+00:32:53.610 - 00:32:55.498, Speaker E: Me do this, okay?
+00:32:55.666 - 00:32:56.778, Speaker A: If people are like, no, I don't.
+00:32:56.786 - 00:32:57.614, Speaker E: Want to do that.
+00:32:58.154 - 00:33:00.034, Speaker A: That's how that works, right? They don't want to do that.
+00:33:00.114 - 00:33:00.498, Speaker E: Okay?
+00:33:00.546 - 00:33:05.858, Speaker A: So if you actually believe in freedom and you take freedom to its eventual.
+00:33:05.906 - 00:33:13.898, Speaker D: Premise, then the other people have a freedom to not actually serve what you want them to serve, right?
+00:33:14.026 - 00:33:20.906, Speaker A: I don't care about your ideological stance. If you actually are a libertarian, if you actually care about free markets.
+00:33:21.050 - 00:33:23.154, Speaker D: If I'm a front end and I.
+00:33:23.194 - 00:33:24.722, Speaker A: See a piece of content and I'm.
+00:33:24.738 - 00:33:26.806, Speaker D: Like, wait a minute, I do not.
+00:33:26.950 - 00:33:28.414, Speaker A: It is in my interest that I.
+00:33:28.454 - 00:33:30.234, Speaker D: Do not show this to people.
+00:33:30.734 - 00:33:34.438, Speaker A: Maybe because I don't believe in it, or maybe because I strongly disagree with.
+00:33:34.446 - 00:33:36.794, Speaker D: It, or maybe because of profit reasons.
+00:33:37.094 - 00:33:38.494, Speaker A: The point is, it really does not.
+00:33:38.534 - 00:33:40.014, Speaker D: Matter what that reason is.
+00:33:40.094 - 00:33:42.598, Speaker A: The point is that I can do that because it's a free market and.
+00:33:42.606 - 00:33:47.606, Speaker D: I'm an independent entity. And so I'm just not going to show it. Now, if people want to show it.
+00:33:47.630 - 00:33:48.678, Speaker A: And they think they can get distribution.
+00:33:48.726 - 00:33:50.574, Speaker D: That way, sure, do that.
+00:33:50.654 - 00:33:51.274, Speaker E: Right.
+00:33:51.906 - 00:33:52.706, Speaker A: You'll obviously have to now deal with.
+00:33:52.730 - 00:34:08.682, Speaker D: The necessary regulation, law, whatever, of that entity. But in a free market, people can do whatever they want. And so I think people should be able to publish what they want. But I think everybody pretty much agrees.
+00:34:08.698 - 00:34:10.066, Speaker A: With this, that you can publish what.
+00:34:10.090 - 00:34:20.046, Speaker D: You want, but you don't, and that's free. But distribution is not free. Something you have to earn and jet. So that's really my two cent on it.
+00:34:20.110 - 00:34:23.078, Speaker C: Dan Romero from the creator Farcaster and.
+00:34:23.086 - 00:34:24.766, Speaker B: Warpcast kind of has this same approach.
+00:34:24.830 - 00:34:26.694, Speaker C: Right, that they are building the protocol.
+00:34:26.734 - 00:34:33.486, Speaker B: Layer as well as a front end that sits on top of that. Say whatever you want at the protocol layer, but we have, like rules and regulations and things that we need to.
+00:34:33.510 - 00:34:35.734, Speaker C: Abide by in our own morals, and.
+00:34:35.774 - 00:34:38.726, Speaker B: We will filter out hate speech on warpcast like that.
+00:34:38.830 - 00:34:39.446, Speaker C: A no brainer.
+00:34:39.470 - 00:34:41.126, Speaker B: That seems like a very logical pursuit path.
+00:34:41.150 - 00:34:42.446, Speaker C: And I think that's kind of the.
+00:34:42.590 - 00:34:50.036, Speaker B: Honestly, the mappings are pretty similar between that and the meme point trading, so not surprised to see that. I think it's the right thing to do, and I'm happy to see that.
+00:34:50.060 - 00:34:51.144, Speaker C: Being taken care of.
+00:34:51.604 - 00:34:53.060, Speaker D: Yeah, yeah.
+00:34:53.132 - 00:34:57.388, Speaker C: Moving on to our next topic, Solana versus Ethereum fees.
+00:34:57.436 - 00:35:19.010, Speaker B: I'm go ahead and share screen again here, using the Artemis dashboard just to show how the progression of narratives changes over time. So Ethereum has always been focused on this? Not always, but recently been focused on this ultrasound money narrative, mostly related to the fact that it generates a lot of fees and a large portion of those fees are burned and therefore, like.
+00:35:19.042 - 00:35:24.234, Speaker C: Distributed amongst the holders equally. A lot of that. A lot, a lot of the ETH.
+00:35:24.274 - 00:35:29.794, Speaker B: Maxis, I'll say, I won't put the whole ideology into the, into this camp here, but a lot of the pushback from, you know, some of the very.
+00:35:29.834 - 00:35:32.074, Speaker C: Hardcore ETH Maxis was, hey, you know.
+00:35:32.114 - 00:35:37.050, Speaker B: Sure, Solana is building this super fast blockchain but nobody uses it, and it'll.
+00:35:37.082 - 00:35:38.614, Speaker C: Never generate meaningful fees.
+00:35:39.114 - 00:35:47.834, Speaker B: You fast forward to today, and there's, it turns out that Solana is only a few multiples away from Ethereum and fees, which is quite interesting.
+00:35:47.874 - 00:35:49.774, Speaker C: We've seen this narrative shift.
+00:35:50.234 - 00:35:53.098, Speaker B: Solana's had insane fee growth driven by.
+00:35:53.226 - 00:35:56.314, Speaker C: Insane usage and activity growth.
+00:35:56.474 - 00:36:10.212, Speaker B: There are, there's more protocols building on Solana now than ever. There's more users on Solana now than ever. There's more activity in general. There's a full fledged Defi application. You have Dexs lending, liquid staking, being popular. MeV is now a topic like there's been this whole expansion.
+00:36:10.298 - 00:36:12.096, Speaker C: And it's not just around Defi, which.
+00:36:12.120 - 00:36:28.176, Speaker B: Is most of the activity on Ethereum today. It's also gaming with parallel, announcing that they're building their part of their protocol in their game. On Solana, you have deep in, like, hivemapper, helium, et cetera. It's a very rich ecosystem, and that is showing in the on chain activity.
+00:36:28.280 - 00:36:32.536, Speaker C: Which is ultimately pushing these fees higher. And it's very, very interesting to see.
+00:36:32.720 - 00:36:36.296, Speaker B: How this will continue to progress, because, again, we just talked about all the.
+00:36:36.320 - 00:36:39.550, Speaker C: Reason, the first 30 ish minutes of this episode.
+00:36:39.582 - 00:36:56.030, Speaker B: We're talking about how Solana is broken. And because of that, there is some inefficiencies around its transaction processing. And I'm curious to see how this will change going forward. But what are your thoughts on this recent shift in Solana generating meaningful fee.
+00:36:56.062 - 00:36:58.994, Speaker C: Revenue with about north of $2 million per day?
+00:36:59.814 - 00:37:10.936, Speaker D: Yeah, so I made a few posts about this in the past two weeks, and the interesting thing that, or the thing I found interesting, was the delta.
+00:37:10.960 - 00:37:15.672, Speaker A: Between Ethereum and Solana. Fees used to be on the orders of, like, 30 x, 50 x, 60.
+00:37:15.728 - 00:37:17.544, Speaker D: X, and now it's on the order.
+00:37:17.584 - 00:37:25.152, Speaker A: Of, like, three x. Okay, three point whatever x. And it actually went down as low as 2.8 x.
+00:37:25.328 - 00:37:25.784, Speaker E: Right.
+00:37:25.864 - 00:37:27.736, Speaker A: But it's doing this where Ethereum is.
+00:37:27.760 - 00:37:34.574, Speaker D: Doing twelve TPS, and Solana is doing, obviously, much more than that. And.
+00:37:37.514 - 00:37:40.266, Speaker A: Without making any value judgments, the thing that I want to point out.
+00:37:40.290 - 00:37:42.722, Speaker D: There was, and by the way, one.
+00:37:42.738 - 00:37:44.234, Speaker A: Thing I will note is that people.
+00:37:44.274 - 00:37:46.594, Speaker D: On Solana are overpaying for fees because.
+00:37:46.634 - 00:37:48.290, Speaker A: They falsely think that increasing your fees.
+00:37:48.322 - 00:37:54.134, Speaker D: Will increase your chance of landing. That's actually not true because the scheduler is broken.
+00:37:55.934 - 00:38:00.286, Speaker A: But it does show you market demand and market behavior, which is still interesting nonetheless.
+00:38:00.470 - 00:38:02.630, Speaker D: And the thing that I find interesting.
+00:38:02.662 - 00:38:09.134, Speaker A: Of course, is, as you pointed out, a very large foundational building block of.
+00:38:09.174 - 00:38:12.838, Speaker D: The ultrasound narrative was, oh, it's b.
+00:38:12.846 - 00:38:18.406, Speaker A: Two b payments. Altus will pay us a lot of money. This money, these fees will be burned.
+00:38:18.470 - 00:38:22.254, Speaker D: The token, arbitrarily burned due to inefficiencies.
+00:38:22.294 - 00:38:24.950, Speaker A: Will now increase in value because there's less supply.
+00:38:24.982 - 00:38:28.036, Speaker D: It's like, no, that's totally, I can't.
+00:38:28.060 - 00:38:30.904, Speaker A: Say that word, but it's very silly thinking.
+00:38:32.084 - 00:38:39.012, Speaker D: And we'll get to kind of base fees in a bit. But it also doesn't work.
+00:38:39.148 - 00:38:39.804, Speaker E: Right.
+00:38:39.964 - 00:38:42.308, Speaker A: It cannot work long term because you.
+00:38:42.356 - 00:38:46.740, Speaker D: Like, and the analogy I used to always use for this was like, okay.
+00:38:46.772 - 00:38:50.500, Speaker A: I'm going to stick with the steam engine because it burns more energy than.
+00:38:50.532 - 00:38:59.242, Speaker D: Like, the electric engine. It's like, that is such an arbitrary, like, ridiculous narrative. Like, at some point you have to.
+00:38:59.258 - 00:39:01.882, Speaker A: Realize, wait, this actually solves the problem much better.
+00:39:02.058 - 00:39:08.586, Speaker D: And you can still make whatever revenue with that as well, as long as.
+00:39:08.610 - 00:39:11.690, Speaker A: There'S usage on chain. And now that there is usage on.
+00:39:11.722 - 00:39:15.134, Speaker D: Chain, you can see it in action.
+00:39:17.274 - 00:39:22.132, Speaker A: And then people like, strumming this and like, well, I thought, like, high fees were bad. How come you guys are celebrating high fees?
+00:39:22.258 - 00:39:27.896, Speaker D: It's like, no, high fees per user are bad. But if you have a, you know.
+00:39:27.960 - 00:39:29.696, Speaker A: Bunch of little fees that add up.
+00:39:29.720 - 00:39:35.864, Speaker D: To high fees overall due to a lot of activity, independent activity, that's totally separate thing.
+00:39:35.984 - 00:39:36.764, Speaker E: Okay.
+00:39:37.544 - 00:39:47.764, Speaker D: And so anyways, that's, that's, I do think actually long term, as the fee.
+00:39:48.124 - 00:39:51.572, Speaker A: Mechanisms of solana change, because it's kind.
+00:39:51.588 - 00:40:07.308, Speaker D: Of up in the air right now, like, there's different few mechanisms that we can go with. I do think it's possible that Solana could flip Ethereum in fees or revenue generated. I actually think it's possible. And then the other thing that I mentioned is a fun fact is I.
+00:40:07.316 - 00:40:08.940, Speaker A: Was actually showing the burn as well.
+00:40:09.012 - 00:40:13.036, Speaker D: Solana has a fee burn or a token burn, and it went up exponentially.
+00:40:13.180 - 00:40:15.502, Speaker A: And I was like, this is ultrasound, salami, whatnot.
+00:40:15.588 - 00:40:33.226, Speaker D: And, like, people actually didn't know that Solana, half the priority fees are actually burnt. They actually didn't know this because, you know, we don't put bats and ultrasound symbols on Twitter. But, like, that's, Solana actually has the exact same mechanism. It is going away now such that.
+00:40:33.250 - 00:40:36.450, Speaker A: It goes directly all back to the validator so that it doesn't incentivize, like.
+00:40:36.482 - 00:40:50.324, Speaker D: Side deals to get a share of those fees. But, like, the half of the base fee will be burned, which is, again, it's actually pretty similar to Ethereum. The only difference is the unit economics and margins.
+00:40:50.484 - 00:40:51.020, Speaker E: Right.
+00:40:51.132 - 00:40:56.124, Speaker D: Like, if you can make something super cheap but sell it at scale, that's.
+00:40:56.164 - 00:41:01.984, Speaker A: Obviously going to work, and it might be better than making stuff very scarce and very expensive.
+00:41:03.044 - 00:41:13.062, Speaker B: Yeah. I actually don't hate the ultrasound money narrative. I don't necessarily agree with the. If I was the Ethereum brand ambassador, I think I would have sold the story a little bit differently.
+00:41:13.188 - 00:41:13.658, Speaker C: But the.
+00:41:13.706 - 00:41:24.018, Speaker B: The core ideals behind ultrasound money is having low inflation and yield bearing. And, like, those are the two stories that get buried in the idea of this ultrasound thing.
+00:41:24.066 - 00:41:25.530, Speaker C: Like, what the hell does that even mean?
+00:41:25.562 - 00:41:25.946, Speaker B: I get.
+00:41:25.970 - 00:41:27.774, Speaker C: They played off the bitcoin story, but.
+00:41:28.474 - 00:41:36.042, Speaker B: I think the inflation, the burn mechanism on Ethereum is beautifully designed to burn roughly the same amount of tokens that.
+00:41:36.058 - 00:41:38.602, Speaker C: Were issued in a given year. Right. And so that gets you at this.
+00:41:38.618 - 00:41:45.154, Speaker B: Like, net, even, um, inflation. And that's, you know, ranges between one and negative 1%, uh, even tighter than that, honestly.
+00:41:45.194 - 00:41:47.746, Speaker C: But somewhere in that ballpark. And that's a.
+00:41:47.770 - 00:41:54.586, Speaker B: That's a great story to sell, and that's how I would have pushed it. In combination with the fact that you get the. You stake the. You stake ETH, you get a yield.
+00:41:54.690 - 00:41:56.122, Speaker C: Um, and that yield is.
+00:41:56.138 - 00:42:00.066, Speaker B: Is beneficial, and it could be this, like, yield bearing, um, um, form of money.
+00:42:00.130 - 00:42:00.546, Speaker C: Uh, I.
+00:42:00.570 - 00:42:03.330, Speaker B: Again, I just think that those are the two stories that they should have.
+00:42:03.362 - 00:42:08.134, Speaker C: Chose to kind of, uh, precipitate out into the world, if you will.
+00:42:08.554 - 00:42:11.554, Speaker B: And I agree with you that the Solana story isn't all that different.
+00:42:11.634 - 00:42:13.962, Speaker C: Right. When you're running a chain, when you're.
+00:42:13.978 - 00:42:24.154, Speaker B: Running a Solana style chain at a lower TPS, because there's not that much activity. Yes, the fees look quite bad. And if you look throughout Solana's history, there hasn't been as much activity as there is today. And so you can kind of see.
+00:42:24.194 - 00:42:26.858, Speaker C: Exactly what that story looks like with real data.
+00:42:27.026 - 00:42:36.338, Speaker B: But the fact is, you continue building and get to the point where you do have that at level activity. And to your point of the lower unit economics, uh, with higher scale, kind of get you to a new level.
+00:42:36.426 - 00:42:43.034, Speaker C: And one of the things that I like that you mentioned was the fact that today, priority, paying a higher priority.
+00:42:43.074 - 00:42:51.810, Speaker B: Fee is no different than paying, like, any priority fee at all. Uh, so scaling from, like, 0.1 to. To one soul, uh, doesn't make a massive difference in your inclusion guarantees.
+00:42:51.962 - 00:42:59.298, Speaker C: Um, and so I think that's interesting, because, yes, people are probably overpaying today, but if you give users the ability.
+00:42:59.346 - 00:43:01.562, Speaker B: To effectively overpay, like, so let's assume.
+00:43:01.578 - 00:43:03.202, Speaker C: That pay, paying a higher priority fee.
+00:43:03.218 - 00:43:04.330, Speaker B: Would get you in.
+00:43:04.522 - 00:43:07.534, Speaker C: It would increase your inclusion, guarantees your inclusion rate.
+00:43:07.874 - 00:43:13.242, Speaker B: I would suspect that more people would take full use of that because there's times where I'm making a transaction and.
+00:43:13.258 - 00:43:14.402, Speaker C: I'm like, I don't need this to.
+00:43:14.418 - 00:43:15.826, Speaker B: Be a subset transaction.
+00:43:15.970 - 00:43:17.474, Speaker C: I need this included in the next block.
+00:43:17.554 - 00:43:17.770, Speaker E: Right?
+00:43:17.802 - 00:43:19.706, Speaker C: And I'd be willing to pay dollar five for that.
+00:43:19.810 - 00:43:23.706, Speaker B: And I do think you're going to see some of that change a bit.
+00:43:23.810 - 00:43:27.106, Speaker C: Once we hammer out the speed mechanism.
+00:43:27.170 - 00:43:30.288, Speaker B: And the networking issues as well as the scheduler issues.
+00:43:30.426 - 00:43:32.572, Speaker C: Um, so yeah, I uh, I don't.
+00:43:32.588 - 00:43:40.780, Speaker B: Think it's crazy to say that Ethereum Solana can flip. Ethereum fees like that has historically been this untouchable number. Uh, but again, I don't think that's.
+00:43:40.812 - 00:43:43.540, Speaker C: Really crazy with the launch of 4844.
+00:43:43.692 - 00:43:48.884, Speaker B: And the increase of activity happening on tues. And maybe that's a perfect segue to kind of jump into what's happening over there.
+00:43:48.924 - 00:43:51.460, Speaker C: So, um, zero x Osprey.
+00:43:51.532 - 00:43:56.732, Speaker B: Osprey, a great friend of both of ours, I believe he uh, put out, he's been doing these like daily segments.
+00:43:56.868 - 00:43:58.196, Speaker C: Uh, shoot, I'll try to find this.
+00:43:58.220 - 00:43:59.636, Speaker B: And actually tweet it or post it.
+00:43:59.660 - 00:44:01.444, Speaker C: Up, but uh, he's been posting.
+00:44:01.484 - 00:44:03.388, Speaker D: How so?
+00:44:03.436 - 00:44:09.184, Speaker B: Base of all the l two s, base has seen the most increase in activity since 4844 went live.
+00:44:09.564 - 00:44:10.548, Speaker C: Because of that.
+00:44:10.636 - 00:44:11.868, Speaker B: They, uh.
+00:44:11.996 - 00:44:13.172, Speaker C: The way fees work on l two.
+00:44:13.188 - 00:44:16.676, Speaker B: S, there are two portions of the fee mechanism. One is the actual amount that the.
+00:44:16.700 - 00:44:18.396, Speaker C: User must pay or the, the chain.
+00:44:18.420 - 00:44:22.036, Speaker B: Itself must pay to get this transaction included on the l one level.
+00:44:22.140 - 00:44:30.600, Speaker C: So to post the transaction data down to ethereum, two is the throttling rate.
+00:44:30.672 - 00:44:37.040, Speaker B: Based on the amount of activity happening on the chain. So theres a gas limit for each block and its similar to 1559.
+00:44:37.072 - 00:44:39.512, Speaker C: For the ethereum l one, basically more.
+00:44:39.528 - 00:44:40.888, Speaker B: Activity means higher fees.
+00:44:41.016 - 00:44:43.720, Speaker C: And the second part of that fee.
+00:44:43.752 - 00:44:46.632, Speaker B: The l two fee, is kept entirely for the l two itself.
+00:44:46.728 - 00:44:48.872, Speaker C: Ethereum doesnt see any of that revenue.
+00:44:49.048 - 00:44:51.904, Speaker B: Versus the l one fees. The cost it actually takes to post.
+00:44:51.944 - 00:44:54.466, Speaker C: Back down to ethereum itself, that is.
+00:44:54.490 - 00:44:57.002, Speaker B: Fee revenue for the ethereum l one chain itself.
+00:44:57.058 - 00:44:59.642, Speaker C: And so I'll try to pull this.
+00:44:59.658 - 00:45:04.562, Speaker B: Up, but if you have the numbers up in front of you, I'd love for you to talk through what Osprey has been talking about and ultimately what.
+00:45:04.578 - 00:45:07.134, Speaker C: That means for Ethereum's roadmap.
+00:45:08.794 - 00:45:13.614, Speaker D: Yeah, this goes back to the fee conversation.
+00:45:14.074 - 00:45:16.346, Speaker A: Ethereum is actually maybe not making as.
+00:45:16.370 - 00:45:24.446, Speaker D: Much in fees, as they said they would this whole time. And maybe what needs to happen is.
+00:45:24.550 - 00:45:26.486, Speaker A: Altoos need to use ETH as the.
+00:45:26.510 - 00:45:30.554, Speaker D: Currency for that chain, as money.
+00:45:30.974 - 00:45:33.070, Speaker A: I'm quite skeptical of that as well, to be completely honest.
+00:45:33.102 - 00:45:45.470, Speaker D: But maybe that's not relevant for this conversation. What I think will happen, and what I think this means is I think.
+00:45:45.502 - 00:45:46.742, Speaker A: People are now going to point to.
+00:45:46.758 - 00:45:48.868, Speaker D: Coinbase and they're going to say, hey.
+00:45:48.996 - 00:45:51.708, Speaker A: Look at this, l two. They're making so much money.
+00:45:51.836 - 00:45:53.900, Speaker D: Why don't we also do this, right?
+00:45:53.972 - 00:45:55.532, Speaker A: So I think people will be like.
+00:45:55.708 - 00:45:58.356, Speaker D: They will take Coinbase's example, and I.
+00:45:58.380 - 00:45:59.956, Speaker A: Think they will launch their own roll ups.
+00:46:00.020 - 00:46:11.676, Speaker D: And I think this will actually cause more people to launch more roll ups. But I don't think the UX will improve as fast as that happens, which.
+00:46:11.700 - 00:46:12.900, Speaker A: Is to say, I think that will.
+00:46:12.932 - 00:46:15.424, Speaker D: Actually lead to a worse spot overall.
+00:46:16.314 - 00:46:18.330, Speaker A: And I do think then the general.
+00:46:18.402 - 00:46:37.466, Speaker D: Purpose, l two s, so like an arbitrum, and then the general purpose, obviously, all ones like Monad and Solana, will actually benefit more from this ultimate. That is how I see it playing out. Now, the other part of this that is relatively frustrating for me is, and probably much more so for toly, is.
+00:46:37.490 - 00:46:39.418, Speaker A: That he kind of said this the whole time.
+00:46:39.506 - 00:46:41.534, Speaker D: He said, like, it does not matter.
+00:46:41.614 - 00:46:43.950, Speaker A: Like, you need to improve the hotspots.
+00:46:44.062 - 00:46:56.134, Speaker D: And base, I believe the fees were upwards of $9 because of the execution, not the blobs. Right. 444 went live. Okay, great. But now the bottleneck is somewhere else.
+00:46:56.214 - 00:46:57.838, Speaker A: And we actually said that that would.
+00:46:57.846 - 00:46:59.354, Speaker D: Be the bottleneck this whole time.
+00:47:00.654 - 00:47:17.146, Speaker A: And now base has to work to get that fixed. But it's just kind of. People would say, well, 444 will make Altoo scale much fast, much better.
+00:47:17.210 - 00:47:18.414, Speaker D: And that is true.
+00:47:18.754 - 00:47:21.730, Speaker A: And it'll make the fees much cheaper. But that part is actually not true.
+00:47:21.762 - 00:47:23.490, Speaker D: Right? And we kind of said this.
+00:47:23.642 - 00:47:24.122, Speaker E: Right.
+00:47:24.218 - 00:47:26.162, Speaker D: The blob markets, by the way, I'd.
+00:47:26.178 - 00:47:28.890, Speaker A: Be curious to see if you have any data on the blob markets and.
+00:47:28.922 - 00:47:35.062, Speaker D: How saturated they are or what the mail there looks like. Um, but there's actually now two aspects.
+00:47:35.078 - 00:47:38.534, Speaker A: Of this, and this is happening before the blob markets are even really saturated.
+00:47:38.654 - 00:47:43.782, Speaker D: I believe, um, like, people haven't. And somebody, um, I saw at a.
+00:47:43.798 - 00:47:47.598, Speaker A: Hackathon that somebody is experimenting with, uh, blob space inscriptions.
+00:47:47.726 - 00:47:54.006, Speaker D: So have fun with that. Um, but, but, uh, this. This is going to be a theme.
+00:47:54.030 - 00:47:56.318, Speaker A: That continues to come up. And this is kind of what Solana's.
+00:47:56.326 - 00:48:00.174, Speaker D: Been talking about this whole time, which is you need to isolate these, right?
+00:48:00.714 - 00:48:01.162, Speaker E: Yep.
+00:48:01.218 - 00:48:11.402, Speaker B: It's, uh, it's coming full circle. And now building for execution is incredibly important. Uh, and so the chains that have been doing that are pretty well positioned. And so quickly, on your point about.
+00:48:11.538 - 00:48:14.450, Speaker C: Uh, blob capacity, uh, as a quick.
+00:48:14.482 - 00:48:18.906, Speaker B: Refresher, the target rate for the target amount of blobs per block is roughly.
+00:48:18.970 - 00:48:19.482, Speaker C: Is three.
+00:48:19.538 - 00:48:23.378, Speaker B: Uh, not roughly, it is three. Uh, and the max is six. And so right now we're seeing on.
+00:48:23.386 - 00:48:29.874, Speaker C: The order of about one, then one, right around one, one blob per block.
+00:48:30.774 - 00:48:35.894, Speaker B: And you can see who's been posting them, when they're posting them, the frequency of that and the amount that they're paying.
+00:48:35.934 - 00:48:39.734, Speaker C: So it's considerably cheaper, but for context here.
+00:48:39.774 - 00:48:42.262, Speaker B: So Ethereum, in about a week and.
+00:48:42.278 - 00:48:45.862, Speaker C: A half, has cleared right around, what is that?
+00:48:45.918 - 00:48:50.966, Speaker B: Almost a million dollars in blob space revenue. But if we come quickly look at.
+00:48:50.990 - 00:48:53.762, Speaker C: Celestia, it's funny to see.
+00:48:53.898 - 00:48:59.242, Speaker B: So the gap in total dollars here is quite staggering because Celestia has been.
+00:48:59.258 - 00:49:06.434, Speaker C: Alive for about six months and only cleared 10,000, but has seen significant, significantly more data being posted.
+00:49:06.594 - 00:49:10.290, Speaker B: And that's to say, Celestia is still significantly cheaper to post your data to.
+00:49:10.322 - 00:49:12.930, Speaker C: As an l two, which is interesting.
+00:49:12.962 - 00:49:16.494, Speaker B: And of course, that's not Ethereum's intent. There's still capacity.
+00:49:17.074 - 00:49:22.572, Speaker C: And one more note I want to make on Ethereum really quickly is the.
+00:49:22.668 - 00:49:29.196, Speaker B: I think it was the founder of Monad Keyon. He had a good thread recently. Maybe we'll put that in the link in the show notes. I encourage everyone to read that as.
+00:49:29.300 - 00:49:37.620, Speaker C: Where are we at State of L two's post? He did the math. And TLDR is 4844 supports roughly 300.
+00:49:37.732 - 00:49:39.988, Speaker B: Transactions per second across every l two.
+00:49:40.036 - 00:49:47.112, Speaker C: That is connected to it. I think that assumes perfect efficiency on blob sharing, which is not how it.
+00:49:47.128 - 00:49:48.552, Speaker B: Really works, but let's assume that it.
+00:49:48.568 - 00:49:49.444, Speaker C: Is for a second.
+00:49:50.144 - 00:50:08.752, Speaker B: Solana CPS is much higher than that. But if you look at only successful transaction TPS, that is already at about 300. So if ever, for every all the l two folk that are, you know, yelling and screaming about failed transactions, if you only look at successful transaction TPS, Solana is doing about 300. And that is like Ethereum's 4844 capacity.
+00:50:08.808 - 00:50:10.684, Speaker C: Which is kind of an interesting metric.
+00:50:11.804 - 00:50:14.252, Speaker D: And one thing to actually note about.
+00:50:14.268 - 00:50:24.076, Speaker A: The failed transactions is that arbitrage transfers are super computationally heavy in general. And one thing I'll point out, too.
+00:50:24.100 - 00:50:26.908, Speaker D: Is during inscription season on Solana, the.
+00:50:26.956 - 00:50:30.844, Speaker A: User TPS with about a 90 or 80% success rate.
+00:50:30.884 - 00:50:33.984, Speaker D: A very high success rate was over 2500.
+00:50:34.404 - 00:50:54.052, Speaker A: Because user transactions, like actual user transactions, the failed transactions, actually work against the chain. It makes the chain look way worse because those are such heavy transactions. And if you have very heavy transactions, they're not going to fit too much.
+00:50:54.068 - 00:50:58.428, Speaker D: In the block, because there's only so many compute units that can fit within the block.
+00:50:58.596 - 00:51:01.340, Speaker A: And so the failed transactions are actually much worse.
+00:51:01.532 - 00:51:05.704, Speaker D: Like, people don't even know how to fud it properly. That's what I would fudge.
+00:51:06.114 - 00:51:08.570, Speaker A: But, yeah. Anyway, so it should be interesting to see.
+00:51:08.642 - 00:51:13.938, Speaker D: I didn't know that Celestia's revenue was, or, like, fees, I guess, paid on.
+00:51:13.946 - 00:51:15.294, Speaker A: The order of 10,000.
+00:51:16.354 - 00:51:33.008, Speaker B: That's only looking at blob payment payments for blobs. Right? So you can, like, stake your TIA. There's a fee with that unstake, send your TIA IBC import to another chain, yada yada. But only looking at the core use case of the chain, which is, of course, paying for blobs. Yes. $10,000 a year launched to date, and.
+00:51:33.016 - 00:51:34.884, Speaker C: They launched in late October.
+00:51:35.184 - 00:51:38.568, Speaker B: But that's like, two things. That's a testament to how cheap it is.
+00:51:38.696 - 00:51:43.024, Speaker C: But also there's roughly 15 or so.
+00:51:43.064 - 00:51:45.744, Speaker B: Roll ups that are actively posting to celestia today.
+00:51:45.864 - 00:51:48.256, Speaker C: So their vision is for a world.
+00:51:48.280 - 00:51:51.072, Speaker B: Of, like, you know, a million roll ups, and there's 15 today.
+00:51:51.128 - 00:51:52.672, Speaker C: So that's kind of.
+00:51:52.688 - 00:52:03.148, Speaker B: It's honestly the thesis there is abundance. It's not too dissimilar from the Solana thesis, um, because. Right. Abundant blog space, cheap transactions, abundant blob space, cheap posting.
+00:52:03.196 - 00:52:04.704, Speaker C: Right. It's the same concept.
+00:52:05.364 - 00:52:07.172, Speaker D: Yeah, yeah, no, 100%.
+00:52:07.268 - 00:52:07.676, Speaker E: Um.
+00:52:07.740 - 00:52:09.076, Speaker D: I think just. I don't know.
+00:52:09.260 - 00:52:12.964, Speaker A: I think it's been interesting how so many of the narratives have kind of.
+00:52:13.004 - 00:52:18.756, Speaker D: Converged and, um, the path dependence leads.
+00:52:18.780 - 00:52:21.204, Speaker A: To some short term narratives that don't.
+00:52:21.244 - 00:52:23.144, Speaker D: Actually hold weight long term.
+00:52:23.284 - 00:52:25.440, Speaker A: And I think we're going to be seeing much more of that.
+00:52:25.552 - 00:52:31.416, Speaker D: I think metallic obviously has that post with the endgame of these things all.
+00:52:31.440 - 00:52:33.296, Speaker A: Look relatively similar towards the end.
+00:52:33.360 - 00:52:35.536, Speaker D: And so it's kind of silly that.
+00:52:35.560 - 00:52:37.552, Speaker A: We argue this much about it. I mean, I'm going to continue to.
+00:52:37.568 - 00:52:42.872, Speaker D: Do it, but it is kind of silly. And obviously, you still need to execute.
+00:52:42.888 - 00:52:43.912, Speaker E: To get there, right?
+00:52:43.968 - 00:52:47.376, Speaker D: And so Tolly says, like, well, settlement.
+00:52:47.480 - 00:52:50.060, Speaker A: Is super boring to me. All I care about is execution.
+00:52:50.192 - 00:52:50.604, Speaker E: Right?
+00:52:50.684 - 00:52:53.836, Speaker D: Turns out he was right. But also not only just execution of.
+00:52:53.900 - 00:52:56.692, Speaker A: The VM, but actually executing as an.
+00:52:56.708 - 00:53:02.148, Speaker D: Ecosystem to keep kind of getting there in the same. That's the only mode you have, right?
+00:53:02.196 - 00:53:06.868, Speaker A: Because the economics and stuff, like if somebody does something, for example, four, four.
+00:53:06.996 - 00:53:09.980, Speaker D: People will just copy that. It's all open source software.
+00:53:10.132 - 00:53:11.572, Speaker A: So since people will just copy everything.
+00:53:11.628 - 00:53:15.364, Speaker D: Else, your only modes are really execution and network effects.
+00:53:15.444 - 00:53:18.886, Speaker C: So anyway, yeah, it's definitely silly, but.
+00:53:18.910 - 00:53:22.310, Speaker B: It is fun at the very least, to compare these things and, you know.
+00:53:22.342 - 00:53:28.070, Speaker C: See what they see, how the different approaches lead to. Maybe even if it's the same end.
+00:53:28.102 - 00:53:29.502, Speaker B: State, it's the speed at which you'll.
+00:53:29.518 - 00:53:30.634, Speaker C: Get to that end state.
+00:53:30.974 - 00:53:43.274, Speaker B: And the traction that you'll gain along the way, I think, are very, very different in both approaches. But nonetheless, maybe it's a good place to call here. Murt, another great episode, another fun roundup, and we will be back next week. Cheers.
