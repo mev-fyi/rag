@@ -1139,7 +1139,7 @@ def save_metadata_to_pipeline_dir(all_metadata, root_dir, dir='pipeline_storage/
         combined_df.to_csv(csv_path, index=False)
         logging.info(f"Metadata with # of unique entries [{combined_df.shape[0]}] saved to [{csv_path}]")
     except Exception as e:
-        logging.error(f"Failed to save metadata to [{csv_path}]. Error: {e}")
+        logging.error(f"Failed to save metadata to [{dir}]. Error: {e}")
 
 
 if __name__ == '__main__':
