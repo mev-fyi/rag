@@ -1,0 +1,282 @@
+00:00:01.360 - 00:00:01.688, Speaker A: Cool.
+00:00:01.718 - 00:00:02.634, Speaker B: And we're going.
+00:00:02.974 - 00:00:03.366, Speaker A: All right.
+00:00:03.390 - 00:00:22.590, Speaker B: Welcome back, everyone. Thanks for joining again. Today. I'm going to talk a bit about the restart process and some good practices there. Try to leave some time open for the end. Unfortunately, today is going to be a little short, but we'll see what we can get through. As always, I want it to be as interactive as possible.
+00:00:22.590 - 00:00:41.980, Speaker B: So if you've got questions, if you want to interrupt me, I'm going to ask you all questions. Ideally, get some, some participation. That would be awesome. But, you know, chat's also good. Just any way to make sure that people actually are. Have questions, care about the topic or interested, or if this is too easy.
+00:00:42.012 - 00:00:43.860, Speaker A: It'S also useful to know, just like.
+00:00:44.012 - 00:01:17.554, Speaker B: Yeah, we get it. Keep moving. So some things I want to cover the restart process, good practices for planning a restart in the case of an upgrade, and what to do if your validator fails to catch up. There could be a lot of issues there, but we'll sort of boil it down to a couple. So what happens when you restart? So if I'm upgrading my validator, I'm moving to. If you're on Mainnet 113.3.
+00:01:19.254 - 00:01:21.506, Speaker A: What, what.
+00:01:21.530 - 00:01:28.994, Speaker B: Sort of happens to your validator when you take it offline and the cluster keeps moving? Brian, maybe you've got your video on.
+00:01:29.034 - 00:01:31.442, Speaker A: I'll pick on you. Sure.
+00:01:31.498 - 00:01:43.066, Speaker C: So you're voting on slots when it's running, and then when you stop running, you no longer vote on slots. And so the, I don't know what you call it, but it keeps advancing. So everyone else is voting without you.
+00:01:43.250 - 00:02:00.590, Speaker B: Right, exactly. The tip of the cluster is advancing ahead of you. You're not voting on those slots, so you're missing out on the vote credits. And, you know, depending on when your node goes down, you could also be missing opportunities to produce blocks.
+00:02:00.742 - 00:02:01.294, Speaker A: Right.
+00:02:01.414 - 00:02:13.624, Speaker B: So there's some, some planning involved if you're planning to do a restart, to ideally do it not when you're producing blocks, but instead only when you're. You have opportunities to vote.
+00:02:14.364 - 00:02:16.916, Speaker C: When you say producing blocks, does that mean you're a leader?
+00:02:17.100 - 00:02:17.868, Speaker B: Yeah, exactly.
+00:02:17.916 - 00:02:18.164, Speaker A: Yeah.
+00:02:18.204 - 00:02:26.716, Speaker B: So if you are scheduled for four consecutive slots in the leader schedule, that, that's a time when you don't want to be offline.
+00:02:26.780 - 00:02:26.980, Speaker A: Right.
+00:02:27.012 - 00:02:34.412, Speaker B: Because then your skip rate will go up, you won't produce those blocks, and overall the performance of the network will go down.
+00:02:34.508 - 00:02:34.716, Speaker A: Right.
+00:02:34.740 - 00:03:10.324, Speaker B: If you. If people can't get any transactions into those blocks. So, yeah, some reasons for restarting, the most common, obviously, is software updates. You could have other reasons if you're switching servers to another server provider, if you have some downtime, because maybe there's a hardware failure or something like that. There's a bunch of different reasons why you could restart, but software update is the most common.
+00:03:10.364 - 00:03:11.744, Speaker A: That's what I'll go through.
+00:03:13.524 - 00:03:22.316, Speaker B: Like I mentioned, you should only do it when you're not the leader. It's better for the cluster in general if you're not offline, when it's your.
+00:03:22.380 - 00:03:23.944, Speaker A: Term in the leader schedule.
+00:03:25.324 - 00:03:46.486, Speaker B: And as part of that, you should make sure that you have enough time after your leader slot before your next leader slot. If you don't have very many leader slots, this is not as big of an issue. But if you're a more highly staked validator or a testnet validator, for example, your leader slot might not be very far apart.
+00:03:46.550 - 00:03:46.750, Speaker A: Right.
+00:03:46.782 - 00:03:57.878, Speaker B: So if, if your opportunity to produce blocks just ended, maybe two minutes from now, you could be producing blocks again. There, there's some randomness in there, so.
+00:03:57.886 - 00:03:59.114, Speaker A: You have to be aware of that.
+00:04:00.454 - 00:04:39.774, Speaker B: And you also always want to avoid restarting when delinquency is high. So generally what the labs team suggests is to, to upgrade and restart when delinquency is below 5%, avoid doing it if it's greater than 5%. And obviously that's to protect the cluster in general, if delinquency gets very high, you don't want a bunch of validators going offline, because if it gets too crazy, you could end up stopping the cluster. Any questions on this stuff? Is there anything like, stuff that people haven't seen before?
+00:04:40.074 - 00:04:41.534, Speaker A: A new topic here.
+00:04:44.874 - 00:04:54.002, Speaker C: I have a link to a tool that Zen Tetsu built that will show your leader time. And you can link that when you, whenever you get to that.
+00:04:54.178 - 00:04:58.874, Speaker B: Yeah, let me, I think I might.
+00:04:58.914 - 00:05:04.072, Speaker C: Have the same validator idle time.
+00:05:04.168 - 00:05:04.784, Speaker A: Sh.
+00:05:04.944 - 00:05:06.344, Speaker B: Yeah, validator idle time.
+00:05:06.424 - 00:05:06.776, Speaker A: Cool.
+00:05:06.840 - 00:05:08.564, Speaker B: I'll add that in the notes.
+00:05:09.064 - 00:05:14.164, Speaker C: And he updated it twelve days ago as well. So if you had it a while ago, then there's some updates.
+00:05:15.944 - 00:05:17.604, Speaker B: Yeah, let me throw that in there.
+00:05:19.064 - 00:05:19.964, Speaker A: Oops.
+00:05:27.164 - 00:05:35.344, Speaker B: Yeah, so I haven't played with this too much, actually, I just talked to him about it today. Maybe you could describe a little bit of, about what it does.
+00:05:35.844 - 00:06:20.038, Speaker C: Yeah, so it essentially takes all the blocks from the start of the epoch till the very end of the epoch, and it uses the Solana leaders command, and Solana leader command has the block. And that I believe if you're a leader in it, and it pulls all of the leader slots where you are a leader, and it will calculate the time until the next leader slot based on the projected slots. The only thing is, it's because block slots have different times between them between, let's say 450 mega second to 700 mega second. It isn't always the most accurate when it's judging the time.
+00:06:20.086 - 00:06:21.150, Speaker B: So you, it's a, it's a really.
+00:06:21.182 - 00:06:33.366, Speaker C: Good like ballpark based off to verify so then it will print out, you know, when you are a leader, when you are going to be a leader for the entire, for the entire epoch.
+00:06:33.390 - 00:06:35.182, Speaker A: Really cool.
+00:06:35.358 - 00:07:15.914, Speaker B: Yeah, yeah, Brian mentioned it in there. But in case people aren't familiar, a slot is your opportunity to produce a block. So if you're in the leader schedule, anytime you are the leader, you get four consecutive slots. You can, you have four opportunities to produce a block and each of those slots is generally about 400 milliseconds. But like you mentioned, it could go up or down a little bit. So 400 milliseconds is a good approximation, but may not always be accurate. Yeah, so we'll go through that in a little bit more detail in a minute, but that's a good high level.
+00:07:15.914 - 00:07:53.690, Speaker B: And yeah, check out that link and look at the scripts. I'm just taking a look now. Yeah, it's only about 100 5200 lines of code, so it shouldn't be too crazy to read through and see what it does. So some useful commands if you haven't used these before, definitely want to use these as part of your restart process. Solana validator wait for restart window or solana validator exit. They're basically the same command. They do pretty much the same thing.
+00:07:53.690 - 00:08:32.530, Speaker B: The only difference is wait for restart window will just stop. The process will end when you're sort of specified. Restart window happens. Exit on the other hand, will actually kill the validator process when that restart window happens. So the advantage of doing it this way, the second way with Solana validator exit is that if you have system d set up to automatically restart your validator if it ever goes down, then this command is essentially stopping your validator immediately when that restart window happens. This one, you have to manually stop.
+00:08:32.562 - 00:08:34.254, Speaker A: It yourself and restart it yourself.
+00:08:35.474 - 00:08:46.498, Speaker B: So it depends on what process you want to do. But exit is pretty useful if you've got the system d stuff set up. Any questions?
+00:08:46.666 - 00:09:28.660, Speaker C: What I found happening for me was a couple of the guides that I follow. They have solana be as a solana user, this is for Linux. And then you set up all of your system MD stuff under root and so you can't, and then everyone is using this wait for restart window, but you can't restart the system d from your solana user. So I ended up having to have two windows open because I didn't understand I had one to redo the system MD and one to do the solana validator wait. And then it turns out I didn't do any of that. So now I just use the Solana validator exit for my sole user and then because I have to automatically restart the system D. Yeah, yeah.
+00:09:28.692 - 00:09:29.116, Speaker B: That's annoying.
+00:09:29.140 - 00:09:29.340, Speaker A: Yeah.
+00:09:29.372 - 00:10:27.522, Speaker B: So if what he's describing doesn't quite, maybe rephrase it a little bit, is the issue is if you use Slana validator wait for restart window, that just stops, like I mentioned, when it's the time for the restart window. The problem is you're running this command if you set it up sort of the way that the doc suggests, you're running this command as the sole user. But anytime you want to stop or start a system deprocess, you're doing that command as the root sudo user. And those are usually set up as two separate users. The issue here is that, like you mentioned, you're going to have to have one logged in as the user with sudo root access and then the other logged in as your sole user. So it's just kind of, I find this to be a little bit messier of a process using wait for restart window.
+00:10:27.698 - 00:10:32.174, Speaker D: Why can't you just do a sudo the command? The restart command?
+00:10:32.794 - 00:10:36.138, Speaker B: Yeah, yeah. I mean, I suppose you could do that too, if you paste it in.
+00:10:36.146 - 00:10:39.854, Speaker D: For anybody that wants it. I paste it in the way that we run the command.
+00:10:41.954 - 00:10:44.094, Speaker B: Yeah, yeah. So if your sole user has.
+00:10:46.594 - 00:10:47.050, Speaker A: Pseudo.
+00:10:47.082 - 00:10:48.894, Speaker B: Access, then you can do it that way as well.
+00:10:49.954 - 00:10:52.694, Speaker C: Yeah, the whole point was to not give soul pseudo access.
+00:10:53.234 - 00:10:57.682, Speaker B: Yeah, yeah. That's the way I tend to set it up too, is soul doesn't have pseudo at all.
+00:10:57.738 - 00:10:58.146, Speaker A: Okay.
+00:10:58.210 - 00:11:05.666, Speaker B: But that's sort of a preference, right? Like it doesn't necessarily have to be that way, but that's the way I set it up.
+00:11:05.690 - 00:11:12.174, Speaker A: Gotcha. Yeah. Cool. Yeah, good discussion.
+00:11:14.084 - 00:12:02.144, Speaker B: So here's the basic order of operations for restart. I'm sure a lot of you have done this, but maybe not this exact way. So I like to use Solana Install init and then the specific version. There's also Solana install update, but I find that to be kind of not necessarily buggy, but sometimes it doesn't use the right version because a different thing is tagged in GitHub than what you want. So I just always prefer to use Slana install init and then the specific version. Once you've installed your latest and greatest version, then you want to restart your validator because you have the new version in your shell script, but the old version is still running. So then that's when you use your Solana validator exit command.
+00:12:03.284 - 00:12:09.452, Speaker A: I'll sort of do an example here. I think I'm, yeah, I'm logged in.
+00:12:09.468 - 00:12:10.772, Speaker B: Here on my testnet validator.
+00:12:10.828 - 00:12:11.904, Speaker A: Let me share this.
+00:12:27.444 - 00:12:48.044, Speaker B: And I'll basically just copy Sam's command. That's pretty much what we want. So if I, let's say I've done the Solana install init and I've installed a specific version, I can just run it actually for completeness here.
+00:12:50.864 - 00:12:53.520, Speaker A: Actually, this is snet.
+00:12:53.552 - 00:12:56.248, Speaker B: So I want 114.5, I think is.
+00:12:56.256 - 00:12:58.084, Speaker A: The latest on Testnet, is that right?
+00:13:02.644 - 00:13:32.848, Speaker B: Just double checking testnet announcements. Yeah, 114.5. So it'll go through its process. If you don't have the latest, it won't. If you already have that version, it won't install it. But if you don't have that version, it will. Now that we've installed the latest version, we're going to run this command, um, wait for restart window, like Sam was saying is useful if you just do the restart right after.
+00:13:32.848 - 00:14:05.096, Speaker B: Um, I'm going to just demo exit here for the one, one thing I think that exit does differently, that weight does not, is you can add this dash m flag, which we'll try out. And I'm going to say, yeah, max delinquent stake, we'll set it at 1010 percent. And just for the interest of time, we'll just look for a two minute window here. So this is probably not a good idea because two minutes is probably most likely not enough. What's that?
+00:14:05.120 - 00:14:06.736, Speaker A: Go ahead. Sorry.
+00:14:06.760 - 00:14:08.512, Speaker D: It'll probably just go right away. Right?
+00:14:08.688 - 00:14:34.624, Speaker B: Like, yeah, maybe, maybe let's do like three minutes. So this is testnet. My, my validator on testnet is pretty highly okay. So if we look at validators, I'm doxing myself here, but this is mine, right? So it's got 1.5% of the network and that's, you know. Yeah, it's quite higher than most.
+00:14:37.564 - 00:14:41.464, Speaker C: Tim, does this wait for restart window also check for leader slots?
+00:14:42.344 - 00:14:43.832, Speaker B: Uh, yeah, yeah, it does.
+00:14:43.968 - 00:14:47.208, Speaker A: Okay. That's amazing. Yeah.
+00:14:47.256 - 00:15:04.124, Speaker B: So same idea as exit. That's what, that's what you're essentially specifying when you say the min, idle time. So you're saying I want 30 minutes of time between my last leader slot and my next leader slot. That's what min idle time is doing.
+00:15:06.784 - 00:15:17.584, Speaker C: Use that tool that Zan has, then you can maybe look for something. Maybe if you have to restart 4 hours because everything else is less than ten minutes. So you'll find something in the future, then run that command.
+00:15:17.884 - 00:15:43.136, Speaker B: Yeah, yeah. So what sanscript does, which I think is useful and a little bit kind of a more maybe not advanced tool, but it gives you a little bit more information, is that it doesn't just look for the next idle slot that you specify. It looks for different idle slots, as far as I understand it. And you could say like, I want, I want to find an idle slot that has 40 minutes in it.
+00:15:43.160 - 00:15:43.764, Speaker A: Maybe.
+00:15:46.024 - 00:16:26.342, Speaker B: With, well, maybe I'm not explaining this too well with this one, you have to say like, I want an idle slot of at least, let's say 1520 minutes. With Zantetsu, it gives you the list of all idle slots and you can kind of decide, okay, I've got one coming up in an hour, but it's only 15 minutes. My next one of 30 minutes is tomorrow. Tomorrow. Maybe I should plan to do it tomorrow instead of today. So it gives you just a little bit more of like high level information about upcoming slots that might be more advantageous, whereas this one just looks for the next one available that meets your criteria. So for a lot of validators, this is fine.
+00:16:26.342 - 00:16:32.234, Speaker B: I think Zentetsu has unique requirements because he's pretty big. He's also highly stakes on mainnet.
+00:16:33.424 - 00:16:34.204, Speaker A: Yeah.
+00:16:36.984 - 00:16:45.232, Speaker B: Okay, so anyway, let's try this out. I'm going to do the exit command. I'm also going to add this dash.
+00:16:45.328 - 00:16:50.256, Speaker A: M flag, or let me actually just spell it out.
+00:16:50.280 - 00:17:08.238, Speaker B: I think it's monitor is the flag. What this will do that's useful is that when it restarts, it'll right away start the Solana monitor command. So you can see what's happening after the restart. And my setup is a little weird. I've got it in ledger.
+00:17:08.286 - 00:17:08.954, Speaker A: Ledger.
+00:17:13.134 - 00:17:32.416, Speaker B: So at least 10% of stake and I'm going to say three minutes. So this may or may not be familiar. This is just looking for the next available leader slot. It's about three minutes away.
+00:17:32.520 - 00:17:34.152, Speaker A: So I'm going to cheat here and.
+00:17:34.168 - 00:17:54.404, Speaker B: Just say 1 minute, maybe that'll give me something. 150 slots and so you can convert slots to times like we talked about before. 150 slots is about 400 milliseconds a slot. So it's 150 times 400 divided by 1000 for milliseconds to seconds.
+00:17:55.074 - 00:18:00.114, Speaker D: I'm not, it doesn't say where. When you're next when it's going to restart.
+00:18:00.154 - 00:18:00.282, Speaker A: Right.
+00:18:00.298 - 00:18:02.922, Speaker D: Or how many blocks until you have that?
+00:18:02.978 - 00:18:11.774, Speaker B: Oh, yeah, sorry, I was reading that wrong. This is just the amount that you want, and right now it's just searching for it, I think.
+00:18:12.834 - 00:18:14.014, Speaker A: Yeah, there we go.
+00:18:14.314 - 00:18:20.026, Speaker B: So I found a slot. It's restarting. I've got some RPC error.
+00:18:20.170 - 00:18:25.146, Speaker D: Yeah, it's normal. I think it's normal when the restart is in it. Yeah, yeah.
+00:18:25.170 - 00:18:31.826, Speaker B: I haven't seen that before, but, um. Yeah, so now actually what's running down here is, if it's not normal, tell.
+00:18:31.850 - 00:18:33.170, Speaker D: Me, because I see it every time.
+00:18:33.322 - 00:18:34.174, Speaker A: Okay.
+00:18:34.674 - 00:18:37.574, Speaker B: Yeah, it's, maybe it's, uh.
+00:18:38.274 - 00:18:40.898, Speaker D: Right if I try to run the command right after I restart?
+00:18:40.946 - 00:18:42.106, Speaker B: Oh, yeah, yeah, that's probably why.
+00:18:42.170 - 00:18:42.642, Speaker A: Okay.
+00:18:42.738 - 00:18:43.994, Speaker B: Yeah, it is normal then.
+00:18:44.034 - 00:18:46.442, Speaker C: Yeah, your validator is down, so it's.
+00:18:46.578 - 00:19:12.614, Speaker B: Yeah, that makes sense. Yeah. So this part down here is now running salon to monitor, and now we see that it's searching for an RPC service. Once the validator comes back up or it finds something else, it should be able to tell how my validator is doing. So, pretty useful because right away you get some information about when the restart happened and then what's going on with your validator as it restarts.
+00:19:18.624 - 00:19:20.216, Speaker A: This thing. Go ahead.
+00:19:20.320 - 00:19:23.880, Speaker C: This means that you have systemd set up to restart it immediately, right?
+00:19:23.912 - 00:19:24.336, Speaker B: Is that.
+00:19:24.400 - 00:19:25.512, Speaker A: Yeah, yeah.
+00:19:25.608 - 00:19:50.034, Speaker B: So, yeah, if I were to do this command and I didn't have system d, I just ran this like in a screen process or something where, you know, like a restart could kill the server and it will come back. Then when the exit finishes, my validator would just be offline and nothing would happen. So the only reason this whole process works is because systemd automatically kicks it back on when it dies.
+00:19:53.934 - 00:19:55.354, Speaker A: Cool, there we go.
+00:19:55.974 - 00:20:00.434, Speaker B: We've got some info, and then it'll eventually figure out how many slots behind we are.
+00:20:00.974 - 00:20:05.906, Speaker D: So that restarted pretty quickly, faster than.
+00:20:06.050 - 00:20:07.454, Speaker B: It takes 30 minutes.
+00:20:07.914 - 00:20:10.706, Speaker D: Oh, so I think there was an.
+00:20:10.730 - 00:20:11.614, Speaker A: Error, actually.
+00:20:14.754 - 00:20:20.454, Speaker B: Because this thing searched for RPC again, which usually means that we got another.
+00:20:20.794 - 00:20:23.642, Speaker A: Yeah, yeah, that's cool.
+00:20:23.698 - 00:20:30.734, Speaker B: We can live debug this. So I've got my logs on this one.
+00:20:31.364 - 00:20:44.824, Speaker A: Where do I have my logs? Yes, storage looks fine.
+00:20:46.284 - 00:20:48.572, Speaker B: I can't remember where I put the.
+00:20:48.628 - 00:21:12.084, Speaker A: Logs here, so I'm gonna look my startup scripts out, mount logs. Nothing weird going on here. Maybe I'll just search for error and see if there was some error in here.
+00:21:19.184 - 00:21:30.394, Speaker B: This is sort of embarrassing because I don't think I have log rotation set up here. So I'm like kind of manually working with the amount of log. Log file I've got.
+00:21:30.474 - 00:21:33.094, Speaker A: So. Logs.
+00:21:35.194 - 00:21:36.346, Speaker B: Oh no, I do have it set up.
+00:21:36.370 - 00:21:37.334, Speaker A: Okay, that's good.
+00:21:46.954 - 00:21:48.306, Speaker B: Dead slot error.
+00:21:48.370 - 00:21:57.930, Speaker A: That was today. What is 1732 UTC.
+00:21:58.002 - 00:22:01.722, Speaker B: Anybody know the current time in UTC?
+00:22:01.818 - 00:22:03.374, Speaker D: Is it where Brian is?
+00:22:04.874 - 00:22:07.386, Speaker A: Yeah. You're pretty close to Greenwich, right?
+00:22:07.490 - 00:22:09.354, Speaker B: Yeah, it's right now. That's a minute ago.
+00:22:09.434 - 00:22:09.706, Speaker A: Okay.
+00:22:09.730 - 00:22:10.346, Speaker C: Yeah, a minute ago.
+00:22:10.410 - 00:22:16.118, Speaker A: Yeah. Cool. Then there's definitely something that happened a minute ago.
+00:22:16.226 - 00:22:17.994, Speaker B: Looks like it panicked.
+00:22:23.694 - 00:22:28.634, Speaker A: New storage locations cached. Yeah. I wonder what happened there.
+00:22:32.814 - 00:22:45.542, Speaker B: I'm going to run monitor and see if it's starting up again. Oh yeah, it looks like it's starting up fine. I usually prefer ketchup. Gives you a little bit more information about like how it's progressing.
+00:22:45.598 - 00:22:46.834, Speaker A: So I'll start that.
+00:23:04.574 - 00:23:12.570, Speaker B: Looks like I'm catching up fine. Or well, we'll be catching up fine. So that's interesting. Maybe that's a bug I should be reporting.
+00:23:12.642 - 00:23:16.418, Speaker A: I'll take a look at the logs a little bit more or maybe we.
+00:23:16.426 - 00:23:17.490, Speaker B: Can take a look and see with.
+00:23:17.522 - 00:23:18.934, Speaker A: Some context here.
+00:23:23.874 - 00:23:31.962, Speaker E: And do these performance, are these monitor commands and catch up commands or cause any performance hits on the startup or should they?
+00:23:32.098 - 00:23:40.558, Speaker B: I don't believe so. I think it's just looking at the RPC to see where you're at. So I don't think there's a startup hit on it.
+00:23:40.686 - 00:23:41.794, Speaker A: Okay, cool.
+00:23:42.454 - 00:23:53.914, Speaker C: I have completely, uh, anecdotal evidence that by machine it's um, was having trouble catching up with monitor, so I almost only use ketchup now.
+00:23:54.494 - 00:23:55.430, Speaker A: Oh, interesting.
+00:23:55.582 - 00:24:00.286, Speaker E: And that's kind of why I ask is it seems like why I'm watching. It doesn't catch up. I leave it alone, I stop monitoring.
+00:24:00.310 - 00:24:00.870, Speaker B: I come back.
+00:24:00.902 - 00:24:07.074, Speaker E: It's made some pretty good progress for us. So I didn't know if it was just me and me being impatient watching it.
+00:24:08.294 - 00:24:25.034, Speaker B: Interesting. Yeah, maybe. I mean, catch up is a little different than monitor, right. It sees your progress based on your ledger versus catch up looks at RPC's. So I guess it is possible that monitor might be a little slower than catch up.
+00:24:26.374 - 00:24:28.754, Speaker D: Like actually slows down your catch up.
+00:24:29.184 - 00:24:33.344, Speaker B: Uh, well, yeah. I mean, any more resources that you're taking away from your local machine?
+00:24:33.384 - 00:24:34.524, Speaker A: Yeah, I got. Yeah.
+00:24:35.304 - 00:24:45.524, Speaker C: And this was on a machine that I wasn't that strong anyway, so maybe it's if your hardware is good enough. It hasn't, doesn't matter. But machine that I noticed it on, it was a bit borderline.
+00:24:53.224 - 00:24:54.004, Speaker A: Yeah.
+00:24:54.404 - 00:24:57.636, Speaker B: I don't know what this dead slot means, does anyone have any experience with.
+00:24:57.660 - 00:25:02.380, Speaker A: This or seen it before? No. Well, might be a bug.
+00:25:02.412 - 00:25:03.784, Speaker B: We report to, uh.
+00:25:05.644 - 00:25:07.344, Speaker A: To the coring team.
+00:25:09.524 - 00:25:13.452, Speaker B: Uh, Paul Rudd says. Paul Rudd. Is that your real name or is.
+00:25:13.468 - 00:25:15.344, Speaker A: That a set of name?
+00:25:17.004 - 00:25:43.648, Speaker B: Is the actor interested in Solana? Uh, yeah, it says the monitor is actually broken. There's no bug with it. It will report invalid data. But catch up is always accurate. It happens about two to 3% of the time. So yeah, monitor, I think has some, I've heard people mention before that like the data and monitor can be a little weird and sometimes be inaccurate. I haven't noticed that personally.
+00:25:43.648 - 00:25:48.312, Speaker B: But if it's only two to 3% of the time, maybe that's why the.
+00:25:48.328 - 00:25:59.880, Speaker C: Nice thing about monitor is catch up doesn't work until it's actually started, where monitor will give you all the updates before it actually gets to the slots. All that pre slot stuff.
+00:26:00.072 - 00:26:01.204, Speaker B: Yeah, exactly.
+00:26:03.704 - 00:26:04.232, Speaker A: Cool.
+00:26:04.328 - 00:26:08.564, Speaker B: All right, well, that was a useful demo, it looks like.
+00:26:09.904 - 00:26:11.484, Speaker A: Got some things to report.
+00:26:12.224 - 00:26:14.296, Speaker B: I'm just going to check if we've caught up.
+00:26:14.440 - 00:26:15.724, Speaker D: What is dash ut?
+00:26:16.104 - 00:26:23.244, Speaker B: Oh, that just specifies the cluster. So I want to, I want to check catch up against testnet.
+00:26:25.144 - 00:26:26.136, Speaker A: Let's see.
+00:26:26.320 - 00:26:29.364, Speaker B: Yeah, it looks like we're going to catch up in a couple seconds.
+00:26:30.224 - 00:26:31.084, Speaker D: Okay.
+00:26:32.904 - 00:26:38.604, Speaker C: If you have a config file set, you don't technically need that, but Tim probably runs lots of different commands.
+00:26:39.344 - 00:26:46.574, Speaker B: Yeah, I just like to add it just to be sure. If you accidentally are looking at the wrong cluster.
+00:26:48.394 - 00:26:50.814, Speaker D: I don't think that is in the help file.
+00:26:52.594 - 00:27:15.964, Speaker B: If you do Solana, catch up, hash dash help, you'll see here that there's a URL or URL. You could specify the exact URL of your RPC, but you can also, it mentions here, make this maybe a little smaller dimensions here. You can also specify a letter.
+00:27:16.124 - 00:27:16.644, Speaker A: Okay.
+00:27:16.724 - 00:27:21.764, Speaker B: Yeah, so ut is for testnet, ud death net, m for mainnet.
+00:27:21.804 - 00:27:23.184, Speaker D: Yeah, cool.
+00:27:23.724 - 00:27:29.464, Speaker B: Yeah, that's actually useful for any command. Right. So if you do like Solana.
+00:27:31.284 - 00:27:31.572, Speaker A: I.
+00:27:31.588 - 00:27:32.984, Speaker D: Didn'T know the shorthand.
+00:27:33.444 - 00:27:37.692, Speaker A: Inflation, for example, dash ut, you'll get.
+00:27:37.708 - 00:27:39.384, Speaker B: The inflation rate on testnet.
+00:27:39.764 - 00:27:40.544, Speaker D: Cool.
+00:27:41.844 - 00:27:42.460, Speaker A: Oh wow.
+00:27:42.532 - 00:27:43.500, Speaker B: Felicia rate on testnet.
+00:27:43.532 - 00:27:45.964, Speaker D: Side making lots of money.
+00:27:46.044 - 00:27:48.744, Speaker A: Yeah, cool.
+00:27:51.164 - 00:27:55.212, Speaker B: Yeah, that makes sense. We want to have tokens in circulation on testnet.
+00:27:55.348 - 00:28:16.650, Speaker D: I think, I think we're probably going to run out of time on this call, but on some call I'd like to try to understand, like on our testnet, when we do that restart, it's like super quick. But in our, our main net is set up basically the same way, but it takes like 30 minutes to restart. I think it's mostly the loading ledger stuff, but I don't know, is ledger that much bigger on main testament?
+00:28:16.802 - 00:28:32.310, Speaker B: Well, the ledger size is determined by you, right? Because you could specify, yeah, if you specify your, your amount of ledger that you want to save, then you know that that's up to your validator. I think it's probably the accounts, they're slowing you down.
+00:28:32.342 - 00:28:32.510, Speaker A: Right.
+00:28:32.542 - 00:28:35.474, Speaker B: The account size on Mainnet is much larger.
+00:28:36.894 - 00:28:37.350, Speaker A: Okay.
+00:28:37.382 - 00:28:44.274, Speaker D: So it could be just that these years restarted very quickly too. And I'm assuming I have whatever I think were recommended settings by somebody at some point.
+00:28:44.774 - 00:28:45.914, Speaker A: Yeah, yeah.
+00:28:46.774 - 00:28:49.190, Speaker B: What sort of cpu do you have?
+00:28:49.382 - 00:29:00.534, Speaker D: It's 59, 55 65 on that one, Sean. 65, 59 65 WX. WX tread Ripper.
+00:29:01.754 - 00:29:04.214, Speaker B: Yeah, that should be able to handle it.
+00:29:05.234 - 00:29:09.186, Speaker C: My testnet's like two minute restart if I time it right.
+00:29:09.330 - 00:29:11.374, Speaker D: Oh, you're testing probably mainet.
+00:29:11.914 - 00:29:13.122, Speaker C: Don't have Mainet.
+00:29:13.298 - 00:29:13.682, Speaker A: Okay.
+00:29:13.698 - 00:29:14.402, Speaker D: Okay.
+00:29:14.578 - 00:29:16.146, Speaker A: Yeah, yeah, yeah.
+00:29:16.170 - 00:29:19.236, Speaker B: There's definitely, it takes a while more on Mainnet.
+00:29:19.410 - 00:29:19.880, Speaker A: I lost.
+00:29:19.912 - 00:29:32.324, Speaker D: Not like I always think there's something wrong. Oh, I meant not the point. Now I know there's not, or I don't think there is. It works. It just takes, that's why I had that restarted. 30 minutes. It takes 30 minutes.
+00:29:33.904 - 00:29:36.004, Speaker A: Anything else I want to hit here before.
+00:29:38.024 - 00:30:16.944, Speaker B: Okay, yeah, let me, let me go through just a couple more things before I end it here, just to make sure we cover it. And if there are any things that you want to go over next time or talk about, we can always add that in. They'll have a lot more time next week. So a few things that are useful for restart, no snapshot fetch. I think people are aware of that, or hopefully should be aware of that. You're just telling your validator, hey, I've already got the local state. I don't need to get a snapshot, so don't spend time downloading a new snapshot.
+00:30:16.944 - 00:30:57.184, Speaker B: So that should be pretty much in everyone's startup script. If you've ever started up your validator before and you have the data and you're keeping up with the network, you don't need to get a snapshot after that. Ideally, if you're operating well, you should never need a snapshot unless there's a restart. And then even in that case, you can make your own local snapshot. When I say a restart, I mean a cluster restart, like the whole cluster halts. Known validator is a flag that you'll see in the example, startup scripts. These are validators that you have some level of trust with and are willing to download snapshots from.
+00:30:57.184 - 00:31:48.244, Speaker B: Only known RPC is sort of a poorly named flag, right? Because it's basically saying like, which validators you'll trust to make requests to. And most of those requests are getting, doing things like getting snapshots. This is also a useful one. If you do need a snapshot and you're finding that you always get snapshots that are too old because your download speeds are taking forever, you could specify minimum snapshot download speed. The validator will try one of those known validators. If one of those known validators are slow, it will just move on to the next one. So it's an automated way of doing what the snapshot finder script does.
+00:31:48.244 - 00:31:49.744, Speaker B: If anyone's familiar with that.
+00:31:55.444 - 00:32:00.994, Speaker D: Is it a quick measurement in the beginning, or does it say, oh, this one? We started downloading from this one, it's too slow.
+00:32:01.154 - 00:32:11.682, Speaker B: Yeah, unfortunately it's not parallelized. So what it does is it starts, one sees that the rate is not doing so well, and then it switches to the next and then tries and.
+00:32:11.698 - 00:32:13.134, Speaker A: Sees if the rate keeps up.
+00:32:13.554 - 00:32:29.262, Speaker B: There's a comment about when you might need no snapshot fetch. So if your validator crashes and you fall too far behind, then there's usually no way to catch up because you're too far behind the network to make up the progress that the rest of.
+00:32:29.278 - 00:32:30.434, Speaker A: The cluster has made.
+00:32:30.854 - 00:33:15.784, Speaker B: So that's maybe a time you want to remove no snapshot fetch, and that's covered a little bit in the next section. What do you do if you can't catch up? One option is always just to wait. The network moves at different speeds depending on the traffic and what's going on. So maybe if you wait just a little bit longer, you could actually catch up. Typically, if you're a few thousand slots behind or more, unless you have really good hardware, it might not be feasible to catch up. So that may not be an option. Like who's that Blake was mentioning? You can remove no snapshot fetch and try to download it from someone else.
+00:33:15.784 - 00:34:07.014, Speaker B: This doesn't necessarily mean blow away all the state, right? Like this just means remove this flag and get a new snapshot. The problem there is you could lose some state. So let's say you are 6000 slots behind and you get a snapshot at slot, let's say 400 slots behind where the cluster is right now. You're going to miss that data before that 400 slots ago. So it's problematic in that you can't then give shreds to other nodes in the cluster. But if you have no other option, that may be what you have to do. Like I mentioned, this Solana snapshot finder is a tool that sort of automates that download speed process that I've used and I think is pretty useful.
+00:34:07.014 - 00:34:40.354, Speaker B: It's open source, but it's not provided by the Solana foundation. So do your homework and make sure that you know what you're running. It's a python script that just tests out a bunch of different RPC endpoints that have. That are open, and then sees what the best download speed is and downloads from that one. Good question. So there's a question about GPU speeds and how much that helps with catch up. From what I've.
+00:34:40.354 - 00:35:32.794, Speaker B: I've never tested out GPU personally, so I don't know firsthand, from what I've been told sort of anecdotally and by the labs team, is that the GPU doesn't really help that much. If it has any application, it is catch up. But most of those code paths, from what I understand, aren't really exercised or tested very much because the majority of the validators don't use GPU's, if any. So, you know, it's something that you can experiment with. But I think that improving the CPU is probably a lot more bang for your buck than getting a GPU. Yeah. So some reasons why you might be falling behind, you're downloading a snapshot that's too old, this snapshot finder, or the minimum download speed might help with that.
+00:35:32.794 - 00:36:23.856, Speaker B: And the other one is hardware, obviously. So if your CPU or your Nvme drives are failing or something is going wrong there, that could be the reason why you're unable to catch up. And just experimenting with other hardware may be a good solution. Yeah, there's also a comment about if you have a second validator that you can hot swap to then catch up time is not really as important because while the other one is trying to catch up, you could swap to the, swap to your backup. That's true. It's something that I think a lot of people are hesitant about. I want to add a little bit more documentation and make it a little bit more common of a practice.
+00:36:23.856 - 00:36:54.900, Speaker B: And I know some of the other validators in the community want to do that as well. But yeah, I'll have to leave it at that, because unfortunately I've got to get going pretty soon. Any, any questions or minimum need for become a node validator? Yeah, I'll leave that one. Up to you to look at lane. Michael Hubbard, who runs a validator named Lane, has a document that sort of outlines some of that, that talks about economics.
+00:36:54.932 - 00:36:56.824, Speaker A: So I'll let you do your research.
+00:36:59.184 - 00:37:01.604, Speaker B: Any more questions before we call it a day?
+00:37:02.504 - 00:37:11.364, Speaker E: One more quick question for me was around. You mentioned CPU's help. What about the cpu's provide the most impact? There are number of cores, highest clock speed.
+00:37:11.864 - 00:37:12.880, Speaker B: Highest clock speed.
+00:37:12.952 - 00:37:14.204, Speaker A: Yeah. Okay.
+00:37:14.744 - 00:37:23.820, Speaker B: Number of cores. I think people have seen around 24 cores is usually enough. It's just top end clock speed is what. What helps you the most.
+00:37:24.012 - 00:37:25.076, Speaker A: Perfect. Thank you.
+00:37:25.140 - 00:37:34.744, Speaker D: Is, you know, if there's a. I know last year there was, uh, some benchmarks. Do you know if there's been anybody's done anymore? There's new cpu's that have come out since.
+00:37:35.204 - 00:38:04.534, Speaker B: Yeah. So, um, there's some benchmarking efforts that are happening, um, sort of in the community. Um, I think what. What they're seeing, what they're benchmarking specifically is the new intel line of chips, Skylake. And he's seeing really good performance there on par, maybe better than AMD, you know, of course, do your own testing and check out what looks good for you. But I think the fastest.
+00:38:04.614 - 00:38:05.646, Speaker D: That's what's good.
+00:38:05.830 - 00:38:06.554, Speaker A: Yeah.
+00:38:08.574 - 00:38:16.842, Speaker B: A couple of things. You want. You want the fastest overall clock speed, and you also want one. Let me actually pull up the.
+00:38:17.018 - 00:38:22.054, Speaker C: You want ram. That's the other thing, because a lot of people are recommending accounts in Ram.
+00:38:23.034 - 00:38:23.578, Speaker A: Yeah.
+00:38:23.666 - 00:38:31.146, Speaker C: But at the same time, some people are recommending don't do Ram because nvmes are fast enough, and we've been doing.
+00:38:31.170 - 00:38:33.210, Speaker D: The Ram disk for the last year.
+00:38:33.402 - 00:38:41.734, Speaker C: Yeah, I would say nvMe. If you. If it's hard to, you know, swap out your NVMe drive fails.
+00:38:45.834 - 00:38:46.810, Speaker B: There's a lot of.
+00:38:46.922 - 00:39:00.694, Speaker D: Shinobi did some calculation last year and said you were going to run through nvmes every couple months. I was like, whatever. Yeah, I don't think it probably was, but it scared me enough. Whatever. I'm not doing that.
+00:39:01.474 - 00:39:04.774, Speaker B: I'm just trying to pull up the specs really quick.
+00:39:11.814 - 00:39:15.154, Speaker A: Let me share this real quick.
+00:39:15.534 - 00:39:34.824, Speaker B: Here are the hardware specs. The thing that you really want to look at, again with CPU is top end speed, and Shaw and I is recommended. That's any recent AMD, Zen layer, or Zen chip, and then intel. Skylakes.
+00:39:35.484 - 00:39:36.904, Speaker A: I believe it's Skylake.
+00:39:41.924 - 00:39:47.344, Speaker D: Is that why the cpu's are just as fast as the GPU's is? Because, like, they have specific instruction sets?
+00:39:47.924 - 00:40:28.992, Speaker B: Yeah, I mean, there's probably a lot of opportunities where GPU's could be helpful. Honestly, the code just doesn't take advantage of them right now. So I would say as far as investment in your validator, if you're trying to get more performance and sort of a known way of doing that, I would definitely upgrade the cpu before I think about GPU. GPU is something that I just think it's like a down the road sort of thing, especially when fire dancer comes online and we have two clients that might be something that gets utilized a little bit more, but right now, it's.
+00:40:29.118 - 00:40:30.624, Speaker A: It's just about the cpu.
+00:40:31.924 - 00:40:32.784, Speaker D: Okay.
+00:40:35.204 - 00:40:38.984, Speaker A: All right. Where the hell did everyone go?
+00:40:39.844 - 00:40:45.060, Speaker B: Find it confusing sometimes when I got a lot of windows and I lose.
+00:40:45.132 - 00:40:47.596, Speaker A: Track of where the call is.
+00:40:47.660 - 00:41:05.256, Speaker B: So stalling right now to find that window. Cool. That's all we got. Let me. I'm going to drop a form in the.
+00:41:05.360 - 00:41:05.984, Speaker A: Oh, darn.
+00:41:06.024 - 00:41:23.580, Speaker B: Well, I'm going to have will drop a form in the validator announcements channel to just ask, like, very quick feedback on today. Be brutally honest. If you think there's something that can be improved or other things you want to see, let me know. Just trying to experiment here with this stuff and see what makes the most sense for you all.
+00:41:23.652 - 00:41:30.624, Speaker A: So, yeah. Cool.
+00:41:31.084 - 00:41:48.364, Speaker B: So, yeah, I'll leave that form in just a minute. Please fill it out. It's helpful for me. I want to get as much feedback from you all as possible. But, yeah, we'll see all next week and then after that we'll sort of reassess because breakpoints coming up, so won't be available during breakpoint.
+00:41:49.504 - 00:41:51.552, Speaker D: You said there's gonna be one more before breakpoint?
+00:41:51.728 - 00:42:01.404, Speaker B: Yeah, yeah. Next week will be the last one in the series of three. And then I'll kind of look at the feedback and figure out what makes sense and see what people want to talk about.
+00:42:01.784 - 00:42:08.584, Speaker D: Was the watchtower one next week? You don't. Next week? Okay, cool.
+00:42:08.664 - 00:42:09.080, Speaker A: Yeah, yeah.
+00:42:09.112 - 00:42:13.074, Speaker B: For a preview. Next week is going to be all about monitoring and metrics.
+00:42:16.974 - 00:42:17.470, Speaker A: Cool.
+00:42:17.542 - 00:42:19.598, Speaker B: All right, thank you, everyone. See you next week.
+00:42:19.726 - 00:42:21.462, Speaker A: Thank you. Thanks. Awesome.
+00:42:21.518 - 00:42:22.314, Speaker D: Thanks, Tim.
+00:42:22.774 - 00:42:23.214, Speaker A: Thank you.

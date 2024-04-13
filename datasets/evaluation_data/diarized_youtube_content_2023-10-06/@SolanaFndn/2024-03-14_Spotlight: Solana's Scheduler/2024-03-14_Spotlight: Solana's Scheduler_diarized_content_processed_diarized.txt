@@ -1,0 +1,388 @@
+00:00:04.000 - 00:00:14.022, Speaker A: Hello, everyone. Today we are going to talk about transaction scheduling in the banking stage. My name is Jacob, and I'm joined today by Andrew. So what is the banking stage?
+00:00:14.198 - 00:00:36.676, Speaker B: Banking stage is the part of the validator where we actually process transactions and then possibly include them in the block. It's also where we're filtering out transactions that won't end up in the block. And. Yeah, so it's basically block production. Okay. It also includes forwarding right now, but that will go away in the future.
+00:00:36.780 - 00:00:37.172, Speaker C: Okay.
+00:00:37.228 - 00:00:45.180, Speaker A: So if we were to. So let's just say this is the banking stage. I want to make it big. We'll figure out if we need it at some point.
+00:00:45.252 - 00:00:45.864, Speaker C: Right.
+00:00:46.364 - 00:00:50.504, Speaker A: What are the things that a transaction goes through to get here?
+00:00:51.004 - 00:01:13.120, Speaker B: So somewhere over here, we will have the actual packet ingress. We'll just call that networking comes in, it goes to sig verify, and immediately after Sig verify, it comes into the banking stage.
+00:01:13.312 - 00:01:17.808, Speaker A: Okay, these are the different. Sig verify would be a different stage beforehand.
+00:01:17.896 - 00:01:18.376, Speaker C: Yep.
+00:01:18.480 - 00:01:22.904, Speaker B: I think there's a different name for this than networking, but I don't know what it is.
+00:01:22.984 - 00:01:23.544, Speaker C: That's fine.
+00:01:23.624 - 00:01:24.504, Speaker B: Packet ingress.
+00:01:24.664 - 00:01:35.944, Speaker A: Okay, so here we are in the banking stage. How does the Solana validator today schedule transactions? And, like, what actually happens? I guess let's start with that. What actually happens in the banking stage?
+00:01:36.064 - 00:01:42.560, Speaker B: So there's two. There are currently, like, six banking stage threads.
+00:01:42.632 - 00:01:43.032, Speaker C: Okay?
+00:01:43.088 - 00:01:55.364, Speaker B: Two of them are dedicated for vote transactions, votes either coming from the TPU or gossip, and then four of them are dedicated for non vote transactions. Anything that's not a simple vote.
+00:01:55.524 - 00:01:56.344, Speaker C: Okay.
+00:01:57.884 - 00:02:44.668, Speaker B: And I think we'll just focus on the non vote ones because that'll simplify the discussion. So, currently, there are four banking stage threads that are each independent, and the first thing that happens is they're received from. This is like a channel. And Sigverify will send over packets in packet batches, and each banking stage will pull off that shared channel and store it in some local buffer. Okay, I'm not going to write that four times. That's fine. That local buffer is just priority queue, so it will receive the transactions, figure out what priority they have.
+00:02:44.668 - 00:02:46.164, Speaker B: This is the priority fee stuff.
+00:02:46.244 - 00:02:46.868, Speaker C: Okay.
+00:02:46.996 - 00:03:08.074, Speaker B: And then sort them in that order. This is always happening. And then sort of what we do with these packets depends where we are in the leader schedule. So if we're not going to be the leader anytime soon, we will just forward those packets to whoever is going to be leader soon and then drop them.
+00:03:08.194 - 00:03:08.490, Speaker C: All right.
+00:03:08.522 - 00:03:18.106, Speaker A: So they'll make it to the thread, they'll make it into the buffer, but they won't actually. Nothing will actually happen at that point in time. If you're not the leader or going.
+00:03:18.130 - 00:03:24.346, Speaker B: To be the leader soon, something does happen. We will forward them to the next leader.
+00:03:24.410 - 00:03:24.626, Speaker C: Okay.
+00:03:24.650 - 00:03:25.578, Speaker A: So you're just forwarding it?
+00:03:25.626 - 00:03:27.458, Speaker B: Yeah. Relatively simple.
+00:03:27.546 - 00:03:27.746, Speaker C: Yeah.
+00:03:27.770 - 00:03:52.114, Speaker A: So if you're just like. We'll just draw a very quick little leader schedule right here. We're going to put a dot just so we can say this is like, I don't know, 400 slots or something. So this is if you made it here. I'm not. Let's say this is who you are. So you are going to be leader a, and let's do ABC right here.
+00:03:52.114 - 00:04:22.810, Speaker A: So let's say that we are c. Um, currently we got some transactions. And wherever a is 400 slots behind. We know that for a fact because transactions, uh, they expire after 100 and 5150 slots. Uh, we will be fine to not, not. Or we don't need those transactions at the time. So we'll just forward those all from c to B.
+00:04:22.882 - 00:04:23.494, Speaker C: Right.
+00:04:25.334 - 00:04:41.702, Speaker B: So if we're like, 400 slots out and a is the current leader, let's say b is the next leader. That'd be four slots from where we are now. Roughly, we would send it to B. So whoever's the next leader, not who's leader before me.
+00:04:41.838 - 00:04:42.110, Speaker C: Right.
+00:04:42.142 - 00:04:44.390, Speaker A: Because you don't want it. A is already doing something.
+00:04:44.462 - 00:04:44.734, Speaker C: Yeah.
+00:04:44.774 - 00:04:47.558, Speaker B: A is already doing something. So we'll just send it to whoever's next step.
+00:04:47.606 - 00:04:47.830, Speaker C: Okay.
+00:04:47.862 - 00:04:52.876, Speaker A: So that'll just clear out of the buffer before it to be. And then you just keep moving on.
+00:04:52.940 - 00:04:53.564, Speaker C: Yep.
+00:04:53.724 - 00:05:10.420, Speaker B: And then once we get closer to being a leader, we will. I think it's like 20 slots out. We will start. We will keep forwarding those packets, but then we won't drop them. And the reason we do that is because, you know, to the leaders before us, 20 slots is like five liters.
+00:05:10.492 - 00:05:10.780, Speaker C: Okay.
+00:05:10.812 - 00:05:18.460, Speaker B: So they might not be able to process all of those. So we want to keep those transactions in case, like, they don't include them in their box, we can include them in ours.
+00:05:18.572 - 00:05:19.344, Speaker C: Okay.
+00:05:19.724 - 00:05:31.132, Speaker B: Um, and then two slots before, we will just start called holding. And we will just do nothing. We won't forward anymore. Cause we don't want to spend that time and, like, miss the beginning of our slots.
+00:05:31.308 - 00:05:48.734, Speaker A: So that's two slots before. So, like, if you were beat. Um, and this. This guy's already done two slots. Cause they have four total per liter. Um, so two slots before, I would just keep holding don't forward anything else. And then what? Execute as much as possible.
+00:05:49.114 - 00:06:15.948, Speaker B: You would just wait until you go to the leader. You would, I guess you wouldn't just wait. You would keep receiving packets. Cause you will keep getting packets from the leaders c way out in the future who aren't gonna be leaders soon, they're gonna be forwarding to you. So that's where you're just gonna like accept packets and do nothing with them for 800 milliseconds. And then as soon as you become leader, we will start consuming those packets or processing them.
+00:06:16.036 - 00:06:22.664, Speaker A: Okay, so let's say we're the leader, then at this point in time, what happens? Like, how does it process transactions as the leader?
+00:06:23.164 - 00:07:08.902, Speaker B: Yeah, so right now we use a method that's based on the multi iterator. So we basically take this buffer, I'm just gonna draw it from one thread. So each of these buffers is independent and they have no view of what the other threads have. But we basically take this buffer and serialize it into a vector. It was a priority heap, and now it's just going to be just like a vector. And we start with, basically we try to create batches of 64 transactions that don't conflict with each other. Not conflicting means you can't have a read and a write or two writes.
+00:07:08.958 - 00:07:14.142, Speaker A: Quick question. So we have these four, you're drawing it for one, but is there going to be one of these per thread?
+00:07:14.198 - 00:07:14.918, Speaker C: Okay.
+00:07:15.086 - 00:07:47.002, Speaker B: Yeah. So each thread will just, as soon as it detects that we're the leader, it will start this process, it will serialize its own buffer, and then it will basically put iterators like, let's say that these, let's say there's an NFT mint. So a lot of these transactions are going to conflict. So we would select this first transaction and then maybe, let's say just all three of these conflict. And we put the second iterator here, maybe the third one here, if this one doesn't conflict, and so on.
+00:07:47.058 - 00:07:47.314, Speaker C: Okay.
+00:07:47.354 - 00:07:50.802, Speaker A: Until when you're saying conflicting, it's like the writing to that account.
+00:07:50.938 - 00:08:06.226, Speaker B: Yeah. Basically you can't have two transactions, can't have a read and a write on the same account, or two writes to the same account. Okay. That's just because there's currently entry constraints. This is what SimD 83 is about.
+00:08:06.330 - 00:08:32.144, Speaker A: Okay. But this is, you said entry constraints. So you can have more, I guess, more parallel in a single block rather than right now you're talking about how they have these conflicting transactions within the specific queue, but you could have other conflicting transactions in a block, right?
+00:08:32.684 - 00:08:58.774, Speaker B: Yeah. You can still have the transactions conflict within a block. They just can't be in the same entry. What we're doing here is basically creating batches that will become the entries. Okay, so let's simplify and just say we have a batch size of three. It's really 64, but once we select these ones, we would create just a batch of transactions. In this case it'd be three.
+00:08:58.774 - 00:09:36.990, Speaker B: Then we would go through the actual process of executing and putting these into the block. So that's a few steps. Basically lock the accounts that are necessary for this, run some initial checks. And this is, has this transaction already been processed or is it too old to be processed? Okay, then we will load the accounts, execute them, record them into the block, and then commit.
+00:09:37.182 - 00:09:38.034, Speaker C: Okay.
+00:09:39.854 - 00:09:58.834, Speaker B: So yeah, this lock step is basically because we've got four independent threads here. So this thread might be processing a transaction that's also writing the same account that this transaction is trying to write. And you can't do that in parallel safely. It's like a race condition.
+00:09:58.914 - 00:09:59.274, Speaker C: Right.
+00:09:59.354 - 00:10:08.306, Speaker B: So here we try to lock them. If we can't lock them, then we will mark this with a transaction error accountant use.
+00:10:08.410 - 00:10:17.346, Speaker A: And so this is always like to avoid double spending or updating data in a specific account? Basically, yeah.
+00:10:17.410 - 00:10:24.178, Speaker B: It would just lead to inconsistencies between what the validator is doing and what people are replaying.
+00:10:24.266 - 00:10:24.974, Speaker C: Okay.
+00:10:26.314 - 00:10:32.626, Speaker B: But this account would get marked if it failed the lock with this error, and then it would be retried later on.
+00:10:32.810 - 00:10:33.654, Speaker C: Okay.
+00:10:35.834 - 00:10:52.874, Speaker B: When we get through all of these steps, we will be done with this batch, and we will go to the next batch. Each iterator will just march forward until it finds the next non conflicting transaction. So this one would go here, this one would go here, this one would go somewhere over here.
+00:10:53.374 - 00:10:54.982, Speaker A: Okay, so quick.
+00:10:55.158 - 00:10:55.542, Speaker C: Sure.
+00:10:55.598 - 00:10:57.034, Speaker A: What do each of these do?
+00:10:57.334 - 00:10:57.990, Speaker C: Yep.
+00:10:58.102 - 00:11:25.178, Speaker B: So this is trying to see which transactions we can actually grab locks for. So each of these transactions will read and write some number of accounts, and we need to make sure that there's no other thread that is conflicting with that. So you can't have two write locks outstanding. And if you have a readlock, then you can't be writing at the same time. Okay, here we check if the transaction is too old or has already been processed.
+00:11:25.266 - 00:11:29.774, Speaker A: Okay, so that's the expiration. How do you know whether or not it's been processed?
+00:11:30.474 - 00:11:44.124, Speaker B: So the actual banks have a status cache, which is basically just keeping track of the last. I think it's 150, maybe 300 slots transactions. And it just keeps the signature, I think.
+00:11:44.544 - 00:11:48.816, Speaker A: And this is different per validator. Like, it's not going to be the same across.
+00:11:49.000 - 00:11:49.912, Speaker B: That would be the same.
+00:11:50.008 - 00:11:50.256, Speaker C: Okay.
+00:11:50.280 - 00:11:51.072, Speaker B: It should be the same.
+00:11:51.168 - 00:11:58.200, Speaker A: Should be roughly the same, I guess. Like, how do they keep it the same across? Like, if you have a validator tied.
+00:11:58.232 - 00:12:27.584, Speaker B: To the bank, not like so, like, I don't know. Each validator should have a consistent view of what each slot or each block, which transactions were in it. Okay, so you've got like the banking forks. So slot one, slot two is like a child of that. And let's say three got skipped. So someone went to four, and then there was three over here. Right.
+00:12:27.584 - 00:12:34.324, Speaker B: Each of these banks would know what transactions the previous banks had in them.
+00:12:34.624 - 00:12:35.464, Speaker C: Okay.
+00:12:35.624 - 00:12:49.288, Speaker B: And so every validator is keeping track of that per banking fork. So three and four would not have the transactions in its status cache that three has, but they would both have two.
+00:12:49.416 - 00:12:49.728, Speaker C: Right.
+00:12:49.776 - 00:12:50.784, Speaker B: Because it's like a fork.
+00:12:50.864 - 00:12:51.536, Speaker C: Okay, got it.
+00:12:51.560 - 00:12:53.720, Speaker A: Because that's getting a little bit more consensus.
+00:12:53.752 - 00:12:53.896, Speaker C: Yeah.
+00:12:53.920 - 00:13:14.128, Speaker A: It's like, okay, because two was committed or I guess finalized or something, and you don't have the forking. Three was skipped. Four is fine. Everybody after four will have whatever the four banking status cash is with three will catch up eventually after understands that it was forked off the network.
+00:13:14.216 - 00:13:23.968, Speaker B: Yeah. And I forget exactly when, but eventually you can, like, you don't have to keep track of the entire history of all transactions at some, like, timeout period.
+00:13:24.056 - 00:13:24.570, Speaker C: Okay.
+00:13:24.672 - 00:13:35.998, Speaker B: Because transactions can only process for like 150 slots after they were created. So I think it's probably 150 slots. It might be some wiggle room in there, a little bit of buffer depending on, I'm not entirely sure, to be honest.
+00:13:36.086 - 00:13:36.494, Speaker C: Got it.
+00:13:36.534 - 00:13:41.614, Speaker B: It just makes sure that they haven't been processed in some period of banks before that we're currently doing.
+00:13:41.694 - 00:13:43.742, Speaker A: So that's check what happens in load.
+00:13:43.838 - 00:13:54.804, Speaker B: Load will load the actual accounts that are necessary for executing the transaction. We do some checks there. When we load the fee payer, we make sure, hey, can this guy actually pay the fees?
+00:13:54.924 - 00:13:55.664, Speaker C: Okay.
+00:13:56.404 - 00:14:13.716, Speaker B: There's also some other checks in there to make sure that whatever program you're trying to execute is a valid program. But yeah, it's just loading the accounts and then some initial setup work there. Executing is actually setting up the vm and running the vm for each transaction.
+00:14:13.820 - 00:14:16.904, Speaker A: And figuring out the pre and post balances on each one.
+00:14:17.984 - 00:14:27.176, Speaker B: Yeah, I guess here is where you get the actual accounts which have the pre balance. Execute is the stage where we change those balances or potentially change those balances.
+00:14:27.240 - 00:14:27.884, Speaker C: Okay.
+00:14:29.584 - 00:14:56.724, Speaker B: Record is where we actually take whatever we've got a batch of transactions. So let's say we have three transactions. We will run a hash over that and then insert that hash into the proof of history. And if that succeeds, then we will commit. If it fails, this just means that we basically started execution before our block ended, but while we were executing, the block ended, so then it can't be validly recorded.
+00:14:56.884 - 00:15:01.544, Speaker A: Okay, I guess. How would that fail? Because of that. Why?
+00:15:02.764 - 00:15:23.282, Speaker B: Basically, the proof of history is always hashing, and it's supposed to keep up with 400 milliseconds per slot. So, like, that's running in some other thread. And as soon as that reaches, like, the tick height for the bank or for whatever slot we're in, then it will, like, end that slot and I guess move on to the next one.
+00:15:23.338 - 00:15:26.294, Speaker A: Right, and this is how you can possibly have, like, skip slots as well.
+00:15:27.514 - 00:15:30.114, Speaker B: Yeah, you can have skip slots for a whole bunch of reasons.
+00:15:30.194 - 00:15:31.610, Speaker A: Well, one of the reasons, I guess.
+00:15:31.642 - 00:16:00.780, Speaker B: Yeah. Um, but, yeah, this is basically just tells us if this succeeds, it tells us that it made it into the block, and that would be in whatever block we are producing. Commit is where we actually propagate the changes back into the account system. Future transactions in this slot or transactions in subsequent slots will have the updated view of whatever account there is.
+00:16:00.892 - 00:16:18.544, Speaker A: All this happens, you execute, record it, and then you commit it. Once you commit it, you're propagating the information out to the cluster. Like, hey, this is what I've found with this batch of transactions. This is what I found. As the post balances, the data changes, et cetera. Is that correct?
+00:16:18.884 - 00:16:25.892, Speaker B: No, no. Okay, there we go. So record the record is where we just send out the transactions.
+00:16:25.948 - 00:16:27.652, Speaker A: So it records when we do it?
+00:16:27.748 - 00:16:33.424, Speaker B: Yeah, because we don't actually send out the transaction results as part of, like, banking.
+00:16:33.544 - 00:16:34.352, Speaker C: Okay.
+00:16:34.528 - 00:16:42.720, Speaker B: RPCs will, like, have that information available, but, like, the actual leaders aren't, like, spamming that out because it'd be potentially a lot of data.
+00:16:42.792 - 00:16:43.072, Speaker C: Right.
+00:16:43.128 - 00:16:51.136, Speaker B: So they just send over, like, what transactions are in the block. And that's done via turbine, I think. And that happens as part of record.
+00:16:51.240 - 00:16:55.528, Speaker A: Okay, so it's in this step. Okay, that's where I missed, although I.
+00:16:55.536 - 00:17:04.878, Speaker B: Do, I think you're right that, like, RPCs would send out, like, the post balances during this step. Okay, I'm not as familiar with that, but I think it'd be during that step.
+00:17:04.966 - 00:17:09.926, Speaker A: Okay, that makes sense then. Okay, so moving back a little, bit.
+00:17:09.990 - 00:17:16.918, Speaker B: So we, there's one final step, which is to unlock the accounts. Oh, yeah. That's an important one.
+00:17:17.046 - 00:17:18.554, Speaker A: Otherwise you can't go to the next.
+00:17:19.374 - 00:17:19.638, Speaker C: Yeah.
+00:17:19.646 - 00:17:20.718, Speaker B: And you can't do anything else.
+00:17:20.806 - 00:17:27.498, Speaker A: So all this is done in a single, I guess this would be done in a single thread, right?
+00:17:27.626 - 00:17:28.334, Speaker C: Yep.
+00:17:29.074 - 00:17:32.114, Speaker B: I guess there's four threads all doing this, right?
+00:17:32.194 - 00:17:32.506, Speaker C: Yeah.
+00:17:32.570 - 00:17:35.494, Speaker A: How do they package them into an actual block, though?
+00:17:36.154 - 00:18:14.446, Speaker B: So that's done by poh, which is what this is communicating with. Somewhere over here is. I don't know where we want to draw this. Let's just put it here. There's like a poh thread, and this is just constantly hashing until it receives. Either it hashes enough to do the next tick, or it will have received a batch of transactions that is trying to record. This step would send a message to the poh thread, and then we hash it, then send that message, and then it gets inserted into the poh.
+00:18:14.446 - 00:18:19.764, Speaker B: If that succeeds, this is where this gets sent to broadcast.
+00:18:23.144 - 00:18:23.608, Speaker C: Okay.
+00:18:23.656 - 00:18:30.552, Speaker B: Actually, I don't remember off the top of my head if it's this thread that sends it to broadcast or to banking thread.
+00:18:30.648 - 00:18:31.056, Speaker C: Okay.
+00:18:31.120 - 00:18:37.136, Speaker B: One of them, if the Poh record succeeds, will send it to broadcasting to get those transactions out there.
+00:18:37.200 - 00:18:38.144, Speaker A: So then question.
+00:18:38.304 - 00:18:38.624, Speaker C: Sure.
+00:18:38.664 - 00:18:48.106, Speaker A: So we have each of these as a separate thread, but they could potentially be scheduling transactions for a single block.
+00:18:48.170 - 00:18:48.562, Speaker C: Right.
+00:18:48.658 - 00:18:49.458, Speaker A: How do they.
+00:18:49.586 - 00:18:52.554, Speaker B: Yeah, they are all trying to build the same block at the same time.
+00:18:52.634 - 00:18:52.938, Speaker C: Okay.
+00:18:52.986 - 00:18:59.826, Speaker B: We've got four threads that are all trying to execute and commit transactions into the same block.
+00:18:59.890 - 00:19:02.514, Speaker A: So how do they end up synchronizing and record to do all this?
+00:19:02.554 - 00:19:03.134, Speaker C: Then.
+00:19:04.994 - 00:19:08.050, Speaker B: This guy has like a fifo queue that all of them are inserting.
+00:19:08.082 - 00:19:09.074, Speaker A: So you're just shoving.
+00:19:09.194 - 00:19:25.718, Speaker B: Yeah. The PoH thread will be ticking along, and then it will receive messages, which is going to a fifo queue it's shared. And then he will process them in the order that they were received, then continue taking.
+00:19:25.886 - 00:19:27.222, Speaker C: Okay, that makes sense.
+00:19:27.398 - 00:19:37.724, Speaker A: Backing up a little bit. Here we have the four threads. How is it today scheduled the ordering?
+00:19:38.544 - 00:19:38.992, Speaker C: Yeah.
+00:19:39.048 - 00:19:54.560, Speaker B: So these buffers are erase if you want. It's fine. These are a priority queue. And then when we serialize it, this would be all the highest priority transactions. This would be the lowest over here.
+00:19:54.632 - 00:19:54.920, Speaker C: Okay.
+00:19:54.952 - 00:19:56.804, Speaker A: And how is priority determined?
+00:19:57.584 - 00:20:14.118, Speaker B: By inspecting the actual transactions. So you just look at, there's the compute unit price that people can set as an instruction. It's basically a tip to the validator to get you towards the front of this buffer.
+00:20:14.206 - 00:20:14.942, Speaker C: Okay.
+00:20:15.118 - 00:20:27.646, Speaker A: So you're saying I'll pay x amount of, I think it's micro land ports per cu, and that ends up being overall on your transaction. And then you're prioritized based off of whatever that number is.
+00:20:27.710 - 00:20:28.178, Speaker C: Yep.
+00:20:28.286 - 00:20:47.194, Speaker B: Yeah. And right now it is strictly based off of that Cu price. There's probably going to be some changes coming up where we will do like total fee over and probably total reward over Cus because it just makes more economic sense for the validator. But right now it's just purely based on the Cu price.
+00:20:47.314 - 00:20:47.770, Speaker C: Okay.
+00:20:47.842 - 00:20:53.194, Speaker A: So you'd include. We can get into that later, but. Okay, that's interesting.
+00:20:53.354 - 00:20:54.174, Speaker C: Okay.
+00:20:55.384 - 00:21:11.544, Speaker B: Yeah, so I touched on this earlier, but we serialize each buffer and then we use the multi iterator to just basically select which transactions go into each batch. And then those iterators march forward, and that is how we choose the next batch.
+00:21:11.704 - 00:21:12.524, Speaker C: Okay.
+00:21:14.224 - 00:21:27.854, Speaker A: Is that always, as you mentioned earlier, in those certain amount, because you said this one was the first, or some NFT mints have the same account, you would always have that amount marching forward or what is that?
+00:21:28.194 - 00:22:31.080, Speaker B: No, it's like, yeah, so I guess initially all the iterators started the first one, and we would grab, I guess the first iterator would go here, and then the second one would go and try and see, hey, does this one conflict? And we're basically doing some sanity checks. Like, we need to make sure that our batches don't have conflicting transactions. The first thing we do is just check, hey, does this one conflict with anything else in the batch? Currently, there's a couple of other checks in gloss over there. If this transaction conflicts with this one, basically this index is not marked as processed. Next time, when the iterator is march forward, they just march forward one at a time. And this guy would see, hey, this hasn't been processed. So it's just marching forward one at a time, I guess.
+00:22:31.152 - 00:22:39.044, Speaker A: Yeah, just going back for a bit, back to this line. Could you explain how the record gets into the poh?
+00:22:39.824 - 00:23:29.586, Speaker B: Yeah, sure. Poh is basically just running a fast loop. Let me erase this bank fork stuff. So it's basically just running a loop. And I think it's like it tries to receive, and this trying to receive is each of these banking stage threads. I don't know how to draw this well, because it's not part of really the pipeline, but each of these threads has a channel that is communicating with the poh thread. They will just insert a message into that channel.
+00:23:29.586 - 00:23:57.514, Speaker B: And this is where Poh picks that up. If it received a message. Uh, it's kind of like pseudocode. Like, basically, if it receives that message which has the transactions or the transaction hash in it, then it will like lock poh, insert. And this is like.
+00:23:58.174 - 00:24:00.718, Speaker A: Is that locking the hash? Locking poh?
+00:24:00.806 - 00:24:04.766, Speaker B: Yeah, it's like the actual, like hash that we're updating in Poh because that's.
+00:24:04.790 - 00:24:06.754, Speaker A: What gets assigned to the block.
+00:24:07.254 - 00:24:31.594, Speaker B: There's some view. We have hash one, and then this is the starting state. Then we just hash this with the hash of the transactions. And that will give us some result. Hash two, and then that's the new view of poh. And then if it doesn't receive any messages from banking stages, it will check. I forget exactly how this is done.
+00:24:31.594 - 00:24:37.858, Speaker B: I think it's like it checks if enough time has passed since the last tick, and then it will try to tick.
+00:24:37.986 - 00:24:39.106, Speaker A: So what is a tick?
+00:24:39.170 - 00:25:07.318, Speaker B: A tick is just doing some number, some set number of hashes since the last hash. So right now that would be 12,500 hashes per tick. And it's just like hashing this with. I don't know what it's hashing. It's just doing some sort of hashing operation on whatever the current view of Poh is. This number is going to go up soon, but I forget what the exact numbers it is are.
+00:25:07.406 - 00:25:09.554, Speaker A: I've seen that there's a feature date for it.
+00:25:10.294 - 00:25:50.694, Speaker B: Basically, this is creating two different types of entries, which are transaction entries and then tick entries. This just helps us order things because the actual block, a block is just a whole bunch of entries back to back. So we have entry one, which is a transaction entry, and then after that is entry two, and this is some other transactions. And then we had a tick there. And there are 64 ticks per block. And it has to end with a tick. But the ticks sort of.
+00:25:50.694 - 00:25:56.486, Speaker B: Yeah, just, they're for like the timing purpose of the blocks.
+00:25:56.550 - 00:25:59.034, Speaker A: Is there like a set amount of entries per block?
+00:26:01.054 - 00:26:09.094, Speaker B: There would be, because there's like some, there's some maximum on the number of like shreds that you can send.
+00:26:09.214 - 00:26:10.046, Speaker C: Okay.
+00:26:10.230 - 00:26:12.878, Speaker B: But I don't know what that is off the top of my head.
+00:26:13.046 - 00:26:24.614, Speaker A: So it's like. So in the block you'll have these entries and they'll be separated by text. And that kind of tells you that these entries took roughly this amount of time to execute.
+00:26:25.354 - 00:26:43.490, Speaker B: Yeah, I think that's essentially the point. And then each of these entries can't have conflicting transactions, but these two could both potentially write the same account. And then you just have to, if these do conflict, then you just have to execute whatever transactions were in this one first.
+00:26:43.642 - 00:26:45.114, Speaker C: Right. Okay.
+00:26:45.574 - 00:26:46.574, Speaker B: That kind of makes sense.
+00:26:46.654 - 00:26:46.894, Speaker C: Yeah.
+00:26:46.934 - 00:26:55.318, Speaker A: So they would. So if you're writing to the same account, these two each can write to the same account, but this one cannot in itself.
+00:26:55.406 - 00:26:56.834, Speaker C: Yeah. Okay.
+00:26:57.214 - 00:27:01.494, Speaker A: And does it really matter what order the entries are in?
+00:27:01.654 - 00:27:02.262, Speaker C: Nope.
+00:27:02.358 - 00:27:03.998, Speaker B: That's just up to the validators.
+00:27:04.046 - 00:27:07.342, Speaker A: It's just how you scheduled them and ordered them.
+00:27:07.438 - 00:27:19.450, Speaker B: Yeah. And they could reorder them if they want, but once they're like in the Poh, that's the set order. Because we said that this was the correct hash for this location.
+00:27:19.602 - 00:27:28.334, Speaker A: And all of this is based off of the bouter. It doesn't have to be this way. It's not guided by consensus.
+00:27:28.834 - 00:27:32.450, Speaker B: You mean this multi iterator stuff or the ordering?
+00:27:32.522 - 00:27:33.690, Speaker A: Any of the ordering here?
+00:27:33.762 - 00:27:40.310, Speaker B: Yeah, basically all of this is outside of consensus. And the leader can do whatever they want as long as they create a valid block.
+00:27:40.462 - 00:27:41.234, Speaker C: Okay.
+00:27:42.094 - 00:27:51.634, Speaker A: And you can just basically check that based off of the entries, the texts, making sure that the entries don't have conflicting rights in a single entry, but they can in separate write.
+00:27:52.774 - 00:28:33.504, Speaker B: Right now there's a bit more that goes into it. Those are some of the checks that they have to run. But right now you have to execute the transactions to make sure that they're actually valid. So like each on the block validation side, you have to make sure that every transaction in these entries has valid program accounts and can pay fees, basically passing the checks that are in here that require just executing them in order to determine whether or not that's a valid entry. Then if any of the entries are invalid, then the entire block is invalid, and then that would just be thrown out.
+00:28:33.544 - 00:28:33.736, Speaker C: Yep.
+00:28:33.760 - 00:28:35.616, Speaker B: That's when you would like have a skipped slot.
+00:28:35.720 - 00:28:36.444, Speaker C: Okay.
+00:28:36.824 - 00:28:38.724, Speaker A: How would like an account be invalid?
+00:28:41.304 - 00:28:43.244, Speaker B: I guess an account can't be invalid.
+00:28:43.824 - 00:28:45.200, Speaker A: What about a program, though?
+00:28:45.312 - 00:29:02.270, Speaker B: A program? I think, like if it's not a valid, I forget exactly what it is. I'd have to ask the runtime guy. There's a bunch of checks in there that like, I think it's checking that you've got instructions in your transaction and you have to like specify what program account and what instruction it is.
+00:29:02.302 - 00:29:03.950, Speaker A: You make sure it's an actual program account.
+00:29:04.022 - 00:29:04.182, Speaker C: Yeah.
+00:29:04.198 - 00:29:07.150, Speaker B: You make sure that like, that program account is executable.
+00:29:07.262 - 00:29:07.534, Speaker C: Right.
+00:29:07.574 - 00:29:09.726, Speaker B: I think is the check or that is one of the checks.
+00:29:09.830 - 00:29:11.326, Speaker A: That's one of the things on the account, yeah.
+00:29:11.350 - 00:29:11.694, Speaker C: Okay.
+00:29:11.774 - 00:29:18.158, Speaker A: And all this right here is for non vote or. Yeah, non voting. Transactions, right?
+00:29:18.246 - 00:29:18.862, Speaker C: Yep.
+00:29:18.998 - 00:29:21.678, Speaker A: How does it differ with voting transactions?
+00:29:21.806 - 00:29:51.300, Speaker B: So voting transactions can't have priority. So having this whole multi iterator thing doesn't make any sense. Also, because each validator is really only voting maybe once per slot or once every few slots, there's not a lot of conflicting transactions. So, again, this sort of processing doesn't make sense. So the voting threads have their own storage, which is not a priority, too.
+00:29:51.372 - 00:29:53.080, Speaker A: Is it a separate thread in these?
+00:29:53.112 - 00:30:22.836, Speaker B: Yeah, there's. There's. There's, like. There's two threads, and they're both receiving packets from a separate Sig verify for votes. There's like. Yeah, there's a separate, like, Sig verified just for votes. They send it, and that gets into some thread, but you've got, sorry.
+00:30:22.836 - 00:30:43.324, Speaker B: There's a vote sig verify, and then I think TPU forwarded votes, which we don't sig verify. I believe there's one that doesn't go through Sig verify for some reason. And both of those threads that we're receiving will insert into the same shared buffer, which only keeps the latest vote for each node in the network.
+00:30:43.444 - 00:30:44.184, Speaker C: Okay.
+00:30:44.514 - 00:30:50.866, Speaker B: And then they execute actually the same way, which is locking those accounts, running checks low, and execute.
+00:30:50.930 - 00:30:56.170, Speaker A: But they would, because votes are very important. They would probably be ahead of all these non voting.
+00:30:56.202 - 00:30:56.774, Speaker C: Right.
+00:30:59.034 - 00:31:01.178, Speaker B: They're just processed in parallel.
+00:31:01.306 - 00:31:01.738, Speaker C: Okay.
+00:31:01.786 - 00:31:11.154, Speaker B: So they are actually competing for block space. We've got, like, 48 million ceus that can go into each block, and they would just compete.
+00:31:12.134 - 00:31:12.550, Speaker C: Okay.
+00:31:12.582 - 00:31:16.294, Speaker A: Is there not, like, a limitation for votes and transactions?
+00:31:16.414 - 00:31:30.326, Speaker B: There is a limit on how much room votes can take up in a block. There's no limit on how much room non votes can take up. There have been some discussions of giving some dedicated space for votes, but nothing solid yet.
+00:31:30.430 - 00:31:48.644, Speaker A: Okay, so this is how it kind of works. Like, the scheduling transaction, going through the banking, packing it, eventually shipping it off. But we're not including that here because that's turbine. Is there anything else that happens with any that we're missing?
+00:31:53.104 - 00:32:04.084, Speaker B: We talked about it earlier, but the forwarding is probably the big one that's not really displayed here. But, yeah, like I said, that's going away relatively soon, so let's just not talk about it.
+00:32:04.634 - 00:32:11.538, Speaker A: So, I guess let's talk about that then. What does it look like in the future? Like, this is currently what exists.
+00:32:11.626 - 00:32:12.130, Speaker C: Yep.
+00:32:12.242 - 00:32:15.266, Speaker A: What does it look like in the future? We can erase some of this if we need.
+00:32:15.290 - 00:32:25.658, Speaker B: Yeah. Let's talk real quick about one of the main issues. So one of the main issues with this sort of model is that we've got four independent threads that each have their own view of priority.
+00:32:25.786 - 00:32:26.454, Speaker C: Right?
+00:32:26.794 - 00:33:06.656, Speaker B: So like each of these might have some different max priority, and that can lead to just bad ordering. So like someone without jitter on the cluster. Yeah, basically just jitter. But also, like I mentioned earlier with like the NFT, if all the high priority ones conflict, that's probably going to be true for all of these buffers. And then they'll basically be competing when, just like a race to whoever can grab the locks first. And when that happens, we basically are wasting a whole bunch of processing time because we can't take locks for 60% of our transactions or something.
+00:33:06.760 - 00:33:12.640, Speaker A: Because you already did all this processing. You got here and you're like, well, I got to throw them out because they all conflict.
+00:33:12.752 - 00:33:48.850, Speaker B: Yeah. So I'm going to erase just like what's inside of banking stage here. And we can talk about how it's done in the new scheduler, which will be shipping in 118. So all of this stuff still remains the same for processing. But instead of having four completely independent banking threads, we have four workers and we have a scheduler here. This scheduler is the only one who is receiving from sigverify.
+00:33:48.962 - 00:33:49.474, Speaker C: Okay.
+00:33:49.554 - 00:34:03.834, Speaker B: He builds up a priority queue, and then we can basically, we use something called like a prior graph, which is basically not sure where to draw this.
+00:34:03.954 - 00:34:05.810, Speaker A: We could get rid of a loop thing.
+00:34:05.882 - 00:34:30.162, Speaker B: Yeah. So you have your top priority transaction that's obviously not going to conflict with anything that you've got right now. And then we have some other transaction that's the next highest priority. Say, does that conflict with any of the locks that we've taken? Let's say it does. We draw an edge in our graph. Let's say it doesn't. Then it's another one that's at the top of the graph.
+00:34:30.162 - 00:34:42.374, Speaker B: We'll basically just keep adding some small number of transactions. Right now does 2000, we build up a small graph of 2000 transactions and we might have some dependencies like this.
+00:34:43.454 - 00:34:46.314, Speaker A: When you say dependency, these are account dependencies.
+00:34:47.134 - 00:34:55.366, Speaker B: Yeah, it's basically conflicts. So this transaction conflicts with these two transactions. And since this one had higher priority, we should do this one first.
+00:34:55.470 - 00:34:55.966, Speaker C: Got it.
+00:34:56.030 - 00:35:10.514, Speaker B: So basically what we're doing here is the scheduler will say what's at the top of my graph? Let's try and send these out in batches. I guess we have four here. We would send one to each thread.
+00:35:10.654 - 00:35:11.454, Speaker C: Okay.
+00:35:11.954 - 00:35:36.664, Speaker B: And then we would basically move the view of the top of graph. So like these ones are no longer in the graph. And then we get these two as our next batch. But these two conflict with this one. So we can't necessarily execute them right now, but we can, like in this case we can just queue them up. So like, let's say this went to thread one, then these two can be sent to thread one.
+00:35:36.794 - 00:35:37.484, Speaker C: Okay.
+00:35:37.604 - 00:35:56.276, Speaker B: Because, yeah, basically, then as soon as this guy has channels to each of the worker threads and just keeps a view of which threads have which account locks, and it will queue up conflicting work so that basically the workers are always busy.
+00:35:56.420 - 00:36:10.594, Speaker A: How does that fix the jitter, though? Because these would still be sending, what are they sent doing? The record state or I guess, yeah. How does that actually fix the jitter?
+00:36:10.634 - 00:36:15.314, Speaker B: So, because there is only one view of like priority. We've got the priority queue in this guy.
+00:36:15.474 - 00:36:16.174, Speaker C: Right.
+00:36:16.794 - 00:36:20.386, Speaker B: We're always going to be sending like the transactions in priority order.
+00:36:20.530 - 00:36:24.178, Speaker A: Yeah, but they're sent to these threads which are separate.
+00:36:24.306 - 00:36:30.244, Speaker B: Yes. But we won't be sending conflicting work to the transact or to the different worker threads.
+00:36:30.354 - 00:36:30.960, Speaker C: Okay.
+00:36:31.072 - 00:36:35.720, Speaker B: We make sure that any work we send to this guy does not conflict with anything we've sent to any of them.
+00:36:35.832 - 00:36:36.604, Speaker C: Okay.
+00:36:37.064 - 00:36:44.364, Speaker B: And they just go through this process. That basically means that this step can't fail.
+00:36:44.664 - 00:36:45.392, Speaker C: Okay.
+00:36:45.528 - 00:37:01.136, Speaker B: And so we're always, that's why you do this, basically. So basically why we're doing this is we're creating batches that can't fail the lock. It's not strictly true, because they could conflict with like the voting threads, but that's very rare. We don't really see that.
+00:37:01.240 - 00:37:02.004, Speaker C: Okay.
+00:37:02.464 - 00:37:07.944, Speaker A: All right, so these are just like the low base. What are these, what are these called? Their worker threads.
+00:37:07.984 - 00:37:08.844, Speaker B: Yeah, workers.
+00:37:10.224 - 00:37:11.408, Speaker C: What exactly are they doing?
+00:37:11.496 - 00:37:14.684, Speaker A: So are they just doing these or.
+00:37:15.024 - 00:37:40.876, Speaker B: These threads are just doing this? Okay, so they've got channels or like FIFO queues from the scheduler. They will just receive those as fast as they can and run these steps, and then they'll send the message back to the scheduler that says, hey, I finished. So the scheduler can update, give the next worker load, the scheduler has to update its view of which locks are where. So you need to tell the scheduler, hey, I finished.
+00:37:40.940 - 00:37:41.380, Speaker C: Got it.
+00:37:41.452 - 00:37:42.944, Speaker A: Why four threads?
+00:37:44.044 - 00:38:04.758, Speaker B: It's just what we've historically done. Yeah, no real reason for four. We can go up to much more. Previously, we have not wanted to increase the number of threads because of this, because if you have too many threads, then it's more likely that you're going to conflict with each other. We could, with this change, increase the number of threads safely.
+00:38:04.926 - 00:38:05.714, Speaker C: Okay.
+00:38:06.094 - 00:38:18.410, Speaker B: Because this is unlikely. Yeah. Something we can probably look at. There's also just other reasons. We already overuse a huge number of threads in the validator, so we don't want to add too many more.
+00:38:18.482 - 00:38:19.666, Speaker A: It's a resource constraint.
+00:38:19.730 - 00:38:23.842, Speaker B: Yeah. But we could probably increase this if we felt it was necessary.
+00:38:23.978 - 00:38:36.254, Speaker A: Okay, a different question. So we have all this, right. What are the constraints that we have on the transactions in a block that would keep us, that are also to be considered throughout this?
+00:38:37.954 - 00:38:58.774, Speaker B: Yeah, so it's, I mean, like the main ones are like, you know, has to go through SiG verify, so the signatures are all valid. And then currently you have to be able to pay the fees. Each transaction has to be able to pay the fees that it specified as well. As I mentioned, there are some program checks in there. So those, there's a whole list of them.
+00:38:58.854 - 00:39:03.194, Speaker A: Yeah, there's also the compute unit one. Where does that factor in here?
+00:39:04.534 - 00:39:17.448, Speaker B: I guess I forgot to draw that in here, but that is actually here. So we have something called Qos, which just looks at the transactions like, can these even fit into the block?
+00:39:17.576 - 00:39:23.688, Speaker A: Okay, that's running like some running counter to make sure that you don't hit the limits.
+00:39:23.816 - 00:39:24.776, Speaker C: Yep. Yeah.
+00:39:24.800 - 00:39:37.368, Speaker B: It's just these transactions request this many cus, so we will add those in and then right now after they execute, we will update that if they didn't use all of their requested cusp.
+00:39:37.368 - 00:39:37.844, Speaker C: Okay.
+00:39:38.584 - 00:39:53.084, Speaker A: All right, so this is kind of like the new way for 1.18. Is there any other things that you're thinking about? Like, I know this. Any new ways that you're thinking about might not ever make it in, but like, what are different things that you might be thinking about on the transaction scheduling side?
+00:39:53.584 - 00:40:20.662, Speaker B: Yeah. So there are a lot better ways that we can like do this scheduling if we had accurate CU requests in talking with Tao to try and encourage people economically to request the actual number of cus that they need because that can help us create a more efficient schedule. Right now, when we send these transactions, we have only the requested amount of cus and that's not accurate.
+00:40:20.798 - 00:40:21.214, Speaker C: Right.
+00:40:21.294 - 00:40:25.318, Speaker B: So we basically have no idea how much time these transactions are actually going to take.
+00:40:25.366 - 00:40:27.406, Speaker A: Do you not get that until after execute that?
+00:40:27.430 - 00:40:29.250, Speaker B: Yeah, we don't know right now.
+00:40:29.342 - 00:40:29.546, Speaker C: Yeah.
+00:40:29.570 - 00:40:38.938, Speaker A: Cause like, I know that in the explorer, when you look at a transaction, it'll tell you like how many cus it actually, actually took. But it's like, of this request.
+00:40:39.026 - 00:40:39.250, Speaker C: Yeah.
+00:40:39.282 - 00:40:45.978, Speaker B: You get that after you like execute. So we have like an upper bound on how kind of long they can take.
+00:40:46.066 - 00:40:46.506, Speaker C: Okay.
+00:40:46.570 - 00:41:05.436, Speaker B: But right now people have no real reason not to just request way more. So like on average we see people requesting like 75 times more than they need. All right. Yeah. It's really hard for the scheduler to know how long these things are going to take. If we had a more accurate view, then. Yeah.
+00:41:05.436 - 00:41:13.420, Speaker B: We can just basically, instead of. Yeah, we can just schedule a little bit smarter. Yeah.
+00:41:13.572 - 00:41:14.324, Speaker C: Okay.
+00:41:14.484 - 00:41:19.852, Speaker A: That also affects this as well because it runs the counter up very quickly.
+00:41:19.948 - 00:41:28.890, Speaker B: Yeah. If they're all requesting 1.4 million cus, we're going to basically hit that real quick and other transactions can't get through until we update it again.
+00:41:29.002 - 00:41:29.734, Speaker C: Okay.
+00:41:30.714 - 00:41:44.170, Speaker B: In terms of other things. So there's SIMD 82, which will relax some of the checks that are done this stage, which are fee paying as well as the program, like the valid program constraints.
+00:41:44.242 - 00:41:44.974, Speaker C: Okay.
+00:41:47.114 - 00:42:21.798, Speaker B: And that would basically let this be done a little bit differently. We can move these three checks into the scheduler itself and then we can basically create blocks extremely quickly. These three things are very light. And then we could basically fill our blocks every single time consistently. And then you'd still have some workers actually executing the transactions. Sorry, not this one. That one does not go into the scheduler.
+00:42:21.798 - 00:42:22.830, Speaker B: These two.
+00:42:22.982 - 00:42:23.318, Speaker C: Right.
+00:42:23.366 - 00:42:29.286, Speaker B: You'd run some initial checks and then record them. And then you would broadcast that out, but then the workers would execute it after.
+00:42:29.430 - 00:42:29.902, Speaker C: Okay.
+00:42:29.958 - 00:42:40.170, Speaker B: And yeah, basically SIMD 82 makes it so you can guarantee that that entry is valid without actually executing.
+00:42:40.342 - 00:42:40.882, Speaker C: Got it.
+00:42:40.938 - 00:42:43.354, Speaker A: Because you're now running into some of those constraints.
+00:42:43.434 - 00:42:45.374, Speaker C: Yep. Okay.
+00:42:46.314 - 00:42:51.826, Speaker A: All right, so going back a little bit, can we talk a little bit more about how this part works? Sure.
+00:42:51.890 - 00:43:18.922, Speaker B: I'm going to erase some of this just so I have some more room. So in actual, in the actual main net beta traffic, what we see is there is a lot of contentious state where we have these long chains of transactions that all conflict with each other.
+00:43:18.978 - 00:43:19.122, Speaker C: Right.
+00:43:19.138 - 00:43:20.922, Speaker A: It's like an NFT mint or something.
+00:43:21.058 - 00:43:21.354, Speaker C: Yeah.
+00:43:21.394 - 00:43:28.618, Speaker B: And you might have some splitting off where this conflicts with a bunch of them and then joins back up.
+00:43:28.706 - 00:43:34.904, Speaker A: So how, I guess, what does that mean? I guess where there's multiple dependencies.
+00:43:37.764 - 00:43:46.212, Speaker B: So this might be writing accounts a and b. So this one might only write a, this one only writes b. These two transactions don't conflict with each.
+00:43:46.228 - 00:43:48.944, Speaker A: Other, say C. So each one of these is a transaction.
+00:43:49.364 - 00:44:05.354, Speaker B: If this is writing a, b and C, and this guy is writing b and c, then you would conflict with both of these. That's not a good example because those two would conflict. Sorry, B and D. Okay, so, like, these two don't conflict, but they both conflict with this one.
+00:44:05.854 - 00:44:06.294, Speaker C: Okay.
+00:44:06.334 - 00:44:10.622, Speaker B: And then this one doesn't conflict with that one, but this one conflicts with that one.
+00:44:10.718 - 00:44:11.030, Speaker C: Okay.
+00:44:11.062 - 00:44:17.514, Speaker A: How is this created? Like, because that's feels like this could take a lot of processing to get created.
+00:44:17.934 - 00:44:48.810, Speaker B: So, yeah, we've already got the priority order for the transactions. This is like, while we're. While the scheduler is receiving packets before we're leader, we're always inserting into a priority queue, and then basically just pop from the top of that priority queue and then insert into this. It's called the prior graph. I separated it out into a different crate. But the prior graph basically keeps track of which transaction or not which.
+00:44:48.882 - 00:44:49.090, Speaker C: Yeah.
+00:44:49.122 - 00:45:09.470, Speaker B: Which transactions last touched an account and how. So we basically have some view, let's say. I think that's probably too far to the left. I'll draw it inside. Basically have a table or a hash map.
+00:45:09.502 - 00:45:09.670, Speaker C: Right.
+00:45:09.702 - 00:45:22.768, Speaker B: We've got account a. And this is touched by transaction two or something like that. And then next time we see an account that's writing or reading a, we'll say, okay, that conflicts with transaction two. And now this is transaction three.
+00:45:22.886 - 00:45:23.316, Speaker C: Okay.
+00:45:23.380 - 00:45:40.252, Speaker B: And so we just keep a view of whoever touched the last account when or not when, but how. And that lets us pretty quickly build this up. Don't remember the exact timings, but it's just me, like, water a few millies to build up, like, a pretty sizable graph.
+00:45:40.348 - 00:45:40.796, Speaker C: Okay.
+00:45:40.860 - 00:45:46.796, Speaker A: And this is done like, we have four here. Is that just like the four different transactions that can run.
+00:45:46.900 - 00:45:58.854, Speaker B: Yeah. So, like, this guy conflicts with all these downward transactions. This guy might also. And this guy might also. But if these guys don't conflict, we could run them in parallel.
+00:45:58.934 - 00:45:59.638, Speaker C: Okay.
+00:45:59.806 - 00:46:18.800, Speaker A: So this could potentially be like, gosh, I feel like this could get really involved very quickly because you're creating basically a graph structure with this table. And this could be over here. This could be like d. Right? And say, would you then have that going on?
+00:46:18.912 - 00:46:19.296, Speaker C: Yep.
+00:46:19.360 - 00:46:20.164, Speaker A: Oh, boy.
+00:46:21.544 - 00:46:50.946, Speaker B: Yeah, it can be very complicated. So I guess in this case, at the top of graph, we can run all of these guys in parallel. So this would maybe get sent to thread one, two, three, and four, respectively. This one would then also get queued up for two. These would both go to one, and then this one will go to three, et cetera. But then when we get to this guy, he can't be scheduled yet because this one is on thread one, and this is on thread two.
+00:46:51.130 - 00:46:56.226, Speaker A: How do the different threads know about it, what the others are doing that's.
+00:46:56.250 - 00:47:18.736, Speaker B: Just tracked in the scheduler. They're sending information. The scheduler has a view of which threads have which locks. And then when we pop these off the top of graph, we say which threads can we schedule these transactions to based on our current view of the locks? And then we'll select some thread and we try to do some load balancing there as well.
+00:47:18.880 - 00:47:19.216, Speaker C: Okay.
+00:47:19.240 - 00:47:31.004, Speaker A: So this basically is just like a moving window for, and you're creating this basically on the fly to keep moving the window down based off of ideally priority.
+00:47:31.584 - 00:47:38.332, Speaker B: Yeah. So the way that we're doing it will strictly respect priority for the things that are in the buffer already.
+00:47:38.468 - 00:47:41.172, Speaker C: Okay. Wow, that's pretty cool.
+00:47:41.228 - 00:47:54.892, Speaker B: It doesn't like you could still like receive early on start scheduling and then receive a high priority packet that's not going to like take over this and like get inserted at the top. It would, you know, get inserted at.
+00:47:54.908 - 00:48:10.224, Speaker A: Like the next time we iterate the next like window. Like if, yeah, if we got, say we got something with d or something which is much higher priority than this transaction would, then that move this over and insert that transaction there.
+00:48:10.264 - 00:48:15.752, Speaker B: How does that work now if it's already been scheduled, it's not going to take priority right now.
+00:48:15.808 - 00:48:16.484, Speaker C: Okay.
+00:48:17.744 - 00:48:30.884, Speaker B: We could potentially do that. It's difficult to, so I have thought about this, but you could make these communication channels have priority ordering, but that really only works if we have.
+00:48:34.444 - 00:48:34.732, Speaker C: If.
+00:48:34.748 - 00:48:49.364, Speaker B: We have transaction by transaction, because we don't send transactions like transaction by transaction here. We send batches of transactions. Okay. Yeah. Right now that's just like a Fifo and the worker will work through in the order it received.
+00:48:49.524 - 00:48:50.132, Speaker C: Okay.
+00:48:50.228 - 00:49:03.902, Speaker A: So here we're already, well, some of this, we're already past like the priority scheduling. So we already know roughly how they should be scheduled based off that window. And then we figure out the graph after that.
+00:49:03.958 - 00:49:06.302, Speaker B: Right, sorry, can you say it again?
+00:49:06.398 - 00:49:09.582, Speaker A: So like whenever we're creating this, what did you call it?
+00:49:09.598 - 00:49:11.390, Speaker B: A priority graph.
+00:49:11.422 - 00:49:18.262, Speaker A: Yeah, priority graph. Whenever you're creating this priority graph, you already know based on the scheduler, roughly the order.
+00:49:18.358 - 00:49:18.926, Speaker C: Right.
+00:49:19.070 - 00:49:26.914, Speaker A: And so this graph will be created and then if you receive new ones, that's going to be like a separate, is that separate graph or.
+00:49:27.924 - 00:49:42.188, Speaker B: Yeah. So the scheduler basically does a loop and checks. Am I the leader? If I'm the leader, start scheduling. Then each time it does the scheduling, it will build a new graph from scratch.
+00:49:42.316 - 00:49:42.660, Speaker C: Okay.
+00:49:42.692 - 00:50:19.774, Speaker B: Because again, this is really cheap. Right now, in the version that's in 118, the scheduler loop will do receiving of one new transactions than schedule. So we only receive new transactions between iterations. I want to make a change where this is done in a separate thread. And then that would let us get high priority transactions basically during scheduling. So then that would let higher priority transactions make it into the graph basically as soon as they're received, ideally assistance. Yeah, right now it's not like that.
+00:50:19.774 - 00:50:26.772, Speaker B: There are some changes to the internal data structures that I need to make to make this able to go into a different thread.
+00:50:26.908 - 00:50:27.732, Speaker C: Okay, cool.
+00:50:27.788 - 00:50:31.972, Speaker A: And all of this code wise can be found. You said it's like in a separate crate crate.
+00:50:32.068 - 00:50:38.028, Speaker B: So this dependency graph is in a separate crate. The rest of it's in banking stage.
+00:50:38.116 - 00:50:39.148, Speaker A: What's the crate called?
+00:50:39.276 - 00:50:40.100, Speaker B: Prior graph.
+00:50:40.172 - 00:50:40.864, Speaker C: Okay.
+00:50:42.604 - 00:50:50.482, Speaker B: Yeah, I separated it out because originally I was using this for visualizing transaction dependencies. And so I have a bunch of personal tools that use this.
+00:50:50.538 - 00:50:51.114, Speaker C: That's awesome.
+00:50:51.194 - 00:50:54.254, Speaker B: And I didn't want to pull in the whole salon repo every time.
+00:50:55.074 - 00:51:05.826, Speaker A: I mean, it's great to have a little bit more modular so that people have a little bit easier way of working on different parts, especially the banking stage, which I think is like 10,000 plus lines of code.
+00:51:05.890 - 00:51:06.534, Speaker C: Yep.
+00:51:07.994 - 00:51:11.282, Speaker A: Yeah. I don't think GitHub can even load the file for banking stage.
+00:51:11.338 - 00:51:12.254, Speaker B: It's pain.
+00:51:13.434 - 00:51:14.454, Speaker C: All right, cool.
+00:51:14.974 - 00:51:19.954, Speaker A: Is there anything else that you want to go over with how transactions are scheduled?
+00:51:23.094 - 00:51:36.274, Speaker B: I don't think so. If you have any more questions, I'm happy to answer, but I can't think of anything off the top of my head. I think this is a pretty solid overview of how things work. Obviously, there's a lot of details in all of these different components.
+00:51:36.814 - 00:51:51.630, Speaker A: We'll just outran. Well, thank you, Andrew, for going over this with me. It's really taught me a lot. I didn't know, especially this newer stuff, how that works on the scheduling side and the banking stage. But yeah. Thank you. I look forward to how this changes in the future.
+00:51:51.782 - 00:51:52.494, Speaker B: Thanks for having me.

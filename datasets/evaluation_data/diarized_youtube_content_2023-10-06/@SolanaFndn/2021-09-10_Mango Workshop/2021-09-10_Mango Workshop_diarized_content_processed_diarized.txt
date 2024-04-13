@@ -1,0 +1,345 @@
+00:00:07.160 - 00:00:09.086, Speaker A: I just share my screen here, right?
+00:00:09.230 - 00:00:11.594, Speaker B: Yeah. Cool.
+00:00:12.934 - 00:00:40.820, Speaker C: Hey, everybody, welcome to the latest ignition hackathon live stream. Today we have a couple of very special guests here. We have Daffy and Max with mango markets. They're going to run through some very exciting stuff with integration and building some stop losses. As always, put your questions in the chat. We'll get to them either during the live coding session or at the end. And, yeah, take it away.
+00:00:40.820 - 00:00:42.784, Speaker C: Daffy and Max, thanks so much for joining.
+00:00:43.724 - 00:01:04.792, Speaker A: Hey, yeah, so, I mean, I don't know how much of an intro I should do here. Daffy, one of the co founders here at Mango Markets, will be just going over this technical intro doc, which I'm not sure if, I'm not sure if it was shared to you guys. Like, I'm just gonna try to share it in the chat again just to.
+00:01:04.808 - 00:01:11.664, Speaker B: Make sure and Max can intro himself. Yeah.
+00:01:11.704 - 00:01:40.684, Speaker D: Hi, what's the contributor working on the core of mango markets? If you have questions, just reach out here and chat. Probably more on the sidelines doing a presentation, trying to take care of your questions, if therefore doesn't see them. And yeah, if you have more questions later, feel free, come over to our discord, give us a visit. We're always around and helping people dig through the code.
+00:01:44.264 - 00:01:45.044, Speaker B: Cool.
+00:01:45.544 - 00:01:48.964, Speaker A: All right, so let me share my screen.
+00:01:52.044 - 00:02:03.664, Speaker B: Let's see. Share screen. All right, so we're going to go over this doc and then.
+00:02:05.964 - 00:02:08.384, Speaker A: All right, is everybody able to see the screen?
+00:02:10.444 - 00:02:17.368, Speaker B: Good? I guess. I guess I also have to see the chat. This one? Yep. Cool.
+00:02:17.416 - 00:02:50.772, Speaker A: All right, so I thought we'd do this in like two. Basically break this up into two pieces. First, I put together a short doc here, and you can tell, you know, I started it last night just to go over basically the accounts, some of the big accounts that you might see. And there's very strongly inspired by the serum Dex technical intro doc, which there's a link to that down here at.
+00:02:50.788 - 00:02:52.384, Speaker B: The, at the bottom of this one.
+00:02:53.204 - 00:02:58.944, Speaker A: Which, you know, I found that very helpful. So I'm trying to do something similar for mango.
+00:03:00.644 - 00:03:01.020, Speaker B: Yeah.
+00:03:01.052 - 00:03:30.256, Speaker A: So, you know, without further ado, like, let me also say this. I don't know the level of expertise of everyone here, but this is probably going to be like an intermediate level. So we're not going to cover how accounts work in Solana or how transactions work. And also this is probably going to be mostly program level, not too much.
+00:03:30.280 - 00:03:31.284, Speaker B: On the client side.
+00:03:33.724 - 00:04:23.434, Speaker A: So I'll do that. We'll go over this with the doc briefly, and then we'll just kind of, I was thinking we'll just start implementing the stop loss orders. That's something that people want, and I have been meaning to get to it and I have a design in my head, but let's see if I can just crank it out on stream here. And that would also include some JavaScript if we get to that. Let's get started. There are probably these six accounts that are really important that show up everywhere in a lot of different instructions. The first one being the manga group that shows up in, I think, every single instruction.
+00:04:23.434 - 00:05:31.234, Speaker A: And the mango group, if you know anything about Mango V two or v one or whatever, it's the same idea. It holds all this information, it's like an information cache holds all this information about what this particular cross margined, risk pooled group of tokens are. You know, we have a bundle of tokens that are all pooled together. And when you go to mango markets, you're interacting with one particular mango group. There could be many, you know, they could, they could have different quote currencies, whatever, but, and of course anyone can launch a mango group, but the one you see on mango markets is a particular mango group. And, yeah, so it has all this information about tokens and it's very rarely written to, so that's kind of important. I think it's always passed in as a readable account.
+00:05:31.234 - 00:06:31.656, Speaker A: And this might be something that is a optimization you might not be aware of with Solana, is that you don't want to pass in every account as writable. You want to clearly mark some accounts as readable. And this mango group will almost always be readable, except when we're adding a new market, which we'll be doing soon. So, yeah, mango group basically is just like information. You don't ever write to it. Then the mango account, which is self explanatory, it's the account for a user, and it keeps track of all the users deposits, borrows, perps, position balances and funding, and mango, the liquidity, mining rewards and so forth. And of course, there's a lot to say about this, and I don't know.
+00:06:31.720 - 00:06:44.624, Speaker B: If you look at the code, there's, yeah, very large file, just go to this one.
+00:06:46.164 - 00:06:52.184, Speaker A: There's a lot here going on here, but there's really, there's no point in me, like going over each detail.
+00:06:53.564 - 00:06:56.384, Speaker B: There's no substitute for just reading the code.
+00:06:58.084 - 00:08:03.624, Speaker A: Okay, so another important one, this was like a big design, like a big design decision that we had to make, which is like, okay, so let's start with the problem first, the problem is that in Solana, currently with the current version of Solana, each transaction is limited to about 1200 bytes. I think it's 1232 bytes, which means each public key is 32 bytes. That means you can only pass in about 30, roughly 30 accounts. 30 different accounts. That's a pretty big limitation if you're trying to cross margin. A bunch of serum Dex markets, and each serum Dex market will come with CRM Dex open orders account, and it'll come with various different pieces, like.
+00:08:05.364 - 00:08:05.820, Speaker B: The.
+00:08:05.892 - 00:08:56.610, Speaker A: Bids, the asks, the market state. And so yeah, you run through those 32. And by the way, this is why Mango V two can only support five tokens, because we basically did, we crammed everything in there without having any kind of caching ability. So the cache is this way to get around it by taking all this information that's spread out across many different accounts and putting it all onto one mango cache account. And that account is going to be kept, that, you know, the mango cache is going to be kept updated by the keepers. And so, you know, as a result, we can, like, actually a lot of, we can do a lot of. We can cross margin.
+00:08:56.682 - 00:08:57.294, Speaker B: Like.
+00:08:59.314 - 00:09:38.954, Speaker A: Actually, like, right. Even right now, we could probably have launched with a cross margining of maybe 30 accounts or 30 tokens, or 40 tokens, whatever. But yeah, due to other limitations, chose to go with only 16. But yeah, this is what gives us that ability. And you'll see the mango cache everywhere, and it's usually passed in as readable. Again, if you pass it in as writable, it makes the whole program single threaded, because only one transaction can interact with an account that's writable at a time. And we want to be multithreaded and optimized.
+00:09:38.954 - 00:10:40.238, Speaker A: So, yeah, okay, so then there's a perp market, obviously contains a lot of the information about the perp market, sort of very similar to serum deck's market state, the market state account. And also we figured out an o of one mechanism for keeping track of the user's funding rates. Yeah, I mean, you can read about this here. I don't feel like explaining it, but yeah, it's very similar in concept to the o of one mechanism for tracking the interest earned by depositors and borrowers. And this is why, you know, people ask, like, how is it that you're able to keep track of people's interest without any cost, any transaction cost? And this is how this is just updated globally.
+00:10:40.406 - 00:10:51.434, Speaker B: Same thing with funding. Let me silence my phone a little bit. Cool. So, yeah.
+00:10:53.614 - 00:11:58.584, Speaker A: So there's the root bank which is another optimization to keep things, let's say keep things multi threaded. So in Mango V two is basically single threaded, because anytime you place any kind of trade, you're going to be interacting with the USDC vault. And the USDC vault is going to be passed in this writable account, which will make everything single threaded, because every transaction is using that same account as writable. To get around that, we basically have multiple node banks and each one has its own vault. So for example, USDC could have up to eight different node banks, and you pass in all the node banks, sorry, you pass in one particular node bank and each person passes. Basically you can have up to like eight different threads running on a particular.
+00:12:00.564 - 00:12:01.424, Speaker B: Token.
+00:12:02.364 - 00:12:12.944, Speaker A: That way, because USDC is going to be passed in every time. At least we can have eight cores, have at least eight levels of.
+00:12:17.804 - 00:12:18.356, Speaker B: 1000.
+00:12:18.420 - 00:12:20.580, Speaker A: Tps or whatever it is per core.
+00:12:20.612 - 00:12:22.394, Speaker B: That, that Solana gives us.
+00:12:23.814 - 00:12:32.830, Speaker A: Yeah, and then the event queue is very similar. I mean, this is very similar to serum DaX, same with the order book. Very similar. Basically we just like cleaned it up, added a bunch of stuff that was.
+00:12:32.862 - 00:12:33.434, Speaker B: For.
+00:12:36.614 - 00:13:06.170, Speaker A: The liquidity mining and better record keeping, but very similar. And then, you know, you have this one major thing called the Keeper, which is not really in the program code. It's, you would, you would have to look at the mango client v three. And it does some of the things we talked about, like it caches the important information, it updates the root banks to keep track of the interest that's being paid, update the funding to keep.
+00:13:06.202 - 00:13:08.174, Speaker B: Track of the funding that's being paid.
+00:13:09.554 - 00:13:37.754, Speaker A: And also consume events, like process the events that are on the event queue. This is all being done. That's one of the main issues with mango right now, is that there's no real incentive to do it. It's being done by us. And you could do it yourself. Actually, we could make the UI do it. Everyone could run the keeper commands before they do any trade that ruined the user interface, the user experience.
+00:13:37.754 - 00:13:56.666, Speaker A: So it's possible, it's not like everything is gone if no one runs the keeper. People will run the keeper for themselves. But it would be nice to have some kind of mechanism to do that. So wrote down a few ideas, maybe.
+00:13:56.770 - 00:14:00.978, Speaker B: You could suggest some more ideas, but gave you some useful links.
+00:14:01.146 - 00:14:08.374, Speaker A: All right, so that's just a brief overview of some of these names, and we can again talk about it.
+00:14:09.734 - 00:14:17.954, Speaker B: I will take a look at some of the questions. See.
+00:14:19.254 - 00:14:21.394, Speaker A: All right, are you guys using anchor?
+00:14:22.014 - 00:14:24.034, Speaker B: No, not yet.
+00:14:25.094 - 00:14:32.954, Speaker A: Maybe in the future you'll see some of the issues. Well, you'll get to see how we do the programming and.
+00:14:35.354 - 00:14:39.914, Speaker B: Maxim mangoes. Nice. Where's the fruit?
+00:14:40.034 - 00:15:18.954, Speaker A: There's no fruit right now, but I did load up on a jar of nuts. It's actually very important that mango devs have a nutritious diet, which is. I'm not saying that that's coming straight from the mango dow, actually. So. So I do have some, some nuts here. All right, so let's get to the code. I think it was, I think it would be, it would be a good idea to like, implement something that everyone really wants, which is stop loss orders.
+00:15:18.954 - 00:15:25.074, Speaker A: Okay, first thing, you guys. Are you guys able to see this code? I know probably not now, but.
+00:15:29.554 - 00:15:29.866, Speaker B: Is.
+00:15:29.890 - 00:15:31.774, Speaker A: It like, is the font good enough?
+00:15:38.914 - 00:15:39.934, Speaker B: It's good.
+00:15:41.434 - 00:15:55.430, Speaker A: All right, cool. Yeah, it's good. I mean, it's like the Omega three. The Omega three optimized version of the nuts. Gotta get the polyunsaturated fats that are.
+00:15:55.462 - 00:15:58.274, Speaker B: Good, as everyone knows.
+00:15:59.374 - 00:16:04.154, Speaker A: Okay, so first thing is.
+00:16:06.054 - 00:16:06.630, Speaker B: Let'S write.
+00:16:06.662 - 00:16:09.394, Speaker A: Out what we're maybe attempting to do here.
+00:16:11.974 - 00:16:12.774, Speaker B: Let's see.
+00:16:12.894 - 00:16:18.474, Speaker A: Okay, so here's the design that I came up with, and this might be kind of slow.
+00:16:18.974 - 00:16:22.734, Speaker B: I'm sorry, I'm just kind of winging it here.
+00:16:22.894 - 00:16:25.950, Speaker A: I came up with a design, but didn't really get a chance to write it out.
+00:16:25.982 - 00:16:26.554, Speaker B: So.
+00:16:28.294 - 00:16:47.134, Speaker A: I was thinking of this as calling this like advanced orders. I already added this piece here. You know, there's a pub key. Yeah, sort of. I basically started adding some pieces, but let's. Let's get rid of them because they're not even complete.
+00:16:50.954 - 00:17:02.214, Speaker B: So can we just get rid of whatever was in my. I think it compiles. Start with that.
+00:17:03.514 - 00:17:21.452, Speaker A: You can tell I use jetbrains. That guy Skynet, who also sometimes streams, uses jetbrains. Okay, I committed this stuff, so that's the problem.
+00:17:21.548 - 00:17:29.944, Speaker B: Let me get rid of so we can.
+00:17:34.404 - 00:17:36.696, Speaker A: Because it's super confusing because it's not even done.
+00:17:36.820 - 00:17:57.324, Speaker B: It was just me, like writing scratch, trying to work out what we're going to do before we start doing it. So. And there was like. Started writing the init. No, I guess not. It's not even here. Cool.
+00:17:57.324 - 00:17:59.324, Speaker B: All right.
+00:18:01.984 - 00:18:04.152, Speaker A: So let's write down what.
+00:18:04.168 - 00:18:05.084, Speaker B: We'Re trying to do.
+00:18:05.424 - 00:18:44.610, Speaker A: The idea here is advanced order types. And I think what we want is right now we can't amend the mango account. Well, we could amend it now, but if we amend it, we'll basically have to migrate to a whole new smart contract. And that's not going to be good. People are going to be annoyed by that. It takes a long time, fractionates the liquidity.
+00:18:44.682 - 00:18:45.574, Speaker B: So not good.
+00:18:47.154 - 00:19:43.034, Speaker A: But what we could do is we have some extra space on the mango account. That's some extra padding bytes at the end. We could do is we could allow the user to create another Solana account and record the pub key of that Solana account onto the mango account. And so basically it's like, it's basically, it'll be like a pointer. There's no pointers here, but it's a pointer to a place in memory that the validator knows about. Because every pub key is basically, I like to think of it basically as a pointer. We could add that pub key and then we could allow the user to initialize their advanced open orders account.
+00:19:43.034 - 00:20:15.774, Speaker A: And on that advanced open orders account, they can store all kinds of things like stop market, stop limit, maybe more, more complicated advanced order types that I don't really know about, but, you know, stop stop loss and profit taking, which I'm not super familiar with because my experience has been mostly algorithmic trading. And so if I wanted something, I'd program it into my bot. But, and that's, that's, that's the oversight.
+00:20:15.814 - 00:20:16.554, Speaker B: That's why.
+00:20:17.114 - 00:20:26.266, Speaker A: Didn't think this was very important. But no, people want this, and there's probably better ways to do more advanced.
+00:20:26.290 - 00:20:29.042, Speaker B: Order types that people want, that you.
+00:20:29.058 - 00:20:31.610, Speaker A: Guys should tell us about or build.
+00:20:31.642 - 00:20:32.734, Speaker B: It and give a pr.
+00:20:34.234 - 00:20:45.804, Speaker A: So let's put that into writing very quickly, just so we know what we're trying to do. So allow user to.
+00:20:48.064 - 00:20:56.724, Speaker B: Create an advanced orders account and store the pub key.
+00:20:57.264 - 00:20:58.004, Speaker A: In.
+00:21:00.904 - 00:21:09.704, Speaker B: His, excuse the male pronouns in his mango account. And then.
+00:21:15.124 - 00:21:58.864, Speaker A: Allow user to add advanced order to advanced orders account. Then obviously that would be a different instruction. And then maybe finally we'll have another, well, obviously someone has to trigger it, right? That's the key here. And so we need to think of, so another instruction to let the advanced, to let anyone.
+00:22:02.244 - 00:22:10.564, Speaker B: Trigger the advanced orders on the account.
+00:22:12.464 - 00:22:57.544, Speaker A: And this is very crucial. And okay, maybe also this addendum here, give the, what do we call this person? The guy who triggers the. It's not the keeper. Well, I'm inclined to call it the liquidator just because, you know, the liquid. We'll probably build this into the liquidator code because the liquidator has to keep track of all the mango accounts anyway. So let's just call in the liquidator for now. Or maybe the trigger.
+00:22:57.894 - 00:23:02.794, Speaker B: That's just an awkward word. I hate that word. Let's call them the core.
+00:23:05.614 - 00:23:07.034, Speaker A: An incentive.
+00:23:09.534 - 00:23:22.914, Speaker B: To keep track of these accounts, keep track of these, or keep track of these advanced orders and trigger them. All right.
+00:23:24.794 - 00:23:25.802, Speaker A: Are we clear on what.
+00:23:25.818 - 00:23:28.854, Speaker B: We'Re trying to do? Let me check twitch chat again.
+00:23:29.954 - 00:23:32.002, Speaker A: The initiator. That's a good one.
+00:23:32.178 - 00:23:46.454, Speaker B: Let's see. Initiator. The initiator. All right, let's call the initiator.
+00:23:54.134 - 00:24:03.914, Speaker A: Someone says, will that cost another 0.03 sol? No, it won't cost zero three because it'll be smaller. Well, obviously we'll try to make it smaller.
+00:24:04.254 - 00:24:04.758, Speaker B: Also.
+00:24:04.846 - 00:24:32.094, Speaker A: It'll be optional. That's the other thing. Like you would have to initialize it yourself if you want to use the advanced order feature. And so it's fine to make people pay. And you'll see here. Okay, so, you know, think about this. If you guys, if you guys came here yesterday and I saw, I saw Armani speaking for a little bit, you know, anchor is very, anchor is very neat and tidy.
+00:24:32.094 - 00:25:12.614, Speaker A: But there's something to be said about hard work, which is something like, kids these days, they just want to, they want, they don't want to break their back doing client code. And I will show you that it's okay to break your back doing client code. We will spend 80% of this writing client code and instruction parsing just as a way to demonstrate how good it is for one's character. So, okay, so let's start, let's start with defining this struct.
+00:25:13.594 - 00:25:22.574, Speaker B: This is how I start. So let's see. Pub struct, advanced orders.
+00:25:24.794 - 00:25:34.494, Speaker A: All right, so it's going to be an account. And this is cool. Like we're going to copy. Also, because this is not anchor, we'll be doing a lot of copy pasting.
+00:25:36.464 - 00:25:38.112, Speaker B: I don't know if Armani is on the chat.
+00:25:38.248 - 00:25:40.044, Speaker A: Armani, if you're on the chat, please.
+00:25:41.304 - 00:25:43.044, Speaker B: Please say you're on the chat.
+00:25:46.224 - 00:25:49.288, Speaker A: He's not on the chat. We can roast him.
+00:25:49.416 - 00:25:50.084, Speaker B: Good.
+00:25:51.264 - 00:26:14.566, Speaker A: So, yeah, we'll be doing a lot of copy pasting. There's two macros that I've defined. One is pod, which is like plain old data struct. Something needs to be a pod for it to be loadable. And so I just add pod there. And basically this macro is defined in mango macros. You probably don't need to know this.
+00:26:14.566 - 00:26:21.070, Speaker A: You know, just attachpod, not a big deal, but makes it basically implements these.
+00:26:21.102 - 00:26:21.794, Speaker B: Traits.
+00:26:23.654 - 00:26:25.662, Speaker A: And then loadable, implements the loadable.
+00:26:25.718 - 00:26:44.474, Speaker B: Trait, which, okay, my id doesn't know where that is. So I'll have to go up the loadable trait. Let's see, this guy is loadable. Not this one.
+00:26:47.774 - 00:27:34.394, Speaker A: There we go, that one. So it's a trait basically. Maybe think of it like just default implementations for these functions. And it allows us to very efficiently load a Solana account as a struct. And there's no deserialization or serialization. It's just basically, this reference is almost like a smart pointer here that's just going to map what's on the Solana account. Basically a pointer to the chunk of bytes and you can just modify those chunk of bytes and everything gets recorded.
+00:27:36.014 - 00:27:55.284, Speaker B: It's all good. So, yeah, that's the way we do things here. Another chat. Chat, check. Let me see. Regulator, like the bouncer.
+00:27:59.104 - 00:28:00.764, Speaker A: What are those? Flags?
+00:28:02.584 - 00:28:15.704, Speaker B: Flags, what do you mean by flags? Yeah, I don't know. Let's see.
+00:28:17.284 - 00:28:19.308, Speaker A: I copy, you know, do a lot.
+00:28:19.316 - 00:28:22.024, Speaker B: Of copy pasting, do that.
+00:28:24.204 - 00:28:42.832, Speaker A: Add some metadata. I mean, it's not sure it's totally necessary, but, you know, the data type we want all the accounts to have some like the first byte is going to have information about what kind of account it is because all of these will be owned by the mango program id.
+00:28:43.008 - 00:28:43.320, Speaker B: Right.
+00:28:43.352 - 00:28:49.872, Speaker A: So we just want to store that. This is data of a certain type. Which reminds me, that means we have.
+00:28:49.888 - 00:28:55.280, Speaker B: To add it, right? We have to add advanced orders and.
+00:28:55.392 - 00:28:57.524, Speaker A: So that will be like our new data type.
+00:28:58.504 - 00:29:06.388, Speaker B: Let me move this around. So we added that.
+00:29:06.556 - 00:29:26.972, Speaker A: What are some things we want to have in here? Let's say orders, which is going to be like, so there's no expandable arrays yet, or, you know, dynamic memory. I think Solana team is working on sort of a solution to this. And we have some designs of how.
+00:29:26.988 - 00:29:28.124, Speaker B: To, how to do this.
+00:29:28.164 - 00:30:03.138, Speaker A: But one of the reasons things look the way they do in mango and probably across Solana, is that because expanding accounts is very difficult, you know, complicated code to even attempt it. Everything is like defined at the start. You're going to just reserve all the memory you think you'll need. And I hope that's enough, hope you didn't overshoot, hope it's not too much memory, because now, you know, Solana is.
+00:30:03.146 - 00:30:10.494, Speaker B: So expensive and, you know, let's, let's, let's take a look at how expensive Solana is right now.
+00:30:10.914 - 00:30:27.994, Speaker A: It's also important to do that while you're coding. It gives you motivation, reminds you what you're really coding. You know, you don't, you don't want to, like, you know, Solana is like $2. Go ahead, just, just make this like thousand you know, make this like.
+00:30:31.374 - 00:30:31.662, Speaker B: We.
+00:30:31.678 - 00:30:42.630, Speaker A: Can just make this like 10,000. It's an array of 10,000. Who cares? It's too cheap. But obviously this is like much more expensive.
+00:30:42.702 - 00:30:49.748, Speaker B: So to allow people to use like two orders, that, that's the max we.
+00:30:49.756 - 00:30:50.784, Speaker A: Can do for now.
+00:30:51.764 - 00:30:52.824, Speaker B: That's a joke.
+00:30:53.124 - 00:30:58.964, Speaker A: Let's see. So if we're going to have a bunch of orders here, we probably need.
+00:30:59.004 - 00:31:09.464, Speaker B: Like this other struct that's actually going to go in here. So let's go advanced order of size.
+00:31:09.764 - 00:31:11.224, Speaker A: I'm saying 32.
+00:31:15.984 - 00:31:16.272, Speaker B: And.
+00:31:16.288 - 00:32:16.308, Speaker A: Yeah, so what kind of things? Maybe first thing is like maybe advanced order type. So I don't want to use order type because, you know, although, you know, that would be much less verbose. I don't want to use that because we already have an order type, but this is probably going to be like some kind of enum here. We want to know if this is active, right? Is this like, is this like an empty should? When the initiator call the init, it's too much, too much, too many syllables. When the initiator is looking through iterating, through your advanced orders, they need to be able to just like quickly screen out the ones that are just old. We don't have like a, you know, we don't have a vector that we push and pop from. This is.
+00:32:16.308 - 00:32:23.224, Speaker A: So we just ignore, iterate through and ignore the ones that are not active. So that's, that's another thing.
+00:32:25.324 - 00:32:29.836, Speaker B: Let's see. Oh, yeah, don't forget we want to.
+00:32:29.860 - 00:32:44.718, Speaker A: Make it the memory layout c. And this is not going to be loadable because this is not an account that will be loadable. It's just a struct that is inside an account, a Solana account that's loadable.
+00:32:44.766 - 00:32:45.354, Speaker B: So.
+00:32:50.254 - 00:33:01.754, Speaker A: I mean, obviously we want to have. So if this is, let's build for our stop limit orders. So you want to have price, want to have quantity.
+00:33:06.084 - 00:33:10.664, Speaker B: So maybe we'll call this like limit price.
+00:33:11.804 - 00:33:15.104, Speaker A: Yeah, let's do, let's do stop limit. Let's not overcomplicate things.
+00:33:15.964 - 00:33:16.824, Speaker B: That's.
+00:33:19.244 - 00:33:22.704, Speaker A: Quantity trigger price.
+00:33:24.124 - 00:33:24.484, Speaker B: Right?
+00:33:24.524 - 00:33:28.860, Speaker A: So maybe this one, maybe this one should not be I 64.
+00:33:28.932 - 00:33:30.104, Speaker B: Maybe this is.
+00:33:32.584 - 00:34:14.974, Speaker A: Yeah, a point about, here's a point about the types, the number types. So this probably trips people up. Honestly, it trips me up, trips everyone up. It's a big problem. Maybe half the time, maybe like a 30% of the time building this was dealing with the number I 80 and attended issues related. So I've listed out the units at the top, so we can kind of keep track of things. Price is going to be I 64, and that's just like, you know.
+00:34:18.434 - 00:34:18.722, Speaker B: If.
+00:34:18.738 - 00:34:49.474, Speaker A: You read the order book and the order id code, you maybe understand that. But then there's another price that's on the cash, which is a more natural looking price, which is like the native quote currency per native base currency. So that's the one that we're going to be triggering against, like the price that's on the mango cash. So it kind of makes sense to make that the trigger price.
+00:34:53.524 - 00:34:53.812, Speaker B: And.
+00:34:53.828 - 00:34:58.476, Speaker A: Yeah, so we have quantity. So this advanced order type, I'm trying.
+00:34:58.500 - 00:35:03.940, Speaker B: To think, like, do we want. All right, let's.
+00:35:03.972 - 00:35:15.316, Speaker A: Let's keep it this way. Most likely what we build here is not going into production the way it is. So I was hoping maybe I should just, like, crank it out like a.
+00:35:15.340 - 00:35:21.824, Speaker B: Production level thing, but probably not. So let's play fast and loose here a little bit.
+00:35:22.844 - 00:35:49.844, Speaker A: Okay, so we kind of defined our structs. We kind of defined this advanced order type. We kind of know what's going to happen here. Basically, the initiator is going to look through all the advanced orders, and he's going to screen out the ones that are not active, and he's going to. If the trigger price is. Ah, yes. We need.
+00:35:49.844 - 00:35:56.488, Speaker A: We need something like side, right?
+00:35:56.576 - 00:36:11.024, Speaker B: Need, like we can just use the side that we already have. This is bid or ask. Whoa, sorry, I tracked away.
+00:36:15.204 - 00:36:26.224, Speaker A: Yeah, if it's. If it's a stop limit, then. And it's a buy.
+00:36:26.884 - 00:36:28.988, Speaker B: So let's just write that really quick.
+00:36:29.076 - 00:36:37.880, Speaker A: Just as an example. If it's a stop limit and it's.
+00:36:37.912 - 00:36:40.564, Speaker B: A buy order.
+00:36:44.304 - 00:36:47.624, Speaker A: Well, people typically do like stop.
+00:36:47.704 - 00:36:47.936, Speaker B: Let's.
+00:36:47.960 - 00:36:56.728, Speaker A: Let's think of it in the other way. If it's a sell, then sell the.
+00:36:56.896 - 00:37:00.824, Speaker B: Or then place an order for.
+00:37:03.364 - 00:37:04.304, Speaker A: Quantity.
+00:37:06.604 - 00:37:13.744, Speaker B: We'll do this at limit price if.
+00:37:18.404 - 00:37:21.464, Speaker A: Trigger price is less than.
+00:37:23.364 - 00:37:30.684, Speaker B: Or, sorry, if cash price is less than the trigger price.
+00:37:31.584 - 00:37:32.844, Speaker A: To put this in more.
+00:37:33.304 - 00:37:42.776, Speaker B: Yikes. To put this in market, or what.
+00:37:42.800 - 00:37:44.320, Speaker A: Is this index price?
+00:37:44.392 - 00:37:45.160, Speaker B: Let's call it that.
+00:37:45.232 - 00:37:51.098, Speaker A: Index price is less than the trigger price, and it would be reversed if it was a buy.
+00:37:51.216 - 00:37:55.998, Speaker B: So I think this is like the typical use case. All right.
+00:37:56.086 - 00:37:59.474, Speaker A: Did I lose everyone my.
+00:38:14.454 - 00:38:18.074, Speaker B: Cool? Not sure what this means.
+00:38:21.134 - 00:38:23.354, Speaker A: Do I actually have the correct.
+00:38:31.374 - 00:38:32.154, Speaker B: All right.
+00:38:34.454 - 00:38:45.390, Speaker A: So let's implement it. So we have the structs laid out. We have basically three functions that we want to implement.
+00:38:45.462 - 00:38:48.924, Speaker B: Right? So here's one that's.
+00:38:50.744 - 00:38:52.744, Speaker A: Function, not pub.
+00:38:52.824 - 00:39:19.948, Speaker B: Actually just function init. Advanced orders. It's just some boilerplate here, actually, let's make this a to do. Cool.
+00:39:20.036 - 00:39:21.624, Speaker A: And then we have.
+00:39:27.364 - 00:39:28.116, Speaker B: What do we call it?
+00:39:28.140 - 00:39:29.304, Speaker A: Maybe register.
+00:39:31.204 - 00:39:32.864, Speaker B: Advanced order.
+00:39:34.204 - 00:40:27.344, Speaker A: So take some, some things. By the way, we add this like some of the stuff like don't inline just because I'm going to say this just because it cost me a lot of time and energy before learning this the hard way. If you don't do that, it will inline everything by default. The compiler will inline everything by default and then function will be too large. And in Solana there's a four kilobyte limit for how large a stack for, you know, stack frame for one function can be. So it'll be too large and it'll throw errors. It'll, you know, sometimes the compiler errors will be totally inscrutable and you'll be wondering what's happening, but that's basically what's happening.
+00:40:27.344 - 00:40:38.324, Speaker A: And also these, these instructions map one to one with, or these functions here, map one to one with what's happening over at instruction rs.
+00:40:39.504 - 00:40:41.880, Speaker B: So if you go, there's a list.
+00:40:41.912 - 00:40:52.928, Speaker A: Of all the instructions and we'll have to define them. This is the hard part. This is why, you know, like we don't use this is the consequence of not using anchor is that you have.
+00:40:52.936 - 00:40:53.844, Speaker B: To do all this.
+00:40:54.304 - 00:40:58.604, Speaker A: You have to define like a new, new guy here.
+00:40:59.904 - 00:41:09.804, Speaker B: By the way, this guy is deprecated. This guy is going away soon. We'll make sure it's deprecated.
+00:41:12.504 - 00:41:18.016, Speaker A: Yeah, we'll do that here. I'm not sure how valuable that will.
+00:41:18.040 - 00:41:21.124, Speaker B: Be, so I'll focus on this.
+00:41:21.704 - 00:41:48.488, Speaker A: Okay, first step, you want to init the advanced orders. Basically user, you know, if we roll this out tomorrow, you should be able to press a button and then add to your mango account that you have an advanced orders and you know, you place a stop limit and it should, there should be something there. So actually maybe the first thing we.
+00:41:48.496 - 00:42:02.468, Speaker B: Ought to do is see if we updated mango account. Jesus, do this. Yep.
+00:42:02.516 - 00:42:16.864, Speaker A: So we have this padding, these, these padding bytes, and I'm just going to take 32 of them away. I'm gonna use it for my own purposes here. So now there's only 38 left for people want to use.
+00:42:18.924 - 00:42:32.384, Speaker B: Let'S say advanced orders. Pub key and let's just, a little bit of documentation starts off as zero pubkey.
+00:42:32.924 - 00:42:49.984, Speaker A: This is a very common theme in mango code is that we'll just, if something's not initialized, it'll just be the zero key. So this would be like zero bytes which makes sense. That's how it's zero bytes anyway. So it allows us to keep track of whether it was initialized or not.
+00:42:52.604 - 00:43:02.948, Speaker B: Points to the advanced orders account. Cool. So we're going to be doing a.
+00:43:02.956 - 00:43:04.316, Speaker A: Lot of copy pasting.
+00:43:04.500 - 00:43:06.944, Speaker B: So which one do I want to copy paste?
+00:43:07.604 - 00:43:10.562, Speaker A: Init advanced orders. Looks authentic.
+00:43:10.588 - 00:43:32.874, Speaker B: A lot like init spot open orders. So let's copy paste this guy. Let's do that. Cool.
+00:43:35.214 - 00:43:38.846, Speaker A: This is just for documentation. All the accounts that are being passed.
+00:43:38.870 - 00:43:54.134, Speaker B: In, in Solana, obviously you have these accounts. I think this one is a this guy. And.
+00:43:55.514 - 00:44:05.296, Speaker A: Yeah, so let's, let's rework this. Obviously we need to pass in the mango group so that we know that these, this mango account matches the mango group.
+00:44:05.450 - 00:44:06.704, Speaker B: Everything's kosher.
+00:44:08.084 - 00:44:14.620, Speaker A: The owner, well, we need the owner to basically sign off on this.
+00:44:14.692 - 00:44:15.304, Speaker B: So.
+00:44:20.524 - 00:44:49.564, Speaker A: Yeah, we need to pass in the owner. We don't need the Dex. Dex is not important here. We don't need open orders. Spot market signer, do we need this signer? This is like the mango group signer, right? Like the PDA of the mango group that allows the mango group to sign for things. I don't think we need this. I also don't think we need the rent account because we dynamically load the rent sys variables.
+00:44:49.564 - 00:45:00.624, Speaker A: But we do need advanced orders account info. And this one has to be writable.
+00:45:01.124 - 00:45:05.704, Speaker B: Does it? See, we'll keep it, we'll keep it open.
+00:45:07.604 - 00:45:09.092, Speaker A: Maybe, maybe it has to be readable.
+00:45:09.148 - 00:45:29.968, Speaker B: Maybe it has to be writable. Yeah, let's see. Why not allow those to be inlined? I think I just answered that. Cool.
+00:45:30.136 - 00:45:33.216, Speaker A: Is there a way to know like how many people are watching?
+00:45:33.280 - 00:45:59.464, Speaker B: I just like talking to myself right now. Twitch, salon tv, see myself. Cool. 135. Nice. Sweet. As you can tell, I get distracted easily.
+00:45:59.464 - 00:46:01.784, Speaker B: Get rid of this.
+00:46:03.324 - 00:46:23.896, Speaker A: Mango group will be loaded. There's just some functions that make sure that it's owned by the right program, id, et cetera. This is weird. Not necessary. Mango account needs to be loaded as mutable and then we need to do a bunch of checks here.
+00:46:23.960 - 00:46:28.444, Speaker B: So like invalid signer. Yeah.
+00:46:31.464 - 00:46:51.028, Speaker A: Basically, if you're, I mean, just as a default, like if you're bankrupt, there's just no, I just assume you can't do this. Bankruptcy follows a very strict procedure. So if an account is bankrupt, then we're just gonna, I mean, I don't, I mean, I guess it's fine if.
+00:46:51.156 - 00:46:54.516, Speaker B: They want to do it, but we'll.
+00:46:54.540 - 00:46:56.884, Speaker A: Just take a hard line stance that.
+00:46:56.924 - 00:46:58.864, Speaker B: Bankrupt people just can't do anything.
+00:47:02.724 - 00:47:15.324, Speaker A: Okay, so what we want to do is load the advanced orders, initialize it with the.
+00:47:17.944 - 00:47:21.512, Speaker B: Well, first do the rent.
+00:47:21.608 - 00:47:33.364, Speaker A: Checks to make sure it's rent exempt. Initialize it with, initialize the metadata.
+00:47:36.444 - 00:47:45.504, Speaker B: Set the mango account dot advanced orders field.
+00:47:46.324 - 00:48:28.094, Speaker A: I think that's about it. So one thing, one thing, if, so if you're writing code on chain, there's a lot of checks that you're going to have to do. It's very important that you do these checks. Otherwise, you know, things, things break down, bad things happen, and a lot of time is just spent like thinking through what are all the checks that you're going to do? And this check here is like very simple. You know, you like this one's obvious, right? Check the owner. Is this the person, the owner account that's been passed in? Is that the actual owner?
+00:48:28.224 - 00:48:29.146, Speaker B: Check it.
+00:48:29.330 - 00:49:10.534, Speaker A: If not, then throw the invalid owner error. And when you throw that error, it's kind of cool. In mango, you know, this message will be printed in the program logs and it'll also print like the line and all that stuff. So feel free to copy and paste this into your own code. I found this very useful. So yeah, we're doing these checks. One check is obviously make sure the user or the mango account doesn't already have a advanced orders set.
+00:49:11.434 - 00:49:15.134, Speaker B: So. And the way you check that is.
+00:49:16.074 - 00:49:27.874, Speaker A: Mango account dot advanced orders equals, equals.
+00:49:32.774 - 00:49:36.274, Speaker B: Pub key default.
+00:49:41.574 - 00:49:47.390, Speaker A: Just throw the default error because I, you know, I don't know what to, maybe, I don't know, maybe.
+00:49:47.462 - 00:49:49.224, Speaker B: Invalid account.
+00:49:49.524 - 00:50:07.104, Speaker A: Invalid. Invalid param. That kind of makes sense to me. So yeah, we just want to make sure that it's starting off empty. Otherwise you'll have this guy overriding it.
+00:50:07.404 - 00:50:08.664, Speaker B: Bad things can happen.
+00:50:09.884 - 00:50:16.364, Speaker A: Then you want to load the advanced orders account info. Now.
+00:50:18.344 - 00:50:27.616, Speaker B: Let'S see, to load it, there's.
+00:50:27.640 - 00:50:57.868, Speaker A: Something very simple you can do, which is advanced orders load mute. And you know, you can do that because you have this at the, at the top here. Then we looked at this before. This trait is implemented for that account. So you have these functions available and so you can just load it. But typically we'll put it in its own function.
+00:50:57.996 - 00:50:58.664, Speaker B: But.
+00:51:07.864 - 00:51:13.684, Speaker A: I just need my, yeah, I need my ide to rely on this guy.
+00:51:14.864 - 00:51:15.644, Speaker B: Hmm.
+00:51:17.784 - 00:51:31.004, Speaker A: It's, I can't, maybe my id is just very slow.
+00:51:35.164 - 00:51:35.604, Speaker B: All right.
+00:51:35.644 - 00:51:38.784, Speaker A: I think it's going to make me do it the old fashioned way.
+00:51:39.164 - 00:52:15.074, Speaker B: I actually have to go import stuff. Let me go down advanced orders, like go to state. I'm just gonna import this guy. All right, so it's imported. I think my id is just having a meltdown for some reason. I don't know why.
+00:52:19.494 - 00:52:21.374, Speaker A: And we'll do the load.
+00:52:21.414 - 00:52:54.354, Speaker B: Mute the function signature, right? It's just the account. Advanced orders account. Just get my id more or help.
+00:52:56.854 - 00:53:00.834, Speaker A: We might want to do some rent checks here.
+00:53:05.254 - 00:53:11.034, Speaker B: Let's just copy it. Let's copy it. Don't try to reinvent the wheel.
+00:53:14.354 - 00:53:15.614, Speaker A: Load and init.
+00:53:16.754 - 00:53:22.294, Speaker B: Yeah, we want this.
+00:53:22.714 - 00:53:42.834, Speaker A: You know, we want to check for the owner. Want to check that the owner of the account is the program id. Therefore only the mango program can modify its state. That's straightforward. We check the account that's not rent exemption. Make sure it's not already initialized.
+00:53:46.894 - 00:54:04.686, Speaker B: We'll do similar things here. We've already loaded it. Declare this immutable, actually. All right, let's move this guy. Too much going on.
+00:54:04.710 - 00:54:09.044, Speaker A: It's kind of confusing. Let's actually just move this guy into.
+00:54:09.084 - 00:54:12.604, Speaker B: This function here because this is the.
+00:54:12.644 - 00:54:24.664, Speaker A: Standard way to do it. Damn, I'm almost out of time and I haven't even got to client code. Imagine there's 5 hours of client code after this.
+00:54:27.764 - 00:55:04.704, Speaker B: So be prepared. Just gonna try to blitz this out real quick. Yeah, we want this guy. We want this guy. And then we want program id. What else do we want? We want account. It's like account info.
+00:55:05.444 - 00:55:10.584, Speaker A: Yeah, this is 100% not going to compile. I know we got to add the lifetime parameters.
+00:55:12.124 - 00:55:49.284, Speaker B: 100% not going to compile. But let's just, what else? Yeah, count program mega group. Just do that. I just want to return it.
+00:55:56.164 - 00:55:58.020, Speaker A: I wanted to add a new error type.
+00:55:58.052 - 00:56:01.384, Speaker B: So let me just do that right now. This is like.
+00:56:03.364 - 00:56:05.504, Speaker A: It'S like invalid account state.
+00:56:06.324 - 00:56:11.396, Speaker B: It's quite different from invalid account, but.
+00:56:11.420 - 00:56:40.684, Speaker A: Yeah, so we have invalid account state. Okay. So I think we're doing the basic checks. We need to actually initialize it. So we're making, these are the checks to make sure it's good, make sure it's rent exempt, et cetera. Then we need to actually initialize it. So state metadata is initialized is true.
+00:56:41.304 - 00:57:04.044, Speaker B: State dot metadata. Dot data type is equal to data type. Advanced orders, actually. Is it? What's the type? Oh, it's U eight. Let's go back. I don't know why it's a U eight. Huh.
+00:57:04.044 - 00:57:08.984, Speaker B: I guess we could have just kept it as the data type.
+00:57:10.804 - 00:57:40.718, Speaker A: We don't need to initialize the orders. You might think that state orders might want to make this zero bytes or something. You don't have to do that, you know, that necessarily. So every time an account changes ownership and it gets owned by the mango program, it's going to be initialized to zero. So you don't have to check that the orders are all zero. But if they weren't, you know, that would be a really big, really big issue.
+00:57:40.886 - 00:57:41.594, Speaker B: So.
+00:57:44.934 - 00:57:47.782, Speaker A: Actually I think the standard way.
+00:57:47.798 - 00:57:56.234, Speaker B: To do this is like metadata new. So that let's just use the standard way.
+00:57:56.614 - 00:57:59.354, Speaker A: Version zero is initialized.
+00:57:59.864 - 00:58:05.632, Speaker B: True. That's it. This is like the standard way. Get rid of this.
+00:58:05.728 - 00:58:12.964, Speaker A: All right, so we got this guy. It's loaded in it. We probably should also implement this. We're not going to do it right now.
+00:58:13.944 - 00:58:21.344, Speaker B: Load mute checked. Yeah, this is like to do basically.
+00:58:21.384 - 00:58:25.524, Speaker A: Call load mute, but make check it first.
+00:58:30.624 - 00:58:31.524, Speaker B: Okay.
+00:58:33.024 - 00:58:36.360, Speaker A: So we can say, try to speed.
+00:58:36.392 - 00:59:15.340, Speaker B: Up here a little bit. We could say load advanced orders. Load and initial. Yeah, you don't actually need to use this guy. So yeah, we did the rent checks.
+00:59:15.412 - 00:59:18.104, Speaker A: We initialize the metadata. Then we need to set this.
+00:59:18.554 - 00:59:31.586, Speaker B: So mango account dot set it equal to this key, the pub key of.
+00:59:31.610 - 00:59:35.334, Speaker A: The advanced orders account.
+00:59:38.114 - 00:59:38.450, Speaker B: Yeah.
+00:59:38.482 - 01:00:10.146, Speaker A: And there's probably, the thing is, there's probably an error here almost, almost certainly, but, and part of I think programming and programming on chain is that it's maybe easy to come up with the idea and like write it out, but you kind of just, I don't know, you like just have to read it ten times to make sure every t was crossed, I was dotted. And you'll still miss it, you know.
+01:00:10.230 - 01:00:11.454, Speaker B: Still miss things.
+01:00:13.434 - 01:00:19.394, Speaker A: I think so. I had an hour, but I know that people have gone over the limit.
+01:00:19.434 - 01:00:22.954, Speaker B: A little bit in the past. So let me maybe give this ten.
+01:00:22.994 - 01:00:43.354, Speaker A: More minutes and also just ask questions. Maybe we don't have time to. This is the meat of it. Like the register advanced order. And this one is like execute. These are like the meat of what's happening.
+01:00:45.014 - 01:00:48.154, Speaker B: But we probably don't have a lot of time left. Let's see.
+01:00:56.934 - 01:01:04.050, Speaker C: Yeah, Daphne, feel free to wrap up whenever you'd like. We have time and you can keep going. But I also know you're a busy man.
+01:01:04.182 - 01:01:43.284, Speaker A: Um, uh, well, you know, I'm just here, I'm just on stream getting work done for myself. That's um, so like, okay, what is the incentive for the initiator? That's a good point. We were supposed to set an incentive. So I think the way we would do it, well, we probably don't have time to like actually do it, but the way we would do it is we could. Okay, there's a couple of ways we could fix an amount. I was thinking something like 100 times the Solana transaction cost. So Solana transaction cost is five e negative six.
+01:01:45.224 - 01:01:50.552, Speaker B: Let's say, you know, like. Right.
+01:01:50.608 - 01:01:52.128, Speaker A: It's, I think you've probably seen it.
+01:01:52.136 - 01:01:54.844, Speaker B: It's like, it's like this.
+01:01:57.364 - 01:02:07.164, Speaker A: We would make the fee something like that. And that would just give the initiators an incentive to kind of keep track.
+01:02:07.204 - 01:02:08.184, Speaker B: Of all these things.
+01:02:09.164 - 01:02:30.070, Speaker A: But you could also make it like a fee that's proportional to the size of the trade. I'm not sure. I'm a little bit reluctant to do that. I don't know why you should be charged more if, well, I guess larger stop loss orders impact the book more, more heavily. I don't know, but there's a reason.
+01:02:30.102 - 01:02:30.874, Speaker B: To do it.
+01:02:34.014 - 01:02:40.742, Speaker A: Co gen. Yeah, I think, I think so. Oh, Armani is in the chat.
+01:02:40.798 - 01:02:41.434, Speaker B: Wow.
+01:02:51.474 - 01:02:54.234, Speaker A: Captain Proto. I have no idea what that is.
+01:02:54.314 - 01:02:56.854, Speaker B: Is this captain proto?
+01:03:01.794 - 01:03:28.564, Speaker A: Yeah, I mean, okay, so I don't like, so probably you're right. Like we could do it that way. Could also just use anchor just to be consistent with everyone else. Yeah, it just like use raw bytes is, it's worked out for us. I don't think it's a problem. I don't like protocol buffers. Like, okay, they're fine, but.
+01:03:32.184 - 01:03:32.576, Speaker B: I don't.
+01:03:32.600 - 01:03:37.800, Speaker A: Know, just this, like the zero copy thing is just so clean to me.
+01:03:37.872 - 01:03:38.684, Speaker B: I don't know.
+01:03:43.564 - 01:04:01.304, Speaker A: Yeah, maybe, okay, maybe we go through the cycle of like, so we have this init, advanced orders, right? So now you can see all the extra shit we have to do to this is the instruction parsing and client code that.
+01:04:06.024 - 01:04:06.360, Speaker B: Right?
+01:04:06.392 - 01:04:41.384, Speaker A: So you define this instruction. It doesn't have any parameters. You just leave it like that. And then you have to like unpack it. You know, do this thing, advanced init, advanced orders. And then you got to go, okay, imagine now, like if it actually had parameters, the other one, this one actually will have parameters. It's going to have to register the trigger price and the quantity and all that stuff.
+01:04:41.384 - 01:05:05.838, Speaker A: You can use this as an example over here. You can see you have to unpack those bytes again. Anchor. I guess if you use anchor, you don't have to do any of that. A lot of unpacking stuff going on. And then you have to also do it here, just a lot of copy pasting. And then you have to do it on the typescript.
+01:05:05.838 - 01:05:08.674, Speaker A: You have Python, you have to do it there as well.
+01:05:09.214 - 01:05:15.834, Speaker B: But like this guy, add the remaining pattern so you'll see this.
+01:05:17.734 - 01:05:24.834, Speaker A: And then from here, this is sort of like the processor entry point. You get to call the actual function.
+01:05:26.074 - 01:05:31.574, Speaker B: Init advanced orders and program id accounts.
+01:05:32.154 - 01:05:32.826, Speaker A: And that's.
+01:05:32.890 - 01:05:34.214, Speaker B: That's basically it.
+01:05:35.074 - 01:05:38.378, Speaker A: But this takes a long time if there are actually parameters and you have.
+01:05:38.386 - 01:05:40.094, Speaker B: To do the client code and all that stuff.
+01:05:41.394 - 01:05:47.494, Speaker A: Captain Proto, zero, copy. Is this. Are you. Are you from Captain Proto the company?
+01:05:48.194 - 01:05:48.738, Speaker B: Is there.
+01:05:48.786 - 01:06:03.318, Speaker A: Captainproto the company? Are you Kenton Varda? I'm kidding. It's from Captain Mango.
+01:06:03.446 - 01:06:04.154, Speaker B: Nice.
+01:06:11.854 - 01:06:25.790, Speaker A: All right, well, I tried my best to get through all of this. I thought I could speed run the code, and it looks like I could barely do one function.
+01:06:25.982 - 01:06:26.714, Speaker B: So.
+01:06:30.094 - 01:06:32.834, Speaker A: No, I have no idea about exchanges.
+01:06:36.734 - 01:06:37.474, Speaker B: What?
+01:06:39.734 - 01:06:42.658, Speaker A: Since the stream started? Dang, that's crazy.
+01:06:42.686 - 01:06:44.094, Speaker B: Crazy. Look at that.
+01:06:46.674 - 01:07:09.380, Speaker C: Well, thanks so much for joining, Daffy. This was awesome. I really appreciate you dedicating your time. And everybody. This stream is going to be uploaded to YouTube right after this. Please watch it over again. Check it out, Daffy, any other things you want to plug Twitter, discord, anything wrapping up here?
+01:07:09.562 - 01:07:24.204, Speaker A: No, I would say, yeah, just take a look at the technical intro, doc, and, you know, just, I mean, there's no substitute for reading the code, so just go ahead. I don't know if Max wants to say something, but.
+01:07:27.064 - 01:07:28.324, Speaker D: No, I'm good.
+01:07:29.184 - 01:07:29.512, Speaker A: Yeah.
+01:07:29.528 - 01:07:52.664, Speaker D: I hope everyone comes over to discord and chats more. The feature will probably go live in a few days and always happy to onboard new people to the project and brainstorm on cool ideas. There's also a hackathon channel on our discord where people have been posting ideas before, so it'll be cool to see you all over there.
+01:07:53.604 - 01:07:54.892, Speaker B: Yeah, sweet.
+01:07:54.948 - 01:08:01.624, Speaker C: Well, thanks so much again. Really appreciate you both joining and talk to you on the next one. Bye.

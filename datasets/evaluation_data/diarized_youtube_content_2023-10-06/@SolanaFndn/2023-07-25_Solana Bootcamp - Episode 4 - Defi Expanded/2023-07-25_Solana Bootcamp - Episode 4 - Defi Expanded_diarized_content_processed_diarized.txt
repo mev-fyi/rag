@@ -1,0 +1,551 @@
+00:00:10.000 - 00:00:36.466, Speaker A: Hey, guys, welcome back. I'm Joe, and I'm going to be continuing our pirate themed boot camp. So if you got this far, this is day four where we're going to be talking about our swap program. So you can see here's the mono repo again. I'm sure you've seen it. This is where all of our quests are going to be, and we are going to be doing smuggling, bargaining, and upgrading your ship. Right? So in this quest here, we're basically going to be learning about how a decentralized exchange works.
+00:00:36.466 - 00:00:49.094, Speaker A: So if you take a look at the readme in here, you can see that we have, first of all, we have all the stuff that you need that I'm going to go over, right? So setup all the code, everything, right. So we're going to follow this pretty much exactly.
+00:00:49.474 - 00:00:50.722, Speaker B: But the first thing I want to.
+00:00:50.738 - 00:00:54.574, Speaker A: Do is go over these slides so you can get a link to these in the readme if you need them.
+00:00:55.034 - 00:00:57.058, Speaker B: And basically, we're going to talk a.
+00:00:57.066 - 00:01:10.656, Speaker A: Little bit before we get into the code about how a Dex works. Right? So decentralized finance, Dexs and the constant product algorithm. So, first of all, what is decentralized finance, or DeFi?
+00:01:10.760 - 00:01:16.120, Speaker B: Right. DeFi is basically, you know, the.
+00:01:16.232 - 00:01:41.744, Speaker A: The means by which crypto unlocks a new way of doing peer to peer finance. So traditionally, you know, you've got banks or brokerages or some kind of central intermediary that's going to facilitate trades. It's going to facilitate buy and sell on a market. Market, right. Making markets, things like that. And the technology behind crypto allows you to be able to sort of make these things permissionless. Right.
+00:01:41.744 - 00:01:53.164, Speaker A: So peer to peer directly through coded protocols that are deployed on a network. So you don't have to trust some party with the authority to essentially revoke whatever it is you're trying to do.
+00:01:53.504 - 00:01:54.808, Speaker B: And this is a big deal, right.
+00:01:54.856 - 00:02:15.904, Speaker A: Especially when it comes to being able to autonomously do what you want to do in markets. So here's a look at DeFi on Solana. This is from our website, our Solana.com page. This could even be a little bit outdated at the time of recording this. We might even have some more projects by now, some larger projects, but you can see here is a good snapshot of what that looks like. So DeFi is really big on Solana.
+00:02:15.904 - 00:02:41.664, Speaker A: So as I mentioned how DeFi kind of works, there's obviously a lot of disruptive potential with the technology itself. It can challenge traditional finance by offering greater security and also the, you know, no longer the need for a centralized party. So pretty important stuff. And as you probably heard from recent events, you know, especially around the time of recording this, that is actually extremely important and all the more relevant now.
+00:02:42.284 - 00:02:45.340, Speaker B: So anywho, here's some key components of DeFi.
+00:02:45.372 - 00:03:10.886, Speaker A: I'm not going to read all of this here, but basically you have self executing digital contracts. So on salon of their programs, you have digital virtual tokens which can facilitate these trades on the blockchain network and then platforms that allow users to trade cryptocurrencies without any central intermediary. Those are the three big deal items when it comes to DeFi. What about a decentralized exchange or a.
+00:03:10.910 - 00:03:14.550, Speaker B: Dex Dex, well, basically this is a.
+00:03:14.582 - 00:03:19.070, Speaker A: Platform or protocol where you can actually facilitate these defi trades.
+00:03:19.182 - 00:03:21.322, Speaker B: Think about if you want to be.
+00:03:21.338 - 00:03:34.370, Speaker A: Able to swap two tokens, I want to give you some of this particular token, and I want to get some of this token back. And we have to be able to figure out, okay, what's the token you want to give me worth? What's the token I want to give you worth?
+00:03:34.522 - 00:03:39.026, Speaker B: How much should you get? You know, all these factors considered, and.
+00:03:39.050 - 00:04:02.184, Speaker A: That'S what Dexs mostly kind of do in an automated fashion. And that's what we're going to take a look at today. So here's a couple of Solana Dexs. You got orca, openbook, radium, there's a couple more. Those are the big ones. And in order to power the technology behind a dex, there's something called the constant product algorithm. And that's what we're going to talk about a little bit in detail here in these slides.
+00:04:02.644 - 00:04:04.220, Speaker B: So I'm going to show some numbers.
+00:04:04.252 - 00:04:19.684, Speaker A: I'm going to show some formulas, right? And basically the idea here is I want you to really understand how these formulas work and how they facilitate these swaps. Like I kind of just laid up a couple of slides ago and what that actually means. And then when you understand that formula.
+00:04:19.724 - 00:04:21.788, Speaker B: And you see it, we can take.
+00:04:21.836 - 00:05:12.232, Speaker A: That and put it into code, and we can build a swap program. We can build a Dex, right? So here's a couple advantages of decentralized exchanges that use the constant product algorithm. I won't cover exactly all of these while I'm talking, but I will just say that it helps with price slippage, it helps with the ability to provide liquidity of certain assets, and it also helps, again, with that security and no central authority aspect of DeFi. And you'll see a little bit more of what I mean about the price slippage and the liquidity. As you see how this algorithm kind of works. So let's take a look at an example, right? So in a decentralized exchange, you're going to have a number of accounts that have different, like tokens. Let's, let's all, let's just consider everything's a token for this, you know, scenario.
+00:05:12.232 - 00:06:02.456, Speaker A: Since we're working on Solana, we're working on a Solana program, we're going to be building a swap with SPL tokens. Everything in the swap is a token, so we can have any number of these tokens, any different mints, and we have some kind of liquidity of each of these tokens. For those of you who don't maybe know what liquidity means, it just means that we have some significant quantity of these tokens so that it can be made available to people that are trading on our protocol, right? So if our swap offers liquidity for, let's say, USDC, Bonk, a couple of other SPL tokens that you might have heard of, that just means that there's a good amount and it's a relative number, but a large amount of this asset is available through our protocol, so that when you go to make changes.
+00:06:02.520 - 00:06:05.200, Speaker B: Like swaps, you know that there's enough.
+00:06:05.232 - 00:06:12.912, Speaker A: There to facilitate the trade that you want to do. So, considering that, let's take a look at a pool, which is what these things are called, right?
+00:06:12.968 - 00:06:17.760, Speaker B: Pools of assets. Let's think about a pool that has.
+00:06:17.832 - 00:06:22.096, Speaker A: A number of different assets of varying quantities, right?
+00:06:22.280 - 00:06:23.848, Speaker B: So we might have x quantity of.
+00:06:23.856 - 00:06:28.084, Speaker A: USDC, y quantity of bunk, z quantity of sol.
+00:06:28.544 - 00:06:30.384, Speaker B: And the idea here is we want.
+00:06:30.424 - 00:06:34.964, Speaker A: To ensure a constant value of k. Now what is k?
+00:06:35.464 - 00:06:37.944, Speaker B: Well, k is the constant product algorithm.
+00:06:37.984 - 00:06:40.804, Speaker A: It's the constant product itself is k.
+00:06:41.294 - 00:06:45.566, Speaker B: And this is what k kind of looks like. So q is going to be the.
+00:06:45.590 - 00:07:00.966, Speaker A: Total quantity of any asset. You can see I've just got those suffixes there, those subscripts for all the different kinds of assets we might have. So if we just take the quantity of each asset and we multiply them all against each other, we're going to get one large product and that product's.
+00:07:00.990 - 00:07:02.878, Speaker B: Going to be k, right?
+00:07:03.046 - 00:07:06.822, Speaker A: And so whenever trades are being made on a dex, whenever there's swaps, for.
+00:07:06.838 - 00:07:10.306, Speaker B: Example, the pool and the underlying technology.
+00:07:10.410 - 00:07:19.218, Speaker A: Behind the pool, aka the smart contract or program, is always trying to make sure that that constant value of k stays the same, or at least within.
+00:07:19.266 - 00:07:22.194, Speaker B: A very, very, very tight margin, right?
+00:07:22.234 - 00:07:27.562, Speaker A: So that's the whole idea. And this is an algorithm, right? So we want to keep this constant.
+00:07:27.618 - 00:07:29.642, Speaker B: The same, but we want to be.
+00:07:29.658 - 00:07:36.214, Speaker A: Able to move assets between two people, okay? And that's exactly what our smart contract is going to be able to do.
+00:07:37.084 - 00:07:38.884, Speaker B: So here's just a little bit of information.
+00:07:38.964 - 00:08:16.794, Speaker A: Q is a nominal quantity, right? So we have to factor in, at least on Solana, the decimal places of these assets, right? And that's going to kind of be something to consider when you're coding this. And you know, you can see the example here. I've just said like a token account might have a balance of 10,500 for a mint with three decimal places. So the nominal quantity is 10.5, right? And this will make more sense when you see the algorithm in code. But anyway, let's run through our example with that in mind. We want to swap some value, p, some quantity of p, for another quantity of asset R.
+00:08:16.794 - 00:08:24.046, Speaker A: I'm labeling these p and r because in the context of my program, what I've basically set up.
+00:08:24.070 - 00:08:26.150, Speaker B: Is when I come to the pool.
+00:08:26.182 - 00:08:27.806, Speaker A: And say, I want to give you.
+00:08:27.830 - 00:08:34.652, Speaker B: Some USDC in exchange, I want to get something back, I'm going to offer.
+00:08:34.708 - 00:09:08.224, Speaker A: To pay USDC and receive something else, right? So USDC in this case would be the pay asset, which I'm dubbing p here. And then whatever I'm requesting in return is going to be r, the receive asset, right? So pay, receive. So if you see p and r, that's why. So I want to come pay this asset and I want to receive another asset in return. And our smart contract needs to calculate exactly how much of that asset I'm due to receive based on what I'm offering, right?
+00:09:08.684 - 00:09:10.052, Speaker B: And you might think like, okay, well.
+00:09:10.068 - 00:09:16.620, Speaker A: It depends on the price of it, et cetera, et cetera. Well, actually it only depends on the liquidity in the pool, and you'll see why.
+00:09:16.692 - 00:09:19.156, Speaker B: So here's k again.
+00:09:19.340 - 00:09:25.984, Speaker A: And now we've included, you can see the quantity of p and the quantity of r in the pool already as it stands.
+00:09:26.354 - 00:09:27.626, Speaker B: So right off the bat, we can.
+00:09:27.650 - 00:09:33.130, Speaker A: Kind of get rid of, well, first we can kind of like expand this to take a look at this, right?
+00:09:33.162 - 00:09:35.658, Speaker B: So if we look at the first.
+00:09:35.746 - 00:09:40.534, Speaker A: Equation here, Qp and Qr have just been tacked onto the product.
+00:09:41.194 - 00:09:43.362, Speaker B: Now if we want to pay some.
+00:09:43.418 - 00:09:45.098, Speaker A: P and we want to receive some.
+00:09:45.146 - 00:09:50.682, Speaker B: R, that means the pool is going to gain p and lose r. So.
+00:09:50.698 - 00:09:57.564, Speaker A: You can write it like this, right? And inside each of those parentheses is going to be the new quantities of these assets.
+00:09:58.304 - 00:10:01.176, Speaker B: And so, since k is always, we're.
+00:10:01.200 - 00:10:10.568, Speaker A: Always trying to make sure k is the same, these two formula are exactly the same, right? They should be set equal to each other. And so that's what we have here on the bottom, right?
+00:10:10.736 - 00:10:12.576, Speaker B: So these should be the same, they.
+00:10:12.600 - 00:10:13.600, Speaker A: Should equal the same thing.
+00:10:13.632 - 00:10:17.288, Speaker B: So whatever value for r, this whole.
+00:10:17.336 - 00:10:21.084, Speaker A: Thing should equate to be the same. And we know p because it's what we're offering, right?
+00:10:21.454 - 00:10:24.238, Speaker B: So that's important. Now, let's take a look at it.
+00:10:24.246 - 00:10:32.598, Speaker A: From the top here. We've got this set equals to each other, k equals the first bit that we talked about, which is equal to this new formula.
+00:10:32.646 - 00:10:35.998, Speaker B: With our swap involved, we can just.
+00:10:36.046 - 00:10:38.074, Speaker A: Do a little bit of factoring here.
+00:10:38.614 - 00:10:40.494, Speaker B: And we can say, okay, let's break.
+00:10:40.534 - 00:10:50.894, Speaker A: This down to this. Then we can go from here with a little more algebra, and we can break that down to this, right?
+00:10:51.634 - 00:10:53.106, Speaker B: And you can kind of see where.
+00:10:53.130 - 00:11:09.946, Speaker A: We'Re heading here, right? We're getting a little bit closer to an equation that gives us a value for r. And keep in mind, we know the current quantity of QR, we know the current quantity QP, and we know what p we're offering. So we can get this formula right here.
+00:11:10.130 - 00:11:12.698, Speaker B: And then this is our constant product.
+00:11:12.786 - 00:11:40.004, Speaker A: Algorithm that our program is going to be built to use. Right? And it's really that simple, right? A little bit of algebra up front. You got to make sure you check your math. I used Wolfram Alpha and it was actually wrong, which is pretty funny. And chat GPT completely failed, so I'm better at math and AI just putting that out there. Anyways, point is, this is how you can kind of set this thing up. And then we can use this formula to code into our program.
+00:11:40.424 - 00:11:42.352, Speaker B: And then you can see that since.
+00:11:42.408 - 00:11:45.030, Speaker A: We already know these two quantities, Qr.
+00:11:45.062 - 00:11:47.990, Speaker B: Qp, all we have to do is.
+00:11:48.022 - 00:12:07.894, Speaker A: Feed a value of p and we will get a value of r, right? And that's how this is going to work every time. And you might think like, well, how do we know for sure that we know what QP and QR are? Well, these are actually the balances in the pool of tokens. And so if we set our pool up where our pool has any number.
+00:12:07.934 - 00:12:10.960, Speaker B: Of associated token accounts, we can just.
+00:12:10.992 - 00:12:16.736, Speaker A: Read these token account balances. And so with those accounts, with access.
+00:12:16.800 - 00:12:26.352, Speaker B: To those accounts, and given a value of p, our application, our Solana program, can calculate r every time and to.
+00:12:26.368 - 00:12:32.296, Speaker A: A pretty like significant degree of accuracy. So one more time, here's the equation.
+00:12:32.360 - 00:12:34.552, Speaker B: Nice and big and this is basically.
+00:12:34.608 - 00:12:51.804, Speaker A: What we're going to need to know going into building this program. So hopefully that makes sense. Again, the slides are available in the readme. And so here's another look at that equation as well. In the readme you can see we've got just a breakdown here. You'll see that in the comments of the code as well.
+00:12:52.384 - 00:12:54.360, Speaker B: And then I've got some breakdowns here.
+00:12:54.392 - 00:13:22.906, Speaker A: About how the repository is set up. I will loop back to this pretty soon, but as like a quick TLDR, there's a front end, there's a program and there's a series of tests and we're going to drive those tests to set up our swap. So let's just go ahead and work through the swap program and set this thing up. I'll just flip over to versus code here and show you as we walk through this. First things first, you can see in.
+00:13:22.930 - 00:13:25.618, Speaker B: My lib rs here we've got three.
+00:13:25.666 - 00:13:30.946, Speaker A: Instructions of our swap program. We want to be able to create this pool for the first time.
+00:13:31.130 - 00:13:35.328, Speaker B: So initialize whatever we need to set this thing up and then we want.
+00:13:35.336 - 00:14:04.692, Speaker A: To be able to fund it with liquidity, which is what fund pool is going to do. And this is kind of like dynamic, right? So like you can add new tokens to the pool, at least the way we wrote it, you can increase the liquidity of some specific token. You know, there's a couple different options there. And then finally swap is of course exactly what it sounds like. We're going to just offer some asset and we're going to request a swap for another asset. Now you can see we're only passing in the amount to swap.
+00:14:04.748 - 00:14:07.620, Speaker B: This is p and that's because the.
+00:14:07.652 - 00:14:17.344, Speaker A: Accounts that are involved in processing a swap will actually tell the program which token it is and the QR QP values, etcetera.
+00:14:17.764 - 00:14:21.212, Speaker B: And we'll see that later. So right now I'm just scaffolding out.
+00:14:21.228 - 00:14:22.652, Speaker A: The program and if we walk through.
+00:14:22.668 - 00:14:25.076, Speaker B: This readme, you see the first thing.
+00:14:25.100 - 00:14:30.234, Speaker A: We'Re going to take a look at is what does our pool look like? What's the state of our pool?
+00:14:30.614 - 00:14:32.270, Speaker B: And so I'm going to use a.
+00:14:32.302 - 00:14:38.806, Speaker A: Solana program derived address and I'm going to set up some state for our pool. We're going to set this up like this.
+00:14:38.830 - 00:14:40.742, Speaker B: We're going to have one account that's.
+00:14:40.758 - 00:14:43.074, Speaker A: Going to hold some data about our pool.
+00:14:43.614 - 00:14:45.694, Speaker B: And then from that account we're going.
+00:14:45.734 - 00:14:56.682, Speaker A: To generate any number of associated token accounts that will be owned by that account to house the tokens for our swap, right? And so when we have a pool.
+00:14:56.818 - 00:14:58.226, Speaker B: We'Re just going to have a PDA.
+00:14:58.370 - 00:15:05.494, Speaker A: And then a number of associated token accounts that will just comprise together our pool, right?
+00:15:05.914 - 00:15:07.442, Speaker B: So, and for those of you who.
+00:15:07.458 - 00:15:18.134, Speaker A: Might not know, like you might have learned it in earlier sessions, but associated token accounts, they all correspond to one different mint, right? So if we have like eight associated token accounts, we have eight different assets in our pool.
+00:15:18.734 - 00:15:20.390, Speaker B: So the way I set this up.
+00:15:20.582 - 00:15:27.354, Speaker A: Is I've got the bump being stored in here. This is just like a little config. It's actually a seed that we use to derive the address.
+00:15:27.814 - 00:15:29.566, Speaker B: I'm storing it in the account itself.
+00:15:29.630 - 00:15:37.874, Speaker A: Just for like validation check purposes. And you'll kind of see that a little bit later, but it's otherwise not super important to what we're doing.
+00:15:38.174 - 00:15:40.014, Speaker B: But this is, right.
+00:15:40.054 - 00:16:00.204, Speaker A: So this is going to be just a custom implementation that I put in here to show you guys an example of dynamic Solana data reallocating account size and giving you guys the means to think about how to provide certain checks. To give you an example, maybe you don't want certain tokens in this pool.
+00:16:00.624 - 00:16:03.680, Speaker B: Or maybe you don't want to allow.
+00:16:03.832 - 00:16:08.924, Speaker A: New liquidity unless some kind of config is set to true or something like that.
+00:16:09.264 - 00:16:16.300, Speaker B: What we're going to do here is inside this assets vector, we're going to keep a list of public keys, and.
+00:16:16.332 - 00:16:24.860, Speaker A: Each public key is going to be the mint that our pool supports. So this gives you two benefits. One, you can set up a bunch of checks like we just talked about.
+00:16:25.052 - 00:16:30.300, Speaker B: And two, you can just look up one account to serialize it and see.
+00:16:30.372 - 00:16:44.252, Speaker A: All the mints that are offered by the pool without having to instead look up all the token accounts that are owned by this program. So that might not mean a whole lot to you per se, but when a swap is really big or something like that, this might make more sense.
+00:16:44.348 - 00:16:46.412, Speaker B: Again, I'm not saying this is how.
+00:16:46.428 - 00:16:47.636, Speaker A: You should build your swap, this is.
+00:16:47.660 - 00:16:50.396, Speaker B: Just, for example, purposes, but that's what.
+00:16:50.420 - 00:16:52.464, Speaker A: This thing is basically designed to do.
+00:16:52.964 - 00:16:54.116, Speaker B: And that's kind of what I'm talking.
+00:16:54.140 - 00:16:56.304, Speaker A: About right here in this little blurb.
+00:16:56.604 - 00:16:58.804, Speaker B: And then we're going to move back.
+00:16:58.844 - 00:17:07.148, Speaker A: To state later to talk about some of the implemented traits and stuff below. But let's flop over to our first instruction, create pool.
+00:17:07.236 - 00:17:07.460, Speaker B: Right?
+00:17:07.492 - 00:17:11.781, Speaker A: And you can see it right here in the readme. I'm going to pop it open in versus code again.
+00:17:11.877 - 00:17:15.165, Speaker B: Create pools, our first instruction, and that's.
+00:17:15.189 - 00:17:16.469, Speaker A: Going to be right here.
+00:17:16.661 - 00:17:17.717, Speaker B: And you can see this isn't a.
+00:17:17.725 - 00:17:25.237, Speaker A: Ton of code, 32 lines, 33 lines, you know, with the brackets. This is just to create that account that we just looked at, right?
+00:17:25.285 - 00:17:27.405, Speaker B: So this is our state, and this.
+00:17:27.429 - 00:17:37.257, Speaker A: Is us just creating that account for the first time. And thus that we can consider as our pool being initialized. So our account for our pool is created.
+00:17:37.445 - 00:17:41.274, Speaker B: The program derived address account PDA is there.
+00:17:41.394 - 00:17:47.578, Speaker A: We can assign it associated token accounts. We can fund it with liquidity. So the pool is active.
+00:17:47.666 - 00:17:47.986, Speaker B: Right.
+00:17:48.050 - 00:17:50.306, Speaker A: And this is all it takes to do that.
+00:17:50.490 - 00:17:53.746, Speaker B: We just go ahead and like this.
+00:17:53.770 - 00:18:02.378, Speaker A: Is going to be using anchor to do some of the heavy lifting here, so. Right, so anchor right here is going to create this account for the first time. That's what this init keyword is going.
+00:18:02.386 - 00:18:03.950, Speaker B: To do for us, which you probably.
+00:18:03.982 - 00:18:12.954, Speaker A: Saw a little bit of in the last session. We've got the constant space, which is just the size of our account when we first kick it off, right?
+00:18:13.334 - 00:18:14.582, Speaker B: And the space here is going to.
+00:18:14.598 - 00:18:16.342, Speaker A: Be eight bytes for our discriminator, for.
+00:18:16.358 - 00:18:21.022, Speaker B: Our data, four bytes for a vector, which is going to be empty, so.
+00:18:21.038 - 00:18:23.190, Speaker A: We don't need any other subsequent bytes.
+00:18:23.382 - 00:18:27.422, Speaker B: And then one byte for that u eight bump, right.
+00:18:27.478 - 00:18:54.864, Speaker A: And so then we're going to make sure our payer pays to create this new account. And here's our seeds to derive this address. You can see something particular here. The only seed we have is the seed prefix constant, which is just a string literal liquidity pool. The key here is that this seed setup, where it's just one string literal, can't be replicated. Once this account exists, you can't create it again. And that's by design.
+00:18:54.864 - 00:18:57.772, Speaker A: You might choose to have multiple pools.
+00:18:57.828 - 00:18:59.882, Speaker B: In your dex, so you might want.
+00:18:59.898 - 00:19:08.330, Speaker A: To change your seed setup. But for this example, I just want one pool and I want to make sure no one can create a new one. So this is how I did mine.
+00:19:08.522 - 00:19:09.954, Speaker B: So we're going to have somebody sign.
+00:19:09.994 - 00:19:16.282, Speaker A: To create this pool, and we're going to need the system program to do it. And then as you can see, our last step here before we okay, out.
+00:19:16.298 - 00:19:18.394, Speaker B: Of this thing is to just set.
+00:19:18.474 - 00:19:20.658, Speaker A: Our liquidity pool up with the data.
+00:19:20.826 - 00:19:22.194, Speaker B: And that data is of course just.
+00:19:22.234 - 00:19:31.484, Speaker A: Going to be an empty vector. And then our bump, which is just the bump seed we're pulling right here from the derivation.
+00:19:32.064 - 00:19:33.064, Speaker B: And that's it.
+00:19:33.184 - 00:19:34.584, Speaker A: So that sets up our pool.
+00:19:34.664 - 00:19:34.880, Speaker B: Right.
+00:19:34.912 - 00:19:47.004, Speaker A: So now we have this PDA, we have this liquidity pool. It exists, we can start to fund it so that's exactly what we'll move to in the next section. You can see a little bit of talk about our stuff, implementations here.
+00:19:47.304 - 00:19:48.712, Speaker B: So now we're going to talk about.
+00:19:48.768 - 00:19:50.604, Speaker A: Funding this pool, right?
+00:19:51.394 - 00:19:54.090, Speaker B: So funding the pool is going to.
+00:19:54.122 - 00:20:23.656, Speaker A: Be where we implement our second instruction, and this is going to be a little bit more complicated, but ultimately you're just transferring and creating accounts. So let's take a look at funding the pool. And you can see here that again, we've got this anchor set up with some context, right? But you can see it's much bigger. So up here, the logic is straightforward. A lot of this I've kind of abstracted into another file, which we'll take a look at. But essentially what we're doing is we.
+00:20:23.680 - 00:20:30.112, Speaker B: Grab our pool, we build our deposit, and then we run this dot fund, okay?
+00:20:30.128 - 00:20:33.364, Speaker A: And we pass in the necessary accounts and the deposit.
+00:20:33.664 - 00:20:35.152, Speaker B: And so literally all that's going to.
+00:20:35.168 - 00:20:37.136, Speaker A: Do is say like, here's the tokens.
+00:20:37.160 - 00:20:41.192, Speaker B: That are being funded, here's this transfer.
+00:20:41.248 - 00:20:47.236, Speaker A: Function that's being wrapped by my pool fund, and it's just going to fund this associated token account.
+00:20:47.400 - 00:20:48.876, Speaker B: Now, I already mentioned how we had.
+00:20:48.900 - 00:20:50.544, Speaker A: To create these things, right?
+00:20:51.004 - 00:20:53.344, Speaker B: So that's kind of happening down here.
+00:20:54.124 - 00:21:13.064, Speaker A: So trying to fit all this context in one screen here. But basically you can see here we've got our liquidity pool. Now if we look at create pool, we saw that we use this init keyword. We had some other configs, but now we're using mute because we're expecting it with this instruction to already exist.
+00:21:13.544 - 00:21:15.008, Speaker B: So it exists already.
+00:21:15.176 - 00:21:20.444, Speaker A: And since our program owns it, we want this to be mutable and we want to be able to change the data.
+00:21:20.984 - 00:21:22.584, Speaker B: And the idea here is when we.
+00:21:22.624 - 00:21:24.824, Speaker A: Fund a new mint to our pool.
+00:21:24.984 - 00:21:25.944, Speaker B: We want to be able to add.
+00:21:25.984 - 00:21:29.848, Speaker A: That mint address to that vector that we talked about.
+00:21:30.016 - 00:21:31.336, Speaker B: So a couple of things happening behind.
+00:21:31.360 - 00:21:40.050, Speaker A: The scenes we'll get to. So here's the mint that we're funding it with. Here's the associated token account for that mint for the pool.
+00:21:40.242 - 00:21:41.394, Speaker B: And you can see we're using this.
+00:21:41.434 - 00:21:43.466, Speaker A: Anchor additional feature in it if needed.
+00:21:43.530 - 00:21:45.634, Speaker B: Which means kind of what it sounds like.
+00:21:45.674 - 00:21:53.694, Speaker A: If this account doesn't exist, let's initialize it. So in other words, this instruction will work even if our pool doesn't already have this token account.
+00:21:54.074 - 00:21:55.274, Speaker B: If it's creating it for the first.
+00:21:55.314 - 00:22:04.542, Speaker A: Time, anchor will go ahead and run that cross program invocation to do it, which is cool. You can see it corresponds to the mint. Our authority is our pool like we designed.
+00:22:04.738 - 00:22:06.790, Speaker B: And then here is the payers token account.
+00:22:06.862 - 00:22:19.234, Speaker A: This one we are not using. Index needed, because if you're offering to pay liquidity, that thing should exist, right? So that's not there. And then we've just got the programs that we need to do this and our payer.
+00:22:19.574 - 00:22:21.166, Speaker B: So let's start taking a look at.
+00:22:21.190 - 00:22:24.114, Speaker A: What happens when we go ahead and run this pool fund.
+00:22:24.614 - 00:22:26.790, Speaker B: So, and you're probably wondering, like, okay.
+00:22:26.822 - 00:22:37.490, Speaker A: Why is deposit, like, this tuple struct? Like, what's going on? Or this tuple object? This is just sort of like a fancy schmancy way of me building the arguments to this dot fund, right?
+00:22:37.522 - 00:22:40.370, Speaker B: Instead of having to pass four things.
+00:22:40.522 - 00:22:46.614, Speaker A: Plus another three, and have seven total arguments, I decided to group deposit into a tuple.
+00:22:47.194 - 00:22:48.134, Speaker B: That's all.
+00:22:48.554 - 00:22:54.654, Speaker A: But if we look at pool fund, we can pop this open and we can see we are back in our state file.
+00:22:55.034 - 00:22:56.282, Speaker B: And we have.
+00:22:56.338 - 00:23:00.966, Speaker A: I've actually set this up to be a little bit interesting for you guys.
+00:23:01.150 - 00:23:02.310, Speaker B: Anybody who wants to learn a bit.
+00:23:02.342 - 00:23:04.034, Speaker A: More about rust, this will be nice.
+00:23:04.894 - 00:23:07.230, Speaker B: I set up this trait, and this.
+00:23:07.262 - 00:23:12.994, Speaker A: Trait gives us these functions which are going to be associated with our liquidity pool.
+00:23:13.614 - 00:23:16.374, Speaker B: And you can see, like, here's that deposit tuple.
+00:23:16.494 - 00:23:19.486, Speaker A: We've got another tuple set up for receive and pay, right?
+00:23:19.670 - 00:23:21.470, Speaker B: It's just like me trying to be.
+00:23:21.502 - 00:23:25.634, Speaker A: Clean about this code, right? And that's just all it is. You don't have to do it like this.
+00:23:25.994 - 00:23:31.730, Speaker B: But ultimately, we set this trade up, and then we implement this trait on.
+00:23:31.842 - 00:23:44.994, Speaker A: The account of type liquidity pool. And this is an anchor like account object that's generic over some type. We are going to implement this trait whenever we have an account of type liquidity pool.
+00:23:45.154 - 00:23:53.918, Speaker B: And you can see here, that's exactly what this is right here, right. This is just me being fancy, but.
+00:23:53.966 - 00:23:55.414, Speaker A: I'm going to add all of these.
+00:23:55.454 - 00:23:57.926, Speaker B: Functions via a trait so that when.
+00:23:57.950 - 00:24:03.994, Speaker A: We read the pool in to our business logic, we can then access these functions.
+00:24:05.174 - 00:24:06.474, Speaker B: That's all that is.
+00:24:07.054 - 00:24:11.154, Speaker A: So, going back to the fund function.
+00:24:11.934 - 00:24:14.154, Speaker B: Let'S take a look at what's happening here.
+00:24:14.454 - 00:24:21.840, Speaker A: Obviously, the goal is to fund the liquidity pool with some tokens, but there's a couple steps we're taking in the middle, the middleware of this, right?
+00:24:22.032 - 00:24:24.176, Speaker B: So, first of all, I'm gonna turn.
+00:24:24.200 - 00:24:25.608, Speaker A: Off my rust analyzer.
+00:24:25.776 - 00:24:30.544, Speaker B: We go ahead and let them. Oh, maybe I'm gonna turn it back on.
+00:24:30.704 - 00:24:38.244, Speaker A: Go ahead and let the mint from to amount equal deposit, right? And that's just because I pass it in with this strange formatting.
+00:24:38.544 - 00:24:41.296, Speaker B: And so, once we've got these variables.
+00:24:41.320 - 00:24:42.760, Speaker A: Set up, we can go ahead and.
+00:24:42.792 - 00:24:45.760, Speaker B: Do add asset, and we're gonna add.
+00:24:45.792 - 00:24:51.026, Speaker A: The asset to that vector, right? So to do that, we pass in.
+00:24:51.050 - 00:24:54.730, Speaker B: These few things, you can see just mostly accounts, right?
+00:24:54.842 - 00:24:59.354, Speaker A: And when we go ahead and run add asset, which is another function associated.
+00:24:59.394 - 00:25:01.282, Speaker B: With this thing, you can see that.
+00:25:01.298 - 00:25:02.738, Speaker A: We'Re just going to check if this.
+00:25:02.786 - 00:25:06.426, Speaker B: Asset exists in that vector, and if.
+00:25:06.490 - 00:25:09.618, Speaker A: Not, we're going to put it in there, right?
+00:25:09.666 - 00:25:16.010, Speaker B: So if it doesn't exist, we're going to realloc the account and push the.
+00:25:16.042 - 00:25:17.534, Speaker A: Key into the vector.
+00:25:18.074 - 00:25:23.242, Speaker B: Now, what does realloc mean? Well, on Solana, when you create an.
+00:25:23.258 - 00:25:38.890, Speaker A: Account for the first time, you specify the size of that account when you create it, and that's how much rent you pay. And only about a year or so ago, they added the feature to be able to reallocate this size. So, for example, if we set our account to be of size eight, plus.
+00:25:38.922 - 00:25:41.888, Speaker B: Four, plus 113 bytes, and all of.
+00:25:41.896 - 00:25:45.128, Speaker A: A sudden we want to add a 32 byte public key to our vector.
+00:25:45.296 - 00:25:49.632, Speaker B: Suddenly we need 45 bytes, and if.
+00:25:49.648 - 00:26:03.524, Speaker A: We want to add another one, we're going to need another 32 bytes and so on and so forth. Originally, that wasn't possible, but now you can do that. So what we do is what's called realloc, and that is something that is available to all accounts on Solana.
+00:26:03.984 - 00:26:05.736, Speaker B: And you can see right here, that's.
+00:26:05.760 - 00:26:11.536, Speaker A: What we're going to run. So let's just make sure we know where this is getting kicked off. So when we go to add this asset, right before we push into the.
+00:26:11.560 - 00:26:14.486, Speaker B: Vector, we go ahead and reallocate the account.
+00:26:14.550 - 00:26:22.114, Speaker A: And you can see we're giving it 32 more bytes. So I set this thing up space to add payer system program.
+00:26:22.774 - 00:26:24.942, Speaker B: So why do we need the system program?
+00:26:24.998 - 00:26:40.150, Speaker A: Well, you can see right here from the highlight, we need to do a transfer, and that's who the payer is for, too. So why do we need to do a transfer? Well, your rent that you fund an account with is based on the size. And so if we initialize this thing at 13 bytes, and we pay for.
+00:26:40.182 - 00:26:42.654, Speaker B: 13 bytes, and then we tell Solana.
+00:26:42.694 - 00:26:45.014, Speaker A: To make it 35 bytes or whatever number.
+00:26:45.054 - 00:26:47.862, Speaker B: I said 45 bytes, we need to.
+00:26:47.878 - 00:27:03.742, Speaker A: Pay for that, right? So this always goes hand in hand with some deposit of LaN, ports of additional money for the rent. With that being said, that's exactly what's happening here. You can see here we're going to just calculate the new size of the account, which is adding that 32 bytes.
+00:27:03.918 - 00:27:08.984, Speaker B: We'Re going to calculate the new required Landport's balance and then we're going to.
+00:27:09.064 - 00:27:18.496, Speaker A: Fund that additional rent into the new account or into the account we want to change. And then finally reallocated size, right?
+00:27:18.680 - 00:27:20.912, Speaker B: And this zero init flag, that means.
+00:27:21.008 - 00:27:31.724, Speaker A: Clear the existing data or no. And since we're working with a vector, we don't want to do that because we can just append to it. But if you wanted to like change your data schema, you might want a zero init.
+00:27:32.344 - 00:27:34.024, Speaker B: So anyway, that's that, right?
+00:27:34.064 - 00:27:54.466, Speaker A: So that's all the steps it takes for us to add a new key. And so we finish reallocating, we push the new key to the vector, we serialize it and anchor actually will kind of handle that serializing for us and then we're good to go. So as you can probably tell, okay, that has nothing to do with actually funding the token account.
+00:27:54.650 - 00:27:56.734, Speaker B: Well that was step one, right?
+00:27:57.194 - 00:28:10.780, Speaker A: That was adding an asset to our pool. And this is just for demonstration purposes. Again, you're probably laughing at why I'm going through all the trouble. The second step is of course going to be processing that transfer. And this I just wrote a helper function for.
+00:28:10.932 - 00:28:12.556, Speaker B: But all we're going to do is.
+00:28:12.580 - 00:28:27.700, Speaker A: We'Re going to CPI over to the token program and we're going to run a transfer from our account that's being, providing the liquidity to our pools token account. And just for, you know, just for the sake of example, we can see.
+00:28:27.812 - 00:28:36.418, Speaker B: It'S going to go from this to this, right? So that's providing liquidity. That's it.
+00:28:36.586 - 00:28:44.894, Speaker A: Cool. So if we look at our readme, that's kind of what I'm going over here. I'm talking about fund, I'm talking about realic, we just covered all this stuff, right?
+00:28:45.434 - 00:28:47.362, Speaker B: And then our next bit here is.
+00:28:47.378 - 00:28:49.414, Speaker A: Our third instruction swap.
+00:28:49.794 - 00:28:52.842, Speaker B: So flipping back to versus code, you.
+00:28:52.858 - 00:28:53.842, Speaker A: Can see here, we're going to take.
+00:28:53.858 - 00:28:56.782, Speaker B: A look at our swap instruction and.
+00:28:56.798 - 00:29:01.638, Speaker A: I'll close these other instructions out too. Basically what our swap instruction is going.
+00:29:01.646 - 00:29:04.094, Speaker B: To do is it's going to set.
+00:29:04.134 - 00:29:11.194, Speaker A: Up the constant product algorithm and determine some amount of r to give back.
+00:29:11.894 - 00:29:15.966, Speaker B: Now you can set this program up if you wanted.
+00:29:15.990 - 00:29:55.204, Speaker A: In the future you can expand on this and you can allow for the ability to preview how much or whatever. I didn't do all that. So in just the program spec itself, what you're going to do is give me a value p and I'll give you back r, but I will transfer it back. In order to estimate how much you'll get, you need to recreate this algorithm outside the program, at least the way I wrote it. So the program is literally just going to take p as an input and transfer r, and it's going to do both transfers. So with that being said, let's walk through. If it's zero, we don't want to be able to run it, so throw an error.
+00:29:55.784 - 00:29:56.992, Speaker B: Then again, we're going to load the.
+00:29:57.008 - 00:30:02.764, Speaker A: Pool up because I've got my cool implemented functions on here. The last one was process swap.
+00:30:04.784 - 00:30:18.890, Speaker B: We build our receive and we build our pay. Here's r, and here is our q of r. Here is p, here is.
+00:30:18.922 - 00:30:24.654, Speaker A: Our q of p. And then you can see the payers token accounts are also included here for the transfers.
+00:30:25.434 - 00:30:27.434, Speaker B: So taking a look at the context.
+00:30:27.474 - 00:30:45.270, Speaker A: Again, this one is going to be a little bit larger than the last one, but it's pretty straightforward, right? Again, we load the pool in again, it needs to be mutable. Technically this might not need to be mutable right now because we're not changing the vector, but nonetheless, at least the token accounts will need to be mutable.
+00:30:45.462 - 00:30:47.062, Speaker B: So you can see here we have.
+00:30:47.078 - 00:30:53.434, Speaker A: A constraint anchor, lets you write these constraints here that they'll run checks at the entry point of the program.
+00:30:53.774 - 00:30:55.398, Speaker B: So right here we're just making sure.
+00:30:55.446 - 00:31:21.590, Speaker A: That the r asset does not match the p asset, which is good to do. So here's the mint we want to receive. Here is the token account for the pool that has that mint. I'm not using init if needed, because if that token account doesn't exist, then you can't receive that asset from this pool. So we want it to throw an error. And then the payer might not have this account though. Like they might not have this token yet.
+00:31:21.590 - 00:31:32.062, Speaker A: That's okay, we can initialize that too. Here's the mint for p, what they're offering to pay. Here's the pool token account. Now this one could be in it.
+00:31:32.078 - 00:31:34.722, Speaker B: If needed, but for the case, you.
+00:31:34.738 - 00:31:51.934, Speaker A: Know, just for the way I set it up, I don't have it as init if needed. Because if you did do init if needed, we would have to implement the add asset and stuff like that. So I didn't really go through the trouble of doing all that. I just basically said, if the pool doesn't have p, you can't pay p to get r for now.
+00:31:52.634 - 00:31:53.842, Speaker B: So another place that you can kind.
+00:31:53.858 - 00:31:55.122, Speaker A: Of expand on this.
+00:31:55.298 - 00:31:57.186, Speaker B: And then here is the payers token.
+00:31:57.210 - 00:32:01.094, Speaker A: Account for P. Again, we're expecting that to exist because they're offering the asset.
+00:32:01.604 - 00:32:02.384, Speaker B: Cool.
+00:32:02.764 - 00:32:10.148, Speaker A: All right, so let's take a look at the process swap. This is the last important bit of our program. And this is where we're of course.
+00:32:10.196 - 00:32:12.820, Speaker B: Going to have the constant product algorithm.
+00:32:12.852 - 00:32:14.636, Speaker A: What we've all been waiting for. Right?
+00:32:14.780 - 00:32:23.220, Speaker B: So let's pop this thing open so you can see here receive and pay, and then our authority, who's going to.
+00:32:23.252 - 00:32:36.104, Speaker A: Just be the one that signs for the transfer out from the payer and the token program, which we need. So here's what to we're going to do. We're going to come in and we're going to check that the r mint exists in our vector.
+00:32:36.524 - 00:32:37.932, Speaker B: We're going to check that the p.
+00:32:37.988 - 00:32:39.940, Speaker A: Mint exists in our vector.
+00:32:40.132 - 00:32:41.540, Speaker B: And if both of those hold true.
+00:32:41.572 - 00:32:43.140, Speaker A: We'Ll continue through the logic.
+00:32:43.292 - 00:32:45.388, Speaker B: And right here, determine swap.
+00:32:45.436 - 00:32:48.324, Speaker A: Receive is going to be our constant product algorithm.
+00:32:48.484 - 00:32:49.740, Speaker B: Now, I'm going to go to that.
+00:32:49.812 - 00:32:52.660, Speaker A: Last because the rest of this is pretty straightforward.
+00:32:52.852 - 00:32:55.378, Speaker B: You can see that if r comes.
+00:32:55.426 - 00:33:03.386, Speaker A: Back as zero, we are going to throw an error. And if it doesn't, then finally we're going to process the transfer to the.
+00:33:03.410 - 00:33:06.690, Speaker B: Pool and then process the transfer from the pool.
+00:33:06.722 - 00:33:37.936, Speaker A: And this will happen atomically pretty fast, too. And if either of these two things fail, the whole transaction gets rolled back. So it's no big deal. So anywho, you can see this is pretty straightforward. We're going to transfer the P asset that you're offering to the pool, and then we're going to transfer you, the R asset from the pool. And then that's going to finish off our instruction. So that's how we set this thing up, this transfer to pool, pretty much the same as transfer from pool.
+00:33:37.936 - 00:33:42.240, Speaker A: The only difference is we are using the seeds of our liquidity pool to.
+00:33:42.272 - 00:33:46.400, Speaker B: Sign this because we're debiting our PDA.
+00:33:46.472 - 00:33:51.264, Speaker A: And the PDA doesn't have a private key, so we're using the seeds to authorize this.
+00:33:51.564 - 00:34:00.876, Speaker B: Now that leaves our determine swap receive function. This is the ultimate piece of our program, right?
+00:34:00.900 - 00:34:10.624, Speaker A: This is what we harped on earlier with the algebraic slides, right? This is everything we've been waiting for. This is our implementation of that constant product algorithm.
+00:34:11.044 - 00:34:12.252, Speaker B: And it's not as big as you.
+00:34:12.268 - 00:34:17.428, Speaker A: Probably thought it was going to be, right? It's actually quite simple. So here again, I wrote this stuff.
+00:34:17.516 - 00:34:20.316, Speaker B: In the comments, but as you can.
+00:34:20.340 - 00:34:28.076, Speaker A: See, we've got r equals f of p, f of p being our determine, swap, perceive or constant product algorithm.
+00:34:28.260 - 00:34:29.708, Speaker B: And so we're going to have big.
+00:34:29.756 - 00:34:40.904, Speaker A: R times little p over big p plus b. And the larger numbers are the capital letters, meaning the balances.
+00:34:41.524 - 00:34:51.760, Speaker B: So you can see here that we pass in the balance of r in the pool, the decimals of r, which I'll talk about in a second, the.
+00:34:51.792 - 00:35:11.312, Speaker A: Balance of p in the pool, the decimals of p, and the little p value, the amount of asset p that the user has offered to pay. And so, just walking through this thing, big r, right? This is going to be the balance, and we're going to convert to flow, right? Like I just wrote, this little helper function.
+00:35:11.488 - 00:35:14.416, Speaker B: Basically what I'm doing here is you're.
+00:35:14.440 - 00:35:15.728, Speaker A: Going to give me a balance, right?
+00:35:15.776 - 00:35:18.304, Speaker B: Let's say it's like, I don't know.
+00:35:18.344 - 00:35:22.856, Speaker A: I can't think of a good example. But ultimately what's happening here is convert to float is going to take the.
+00:35:22.880 - 00:35:25.496, Speaker B: Value and it's going to divide it.
+00:35:25.520 - 00:35:40.972, Speaker A: By ten to the whatever exponent number of the decimals. So, like I mentioned an example in the slide, but, like, if you have 10,500 of an asset with three decimals.
+00:35:41.028 - 00:35:45.356, Speaker B: You really have 10.5, right? And so the program is going to.
+00:35:45.380 - 00:35:49.988, Speaker A: Receive 10,500, and we need to normalize this with the decimal places.
+00:35:50.156 - 00:35:55.188, Speaker B: So we go ahead and do this, and then we get 10.5, and this.
+00:35:55.196 - 00:35:56.668, Speaker A: Will give us a much more accurate.
+00:35:56.716 - 00:36:06.344, Speaker B: Constant product k. So we do that for both big r and big pull. And then we also do it for p, little p, right?
+00:36:06.384 - 00:36:21.536, Speaker A: Because each of these amounts is going to be represented in that u 64 large, you know, big int number. So, as you can see from our little rust analyzer here, we end up with three floats, and then we can do some arithmetic. So we can go ahead and say.
+00:36:21.720 - 00:36:36.672, Speaker B: Big r times p, big p plus p. And then finally, according to our algorithm, we can do big r times p over big p plus p to get r. And then we finally make.
+00:36:36.688 - 00:36:44.044, Speaker A: Sure r is not greater than big r, which would mean the value that we've calculated to give you back is more than our pool has.
+00:36:44.344 - 00:36:46.168, Speaker B: And we can't do that, obviously.
+00:36:46.296 - 00:36:51.504, Speaker A: And then finally, when we return it, we convert it back to that unnormalized.
+00:36:51.544 - 00:36:59.618, Speaker B: U 64 value to give you the value r to have the quantity to be transferred out. And that's it, guys.
+00:36:59.666 - 00:37:12.014, Speaker A: That's the concept product algorithm right there. So that's how we set everything up. That's how we build this program. This program works, and it works well, and it's hilarious, because I'm saying that and I bet you my tests fail.
+00:37:12.354 - 00:37:14.050, Speaker B: But either way you can get all.
+00:37:14.082 - 00:37:23.606, Speaker A: This information from the readme and we talk about all this stuff in detail here. Again, constant product. And that moves us on to the tests.
+00:37:23.710 - 00:37:23.998, Speaker B: Right?
+00:37:24.046 - 00:37:32.514, Speaker A: So now let's deploy this thing, let's run some tests against it, let's put some assets on it and let's see what we can do with our swap.
+00:37:33.174 - 00:37:35.542, Speaker B: Now before I do that, I want.
+00:37:35.558 - 00:37:43.998, Speaker A: To show off my cool user interface. So in this repository, if you go to the app folder and you install.
+00:37:44.046 - 00:37:51.704, Speaker B: Everything with yarn and then you run yarn device, you will see my neat little user interface.
+00:37:52.524 - 00:38:07.668, Speaker A: You will see that we have entered the pirate port. Oh, and this is actually good error to catch, guys. You have to set RPC endpoint as an environment variable. The easiest way to probably do this.
+00:38:07.716 - 00:38:15.462, Speaker B: Is just head into app, create a Env and just go ahead and do RPC endpoint.
+00:38:15.628 - 00:38:18.814, Speaker A: And you can set it to whatever RPC endpoint you want.
+00:38:19.154 - 00:38:22.498, Speaker B: I set it to Devnet and then.
+00:38:22.546 - 00:38:24.334, Speaker A: Basically what I want to do now.
+00:38:25.314 - 00:38:27.974, Speaker B: Is go ahead and reboot this thing.
+00:38:29.914 - 00:38:31.570, Speaker A: And now that should allow us to.
+00:38:31.642 - 00:38:37.834, Speaker B: Connect to our RPC endpoint here. And you should be able to see.
+00:38:37.874 - 00:38:39.374, Speaker A: Welcome to the port mate.
+00:38:39.914 - 00:38:42.124, Speaker B: Right now this, these are the assets.
+00:38:42.164 - 00:38:51.264, Speaker A: From a program I've previously deployed. So I'm going to change this up a little bit. But this is what you'll see on the UI. As you can see, we'll be able to pick from all the different assets in the pool.
+00:38:51.564 - 00:38:53.504, Speaker B: We'll be able to swap between them.
+00:38:54.084 - 00:38:59.012, Speaker A: And you can see that our wallet will allow us to get a little preview here. But this is probably not going to.
+00:38:59.028 - 00:39:01.532, Speaker B: Work just because I'm not sure if.
+00:39:01.548 - 00:39:03.264, Speaker A: This program is deployed or not yet.
+00:39:03.604 - 00:39:06.636, Speaker B: Yeah, but anywho, let's go ahead and.
+00:39:06.660 - 00:39:15.116, Speaker A: Change this to our program. So to do that, what I want to do is first I want to deploy our program. So I'm going to pop open a.
+00:39:15.140 - 00:39:19.084, Speaker B: New terminal and I'm going to go.
+00:39:19.124 - 00:39:21.244, Speaker A: To, I'm going to just run anchor.
+00:39:21.284 - 00:39:30.228, Speaker B: Build and then I'm going to make sure, and I know you guys are probably freaking out about my positioning of my terminal.
+00:39:30.276 - 00:39:39.414, Speaker A: So I'll put it back down here. So that's going to run anchor build on our program. And then of course we're going to get this address out.
+00:39:39.954 - 00:39:44.258, Speaker B: We want to just make sure that our lib RS matches.
+00:39:44.306 - 00:39:47.414, Speaker A: It looks like it does. And our anchor toml matches.
+00:39:47.834 - 00:39:49.546, Speaker B: Then we can run anchor deploy.
+00:39:49.610 - 00:39:52.738, Speaker A: And I'm throwing this onto Devnet. So you want to make sure Devnet.
+00:39:52.826 - 00:39:55.770, Speaker B: Is in your config and we go.
+00:39:55.802 - 00:40:16.894, Speaker A: Ahead and deploy it. And once that's deployed, what you want to do or even while it's deploying, well, I think you should probably wait anyway, is if you look at the UI you can see in source IDL, we've got the IdL JSON and we've got the typescript type bindings. Right now the type bindings aren't going to change since I last built it.
+00:40:17.054 - 00:40:18.838, Speaker B: But what is going to change is.
+00:40:18.886 - 00:40:23.566, Speaker A: This address at the bottom of the IDL. So I didn't change this program. So all I'm going to do is.
+00:40:23.590 - 00:40:25.862, Speaker B: Change this value, right?
+00:40:26.038 - 00:40:30.874, Speaker A: And I'm going to just take down my UI until we finish deploying the program.
+00:40:31.524 - 00:40:32.532, Speaker B: This is probably going to take a.
+00:40:32.548 - 00:40:59.326, Speaker A: While, but once that's done, we'll be able to go ahead and interact with our program from the UI. So while that's running, hopefully it works. We can actually set up the other tests first. This is where the tests can be a little bit confusing. But if you want to take a look, we've got a couple things here. So if you look at anchor Toml, these are in order. So upload JSON, create assets test and master test being of course main.
+00:40:59.326 - 00:41:09.394, Speaker A: So for the most part you can ignore master. It's kind of there for the administrator or the bootcamp to sort of quickly one off, do some scripting, but the other three tests are going to be important.
+00:41:09.854 - 00:41:11.798, Speaker B: So the first one, upload JSON.
+00:41:11.886 - 00:41:17.510, Speaker A: This is stuff that you probably saw earlier in the session. And basically what we're doing is we're.
+00:41:17.542 - 00:41:22.978, Speaker B: Going to take all these images up in the assets folder and those are.
+00:41:22.986 - 00:41:24.162, Speaker A: Going to be the assets folder in.
+00:41:24.178 - 00:41:26.786, Speaker B: The bootcamp and we're going to deploy.
+00:41:26.850 - 00:41:32.394, Speaker A: Them out to arweave using the Metaplex JS SDK and using Bundler.
+00:41:32.474 - 00:41:34.338, Speaker B: Right. And so all we're going to do.
+00:41:34.346 - 00:41:40.658, Speaker A: Is set up a metaplex instance. We're going to go ahead and log into Bundler. We're going to just set up all of our stuff here.
+00:41:40.826 - 00:41:41.850, Speaker B: And all we're going to do is.
+00:41:41.882 - 00:41:46.054, Speaker A: Upload the metadata so it's on there and we can access it with the URi field.
+00:41:46.714 - 00:41:50.056, Speaker B: And so that's pretty straightforward. I have already done this, so I'm.
+00:41:50.080 - 00:42:20.724, Speaker A: Not going to run it. But if you do need to do this or you want to change your images or what have you, you can do that. The other test, the next one is going to be create assets. And this one is basically going to give us the ability to create new tokens to serve as our assets, like our cannons and our gold and whatnot. Right? So first things first. In the repo, I want to make sure I just run a quick yarn, make sure I install all the local dependencies for this like anchor workspace.
+00:42:21.384 - 00:42:23.144, Speaker B: And then you can see just walking.
+00:42:23.184 - 00:42:24.664, Speaker A: Through here, we're just doing a loop.
+00:42:24.704 - 00:42:27.896, Speaker B: Through all the assets, the assets being.
+00:42:27.960 - 00:42:30.324, Speaker A: In the constant file in util.
+00:42:31.224 - 00:42:32.520, Speaker B: And you can see right here, these.
+00:42:32.552 - 00:42:38.804, Speaker A: Are all the different assets. I've already got my arweave URL's here and this is decimals in quantity.
+00:42:39.144 - 00:42:42.416, Speaker B: And I'm going to be the mint authority of these because that's what the.
+00:42:42.440 - 00:42:43.750, Speaker A: Script is set up to do.
+00:42:43.912 - 00:42:45.690, Speaker B: So it's going to create each of.
+00:42:45.722 - 00:42:48.250, Speaker A: These with us or whoever your local.
+00:42:48.282 - 00:42:51.170, Speaker B: Key pair is as the Mint authority.
+00:42:51.362 - 00:42:59.138, Speaker A: And then you can go ahead and set up a config file which is just going to write it to a JSON so we can use it in our other tests. Right.
+00:42:59.306 - 00:43:00.098, Speaker B: If you want to take a look.
+00:43:00.106 - 00:43:04.346, Speaker A: At how this thing works, you can pop open mint new tokens. It's literally straightforward.
+00:43:04.410 - 00:43:06.642, Speaker B: It's just going to set up the.
+00:43:06.698 - 00:43:16.966, Speaker A: Different instructions you need to do it right. Create account, initialize mint, create metadata account and create associated token account. Mint two.
+00:43:17.070 - 00:43:20.714, Speaker B: Right. So all that stuff, which is pretty cool.
+00:43:21.294 - 00:43:29.246, Speaker A: And one last piece on this, when you do create assets, there's a flag here for metadata. If you're using local net, you can turn it off. If you don't have the metadata program.
+00:43:29.310 - 00:43:31.046, Speaker B: Cloned, I'm going to set it to.
+00:43:31.070 - 00:43:32.714, Speaker A: True since we're on Devnet.
+00:43:33.094 - 00:43:34.822, Speaker B: And that'll mean that our tokens will.
+00:43:34.838 - 00:43:37.394, Speaker A: Have images, which means our UI will work, which is great.
+00:43:38.324 - 00:43:41.852, Speaker B: So before we head over to the main test, let's take a look and.
+00:43:41.868 - 00:43:43.292, Speaker A: Make sure our program deployed.
+00:43:43.348 - 00:43:50.504, Speaker B: It did. Which means we can reboot our UI and we can go ahead and.
+00:43:52.484 - 00:43:54.492, Speaker A: See our new program.
+00:43:54.588 - 00:43:57.980, Speaker B: And it should probably have no assets yet, right?
+00:43:58.012 - 00:43:59.012, Speaker A: It should have nothing.
+00:43:59.108 - 00:44:02.052, Speaker B: Yep. So account does not exist or has no data.
+00:44:02.108 - 00:44:24.534, Speaker A: So probably should handle that error. But that means we have no tokens. Actually what this is probably barfing about is this is our liquidity pool, which doesn't exist yet because we haven't initialized it. So with that being said, let's go ahead and do this test. So first we're going to create some assets. And so you can do yarn run or you can do anchor run. I'm going to do anchor run, create assets.
+00:44:25.474 - 00:44:27.114, Speaker B: And that is going to create for.
+00:44:27.154 - 00:44:33.052, Speaker A: Us those new tokens based on our config file. So we just created all those tokens on Devnet.
+00:44:33.188 - 00:44:34.604, Speaker B: You can see how fast that was.
+00:44:34.684 - 00:44:35.304, Speaker A: Right?
+00:44:35.604 - 00:44:36.892, Speaker B: And then we're going to go to.
+00:44:36.908 - 00:44:39.624, Speaker A: Our main test and take a look at what we're going to do here.
+00:44:40.484 - 00:44:42.988, Speaker B: So first thing we want to do.
+00:44:43.076 - 00:44:45.744, Speaker A: Load the assets in from the JSOn file, right?
+00:44:46.084 - 00:44:48.156, Speaker B: And then before we want to make.
+00:44:48.180 - 00:44:53.268, Speaker A: Sure the pool doesn't exist already, before we run this, blah, blah, blah, right. If it does, it already exists, we skip it.
+00:44:53.436 - 00:44:56.548, Speaker B: Here's where we create the pool. And if we pop this open, you.
+00:44:56.556 - 00:45:09.824, Speaker A: Can see we're just running this anchor function, right? So we've got our program create pool, no arguments. Here's the accounts we wrote and RPC to send the transaction. So that's going to create our pool PDA.
+00:45:10.124 - 00:45:11.428, Speaker B: And then this check is just going.
+00:45:11.436 - 00:45:13.868, Speaker A: To make sure if it exists, we don't run that again because it's going.
+00:45:13.876 - 00:45:16.504, Speaker B: To fail because that's the way we wrote the seeds.
+00:45:17.364 - 00:45:28.004, Speaker A: And then we're going to fund the pool with some more assets, right? And this is just for the sake of making sure that there's enough in there for swapping, especially if something changes.
+00:45:28.344 - 00:45:31.096, Speaker B: You could run this test and make.
+00:45:31.120 - 00:45:34.816, Speaker A: Sure that there's enough assets in there. You can also comment this out if you don't want to do it.
+00:45:35.000 - 00:45:37.440, Speaker B: And then we can get some information about the pool.
+00:45:37.632 - 00:45:55.104, Speaker A: And finally we can try a swap. And I got this set up to do this a couple of times. So we'll try a couple different swaps, right? You can see it's on a loop here. And rate, you know, I'm basically just saying like, log pre swap, log post swap. This is just log statements. This, these are just print statements.
+00:45:55.144 - 00:45:57.456, Speaker B: I went through a weird amount of.
+00:45:57.480 - 00:46:20.928, Speaker A: Time setting this up and you'll get to see why. But ultimately this swap function is going to be what triggers our program. And you can see swap accounts, et cetera. Here's all the accounts that we have. Here's our token accounts, right? So essentially what we're doing is initializing the pool if it doesn't exist, funding it with liquidity. That's our second instruction. And trying a swap.
+00:46:20.928 - 00:46:21.724, Speaker A: Our third.
+00:46:22.624 - 00:46:23.384, Speaker B: Cool.
+00:46:23.544 - 00:46:44.444, Speaker A: So since our, you know, liquidity pool doesn't exist yet, let's do anchor run test and let's create this thing. We'll run a couple of swaps and then we'll check out the UI. And I'm going to full screen this. So you get to see my beautiful log statements in all their glory. As you can see, I've got some decent ones for the mints. Let's check them out for this.
+00:46:45.064 - 00:46:46.688, Speaker B: So here we're going to create that pool.
+00:46:46.736 - 00:46:55.254, Speaker A: Right now it's initialized, we're funding it with some mints. We are the mint authority, so we can just mint new ones to ourselves and fundament the program.
+00:46:55.714 - 00:46:57.202, Speaker B: And there's liquidity pool.
+00:46:57.298 - 00:47:07.322, Speaker A: There's all the assets that it has and it's balance. And now here you can see, this is the card for pre swap and post swap. So we wanted to pay muskets, we received telescopes, right?
+00:47:07.498 - 00:47:09.934, Speaker B: We were offering to pay 19 muskets.
+00:47:10.594 - 00:47:15.594, Speaker A: And so we started with 79 in our account, and the pool had 60 muskets.
+00:47:15.634 - 00:47:17.628, Speaker B: And when we were finished, the pool.
+00:47:17.676 - 00:47:20.344, Speaker A: Had 79, we had 60. Makes sense.
+00:47:20.964 - 00:47:27.612, Speaker B: And since the pool started with 20 telescopes and it now has 15.19, you.
+00:47:27.628 - 00:47:30.020, Speaker A: Can see that the r value we.
+00:47:30.052 - 00:47:34.172, Speaker B: Offered to pay p 19 muskets, and.
+00:47:34.228 - 00:47:38.704, Speaker A: Instead we got back our five telescopes.
+00:47:39.004 - 00:47:40.948, Speaker B: And this makes sense because there's many.
+00:47:40.996 - 00:47:46.444, Speaker A: More muskets inside the pool than there is telescopes, right.
+00:47:46.984 - 00:47:47.936, Speaker B: So, of course we're going to get.
+00:47:47.960 - 00:47:50.924, Speaker A: Less telescopes than, you know, the number of muskets we're paying.
+00:47:51.344 - 00:47:53.448, Speaker B: And that's how these pools work. Right.
+00:47:53.496 - 00:47:57.968, Speaker A: Like it's all based on liquidity. If there's a ton of muskets and not a lot of telescopes, you're going.
+00:47:57.976 - 00:47:58.672, Speaker B: To have to pay a lot of.
+00:47:58.688 - 00:48:08.024, Speaker A: Muskets to get some telescopes. Conversely, if you had a lot of telescopes and there wasn't a lot of telescopes in the pool, your telescopes are worth a lot of muskets.
+00:48:08.104 - 00:48:08.476, Speaker B: Right.
+00:48:08.560 - 00:48:18.812, Speaker A: And that's how these pools work. That's how dexs work, at least those that use liquidity pools and the constant product algorithm. So you can see this kind of thing continues, right. We go through a loop, we do.
+00:48:18.828 - 00:48:20.996, Speaker B: A bunch of swaps, and let's take.
+00:48:21.020 - 00:48:21.804, Speaker A: A look at one more.
+00:48:21.844 - 00:48:22.020, Speaker B: Right.
+00:48:22.052 - 00:48:25.844, Speaker A: Let's take a look at some gold. We offered to pay four, and these are just random numbers, by the way.
+00:48:25.964 - 00:48:31.388, Speaker B: We offered to pay four gold in exchange for muskets. And let's take a look at what.
+00:48:31.396 - 00:48:43.706, Speaker A: The pool has for gold. The pool has a lot of gold, but at this point, it's getting low on muskets. Right. So what are we going to get back for four gold? Well, we get a fraction of a musket, right.
+00:48:43.890 - 00:48:45.578, Speaker B: A very small fraction.
+00:48:45.706 - 00:48:56.722, Speaker A: And that makes sense because muskets are now becoming rare in the pool, which is cool. So now this is all done. Take a look at this, though. If you look at each of these.
+00:48:56.778 - 00:49:01.322, Speaker B: Blocks, look at this. I've included our Delta K, which is.
+00:49:01.338 - 00:49:06.484, Speaker A: The change in the constant product K. Look at how small that that change is.
+00:49:07.024 - 00:49:11.048, Speaker B: Right? And each of these, we've got it.
+00:49:11.096 - 00:49:14.456, Speaker A: Down to the thousandths, even the hundred.
+00:49:14.520 - 00:49:18.120, Speaker B: Thousandth place of percent change, except this.
+00:49:18.152 - 00:49:19.644, Speaker A: One, that's strangely high.
+00:49:19.984 - 00:49:20.368, Speaker B: Right.
+00:49:20.416 - 00:49:34.350, Speaker A: But you can see that they're very, very tiny, almost negligible. Sometimes they're flat out zero, at least for the decimal places we're printing. And that, my friends, is why we did the whole normalizing the decimal places and everything, because this is a true.
+00:49:34.462 - 00:49:37.262, Speaker B: Calculation of the change in k. We're.
+00:49:37.278 - 00:49:46.686, Speaker A: Just calculating the constant product on the client side and then checking it before and after with these log statements. And this is what we're ending up with.
+00:49:46.870 - 00:49:47.822, Speaker B: So I would say we have a.
+00:49:47.838 - 00:49:49.434, Speaker A: Pretty good working swap program.
+00:49:50.934 - 00:49:52.382, Speaker B: So feel free to play around with.
+00:49:52.398 - 00:49:58.314, Speaker A: Those tests all you want. Let's try refreshing our UI and see if we can load up our assets.
+00:49:58.734 - 00:50:00.358, Speaker B: Welcome to the poet mate.
+00:50:00.446 - 00:50:07.502, Speaker A: And there you go. There's our updated assets from our program with our balances there.
+00:50:07.678 - 00:50:09.310, Speaker B: And just to kind of verify, let's.
+00:50:09.342 - 00:50:11.638, Speaker A: Take a quick look at our last test run.
+00:50:11.806 - 00:50:13.150, Speaker B: And let's just look at gold. Right?
+00:50:13.182 - 00:50:28.244, Speaker A: There was 647 gold after we offered to pay 14 compasses, which were rare. And we received a lot of gold for those compasses. Right. Looks like 450 gold for those compasses. Those are worth a lot of gold.
+00:50:29.144 - 00:50:30.784, Speaker B: And then there's our gold right there.
+00:50:30.824 - 00:50:31.464, Speaker A: 647.
+00:50:31.504 - 00:50:31.656, Speaker B: Right.
+00:50:31.680 - 00:50:35.164, Speaker A: And we can see compasses. We finished off with 34 in the pool.
+00:50:35.464 - 00:50:36.784, Speaker B: Here's the compass, 34.
+00:50:36.824 - 00:50:39.044, Speaker A: So we are looking at the proper assets.
+00:50:39.904 - 00:50:40.884, Speaker B: So cool.
+00:50:41.304 - 00:50:44.192, Speaker A: Let's go ahead and play around with our swap. Right?
+00:50:44.248 - 00:50:47.336, Speaker B: Let's. I think I want to get some.
+00:50:47.360 - 00:50:48.616, Speaker A: More money for my compasses.
+00:50:48.680 - 00:50:49.280, Speaker B: Right? So let's.
+00:50:49.312 - 00:50:51.772, Speaker A: Let's do compass for gold. And I want to do.
+00:50:51.968 - 00:50:53.304, Speaker B: I want to do two.
+00:50:54.644 - 00:51:00.708, Speaker A: You can see my received number is calculating this as well from the token account balances. This is something I replicate on the client side.
+00:51:00.876 - 00:51:05.324, Speaker B: I'll show you guys in a sec, but I'm going to give five compasses.
+00:51:05.444 - 00:51:12.104, Speaker A: I just don't know if I have these compasses in my wallet or not. I probably don't.
+00:51:12.484 - 00:51:13.652, Speaker B: Let's see.
+00:51:13.828 - 00:51:15.744, Speaker A: It's probably not going to work because I don't.
+00:51:16.204 - 00:51:22.504, Speaker B: Yeah. Oh, actually, I have to put this onto Devnet. It is on Devnet.
+00:51:22.584 - 00:51:23.404, Speaker A: Okay.
+00:51:23.784 - 00:51:24.096, Speaker B: Yeah.
+00:51:24.120 - 00:51:30.924, Speaker A: I don't think I have compasses in my wallet, but that's okay. We'll just go ahead and try cannons.
+00:51:32.384 - 00:51:34.416, Speaker B: So I do have some cannons, which is good.
+00:51:34.480 - 00:51:36.680, Speaker A: So I want to get some cannonballs back.
+00:51:36.872 - 00:51:38.392, Speaker B: I'm going to send two cannons.
+00:51:38.488 - 00:51:41.404, Speaker A: I'm going to receive 2.05 cannonballs.
+00:51:41.984 - 00:51:42.916, Speaker B: Approve.
+00:51:43.080 - 00:51:45.464, Speaker A: And we have a successful transfer.
+00:51:46.004 - 00:51:48.348, Speaker B: And if we look at our explorer.
+00:51:48.396 - 00:51:54.732, Speaker A: Transaction, you can see here's all the things that were invoked. Yada, yada. Ultimately, we want to take a look.
+00:51:54.748 - 00:52:00.700, Speaker B: At this, transfer two cannons, and then.
+00:52:00.732 - 00:52:03.172, Speaker A: This is my wallet, right? So this is me transferring to the.
+00:52:03.188 - 00:52:09.572, Speaker B: Pool and then transfer 2.05 cannonballs. And then the authority.
+00:52:09.628 - 00:52:14.744, Speaker A: We already saw this CYG address earlier. This is the pool, right? So this is going from the pool to me.
+00:52:15.374 - 00:52:16.614, Speaker B: And that's really it, guys.
+00:52:16.654 - 00:52:19.314, Speaker A: That's a good working swap program. That's Dex.
+00:52:19.654 - 00:52:20.758, Speaker B: And we're going to take a quick.
+00:52:20.806 - 00:52:24.274, Speaker A: Look at some of the client side code, but I'm not going to go crazy on that.
+00:52:24.614 - 00:52:26.230, Speaker B: But again, I'm just building a front.
+00:52:26.262 - 00:52:27.554, Speaker A: End from the Idl.
+00:52:28.174 - 00:52:30.358, Speaker B: I got the wallet adapter, stuff like that.
+00:52:30.526 - 00:52:33.914, Speaker A: And inside the component, you can see here is a swap card.
+00:52:34.214 - 00:52:36.134, Speaker B: And inside the swap card, we're going.
+00:52:36.174 - 00:52:44.374, Speaker A: To just kind of flop between set, receive, amount, etcetera. And then let me see where I put this bad boy.
+00:52:45.194 - 00:52:45.962, Speaker B: Somewhere in here.
+00:52:45.978 - 00:52:47.934, Speaker A: I put the calculation for.
+00:52:52.274 - 00:53:11.166, Speaker B: Right here. This is pay swap right here. So pretty simple, same formula and.
+00:53:11.310 - 00:53:32.574, Speaker A: Yeah, guys, so cool. So thank you very much for taking a look at the pirate swap. Thanks for coming to the port. And I hope you guys enjoyed this session on building a decentralized exchange that's powered by the constant product algorithm and thus building a Dex or a liquidity pool or whatever you want to call it on Solano. Thank you guys very much.

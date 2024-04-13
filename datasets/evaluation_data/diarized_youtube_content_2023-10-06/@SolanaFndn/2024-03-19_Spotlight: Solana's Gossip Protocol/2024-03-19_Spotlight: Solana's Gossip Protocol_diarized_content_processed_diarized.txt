@@ -1,0 +1,540 @@
+00:00:03.800 - 00:00:04.360, Speaker A: Hi, everyone.
+00:00:04.446 - 00:00:16.966, Speaker B: My name is Jacob Creech. I lead developer relations, and I'm joined today by Greg, who is a core engineer at Solana Labs. And today we're going to talk about the gossip protocol. So what is the gossip protocol?
+00:00:17.110 - 00:00:58.534, Speaker C: So the gossip protocol is a way for validators in the network to send and receive information about whatever votes, things like that, contact information. So basically you have, if you think about each of these little dots as nodes or validators in the network, right? If this is node, let's label these here, C, D, E. If I'm node a and I have some information to share, I want to be able to send my information to all the other validators in the network as efficiently as possible.
+00:00:58.654 - 00:00:59.054, Speaker A: Right?
+00:00:59.134 - 00:01:09.034, Speaker C: And so the gossip protocol dictates how the messages in the network propagate to each other.
+00:01:10.334 - 00:01:19.702, Speaker B: Okay, so, like, if we have thousands of nodes, right, how are they doing it? And, like, how do they do it in an efficient way?
+00:01:19.838 - 00:01:21.674, Speaker C: Yeah, so that's a good question.
+00:01:22.774 - 00:01:24.446, Speaker B: What's the current way that we do it?
+00:01:24.510 - 00:02:02.772, Speaker C: That's a big challenge. So, in Solana, what we do is we build off of what are called plum trees. So it's a way where we are going to basically, it's a technique where we essentially send out as much information as we can to surrounding nodes, to a select set of surrounding nodes. And over time, nodes will basically say, hey, stop sending me information. So, right, if you're node a, you say, hey, I want to send whatever information out. I'm going to send it to b, I'm going to send it to c. B is going to say, hey, I know about node c and D.
+00:02:02.772 - 00:02:38.510, Speaker C: I'm going to send information to them, and then D can send it on to e. But you can notice here that we have c is receiving messages from both a and b. And so if we're sending, we're going to call this message a or a message with an origin of a. So a has created the message. So it could be a is sending out, hey, this is my IP address, for example, and it's going to send to B. You know, B is going to send it to C and so on, but.
+00:02:38.582 - 00:02:38.862, Speaker A: Right.
+00:02:38.918 - 00:02:42.810, Speaker C: So how do we make this efficient? Well, C is now getting a message twice.
+00:02:42.922 - 00:02:43.490, Speaker A: Right. And.
+00:02:43.522 - 00:02:52.714, Speaker C: Right. So we need to have a way where C can let either a or b know. Hey, I've already seen message a. You can stop sending me messages.
+00:02:52.834 - 00:02:53.218, Speaker A: Okay.
+00:02:53.266 - 00:02:55.826, Speaker B: What kind of messages are actually sent via the gossip protocol?
+00:02:55.890 - 00:03:17.034, Speaker C: So there's, I don't know the exact number. I think there are maybe seven or eleven. I need to look it up. But there are messages like votes. So votes are propagated through gossip. They're also propagated a different way as well in Solana, but there's also contact info. If you have duplicate slots, that information is propagated as well.
+00:03:17.034 - 00:03:21.930, Speaker C: Okay. And if you want, I can get that information for you, but I don't have it off the top of my head.
+00:03:22.002 - 00:03:22.934, Speaker A: Okay, cool.
+00:03:23.434 - 00:03:48.040, Speaker B: So we see this. This is the current graph that we have. And we're trying to send messages. We're sending this message a. So there's a number of things that has to happen here that you've kind of alluded to already. They have to, one, know where they are, like know that they exist. And then two, be able to, with that, be able to send the message in an efficient way and not send it over and over again.
+00:03:48.040 - 00:03:58.552, Speaker B: Like this message a constantly happens. So I think there are multiple different types of ways of sending and receiving messages. And can you kind of go a little bit over that?
+00:03:58.648 - 00:04:17.174, Speaker C: Yeah, yeah, definitely. So there are, let's see, six different general types of messages. In the Solana gossip protocol. You have push messages. This would be a push message. We are a and we're going to send out messages as we get them or as we create them. We just send them out.
+00:04:17.174 - 00:04:42.092, Speaker C: That's how we want the network to operate. We really want the network to operate just on push messages. We have push messages. We also have prune messages. These are messages here. We have c receiving two different messages, or two of the same messages from two different senders. And so we need to tell, for example, C needs to be able to tell b, hey, stop sending me messages.
+00:04:42.092 - 00:05:15.520, Speaker C: And so that would be a prune message. So that's the second type. We also have ping and pong messages. So ping and pong messages are essentially, they're kind of running in the background and they just make sure that nodes are still alive. We don't want to send messages to nodes that are not even in the network anymore. We have this idea of, we basically say, hey, a wants to know if B still exists before it actually sends a message. So it's going to send it a ping and b will say, hey, I got this ping.
+00:05:15.520 - 00:05:47.326, Speaker C: And I'm going to respond with a pong. And that way a knows b is still alive and it will essentially say, hey, I can now send messages to b. So we have ping and pong, push, prune messages. And then we have two more types of messages. And these are poll messages. And so a poll message would be c is all these nodes do it. But say we're node c and we say, hey, I'm just going to ask and see if there's any messages in the network that other people have that I do not have.
+00:05:47.326 - 00:05:55.948, Speaker C: And this is a challenge because C doesn't know what it doesn't have. So it has to ask other nodes for things it doesn't have.
+00:05:55.996 - 00:05:57.620, Speaker B: You don't know your unknown unknowns.
+00:05:57.732 - 00:06:00.628, Speaker C: Exactly. And so that would be a pull request.
+00:06:00.716 - 00:06:01.044, Speaker B: Okay.
+00:06:01.084 - 00:06:13.828, Speaker C: And so C would maybe send to D. Hey, here's the information I have. What information do you have that I don't have? And D will respond with our six type of message and that's a pull response.
+00:06:13.916 - 00:06:14.260, Speaker A: Okay.
+00:06:14.292 - 00:06:19.994, Speaker C: So sending message, sending information back to C that C does not have.
+00:06:20.084 - 00:06:52.486, Speaker B: Okay, so we're kind of going through a lot of the different types of messages. Let's go back a little bit with push messages, which is probably the most important part because you got to get your information out to the cluster. How does a node say like a comes online? How does it know where to push messages to? What is the steps that it takes to be like, okay, this is how I built my graph and this is where I know I had to build push messages to. What are those steps that it takes?
+00:06:52.590 - 00:06:52.854, Speaker A: Right.
+00:06:52.894 - 00:07:22.630, Speaker C: So when a comes online, there's something called like an entry point. And so that's basically an endpoint or another known node that we can talk to. So it could be an RPC node or something like that. And we could say, hey, we're coming online. We're joining gossip through this entry point. And I believe what it will do is as it gets added, it's going to be the node that gets that message will then essentially it'll say, hey, you're now part of my set. I can send you information.
+00:07:22.630 - 00:08:00.720, Speaker C: And a, I'm not actually don't really know for sure, but a, if you're joining, if a is joining, it may also send pull requests as well. Okay, just get started. But I honestly don't remember off the top of my head that is fine, but it's just a way to basically like get contact information from a no node. Maybe initially. Um, and that's the other thing is we don't need to get into all the details right the second. But, uh, contact information is prioritized in gossip, so it will be sent out with a higher priority than non contact information.
+00:08:00.872 - 00:08:03.664, Speaker B: So contact information is just how I can talk to the.
+00:08:03.704 - 00:08:05.544, Speaker C: Right. It's basically a nodes endpoint.
+00:08:05.664 - 00:08:06.952, Speaker A: Okay. Yeah, yeah.
+00:08:07.048 - 00:08:12.262, Speaker B: Okay, so it's like if c send out the context so that you can push messages to c, right?
+00:08:12.318 - 00:08:13.150, Speaker A: Right. Okay.
+00:08:13.182 - 00:08:30.070, Speaker B: So at starting out, it has it found c through, like, a pull request and pinging everybody. How does it build the rest of the graph of contact information? Is it all go through c? Like, where does it start from?
+00:08:30.142 - 00:08:44.781, Speaker C: Yeah, let's maybe back up a second and let's talk about the goals of gossip and a good gossip protocol, because ideally what we want is we want the network to solely run on push messages and not pull messages.
+00:08:44.877 - 00:08:45.633, Speaker A: Okay.
+00:08:47.893 - 00:09:30.628, Speaker C: So I guess there are three core goals and then a fourth goal. Well, there's three key goals for gossip protocols in general, and then kind of a fourth goal that Solana uses because it's a blockchain, one is we want to maximize coverage. And what is coverage? It's for a message originating from an origin. So say a message created by origin a. How many nodes does that message reach out of all the nodes in the network? Ideally, we want it to reach 100% of the nodes every single time for every message originated by any node or created by any node. So that's one. We want the coverage to be high.
+00:09:30.628 - 00:09:38.068, Speaker C: We also want the redundancy to be low. Essentially, that's the overhead or the extra messages sent.
+00:09:38.156 - 00:09:40.244, Speaker B: That's like this thing, right, exactly.
+00:09:40.284 - 00:10:10.052, Speaker C: We want to minimize situations like that, and that's where these prune messages come in. We don't want to send multiple messages to the same node. And three, we want to maintain or keep a low latency. It's also known as, like, last hop delivery. And that's essentially the maximum number of hops it takes to reach the last node in the network. Okay, so the, uh, the latency of this, uh, network would be one, two, three.
+00:10:10.148 - 00:10:10.524, Speaker A: Right.
+00:10:10.604 - 00:10:26.498, Speaker C: Cause you're going all the way to e. It takes three hops. So if you have, you know, in the worst case scenario, you have a network where just a to b to c to d to e. Right. But obviously, this is a more efficient, this is fewer hops to get to e than if it was just.
+00:10:26.546 - 00:10:35.018, Speaker B: All right, so in that goal, ideally, this graph would look more like a tree structure to get the least amount of hops possible.
+00:10:35.106 - 00:10:36.026, Speaker C: Exactly, exactly.
+00:10:36.090 - 00:10:37.094, Speaker A: Okay. Yep.
+00:10:37.514 - 00:11:05.566, Speaker C: And then the last one that's more for blockchains is we want to pay attention to stake as well. And so stake is highly prioritized. So in Solana, what we want, one of our goals is in the gossip protocol, is we want messages from high stake nodes to go to high staked nodes. And we want messages from low stake nodes to propagate somewhat randomly.
+00:11:05.710 - 00:11:35.386, Speaker B: Let's write it out. Actually, let's say this one has 1000. We'll call this one a thousand as well. This one's 100, this one's one and this one, how would you, so these would be talking a lot because they're prioritized to talk with the highest stakes. But the rest of them, how would that look? How would these guys messages get to the c with 100?
+00:11:35.530 - 00:12:08.246, Speaker C: Right. So there's actually a probability distribution on, when you have a message to send, you have to figure out who can I send this to with a certain probability and so we can write that out. But the high level idea is that if you are, say, your origin a with a high stake and you have a message created by you. So this message has the origins stake in it or has the origin key in it. Okay, so you know who created this message and all these messages are signed.
+00:12:08.270 - 00:12:09.374, Speaker B: So they can verify, right.
+00:12:09.414 - 00:12:39.968, Speaker C: Okay, exactly. So here, well this is a bad example because a created, but if we look at b, b receives message a. So b is a high stake node and it has received a high stake message. What it's going to do is it actually, it's just a simple thing where it goes. We're going to take the minimum of stake a and stake b. This is going to give some stake, stake output and we're going to use.
+00:12:40.016 - 00:12:41.664, Speaker B: This 1000 in this case.
+00:12:41.704 - 00:12:42.040, Speaker A: Yeah. Right.
+00:12:42.072 - 00:12:43.364, Speaker C: Which is going to be 1000.
+00:12:43.664 - 00:12:44.600, Speaker A: Okay.
+00:12:44.792 - 00:12:49.064, Speaker C: And we're going to use this to help determine who to send this message to.
+00:12:49.144 - 00:12:49.600, Speaker A: Okay.
+00:12:49.672 - 00:13:29.714, Speaker C: And so the higher this number is, the more likely that we're going to be sending this message. So this is for message originated at a. The higher this number is the, the more likely we are going to send this message to a high stake node. The lower this number is, the more likely this message is going to get sent to a random node with a more even distribution in the case here. Or maybe we'll look at d for message a.
+00:13:31.894 - 00:13:32.422, Speaker A: Right.
+00:13:32.518 - 00:13:51.190, Speaker C: When we receive message a at node D, we're going to take the minimum of basically one and 1001 being the stake of us, of d, 1000 being the stake of the creator of message a.
+00:13:51.262 - 00:13:57.994, Speaker B: So specifically the crater, it's not where it was sent or so it got from. C doesn't care about, doesn't matter.
+00:13:58.484 - 00:14:13.076, Speaker C: Correct. Correct. And so that's going to be one. And so we're going to use this number to determine or basically say this number is super low. So we're going to just kind of send d is going to basically select randomly where to send message a.
+00:14:13.140 - 00:14:13.556, Speaker A: Okay.
+00:14:13.620 - 00:14:15.356, Speaker C: Or I should say more randomly, more.
+00:14:15.380 - 00:14:16.220, Speaker B: Randomly as a distribution.
+00:14:16.252 - 00:14:17.692, Speaker C: In this case, it's a distribution.
+00:14:17.828 - 00:14:26.420, Speaker B: To create that distribution, though, are the nodes, when they get all the contact info, are they also keeping track of the stake at all of them so that they know the distribution?
+00:14:26.492 - 00:14:27.028, Speaker C: Yes.
+00:14:27.156 - 00:14:28.204, Speaker A: Yeah. Okay. Yeah.
+00:14:28.244 - 00:14:45.116, Speaker C: So maybe let's actually do that. Let's talk about what it looks like from the inside of d or c. Go for it. Okay. So maybe below if below maybe. Okay, so we have this. Each node has this concept of a push active set.
+00:14:45.260 - 00:14:45.900, Speaker A: Okay. Okay.
+00:14:45.932 - 00:15:11.484, Speaker C: So it is, I like to shorten it just as pas push active set. And this is a vector or an array of size 25. Okay. And so, and each one of these, I'll describe what this is. P one, p 24.
+00:15:12.144 - 00:15:13.044, Speaker A: Okay.
+00:15:14.024 - 00:15:23.834, Speaker C: It's a push active set. It has a bunch of entries. Okay, so what are these entries? These entries are push active set entries.
+00:15:26.254 - 00:15:27.154, Speaker A: Okay.
+00:15:27.494 - 00:15:37.394, Speaker C: And this is basically to represent a distribution of who to push to. And so a push active set entry. Now I'm blanking on.
+00:15:37.934 - 00:15:38.934, Speaker B: Welcome to grab that.
+00:15:39.014 - 00:15:41.422, Speaker C: Look at exactly what the structure of this is.
+00:15:41.518 - 00:15:42.134, Speaker A: Right.
+00:15:42.294 - 00:15:59.492, Speaker C: So this push active set entry. So we're going to label this as like p. P, basically. So we're going to push active set. We have a push active set. It's a list or an array of 25 push activeset entries.
+00:15:59.588 - 00:16:00.156, Speaker A: Okay.
+00:16:00.260 - 00:16:15.424, Speaker C: Push active set entries. We can just call it P of I. So P of I, that's p zero, p one. This is an index map. And this is going to hold pub.
+00:16:15.464 - 00:16:16.044, Speaker A: Key.
+00:16:18.384 - 00:16:33.872, Speaker C: And a bloom filter. Bloom of origins. Okay, that's a lot.
+00:16:33.968 - 00:16:34.920, Speaker B: What is a bloom filter?
+00:16:34.952 - 00:17:10.640, Speaker C: Yeah, right. So a bloom filter is a probabilistic data structure. And so what it says is it's a fixed length. And basically what you can do is you can check for certainty whether something is not in a set. So you can add things to this bloom filter over time, and then you can check, hey, is this value in this bloom filter? And if the bloom filter returns, no, it is not in the set. You know for certainty that the value just checked is not in this boom filter.
+00:17:10.712 - 00:17:14.864, Speaker B: Yeah, it'll do super fast, I'm guessing. So you can very quickly check all these.
+00:17:14.944 - 00:17:15.416, Speaker C: Exactly.
+00:17:15.480 - 00:17:15.832, Speaker A: Okay.
+00:17:15.888 - 00:17:27.424, Speaker C: But if you check it and it says yes, it is in the set, then you can not be certain, but you can be pretty sure that it is in the set.
+00:17:27.504 - 00:17:27.984, Speaker A: Okay.
+00:17:28.064 - 00:17:37.292, Speaker C: And so there are some configurations. We don't need to talk super deeply on the configuration of this, but it's just basically you can very quickly check if something's not in a set.
+00:17:37.388 - 00:17:37.692, Speaker A: Yeah.
+00:17:37.748 - 00:17:39.268, Speaker B: Very important for this type of thing.
+00:17:39.316 - 00:17:52.292, Speaker C: Right. Right. And so this is what is in our, in each one of these, each one of these nodes hold push active set with 25 push active set entries.
+00:17:52.428 - 00:17:58.932, Speaker B: And this is built, I guess it was built earlier when they were sending around contact information.
+00:17:59.108 - 00:17:59.444, Speaker A: Right.
+00:17:59.484 - 00:18:25.220, Speaker C: So it's, it's built on startup. And so this is going to be populated on startup. You're going to create 25 push active set entries and you're also going to populate this index map, uh, on startup. And this index map will rotate over time. And now that's a lot of things that I'm talking about. This public key that is keeping track of. These are possible nodes to send messages to.
+00:18:25.220 - 00:18:27.744, Speaker C: Okay, so these are your peer nodes.
+00:18:28.044 - 00:18:29.324, Speaker B: This is who you're connected to.
+00:18:29.364 - 00:18:32.788, Speaker C: This is who you're connected to, who.
+00:18:32.796 - 00:18:33.732, Speaker B: You'Re going to push to.
+00:18:33.828 - 00:18:34.180, Speaker C: Right.
+00:18:34.252 - 00:18:34.588, Speaker A: Okay.
+00:18:34.636 - 00:18:55.942, Speaker C: This is who. So in the case of B, B would have an index map somewhere and it would say, you know, b for origin, a for messages coming from a bike can push to C and D. Okay.
+00:18:55.998 - 00:18:56.302, Speaker A: Yeah.
+00:18:56.358 - 00:19:04.074, Speaker B: Are these also going back to ping and pong? Are these the only ones that you do pings to the ping and pong messages with?
+00:19:04.654 - 00:19:05.822, Speaker C: Say that one more time.
+00:19:05.958 - 00:19:08.982, Speaker B: So say you're making sure that this guy's alive.
+00:19:09.038 - 00:19:09.966, Speaker C: C is alive.
+00:19:10.110 - 00:19:22.518, Speaker B: So you're sending the ping messages and pong coming back to basically the heartbeat. Is this only going to include those or I guess are you only sending those ping and pong to that active set or is it.
+00:19:22.566 - 00:19:43.870, Speaker C: So you're, I don't remember exactly how we're pinging and ponging and which ones. I don't know if, I think it's just through like any contact information we get. We basically keep that, those nodes around and we say, hey, we need to ping these nodes. I forget the timeline and maybe like every 20 minutes or something so it's not super frequently.
+00:19:43.942 - 00:19:44.326, Speaker A: Okay.
+00:19:44.390 - 00:20:25.024, Speaker C: And then we say if we get a pong back from them, we know that, okay, they're alive. We can add them into this push active set if we want. Okay, got it. Maybe, let's do an example here. Let's say we're looking at B actually. B has its push active set with a bunch of push active set entries. It basically would have, in its index map it may have b or node b and in its index map it would have something like D.
+00:20:25.024 - 00:20:57.120, Speaker C: Right. Because it's pushing the d. So D and C and it would have a bloom filter. And it would have C also with the bloom filter. Okay, so what does this mean? This means that for B, what it's going to do is B receives a message from a. And so it's going to say, hey, for D and C. In my index map here, I can push to d or C.
+00:20:57.120 - 00:21:39.774, Speaker C: Okay, now, if we've talked about previously, right, that C has received a message from both a and b has received the same message. Message a from both a and B. If C we've talked about pruning, C would let B know, hey, please don't send me more messages. You're late. From message a or originating from message a, what it would do is B would add in an entry here like this. And so what this tells us, what it tells b, it'll look at its index map. Hey, I need to send message a to someone.
+00:21:39.774 - 00:22:08.406, Speaker C: And it's going to say, oh, I can send it to d, no problem. C, what this indicates is that a has pruned or, sorry, C has pruned us for messages from origin a. So B will look at this and say, hey, all messages originating from a, we do not want to send to C. So it will not send a message to C. But because a is not in this bloom filter, we can still send it to D and D. Yeah.
+00:22:08.470 - 00:22:21.126, Speaker B: So if you were like, look at. I guess b is the best example. But C. C had, like, they have a could potentially, let's say a is actually going from B to D as well, just for fun.
+00:22:21.310 - 00:22:21.846, Speaker C: Oh, yeah.
+00:22:21.870 - 00:22:22.094, Speaker A: Yeah.
+00:22:22.134 - 00:22:24.062, Speaker C: So, like, you have a message a here, right?
+00:22:24.118 - 00:22:24.542, Speaker A: Yep.
+00:22:24.638 - 00:22:52.652, Speaker B: So d could do the same of that. It would send the. It could send the prune message to C. Say, like, hey, cut off the message a's. And then what you could potentially have is just prune these two lines completely. And then you end up having scrum the eraser. So in this case, you would just prune these two lines and it would be kept into this push active set so they can look up at all times.
+00:22:52.748 - 00:22:53.340, Speaker C: Right.
+00:22:53.492 - 00:23:01.894, Speaker B: And then you end up more looking like this in the current state. I expect at some point you'd probably get CDE at some point.
+00:23:02.954 - 00:23:04.202, Speaker C: Yeah, yeah, you could.
+00:23:04.298 - 00:23:04.890, Speaker A: You could.
+00:23:05.002 - 00:23:06.946, Speaker C: But that could get pruned as well, right?
+00:23:07.010 - 00:23:07.274, Speaker A: Yep.
+00:23:07.314 - 00:23:10.294, Speaker B: It all depends on the full nodes in the structure.
+00:23:10.594 - 00:23:35.814, Speaker C: And it is important to note that this is by origin. So that means that, say, now you have, say, message C. C has a message that it wants to send. It can send message c to D, no problem. And D won't be like, oh, I already pruned you for this message type or this message origin, I should say.
+00:23:36.274 - 00:23:39.930, Speaker B: Right, because the origin is c in this case instead of a.
+00:23:40.002 - 00:23:43.938, Speaker C: Right? Yes. And so this is by origin. You're getting pruned by origin.
+00:23:44.106 - 00:23:46.722, Speaker B: Okay, so these graphs end up looking very complicated.
+00:23:46.778 - 00:23:48.730, Speaker A: Yes. All right.
+00:23:48.762 - 00:24:10.826, Speaker B: And then it all depends on this 25 push active set every single time. That's what's kept in every one of these nodes. They keep track and they know. Exactly. Okay, here's my pub key and here's my origins. Right. And then I can quickly check, based off of like the previous prune messages, whether or not not to send to those ones.
+00:24:10.890 - 00:24:11.298, Speaker C: Yes.
+00:24:11.386 - 00:24:13.850, Speaker B: So let's talk real quick. Why 25?
+00:24:14.002 - 00:24:39.700, Speaker C: 25 is so if I'm thinking about this correctly. So it's based on stake. So there are. If you, if, so if you're a high, okay, let's back up maybe 1 second. Again, we've talked about it briefly here. We want high staked messages. So messages created by high stake nodes when they reach.
+00:24:39.700 - 00:24:47.122, Speaker C: So if you have a high staked message on a high stake node, we want that node to send to other high stake nodes.
+00:24:47.228 - 00:24:48.294, Speaker A: Okay. Okay.
+00:24:48.454 - 00:25:04.846, Speaker C: If we receive a low stake node, sorry, a low stake message at a high stake node, we want to send those to more random nodes because it's a low stake, the person who create or the node that created the message is low staked. So we don't care about it as much.
+00:25:04.910 - 00:25:05.110, Speaker A: Right?
+00:25:05.142 - 00:25:19.106, Speaker B: So if you got like D, this is the D message right here, right? That's, you don't care about as much because D has low stake compared to the rest of what you currently are storing on b.
+00:25:19.210 - 00:25:37.282, Speaker C: Exactly, exactly. And if we have a low stake node receiving a high staked message, so now d gets message a, we also want to send that to more a random set of nodes, okay? And so that's where this minimum is coming into play.
+00:25:37.458 - 00:25:38.010, Speaker A: Okay?
+00:25:38.082 - 00:26:27.358, Speaker C: Where we are saying when we receive a message, we look at our own stake, we look at the origin stake, we take the minimum. The lower that number is, the more random that, the more random the distribution is. And that's where this distribution comes into play. Okay, so we look at all, so we have all these nodes that we know about, right? Via talk, through gossip, through contact information, and we know all their stakes as well. What we can do is we can calculate for every single node in the network that we know about, we can calculate what is known as their stake bucket. Essentially all it's really doing is if you are a lower stake node, you're going to end up in a lower stake bucket. If you're a higher stake node, you're going to end up in a higher stake bucket.
+00:26:27.526 - 00:26:33.262, Speaker B: Did you say this is only for this set or is this a larger set that you keep on each node?
+00:26:33.358 - 00:26:42.862, Speaker C: This is in a large, so this is in like a larger set that you keep on each node. Okay, so you have basically like a, it's some vector of nodes that you're, that you know about.
+00:26:42.958 - 00:26:43.230, Speaker A: Okay.
+00:26:43.262 - 00:26:48.814, Speaker B: And so this is only what you know about. There's no guarantee that it'll be the same set across the cluster, right, exactly.
+00:26:48.854 - 00:26:49.654, Speaker A: Yep, got correct.
+00:26:49.694 - 00:26:53.518, Speaker C: Correct. It's all like local. Everything here is local to what you know.
+00:26:53.606 - 00:26:53.982, Speaker A: Okay.
+00:26:54.038 - 00:27:33.834, Speaker C: Personally. So what we do here is say, okay, so we have, let's just say we have nodes a, b, c, d, e. Okay. And what we're going to do is see, okay, right. So we want to find the stake bucket or a bucket for each of these nodes. A lower bucket means lower stake. So let's, for example, there's an equation that we can use, but we don't really need to talk about it, but say it looks something like.
+00:27:36.414 - 00:27:36.870, Speaker A: Is this.
+00:27:36.902 - 00:27:39.206, Speaker B: The, whatever the equation output is?
+00:27:39.310 - 00:27:45.554, Speaker C: Yes, this is the equation output. So this would be our nodes bucket.
+00:27:48.654 - 00:27:49.470, Speaker A: Okay.
+00:27:49.622 - 00:28:01.684, Speaker C: And what this essentially indicates, there's a direct correlation between bucket and stake. So a and D would have the lowest stake, basically zero stake. C in this case would have the highest stake.
+00:28:02.744 - 00:28:04.560, Speaker B: Let's just match it up with this.
+00:28:04.632 - 00:28:05.040, Speaker A: Okay?
+00:28:05.112 - 00:28:07.124, Speaker C: Oh, yeah, that's a good point. That's a good point.
+00:28:07.544 - 00:28:10.600, Speaker B: Just so that it makes, it makes more sense. Continuity.
+00:28:10.672 - 00:28:10.960, Speaker A: Okay.
+00:28:10.992 - 00:28:14.644, Speaker C: So a, we could say like, you know, just put seven.
+00:28:14.944 - 00:28:15.376, Speaker B: Yeah.
+00:28:15.440 - 00:28:24.854, Speaker C: You know, this would be the same c. What do we say? This would be like, you know, 5D would be, say zero and e would be three or something.
+00:28:26.274 - 00:28:27.314, Speaker A: Okay. Okay.
+00:28:27.434 - 00:28:40.106, Speaker C: And so I will say that these buckets, part of this bucket here is that it's capped by 24. So the, the algorithm to convert stake into bucket is capped by 24.
+00:28:40.170 - 00:28:40.570, Speaker A: Okay.
+00:28:40.642 - 00:28:59.048, Speaker C: Essentially. So, and I believe the reason is because if you have enough stake to go beyond bucket 24, or I think the total supply is like above bucket 24 of Sol, essentially.
+00:28:59.176 - 00:29:10.808, Speaker B: So would you change if so we have this whole, the stake buckets, right? Yeah, it's all the nodes that you know about. It's more than just the push active set. Could this actually change your push act?
+00:29:10.856 - 00:29:13.656, Speaker C: So, so this is how we're going to populate our push active set.
+00:29:13.680 - 00:29:14.240, Speaker B: Okay, perfect.
+00:29:14.312 - 00:29:15.976, Speaker C: Sorry, I should have said that.
+00:29:16.000 - 00:29:16.160, Speaker A: Yes.
+00:29:16.192 - 00:29:42.194, Speaker C: So this is how we're going to populate our push active set. So we have all our nodes that we know about. We're going to calculate the bucket that each node falls into based on its stake. These are just examples of the bucket that it would fall into. What we do is we actually loop through. We're going to populate each one of these one by one. Each one of these is a full index map.
+00:29:42.194 - 00:30:11.066, Speaker C: Yeah. Okay, we'll talk about that later. But each one of these is a full index map. So what we're going to do is we're going to iterate. So we're going to look at, so say we are, I guess let's assume there's another node here, f. It doesn't really matter what stake it has, but say it's connected here. So we're going to populate our push active set as if we're node f here.
+00:30:11.066 - 00:30:53.072, Speaker C: These are the nodes we know about in the network. We've calculated their buckets based on their stake. Now what we're going to do is we're going to iterate over each push active set. Let's see. For our first iteration, what we do is we basically say we have this k. This is essentially our iteration number and we're looking at push active set zero, first iteration, 0th iteration. And we're going to calculate weights based on the buckets.
+00:30:53.208 - 00:30:54.208, Speaker A: Okay. Okay.
+00:30:54.296 - 00:30:56.964, Speaker B: Are the buckets not the weights already?
+00:30:57.944 - 00:31:06.036, Speaker C: No, because the buckets are essentially another way to represent stake, but with a cap.
+00:31:06.220 - 00:31:06.636, Speaker A: Okay.
+00:31:06.660 - 00:31:09.184, Speaker B: Because the cap is with the 25, the 24.
+00:31:09.644 - 00:31:10.660, Speaker A: Yeah, yeah, yeah.
+00:31:10.772 - 00:31:15.140, Speaker C: Now we're going to weight these odd by. We're going to square them essentially.
+00:31:15.292 - 00:31:15.700, Speaker B: Okay.
+00:31:15.732 - 00:31:24.644, Speaker C: So, and because the idea is that in this bucket, this index map at p zero, we want to have basically a random set of nodes.
+00:31:24.724 - 00:31:25.228, Speaker A: Okay?
+00:31:25.316 - 00:31:32.982, Speaker C: And then when we are up here, when we look in p 24, we want this to be more higher stake nodes.
+00:31:33.038 - 00:31:38.350, Speaker B: Oh, so as you go up in the set, you get higher stake. Ideally, yes.
+00:31:38.422 - 00:32:04.318, Speaker C: And based on when we've talked about, okay, b gets message a. So b, high stake node gets a high stake message. It's going to end up, it's going to run the same calculation, minimum sas b, it's going to get 1000. This is a stake, right? And we just said we can convert stake into buckets and so we can take this thousand, convert it to a bucket.
+00:32:04.406 - 00:32:04.654, Speaker A: Right?
+00:32:04.694 - 00:32:18.702, Speaker C: And then we just said it was bucket seven. So now we're going to go to p seven and our push active set, which is going to give us an index map of nodes that we can push to.
+00:32:18.838 - 00:32:19.262, Speaker A: Okay.
+00:32:19.318 - 00:32:22.622, Speaker C: And those are going to be higher staked nodes typically.
+00:32:22.758 - 00:32:23.590, Speaker A: Okay.
+00:32:23.782 - 00:32:26.494, Speaker C: And I'll describe how we actually populate this.
+00:32:26.614 - 00:32:26.910, Speaker A: Okay.
+00:32:26.942 - 00:32:35.326, Speaker B: And this is all kind of like to help out with our two of our goals. It's goal one, to get the most was to optimize the coverage.
+00:32:35.390 - 00:32:35.758, Speaker A: Right.
+00:32:35.846 - 00:32:38.326, Speaker B: As well as make sure you include stake.
+00:32:38.430 - 00:32:39.262, Speaker C: Right, exactly.
+00:32:39.318 - 00:32:46.758, Speaker B: You want to make sure that you have coverage of high stake nodes because they matter more in the network, but also just make sure that you have coverage in general.
+00:32:46.846 - 00:32:48.286, Speaker A: Yes. Okay. Yes. Got it.
+00:32:48.310 - 00:33:18.746, Speaker C: Correct. Correct. And so when we're populating this, we start k zero, first iteration, p zero. This is our first push active set. We're going to calculate the weight of a, recalculate the weight of all the nodes we know about. Weight of a is going to equal, or I should say, let me do this, I'll do it. Weight of I is going to be the minimum of b, which is the bucket number.
+00:33:18.746 - 00:33:28.082, Speaker C: So the bucket of I comma k, which is k is zero, which is the push active set entry we're looking at.
+00:33:28.138 - 00:33:28.854, Speaker A: Okay.
+00:33:29.274 - 00:33:33.294, Speaker C: Plus one squared.
+00:33:34.074 - 00:33:34.698, Speaker A: Okay.
+00:33:34.786 - 00:33:35.490, Speaker B: Why?
+00:33:35.682 - 00:34:06.014, Speaker C: So we want to give higher weights to higher staked nodes. And so when we actually plug this in, it may make sense if I go through this a little bit. So we go weight of a is going to equal the minimum of b of I, b of a, which is seven. K is zero plus one squared, which equals.
+00:34:06.094 - 00:34:06.334, Speaker A: Right.
+00:34:06.374 - 00:34:13.143, Speaker C: This is going to be one or, sorry. This is going to be zero plus one. One square is one. One. And notice if we do that same.
+00:34:13.183 - 00:34:16.223, Speaker B: Thing for b, this same, it's gonna.
+00:34:16.263 - 00:34:22.599, Speaker C: Also be one squared. One. If you do it for five, it's also gonna be one squared.
+00:34:22.711 - 00:34:23.007, Speaker A: One.
+00:34:23.055 - 00:34:24.367, Speaker B: Because it's our first iteration.
+00:34:24.455 - 00:34:27.223, Speaker C: First one. And we want it to be more random.
+00:34:27.383 - 00:34:27.847, Speaker A: Okay.
+00:34:27.895 - 00:34:29.631, Speaker C: So this guarantees randomness.
+00:34:29.687 - 00:34:30.535, Speaker A: Oh, okay.
+00:34:30.599 - 00:34:34.554, Speaker C: So remember if we go back here. So now we're d. Oh.
+00:34:34.594 - 00:34:39.426, Speaker B: So just make sure I understand. So say this is instead of the zero, right?
+00:34:39.490 - 00:34:39.994, Speaker C: Yeah.
+00:34:40.114 - 00:34:43.586, Speaker B: Say it is 20, the 24th one, right?
+00:34:43.610 - 00:34:44.254, Speaker A: Yep.
+00:34:45.314 - 00:34:49.282, Speaker B: This would be set. It would start putting the seven because this is our highest one.
+00:34:49.338 - 00:34:49.934, Speaker C: Right.
+00:34:50.714 - 00:34:56.258, Speaker B: In the furthest long in the index or, sorry, the array. It would.
+00:34:56.306 - 00:34:56.650, Speaker A: Yes.
+00:34:56.722 - 00:35:02.900, Speaker C: So it would say seven. So look at weight a. It would say set minimum of seven and 24. So yeah.
+00:35:02.932 - 00:35:03.100, Speaker A: Right.
+00:35:03.132 - 00:35:17.092, Speaker C: We're populating push sector set 24. So it's gonna take seven, right. Minimum 724. Seven plus one, eight squared. So now weight a, the weight of a, of node a is 64.
+00:35:17.188 - 00:35:18.340, Speaker A: Right. Okay.
+00:35:18.492 - 00:35:22.988, Speaker B: And so we would be the same with b as well. But it like, that's okay.
+00:35:23.116 - 00:35:23.932, Speaker C: That's okay, right?
+00:35:23.988 - 00:35:24.644, Speaker A: That's okay.
+00:35:24.724 - 00:35:37.154, Speaker C: It's weight of b is also gonna be 64. Weight of c for push act to set entry 24 is going to be five plus one. So 36, right. D is going to be one.
+00:35:37.234 - 00:35:37.730, Speaker A: Yeah.
+00:35:37.842 - 00:35:40.226, Speaker C: E is going to be 16.
+00:35:40.370 - 00:35:40.986, Speaker A: Right.
+00:35:41.130 - 00:35:50.514, Speaker C: So then what we do is now that we have all of these weights for each node, for each bucket, we shuffle them based on their weights.
+00:35:50.634 - 00:35:54.362, Speaker B: Oh, so you fill it in and then you shuffled after, afterwards.
+00:35:54.458 - 00:35:56.304, Speaker C: So we don't fill these in yet.
+00:35:56.394 - 00:35:57.060, Speaker A: Okay.
+00:35:57.212 - 00:36:32.000, Speaker C: We basically create a set of nodes and node, we have our set of nodes that we know about. Now we've just created weights for them with this algorithm. Then we're going to shuffle the nodes and take the first, in this case, twelve of them. This index map length is twelve. It's always twelve. I could talk about why that is later. It's more of a heuristic than an exact science here, but.
+00:36:32.000 - 00:36:47.064, Speaker C: So each node, for each iteration we have p zero. We're calculating the weights for all five of these nodes. For p one, we're calculating the weights for all five of these nodes. For p two, calculate the weights for all five of these nodes using the same equation.
+00:36:47.144 - 00:36:50.244, Speaker B: Oh, so you're not putting it in that set.
+00:36:50.544 - 00:36:52.408, Speaker C: So now they're gonna have weights.
+00:36:52.496 - 00:36:52.744, Speaker A: Right.
+00:36:52.784 - 00:37:02.552, Speaker C: And they're weighted by square. So the higher the bucket, the more likely that the higher weights will get, you know, so this is a really.
+00:37:02.608 - 00:37:03.848, Speaker B: Funky sort, is what it is.
+00:37:03.896 - 00:37:22.584, Speaker C: It is a very funky sort. And then we shuffle them and there's, the higher the weight, the more likely you will end up at the front of the sort. And then we take the first on initial startup, this is gonna be empty. We take the first twelve, which are not guaranteed to be the highest weighted nodes.
+00:37:22.664 - 00:37:23.360, Speaker A: Right.
+00:37:23.552 - 00:37:35.784, Speaker C: More likely. Significantly more likely. Right to when. Significantly more likely when we're looking at push active set entries higher up.
+00:37:35.864 - 00:37:36.712, Speaker A: Right, right.
+00:37:36.768 - 00:37:43.604, Speaker C: Because if we shuffle, if we're shuffling the nodes where we calculate the weights for p zero, we just said they're all one.
+00:37:44.104 - 00:37:44.704, Speaker A: Right.
+00:37:44.824 - 00:37:49.208, Speaker C: So it's basically going to be a random shuffle. We're going to take twelve of those random notes.
+00:37:49.256 - 00:37:51.984, Speaker B: It could be potentially a, could be in p zero.
+00:37:52.024 - 00:37:52.200, Speaker A: Right.
+00:37:52.232 - 00:37:53.728, Speaker B: Of course it's just random.
+00:37:53.776 - 00:37:54.296, Speaker A: Yeah.
+00:37:54.440 - 00:38:03.944, Speaker C: A can end up in multiple of these. So it's not a extract without, you know, we're not taking it out and saying it can only be in one of these.
+00:38:04.024 - 00:38:04.464, Speaker A: Okay.
+00:38:04.544 - 00:38:19.084, Speaker C: It can actually. We can have a end up in multiple of these. So maybe I should. This part is important. I probably haven't emphasized it enough.
+00:38:19.784 - 00:38:20.984, Speaker B: It gets used constantly.
+00:38:21.024 - 00:38:22.248, Speaker C: It gets used constantly.
+00:38:22.296 - 00:38:22.552, Speaker A: Right.
+00:38:22.608 - 00:38:40.580, Speaker C: Because we get a message at B is high staked, we receive, say we receive a message from. Oh yeah, message D. Right, right. It's going to say, hey, let's take the minimum of the two of the two, which is going to be one.
+00:38:40.732 - 00:38:41.212, Speaker A: Right.
+00:38:41.308 - 00:38:44.780, Speaker C: And so one. Well, we don't have a example here.
+00:38:44.812 - 00:38:45.740, Speaker A: Well, yeah, yeah, yeah, yeah.
+00:38:45.772 - 00:39:03.904, Speaker C: So one. So because D is of stake one and we said D steak bucket is zero. So then we come to p zero B. So we're looking at B. B has received a message minimum of 1100 and is one.
+00:39:03.984 - 00:39:04.392, Speaker A: Right.
+00:39:04.488 - 00:39:18.800, Speaker C: We said that the stake bucket of stake one is zero. I didn't explain exactly how this is calculated, just a calculation. I mean I could describe it, but you just subtract some bits.
+00:39:18.952 - 00:39:19.360, Speaker B: Right.
+00:39:19.432 - 00:39:22.640, Speaker C: So you can get some distribution that's capped at 24.
+00:39:22.752 - 00:39:23.168, Speaker A: Right.
+00:39:23.256 - 00:39:47.602, Speaker C: So we said a stake of one has a bucket of zero. Right. We come to the 0th index in our push active set and we look at that index map that's there. And then we can select from this index map which nodes to push MD to from B.
+00:39:47.738 - 00:39:48.490, Speaker A: Right.
+00:39:48.682 - 00:39:59.644, Speaker C: And if it's zero, as we said, p zero, it's more random these peers. Right. It's going to be more random. Exactly.
+00:39:59.724 - 00:40:14.988, Speaker B: This is all to explain that higher stakes, push to higher stakes more often and then lower stakes are more random. That makes a lot more sense. Yeah, because the lower ones, they're more random. They're more likely to be lower stake versus the higher stake ones. They're very important. So they're always talking to each other.
+00:40:15.076 - 00:40:15.620, Speaker C: Correct.
+00:40:15.732 - 00:40:17.316, Speaker B: That makes a lot of sense actually.
+00:40:17.460 - 00:40:20.028, Speaker C: Right, good, good. Well, yeah, that's, that good.
+00:40:20.076 - 00:40:20.452, Speaker A: That's why I.
+00:40:20.468 - 00:40:21.484, Speaker B: Light bulb moments.
+00:40:21.644 - 00:40:31.908, Speaker C: Good, good. It's a little confusing, but it's also important to know, right. If you're d, your view here is it, this whole thing is going to be random.
+00:40:31.996 - 00:40:32.588, Speaker A: Right. Right.
+00:40:32.636 - 00:40:34.916, Speaker C: You're not going to be sending to higher stake nodes here.
+00:40:34.980 - 00:40:35.132, Speaker A: Right.
+00:40:35.148 - 00:40:37.316, Speaker B: Because the minimum is always going to.
+00:40:37.340 - 00:40:38.588, Speaker C: Minimum is always going to be one.
+00:40:38.676 - 00:40:38.948, Speaker A: Right.
+00:40:38.996 - 00:40:40.820, Speaker B: So it's just completely, completely random.
+00:40:40.852 - 00:40:41.060, Speaker A: Yeah.
+00:40:41.092 - 00:40:46.692, Speaker B: Versus whenever you have a high stake, this minimum is going to be whatever your stake bucket is for yourself compared.
+00:40:46.748 - 00:40:49.844, Speaker C: To whatever message you receive to everybody else. Exactly.
+00:40:49.884 - 00:40:50.780, Speaker A: Yes, yes, yes.
+00:40:50.852 - 00:40:58.772, Speaker B: So you always have, you'll be prioritizing the higher stakes. So a will always prioritize b in the small graph that we have today.
+00:40:58.828 - 00:40:59.132, Speaker A: Yes.
+00:40:59.188 - 00:41:03.292, Speaker C: And right. It's not guaranteed that a is always going to push to b or a is never going to push to.
+00:41:03.388 - 00:41:03.572, Speaker A: Right.
+00:41:03.588 - 00:41:05.380, Speaker B: Because it's, it could potentially be rare.
+00:41:05.412 - 00:41:05.724, Speaker A: Right?
+00:41:05.804 - 00:41:23.538, Speaker B: Yeah, because as we mentioned here, the, the weights, um, with the iterations, uh, where we push, put or populate this push active set, um, a for. So for a, for b could be anywhere. It could be in multiple places. Like it could be zero even. And that would be just considered random.
+00:41:23.666 - 00:41:24.146, Speaker C: Correct.
+00:41:24.250 - 00:41:25.850, Speaker B: Okay, this makes a lot more sense now.
+00:41:25.882 - 00:41:27.274, Speaker A: Yeah. Okay. Yeah.
+00:41:27.314 - 00:41:47.850, Speaker C: And so if you're, if you're a high stake node, right, these nodes are going to be higher staked up here. These are going to be more random. But that means that like if you're b and you're having this, like you could have, you're likely going to have node a up here, but there's also a chance you're going to get it down here too because it's more random.
+00:41:47.922 - 00:41:48.106, Speaker A: Yeah.
+00:41:48.130 - 00:41:53.066, Speaker B: You're more likely to have it higher up, but you could have it lower because it doesn't, it's just random.
+00:41:53.090 - 00:41:55.130, Speaker C: There happen in multiple places. So.
+00:41:55.242 - 00:41:55.954, Speaker A: Yeah. Okay.
+00:41:56.034 - 00:42:08.658, Speaker C: And this is so in the actual code, the index map is of length twelve. So you always have twelve nodes in each one of these that you can push to.
+00:42:08.746 - 00:42:09.754, Speaker A: Okay. Okay.
+00:42:09.834 - 00:42:23.418, Speaker C: Now the code also says that you can only send to nine at a time. So you take nine out of the twelve to send to more of a heuristic than an exact science. It's just nine was better than six.
+00:42:23.506 - 00:42:23.898, Speaker A: Yeah.
+00:42:23.986 - 00:42:42.794, Speaker B: Is it just kind of like to help out with gossip, like load because gossip is a huge overhead on the cluster. Right, right. So just making sure that you kind of have to optimize for coverage so that you're making sure that all the messages are being received to each other. But also don't kill the cluster by sending too much message, too many messages.
+00:42:42.874 - 00:42:51.566, Speaker C: Right, right, exactly. And as you get pruned. Right, so this index map may be linked. It is linked twelve and you're sending to nine of them, but.
+00:42:51.590 - 00:42:51.774, Speaker A: Right.
+00:42:51.814 - 00:43:26.150, Speaker C: You can get pruned and so your index map can have twelve entries, but you can find out that you've been pruned by so many people that you can actually only send to five of them. Okay, so you're allowed to send to nine or you can't even send to nine. You can only send to five. And in fact, I don't know the exact number, but the average actual push fan out. So the actual number of message would. Actual number of nodes you're truly sending to at any one time is like three to five, even though you're allowed to send to nine because sometimes, because that's ideal.
+00:43:26.262 - 00:43:39.846, Speaker B: Because like, in this, in this graph, I can't do the math in my head right now. But the ideal scenario, like, for this little amount of nodes, like you probably, it's probably like three because you don't want, you want to lower the amount of hops possible.
+00:43:39.950 - 00:43:40.190, Speaker A: Right.
+00:43:40.222 - 00:43:42.086, Speaker B: So you don't want to send a bunch of messages.
+00:43:42.190 - 00:43:42.998, Speaker C: Totally, yeah.
+00:43:43.046 - 00:43:48.238, Speaker B: And then it lessens the amount of, what is it broad or bandwidth?
+00:43:48.286 - 00:43:49.598, Speaker C: Bandwidth, yeah, yeah, because you don't want.
+00:43:49.606 - 00:43:53.758, Speaker B: It to overload everybody's bandwidth. And then you just have a happy cluster at that point.
+00:43:53.846 - 00:43:54.470, Speaker C: 100%.
+00:43:54.542 - 00:43:54.870, Speaker A: Yeah.
+00:43:54.942 - 00:43:57.926, Speaker C: And so, and that's where that pruning comes in, you know?
+00:43:57.950 - 00:43:58.134, Speaker A: Right.
+00:43:58.174 - 00:44:10.790, Speaker C: It's basically you, because when you start up, you're basically sending to everybody. You're like, I have all these messages. Send, send, send, take them, take a while. And then people are like, stop, stop sending me messages. And that's where you update this value for this peer.
+00:44:10.902 - 00:44:11.174, Speaker A: Right.
+00:44:11.214 - 00:44:34.908, Speaker B: And you start studying, you start understanding you also filling in your steak buckets as well. And then, so you have those two to interact with yourself. So if you're d, you're a lot more random in this specific cluster. So you would basically fill in your push actor set to be incredibly random. And then everybody would tell you when to stop sending messages to each other.
+00:44:34.956 - 00:44:35.564, Speaker C: Right, right.
+00:44:35.644 - 00:44:56.022, Speaker B: And then at some point you'll level out. Basically. It's like you'll get enough prunes and you're like, all right, keep moving, moving, keep moving. Um, and then you'll realize, okay, this is my very small push active set, ideally, um, or possible push active set. Uh, and then you're just a lot. It's, if it's three, it's, it's really nice, basically.
+00:44:56.118 - 00:44:56.390, Speaker A: Yeah.
+00:44:56.422 - 00:45:02.470, Speaker B: Lowering, it's, it's like high overhead of the beginning at startup, but then you lower, uh, as you go.
+00:45:02.542 - 00:45:07.686, Speaker A: Right, okay. Yep. Right.
+00:45:07.790 - 00:45:40.866, Speaker C: Every, periodically I forget, maybe I think it's like seven and a half seconds. We essentially, this is of length twelve. We drop the first one and add one to the end. So we, we do that same shuffle. We already do the same bucket calculation. So you're constantly doing this same weight calculation, same shuffle. And then you take the first one, you know, after that shuffle, weighted shuffle, you take the first one, you add it to the end of this index map, you drop the front of the index map, and that's how you get new nodes rotated into your push active set.
+00:45:40.930 - 00:45:41.234, Speaker A: Okay.
+00:45:41.274 - 00:45:46.714, Speaker C: So it's not a static, you know, view of who you're sending to. It's constantly, constantly moving.
+00:45:46.754 - 00:45:47.474, Speaker A: Rotating. Yeah.
+00:45:47.514 - 00:45:49.562, Speaker C: And that's not going a ton, but it's, it's moving.
+00:45:49.618 - 00:45:49.834, Speaker A: Yeah.
+00:45:49.874 - 00:45:53.010, Speaker B: It's enough to get you to where you're optimizing over time.
+00:45:53.082 - 00:46:00.506, Speaker C: Right, right. But making sure you're continuingly, you know, continue continually, you know, changing up who you're sending to.
+00:46:00.570 - 00:46:01.986, Speaker B: Okay, that makes, yeah, that makes sense.
+00:46:02.010 - 00:46:02.620, Speaker A: Yes.
+00:46:02.802 - 00:46:15.320, Speaker B: Now that we've talked about how we go through filling up this push active set, what does a node do when we receive it? And then I guess we'll talk about later with pruning those messages.
+00:46:15.392 - 00:46:16.004, Speaker A: Yeah.
+00:46:18.784 - 00:46:50.954, Speaker C: When we receive push messages, we have a data structure in the actual gossip code. It's called our crds table, or it's a crds structure that has a table entry in it. And all it is is, I don't know where I should draw this. Maybe it can be erases. Thank you. We have our crds. This is, I believe it's like cluster replicated data stored.
+00:46:50.954 - 00:47:06.354, Speaker C: This is going to store all the information about pushed messages, a bunch of metadata about push messages for basically optimizations. But the key one we need to know right now is the table. And this is an index map.
+00:47:06.894 - 00:47:08.510, Speaker B: And this is stored on every node.
+00:47:08.542 - 00:47:10.838, Speaker C: Basically stored on every node.
+00:47:10.966 - 00:47:12.406, Speaker B: Not guaranteed to be the same.
+00:47:12.470 - 00:47:39.450, Speaker C: Not guaranteed. It's going to be different for everybody. And it has a cap. We prune old data so it doesn't fill up and bloat. The whole system will prune old data and we'll also, I shouldn't say prune. We get rid of old data and we'll also get rid of data from low stake nodes for messages from low stake nodes. And so this has a, it's an index map.
+00:47:39.450 - 00:47:50.634, Speaker C: It basically has a pub key. This is not exactly right, but it's a pub key. And then we can call it data.
+00:47:52.134 - 00:47:53.118, Speaker B: Some blob or something.
+00:47:53.166 - 00:47:57.342, Speaker C: Some blob, yeah. So this is, this would, it's a crds value.
+00:47:57.478 - 00:47:57.902, Speaker A: Okay.
+00:47:57.958 - 00:48:06.754, Speaker C: And so that's a version crds value, but it's basically data. So it could be, it could store a vote. It could store contact information.
+00:48:07.054 - 00:48:08.222, Speaker B: It could be all sorts of stuff.
+00:48:08.278 - 00:48:08.470, Speaker A: Right.
+00:48:08.502 - 00:48:11.766, Speaker B: It's any of the types of messages that you send across gossip.
+00:48:11.830 - 00:48:12.870, Speaker C: Exactly, exactly.
+00:48:12.902 - 00:48:13.422, Speaker A: Yep.
+00:48:13.558 - 00:48:23.374, Speaker C: And then this public key is also based off of the type of the message, too. So this is basically who created the data as well.
+00:48:23.454 - 00:48:24.114, Speaker A: Yeah.
+00:48:25.134 - 00:48:58.464, Speaker C: The important thing to know is as we receive information, we basically just update it. In this index map, we say we got this contact information from a. Let's put it in this index map. Now we have access to it. Good to go. Okay, so let's see, what we do is when we receive a new message, we're going to check in this index map. Have we seen a message? Well, we're going to try to insert the message into this map.
+00:48:58.544 - 00:48:59.360, Speaker A: Okay.
+00:48:59.552 - 00:49:13.454, Speaker C: And there are a couple of things that can happen. One is the message. So let's say we're looking at b, we receive message a, we say, has message a, have we seen this message before? If not, great, we can insert it, we're good to go.
+00:49:13.534 - 00:49:14.094, Speaker A: Okay.
+00:49:14.214 - 00:49:28.094, Speaker C: The other thing is we can try to insert it and say, hey, another message from, of this type from a exists, but this one's newer. And so there's a timestamp in this data and we can say, okay, good, we can insert it, no problem.
+00:49:28.214 - 00:49:30.870, Speaker B: Okay, insert into this table, into this.
+00:49:30.942 - 00:49:35.238, Speaker C: Table, this index map. Okay, so this is a structure, is it?
+00:49:35.246 - 00:49:40.974, Speaker B: Because you can potentially have different contact info changes based off of the bup key?
+00:49:41.014 - 00:49:41.358, Speaker A: Okay.
+00:49:41.406 - 00:49:44.806, Speaker C: Yep, yep, exactly. Or different votes for things like that.
+00:49:44.830 - 00:49:46.394, Speaker B: Yeah, votes probably more often.
+00:49:46.734 - 00:49:47.094, Speaker A: Yeah.
+00:49:47.134 - 00:50:16.148, Speaker C: So you can insert it. If it's nothing, you have no duplicate. If there is a duplicate, you check the timestamp. If it's newer, we can insert it, we get rid of the old one. If it's an older timestamp, we basically say this data is old, we get rid of it. Now we keep track of things like, okay, we failed to insert this data because either it was old or it was a duplicate. Literally, it was the exact same message.
+00:50:16.148 - 00:50:32.416, Speaker C: That would be the case. Earlier we talked b to c. This b to C connection exists from origin. A, and C would receive a message from a, it would insert it, and then it would get the same message from b and be like, this is the exact same message.
+00:50:32.520 - 00:50:32.808, Speaker A: Right?
+00:50:32.856 - 00:50:33.888, Speaker C: This is a duplicate.
+00:50:33.976 - 00:50:34.176, Speaker A: Yeah.
+00:50:34.200 - 00:50:37.084, Speaker B: Because we don't want to send duplicates over and over on the cluster.
+00:50:37.464 - 00:50:42.096, Speaker C: And so C is going to track that we have received a duplicate message.
+00:50:42.240 - 00:50:42.928, Speaker A: Okay.
+00:50:43.056 - 00:51:07.524, Speaker C: And so that's important. And we'll talk now about why. So from C's perspective. And I guess we'll, we'll talk about from C's perspective instead of, I know I just said b, but let's talk about C. See, we keep this structure. So this is a separate structure called a received cash entry. It may be received and maybe a received cache, I don't know, receive or receive cash.
+00:51:07.524 - 00:51:16.364, Speaker C: And so this received cash is an LRU cache, least recently used cash.
+00:51:22.884 - 00:51:23.196, Speaker A: With.
+00:51:23.220 - 00:51:31.332, Speaker C: An origin and then what's called a received cache entry. And I'll explain what all this means in a second.
+00:51:31.428 - 00:51:31.812, Speaker A: Okay.
+00:51:31.868 - 00:51:33.436, Speaker B: And with origin, you're talking about like.
+00:51:33.500 - 00:51:44.620, Speaker C: A, b, c. It's the originator of a message. So if we're looking at c and we receive a message from b, but it's originated from a, it's the a.
+00:51:44.652 - 00:51:45.740, Speaker B: Origin on the specific message.
+00:51:45.772 - 00:51:45.980, Speaker A: Okay.
+00:51:46.012 - 00:51:46.452, Speaker C: Yes, got it.
+00:51:46.468 - 00:51:46.620, Speaker A: Yes.
+00:51:46.652 - 00:51:55.576, Speaker C: It's always by the message origin, not by who sent us a message when we're doing state calculations and things like that.
+00:51:55.760 - 00:51:57.008, Speaker B: So this is incredibly important.
+00:51:57.096 - 00:51:57.408, Speaker A: Yes.
+00:51:57.456 - 00:52:10.724, Speaker C: Right, right. And so this receive cache entry, let's call rce. This is a struct that basically has nodes. It's a hash map.
+00:52:15.204 - 00:52:16.144, Speaker A: Pub key.
+00:52:18.364 - 00:52:54.448, Speaker C: At score. I'll talk about the score and then num up certs. This is, I think, use size. Okay, so this is how we're tracking this score here. Basically what we're trying to do, I should step back. The goal of C is to determine which nodes are good at sending us messages. And we want to get rid of, we want to prune nodes that are.
+00:52:54.496 - 00:52:58.684, Speaker B: Bad at sending us messages, that are sending the duplicates, the really old messages.
+00:52:59.704 - 00:53:03.004, Speaker C: Exactly. That's what this is going to do here.
+00:53:05.524 - 00:53:12.004, Speaker B: Let's see, just to make sure I understand. So like if D low stake.
+00:53:12.044 - 00:53:12.268, Speaker A: Sure.
+00:53:12.316 - 00:53:41.432, Speaker B: But let's say D was having a hard time keeping up with the cluster. Yeah, it's like, I don't know, hundreds of slots behind compared to all the rest of them. They're keeping up to just fine. And D sending messages to all of them. All these other guys would basically be updating their received cache, being like, hey, de key is sending me odd, like 200 odd slot behind messages. I should probably prune them because are their messages. Because I don't care about them because it's just, it's not up to date anymore.
+00:53:41.528 - 00:54:07.964, Speaker C: Right. It could be because of that. It could be because it's sending old data or it just happens to be like it somehow added c. It's like, you know, theoretically it's like the last node to receive a message from a, but for some reason. And it's push active set. C is in its push active set. And so it sends a message to c, but C got it like 5 seconds ago or whatever, or.
+00:54:08.424 - 00:54:08.920, Speaker A: Yeah.
+00:54:08.992 - 00:54:26.324, Speaker C: Okay, and so this is what we're going to look at. So C say. So we're looking at c here. Now let's, this blue may not work. Okay. Purple maybe. Okay, so let's assume we're in this situation again.
+00:54:26.744 - 00:54:27.604, Speaker A: Okay.
+00:54:28.144 - 00:54:58.980, Speaker C: And so now we're looking at c, we receive a message, we receive two messages, one from b, one from a. And so we're going to look at from c, we're going to say, hey, we've received a message from origin a or originating from a. So we're going to go into this receive cash entry, okay? And we're going to look at this node's value and we're going to say this pub key is appear that sent us message a, in which case, oops.
+00:54:59.012 - 00:55:01.484, Speaker B: I just, so this is the message a, right?
+00:55:01.524 - 00:55:01.740, Speaker A: Yep.
+00:55:01.772 - 00:55:02.580, Speaker C: Thank you.
+00:55:02.772 - 00:55:06.756, Speaker B: And then this is like b because it sent me message a.
+00:55:06.820 - 00:55:07.156, Speaker A: Okay.
+00:55:07.220 - 00:55:22.324, Speaker C: B is we're going to have an entry here. So this is our peer. So the peer would be who sent us a message, origin would be who created the message. Okay, we can have a peer here and because we've received it from both message a and or, sorry, from a and b.
+00:55:23.104 - 00:55:23.440, Speaker A: Right.
+00:55:23.472 - 00:55:47.456, Speaker C: So we're going to assume, we're going to say origin a, we're going to, now we've received this from a and b. Okay, and now what we do is we're going to say, hey, have we received this message before? Okay, and if we have not received this message before. So C is probably going to get it first because it's only one hop versus two hops.
+00:55:47.520 - 00:55:48.116, Speaker A: Right.
+00:55:48.280 - 00:55:52.444, Speaker C: So a is going to get its score incremented because it was the first one.
+00:55:52.564 - 00:55:54.780, Speaker B: Would these be multiple entries in this hash map?
+00:55:54.812 - 00:55:55.076, Speaker A: Yes.
+00:55:55.140 - 00:56:01.108, Speaker C: So it's multiple entries. So you'd have an entry for a and a score for a, an entry for b and a score for b.
+00:56:01.196 - 00:56:01.692, Speaker A: Okay.
+00:56:01.788 - 00:56:09.780, Speaker C: And then you'd have, you know, depending on who else is sending messages to c from origin a, you'd also have entries for that as well.
+00:56:09.852 - 00:56:10.544, Speaker A: Okay.
+00:56:11.604 - 00:56:32.410, Speaker C: And yeah, so you can have multiple entries here and you have a score. And so the score gets incremented if you are the first node. Also if you're the second node, if you're the first or second node to send a new date, new basically message to us.
+00:56:32.482 - 00:56:32.690, Speaker A: Yeah.
+00:56:32.722 - 00:56:39.570, Speaker B: So if it's like a vote from a, if we're the first and second, our score is updated to c, correct?
+00:56:39.682 - 00:57:17.988, Speaker C: Yes. And every time we get a new, it's like a new value. So I should mention here, I believe yes. So when we update this, so, right, we get a message a, we try to insert it into the table and the table is going to say yes, it's good to go like it's a new value or a more recent value. Then we go to. Or we pull that receive cache for origin a, we get the received cache entry for origin a. We come here, we're going to insert a if it doesn't already exist.
+00:57:17.988 - 00:57:47.932, Speaker C: And we're going to increment its score if it's the first one, and we know it's the first one because the index map will tell us, right. If it's brand new, it'll just say, like, okay, like, good. If it's a duplicate, it'll say, hey, we've received, this is the fifth duplicate entry here. So then we'll get down here. So say, if there's, say, e sends message a, this is going to be a second duplicate, and it's much later.
+00:57:47.988 - 00:57:49.068, Speaker B: Because of all the hops that you.
+00:57:49.076 - 00:57:57.148, Speaker C: Have to go through. And in which case, e will still get added here, but the score will be zero.
+00:57:57.316 - 00:58:00.732, Speaker B: So the scores are only incremented if you're good, but not decremented.
+00:58:00.748 - 00:58:10.580, Speaker C: They're just not decremented. And the idea is you don't want nodes to spoof other nodes and basically replay messages and then have their score decremented.
+00:58:10.692 - 00:58:11.220, Speaker A: Okay.
+00:58:11.292 - 00:58:24.504, Speaker C: Yeah, got it. And anytime a new value, non duplicate value gets added. So in this case, ma, we have a successful insert. We're going to increment num up certs.
+00:58:24.924 - 00:58:25.596, Speaker A: Okay.
+00:58:25.700 - 00:58:29.664, Speaker C: And this num up certs basically just, is a.
+00:58:30.754 - 00:58:36.042, Speaker B: Are you just keeping track the amount of, like, upsets you've had from that specific peer?
+00:58:36.138 - 00:58:37.738, Speaker C: Uh, from that specific origin?
+00:58:37.786 - 00:58:38.338, Speaker B: Origin, sorry.
+00:58:38.386 - 00:58:44.874, Speaker C: Yes, exactly. And so it just says, like, hey, um, yeah, like you said, we're keeping track of the messages we've received from a.
+00:58:44.954 - 00:58:45.234, Speaker A: Okay.
+00:58:45.274 - 00:59:16.690, Speaker C: Unique new messages we've received from a. Um. Once this value num up certs reaches a limit, which is 20 or a threshold 20. Now, all of the peers that we see in this hash map are eligible to be pruned, okay? So, right, so as we're running, c is receiving a ton of messages from a. From a bunch of different nodes, right? We're inserting them into this index map. We go to this receive cache. You know, we're getting them from a, we get a receive cache entry.
+00:59:16.690 - 00:59:45.914, Speaker C: And as we're receiving all these messages from different peers from, you know, with messages from origin a originating from Origin A, we're going to be building up this hash map. So we could have, you know, we're going to have appears a, b, x, y, z, whatever, sending us messages from origin a. They're all going to have different scores because the score is based on how timely you are sending messages to me.
+00:59:45.954 - 00:59:49.534, Speaker B: As c. Does stake come into play in any of this?
+00:59:49.994 - 00:59:51.050, Speaker C: Not yet.
+00:59:51.162 - 00:59:51.650, Speaker A: Okay.
+00:59:51.722 - 00:59:57.092, Speaker C: For this specifically. No, it does not. This is just keeping track of timely nodes.
+00:59:57.188 - 00:59:57.620, Speaker A: Okay.
+00:59:57.692 - 01:00:23.476, Speaker C: And then once we receive enough messages originating from a 20, then we say, hey, out of all these nodes in our hash map that have sent us messages originating from a, we are going to try to prune some of these because we've received too many. Or maybe we've received too many or we're receiving too many, how should I say this? Too many nodes are sending us messages originating from a.
+01:00:23.540 - 01:00:24.160, Speaker A: Okay.
+01:00:24.292 - 01:00:26.176, Speaker C: And so now we're going to try to prune them.
+01:00:26.240 - 01:00:32.168, Speaker B: So then you just take the lowest scores of that specific origin and you start like how often does it prune?
+01:00:32.176 - 01:00:37.644, Speaker C: I guess I got to remember exactly how often it prunes. I think it's on the order of seconds.
+01:00:38.504 - 01:00:38.944, Speaker A: Okay.
+01:00:38.984 - 01:00:42.864, Speaker C: I can't remember the exact number, but it's, you know, it's on the order of seconds. It's pruning.
+01:00:42.944 - 01:00:43.504, Speaker A: Okay.
+01:00:43.624 - 01:00:44.552, Speaker C: Pretty constantly.
+01:00:44.648 - 01:00:46.912, Speaker B: That will update everybody's push active set.
+01:00:46.968 - 01:00:48.536, Speaker C: Well, only your own.
+01:00:48.640 - 01:00:49.360, Speaker B: Only your own.
+01:00:49.432 - 01:00:49.864, Speaker A: Okay.
+01:00:49.944 - 01:00:52.072, Speaker C: Oh, sorry, sorry, sorry. Yes, I'm sorry.
+01:00:52.128 - 01:00:53.120, Speaker B: Because you'll send the prune message.
+01:00:53.152 - 01:00:53.888, Speaker C: I'm sorry.
+01:00:54.056 - 01:00:54.472, Speaker A: Yes.
+01:00:54.528 - 01:01:13.922, Speaker C: You'll send the prune message to be. Yes, that will make b update its push active set. Okay, you're correct. Yes. And we prune based on a couple of things. Most important to score. So we want to keep, we want to make sure so we have this, I should say there are what, there are three goals with pruning.
+01:01:13.922 - 01:01:54.594, Speaker C: One is we want to make sure, or at the end of pruning, we want to make sure that we have two nodes at a minimum of two nodes sending us information. So when we're done pruning this hash map or the node sending us values from a, we want to make sure at least two nodes are still sending us messages from a. Just a little redundancy. Now this is where stake comes in. We also have a minimum stake threshold. And so we want to ensure that there is a minimum stake that is still sending us a minimum amount of stake that is still sending us messages. Meaning the stake looking at a and b.
+01:01:54.594 - 01:01:59.082, Speaker C: So stake would be 2000 sending us messages.
+01:01:59.218 - 01:01:59.538, Speaker A: Right.
+01:01:59.586 - 01:02:02.418, Speaker B: Because you're more there. Those are ideally more important messages.
+01:02:02.506 - 01:02:27.834, Speaker C: Right, exactly, exactly. And then the third thing I should remember was the third thing is, oh yeah, sorry. They're really only, there's actually really only two. It's just those two. So it's, we want to ensure that there are two nodes sending us data from a at all times. And we want to ensure that there's a minimum stake. Sending us data at all times.
+01:02:27.834 - 01:02:35.946, Speaker C: What that minimum stake is, it's a percentage. It's basically a percentage of your own stake.
+01:02:36.130 - 01:02:36.618, Speaker A: Okay.
+01:02:36.666 - 01:02:39.794, Speaker C: So it's based on what your stake is.
+01:02:39.954 - 01:02:41.254, Speaker A: Okay. Yeah.
+01:02:42.354 - 01:02:46.802, Speaker B: Because that kind of gets rid of all the weird math that you have to do.
+01:02:46.938 - 01:02:47.266, Speaker A: Okay.
+01:02:47.290 - 01:02:55.828, Speaker B: If you have some mistake, then you have some distribution or compared to all the other ones that you're hearing from.
+01:02:55.956 - 01:02:57.064, Speaker A: Right. Okay.
+01:02:57.404 - 01:03:06.212, Speaker C: And when we prune, what we're doing is we have all these values in the hash map. We sort them by score first and then stake.
+01:03:06.388 - 01:03:06.780, Speaker A: Okay?
+01:03:06.812 - 01:03:46.684, Speaker C: So like we have all these scores. So we'd have like, you know, you know, a could have a high score, b would have a lower score, you could have, you know, you could have a. So if we have scores, or maybe not scores, but this is what our hash maps nodes, these are scores. And we have, say a has a high score, say like ten, we have b. I'm not doing this right. Maybe like this ten, b is four. And then am I going too far? And then say, what did we say? E is zero.
+01:03:46.684 - 01:03:54.240, Speaker C: So this is what this hash met could look like. Hash map could look like we have a, a score of ten, b a score of four, e, a score of zero.
+01:03:54.352 - 01:03:54.680, Speaker A: Okay.
+01:03:54.712 - 01:04:01.032, Speaker B: And so in this case you could, you would be more likely to prune e, but it depends on the stake of e as well, right?
+01:04:01.088 - 01:04:17.804, Speaker C: Exactly. So you would sort these by score. So it'd be a B e. Now if they have the same. Yeah, you sort by score, stake breaks a tie. So if you have a higher stake, that's going to be in front of one with the same score.
+01:04:17.884 - 01:04:18.284, Speaker B: Gotcha.
+01:04:18.324 - 01:04:24.604, Speaker C: Is yours. And then you basically iterate over these and you say, well, we want to ensure.
+01:04:24.764 - 01:04:30.996, Speaker B: So in this case, if B had a score of zero, E had a score of zero, and this thing we.
+01:04:31.020 - 01:04:43.634, Speaker C: Would b would break it. Correct. We look at a first and we say, hey, we need first goal is we need a minimum of two nodes sending us data from a. Right? So we're not going to prune a.
+01:04:43.794 - 01:04:44.354, Speaker A: Right.
+01:04:44.474 - 01:05:02.226, Speaker C: Now we look at b and we say we need a minimum of two. We're not going to prune b. Then we look at e and we say, okay, we've reached our minimum. So now we can compare stake. And this is where we look. We basically have added up stake of a, stake of b, compared it to a fraction of our stake.
+01:05:02.330 - 01:05:02.594, Speaker A: Right?
+01:05:02.634 - 01:05:11.230, Speaker C: In this case fraction c. And because a and b are much higher stake than c. We've already likely hit our stake threshold.
+01:05:11.302 - 01:05:11.486, Speaker A: Right.
+01:05:11.510 - 01:05:19.726, Speaker C: And then e, we can get rid of. But say we're like, you know, ten. Our stake is 10,000 or, you know, 50,000 or whatever.
+01:05:19.870 - 01:05:22.470, Speaker B: A c threshold would be much higher.
+01:05:22.542 - 01:05:25.830, Speaker C: Threshold's gonna be higher. In which case, maybe we wouldn't prune e. Right.
+01:05:25.862 - 01:05:30.334, Speaker B: Because you need the, since you have higher stake, you need to get those messages a lot more often.
+01:05:30.414 - 01:05:53.582, Speaker C: Exactly, exactly. So say the real original situation. Say, oh, we're going to keep these. We're going to prune these. So then C is going to send a message to e being like, hey, four messages that you get from origin a, created by origin a, do not send them to us.
+01:05:53.638 - 01:05:54.142, Speaker A: Okay.
+01:05:54.238 - 01:06:03.196, Speaker C: And then e, if it's nice, will not send them to us. You know, it obviously could just keep sending us those messages, but we're just going to ignore them.
+01:06:03.260 - 01:06:03.916, Speaker A: Right? Yeah.
+01:06:03.980 - 01:06:04.744, Speaker B: Got it.
+01:06:05.044 - 01:06:05.748, Speaker A: All right.
+01:06:05.876 - 01:06:07.676, Speaker B: I think we should probably wrap it up, right?
+01:06:07.820 - 01:06:10.652, Speaker C: Yeah, I think that's. I think that's mostly cool.
+01:06:10.708 - 01:06:11.116, Speaker A: Yeah.
+01:06:11.220 - 01:06:23.244, Speaker C: And, you know, there's more to talk about for, you know, pull requests, to pull responses. But this is the core part of gossip. That is, you should know first.
+01:06:23.364 - 01:06:24.332, Speaker A: Cool. Well, yeah.
+01:06:24.388 - 01:06:25.340, Speaker B: Thank you so much for.
+01:06:25.372 - 01:06:25.660, Speaker A: Absolutely.
+01:06:25.692 - 01:06:26.464, Speaker C: Thanks for.
+01:06:27.444 - 01:06:33.996, Speaker B: This has been great. I have learned a lot about how gossip protocols work as well as how it works on Solana. This has been absolutely fantastic.
+01:06:34.060 - 01:06:34.260, Speaker A: Cool.
+01:06:34.292 - 01:06:35.300, Speaker C: Yeah, definitely.
+01:06:35.492 - 01:06:36.860, Speaker A: Happy to do it. Anytime. All right.
+01:06:36.892 - 01:06:37.516, Speaker B: Thank you so much.
+01:06:37.580 - 01:06:38.644, Speaker A: Thank you. Appreciate it.

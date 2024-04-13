@@ -1,0 +1,62 @@
+00:00:05.240 - 00:00:13.034, Speaker A: Diem welcome to this episode of Solana Bytes. In this series, we're taking a look at all of the extensions on the Token 2022 program.
+00:00:13.374 - 00:00:15.150, Speaker B: In this episode, we're looking at the.
+00:00:15.182 - 00:00:22.638, Speaker A: Default account state extension. So a token creator may want to restrict who can access and use their token.
+00:00:22.806 - 00:00:25.958, Speaker B: While several approaches exist, many involved an.
+00:00:26.006 - 00:01:04.754, Speaker A: Initial reliance on centralized services. So considering that it's possible for anyone to create a token account for a given mint, the current solutions are actually not comprehensive. The default account state extension allows for all newly created token accounts to have a default state, such as being frozen. This way, users may eventually interact with some service to unfreeze their account in order to use these tokens. So in this guide we're going to walk through how to use the default account state extension to freeze all accounts upon creation. So let's take a look at how this works. So in the script we first connect to the Devnet cluster.
+00:01:04.754 - 00:01:26.514, Speaker A: We build a set of instructions, one to create a new account and then apply the default account state extension to that account and then initialize this new account as a token mint. Once that token Mint is created, we then create a new token account for that mint, and we can see that the default state is actually set to frozen.
+00:01:26.824 - 00:01:29.752, Speaker B: We then have the ability to then.
+00:01:29.848 - 00:02:00.554, Speaker A: Update the default account state because the token creator may choose to relax those restrictions over time. So then we then update that default account state to then remove the restriction of it being frozen and just set it back to initialize and then create a new token account so that you can see that the update is taking place. So let's take a look at this token mint. On Solscan we can see that the.
+00:02:00.894 - 00:02:02.430, Speaker B: Default account state is not set to.
+00:02:02.462 - 00:02:08.934, Speaker A: Initialize because by the end of a script we actually updated it back. But if we take a look at the transactions and look at the first.
+00:02:09.014 - 00:02:12.326, Speaker B: One, you will note that we created.
+00:02:12.350 - 00:02:19.662, Speaker A: This account and the initial default account state was actually set to frozen. So then if we look at the.
+00:02:19.798 - 00:02:26.756, Speaker B: Token account that we created immediately after that, we should see that the account.
+00:02:26.820 - 00:02:43.228, Speaker A: State should still be set to frozen because we created a token mint. This token mint has the default account state extension applied that sets the default account state to frozen. And as we created that token account, the state is automatically set to frozen.
+00:02:43.356 - 00:02:46.276, Speaker B: And if we look at that transaction, we'll see.
+00:02:46.300 - 00:03:16.404, Speaker A: Again, we created the token account using the associated token account program, and it has the mutable owner extension. This actually comes by default in token 22. So if you create an account with the associated token account program, the immutable owner extension is on by default. We then initialize that account and the end state of that is what we see here where the account state is set to frozen. So let's jump to the code and see how that works. So we're going to create a new.
+00:03:16.444 - 00:03:17.304, Speaker B: Directory.
+00:03:22.104 - 00:03:23.604, Speaker A: CD into it.
+00:03:27.744 - 00:03:35.044, Speaker B: We're going to init a new NPM project and then we're going to install.
+00:03:35.624 - 00:03:40.044, Speaker C: The packages that we need.
+00:03:53.124 - 00:04:09.384, Speaker B: Let's open this up in versus code. I'm going to create a new file index mjs and then we're just going to add some typescript type check in helpers. Cool. So let's get started.
+00:04:09.844 - 00:04:16.324, Speaker A: So first we'll begin by setting up the script to create a new token mint. So we'll need to first establish a.
+00:04:16.364 - 00:04:18.988, Speaker B: Connection to the Devnet cluster, generate a.
+00:04:18.996 - 00:04:28.904, Speaker A: New pay account and fund it because it's going to pay all of our transactions and then create a new token mint using the token 22 program. So we go const connection.
+00:04:31.524 - 00:04:32.972, Speaker B: Equals new.
+00:04:33.028 - 00:04:40.504, Speaker C: Connection, use the cluster API devnet confirmed.
+00:04:41.474 - 00:04:43.174, Speaker B: We then create a new pair.
+00:04:48.794 - 00:05:05.854, Speaker C: Then want to airdrop. We'll just get one soul and we want to.
+00:05:11.874 - 00:05:12.814, Speaker B: Signature.
+00:05:23.634 - 00:05:26.722, Speaker C: Okay, now that we have that we.
+00:05:26.738 - 00:05:31.174, Speaker A: Need to set up the mint with the default account state extension.
+00:05:31.674 - 00:06:02.834, Speaker B: So we have a new mint keeper. We then get the actual address, then set our decimals, then we have our mint authority. We then get the size of the account.
+00:06:03.414 - 00:06:15.830, Speaker A: So there's a helper function getmint len that takes an array of extensions. In this case we are only adding the default account state. Then we then work out the amount.
+00:06:15.862 - 00:06:31.114, Speaker C: Of lamp holds needed to be rent exemption. Cool. So now that we have set this.
+00:06:31.154 - 00:06:37.894, Speaker A: Up, we now need to build our set of instructions. So the first one that we need is of course to create the account.
+00:06:45.554 - 00:06:48.214, Speaker C: From payer.
+00:06:49.074 - 00:07:02.154, Speaker B: The new account is the Mint, the space is the Mint lens Lamport and the program id is the token program.
+00:07:03.254 - 00:07:12.542, Speaker A: The second instruction that we need is the instruction to set the default account state to our state of choice, which.
+00:07:12.558 - 00:07:37.994, Speaker B: Is going to be frozen. So we need to get the default state equals account state Dot fr ozen and then we have the instruction states.
+00:07:38.034 - 00:07:39.974, Speaker A: The Mint and the account state.
+00:07:42.194 - 00:07:52.686, Speaker B: So let's just call this countstate. Then we have the final instruction to.
+00:07:52.750 - 00:07:54.754, Speaker A: Initialize this as a Mint.
+00:08:04.054 - 00:08:20.222, Speaker B: It takes the mint, the decimals, the Mint authority, the freeze authority which we'll just set as the Mint authority and then the program id. So now that we've built all of.
+00:08:20.238 - 00:08:22.054, Speaker A: The instructions that we need, we can.
+00:08:22.094 - 00:08:43.470, Speaker B: Now build the transaction and send that to the network. So we have the createaccount instruction, the initialize default account state instruction, and then.
+00:08:43.502 - 00:08:46.234, Speaker A: The initialize mint instruction.
+00:08:48.374 - 00:09:06.394, Speaker B: Then constant confirm takes the connection, the transaction, and the signers which would be the payer and the mint key pair.
+00:09:07.284 - 00:09:10.264, Speaker C: Then there's no options.
+00:09:11.924 - 00:09:20.436, Speaker B: So with that we can log this transaction signature and what this will show us is that we will be creating.
+00:09:20.460 - 00:09:30.584, Speaker A: A mint and this mint. For every token account that's created for this mint, the default account state will be set to frozen. So let's run this.
+00:09:38.504 - 00:09:45.684, Speaker B: Airdrop failed. I guess this is due to me getting rate limited.
+00:09:48.584 - 00:09:50.164, Speaker C: Let's just do that again.
+00:09:52.544 - 00:09:54.884, Speaker B: So now we take this transaction signature.
+00:09:57.304 - 00:10:05.002, Speaker A: We see that we created an account initialize the default account state extension to frozen. So if we take a look at.
+00:10:05.018 - 00:10:07.386, Speaker B: This mint, we will be able to.
+00:10:07.410 - 00:10:56.114, Speaker A: Also see that the default account state extension is applied and it sets all of the newly created token accounts to be frozen. There is also the option to update the default account state. So let's say you've set it to be frozen by default, and then at some point in the future you then decide that you no longer want that particular restriction applied. There is the update default account state function that you can use to then change what that default account state is. So we're just going to take a look at how that looks like. So updates default account state. So if you wanted to do that simply you can just call the update.
+00:10:57.974 - 00:11:05.044, Speaker B: The update default account state. It takes the connection payer, the mint.
+00:11:05.204 - 00:11:42.796, Speaker A: And then the default state that you want. So you can say account state Dot let's say ours was frozen, we now want it to be set back to initialized. What we'll need is the freeze authority, which in our case was actually the Mint authority that we used, and then the array of signers which we don't need because this isn't a multisig and then options, no options, and then we set the token 25 to program. So yeah, if you later down the line you want to relax the initial restriction, you can use the update default.
+00:11:42.820 - 00:11:45.156, Speaker B: Account state function to change what that.
+00:11:45.180 - 00:12:02.604, Speaker A: Default account state for all newly created token accounts. So the default account state extension introduces a valuable tool for token creators to have an enhanced control over their token. This particular process provides a mechanism for controlled token distribution.
+00:12:03.344 - 00:12:07.216, Speaker B: Join us for the future episodes as we continue to explore all of the.
+00:12:07.240 - 00:12:13.304, Speaker A: Extensions on the Token 22 program. I'm Colin from the Solana foundation developer relations team. Until next time.

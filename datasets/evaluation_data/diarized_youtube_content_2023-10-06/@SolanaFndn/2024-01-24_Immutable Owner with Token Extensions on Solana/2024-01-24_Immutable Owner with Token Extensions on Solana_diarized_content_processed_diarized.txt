@@ -1,0 +1,41 @@
+00:00:05.280 - 00:00:39.450, Speaker A: GM welcome to this episode of Solana Bytes. In this series, we're looking at all of the extensions on the Token 2022 program. So with the Token program, the set authority instruction can be used for a variety of use cases. Among them, an account owner may transfer ownership from an account to another. The immutable owner extension ensures that ownership of a token account cannot be reassigned. So why is this important? The addresses for associated token account are derived based on the owner and the mint. This makes it easy to find the related token account for a specific owner.
+00:00:39.450 - 00:01:35.210, Speaker A: If the account owner has reassigned ownership of this account, then applications may derive the address for that account and use it, not knowing that it no longer belongs to the owner. So what we're going to do, we're going to walk through this guide that's going to teach us how to use the immutable owner extension. So what this script is doing is creating a new token mint with the Token 2022 program, then creating an account and applying the immutable owner extension to that particular token account. So we can see that it's created the mint and it's also created this token account. And if we will take a look at that on soul scan and see. But then we also attempt to transfer the ownership of that account to another one. And we can rightfully see that we have an error that says this owner authority cannot be changed, which is what we're expecting because we applied the immutable owner extension to that particular account.
+00:01:35.210 - 00:01:59.256, Speaker A: So let's see how this looks like on soul scan. So if we open up soul scan, we can see that for this particular token account that was created, it shows you that it has the immutable owner extension turned on. And that's why when we attempted to transfer the ownership, it wasn't successful. So let's run through the code and see how this works. So I'm going to make a new.
+00:01:59.320 - 00:02:00.244, Speaker B: Directory.
+00:02:06.944 - 00:02:37.988, Speaker A: CD into it. Then I'm going to init a new NPM project. And then I am now going to install Solana web3 js and Solana SPl token. So now let's open up versus code and see. So we're going to create our index.
+00:02:38.036 - 00:02:48.010, Speaker B: File index mjs add type equals module. There we go.
+00:02:48.162 - 00:02:52.014, Speaker A: So we want to first establish a connection.
+00:02:52.754 - 00:02:57.614, Speaker B: Let me also add this. So we say const connection.
+00:02:59.754 - 00:03:00.854, Speaker A: New connection.
+00:03:02.154 - 00:03:15.230, Speaker B: And we're going to use the cluster API URL definite. Then we're going to say confirmed. So once we have that, we want.
+00:03:15.262 - 00:03:24.310, Speaker A: To create a payer account that's going to pay for all of the transactions that we are going to have.
+00:03:24.462 - 00:03:29.714, Speaker B: So conspay equals keeper generate.
+00:03:30.014 - 00:03:45.394, Speaker A: We then need to fund this account via an airdrop and it's payer public key.
+00:03:45.554 - 00:04:10.434, Speaker B: Lamport will just take one sol, then wait, there we go.
+00:04:10.814 - 00:04:20.394, Speaker A: So that's just the setup code that we need. Now we can actually go and start creating the new mint, then creating the token account and applying the extension.
+00:04:37.034 - 00:04:38.330, Speaker B: So for the mint, we're going to.
+00:04:38.362 - 00:05:17.164, Speaker A: Use the create minthelper function that comes from the SPL token library. It takes a connection, a payer, a mint authority, for the freeze authority. Also we just use the same key as the Mint authority, the amount of decimals, the key pair, but we're just going to leave this undefined. Also takes the options, but we'll leave that undefined and then we're going to use the Token 2022 program. This will give us a new mint then now we want to create an account with that immutable ownership.
+00:05:17.464 - 00:05:26.796, Speaker B: So we're going to have the construction. So this is going to be the.
+00:05:26.820 - 00:06:01.284, Speaker A: Owner of the account then now we need the actual account address. Then we need to also figure out the space required to store that to store the, the token account and also the immutable owner extension. And then work out the amount of land ports we'll need in order for this particular account to be rent exempt.
+00:06:01.584 - 00:06:03.124, Speaker B: So the account len.
+00:06:06.424 - 00:06:14.924, Speaker A: So this getaccount Len again is a helper function coming from the SPL token library that takes an array of extensions.
+00:06:17.044 - 00:06:32.772, Speaker B: And then Slamvault. Wait, this is account. So now that we have that, we.
+00:06:32.868 - 00:06:59.664, Speaker A: Are ready to have our list of instructions in which we will need three. We need to have an instruction for the system program to create the account. Then we need to have another instruction to initialize the immutable owner extension. And then the final one would be to initialize this account as a token account. So we have const Createcount instruction.
+00:07:04.044 - 00:07:34.016, Speaker B: Create system program createaccount so the from the payer, you then have the new WHOOP, the account, we have the space which is account Len, then the amount of.
+00:07:34.040 - 00:07:36.816, Speaker A: Lamports, and then the program id, which.
+00:07:36.840 - 00:07:40.804, Speaker B: Is the token program.
+00:07:41.424 - 00:07:46.924, Speaker A: The next one is to just initialize the immutable owner instruction.
+00:07:58.264 - 00:07:59.136, Speaker B: Which again is.
+00:07:59.160 - 00:08:28.444, Speaker A: A helper function coming from the SPL token library, and it's the token 22 program. Finally, we then initialize this token account, which takes the account, the Mint, the owner.
+00:08:30.724 - 00:08:38.704, Speaker B: And the program id. So this mint we forgot our await.
+00:08:40.644 - 00:09:17.804, Speaker A: So now we have all of our instructions. We just need to create a transaction, add all of these instructions and send it to the network. So we're adding the create account instruction, then the initialize immutable owner instruction, then initialize account instruction.
+00:09:18.424 - 00:09:26.296, Speaker B: There we go. We can now await TxIG equals await.
+00:09:26.400 - 00:09:32.632, Speaker A: Send and confirm transaction the connection transaction, the signers, which will be the we.
+00:09:32.648 - 00:09:42.192, Speaker B: Need a payer and the account keeper and we leave this as undefined. Cool.
+00:09:42.328 - 00:09:43.432, Speaker A: We'll just log that out so we.
+00:09:43.448 - 00:09:45.480, Speaker B: Can see now if we try to.
+00:09:45.512 - 00:09:48.884, Speaker A: Run this node index m js.
+00:10:05.334 - 00:10:05.646, Speaker B: So.
+00:10:05.670 - 00:10:10.486, Speaker A: We can see the transaction signature. Let's open up source scan and take.
+00:10:10.510 - 00:10:12.354, Speaker B: A look at what happened.
+00:10:17.914 - 00:10:54.754, Speaker A: We can see again it created an account initialize immutable owner on this particular account and then initialized as a token account. So if we were to open up the account that was created, we'll also notice that the immutable owner was turned on. So the immutable owner extension in token 22 removes a potential for gun by ensuring that a token account derived address genuinely reflects the owner of that particular account. So continue to tune in to this Solana Byte series where we look at all of the extensions in the token 22 program. I'm Colin from the Salana Devrel foundation team. Until next time.

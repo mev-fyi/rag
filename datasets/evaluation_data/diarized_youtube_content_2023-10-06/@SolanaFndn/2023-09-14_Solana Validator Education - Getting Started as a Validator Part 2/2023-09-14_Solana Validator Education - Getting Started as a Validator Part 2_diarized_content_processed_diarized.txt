@@ -1,0 +1,380 @@
+00:00:00.360 - 00:00:32.826, Speaker A: Welcome everyone to the Salon Validator Educational Workshop. This is part two on a series of getting started as validator part one. I have a link to it in this slide deck, and I'll also put it in the notes for the video. So if you haven't seen part one, I would definitely recommend checking that one out first. We talk a lot more in that part one video. Go back here about sort of conceptual things about running a validator. The difference between a consensus validator and RBC validator.
+00:00:32.826 - 00:01:21.750, Speaker A: These videos are all focusing on consensus validators. So voting validators who have a vote account and cast votes on the inclusion of blocks in the network. We talk a bit about key management for your vote accounts, how to set up the vote account, and where to set it up. Don't do it on the server itself, but do it on a trusted machine. Talk some about snapshots and a little bit about catch up, although the catch up part we're going to focus on today, unfortunately, or fortunately for all of you in the call today right before this video, the validator that we set up last time, I messed up the ssh config and I don't have time to fix it right now. So unfortunately we're going to have to go through the whole thing again. But luckily it'll be a refresher and.
+00:01:21.922 - 00:01:23.914, Speaker B: Hopefully we can go through it pretty quickly.
+00:01:24.254 - 00:02:15.426, Speaker A: So without further ado, the agenda for today is maybe a little longer than I expected review of part one of this video series. So we're going to get all the setup steps again. We do that locally. Luckily, we've already created the vote account and I have those keys locally, so I don't need to create the vote account again, I just need to set up the machine. We're going to start the validator and catch up to the network. We're going to talk a little bit about different things that you should check when your validator is catching up. There's two commands that are useful there, and then also just a few other debugging things that are useful to know when you're trying to get your validator caught up and running, and then after that we're going to talk about operational things.
+00:02:15.426 - 00:02:38.372, Speaker A: So system d log rotate, sending metrics, monitoring your validator using Watchtower. We will likely not talk about disabling root login because that's what screwed me up right before this. But something you should look into test out. I'll send out maybe a link after the video is done of something that.
+00:02:38.388 - 00:02:40.820, Speaker B: Would be useful for that and mounting.
+00:02:40.852 - 00:03:24.074, Speaker A: Your drives using FStaB. This also is one that has potential for issues. If you set the FS tab up wrong, then the mounts won't mount on restart of the machine. So another area to be careful with this is what we covered last time, the initial setup. We want to install the CLI, create the vote account, which we've already done. We've got that locally, so I don't need to do that again. Get the server set up, install the Cli on the server, format the drives, create the startup script, and then do catch up.
+00:03:24.074 - 00:03:42.504, Speaker A: So really I'm sort of starting from step four here on my new machine. I'm going to let's just start by creating a sole user, and then with that sole user we can do all of the the setup things we need to do. So let's open up a terminal and get into that.
+00:03:42.964 - 00:03:49.344, Speaker B: We make this a little larger.
+00:03:58.204 - 00:04:13.854, Speaker A: So yeah, as I mentioned before, disabling root login would be a good idea. I will send some information about how to do that later. First things first, we've got an empty slate here of this machine. Ideally I would update the machine.
+00:04:15.034 - 00:04:21.202, Speaker B: So apps update and then app upgrade.
+00:04:21.378 - 00:04:34.046, Speaker A: I'm going to skip the upgrade for now because it'll take a bit of time. So these are just getting all the latest packages and then apps upgrade will.
+00:04:34.070 - 00:04:37.114, Speaker B: Actually upgrade those packages for us, but we'll do that.
+00:04:37.574 - 00:04:39.794, Speaker A: Leave that for the viewer to do.
+00:04:41.334 - 00:04:43.914, Speaker B: Let me bring up the notes here.
+00:04:56.434 - 00:04:59.594, Speaker A: So the next thing I want to do is install the CLi.
+00:04:59.754 - 00:05:02.574, Speaker B: Let's get that going.
+00:05:12.074 - 00:05:33.868, Speaker A: So let's install 116. That is the latest version for Testnet 116. Oh, I just copied this from the install docs. Uh, installing the Solana CLI tools. That'll take a second. Oh, actually, sorry.
+00:05:33.916 - 00:05:34.588, Speaker B: Let's kill this.
+00:05:34.636 - 00:05:39.384, Speaker A: Before we do that. Let's create the sole user. Sorry, I'm jumping around a bit.
+00:06:05.744 - 00:06:30.412, Speaker B: There we go. Good. Okay, this is what we want. All right, so I'm going to make.
+00:06:30.428 - 00:06:49.044, Speaker A: A new Sol user. Got a password that I'll use here. I'm going to switch to that sol user and then I will install.
+00:06:53.104 - 00:06:56.044, Speaker B: Install the Solana cli for that user.
+00:07:10.564 - 00:07:13.784, Speaker A: Any questions about this process while the install is going?
+00:07:24.124 - 00:07:31.496, Speaker B: All right, just let this run. Cool.
+00:07:31.520 - 00:07:35.816, Speaker A: We've got the sole user installed. If I do Solana dash dash version, I should see.
+00:07:36.000 - 00:07:39.144, Speaker B: Oops, let me log out and log.
+00:07:39.184 - 00:07:46.164, Speaker A: Back in again to the sole user. Now, if I do Solana dash dash version, I should see 1.16. So we're ready to go there.
+00:07:46.984 - 00:07:51.644, Speaker B: Next steps would be to, let's see.
+00:07:53.584 - 00:08:21.670, Speaker A: Mount our drives. So I'm just going to do this one really quick. This happened in the last video. So if this is too quick for you, please just go back and check out the last video. I'm going to do this as root. So just making the part or not? The mounting the drive. Sorry, formatting the drives before I mount the drives.
+00:08:21.670 - 00:08:27.314, Speaker A: So I've got one of the nvmes I'm going to use for the ledger.
+00:08:32.534 - 00:08:37.246, Speaker B: I'm going to own that ledger, have.
+00:08:37.270 - 00:08:42.194, Speaker A: The sole user own the ledger directory and then I will mount it.
+00:08:43.134 - 00:08:53.298, Speaker B: Might actually have to do these in reverse. There we go. Yeah.
+00:08:53.386 - 00:09:03.774, Speaker A: So you can see here the sole user owns this mounted directory. And then I'm going to do the same for the accounts directory.
+00:09:20.054 - 00:09:21.194, Speaker B: Oh, interesting.
+00:09:26.214 - 00:09:29.634, Speaker A: Right, well, it looks like this only has one.
+00:09:37.734 - 00:09:39.234, Speaker B: Let's just look at this.
+00:09:44.104 - 00:10:08.434, Speaker A: Yeah, it looks like there's only one drive here that's 3.5 terabytes. So we're just going to have to work with it. So instead of having two mounted drives, I'm just going to have one. I'll rename this to just data. And then put a ledger and a accounts directory within that data directory. So let's unmount this drive and then remount it.
+00:10:20.174 - 00:10:22.154, Speaker B: All right, if I do this now.
+00:10:23.054 - 00:10:53.374, Speaker A: We don't have amount there. Let's remove that directory, make a new directory for data, and then we can mount the drive on that data directory and then add a ledger and an account within the data there. So going to mount it.
+00:11:00.814 - 00:11:15.594, Speaker B: Nice. Okay. Data.
+00:11:16.454 - 00:11:18.394, Speaker A: I'm going to change the ownership again.
+00:11:20.454 - 00:11:26.174, Speaker B: To be the sole user. Check that.
+00:11:33.674 - 00:11:34.506, Speaker A: Sole user.
+00:11:34.570 - 00:11:35.250, Speaker B: Great.
+00:11:35.442 - 00:12:06.230, Speaker A: And then I'm going to create the two directories in there as the sole user. All right, so now I've got an accounts directory, I've got a ledger directory. Ideally there are two separate devices for these two separate directories. There's one Nvme drive for accounts, one Nvme drive for ledger. Unfortunately, this machine doesn't have two, so.
+00:12:06.262 - 00:12:07.834, Speaker B: We'Ll just go with one for now.
+00:12:10.694 - 00:12:20.114, Speaker A: Okay, so drives are mounted, we're ready to do some system tuning. So I will do this as the root.
+00:12:20.154 - 00:12:23.734, Speaker B: Again, just for simplicity. Right now.
+00:12:25.874 - 00:12:48.354, Speaker A: These are straight from the docs, so not really too much you have to customize here, unless you're a system tuning guru. But yeah, these settings should work for most. So I'm just setting some CTL settings. I'm going to restart it.
+00:12:48.434 - 00:12:57.334, Speaker B: Oops. Okay, there we go.
+00:12:58.594 - 00:13:09.674, Speaker A: Yeah. So change those settings. Next thing I want to do is make a change to the system D configuration.
+00:13:10.174 - 00:13:18.194, Speaker B: So I'm going to change this go.
+00:13:18.654 - 00:13:19.734, Speaker A: And the thing I want to change.
+00:13:19.774 - 00:13:23.034, Speaker B: Is the limit on the number of open files.
+00:13:27.014 - 00:13:28.790, Speaker A: So I want to make that, let's.
+00:13:28.822 - 00:13:31.594, Speaker B: See here, 1 million I believe.
+00:13:33.914 - 00:13:38.934, Speaker A: Again, just copying this from the validator startup docs.
+00:13:46.434 - 00:13:50.294, Speaker B: Okay. And then I will reload system Ctl.
+00:13:53.274 - 00:14:13.204, Speaker A: And I think last time we got this error as well. This may be a result of sudo, an older version of Sudo. So if you're seeing this error I would suggest just upgrading your sudo package and restarting, you know, logging out and logging back in again to your environment.
+00:14:13.544 - 00:14:15.244, Speaker B: That should hopefully fix it.
+00:14:17.864 - 00:14:19.376, Speaker A: Okay, a couple more settings from the.
+00:14:19.400 - 00:14:24.704, Speaker B: Notes I think that works.
+00:14:24.784 - 00:14:28.494, Speaker A: I'm going to verify by just adding the file.
+00:14:34.354 - 00:14:35.614, Speaker B: That seemed to work.
+00:14:36.714 - 00:14:41.734, Speaker A: Okay, so now I'm just going to exit out, I'm going to ssh back in.
+00:14:43.394 - 00:14:45.454, Speaker B: Here was my Ssh.
+00:14:51.914 - 00:15:29.916, Speaker A: And then I'm going to log in as the sole user. Another note from the validator setup notes the system clock is often an issue for people, especially with gossip. So if you have a lot of clock drift on your system, the validator that you're setting up may not work for the gossip. So it's a good idea before you start running your validator to make sure your system clock is at least somewhat accurate. You can check it with time date ctl here. Ideally you want something that says system clock synchronized.
+00:15:29.980 - 00:15:30.624, Speaker B: Yes.
+00:15:30.924 - 00:16:19.290, Speaker A: So that's essentially saying that your system clock is synchronized using an NTP server which has a more accurate clock. If your clock starts to drift, the NTP server will update it. So yeah, because I have this system clock synchronization active, I don't need to worry about it. If you do not have it active, you'll have to go through the setup for NTP and that's something you can google for, but shouldn't be too hard of a setup. You just want to make sure that your system clock is within at least a second or two of accuracy. If you're off by one or 2 seconds that shouldn't be a big deal. But if you're off by 2030, 40 seconds, then gossip may not update when you update versions or things like that.
+00:16:19.290 - 00:16:32.494, Speaker A: So it's a good idea to just double check this before you start setting up your validator. Any questions about that? I bring it up now because a common issue that people run into.
+00:16:36.514 - 00:16:37.254, Speaker B: No.
+00:16:38.714 - 00:16:46.542, Speaker A: All right, great, we're moving right along. So now we want to get our key pairs onto the system. I have those locally on my machine.
+00:16:46.598 - 00:16:55.594, Speaker B: So let me scp them over. I'm going to copy that.
+00:17:01.854 - 00:17:32.790, Speaker A: Right, so here I'm just doing a secure copy of my identity key pair over to my machine. Again, really, really important point here. The withdrawal authority, the one that you created when you created the boat account and in the first version of this video, we created it with a ledger. You can create it with a paper wallet. You can use a multisig, there's lots of options here. But the key thing is that withdrawal key pair does not need to exist on the server. It should never ever be on the server.
+00:17:32.790 - 00:18:02.724, Speaker A: You shouldn't create it on the server. You should either set it up or make the vote account somewhere else. And you only really need the validator key pair on the server in question. So that's what I'm going to copy over. Let me ssh back. Right, I've got my key pair here. I'm going to copy it to.
+00:18:04.434 - 00:18:04.994, Speaker B: Sole.
+00:18:05.034 - 00:18:05.974, Speaker A: Directory.
+00:18:08.994 - 00:18:10.054, Speaker B: File name.
+00:18:13.234 - 00:18:14.314, Speaker A: And I'm going to.
+00:18:14.354 - 00:18:18.374, Speaker B: Change the ownership of that to the sole user.
+00:18:27.114 - 00:18:47.774, Speaker A: Okay, so now I see that I've got the validator key pair here. I've got the sole user that owns it. I think I'm pretty good to actually start making my script. So let's create a, the notes say to use a bin directory.
+00:18:47.814 - 00:18:48.934, Speaker B: So let's just do that.
+00:18:48.974 - 00:19:02.114, Speaker A: I'm going to create a bin directory. Inside of that bin directory, I'm going to create a file called validator sh. I'm going to make that file executable for now. For local testing.
+00:19:06.054 - 00:19:07.634, Speaker B: Add plus x.
+00:19:11.734 - 00:20:05.014, Speaker A: All right, so I've got an empty file. I'm going to copy over the config from the notes and we're going to modify it for our key pairs. So let's edit this file. This is just a direct copy paste from the validator setup docs, the things that may be different, this file name may not be the same as your file name, or the location of that file may be different. So we're going to have to update that. In our case we have Mount Ledger in the example, but you remember, because we only have Onedrive, our ledger directory is actually going to be mount data ledger and our accounts directory is going to be mount data accounts. So let's set that up.
+00:20:05.014 - 00:20:13.814, Speaker A: I'm pretty sure the flag is just accounts, but the way I can check is to do Solana validator.
+00:20:16.044 - 00:20:27.824, Speaker B: Help. And let's pipe that to less. I can search for accounts and yeah.
+00:20:28.444 - 00:21:10.184, Speaker A: Common separated accounts location. Right? So my accounts path, I want to be mount data accounts. I'm just going to add that to the startup scripts. Okay, so those look good. The validator key pair is in the home directory, so I'm going to update the full path here. And this one we actually did not copy. Over.
+00:21:10.184 - 00:21:57.622, Speaker A: I'm going to simplify things a bit. Let me exit out of here and do Solana Keygen pub key of the vote account. So I can see here my vote account key pair pubkey is just this. And actually when you're running your validator, you don't need to care about the private key, you don't need the whole key pair for your vote account, you only really need the pub key. So I'm just going to copy this pub key over and use that in my startup scripts. So let me ssh back. So right here in the example it's telling you to use the vote account key pair.
+00:21:57.622 - 00:22:12.344, Speaker A: I'm just going to change that to the pub key that we just checked in my local machine. Now the only key pair that I've got locally is the identity key pair. I've got my ledger and account set.
+00:22:12.384 - 00:22:16.360, Speaker B: Up at a log directory port range.
+00:22:16.392 - 00:22:28.144, Speaker A: Looks good. We are setting up a testnet validator and our entry points are looking at Testnet. So that's great. Yeah, I think we are all set.
+00:22:32.764 - 00:22:33.476, Speaker B: Cool.
+00:22:33.620 - 00:23:41.424, Speaker A: So the next step would be to run the validator, get a snapshot, and then catch up to the tip of the cluster. We talked a little bit last time about snapshot downloads, but just as a refresher, if you don't remember when you're starting your validator for the first time, you don't have any state locally, and we need that state in order to know what the ledger has, the state of the accounts on disk. So the way that you, sorry, I conflated two things there, I should say we need to know the accounts on disk at a certain slot and then the validator will go and get shreds, go and get information about all the slots that it is missed since it got that checkpoint of accounts. So what we're going to do right now is download a snapshot and then the validator from that point at that slot will catch up to the network by asking other validators for what's called a shred, essentially just information about the slots that it missed.
+00:23:44.244 - 00:23:48.614, Speaker B: All right, so there are a couple.
+00:23:48.654 - 00:24:47.414, Speaker A: Things to be aware of here. When you're downloading a snapshot, you do not want the flag, no snapshot, fetch be in your startup scripts the first time you might get a config somewhere from someone that includes this flag. If you don't have any local state, you definitely do not want that flag. But in general, this is a flag that you're going to want to have in your startup script for, you know, 99% of the time you're operating your validator. Ideally, you should never have to get a snapshot after the first time you, you start your validator and you get a snapshot from someone else because you want your validator to rely on the state that you have locally. But for now, since we don't have any state locally, we're going to delete this and we are going to download a snapshot from one of our known validators. So one of these four validators that are on the test network should ideally have a snapshot that we can download.
+00:24:47.414 - 00:24:52.974, Speaker A: And I'm going to throw in one more here.
+00:25:02.814 - 00:25:04.634, Speaker B: Wait a second for this to load.
+00:25:06.934 - 00:25:32.012, Speaker A: So right now I'm just listing all the validators. I know that this validator is serving snapshots. It's kind of hard to see with a smaller screen, but each pub key here is a different validator on the network. This is right now sorted by stake. I know that 141 volts serve snapshots. So I'm going to copy that key pair and I'm going to add it.
+00:25:32.028 - 00:25:42.464, Speaker B: To my known validators as well. All right, there we go.
+00:25:43.684 - 00:25:49.332, Speaker A: Now, I think we should be all set to actually run this script and.
+00:25:49.468 - 00:25:50.664, Speaker B: Try to catch up.
+00:25:50.964 - 00:25:52.684, Speaker A: Let me do this in a screen.
+00:25:52.804 - 00:25:55.264, Speaker B: Window so we can detach while it's running.
+00:26:01.464 - 00:26:40.150, Speaker A: So now our validator is starting up. We don't really get a lot of output here. We don't know what's going on. So there's a lot of things that you want to check or a number of things that you could check here to make sure that your validator is starting up properly. The very first thing is just make sure that your validator is actually running. We saw there that the process has not exited yet, but we can always check it again just by grepping for Solana Validator. I grep P's aux basically all the processes for the Solana validator process.
+00:26:40.150 - 00:27:18.214, Speaker A: I see that it's running with the startup script that I just specified. So that's great. The next thing I could check is the logs. I can just follow the logs. Remember from the startup script here, we specified that the log output will be home. Solana validator log if you look here, we've got that file. I'm just going to tail that file, see what's going on it looks like at this point that we've already started downloading a snapshot and we are extracting it.
+00:27:18.654 - 00:27:20.054, Speaker B: Oh no, not yet.
+00:27:20.214 - 00:27:21.390, Speaker A: We're downloading a snapshot.
+00:27:21.422 - 00:27:21.994, Speaker B: Still.
+00:27:22.534 - 00:27:41.914, Speaker A: So good to know that things are progressing. If we go up in the logs a bit, we don't have enough context. Let me just open up the log file. You'll see a lot of startup info. One thing that's particularly useful is the version that you're starting up with.
+00:27:42.614 - 00:27:46.334, Speaker B: Let me actually jump to the notes again real quick.
+00:28:00.594 - 00:28:31.464, Speaker A: We've already done this one. We've grep for the Solana validator process. We've tailed the logs. The next thing to do that's useful is to grep the logs for starting validator with. And this b one flag just says one line before that line. So what the line right before this is is information about the version that you're running. And that's pretty useful because a lot of times when people are updating or messing around with things, they might be on an older version than they expect.
+00:28:31.464 - 00:28:40.844, Speaker A: So it's useful to know what version you are actually running. The log file will be the source of truth. So let me run that.
+00:28:42.784 - 00:28:47.324, Speaker B: See here, rep dash b one.
+00:28:47.944 - 00:28:52.684, Speaker A: And the command was starting validator with.
+00:28:54.264 - 00:28:55.004, Speaker B: So.
+00:29:07.844 - 00:29:43.174, Speaker A: So you can see here that we've started it twice. The first time we started it, we got 116. Oh, the second time we got 116.0. We see this twice because remember, I started it once for a few seconds, I killed it. I opened up screen and then I started it again. So another useful thing that you can sort of figure out by, by searching the logs for this is if your validator is in some sort of a restart loop, you can grep first starting validator with. Each time you see that starting validator with line, you know that your validator is restarted again.
+00:29:43.174 - 00:30:03.000, Speaker A: So not super useful the first time you're getting set up because you won't have anything to automatically restart your validator. But later on when you have basically by the end of this talk, we'll have infrastructure in place that should automatically restart when the validator dies. And it's a good way to check to see if you're in a restart loop.
+00:30:03.072 - 00:30:07.324, Speaker B: If you see this line multiple times in succession.
+00:30:07.944 - 00:30:22.464, Speaker A: And notice over here to the times we can see when the starting validator width line was logged. If you see this frequently in a short time period, you know that something is wrong with your, your validator config likely.
+00:30:24.684 - 00:30:29.172, Speaker B: All right, great.
+00:30:29.348 - 00:30:41.204, Speaker A: So now that our validator is starting up, things are looking good. The next thing that we can check here is sort of the progress of the startup. Oh, yeah, a couple other things.
+00:30:41.244 - 00:30:41.580, Speaker B: Sorry.
+00:30:41.652 - 00:31:09.212, Speaker A: Before we get to that, gossip and Solana validators are both useful tools. Gossip is going to be the first thing that your validator joins when it's starting up to do a couple of things. But one important thing is to provide information about your ip address to the rest of the cluster so you can check Solana Gossip. The UT is for testnet to see if our validator is showing up there. And before I do that, I need.
+00:31:09.228 - 00:31:13.144, Speaker B: To remember what our upkey is.
+00:31:19.984 - 00:31:37.168, Speaker A: So that's the identity pub key of our validator. Another thing I like to do. I don't know if this is common or even a great idea, but I like to just create a file for that pub key so it's easy to reference and copy and paste.
+00:31:37.216 - 00:31:37.376, Speaker B: Right.
+00:31:37.400 - 00:32:00.676, Speaker A: If I ls it's just already there. The file has nothing in it. It's just an easy way to write down what my pub key is. You could also maybe just change the file name here to your pub key. Json, whatever makes sense to you. This is just what I do. Now I've got my pub key and I can check a few things.
+00:32:00.676 - 00:32:04.604, Speaker A: I can see Solana, UT, gossip and.
+00:32:04.644 - 00:32:06.144, Speaker B: Grep for that pub key.
+00:32:06.734 - 00:32:26.194, Speaker A: I can see that my validator has joined gossip, so that's a great sign. The rest of the network knows about my ip address and it has the right version that I'm on. So all good things. The next thing I want to do is to see how my validator is progressing with catching up to the network. So if I do Solana.
+00:32:28.574 - 00:32:29.110, Speaker B: Let'S do.
+00:32:29.142 - 00:33:30.184, Speaker A: Solana, catch up ut and then my pub key. So what this command is telling me is how my validator is doing in progressing and catching up to the rest of the network. It seems we've already caught up, so kind of killed my demo here. I'm going to stop the validator started again and go through these steps so you know kind of what's going on. But this command is useful for checking just startup to see after you've started up from a snapshot how long it takes before it catches up to the cluster. Another tool that's useful for a couple more things, but also somewhat useful for catch up, is the Solana validator monitor command. So this command is a sub command of the Solana validator process and you could monitor using the ledger.
+00:33:30.184 - 00:33:38.372, Speaker A: So I'm going to provide the path to the ledger directory and then, yeah.
+00:33:38.388 - 00:33:47.664, Speaker B: Just hit enter oh, maybe I have to give the full path. Oh, sorry.
+00:33:48.004 - 00:34:09.474, Speaker A: Yeah, so this command always confuses me and so much so that I usually just make a script for it so I don't have to remember the order. I don't know why this is the case, but you provide the ledger first before you provide the monitor sub command. So the error that we're getting here is that the order is wrong. So let me just fix that.
+00:34:12.374 - 00:34:12.878, Speaker B: Solana.
+00:34:12.926 - 00:35:01.324, Speaker A: Validator ledger, the directory, and then the monitor sub command. So this is also useful for seeing what's going on with your validator when you're doing catch up. You'll notice here you'll get information about the slots that your validator is currently processing. You can see the identity key pair, identity pub key, I should say, and your ledger directory. So, yep, let's kill the validator. Let's start up again and let's see how these tools are working. I'm going to change the process.
+00:35:01.324 - 00:35:54.484, Speaker A: Actually, this is a good point to do something else. I'm going to change the startup script so that I no longer need to download a snapshot because we already have one locally that we've already downloaded. And potentially our validator may have made a snapshot as well. But the useful thing that I'm about to show is a nice, graceful way to exit the validator. So let's first, let's first add this no snapshot fetch flag. And then let's, yeah, let's restart the validator. And the way I'm going to restart is using the Solana validator.
+00:35:54.484 - 00:36:24.264, Speaker A: You can see here, we just use the monitor sub command. Another useful sub command is this exit sub command. So I'm going to use that. You can see here that exit has a number of flags that might be interesting. We don't really have any stake right now. We. So we don't really care about the Max delinquent stake.
+00:36:24.264 - 00:37:12.606, Speaker A: The idle time is not super important to us because we don't have any leader slots. I can go into more detail later about what that means, but essentially, if we don't have any stake delegated to our validator yet, we're not going to have any opportunities for our validator to produce blocks. It doesn't really matter when your validator restarts. The only thing that's important here is that if your validator is in the middle of saving a snapshot, you probably want to wait until that snapshot saving is done and exit does things like that. It'll wait until important things like saving snapshots locally has completed before your process exits. So let's use this command and test it out. Same order here.
+00:37:12.606 - 00:37:33.484, Speaker A: You need to provide the ledger first. So I'm providing that ledger directory ledger and then I'm going to say exit. And I'm going to give a min, idle time here of zero minutes because I don't care about waiting for idle.
+00:37:33.524 - 00:37:34.636, Speaker B: Times and leader slots.
+00:37:34.740 - 00:37:55.184, Speaker A: This is specifically waiting for an idle spot in the leader schedule. And again, we're not in the leader schedule because we have no stake yet. So zero is fine for now. And you'll see here that it's opening up a monitor like interface and it's waiting for the right time to.
+00:37:57.324 - 00:37:57.836, Speaker B: Exit.
+00:37:57.900 - 00:38:12.580, Speaker A: I'm going to make this a little smaller so it's a little bit more visible. There it goes. And it already exited. So I guess we weren't in the middle of creating a snapshot. We've exited. We can restart it again. This is where I have my validator running.
+00:38:12.580 - 00:38:19.324, Speaker A: I can start it up again. Now what I want to demo is the catch up. So I'm going to do that one more time.
+00:38:22.424 - 00:38:24.484, Speaker B: And here we go.
+00:38:26.344 - 00:39:20.154, Speaker A: You'll notice here that RPC services have not been found and that's because catch up relies on rpcs to know information about your validator. We might be interested in stuff that's happening before the RPC information about your validators available. So another thing we can do here is slanted validator ledger mount data ledger monitor. So Ledger knows a little bit more about what's going on before the validator is back up and running again. You can see that it was processing some things and it is now processing the ledger. Once it processes the ledger, it can give you information about the status of catching up. So right now it doesn't know.
+00:39:20.154 - 00:39:29.274, Speaker A: In a few seconds it should tell us how far we are behind the rest of the network and then it will give you some progress as it's catching up.
+00:39:30.014 - 00:39:31.554, Speaker B: So let's give that a minute.
+00:39:42.954 - 00:39:44.354, Speaker A: Oh, and we caught up already.
+00:39:44.434 - 00:39:45.094, Speaker B: Wow.
+00:39:45.434 - 00:39:55.614, Speaker A: It's way too fast to demo these things for 116. It's a good and bad problem to have. So yeah, it looks like we're already caught up. If I do catch up again.
+00:39:57.514 - 00:39:57.866, Speaker B: It'S.
+00:39:57.890 - 00:39:59.054, Speaker A: Going to tell me.
+00:40:01.284 - 00:40:02.380, Speaker B: That it's already caught up.
+00:40:02.412 - 00:40:19.428, Speaker A: Yep. Zero slots behind all caught up. The one last thing I wanted to demo is just the output of catch up. So I'm going to do that one more time. So let's kill the process one more time and use catch up again. There we go. So I'm going to use again.
+00:40:19.428 - 00:40:33.084, Speaker A: Solana validator exit with a min idle time of zero because again, we don't have any leader slots. You'll see here the output says waiting. See if I can make this any bigger.
+00:40:34.104 - 00:40:34.552, Speaker B: Yeah.
+00:40:34.608 - 00:40:45.792, Speaker A: So it's waiting for a new, new snapshot to be saved locally before we exit. That'll take some amount of time, not sure. And then once that snapshot saved, we.
+00:40:45.808 - 00:40:49.044, Speaker B: Can exit successfully and then we will start up again.
+00:41:00.204 - 00:41:10.944, Speaker A: Okay, looks like we've exited. Let's give it a few seconds to sort of fall behind before we start up again.
+00:41:14.124 - 00:41:15.504, Speaker B: So I'm going to.
+00:41:21.144 - 00:41:23.444, Speaker A: All right, so starting up.
+00:41:25.264 - 00:41:25.576, Speaker B: Now.
+00:41:25.600 - 00:41:53.944, Speaker A: If I do catch up again on a UT catch up and the pub key, the RPC services will not be found until it opens up a snapshot and blows away the old accounts directory and takes the contents of the snapshot and sort of uncompresses it, puts in the new accounts directory, all those things, then reads the accounts and it starts processing the ledger from that point.
+00:41:58.084 - 00:42:01.584, Speaker B: So it might take a few seconds.
+00:42:06.084 - 00:42:16.444, Speaker A: Once all those things are done, sort of in the process of monitoring, once the ledger is loaded, then this thing should actually tell you that you're catching up.
+00:42:18.224 - 00:42:37.540, Speaker B: There we go. Let me. More space. Whoops. Still not found. There we go.
+00:42:37.692 - 00:43:10.664, Speaker A: Okay, and the only thing I want to demo here is that it's a little bit more information about what's going on with catch up. You can see how far behind you are and you can see the rate at which you're catching up. So we're getting 5.8 slots per second. So our validator, compared to the tip of the cluster, is moving faster. And because of that, within some amount of time we should be all caught up. So by this slot, we should be caught up to the network.
+00:43:10.664 - 00:43:48.614, Speaker A: We're only 160 slots behind, so it should be any second now that we'll be caught up. And once this thing is caught up, the process will just exit the catch up process. So you'll know you're done when this thing is done. Waiting. Oh yeah, 120, we're making progress. 82, we should be there any 2nd 43 slots. And there we go, we're all caught up.
+00:43:48.614 - 00:44:42.306, Speaker A: So if we run this again. Yeah, the only thing I wanted to show there is if you run it again, it'll just have no output is saying that we're caught up, and then we can also run monitor again and see that our validator is actively keeping up with the network and the confirmed slots finalized slots all are progressing. So things are looking good. The next thing that we can check, kind of as the last sanity check is to look at Solana Dash ut validators for this output, I'm going to make this screen a bit wider just.
+00:44:42.330 - 00:44:43.294, Speaker B: To fit it in.
+00:44:49.134 - 00:44:55.954, Speaker A: This is the output about all validators in a cluster that have stake or that.
+00:44:56.654 - 00:44:57.394, Speaker B: Well.
+00:44:59.294 - 00:45:06.154, Speaker A: Yeah, actually this might not show up. So let's check this. If I grep for our validator.
+00:45:06.934 - 00:45:07.678, Speaker B: Ah, there we go.
+00:45:07.726 - 00:45:41.834, Speaker A: Okay, it is there. So essentially there's information about all the validators, the voting validators on the network. Our validator is there. It's got zero soul. If you just show the output without grepping, you're going to see all active validators. There is a flag here. It, by default, it filters out what's called the unstaked delinquents.
+00:45:44.614 - 00:45:46.234, Speaker B: Oh, maybe that was removed.
+00:45:48.894 - 00:46:33.672, Speaker A: Oh no, here it is. Okay, keep unstaked delinquents, which means validators that don't have stake and that are delinquent get kicked out of that list. So if you want to see, maybe you think your validator is running, but you don't see on the list, you might add that flag to see if you're one of those validators to have. Let me scroll up here. This icon here means that that validator is marked as delinquent, so it hasn't been catching up to the network. There's something going on operationally that's keeping it behind the tip of the cluster. So with that flag and grep validator.
+00:46:33.728 - 00:46:34.524, Speaker B: Pub key.
+00:46:40.224 - 00:46:57.296, Speaker A: You should be able to see what's going on. One quick note again, another reason why I like to have my pub key as a file name, just an empty file, is because I can tap complete it. So like grep seven w and then tab, I get the whole pub.
+00:46:57.320 - 00:46:58.816, Speaker B: Pub key pretty easily.
+00:46:58.960 - 00:47:06.684, Speaker A: You know, you don't need to type out the whole thing for a lot of these commands. It could just be seven w, four for grep, but it's just easier to remember for me that way.
+00:47:08.264 - 00:47:08.552, Speaker B: So.
+00:47:08.568 - 00:47:48.780, Speaker A: Yeah, I see that our pub key is in slon validators. It's caught up. Looks like things are going well. Yeah, I think that's all I want to say about that. Let's go back to the notes, see where we're at. Okay, so we've gone through all these things, we've got the validator started, we've made sure that the process was running, we've looked at the logs, we verified that we have the correct version by grepping for starting validator with again. If you see that again, and again, again in the loop you probably have wrong with your validator startup.
+00:47:48.780 - 00:48:16.804, Speaker A: It's dying and then restarting. That's really not super applicable yet, but it will be in just a few minutes. When we set up system deconfig, we checked gossip to make sure our validator was in gossip. We checked slanted validators to make sure our validator was there. So everything looks good. I think we've got a functional validator running. Next thing we should do is operationalizing things.
+00:48:16.804 - 00:49:09.302, Speaker A: So yeah, once you've got your validator up, you feel confident that it's with the network, that things are working properly. The next thing to do in my mind is to add some of the config so that for whatever reason, if your validator shuts off, if there's a, let's say there's some bug in the software where your validator dies, maybe it's a very, very rare edge case and your validator shuts off, you want two things in place. You want something to automatically turn it back on. If it's just a simple start up the script again, and you want to know that it happened, you want to know that your validator died. The first thing we're going to talk about is some systems to make it automatically start up again. The second thing we're going to talk about is monitoring. Let's do the system d set up first again.
+00:49:09.302 - 00:49:12.994, Speaker A: All this stuff is in the notes, so I'm just going to work off of that.
+00:49:14.894 - 00:49:15.438, Speaker B: Yeah.
+00:49:15.526 - 00:49:46.334, Speaker A: Another thing that's useful here is anytime you're updating your validator for whatever reason, let's say you're updating the software, if you use Solana validator exit, after the exit, the validator will start up again immediately. If you set up your system descript that way you don't have to even worry about starting again after the exit. You could just update the software, use salon validator exit, and then it will restart again automatically. So having said all that, let's set up system D.
+00:49:49.674 - 00:49:52.814, Speaker B: So let's see here.
+00:49:53.154 - 00:50:05.314, Speaker A: This again is just directly from the notes I'm going to. Sorry, not the notes. I should say the Solana dot docs dot solana.com.
+00:50:08.974 - 00:50:10.994, Speaker B: I'm going to grab this.
+00:50:11.934 - 00:50:21.034, Speaker A: Okay, so the thing we want to do here is create a file in BTC system D, system.
+00:50:23.374 - 00:50:26.954, Speaker B: Solution.
+00:50:28.094 - 00:50:35.614, Speaker A: In this directory, there are some different service configs. I'm going to create a Sol service.
+00:50:36.594 - 00:50:38.690, Speaker B: Which will be the config file for.
+00:50:38.722 - 00:51:02.900, Speaker A: My Sol validator service. I'm just going to copy over directly the config from the docs dot salon.com dot. A couple things you might want to modify here. The exact start. If this path is not the path that you set up, then that's going to be problematic. This I think is the same file name, so let's just verify.
+00:51:02.932 - 00:51:36.404, Speaker B: That has to be pseudo. Okay, let me do this as root, simplify it. Cool.
+00:51:38.944 - 00:51:45.404, Speaker A: Yeah, so the thing I wanted to check was that this is the correct path to the startup script. So let's do that.
+00:51:47.304 - 00:51:48.262, Speaker B: Home store.
+00:51:48.288 - 00:51:49.934, Speaker A: So bin.
+00:51:53.154 - 00:51:55.146, Speaker B: Sh, that looks correct.
+00:51:55.250 - 00:52:18.254, Speaker A: The other thing you want to make sure is that you have the exec command here before your Solana validator. That's useful for the next thing that we're going to do. Log rotate. If you don't have that exec and you have log rotate set up, your solana process could die every time. Log rotate rotates logs. So make sure you have exec there.
+00:52:20.234 - 00:52:23.574, Speaker B: And we got, oops.
+00:52:26.034 - 00:52:45.134, Speaker A: Our system d set up the path. You also want to make sure is correct. So the easiest thing to do is just to make sure that your solana validator path matches with this one. It should, but I'll just double check here.
+00:52:45.174 - 00:52:53.702, Speaker B: So which solana validator that is at.
+00:52:53.758 - 00:52:56.878, Speaker A: Home sol local share solana install active release.
+00:52:56.926 - 00:52:59.030, Speaker B: Blah, blah, blah, blah, blah solana validator.
+00:52:59.182 - 00:53:43.614, Speaker A: So I just want to make sure that this path exists on the path that was specified in the config. And it looks like home Sol local share Solana install active release bin is there. So that looks all good. Yeah, I think everything is good. The next thing that we want to do is enable Sol. But if we do that right now, and we also have the process running, we're going to put, potentially have two versions of the process running at the same time. So the thing to do here would be to first kill the version that we have running in screen and then start this.
+00:53:43.614 - 00:53:52.854, Speaker A: So first thing I'm going to do is exit one more time from our validator.
+00:53:54.714 - 00:54:01.634, Speaker B: That command here somewhere. Yeah, here we go. We'll wait for this to exit.
+00:54:09.054 - 00:54:14.154, Speaker A: All right, all done. And then I am going to enable.
+00:54:16.814 - 00:54:18.114, Speaker B: The sole service.
+00:54:20.094 - 00:54:29.784, Speaker A: And it looks like it is starting. I'll go through all the same verification again. I want to verify that the process is running.
+00:54:30.564 - 00:54:52.564, Speaker B: I'm just going to grep for Solana validator. Does not look like it's running. Let's see here. Maybe I also have to start. Yeah, believe so.
+00:55:05.984 - 00:55:07.724, Speaker A: And let's check.
+00:55:09.944 - 00:55:22.144, Speaker B: The validator log. Okay, interesting.
+00:55:24.844 - 00:55:55.454, Speaker A: Not sure why this is failing right now, but this is a good debug opportunity. So essentially our system CTl setup should be working. I'm not sure why it's not. We transitioned from just running it locally over to the system D config. Where are the output info?
+00:56:00.434 - 00:57:45.082, Speaker B: Yeah, should go to the journal if there is something wrong with our config. Get that. No, that should all work it. Yeah. Let's look at why is our, yeah.
+00:57:45.098 - 00:57:50.614, Speaker A: If anybody else has ideas, I'm a little unsure what the issue is yet.
+00:58:06.334 - 00:58:10.874, Speaker B: So let's just follow that, open up a new window.
+00:59:17.234 - 00:59:18.778, Speaker A: Anybody any ideas?
+00:59:18.946 - 00:59:23.614, Speaker B: I'm a little unsure why my process is not running.
+00:59:24.834 - 00:59:27.254, Speaker A: Not seeing any error messages either.
+01:00:08.994 - 01:00:09.774, Speaker B: Yeah.
+01:00:14.634 - 01:00:15.034, Speaker A: Yeah.
+01:00:15.074 - 01:00:18.054, Speaker B: I don't see any duplicate key issues.
+01:00:21.954 - 01:00:23.306, Speaker A: Oh, you mean in here?
+01:00:23.410 - 01:00:46.914, Speaker B: Yeah, that could be it. Start after network ten. Looks too out of the ordinary.
+01:00:47.374 - 01:00:49.674, Speaker A: Doesn't even seem like system D is.
+01:00:53.354 - 01:00:54.494, Speaker B: Starting it.
+01:01:01.234 - 01:01:24.194, Speaker A: Yeah, I mean, the issue is that we don't have the process at all. The process is definitely stopped. And then when I start, the sole user.
+01:01:26.294 - 01:01:52.534, Speaker B: Let's see here. Yeah, this should be useful. These are all the processes. Let's see if service is there.
+01:01:55.874 - 01:01:58.174, Speaker A: Activating auto restart.
+01:02:09.334 - 01:03:04.518, Speaker B: Okay, so that is probably the issue. I don't know why it's activating instead of active it. Okay.
+01:03:04.566 - 01:03:14.674, Speaker A: Yeah, so it looks like just from some googling this might mean that we're in some sort of restart loop. Let me mess with the config a bit.
+01:03:22.934 - 01:03:38.574, Speaker B: Where did that file go? There we go. You. So let's say shots restart.
+01:03:57.894 - 01:04:00.194, Speaker A: So what I'm looking for is a.
+01:04:00.614 - 01:04:36.134, Speaker B: Different value for restart. Yeah, let me try that. Okay. Service files expanding home sold out.
+01:04:38.834 - 01:04:40.974, Speaker A: Okay, so this is probably the issue.
+01:04:41.154 - 01:05:27.054, Speaker B: Let me do. Okay. Must have changed something wrong here. Let's make this type simple again. Irv says restart set to either always or on success, which isn't.
+01:05:33.374 - 01:05:34.030, Speaker A: Allowed for.
+01:05:34.062 - 01:06:30.230, Speaker B: Type one shot service refusing. Okay, that should be reload soul. Yeah. Restart exited. Interesting.
+01:06:30.302 - 01:06:31.102, Speaker A: Let's see.
+01:06:31.238 - 01:07:41.634, Speaker B: Maybe the issue is just the startup script itself. Okay, so that's definitely working. Let's just search for this. Oh, damn it. All right, I think I may have found the error. It was a dumb mistake.
+01:07:58.924 - 01:08:24.904, Speaker A: That was it. Okay, great. So a lot of wasted time. Thanks everyone, for hanging in there. Hopefully edit out the dumb debugging in the video. But my error here is that I didn't add the hashtag bang bin bash. So I'll make sure that that is clear in the notes.
+01:08:24.904 - 01:08:41.411, Speaker A: If you don't have that in your startup script, then systemctl will not work. So I added that in restarted. Now everything is looking great. The logs are working. The process, I'm assuming is up.
+01:08:41.547 - 01:08:47.183, Speaker B: Thanks. Search validator.
+01:08:47.923 - 01:09:03.503, Speaker A: Yep, process is good. The one thing that may not be good is that we were started after, I don't know, like 15 minutes of downtime. So we're probably going to be pretty far behind. So let's do salon and catch up again.
+01:09:08.963 - 01:09:17.299, Speaker B: We'll catch up. Wrong. Yeah.
+01:09:17.411 - 01:10:19.514, Speaker A: So now we're 2000 slots behind. It'll probably be able to catch up, but it's going to be a little slower because it's, it's going to be doing a lot of what's called repair. So it's basically, again asking other validators to pitch in and catch up. I would say if you're only 20 minutes behind and you're making progress, we're advancing two slots a second to just let it run and catch up. It's almost always better to use your local state if it's feasible and you are making progress. But for the sake of demo, let's instead use a different way of getting a snapshot. So I'm going to stop the validator, I'm going to do systemctl stop soul, so I'm stopping the sole process or the sole service.
+01:10:19.514 - 01:11:09.994, Speaker A: I'm going to change my startup scripts to not use no snapshot fetch. So I'm going to get rid of that no snapshot fetch flag or actually, sorry, my mistake keeping that no snapshot fetch flag because I'm going to do the snapshot fetching myself. So this should be in the startup docs shortly. Not there yet, but one way to figure out how to manually download from another validator is to go find the IP address of that validator. So I know for a fact that 141 B, I'm looking in Solana gossip to find the ip of the validator.
+01:11:10.034 - 01:11:11.214, Speaker B: That I'm interested in.
+01:11:11.934 - 01:11:34.070, Speaker A: I know 141 volts is serving snapshots so I'm grepping for that, 1141 volts, etcetera. Finding the IP address here and the port that it's serving snapshots on is 8899 so I can copy this over and then let's see here.
+01:11:34.102 - 01:11:42.134, Speaker B: I think it's in best practices. Yeah.
+01:11:42.474 - 01:12:27.636, Speaker A: The way that I can download the snapshot is by going to my snapshot directory. We didn't specify a specific snapshot directory, so in this case it will just go to the ledger directory. You can see here we've got snapshots already. I'm going to download the latest one by doing this. Actually let me. So I'm just going to do a wget at that IP address for the snapshot file. The file name is going to have some, it's going to have the hash of that snapshot and we don't know what that hash is ahead of time.
+01:12:27.636 - 01:12:52.954, Speaker A: So we use this trust server names flag, which basically says like, I don't know the file name. I'll trust whatever the server gives me back. Just change this IP address to the IP address of the one we're interested in from gossip and I'm going to download this, excuse me, the snapshot tarball. And then I'm going to download the incremental snapshot.
+01:12:53.774 - 01:13:32.686, Speaker B: So let's do that. Hopefully this is relatively quick. Kind of killed output there.
+01:13:32.830 - 01:13:56.570, Speaker A: Yeah, it should be done in about 20 seconds. Okay, so I'm downloading that and then I'm also going to download the incremental.
+01:13:56.602 - 01:14:04.490, Speaker B: Snapshot and I'm going to try to make sure I don't make any typos. Incremental snapshot.
+01:14:04.602 - 01:14:15.034, Speaker A: Okay, this one should be quicker. Incremental snapshots kind of by definition are smaller than the normal snapshots. All right, so I'm all good now. I'm going to restart the service.
+01:14:22.614 - 01:14:23.046, Speaker B: And.
+01:14:23.110 - 01:15:05.732, Speaker A: I still want that no snapshot fetch flag because I did this snapshot fetching myself. So I've got the newest snapshots locally. Now I'm going to monitor, monitor my validator, so mount data ledger monitor. You can see up here the logs are going, so I know that it has started. Something is going on. I saw the cleaning account paths. That means that it's deleting the old accounts and starting to load the new accounts.
+01:15:05.732 - 01:15:40.804, Speaker A: From the snapshot, you can see here the loading ledger state. So a lot is happening during this loading ledger portion that is not really plumbed all the way through to the monitor command, but you can look for them in the logs. If you're curious about details of all the different steps that are happening when your validator starts up. There's a previous workshop on that. If you search for the playlist of previous Solana validator workshops, you should be able to find it.
+01:15:46.584 - 01:15:47.632, Speaker B: Okay, cool.
+01:15:47.768 - 01:15:51.484, Speaker A: And now we are trying to catch up to the network.
+01:15:51.864 - 01:15:57.364, Speaker B: So we should get the number of slots behind here. Pretty soon.
+01:16:00.374 - 01:16:03.994, Speaker A: You can see a lot more going on with the logs. I'm just going to kill this now.
+01:16:34.474 - 01:16:37.370, Speaker B: There we go. Oh, wow. Okay.
+01:16:37.402 - 01:16:38.694, Speaker A: Further behind than I thought.
+01:16:41.914 - 01:16:48.478, Speaker B: Check with catch up just to make sure they jive. Yeah.
+01:16:48.586 - 01:17:36.040, Speaker A: So one other thing to be aware of that sometimes I don't really know what the bug is, but the number of slots behind that monitor will say is not the same as the number that catch up will say. Um, so it looks like for whatever reason it thought we were further behind than we are. Um, so catch up thinks we'll be done pretty shortly. Um, but we're actually not gaining very quickly. Anyway, I'll let that go. We don't need to watch the slots countdown here, but the takeaway here is if monitor seems pretty high, there might be two things going on your well, monitor just might have an issue and look at catch up. If catch up seems extremely high or wrong, you might be pointing at the wrong cluster.
+01:17:36.040 - 01:17:54.862, Speaker A: So always make sure that if I'm doing catch up on Testnet, I'm talking to, I'm interested in the testnet cluster and if I'm doing catch up on mainnet or Devnet, then I'm also specifying the right flag for catch up here. That's good. We've got our system service in place.
+01:17:54.998 - 01:17:55.914, Speaker B: That's great.
+01:17:56.334 - 01:18:18.618, Speaker A: The next thing we want to do is set up log rotate. Let's do that. Now log rotate is a pretty easy one. This is straight from Docs dot salana.com dot we're just going to cat this file. This is just copy and paste. We're going to make a log rotate file.
+01:18:18.618 - 01:18:41.994, Speaker A: We're going to put it in home sol sorry this is the config for the log rotate file. So I'm just making this file here. You can see that I've got a log rotate solve file and then I'm going to copy that log rotate file that we just created to log rotate.
+01:18:47.334 - 01:18:50.794, Speaker B: There we go, log rotate d sol.
+01:18:53.614 - 01:19:40.314, Speaker A: Right and I'm verifying that it's there. And then I will restart log rotate. So systemctl restart log rotate service. Now log rotate should be enabled again, make sure that your startup script uses exec here. So now log rotate is set up. It should clean up our logs so that we don't have run out of disk space for too large of logs. You could configure how often you want to rotate your logs by changing those settings, but the default should be good.
+01:19:42.454 - 01:19:45.406, Speaker B: Okay, and then let me get back to our notes.
+01:19:45.510 - 01:20:26.314, Speaker A: A couple more things I want to cover before we wrap this up. Thank you everyone who's stayed with me. I know we wasted a little bit of extra time debugging and also frantically restarting validator from scratch. So thank you all for hanging out. So we got our validator up and running. We went through all the sort of things to check after your validator started. So we've done the system d setup, we've done log rotate.
+01:20:26.314 - 01:20:54.544, Speaker A: The next couple of things I want to get to, I think are just these two. I'll leave these off for later and give a word of caution about these last two ones. The ssh login. If you disable root login, you could run into errors like I did and not be able to ssh to your machine earlier. So just be very, very careful with that. Make sure that your config is correct. Maybe something I'll just do another video on later.
+01:20:54.544 - 01:21:28.864, Speaker A: Yeah, I don't want to do it now and get logged out again and then fstab as well. This is for mounting your drives. If for whatever reason your machine restarts, you want to configure it correctly so that the mount automatically happens on restart. So I'm not going to cover these right now for the sake of time. I'll just do these last two. So we're going to send some metrics to Solana labs and all we have to do to do that is just environment variable. That working? Excuse me, an environment variable we're going to configure.
+01:21:28.864 - 01:22:12.980, Speaker A: So I'll set that up and then I've already created a watchtower bot that we'll use. So I'm going to set up Solana watchtower to monitor our validator using telegram. But we can do other options as well. So yeah, let's get to those two and then call it a day. Okay, so the only thing we need to do here is an environment variable for sending metrics. And that environment variable lives in the docs, it's in the clusters. Clusters doc.
+01:22:12.980 - 01:22:19.660, Speaker A: If you search for Solana docs clusters, you should be able to find it.
+01:22:19.692 - 01:22:21.864, Speaker B: I'll bring the page here.
+01:22:30.264 - 01:23:04.784, Speaker A: Looks like this. So just go to the docs, search for clusters. Right here you should see Solana clusters. Each cluster information has a environment variable to export. Since we're on Testnet, we're going to export this Solana metrics config for the testnet cluster. So I will just copy this over. And then because we're using systemctl, we are going to set this in the systemd file.
+01:23:07.364 - 01:23:09.984, Speaker B: And I don't remember.
+01:23:13.124 - 01:23:16.844, Speaker A: Where to put it. I think you just put it above the path.
+01:23:16.884 - 01:23:17.108, Speaker B: Yeah.
+01:23:17.156 - 01:23:23.364, Speaker A: Environment. Okay, so let's open that file up again.
+01:23:32.664 - 01:23:34.324, Speaker B: Esystem Sol.
+01:23:38.304 - 01:23:41.244, Speaker A: And right before this environment is a good place to put it.
+01:23:42.064 - 01:23:43.004, Speaker B: Let's see.
+01:23:51.684 - 01:23:57.064, Speaker A: And we just want it to look like that, except we.
+01:24:00.044 - 01:24:01.464, Speaker B: Not want the export.
+01:24:07.164 - 01:24:13.314, Speaker A: And I don't know if this double quote thing will work either. Might just be able to.
+01:24:15.094 - 01:24:17.114, Speaker B: Get rid of the quotes.
+01:24:20.134 - 01:24:21.670, Speaker A: Yeah, I don't think we need the.
+01:24:21.702 - 01:24:23.674, Speaker B: Quotes that the notes have.
+01:24:24.134 - 01:25:04.086, Speaker A: So because we're quoting this whole thing and we're not doing this on the terminal, we don't need to quote the host part. If you'll notice in the notes, there's quotes here. Quotes here. And the reason the quotes are there is just for the terminal. When you're actually typing something in the terminal, it might interpret some of these things as like terminal commands. Like asterisk means any file that matches anything. So with the quotes, it ignores those special commands in our system, deconfig.
+01:25:04.086 - 01:25:08.534, Speaker A: We're not in the terminal, so it's okay to omit the quotes.
+01:25:08.694 - 01:25:14.714, Speaker B: And it just looks like this in surge. Yeah.
+01:25:15.894 - 01:25:27.914, Speaker A: Conferring with surge, but it looks like we have the same setup. So that's our environment. Solana metrics. Config is set. I'm going to save this and I'm going to restart the service.
+01:25:35.874 - 01:25:37.042, Speaker B: Yes. Okay.
+01:25:37.058 - 01:25:38.134, Speaker A: I've got to reload.
+01:25:43.114 - 01:25:47.674, Speaker B: And restart. Okay.
+01:25:47.754 - 01:26:07.524, Speaker A: Yeah. And so the restarting there actually killed the service. So maybe I should have just reloaded first and then done slot validator exit and then done the restart or automatically done the restart, but, you know, that should get it done. If I go to soul and I monitor.
+01:26:10.064 - 01:26:12.256, Speaker B: Yeah. Yeah.
+01:26:12.280 - 01:26:33.148, Speaker A: So now we're doing another restart. We're gonna have to catch up again. That may not have, we may not have finished catch up from before. Hopefully we did. I think we did. So this should be fine. This will take a few seconds.
+01:26:33.148 - 01:27:18.554, Speaker A: While this is going, the other thing I want to cover, so that was setting up metrics. The last thing I want to cover is setting up monitoring with Watchtower. Before I get into this, I'll say that the one other thing that's useful is sites like stakewizard, icwiz.com, for example, has monitoring just through the website. So if you are interested in getting alerts, if some validator goes down, let's just say this random validator, you could sign up for an alert just by saying create alert. And you can be notified if the validator has downtime. And I think for cluster wide outages as well.
+01:27:18.554 - 01:27:53.974, Speaker A: The caveat there is that this is only on main net, as far as I'm aware. So you can't monitor your validator on testnet that way. So it's a good idea to set up Watchtower. And in general, it's just good to have multiple ways to monitor, even if you are running a main net validator, I wouldn't rely just on this to monitor your validator, but it, it's, you know, another tool that could be useful. So, yeah, while that is starting up, let's get Watchtower going. Looks like it's already started.
+01:27:54.054 - 01:28:01.034, Speaker B: Great. Let's get back to the notes. Where was it? There we go.
+01:28:07.254 - 01:28:33.464, Speaker A: So we're going to talk about Watchtower. It is a tool for monitoring your validator health. It ideally should be set up on a separate machine. The hardware requirements are nowhere near the same as a validator. So you could get a very, very low end, like, cloud instance of something. It doesn't need to do much, it just needs to be able to talk to the Internet. Basically, it's just pinging to see the state of your validator against an RPC.
+01:28:33.464 - 01:29:23.598, Speaker A: It can also monitor for the balance of Sol in your identity account. So if you aren't careful and your validator uses more sole in vote fees than it earns in transaction fees, then your sole balance could go down to zero over time and your validator will stop voting without you knowing. So Watchtower can notify you that if your balance goes below a threshold, you can get alerts. And the nice thing about Watchtower is it's got a couple different integrations. So I'm going to show telegram, but it also has integration, the ability to integrate with Twilio, slack and pagerduty now. So lots of different options for getting alerted. Essentially, if your validator has an issue, there's a lot of people that like pagerduty.
+01:29:23.598 - 01:30:11.484, Speaker A: I think the main thing there is that if your validator does go down and you get an alert, pagerduty is really good at putting through, like any sort of, you know, if you, like, go to sleep mode or silence your phone, page of duty is really good at cutting through all those things and saying, like, this is an important thing to pay attention to and makes noise. But, you know, whatever setup works for you. I know some validators just use text message, probably with Twilio. Some use slack, some use telegram, some have their own custom things. So just as long as you're notified, anytime your validator is not performing well, or anytime the cluster has an issue, then you should have the proper, that is the proper monitoring, right. As long as you get notified, that's all that matters.
+01:30:15.224 - 01:30:15.672, Speaker B: Yeah.
+01:30:15.728 - 01:30:34.876, Speaker A: So let's, let's set up Watchtower. I'm going to do this with telegram. I've already set up a bot, so we should be good to go. The only things that we need here are again two environment variables. I've got some modifications to docs dot.
+01:30:34.900 - 01:30:40.864, Speaker B: Solana.Com that should be coming out soon. Let's see here.
+01:30:45.044 - 01:31:52.366, Speaker A: So that includes a monitoring section. And this monitoring section talks about setting up Watchtower. It goes into some details about setting it up with telegram, creating a bot, creating a group and including that bot, and then how to get the token and the chat id of the group that you created. So all those steps I've done already, I'm just going to copy some of these environment variables and add them to this, add them here. So let me, let me do that now. So I want to add the environment variables here for monitoring. The two environment variables that I care about are the telegram bot token and the telegram chat id.
+01:31:52.366 - 01:32:00.870, Speaker A: So just like before, I'm going to add those here as environment variables.
+01:32:00.902 - 01:32:02.354, Speaker B: So I'm going to add an environment.
+01:32:08.974 - 01:32:11.154, Speaker A: And I'm just going to put in some numbers right now.
+01:32:12.124 - 01:32:25.504, Speaker B: I will update it with the correct info in just a minute. Mbot token.
+01:32:28.324 - 01:32:32.664, Speaker A: The notes have an example, I believe I'm going to copy that for now.
+01:32:34.004 - 01:32:36.264, Speaker B: I'll use an actual one in just a sec.
+01:32:36.984 - 01:33:05.330, Speaker A: So you'll need to get the telegram bot token. You can get this from Botfather, the thing that is mentioned in the notes. You essentially send a message to botfather. To create a new bot, you need to give it a name and that the name has to end in bot. But once you create that bot, it gives you this id. The id gives you control over that bot, so it's sensitive information. You shouldn't be sharing this with other people.
+01:33:05.330 - 01:33:33.814, Speaker A: This is just an example from the notes. That doesn't matter. And then the other thing you'll need is the chat id of the group that you're chatting in. That is a little bit more complicated to get. You have to send a request to Telegram, you have to get an update. The updates are basically the messages that are being sent to that group. And then those messages will include the chat id.
+01:33:33.814 - 01:33:44.146, Speaker A: It's all mentioned in the notes, but it's not the most straightforward. So just be aware that like finding this chat id is, might be kind of a pain. But once you find it, you'll set.
+01:33:44.170 - 01:33:45.738, Speaker B: The environment variable here.
+01:33:45.906 - 01:34:04.684, Speaker A: So let's just go with that for now. I'm going to restart, reload the daemon and I'm going to.
+01:34:10.464 - 01:34:19.164, Speaker B: Yeah, actually, let's actually just copy this directly. Might be easier for now. Just copy these values and export them.
+01:34:24.564 - 01:34:29.784, Speaker A: Okay, so I can see here that my validator is running.
+01:34:35.124 - 01:34:35.460, Speaker B: It.
+01:34:35.492 - 01:34:43.076, Speaker A: Validator is still running. I can export these environment variables here.
+01:34:43.140 - 01:35:08.258, Speaker B: So let's export it normally. Okay.
+01:35:08.346 - 01:35:45.912, Speaker A: And then the next thing I can do is start up Watchtower and I'm going to check the output help just to see a couple things. So you have a couple different config variables here. You can, you need to specify the validator identity that you care about. So we'll do that. You can specify the unhealthy threshold so the number of times that you get an error consecutively. Let's just say an RPC is having an issue. It might think that your validator is delinquent for one time, but then it repairs itself.
+01:35:45.912 - 01:36:11.164, Speaker A: So if you're getting a lot of messages that aren't actually errors, you might want to make this unhealthy threshold higher than one, maybe two or so. You can also set a flag for your minimum validator identity balance. The default is ten. So I think if you look at our balance, Solana Dash ut balance.
+01:36:18.864 - 01:36:19.200, Speaker B: Our.
+01:36:19.232 - 01:36:39.022, Speaker A: Balance here is definitely less than ten. So we're going to get an error from that. And you can also set a cluster wide stake threshold. If the stake of the cluster goes below 80%, then you'll get an error. Let's just focus on the validator identity balance and maybe the minimum threshold and.
+01:36:39.038 - 01:36:40.486, Speaker B: Then we'll go from there.
+01:36:40.670 - 01:36:46.074, Speaker A: So I'm going to start this up. I'm doing a screen so we can keep it running.
+01:36:49.214 - 01:36:55.954, Speaker B: On our watchtower. More time here.
+01:36:57.154 - 01:37:09.706, Speaker A: So I want the validator identity. I want the unhealthy threshold. Let's just keep that at one. So the default is one.
+01:37:09.770 - 01:37:10.814, Speaker B: We'll keep it there.
+01:37:11.394 - 01:37:13.254, Speaker A: And I want the minimum.
+01:37:16.314 - 01:37:21.694, Speaker B: In validator identity balance.
+01:37:22.454 - 01:38:05.134, Speaker A: And I'm going to make that, let's just say two. So I want a minimum of two soul in my identity that's going to fail because we have less than that in the balance of the identity account. And one other thing you'll notice here is that it says my balance is zero. It probably also can't find. Yeah, it's not able to find it and that's because it's pointing to the mainnet RPC right now, which is not what I want. So I can update this to use Textnet. And I think that this thing doesn't work with ut.
+01:38:05.134 - 01:38:16.394, Speaker A: Oh, it does not. So you'll have to be more explicit here and fill out the whole URL. I just have memorized it.
+01:38:19.414 - 01:38:24.554, Speaker B: Testnet.com. There we go.
+01:38:24.854 - 01:38:44.852, Speaker A: Okay, so now we see the correct balance here. Nine, three, six, whatever it is. But we're still getting error because we want our balance to be greater than two, but it is not. And that error will be sent to our telegram group and it'll tell us, hey, your balance is low and you.
+01:38:44.868 - 01:38:46.264, Speaker B: Have to go check it out.
+01:38:47.244 - 01:39:40.284, Speaker A: So you'll get the same output here in the logs. It just won't be notified to your phone or to whatever service you've set up, Twilio or pagerduty or whatever, until you actually set up the config correctly. You notice we have zero notifiers and that's because the environment variables weren't set up correctly. These are all things that, just like the sole service system d, you'll probably also want to set up a watchtower systemd file. I'll add those to the notes as well so you can see an example of that. The great thing about this is, like while this is running, you'll get notified every time your balance gets low. Or let's keep this running in the background.
+01:39:41.344 - 01:39:42.804, Speaker B: Open this up here.
+01:39:44.224 - 01:39:46.144, Speaker A: Or anytime your validator stops.
+01:39:46.224 - 01:39:46.440, Speaker B: Right.
+01:39:46.472 - 01:39:49.644, Speaker A: So if I go to.
+01:39:53.464 - 01:39:54.032, Speaker B: Stop the.
+01:39:54.048 - 01:40:29.284, Speaker A: Sole service in, I think an interval of maybe 60 seconds or so, you should see this thing. Also saying there's an error because our validator isn't running. Maybe it is not because it's just giving the error about the.
+01:40:31.184 - 01:40:33.884, Speaker B: Oh, there it is. Nope, same one.
+01:40:34.344 - 01:40:49.884, Speaker A: Yeah, so I think the error about the balance might be superseding the error about the validator not running. Let's, let's fix that. So let's do Solana ut airdrop.
+01:40:50.684 - 01:40:58.104, Speaker B: I always forget what the order is here. Unsol to this address.
+01:41:00.204 - 01:41:05.344, Speaker A: Now we've got greater than one. Let's change the config to have a balance of one.
+01:41:15.404 - 01:41:24.072, Speaker B: Yeah, that's wrong. Yeah, there we go.
+01:41:24.208 - 01:41:44.956, Speaker A: Okay, so we no longer have the error because of the balance. That's good. We fixed that. But now we got an error because our server is delinquent, because we shut it down. So let's say your server died for whatever reason, you should get an error sent to you in telegram saying, hey, your validators delinquent.
+01:41:44.980 - 01:41:46.024, Speaker B: Go check it out.
+01:41:46.564 - 01:42:15.398, Speaker A: So, yeah, Watchtower is really great. I'd highly suggest everyone, even if you're running a testnet validator to set up Watchtower. Super easy to do, not very costly. You can even run it on the same server as your validator. It won't catch everything. Right. If your whole machine shuts down, then you're not going to be able to get any notifications from Watchtower but it'll at least catch, you know, 85%, 90% of issues.
+01:42:15.398 - 01:42:23.274, Speaker A: So still, definitely very good thing to have. All right, that is it.
+01:42:25.014 - 01:42:26.074, Speaker B: Let's see.
+01:42:27.334 - 01:43:01.644, Speaker A: Like I said, I'm not going to get into the ssh setup and I'm not going to get into the fstab stuff, but all good things to do and look into other things that are useful to think about. Fail to ban is a really good package that just monitors SSH attempts on your server and bans them. Bans the ips that seem to be trying to brute force into your box. That's a good thing to add. It's pretty easy. The setup is almost nothing. The default setup should be good.
+01:43:01.644 - 01:43:33.080, Speaker A: Also a good idea to update your Linux packages regularly, especially security patches. You can even set up automatic updates of critical security issues so you don't have to remember to do it frequently. If there's some exploit in some package, you don't want to leave that exploit on your machine indefinitely until you remember to update. It's a good idea to just automatically update those. You can have a firewall installed. UFW is common. A lot of people use that.
+01:43:33.080 - 01:44:35.274, Speaker A: There's other options, but a firewall is good, especially if you want to firewall off RPC ports, for example, and additional system monitoring. So we talked about Watchtower, which I think is a good, good first step, something that everyone should have running. But you probably also want monitoring about your I o on the disk and about your cpu and your memory and all those things that you don't want to know about it by the time your validator dies. You probably want to know about it when you have 90% of your memory used, or 85% if your memory usage gets really high to the point where maybe you're going to run out of memory, maybe you could do something before the validator actually dies. So good to set up additional monitoring about the system as well, but, you know, out of scope for today. Okay, that's all I got. Any questions about all that stuff?
+01:44:39.694 - 01:44:40.434, Speaker B: No?
+01:44:41.494 - 01:45:04.014, Speaker A: All right, well, sorry we went way, way over time and sorry that there was a bit of live debugging. Um, but thanks everyone for sticking in. And I'll put this up on YouTube, but likely edit out some of the, like, just downtime to make it a little bit more viewable. Um, so, so yeah, I'll put it up immediately, but then I can probably put up an edited version after that.
+01:45:06.714 - 01:45:07.706, Speaker B: Okay, great.
+01:45:07.810 - 01:45:11.034, Speaker A: Thanks everyone. And uh, yeah, see you next time.

@@ -1,0 +1,45 @@
+00:00:05.720 - 00:00:08.694, Speaker A: GM welcome to this episode of Solana Bytes.
+00:00:08.774 - 00:00:52.714, Speaker B: In this series, were looking at all of the extensions on the Token 22 program. In this episode were looking at the non transferable token mint extension. So in the world of digital collectibles, NFTs have plenty of use cases outside of the current PFP meta. Enter the concept of soul bound tokens. These are assets that are tied to an individual. So this actually unlocks the potential for things like certificates, diplomas, identities, achievements and more, all tokenized on chain, because these are assets that actually should remain exclusive to either an individual or tied to a particular account. So token 22 actually introduces the non transferable mint extension that makes this possible with tokens that can't be transferred.
+00:00:52.714 - 00:01:19.554, Speaker B: So this extension is actually quite similar to issuing a token and then freezing the account. However, the UX is more favorable. So while the token can't be transferred, the owner can still burn the token and close the account. So this allowed the user flexibility to no longer be associated or stuck with an unwanted asset. So this guide actually walks through how to use the non transferable mint extension to create soulbound tokens.
+00:01:20.384 - 00:01:21.560, Speaker A: So this script that we have that's.
+00:01:21.592 - 00:02:11.754, Speaker B: Running, first of all, it's creating a new token mint, applying the non transferable mint extension to that token mint. And then now we've created two token accounts. We then mint one token to the first account and then now attempt to transfer that one token that we've minted to another account. And as we can see correctly, the program has failed. And it's telling us that we can't transfer from one account to another because for this mint, transfers are disabled. So let's take a look at the code and see how that works. But actually just before that, let's take a look at this mint account on Solscan and we can see that we have a token mint.
+00:02:11.754 - 00:02:22.314, Speaker B: It shows us the token address correctly, and we can see that the non transferable extension is actually set to yes, what you would also note is if we take a look at the token.
+00:02:22.354 - 00:02:27.114, Speaker A: Accounts for this mint, you would see.
+00:02:27.154 - 00:02:46.884, Speaker B: Also that the immutable owner extension is turned on for the individual accounts. This is actually a requirement for any mint that has the non transferable extension applied, that all token accounts also need to have the immutable owner. So again, let's take a look at the code and see how that works. We're going to make a new directory.
+00:02:47.504 - 00:02:54.296, Speaker A: Demo CD, we're going to init, and.
+00:02:54.320 - 00:02:57.568, Speaker B: Now we're going to install the packages that we need.
+00:02:57.616 - 00:03:14.584, Speaker A: So Solanaweb3 Js and Solana Spl token. Now going to open this up in versus code.
+00:03:16.764 - 00:03:17.612, Speaker C: Cool.
+00:03:17.788 - 00:03:33.912, Speaker A: So we're first going to change this to type module because we're going to use index mjs. Excellent. Let's add some type check into a JavaScript. And now we're ready to go. So the first thing that we want.
+00:03:33.928 - 00:03:42.512, Speaker B: To do, want to establish a connection to Devnet, generate a new pay account and fund it, and then create a new token mint using Token 22.
+00:03:42.688 - 00:04:05.304, Speaker A: So we're going to do const connection, gonna use cluster API. Definite confirmed. And we're going to airdrop.
+00:04:13.124 - 00:04:13.676, Speaker C: And we're.
+00:04:13.700 - 00:04:40.336, Speaker A: Sending it to the payer and we'll just need one solver do. So now that we have all of.
+00:04:40.360 - 00:04:43.724, Speaker B: That set up, we can now go and set up our mint.
+00:04:44.064 - 00:05:00.664, Speaker A: So we need a new mint address. So we generate a new keeper, then set the amount of decimals.
+00:05:03.644 - 00:05:04.068, Speaker C: Then we.
+00:05:04.076 - 00:05:05.904, Speaker A: Need a mint authority.
+00:05:11.884 - 00:05:12.956, Speaker C: Then now we.
+00:05:12.980 - 00:05:27.824, Speaker B: Need to work out the length of this account. And in order for us to do that, there's a nice helper function from the SBL token library that we can pass in an array of extensions that we need. And then it will tell us the.
+00:05:28.764 - 00:05:38.812, Speaker A: Amount of space required. So get mint lent. We then need the non transferable and.
+00:05:38.828 - 00:05:39.876, Speaker B: Then now we can work out the.
+00:05:39.900 - 00:05:52.372, Speaker A: Amount of lan ports we need for rent exemption. So now that we have that we.
+00:05:52.388 - 00:05:55.144, Speaker B: Can now go ahead and start building our instruction.
+00:05:56.084 - 00:06:01.504, Speaker A: So const create count structure.
+00:06:08.444 - 00:06:08.892, Speaker C: And I.
+00:06:08.908 - 00:06:27.434, Speaker A: Need the from pub key which is the payer. We then have the new account pub key which is the mint. Then we have the space which is the len, we have the lamp ports. And finally we need the program id, which of course is the token 22 program.
+00:06:27.734 - 00:06:35.734, Speaker B: The next instruction we'll need will be to initialize this mint account with the non transferable mint extension.
+00:06:35.894 - 00:06:40.984, Speaker A: So initial lies non transferable.
+00:06:52.644 - 00:07:19.512, Speaker B: So this helper function comes from the SPL token library and it requires the Mint and the token program id. Then finally we have the initialize mint instruction. This also comes from the Solana SPL token library. So we need the Mint decimals, the Mint authority.
+00:07:19.648 - 00:07:23.432, Speaker A: This is a public key freeze authority we wouldn't need.
+00:07:23.528 - 00:07:33.804, Speaker B: And then finally the token 22 program. So now that we have our instructions, we need to build our transaction and then send that to the network.
+00:07:34.474 - 00:07:56.906, Speaker A: So we have const transaction equals new transaction. And then we need to add, okay, we have an error here that was. So we add our createaccount instruction followed.
+00:07:56.930 - 00:08:05.044, Speaker B: By the initialize non transferable mint instruction. Then finally the initialize bint instruction.
+00:08:05.984 - 00:08:17.824, Speaker A: Now we have our call. That's the connection transaction, the signers which.
+00:08:17.864 - 00:08:25.288, Speaker B: Would be the payer and the mint key pair. Then we'll just want to log this.
+00:08:25.336 - 00:08:43.662, Speaker A: Transaction signature and let's go ahead and run this so donode index. I will get my so now if.
+00:08:43.678 - 00:08:45.474, Speaker B: We take a look at this.
+00:08:48.414 - 00:08:49.038, Speaker A: Transaction.
+00:08:49.086 - 00:08:51.994, Speaker B: Signature on in the explorer.
+00:08:56.314 - 00:08:57.002, Speaker C: We'Ll see.
+00:08:57.058 - 00:09:38.934, Speaker B: Again, we created our account. We initialize the non transferable mint and then initialize the account as a mint. So when we click this token mint, we'll see that we have a token mint that has the non transferable extension applied. So the token 2020 two's non transferable mint extension enables the creation of soul bound tokens, ensuring that digital assets are bound to an individual or to an individual's account. So join us for the next episode as we continue to explore all of the different extensions that have been added to the Token 22 program. I'm Colin from the Solana foundation developer relations team. Until next time.

@@ -1,0 +1,70 @@
+00:00:05.280 - 00:00:08.726, Speaker A: Diem welcome to this episode of Solana Bytes.
+00:00:08.830 - 00:00:18.474, Speaker B: And in this series we're taking a look at all of the extensions on the Token 2022 program. In this episode, we're focusing on the Mint close authority extension.
+00:00:18.774 - 00:00:20.878, Speaker A: So the token program allows owners to.
+00:00:20.926 - 00:00:51.794, Speaker B: Close token accounts, but it's actually impossible to close mint accounts in Token 22. That's all changing. So it's actually now possible to close Mint by initializing the Mint close authority extension on a particular token mint. So let's see how this works. So in this script, we simply create a new token mint. We then apply the Mint close authority extension on that mint, and then we just immediately close that account. So if we were to take a look at how this looks like on Solscan.
+00:00:51.794 - 00:01:03.628, Speaker B: So I've just copied the transaction signature for the close account instruction. So we can see that indeed we closed an account. And this is the account that we closed.
+00:01:03.796 - 00:01:04.740, Speaker A: If we were to take a look.
+00:01:04.772 - 00:01:41.884, Speaker B: At this particular account, seven aw, we'll see. Of course it's closed. But if we look at the transaction that had the creator counter instruction, we'll see that this account was created, it was then initialized with a mint closed authority extension and then initialized as a token mint. So we can see from the close account transaction that we were able to create a new token mint and then close it. It's also important to note that you can only close a token mint if the supply is zero. So we're just going to step into the code and see how that works. So I'm going to create a new.
+00:01:41.964 - 00:01:48.188, Speaker A: Directory, I'm going to CD into it.
+00:01:48.356 - 00:01:51.144, Speaker B: I'm going to init a new NPM project.
+00:01:51.704 - 00:02:18.720, Speaker A: Then I'm going to install the required packages. Let's open this up in versus code and let's create a new index file. And let's just add some helpers for type check in.
+00:02:18.872 - 00:02:19.604, Speaker C: Cool.
+00:02:20.184 - 00:02:36.044, Speaker B: So to set up, we're first going to establish a connection to the Devnet cluster. We'll then generate a new pay account and fund it so that we can pay for all of our transactions. Then we're going to create a new token mint using the Token 2022 program.
+00:02:36.984 - 00:02:47.104, Speaker A: So we do const connection equals new connection. We use cluster API URL.
+00:02:47.444 - 00:02:50.664, Speaker C: Definite and confirmed.
+00:02:51.484 - 00:03:00.584, Speaker A: We then create our payer, then we.
+00:03:02.804 - 00:03:03.864, Speaker D: Fund it.
+00:03:20.824 - 00:03:28.844, Speaker A: And we're just going to take one soul. Then we are going to confirm.
+00:03:31.424 - 00:03:34.684, Speaker C: That the signature.
+00:03:50.044 - 00:03:50.824, Speaker D: Sorry.
+00:03:53.484 - 00:03:54.052, Speaker A: Cool.
+00:03:54.148 - 00:03:55.244, Speaker B: So now that we have that set.
+00:03:55.284 - 00:03:56.916, Speaker A: Up, the next thing that we want.
+00:03:56.940 - 00:03:58.904, Speaker B: To do is set up the mint.
+00:03:59.204 - 00:04:24.820, Speaker A: So we're going to have a mint keeper. We then have the address, we then have the decimals. We then have the mint authority. And then we're going to have the.
+00:04:24.852 - 00:04:28.108, Speaker B: New one which is the close authority, which in this case is going to.
+00:04:28.116 - 00:04:33.874, Speaker A: Be different to the Mint authority keeper generate.
+00:04:34.814 - 00:04:47.554, Speaker B: Then we need to work out the amount of space required for this mint account with this extension and then calculate the amount of lamports will need to be rent exempt.
+00:04:47.894 - 00:04:51.834, Speaker C: So we do mint len cool.
+00:04:57.794 - 00:05:06.654, Speaker A: Extension type. This is the mint close authority. Then the lamp port would be.
+00:05:14.954 - 00:05:17.374, Speaker C: Mint length.
+00:05:20.014 - 00:05:20.750, Speaker D: Cool.
+00:05:20.902 - 00:05:25.754, Speaker B: So now that we have the mint setup, we need to now build our set of instructions.
+00:05:27.934 - 00:05:31.034, Speaker A: So the first one is the create account instruction.
+00:05:33.334 - 00:05:35.914, Speaker C: We could use the system program.
+00:05:37.974 - 00:05:53.406, Speaker A: Then we have the from which is the payer. We then have the new account pub key which is the Mint. We then have the space, which is the Mint len. We then have the lamp port and.
+00:05:53.430 - 00:05:55.182, Speaker B: Of course the program id, which is.
+00:05:55.198 - 00:05:57.474, Speaker A: The token 22 program.
+00:05:58.294 - 00:06:00.190, Speaker B: The next thing that we need to.
+00:06:00.222 - 00:06:27.454, Speaker A: Do is now create the initialize Mint close authority extension. And this takes the mint, it takes the close authority public key and it takes the program id.
+00:06:29.834 - 00:06:33.894, Speaker B: Then finally we need to initialize the Mint account.
+00:06:35.674 - 00:06:58.464, Speaker A: Sorry, initialize the account as a token mint. It takes the mint, the decimals, the Mint authority, the freeze authority, which we'll just set as the Mint authority.
+00:06:59.084 - 00:07:02.824, Speaker B: Then it also takes the program.
+00:07:04.544 - 00:07:05.576, Speaker D: That's it.
+00:07:05.760 - 00:07:09.324, Speaker B: So now that we have the instructions, we can build our transaction.
+00:07:09.664 - 00:07:11.684, Speaker A: So we say const trans transactions trans.
+00:07:13.944 - 00:07:19.324, Speaker C: Equals new transaction dot.
+00:07:23.144 - 00:07:33.774, Speaker A: Add. And then we add the create account, the initialize Mint close authority, not that one.
+00:07:35.514 - 00:07:36.254, Speaker D: This.
+00:07:38.114 - 00:08:14.200, Speaker A: And then the initialize mint instruction. Now that we have that we can then send and confirm. So connection transaction, the sign as it needs the payer and the mint key pair. And we'll set the last options as undefined. So if we were to log out this transaction signature, and we now can.
+00:08:14.232 - 00:08:16.604, Speaker C: Just run our script.
+00:08:20.784 - 00:08:29.784, Speaker A: So if we take a look at this transaction signature on Solscan, we can.
+00:08:29.824 - 00:08:31.644, Speaker B: See that we created an account.
+00:08:32.184 - 00:08:37.096, Speaker A: We initialize the Mint close authority extension.
+00:08:37.240 - 00:08:50.844, Speaker B: And then initialize the mint. So I just wanted to show this, just so that you can see that we actually do create a token mint. And then we're going to add some extra code to now actually close this particular mint.
+00:08:51.554 - 00:08:53.214, Speaker A: So we don't need that.
+00:08:54.514 - 00:08:58.626, Speaker C: So now to close the account we.
+00:08:58.650 - 00:09:00.494, Speaker B: Use the helper function.
+00:09:03.074 - 00:09:18.322, Speaker A: Constant, the connection the payer, the account which is the mint, the destination which is where the.
+00:09:18.458 - 00:09:24.254, Speaker B: Lan port should go to, and authority, which would be the close authority.
+00:09:25.754 - 00:09:27.434, Speaker A: So now if we were to run.
+00:09:27.474 - 00:09:32.014, Speaker B: This with the additional instruction to close the account.
+00:09:38.434 - 00:09:41.494, Speaker A: Get invalid account data.
+00:09:43.634 - 00:09:44.374, Speaker D: Ah.
+00:09:46.434 - 00:09:51.126, Speaker C: Close authority signers are empty and.
+00:09:51.270 - 00:09:54.514, Speaker B: We forgot to add that it's the token 22 program.
+00:10:02.694 - 00:10:06.190, Speaker A: When we run this, we'll see that.
+00:10:06.222 - 00:10:24.702, Speaker B: Now the account is closed at the last part of the instruction. So when we look at this transaction signature we can see that the account that was closed was this one, which would be the same account.
+00:10:24.838 - 00:10:31.126, Speaker A: So three me that was created as a token mint.
+00:10:31.310 - 00:10:58.916, Speaker B: So we can see that with this extension we can actually close a token mint. So it's actually quite a simple extension, but still yet effective. You get to claim all of the soul in all of the mint accounts that otherwise would have been lost. So continue to join us for the remaining episodes whilst we go through all of the extensions in the Token 22 program. I'm Colin from the Solana foundation developer relations team.
+00:10:59.100 - 00:10:59.764, Speaker A: Until next time.

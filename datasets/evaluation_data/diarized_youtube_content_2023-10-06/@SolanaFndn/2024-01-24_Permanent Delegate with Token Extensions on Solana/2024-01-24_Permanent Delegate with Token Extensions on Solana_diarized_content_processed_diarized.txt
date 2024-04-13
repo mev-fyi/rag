@@ -1,0 +1,58 @@
+00:00:05.120 - 00:00:05.776, Speaker A: Diem.
+00:00:05.862 - 00:00:56.046, Speaker B: Welcome to this episode of Solana Byte. And in this series, we're looking at all of the extensions on the Token 2022 program. In this episode, we're looking at the permanent delegate token mint extension. So with the token program, the Mint may contain a freeze authority which can use to render an account practically unusable. So when an account is frozen, any instruction involving that account will fail until that account is reactivated, or shall we say, thawed. So one of the uses of this freeze authority amongst many people often use it to freeze a particular token so that they can add custom logic to, let's say a transfer. But another use case, which is something that, let's say a stablecoin issue would use, is to freeze these accounts that are linked to sanctioned individuals or linked to particular wallet hacks.
+00:00:56.046 - 00:02:05.184, Speaker B: So whilst the attacker cannot benefit from the token tokens, there's no means for restitution or a way to like retrieve or get those tokens back. So with Token 2022, it's actually possible to specify a permanent account delegate for Mint. This authority now has unlimited delegate privileges over any account associated with that mint, meaning that it can burn or transfer any amount of tokens for any account for that given mint. So this is a very powerful feature, but its implications have to be clearly stated for both users and app developers. So whilst previously tokens could be frozen if there was a security breach, but again, there was no way to seize those tokens, this permanent delegate actually now has the authority and the capability to transfer those tokens back. So now that the permanent delegate pretty much has unlimited powers, if those keys are ever compromised, the attacker can literally have control over all of the token accounts. So I believe it's going to be a very divisive feature, but it does have some unique use cases that it opens up.
+00:02:05.184 - 00:02:40.214, Speaker B: So let's take a look at how this actually works. So in the scripts that we have running, we first are creating a new token mint with the permanent delegate extension applied. We then create two new token accounts so that we can show an example of how to transfer from one token account to another using the delegate as the signing authority. So then second, we then mint 1000 tokens to this new account, and then we transfer the tokens via the delegate. So let's first of all take a look at the mint on soul scan.
+00:02:51.174 - 00:02:53.154, Speaker A: Just look at that on Devnet.
+00:02:57.094 - 00:03:34.694, Speaker B: So we can see that for this particular mint, we have the permanent delegate set. And yeah, we have a different mint authority for this particular mint, but the permanent delegates is set to this particular account. So now let's take a look at the token account. So we were able to see that we initially minted a hundred tokens and then we were able to transfer five of those tokens out using the delegate, which is this particular transaction that you can see here. So if we actually look at this full transaction signature.
+00:03:36.634 - 00:03:37.650, Speaker A: Again, we'll see that.
+00:03:37.682 - 00:04:00.904, Speaker B: The token was transferred not from the original account, but it's showing that it was transferred from the permanent delegate in into another account. So again with the permanent delegate, this sign in authority can move any amount of tokens from any account that is related to that mint. So let's actually jump into the code and see how that looks like.
+00:04:02.564 - 00:04:03.660, Speaker A: So we're going to create a new.
+00:04:03.692 - 00:04:07.948, Speaker C: Directory, call this one demo, we're going.
+00:04:07.956 - 00:04:09.744, Speaker B: To CD into it.
+00:04:13.984 - 00:04:14.672, Speaker A: We'Re going to.
+00:04:14.728 - 00:04:17.044, Speaker B: Init a new NPM project.
+00:04:18.824 - 00:04:19.352, Speaker C: And we're.
+00:04:19.368 - 00:04:23.684, Speaker B: Going to go ahead and install the required libraries.
+00:04:27.104 - 00:04:27.504, Speaker C: Cool.
+00:04:27.544 - 00:04:29.444, Speaker A: Now let's open this up in versus code.
+00:04:34.064 - 00:04:36.680, Speaker B: So let us just change this to.
+00:04:36.712 - 00:04:43.664, Speaker A: Type module so that we can use index mjs.
+00:04:44.604 - 00:04:45.384, Speaker C: Cool.
+00:04:45.724 - 00:04:54.876, Speaker B: And then add some typescript helpers to our JavaScript file. So first things first. We need to establish a connection to the Devnet cluster.
+00:04:55.060 - 00:04:56.636, Speaker A: Then we need to generate a new.
+00:04:56.660 - 00:05:07.314, Speaker B: Pay account and fund it since that's going to pay for all of our transactions. And then we're going to create a new token mint and then apply the permanent delegate extension to that mint.
+00:05:07.434 - 00:05:12.814, Speaker A: So const next calls.
+00:05:23.994 - 00:05:25.294, Speaker C: We have a payer.
+00:05:28.634 - 00:05:32.534, Speaker A: Generate then we want to airdrop.
+00:05:35.104 - 00:05:40.656, Speaker C: Await next shoulder request air drop from.
+00:05:40.720 - 00:05:43.320, Speaker A: Payer Dot public key and we'll just.
+00:05:43.352 - 00:05:49.764, Speaker C: Take one solve for this then wait.
+00:05:51.304 - 00:05:58.764, Speaker A: Transaction. The signature is the airdrop and then we need the.
+00:06:02.874 - 00:06:03.654, Speaker C: Cool.
+00:06:04.154 - 00:06:13.174, Speaker B: So now that we have that setup out of the way, let's now create the codes that we need for our mint. So we now have a new mint keeper.
+00:06:18.114 - 00:06:20.618, Speaker A: We then get the address because this.
+00:06:20.626 - 00:06:22.974, Speaker B: Is going to be the address for our mint.
+00:06:26.294 - 00:06:32.554, Speaker A: The amount of decimals. We'll just set the default to nine. We'll create a mint authority.
+00:06:39.054 - 00:06:42.434, Speaker C: Then we're going to create the key.
+00:06:42.734 - 00:06:43.942, Speaker A: Or sorry, the key pair that we're.
+00:06:43.958 - 00:06:46.474, Speaker B: Going to use for our permanent delegate.
+00:06:54.194 - 00:06:55.794, Speaker A: Then we're going to work out the.
+00:06:55.874 - 00:07:03.730, Speaker B: Amount of lampos we'll need to be rent exempt for this particular account that has the permanent delegate extension applied.
+00:07:03.922 - 00:07:08.414, Speaker A: So we get mint len equals get mint lend.
+00:07:09.554 - 00:07:16.494, Speaker B: This takes an array of extensions. We would only be adding the one for permanent delegate.
+00:07:17.184 - 00:07:20.004, Speaker A: Then we work out the amount of lamp ports needed.
+00:07:26.024 - 00:07:27.844, Speaker C: And that's mint length.
+00:07:30.624 - 00:07:31.536, Speaker A: Awesome.
+00:07:31.720 - 00:07:41.416, Speaker B: So now that we have all of that set up, now we just need to build the set of instructions that we need. So the first is to create the.
+00:07:41.440 - 00:08:10.564, Speaker A: Account is a system program we have from pub key which is the payer. We have the new account pub key which is the mint. We have the space which is the mint len we have the lamp ports and then finally the program id.
+00:08:12.104 - 00:08:18.964, Speaker B: Then we now need to initialize the permanent delegate instruction on this particular account.
+00:08:28.984 - 00:08:31.604, Speaker A: For that we use the helper function.
+00:08:32.104 - 00:08:39.308, Speaker B: Permanent delegate, which takes a mint, it takes the public key of the permanent.
+00:08:39.356 - 00:08:42.748, Speaker A: Delegate and of course the program id.
+00:08:42.796 - 00:08:51.224, Speaker B: Which is the token 22 program. And now finally we just create the initialize mint instruction.
+00:09:57.624 - 00:10:11.604, Speaker A: Signers which we need payer as one, and the mint keeper and we can just set this to undefined. So let's go and log the signature and let's.
+00:10:20.484 - 00:10:21.304, Speaker C: Oh.
+00:10:24.764 - 00:10:29.104, Speaker A: So let's take a look at this on source scan and see what's happened.
+00:10:31.164 - 00:11:33.204, Speaker B: So again we can see that we created an account. We then applied the permanent delegate extension to it, and then we initialize the mint. So to take a look at that mint, we'll see that, yep, this is created as a token mint and we can see that we have this permanent delegate set. So now any token account that is created, this particular sign in authority has ability to burn and transfer tokens from any one of those accounts. So as we can see, whilst this can be a very divisive extension, mainly because it can be abused if users are not aware that the token that they are interacting with has a permanent delegate. Actually this now opens up some new use cases. These use cases are pretty much centered around if somebody has access to a token but isn't participating or is no longer active, that token can be removed from them so that they can lose that access.
+00:11:33.204 - 00:12:12.302, Speaker B: So for example, think of a subscription service where a company could issue tokens as access passes to that service. And now if a user doesn't renew their subscription, the permanent delegates could automatically revoke their access. This could also be good for daos. I'm thinking of super team Dao here. So for example, they could use this feature to ensure that members continue to be active by, let's say, participating in voting or other community related activities. Therefore, inactive members could have their tokens automatically revoked or redistributed to other members. So it's got some quite cool use cases.
+00:12:12.302 - 00:12:34.824, Speaker B: But again, I think users and app developers need to make it clear that this particular token that you're interacting with has the permanent delegate extension applied. So join us again for the next episode, where we look at another extension that was added to the Token 22 program. I'm Colin from the Solana developer relations team. Until next time.

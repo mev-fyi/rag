@@ -1,0 +1,159 @@
+00:00:05.280 - 00:01:15.974, Speaker A: So welcome all to the second core community call. There is a number of agenda items that we've had proposed for this call. Currently, the list is first going over program runtime v two with Alexander Meissner and Alessandro. And I think Aditya as well, if he is on this call, then there was kind of requested as well to go over the transaction instruction limitations and figure out like what, what makes sense on both the fire dancer as well as our site to implement. And then finally, if we manage to make it in half time, we'll go over with the mango team, their application account, write fees, SIMD, and we'll go forward. So quick housekeeping note there is for future agenda items, we have a we're going to create like an issue for people to propose agenda items on so that it's not just reach out to someone and hope that it happens. So I'll put in the, I'll put the link to it here.
+00:01:15.974 - 00:01:37.464, Speaker A: And that ultimately though, for anything that gets proposed, we should have at least some documentation on it. It should be ready to discuss. It shouldn't just be an idea. But yeah, from there, Alexander, Alessandro, Aditya, if you're on, feel free to get started on program runtime v two.
+00:01:38.884 - 00:01:41.424, Speaker B: Okay, yeah, thanks. Thanks for the interrupt.
+00:01:42.884 - 00:02:04.648, Speaker C: Let me try to share my screen. Let's see. Okay. Yeah.
+00:02:04.696 - 00:02:05.764, Speaker B: Can everybody see?
+00:02:06.864 - 00:02:07.712, Speaker C: Yes.
+00:02:07.888 - 00:02:09.044, Speaker B: Okay, cool.
+00:02:10.824 - 00:02:11.296, Speaker C: Yeah.
+00:02:11.360 - 00:02:26.124, Speaker B: So, huge upcoming project. First of all, disclaimer, everything is still draft. It's not even a proposal yet. You won't find it in the simd for now.
+00:02:28.584 - 00:02:29.152, Speaker C: Yes.
+00:02:29.248 - 00:02:37.764, Speaker B: So lots of things to change. Timelines are still being worked out, and this is mostly a teaser to get some community feedback.
+00:02:39.584 - 00:02:44.324, Speaker C: So if these are things that you.
+00:02:44.364 - 00:02:46.824, Speaker B: The programmers on the chain, think.
+00:02:49.044 - 00:02:49.524, Speaker C: Are.
+00:02:49.604 - 00:02:55.196, Speaker B: Valuable to you, if this is something you want to see, or if there are things where you think like, oh.
+00:02:55.220 - 00:03:07.576, Speaker C: No, this is never going to work for us. Okay, so biggest revelation is we want.
+00:03:07.600 - 00:03:14.284, Speaker B: To support the move programming language. Some of you might have heard of it.
+00:03:17.264 - 00:03:21.344, Speaker C: Actually, we had very, very originally, even.
+00:03:21.384 - 00:03:40.638, Speaker B: Before the launch of our main beta, we had support for move at the very beginning, but we sketched it and we then implemented our now current trust ecosystem. So in that sense, xvmove is coming.
+00:03:40.686 - 00:03:46.294, Speaker C: Back to Solana, but this time we.
+00:03:46.334 - 00:04:08.538, Speaker B: Plan on actually compiling it, having it compiled and verified at deployment, which is something new. I think our chains so far have only been trying to interpret it. And further beyond that, we want to make it interoperable with delta front end.
+00:04:08.586 - 00:04:15.354, Speaker C: So we've seen, especially with Rust, which brings a lot of challenges, but also.
+00:04:15.474 - 00:04:25.162, Speaker B: Some very interesting opportunities. So yeah, what will change in the program?
+00:04:25.218 - 00:04:29.984, Speaker C: Runtime programs will become libraries essentially.
+00:04:30.444 - 00:04:43.980, Speaker B: So all the programs will be able to export types as well as constants and functions count as constants. All the functions will have static parameter.
+00:04:44.012 - 00:04:52.452, Speaker C: And return value signatures notion erics a lot on these public functions, and every.
+00:04:52.508 - 00:05:25.034, Speaker B: Public function will then be able to become entry point. So currently if you're not using some variable hiding framework like anchor, you would have noticed that you have to, or basically everybody is writing something like a dispatcher in the entry point. They deserialize the incoming instruction and then immediately call in something like a switch.
+00:05:25.074 - 00:05:32.254, Speaker C: Case or a matching pattern call another function.
+00:05:32.954 - 00:05:36.658, Speaker B: So that would not be necessary. You could just call into the right.
+00:05:36.706 - 00:05:51.030, Speaker C: Function directly and have it be using a type interface and also accounts would be context. So currently you have to use CLIs.
+00:05:51.062 - 00:06:01.134, Speaker B: And DCLis, and you need to know what you're doing and what your bytes are and how to interpret them. And in this new runtime you would.
+00:06:01.174 - 00:06:14.938, Speaker C: Essentially give every account type similar to a structure. It is not yet decided how dynamically.
+00:06:15.026 - 00:06:27.482, Speaker B: Size vectors are going to work in that, because obviously, as you know, structures have in rust degrees in Austin sea they have static layouts.
+00:06:27.658 - 00:06:31.530, Speaker C: So there is no concept in these.
+00:06:31.562 - 00:06:55.696, Speaker B: Programming languages of dynamically sized inlined members instructs. And also possibly you might have to statically declare dependencies. That's also not the side of yet. So by dependencies we mean the other.
+00:06:55.760 - 00:07:02.924, Speaker C: Programs you import types from and you use functions of.
+00:07:06.924 - 00:07:22.988, Speaker B: Okay, the other big change is going to be fine art sandboxing. So currently it's sandboxing. The idea of separating programs coming from different developers so that they cannot misbehave.
+00:07:23.116 - 00:07:27.876, Speaker C: Beyond their own little sandbox, is completely.
+00:07:27.940 - 00:07:34.662, Speaker B: Done by virtual machines and separated virtual address spaces, and we have one for.
+00:07:34.718 - 00:07:38.398, Speaker C: Every single instruction in a transaction, and.
+00:07:38.446 - 00:07:46.750, Speaker B: That is very inefficient. So in the current architecture we actually copy all the data in between that.
+00:07:46.782 - 00:07:53.434, Speaker C: Sections we have the feature ready isHTM.
+00:07:54.374 - 00:07:55.714, Speaker B: Which will instead.
+00:07:57.914 - 00:08:00.898, Speaker C: Memory map and share.
+00:08:00.946 - 00:08:02.490, Speaker B: The memory at least in between these.
+00:08:02.522 - 00:08:04.494, Speaker C: VMs of the accounts.
+00:08:08.234 - 00:08:19.570, Speaker B: But still, the programming model is, and continues to be for the old program runtime, that every single instruction gets its.
+00:08:19.602 - 00:08:22.654, Speaker C: Own new virtual address space.
+00:08:23.604 - 00:08:32.100, Speaker B: In this new runtime you want to change that. We want to make one big vm and one big address space for the entire transaction and share it across all.
+00:08:32.132 - 00:08:36.508, Speaker C: The instructions, and instead have to wait.
+00:08:36.556 - 00:08:45.584, Speaker B: Finer grained access control system, which basically does access control allocation of memory objects.
+00:08:50.794 - 00:09:02.402, Speaker C: You would be able to declare a type to make an instance of that type in some data, and then you.
+00:09:02.418 - 00:09:08.570, Speaker B: Could obviously store it in your own account and retrieve that from it. But you could also, this is not the interesting part. You could also pass it to some.
+00:09:08.602 - 00:09:12.258, Speaker C: Other program, and that program could also.
+00:09:12.306 - 00:09:35.394, Speaker B: Store it in its accounts and retrieve it from that and pass it along and so on. And all these programs would be prohibited from modifying the data. So for them, your exported types would be opaque. So now you would be wondering like what's the sense of exporting types when you can only have opaque types?
+00:09:35.814 - 00:09:41.572, Speaker C: So the idea here is that if.
+00:09:41.588 - 00:09:45.944, Speaker B: You want to do something with that object which you got from somebody else.
+00:09:46.244 - 00:09:54.220, Speaker C: You return it to them, you call them and say them, please do this modification.
+00:09:54.292 - 00:09:57.460, Speaker B: And now, as they are the owner.
+00:09:57.492 - 00:10:00.468, Speaker C: Of the type, they hopefully then know.
+00:10:00.596 - 00:10:06.704, Speaker B: What should be possible on this type and what should not. So in this sense, what this Atlanos.
+00:10:08.374 - 00:10:15.942, Speaker C: Completely speaking now is you could have assets declared in every single program.
+00:10:16.078 - 00:10:19.566, Speaker B: So for now currently on the chain, you have to use, for example, like.
+00:10:19.590 - 00:10:22.914, Speaker C: The token program to have a token.
+00:10:23.654 - 00:10:29.790, Speaker B: And with this model of exporting types, which are only modifiable by the program.
+00:10:29.862 - 00:10:32.794, Speaker C: Which export as a type, you could.
+00:10:32.834 - 00:10:37.814, Speaker B: Have every program be its own token program in that sense.
+00:10:41.194 - 00:10:42.374, Speaker C: Okay. And.
+00:10:44.074 - 00:10:55.694, Speaker B: With this comes also a change in how CPI works and syscalls work. So currently CPI calling one program in another program is really expensive and.
+00:10:57.894 - 00:11:00.406, Speaker C: Just slow and limited.
+00:11:00.510 - 00:11:15.158, Speaker B: So instead we want to make that more like a function call, essentially would be passing like the instruction parameters and the accounts, or small parameters like you.
+00:11:15.166 - 00:11:18.598, Speaker C: Work in a function problem and syscalls.
+00:11:18.726 - 00:11:29.508, Speaker B: Would be replaced by CPI to build them programs. So currently some of you might be aware that syscall is a special mechanism and that would also be going away.
+00:11:29.636 - 00:11:40.304, Speaker C: And just be treated as another call to another program, which happens to be a very time program. Yeah.
+00:11:42.684 - 00:11:49.580, Speaker B: This is actually the least clear for now what the exact new limits and costs like normally, because it obviously.
+00:11:49.612 - 00:11:52.854, Speaker C: Depends a lot on specifics on the implementation.
+00:11:53.514 - 00:12:03.322, Speaker B: But what we want to achieve here is to remove some of the most annoying limits. So one of them, probably most of.
+00:12:03.338 - 00:12:06.146, Speaker C: You have encountered, is that you cannot.
+00:12:06.210 - 00:12:17.290, Speaker B: Only reallocate accounts by a fixed amount of 10 instruction. And if you want to do more, you have to do a series of.
+00:12:17.322 - 00:12:29.722, Speaker C: Instructions and you can currently only do four CPI nested in each other, because.
+00:12:29.778 - 00:12:41.442, Speaker B: That also means that we have four vms suspended simultaneously. We need to keep the memory alive for the outer vms. So this is why it's limited for.
+00:12:41.458 - 00:12:45.438, Speaker C: Now, both of these limits should be.
+00:12:45.526 - 00:12:51.350, Speaker B: Gone additionally, a limit is that we.
+00:12:51.382 - 00:12:51.954, Speaker C: Have.
+00:12:54.094 - 00:13:04.398, Speaker B: A fixed stack and this stack is quickly consumed by the fact that every function call gets 4 stack frame.
+00:13:04.446 - 00:13:06.726, Speaker C: For that and we're switching to a.
+00:13:06.750 - 00:13:13.568, Speaker B: Dynamics stack pointer so that the compiler can actually dictate how much stick memory.
+00:13:13.616 - 00:13:16.120, Speaker C: It'S going to use in which function.
+00:13:16.272 - 00:13:18.632, Speaker B: And then hopefully more efficiently use the.
+00:13:18.648 - 00:13:36.766, Speaker C: Stake which should enable more or deeper function call traces. Yeah, CPI is I already said it's.
+00:13:36.790 - 00:13:52.634, Speaker B: Going to be cheaper, so we will also calculate less u for that. It won't be dependent on the account size anymore. I think that's also limiting factor for most of you. And Cisco might be slightly a bit cheaper.
+00:13:58.614 - 00:14:03.134, Speaker C: Then we probably gonna introduce the cost.
+00:14:03.214 - 00:14:10.134, Speaker B: For declaring programs in a transaction currently that is free.
+00:14:10.294 - 00:14:13.870, Speaker C: As far as I because we might.
+00:14:13.942 - 00:14:17.246, Speaker B: Switch to evil reloading programs which is.
+00:14:17.270 - 00:14:23.766, Speaker C: Currently lazy loaded and there will be.
+00:14:23.950 - 00:14:51.792, Speaker B: One base cost invoking program independent of if this program is doing anything at all or just returning immediately. This is also not the case. Currently there are different costs associated depending on if this program is a top level declared in the message of the transaction or generated by CPI. Yeah, then things which we are not.
+00:14:51.808 - 00:14:54.468, Speaker C: Guaranteed or and all of us which.
+00:14:54.516 - 00:15:09.744, Speaker B: Stay rust will still be the main programming ecosystem. So it's not that we are moving to move, we're staying with rust, we're just also implementing move for people.
+00:15:12.124 - 00:15:12.436, Speaker C: Who.
+00:15:12.460 - 00:15:14.300, Speaker B: Come from roof ecosystems and want to.
+00:15:14.332 - 00:15:18.820, Speaker C: Program on Solana this just part of the motivation.
+00:15:18.892 - 00:15:21.016, Speaker B: Bigger part is that we want to.
+00:15:21.040 - 00:15:30.736, Speaker C: Print these concepts of move, like having every function a possible entry point and.
+00:15:30.760 - 00:15:35.004, Speaker B: Having typed accounts, we want to bring them to us.
+00:15:36.664 - 00:15:42.804, Speaker C: And yeah.
+00:15:46.044 - 00:15:56.764, Speaker B: The one pain point you all know about having to declare all possibly accessed accounts called programs upfront and the transaction bed is going to remain.
+00:15:56.924 - 00:15:59.356, Speaker C: It has to do with how the.
+00:15:59.380 - 00:16:02.292, Speaker B: Transaction scheduler and batching works.
+00:16:02.468 - 00:16:10.836, Speaker C: And if you don't, or if the program runtime doesn't know that upfront, it.
+00:16:10.980 - 00:16:34.284, Speaker B: Gets really hard to do this efficiently. So this will remain something which probably needs some outer solution like simulation of the transaction to figure out which programs you actually want to call and then submitting the instruction.
+00:16:37.024 - 00:16:41.200, Speaker C: Then yeah, the account model is mostly unchanged.
+00:16:41.232 - 00:16:49.724, Speaker B: It will stay more or less the same like the accounts database is still a key value store. For the most part.
+00:16:53.344 - 00:16:56.192, Speaker C: The rent field.
+00:16:56.248 - 00:17:21.536, Speaker B: Is being deprecated, but that's already underway and the type field is going to be introduced. Now the interesting thing for you is probably how are we going to migrate from the current system to the new system. So we plan on doing a long migration period. By long I mean a year at.
+00:17:21.560 - 00:17:31.400, Speaker C: Least, I think, in which we will support both runtimes and you will be.
+00:17:31.432 - 00:17:42.614, Speaker B: Able to call the old runtime from the new one, not west versa. This gives you the opportunity to move all your funds into new programs.
+00:17:43.154 - 00:17:48.866, Speaker C: And in general, all these changes are.
+00:17:48.890 - 00:17:51.506, Speaker B: So fundamental that you probably have to.
+00:17:51.570 - 00:18:00.622, Speaker C: Rewrite and redeploy all the programs completely. So this is one big migration movement.
+00:18:00.678 - 00:18:03.502, Speaker B: Essentially, and therefore, we only want to.
+00:18:03.518 - 00:18:07.310, Speaker C: Do one so that the community doesn't.
+00:18:07.342 - 00:18:24.234, Speaker B: Have to, you know, do multiple waves of redeployments. We want to prevent that. And trying, we are trying to squeeze it all into one big update, essentially.
+00:18:26.594 - 00:18:34.770, Speaker C: Yeah. So this is it for my presentation and now.
+00:18:34.962 - 00:18:36.534, Speaker B: Yeah, for questions.
+00:18:38.394 - 00:18:38.890, Speaker C: Cool.
+00:18:38.962 - 00:18:39.770, Speaker A: Thank you, Alexander.
+00:18:39.802 - 00:18:40.274, Speaker C: Yeah.
+00:18:40.394 - 00:18:49.534, Speaker A: Being cognizant of time, we have about eight minutes left, so if people have any questions, especially from the fire dancer side, since this was a request.
+00:18:51.354 - 00:18:51.618, Speaker C: I.
+00:18:51.626 - 00:20:20.906, Speaker D: Have a couple of quick reactions, and I also, in the interest of time, are just, instead of asking a question, it's going to rattle off a bunch of things that I was making notes on as you were going. I think overall, my kind of quick reaction, I want to consider this the official reaction, but this is the first time we've seen anything more in detail about it, is there's a lot to like here. There's a lot of devils in the details, though, that we would have to sort out the more maybe down in the, in the fire dancer code base, the way we structured it is we actually started from the programming model we put together for pith for running stuff on chain, and then we've extended that to cover x 86, and we're writing all of our code within that to give us a lot of flexibility for writing both implementations to run stuff on chain and also do stuff on chain and give us some cross platform capabilities and interoperability with various kinds of hardware accelerations and whatnot we're planning. But with all that, what you're describing nicely maps onto that. So I'm not seeing anything there that structurally impacts at a very low level. A lot of our development plans, where things look a little bit more, is on the logistical side, which is, what's the kind of timeframe expected for this? What's the, how certain is this? I know you mentioned this before, not even a proposal, just a thing kind of throwing out there. And then when we're looking at it, we're essentially like, my thing is, should we be targeting to just implement this, or we should implement both, or should we target the old thing and then wait to see if this happens and then you already addressed this a little bit.
+00:20:20.906 - 00:20:57.044, Speaker D: What's the kind of thinking around interoperability costs and some of the details that we go in there? I think there's a secondary thing that would be in there that is also we've done a lot of work on cost estimation. We're spinning up a lot of our internal plant resources to do even more elaborate work on there. And if this is going to change the cost models, that changes some of the quantitative research we'd like them to be doing on existing transactions. And so more details on that would also be of interest to us. I'll shut up now and let other people talk or try to get in the remaining five minutes, but it's done. Sorry for talking really fast there. I was trying to cram a lot in, in the interest of time.
+00:21:01.264 - 00:21:09.204, Speaker B: Yeah, just, just to quickly try to answer them. So like I said, time frames not clear at all.
+00:21:09.904 - 00:21:16.706, Speaker C: We, like our, or most optimistical one.
+00:21:16.770 - 00:22:18.856, Speaker B: Is to have at the end of the midterm something on Testnet, but like really, really minimal MVP with most of the features missing. Just to have some rough idea what this is going to feel like. No documentation, no support whatsoever, just really the raw code base, the skeleton of the cloud based essentially. And for how committed are we on this? This is actually the spawned out of another project which is going on for two years now to reform the existing program runtime. And I think we have reached the limits on what's possible without breaking day Rai. So this is all the things we have collected in the last two years which are wrong with our current architecture and how we want to reform it. So I think there's definitely something coming in this sense, if it will be exactly this thing which I just presented.
+00:22:18.880 - 00:22:26.064, Speaker C: To you that is still up to debate. And the other thing about fire dancer.
+00:22:26.104 - 00:22:55.300, Speaker B: Yes, I most likely expect you will still have to implement the old program runtime because of this long migration period. So we're speaking here about maybe something ready on mainnet in a year and then another year of migration period. So if you only start implementing the program runtime in two years, then you might get away with not implementing the algorithm. But if you want to be faster.
+00:22:55.372 - 00:22:58.684, Speaker C: Then you would have to implement both.
+00:23:07.064 - 00:23:07.964, Speaker B: Thank you.
+00:23:11.744 - 00:23:17.844, Speaker A: Okay, with four minutes left, does anybody want to get into any other questions?
+00:23:22.304 - 00:23:24.964, Speaker E: Can I raise my instruction limit request?
+00:23:26.114 - 00:23:27.014, Speaker A: Go ahead.
+00:23:27.474 - 00:23:42.810, Speaker E: So some of us talked about this in the discord, but we're interested in limiting the number of instructions in a transaction because especially as a transaction size grows or as the maximum MTU grows.
+00:23:42.962 - 00:23:43.654, Speaker C: Then.
+00:23:45.514 - 00:23:58.764, Speaker E: You have this problem where someone could put like 1000 instructions in one transaction and they're useless instructions. But we don't want to support that basically, and we don't think there's a compelling use case for it.
+00:23:58.804 - 00:24:07.900, Speaker B: Yes, this is already, independently of this project, we have a feature for that already on the schedule. This will be limited, I think, to.
+00:24:07.932 - 00:24:13.372, Speaker C: Something like 50 or 60, even better. Yeah.
+00:24:13.468 - 00:24:23.354, Speaker B: So we measured what the longest currently used transactions are on the system and was something about, so we thought limited.
+00:24:23.394 - 00:24:26.054, Speaker C: To something slightly above that.
+00:24:26.754 - 00:24:33.618, Speaker E: Okay, thanks. So this is a feature flag that has not been activated yet.
+00:24:33.786 - 00:24:35.854, Speaker B: Yeah, that's already on schedule.
+00:24:36.754 - 00:24:41.330, Speaker C: Oh, okay. If you ping me on discord in.
+00:24:41.402 - 00:24:45.386, Speaker B: The virtual machine channel, then I can.
+00:24:45.410 - 00:24:51.454, Speaker C: Send you the, sorry, which channel? Virtual machine. Virtual machine.
+00:24:51.494 - 00:24:52.554, Speaker E: Got it. Thank you.
+00:24:58.494 - 00:25:07.634, Speaker A: Okay, is there any other questions on the runtime? V two and apologies, mango team, I don't think we're going to be able to get to your, your simd yet.
+00:25:13.474 - 00:25:14.722, Speaker C: Okay, cool.
+00:25:14.898 - 00:25:54.614, Speaker A: So thank you all for coming to talk about this. For the future agenda items. What we're going to do is we're going to have it all on GitHub. I'm just going to create a new issue for the next call, and if you want to propose a new item for the agenda, you can just leave it there and then hopefully we can get more information there as well. It's like documentation ahead of time so that we can have a more productive conversation when we get to this call. I think we might have to make this call longer in the future, depending on what the agenda items, or do it more often. I'll reach out to you all to decide on how we do that, but yeah, thank you everyone for coming today.
+00:25:54.614 - 00:25:57.994, Speaker A: Bye.

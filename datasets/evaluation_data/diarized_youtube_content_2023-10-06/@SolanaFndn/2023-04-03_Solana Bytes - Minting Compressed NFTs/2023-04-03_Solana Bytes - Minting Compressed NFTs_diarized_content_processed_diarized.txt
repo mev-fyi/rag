@@ -1,0 +1,138 @@
+00:00:05.200 - 00:00:06.032, Speaker A: GMGM.
+00:00:06.032 - 00:00:08.134, Speaker B: I'm Nick from the Solana Foundation Devrel.
+00:00:08.174 - 00:00:09.246, Speaker A: Team and today we're going to be.
+00:00:09.270 - 00:00:17.278, Speaker B: Talking about minting compressed nfts on Solana. So let's dive into creating a compressed NFT collection on Solana. You can see here in my console.
+00:00:17.326 - 00:00:19.142, Speaker A: I am connected to Devnet and I.
+00:00:19.158 - 00:00:21.270, Speaker B: Have this NIC account already set up.
+00:00:21.302 - 00:00:22.630, Speaker A: And it's funded with Sol.
+00:00:22.782 - 00:00:26.150, Speaker B: You can see my current balance is about 39.8 solution.
+00:00:26.150 - 00:00:27.706, Speaker A: In the end we'll see how much.
+00:00:27.810 - 00:00:30.586, Speaker B: The actual cost is to create our NFT collection.
+00:00:30.690 - 00:00:31.842, Speaker A: So as we start out, we have.
+00:00:31.858 - 00:00:32.970, Speaker B: A bunch of imports at the top.
+00:00:33.002 - 00:00:38.986, Speaker A: Of this file in my local repo. So let's actually dive into the code.
+00:00:39.090 - 00:00:40.866, Speaker B: I have a local repo scaffolded out.
+00:00:40.930 - 00:00:44.346, Speaker A: It's a typescript repo using the imports.
+00:00:44.370 - 00:00:45.874, Speaker B: From the common libraries that you're probably.
+00:00:45.914 - 00:00:53.852, Speaker A: Already used to, including web3 js and some of the metaplex token metadata SDKs. Two of the additional ones that we're.
+00:00:53.868 - 00:00:55.668, Speaker B: Adding in here is the account compression.
+00:00:55.796 - 00:01:01.228, Speaker A: SDK and the bubblegum SDK to actually give us the helper functions for creating.
+00:01:01.276 - 00:01:07.796, Speaker B: And working with compressed nfts. As we start out, we're defining two different wallets. One of them is the payer that's.
+00:01:07.820 - 00:01:15.344, Speaker A: Loaded from my file system and that's that NIC account. And then we're going to generate a new test wallet and we'll display those out into the console.
+00:01:16.084 - 00:01:19.060, Speaker B: Next we're actually creating our connection to the cluster.
+00:01:19.172 - 00:01:21.100, Speaker A: In my case, I'm using an environment.
+00:01:21.172 - 00:01:23.372, Speaker B: Variable called RPC URL that's storing the.
+00:01:23.388 - 00:01:28.444, Speaker A: Environment variable to an RPC provider that supports the custom RPC endpoints.
+00:01:28.564 - 00:01:30.700, Speaker B: And I'm actually using a custom wrapper.
+00:01:30.732 - 00:01:32.908, Speaker A: Connection class that's stored within this repo.
+00:01:33.036 - 00:01:34.476, Speaker B: To make it a little bit easier.
+00:01:34.540 - 00:01:37.404, Speaker A: To make all of these additional RPC calls.
+00:01:37.564 - 00:01:41.100, Speaker B: Basically, this is just a wrapper class built on top of the normal web.
+00:01:41.132 - 00:01:48.496, Speaker A: Three js connection class that adds additional method endpoints that I can easily call. But under the hood these are all.
+00:01:48.520 - 00:01:54.568, Speaker B: Just post requests to the RPC provider that support these custom RPC endpoints for the compression data.
+00:01:54.696 - 00:01:56.744, Speaker A: After we create the connection, I'm going.
+00:01:56.744 - 00:02:12.392, Speaker B: To go ahead and grab my initial balance so we can demonstrate the actual cost of creating all of our compressed nfts. Next, we're defining a couple of variables to define our actual tree size that's going to hold all of our compressed nfts. There's three primary values used to determine your tree size, and in the end.
+00:02:12.448 - 00:02:19.326, Speaker A: Also the cost of creating your tree on chain. That's your max depth, your buffer size and your canopy depth. Your max depth can be thought of.
+00:02:19.390 - 00:02:20.862, Speaker B: As the total number of nodes that.
+00:02:20.878 - 00:02:26.334, Speaker A: You'Re going to have. So if you have a max depth of 14, you're going to have about 16,000 nodes.
+00:02:26.494 - 00:02:29.470, Speaker B: And you can do this calculation by taking two to the power of your.
+00:02:29.502 - 00:02:36.046, Speaker A: Max depth to calculate how many possible nodes you can have in any given tree. In my case, I'm doing a depth.
+00:02:36.070 - 00:02:37.222, Speaker B: Of 14, which is going to give.
+00:02:37.238 - 00:02:40.550, Speaker A: Me about 16,000 nodes or 16,000 compressed.
+00:02:40.582 - 00:02:43.048, Speaker B: Nfts I can store within this one tree.
+00:02:43.206 - 00:02:54.252, Speaker A: Next, I'm defining my canopy depth. Right now I'm setting it to max depth minus five. So in this case I'm going to be setting it to nine. And basically your canopy depth is how much additional on chain data and part.
+00:02:54.268 - 00:02:57.908, Speaker B: Of your on chain proof is actually going to be stored in that secure changelog.
+00:02:58.036 - 00:03:05.716, Speaker A: The larger your canopy depth is, the more additional cost you're going to have to pay to create your tree upfront. The big important thing about setting all.
+00:03:05.740 - 00:03:11.654, Speaker B: Three of these values correctly up front is that a you cannot change these values once you create your tree and bind.
+00:03:11.654 - 00:03:13.384, Speaker A: If your canopy depth is too small.
+00:03:13.464 - 00:03:18.296, Speaker B: You might potentially run into composability issues because you will hit transaction size limits.
+00:03:18.360 - 00:03:22.992, Speaker A: When interacting with your tree. And then here for demonstration purposes, I.
+00:03:23.008 - 00:03:29.064, Speaker B: Am calculating how much space is required to allocate our merkle tree on chain, as well as calculating the storage cost.
+00:03:29.144 - 00:03:32.280, Speaker A: To be rent exempt. And then we're logging that out to the console.
+00:03:32.432 - 00:03:33.656, Speaker B: Next we actually get into the heart.
+00:03:33.680 - 00:03:40.220, Speaker A: Of creating our tree. We're going to create our tree using this helper function. This is a very standard process of.
+00:03:40.252 - 00:03:45.340, Speaker B: Creating a tree on chain. You need to derive a tree authority address that's owned by the bubblegum program.
+00:03:45.492 - 00:03:52.876, Speaker A: Which is the compressed NFT standard on Solana. Then we need to allocate enough space for the tree on chain and this.
+00:03:52.940 - 00:04:00.956, Speaker B: Alloc function is stored within the compression SDK. And you can see it's automatically going to calculate how much space is required.
+00:04:01.020 - 00:04:03.232, Speaker A: To store our treon chain and then.
+00:04:03.248 - 00:04:04.472, Speaker B: It'S going to allocate that space and.
+00:04:04.488 - 00:04:07.520, Speaker A: Pay for the transaction. Next, we're going to create our tree.
+00:04:07.552 - 00:04:10.584, Speaker B: Instruction using the helper function that's provided.
+00:04:10.624 - 00:04:13.072, Speaker A: By the bubblegum SDK, which takes in.
+00:04:13.088 - 00:04:18.000, Speaker B: The parameters you can see here. The things to note is our Merkle tree value is our public key of.
+00:04:18.032 - 00:04:19.872, Speaker A: Our tree on chain.
+00:04:20.008 - 00:04:21.504, Speaker B: And then the compression program we're going.
+00:04:21.504 - 00:04:23.384, Speaker A: To use is going to be set.
+00:04:23.424 - 00:04:25.364, Speaker B: To the default account compression program.
+00:04:25.744 - 00:04:28.994, Speaker A: And then we have this log wrapper program called SPL no Op.
+00:04:29.104 - 00:04:36.670, Speaker B: This is basically an additional program that helps with the on chain logging of our secure log information. Next, we're passing in our total buffer.
+00:04:36.702 - 00:04:38.862, Speaker A: Size and depth in order to make.
+00:04:38.878 - 00:04:42.782, Speaker B: Sure our tree has enough space allocated on chain. And then we take those instructions, put.
+00:04:42.798 - 00:04:49.726, Speaker A: Them in a transaction, send them to the cluster and sign them. Then we're going to go ahead and log out the explorer URL for ease of use.
+00:04:49.870 - 00:05:02.906, Speaker B: Next, we're going to actually create our NFT collection using the metaplex standards. Compressed NFTs and traditional NFTs all use the same collection information and collection value. So you're going to create your compressed NFT collection the exact same way you.
+00:05:02.930 - 00:05:05.498, Speaker A: Would with normal non compressed nfts.
+00:05:05.626 - 00:05:11.978, Speaker B: I have this helper function, createcollection inside of here, which goes through the normal process of creating a collection, minting a.
+00:05:11.986 - 00:05:14.162, Speaker A: Single token to it, and then generating.
+00:05:14.218 - 00:05:15.994, Speaker B: All the applicable addresses that we're going.
+00:05:15.994 - 00:05:19.266, Speaker A: To need later on. The thing to note here is that.
+00:05:19.290 - 00:05:22.434, Speaker B: An NFT collection is not the same thing as a Treon chain.
+00:05:22.554 - 00:05:24.712, Speaker A: You can have one NFT collection that.
+00:05:24.738 - 00:05:34.556, Speaker B: They can have multiple trees being used within that collection. In fact, depending on the size of your collection, the size of your trees, you'll more than likely want to use multiple smaller trees in order to store.
+00:05:34.580 - 00:05:35.788, Speaker A: A large collection on chain.
+00:05:35.876 - 00:05:40.188, Speaker B: And that's primarily due to the amount of transaction bytes that you're going to have to send across.
+00:05:40.276 - 00:05:42.180, Speaker A: The larger your tree is, the more.
+00:05:42.212 - 00:05:43.356, Speaker B: Additional accounts you're going to have to.
+00:05:43.380 - 00:05:46.300, Speaker A: Send and the closer you're going to get to your transaction size limit.
+00:05:46.412 - 00:05:51.676, Speaker B: And finally, we're going to actually create our compressed NFT on chain. Compressed NFT is just like traditional nfts.
+00:05:51.700 - 00:05:53.330, Speaker A: On Solana are going to follow the.
+00:05:53.362 - 00:05:55.554, Speaker B: Exact same metadata standard, so you define.
+00:05:55.594 - 00:05:57.522, Speaker A: Them in the exact same method that.
+00:05:57.538 - 00:06:01.370, Speaker B: You'Re already used to for creating traditional nfts. The only difference is how you're actually.
+00:06:01.402 - 00:06:03.978, Speaker A: Going to mint them on chain. And you can see here we're going.
+00:06:03.986 - 00:06:09.698, Speaker B: To mint two compressed nfts using this helper function. The first one we're going to mint to our payer account, and the second.
+00:06:09.746 - 00:06:11.474, Speaker A: One we're going to mint to our test wallet.
+00:06:11.634 - 00:06:15.506, Speaker B: The mint compressed NFT helper function takes in all the information about our tree.
+00:06:15.530 - 00:06:17.090, Speaker A: And our collection that we need, as.
+00:06:17.122 - 00:06:20.842, Speaker B: Well as the receiver address of who's going to actually receive the NFT that.
+00:06:20.858 - 00:06:21.616, Speaker A: We'Re going to mint.
+00:06:21.730 - 00:06:23.612, Speaker B: We're going to derive the tree authority.
+00:06:23.668 - 00:06:27.388, Speaker A: Owned by the bubblegum program again, as well as a signer that we'll be.
+00:06:27.396 - 00:06:28.844, Speaker B: Able to sign for our given tree.
+00:06:28.964 - 00:06:30.212, Speaker A: And the thing to note is when.
+00:06:30.228 - 00:06:35.188, Speaker B: You'Re generating this bubblegum signer, it's using a hard coded value of collection CPI.
+00:06:35.316 - 00:06:38.396, Speaker A: And this is a custom prefix that's built within the bubblegum program.
+00:06:38.540 - 00:06:53.022, Speaker B: If this value is changed, it will not be able to actually sign the transaction correctly. Next, we're going to actually create our mint instruction using the helper function provided by the bubblegum SDK. In here you can see we're passing in pretty standard information in order to do an NFT mint. Some of the newer information that you.
+00:06:53.038 - 00:06:54.510, Speaker A: Might not be used to is we're.
+00:06:54.542 - 00:06:56.150, Speaker B: Passing in our merkle tree address on.
+00:06:56.182 - 00:07:03.662, Speaker A: Chain the tree authority and the delegate. Pretty straightforward there, but then we have this leaf owner and leaf delegate value. The leaf owner is actually going to.
+00:07:03.678 - 00:07:05.350, Speaker B: Be the receiver of the NFT.
+00:07:05.502 - 00:07:09.102, Speaker A: So that can be the payer that's actually paying the transaction, or that can.
+00:07:09.118 - 00:07:12.198, Speaker B: Be any other address on Solana. If you're trying to airdrop an NFT.
+00:07:12.246 - 00:07:14.278, Speaker A: To someone, the leaf delegate will have.
+00:07:14.326 - 00:07:20.886, Speaker B: Delegated authority over this specific NFT and will be able to perform different actions on it. In our case here, we're setting it.
+00:07:20.910 - 00:07:25.270, Speaker A: To the payer account irregardless of where the NFT is going next.
+00:07:25.302 - 00:07:26.854, Speaker B: We're passing in all of our collection.
+00:07:26.894 - 00:07:29.702, Speaker A: Information to mint to our collection, and.
+00:07:29.718 - 00:07:34.086, Speaker B: Then we're passing in some additional accounts, including our compression program, the log wrapper.
+00:07:34.110 - 00:07:36.634, Speaker A: Program, and our token metadata program.
+00:07:37.054 - 00:07:39.926, Speaker B: Finally, we send our actual NFT metadata.
+00:07:39.990 - 00:07:41.806, Speaker A: To the chain, which will then be.
+00:07:41.830 - 00:07:45.902, Speaker B: Hashed on chain and stored securely. We package up the instruction, send it.
+00:07:45.918 - 00:07:51.366, Speaker A: In a transaction over, and then we're going to log out and explore URL again. And then the last bit of this.
+00:07:51.390 - 00:07:53.966, Speaker B: Script is I'm going to get the updated balance and we're going to log.
+00:07:53.990 - 00:07:59.694, Speaker A: It out to the console so we can see how much it actually costs to create all of our NFT collection.
+00:07:59.854 - 00:08:01.302, Speaker B: So now we'll go ahead and actually.
+00:08:01.398 - 00:08:04.182, Speaker A: Run this script to go through the.
+00:08:04.198 - 00:08:09.110, Speaker B: Full process of creating our compressed NFT collection and minting two compressed nfts to.
+00:08:09.142 - 00:08:15.026, Speaker A: Our two different wallet addresses. So once the entire script is run.
+00:08:15.090 - 00:08:16.378, Speaker B: We can see that our total cost.
+00:08:16.426 - 00:08:19.466, Speaker A: To create our treon chain, create our.
+00:08:19.490 - 00:08:21.754, Speaker B: NFT collection, mint a token to it.
+00:08:21.834 - 00:08:24.154, Speaker A: And then mint two compressed nfts took.
+00:08:24.194 - 00:08:26.186, Speaker B: Us only 0.45 sol.
+00:08:26.330 - 00:08:27.346, Speaker A: You can see at the top here.
+00:08:27.370 - 00:08:29.058, Speaker B: How much space was actually required to.
+00:08:29.066 - 00:08:38.594, Speaker A: Be allocated for our tree given our depth size and canopy size, and then the actual estimated cost in Sol to actually create that tree.
+00:08:38.714 - 00:08:40.098, Speaker B: So creating the tree itself is the.
+00:08:40.106 - 00:08:47.938, Speaker A: Bulk of the transaction because you're actually paying that fee upfront to allocate all that space ahead of time and then every subsequent action.
+00:08:48.106 - 00:08:53.394, Speaker B: Basically, you're just having to pay the actual transaction fee for normal transactions on Solana.

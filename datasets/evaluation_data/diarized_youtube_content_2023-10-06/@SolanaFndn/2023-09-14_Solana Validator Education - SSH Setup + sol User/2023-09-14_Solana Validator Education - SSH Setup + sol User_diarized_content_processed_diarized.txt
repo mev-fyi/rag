@@ -1,0 +1,168 @@
+00:00:01.840 - 00:00:31.426, Speaker A: All right, welcome, everyone to the Solana Validator educational workshop. This will probably be a quicker one, but we're going to talk about SSH setup and let's get to the agenda. Setting up the sole user for the Solana validator operations. So the agenda today is pretty minimal. The reasons for. First thing is the reasons for not using root login. As many of you probably know, using root for everything is not a great practice.
+00:00:31.426 - 00:00:39.610, Speaker A: Can lead to, you know, if there is a breach of access on your machine, it could give the attacker more.
+00:00:39.642 - 00:00:41.414, Speaker B: Access than you would like.
+00:00:42.434 - 00:00:51.010, Speaker A: It's also just kind of sloppy, right? Like it's really easy to accidentally do things to screw things up. You might delete a file you didn't intend to, that might have been saved.
+00:00:51.042 - 00:00:52.894, Speaker B: If you had not been the root user.
+00:00:54.664 - 00:01:33.864, Speaker A: Talk a little bit about the setup, kind of an overview of what we're going to do, and then I'll demo it on a machine. And the machine is pretty much untouched. So far I have root access but nothing else. Just as kind of a meta note here. The reason I'm going through this is because in some of the earlier educational workshops, I kind of used a root user as a quick way to get to other things I wanted to talk about. But this is obviously a good practice. As soon as you get a new machine to disable the root login and make it so that only your sole account or whichever user that you create has access to your SSh access to your machine.
+00:01:36.764 - 00:01:39.324, Speaker B: All right, get the comments up.
+00:01:39.484 - 00:01:46.272, Speaker A: I'm not sure if everybody can see it. I'll put it in the chat again. There is a link to all the instructions I'm going to go over in a gist.
+00:01:46.388 - 00:01:48.684, Speaker B: So I just put that in the notes as well.
+00:01:51.704 - 00:02:28.774, Speaker A: Okay. Just for the sake of anybody watching this in the future, if you don't already know, what is the root user? The root user is a special user on Linux and Unix computers. Gives you the right to do anything on the machine. It's the highest level of access on a system. And it's generally not a great practice to use that for everything that you do on a system because that means that, like I mentioned before, if you make any mistakes for critical files on the system, you could really mess up the system. And if anyone gains access to the system, they have access to everything. There's no sort of guardrails or files that they can't see.
+00:02:28.774 - 00:02:51.680, Speaker A: Obviously any access to the system is bad, but especially bad if they get root access. Okay. Yeah, so I think I kind of went over that in the previous slide. But some main reasons not to do this. Solana software doesn't require root access. It runs in user space. So there's no reason to give the Solana software root access if you don't.
+00:02:51.712 - 00:02:52.964, Speaker B: Need to give it root access.
+00:02:54.544 - 00:03:45.714, Speaker A: And a non root user can be given pseudo privileges. So you can accomplish everything you want to accomplish as root with another user. So it just requires a little bit of setup to avoid potential problems later on. Another thing to be aware of, we're going to talk about disabling root access via ssh. There's a lot of bots out there that may be trying to access your system just by using passwords in a password list or whatever sort of brute force attacks they're doing. If you disable root access, that's one automated thing that they can't easily do. They might still guess that you have a sole user, but it just makes it a little bit harder if you don't have the root user, which most Unix systems just come with root user automatically, so it's a lot easier to guess that.
+00:03:45.714 - 00:04:29.434, Speaker A: Yeah, so some mitigations to stop these issues, right? Don't use the root user for your validator. Disable password based SSH access like I mentioned before. That should mitigate some bot attacks. Disable root SSH access and finally install software that limits login attempts like fail to ban. Fail to ban is a really easy software to install. The default just works out of the box and it has some attempt limits. So if someone tries to automated, tries an automated script to log into your machine by again and again and again doing SSH attempts, it will eventually block that IP address.
+00:04:29.434 - 00:04:44.314, Speaker A: Okay, so before I get into like the details of how we're going to do this, any questions about the issue or what we're. The overview of what we're going to do to mitigate the issues.
+00:04:51.934 - 00:04:53.834, Speaker B: All right, let's get into it.
+00:04:54.454 - 00:05:14.074, Speaker A: So the first thing we want to do to get off the root user is to create another user that we're going to use to log in remotely. And in the setup docs, that's a sole user. Obviously you can name the user whatever you want to name it. That's just what we use in the docs. So I'm going to use Sol here for consistency.
+00:05:14.454 - 00:05:15.194, Speaker B: Sol.
+00:05:16.014 - 00:05:43.108, Speaker A: And I'm going to demo as I go here. So I'll be referring to this slide and then switching over to a terminal. Just the overview of the first step. We're going to create a sole user. We're going to give that user admin access using Sudo. We're going to verify that that user has sudo access. And then you need to create a key for that user to use to log in remotely.
+00:05:43.156 - 00:05:44.704, Speaker B: A ssh key pair.
+00:05:46.284 - 00:06:07.120, Speaker A: This thing can be a key pair that you already have or it could be a brand new key pair that you use only for this box. It's kind of up to you and how you want to manage your keys. But again, we need some key pair to put on that soleusers ssh directory so that we can ssh into it. And I'll go through all those steps.
+00:06:07.152 - 00:06:11.284, Speaker B: Now so it's a little more clear. So.
+00:06:13.064 - 00:06:20.084, Speaker A: Here'S my terminal and I've got a machine here that I've already created a.
+00:06:22.644 - 00:06:29.556, Speaker B: Alias for. So demo host. Right.
+00:06:29.580 - 00:06:35.852, Speaker A: So this machine has nothing in it. I am logged in as root, as you can see here.
+00:06:35.908 - 00:06:37.384, Speaker B: Let me make that a bit bigger.
+00:06:38.844 - 00:06:42.236, Speaker A: And I do not have any other users other than root.
+00:06:42.300 - 00:06:43.692, Speaker B: I just have the root user.
+00:06:43.868 - 00:06:48.162, Speaker A: So I want to fix that. I want to create a sole user and I want to stop using the.
+00:06:48.178 - 00:06:49.334, Speaker B: Root user for everything.
+00:06:49.714 - 00:06:56.826, Speaker A: So if I refer back to my instructions here, first thing we want to do is create the user and add it to the pseudo group.
+00:06:56.890 - 00:07:08.402, Speaker B: Let's do that. Okay.
+00:07:08.498 - 00:07:53.980, Speaker A: And then I did not add that into the notes, but you would probably also want to create a password for that sole user. This obviously is optional. But the nice thing about doing this, if somehow somebody gets your key and compromises the machine, they still would have to also know the password for the sole user to use sudo. This can be an annoying thing. I know some people disable the password for the sudo user if you're using the sole user because if you have automated scripts that do something with Sudo, then it's kind of a pain to get that automated script to use the password. But it's sort of a trade off convenience versus security here. So anyway, I'm going to create a password for the sole user.
+00:07:53.980 - 00:07:55.424, Speaker A: We're going to use that throughout.
+00:07:56.004 - 00:07:58.944, Speaker B: Got one off screen that I'll copy over.
+00:08:06.624 - 00:08:13.304, Speaker A: All right, so now my sole user has a password. I've created it, I've made it a pseudo user.
+00:08:13.384 - 00:08:24.484, Speaker B: I can switch to that user and, okay, why did that not work?
+00:08:30.384 - 00:08:32.444, Speaker A: I guess we don't have a.
+00:08:34.513 - 00:08:38.973, Speaker B: Directory here for the sole user. I don't know why that didn't get created.
+00:08:40.153 - 00:08:41.057, Speaker A: Where are we?
+00:08:41.105 - 00:09:28.474, Speaker B: We're in the root. Okay, let's create it and let's make sure it's owned by the sole user. Okay. And this time no, still not working. Okay.
+00:09:28.854 - 00:09:52.792, Speaker A: I'm not sure what this warning is about. I'm going to ignore it for the sake of the demo. I don't think it's messing us up, but if it becomes an issue, we'll debug. All right, it's a fun of live demo. So next step, we want to create a key for the sole user and we want to put that key into the SSH directory.
+00:09:52.918 - 00:09:54.104, Speaker B: So let's do that.
+00:09:55.204 - 00:09:58.904, Speaker A: I'm going to open a new terminal and create the new key.
+00:10:11.444 - 00:10:13.236, Speaker B: All right, so I'm creating a new.
+00:10:13.260 - 00:10:23.914, Speaker A: Key pair locally on my local machine. Again, this is important. I'm not doing this on the remote server, but on my local machine because you don't want the private key to be on that remote server, you only.
+00:10:23.954 - 00:10:28.654, Speaker B: Want the public key to be there. So creating this.
+00:10:31.274 - 00:10:32.346, Speaker A: I'm going to overwrite.
+00:10:32.370 - 00:10:33.534, Speaker B: What I created earlier.
+00:10:39.594 - 00:10:54.830, Speaker A: There's some chat that I think is interesting in the comments that I'll add here. So Zen Tetsu says they subscribe to us text sending service and he gets a text message whenever there's a login attempt on his server, which is nice.
+00:10:54.942 - 00:10:55.646, Speaker B: Right?
+00:10:55.830 - 00:11:32.584, Speaker A: I'll talk a little bit about how to check that sort of manually, but having something that's automated that does that is a pretty cool feature. And there's a question of if you use two factor auth as well, you can set that up on your server as well. It may be cumbersome or difficult to set up for some, but I have not set it up. Essentially the, the comments are two factor auth is not overkill, but you just have to be careful.
+00:11:33.204 - 00:11:34.596, Speaker B: Yep. Okay, cool.
+00:11:34.740 - 00:11:46.468, Speaker A: No, it's good discussion. I want to bring it up. So thank you. All right. Created a key pair. Next step is to put that key pair, the public key pair on the remote server.
+00:11:46.636 - 00:11:51.064, Speaker B: So I'm going to cat this.
+00:11:53.964 - 00:11:58.276, Speaker A: So this is the public key pair or public key of the key pair that I just created.
+00:11:58.340 - 00:11:59.904, Speaker B: I'm going to copy this.
+00:12:02.364 - 00:12:04.544, Speaker A: And I'm going to edit.
+00:12:05.784 - 00:12:16.352, Speaker B: Oops. That's what I want this work. There we go.
+00:12:16.488 - 00:12:28.208, Speaker A: I'm going to make a Ssh folder and then I'm going to edit the authorized keys file in that sh folder.
+00:12:28.256 - 00:12:29.884, Speaker B: And paste that public key.
+00:12:30.984 - 00:12:37.260, Speaker A: All right, so now I should have the ability to ssh remotely to this.
+00:12:37.292 - 00:12:41.504, Speaker B: Server using the sole user that I just created. Let's try that.
+00:12:49.044 - 00:12:50.428, Speaker A: And we got permission denied.
+00:12:50.516 - 00:12:55.196, Speaker B: Sweet. What is wrong? Oh, right.
+00:12:55.340 - 00:13:09.296, Speaker A: So one thing about my system that you may run into as well is you created the key, you've copied it over. It seems like things are working, but you get this permission denied error. And in the next section here I've.
+00:13:09.320 - 00:13:11.484, Speaker B: Got some notes on troubleshooting.
+00:13:12.464 - 00:13:22.204, Speaker A: So first thing you should make sure is just make sure that authorized keys file exists and the public key is in that file. We did that. I'm pretty sure that was correct.
+00:13:22.624 - 00:13:23.484, Speaker B: Oops.
+00:13:24.864 - 00:13:43.312, Speaker A: The next thing to check is that oftentimes people have a config file in their sh folder that they may or may not even realize that's picking the key to use. So in my case, I don't want it to use my default key, I want to use the key that I just created. So what I'm going to do here.
+00:13:43.408 - 00:13:46.184, Speaker B: Is just add the I flag and.
+00:13:46.224 - 00:13:48.684, Speaker A: Tell it where my key pair is.
+00:13:59.124 - 00:14:00.396, Speaker B: There we go. Yeah.
+00:14:00.420 - 00:14:11.740, Speaker A: So that fixed the issue. So the problem was I had a config file, the config file was telling SsH to use a particular key pair that I didn't want it to use. So I just have to give it the correct one.
+00:14:11.932 - 00:14:15.460, Speaker B: And you can also, if you're having.
+00:14:15.532 - 00:14:35.614, Speaker A: Problems with the config file, you can also specify the config file and just give it dev null so that it doesn't have some weird settings that you're not sure about. So now when I do this, my ssh client is not using any config. It's only using the command line options that I give it.
+00:14:37.514 - 00:14:39.294, Speaker B: And I was able to ssh.
+00:14:44.274 - 00:15:05.280, Speaker A: Okay, so now I've verified ssh access with my sole user. Everything looks good. The next step is to actually make changes so the root ssh and the password based SSH is disabled. Before I go into that, let me.
+00:15:05.432 - 00:15:06.724, Speaker B: Look into more comments.
+00:15:13.364 - 00:15:21.012, Speaker A: Yeah, so there's a question that overclock had about the bastion system that Dan uses, or, sorry, Zan uses.
+00:15:21.068 - 00:15:23.624, Speaker B: Do you want to comment on that at all then?
+00:15:24.404 - 00:15:59.032, Speaker C: Yeah, sorry, I was, I was just talking with, with seven layer about that. I didn't mean to involve everyone. It's a very esoteric setup, but I feel it's very, very secure because you can't get to the validator through an SSH port that is publicly available. You have to go through a completely unrelated ip. And I managed to do that because I got my data center to give me two completely separate IP rate blocks that have no obvious correlation. But, you know, I'm, it's not something that most people would probably be able to set up. So I don't think it's worth really talking about, you know, to the group.
+00:15:59.032 - 00:16:11.460, Speaker C: But it is one way to do it. A bastion system is, is like a gate. You have to get into that and then from that you can get to the validator. And that just gives you some options to set up some extra sort of like steps. But again, it's pretty esoteric.
+00:16:11.612 - 00:16:40.248, Speaker A: Yeah, okay, makes sense. Yeah. Like I mentioned earlier, two factor auth is another option and you know, a good option. I haven't set it up personally, but probably a good thing to do a future call about if it's not too trivial. Okay, moving on. So warning here we're making changes to the SsH config. If these configs aren't changed properly, you could lock yourself out of the validator and not have access to the machine.
+00:16:40.248 - 00:17:06.434, Speaker A: So just be super, super sure that before you move on you are able to ssh with your sole user. And that setup works properly because if not, obviously if you're not able to ssh with a sole user and then you disable root ssh, you could be locked out. All right, so now we are going to make some changes.
+00:17:07.854 - 00:17:10.314, Speaker B: Let me open this up real quick.
+00:17:11.454 - 00:17:27.744, Speaker A: We're going to do that either in the SshD config file or in a different file that the SSHD config references. If you create this different file, you're going to have to add an include in the SSHD config. I'll show you where that should be.
+00:17:28.484 - 00:17:29.224, Speaker B: So.
+00:17:31.604 - 00:17:33.464, Speaker A: The ssh over here.
+00:17:36.884 - 00:17:39.704, Speaker B: And open that file.
+00:17:50.294 - 00:18:17.112, Speaker A: Okay, so in the very top of my config file you can see this include line. The include just includes other config files that aren't this main config. It's usually a good idea to make separate config files just to kind of keep the main one clean, but it's a preference obviously. I like to make a second one. So we're going to add a file in this sshdconfig D directory and that.
+00:18:17.128 - 00:18:46.494, Speaker B: Will be linked right here. Let's do that. And we need to pseudo that. All right, I see a password CD is not found.
+00:18:48.434 - 00:18:52.514, Speaker A: For some reason bash didn't get set up properly. Not sure why we can debug after.
+00:18:52.554 - 00:18:53.734, Speaker B: If we've got some time.
+00:18:54.234 - 00:18:56.494, Speaker A: So let's just do this.
+00:19:02.514 - 00:19:11.502, Speaker B: Old fashioned way. Let me see what, yeah, so it.
+00:19:11.518 - 00:19:28.478, Speaker A: Should be ssh sshdconfig D, and then we're going to call it whatever we want. But in this case I'm going to.
+00:19:28.486 - 00:19:31.894, Speaker B: Use disable root configuration or.com.
+00:19:33.874 - 00:19:39.094, Speaker A: Okay, then in this file we just want to include all those nos that I mentioned here.
+00:19:39.554 - 00:19:40.294, Speaker B: So.
+00:19:42.634 - 00:19:47.894, Speaker A: Response challenge. Response authentication, no, meaning no passwords.
+00:19:48.954 - 00:19:52.138, Speaker B: Same here, Pam.
+00:19:52.266 - 00:20:19.784, Speaker A: The next one we're going to add use Pam. No, that's a authentication module that allows other types of remote login. We don't want that and we don't want the root login. So these four, which are also in the notes, the gist that I sent you earlier, they should be sufficient for locking down ssh to only the ssh key that we created earlier.
+00:20:20.924 - 00:20:54.118, Speaker B: So I'm going to save this. Let's cat the file just to make sure. Just copy this over. It's the worst. Okay, here we go. All right, there it is.
+00:20:54.206 - 00:21:24.204, Speaker A: So we got the files all set up, everything looks reasonable. I'm going to now reload the ssh daemon and these new changes should take effect. So there we go. That's reloading ssh. Now at this point, root login should be disabled. So let's try it out. If I do ssh, root at.
+00:21:26.464 - 00:21:28.364, Speaker B: Was my demo host.
+00:21:31.144 - 00:21:33.164, Speaker A: Permission denied? That looks good.
+00:21:33.784 - 00:21:35.832, Speaker B: Now the next test, I should still.
+00:21:35.888 - 00:21:40.288, Speaker A: Be able to log in with my sole user success.
+00:21:40.376 - 00:21:41.364, Speaker B: That looks great.
+00:21:42.214 - 00:21:45.974, Speaker A: So it looks like it's working. The last step here that I mentioned.
+00:21:46.054 - 00:21:48.754, Speaker B: In the slides and in the gist.
+00:21:49.414 - 00:22:00.154, Speaker A: Is also a good time to install fail to ban, right? This is a pretty nice and commonly used tool that just rate limits login attempts.
+00:22:01.734 - 00:22:13.294, Speaker B: Let's add that as well. Ah, that's the problem.
+00:22:13.994 - 00:22:30.494, Speaker A: Okay, well, because of an install I tried earlier, this is not working. But that is no big deal. Fail to ban is a pretty easy install. It doesn't require any config. So assuming apt isn't doing something weird, this should work just fine.
+00:22:34.614 - 00:22:37.474, Speaker B: All right, next step. Here.
+00:22:41.574 - 00:22:55.114, Speaker A: Is what we just did. We verified that we cannot log in with the root user. We can log in with the sole user. Then we could also go back and see access attempts using the journal.
+00:22:57.994 - 00:22:59.614, Speaker B: Copy this over.
+00:23:03.874 - 00:23:06.614, Speaker A: So if I'm curious about what's going on in the journal.
+00:23:09.634 - 00:23:12.294, Speaker B: For my darn it.
+00:23:14.714 - 00:23:22.814, Speaker A: Ssh daemon, I can use this command to see all ssh activity in the last hour.
+00:23:26.974 - 00:23:28.714, Speaker B: Darn it. That's not working either.
+00:23:32.054 - 00:23:34.614, Speaker C: You just mistyped the a use misspelled journal control.
+00:23:34.734 - 00:23:35.834, Speaker A: Ah, that's why.
+00:23:39.374 - 00:23:56.154, Speaker B: El, that's the issue. Let me actually just make this at the top without having bash. This is really kind of a pain.
+00:23:56.234 - 00:23:57.202, Speaker A: Okay, there we go.
+00:23:57.338 - 00:24:11.434, Speaker B: That works. So. All right.
+00:24:11.514 - 00:24:12.534, Speaker A: And now.
+00:24:18.534 - 00:24:24.462, Speaker C: You may have to reset an stty stain at some point. Oh, you got it?
+00:24:24.598 - 00:24:26.274, Speaker A: Yep, I think I got it.
+00:24:26.974 - 00:24:36.366, Speaker B: Just need the password. Nope, I didn't maybe reset that will.
+00:24:36.390 - 00:24:45.090, Speaker C: Reset your terminal so that it isn't as confused about, is it? Because right now your output's not matching your input.
+00:24:45.242 - 00:25:01.178, Speaker B: Yeah. Okay. Journal ctl ah, okay.
+00:25:01.346 - 00:25:02.322, Speaker C: I don't know that.
+00:25:02.418 - 00:25:04.254, Speaker A: I'm not sure what's going on here.
+00:25:06.614 - 00:25:17.478, Speaker B: I swear this works once journalctl you. Oh my gosh.
+00:25:17.646 - 00:25:19.166, Speaker A: Okay, I'm just going to type the whole thing out.
+00:25:19.230 - 00:25:27.114, Speaker B: Journalctl ussh since dash 1 hour. There we go. Okay.
+00:25:27.454 - 00:25:35.516, Speaker A: Yeah, so now you can see all the SSH attempts that we've gotten. Any failed attempts, any successful attempts.
+00:25:35.540 - 00:25:37.116, Speaker B: So pretty useful.
+00:25:37.180 - 00:25:38.064, Speaker A: Pretty cool.
+00:25:39.524 - 00:25:42.544, Speaker B: Let's see what's the end here.
+00:25:43.844 - 00:25:48.796, Speaker A: Yeah, so for example, there was a.
+00:25:48.820 - 00:25:59.224, Speaker B: Password attempts for soul, which. Not sure how that happened. Yeah.
+00:25:59.264 - 00:26:02.912, Speaker A: So we disabled Pam. I'm not sure where this came from.
+00:26:02.968 - 00:26:05.416, Speaker B: This was two minutes ago.
+00:26:05.480 - 00:26:07.272, Speaker A: Maybe this was the disabling of the.
+00:26:07.288 - 00:26:42.684, Speaker B: Pam when we reloaded, but let's try a login attempt. I'll try on another screen here. And hopefully we should have it in our journal. Let me grab for test route. Yeah.
+00:26:42.724 - 00:26:57.034, Speaker A: Invalid user test. So this was the attempt with the test user that we can see the ip and all that. You could obviously parse your journal and look for things like invalid user attempts.
+00:26:57.774 - 00:27:01.514, Speaker B: Or other errors in your logs here.
+00:27:02.174 - 00:27:03.918, Speaker A: It sounds like Santetsu has a system.
+00:27:03.966 - 00:27:05.514, Speaker B: That does this automatically.
+00:27:10.054 - 00:27:55.786, Speaker A: Yeah, so that's the gist of what I've got at this point. We've got a sole user that can remotely SSh. We cannot ssh with any other users, including the root. And the Ssh user has pseudo access, but it's password based pseudo access, so no other, even if an attacker gains access to our server, they would have access to anything that the sole user has access to. But they couldn't create new users, couldn't do more. You can go a step further and even limit what pseudo commands the sole user has access to. That can get a little tricky because things like Vim for example, could execute arbitrary bash commands.
+00:27:55.786 - 00:28:05.334, Speaker A: So really locking that down is pretty difficult. But as long as you have a strong password for that user, I think that's a pretty good mitigation.
+00:28:07.294 - 00:28:07.822, Speaker B: Yeah.
+00:28:07.918 - 00:28:10.310, Speaker A: Any other questions at this point? Comments?
+00:28:10.382 - 00:28:11.206, Speaker B: Thoughts?
+00:28:11.390 - 00:28:18.114, Speaker C: Sorry, I didn't know. Did you mention putting Ssh on an odd port? I don't know if that. Is that what you, is that what you did?
+00:28:18.574 - 00:28:56.124, Speaker A: I did not know. Yeah. So another thing that people often do is rather than use port 22, which is the default, people sometimes put it on some other port that is not 22 so that any automated scripts looking for that machine can't easily find the port. Some people argue that port scanners solve that problem and it doesn't really help too much, but it's just one more layer of indirection that an attacker would have to go through in order to find your machine and attack it. So that could be another good option. Is that what you do, Zantetsu?
+00:28:56.464 - 00:29:20.316, Speaker C: Yeah, I agree. I agree with everything you said. It may be, it's just one tiny little bit of incremental benefit and it, it's really not, it only disadvantages that it makes a lot of SSH commands kind of annoying to use because you have to add the port to your command. And I find you can't do SCP and other stuff very easily, so you have to do SSH with copy commands anyway. It's, it's, as with all security, it's a little bit more inconvenience with a little bit, tiny bit of security benefit.
+00:29:20.460 - 00:29:45.736, Speaker A: Yeah, yeah, yeah. It's sort of the eternal trade off with security, right? Like the more secure you get, often the more annoying it is. And then sometimes if it gets too annoying, people sort of circumvent the security, which makes it even less secure. So you just have to decide at what level you're comfortable with the security of your system and how annoying it.
+00:29:45.760 - 00:29:47.364, Speaker B: Is to get that level of security.
+00:29:48.984 - 00:30:13.234, Speaker A: That's up to each individual operator. But I think this setup at the least is pretty good. You have pseudo access. You just need to use a password to get pseudo access. You're not allowing other users other than the sole user to ssh. And you can do most things that you need to do as an operator without having to do too much. Without too much of a headache, I should say.
+00:30:13.234 - 00:30:38.394, Speaker A: Yeah. Just going through the comments. Okay, I think that's it. Any other questions, thoughts? Kind of a shorter one today. If people have thoughts on other topics, let me know. Happy to do more. Or give the floor to someone else if they want to teach a topic.
+00:30:46.414 - 00:30:48.006, Speaker B: Okay, then, I'll call a day.
+00:30:48.070 - 00:30:51.558, Speaker A: Thanks everyone. See you next time. It'll probably be about a month from now.
+00:30:51.686 - 00:30:55.182, Speaker B: Try to post this one quickly. Cool.
+00:30:55.278 - 00:30:56.274, Speaker A: Thanks everybody.

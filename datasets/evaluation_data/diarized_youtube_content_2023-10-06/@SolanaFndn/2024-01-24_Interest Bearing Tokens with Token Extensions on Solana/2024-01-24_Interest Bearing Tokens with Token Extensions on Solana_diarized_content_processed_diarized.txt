@@ -1,0 +1,99 @@
+00:00:05.160 - 00:00:12.542, Speaker A: GM welcome to this episode of Solana Byte. And in this series we're taking a look at all of the extensions on the token 2022 program.
+00:00:12.718 - 00:00:14.510, Speaker B: In this episode we're focusing on the.
+00:00:14.542 - 00:00:16.994, Speaker C: Interest bearing tokens extension.
+00:00:17.294 - 00:00:33.488, Speaker A: So interest bearing tokens are tokens that can either increase or decrease in value over time, similar to how a bank savings account or loan accumulates interest. So the interest bearing extension allows you to set an interest rate on the token that is calculated continuously based on the network's timestamp.
+00:00:33.616 - 00:00:34.844, Speaker C: So how does it work?
+00:00:35.424 - 00:00:57.112, Speaker A: So the extension offers a new way to represent the value of the tokens. So no new tokens are actually created or minted to show this interest. It's only the displayed value of the token that increases. So think of it as just a visual representation. Think of it as seeing your bank balance increase due to interest. No new physical money is added or created. So in this guide we're going to walk through how to use the interest.
+00:00:57.208 - 00:01:00.964, Speaker C: Bearing extension to add interest rate to a token.
+00:01:01.544 - 00:01:37.216, Speaker A: So in this script we start off by connecting the cluster, generating the various keys that we need for this mint. Then we create a new interest bearing mint and set the interest rate to something ridiculously high, in this case 32,000%. So after that mint is created, we're then using the new amount to UI function to show how much interest has been accurate over a particular time for given amount. So in this case I use the input amount to be 1000 tokens and this is just showing the current interest that I've gained on that 1000 tokens. So we're going to take a look.
+00:01:37.240 - 00:01:38.444, Speaker B: At how to do this.
+00:01:39.904 - 00:01:42.564, Speaker D: So let's.
+00:01:46.224 - 00:02:02.092, Speaker C: Let'S make a new directory and we're going to CD into this directory. We're going to init a new NPM project and then we're going to install.
+00:02:02.228 - 00:02:03.852, Speaker A: The packages that we need.
+00:02:03.988 - 00:02:09.624, Speaker B: So Solana web3 Js and Solana SPl token.
+00:02:13.484 - 00:02:15.348, Speaker A: So let's now open this up in.
+00:02:15.396 - 00:02:16.504, Speaker B: Versus code.
+00:02:18.314 - 00:02:19.818, Speaker C: And we're going to create.
+00:02:19.906 - 00:02:27.410, Speaker B: A new file index ngs. We then add some helpers for some type check in.
+00:02:27.442 - 00:02:28.054, Speaker E: Cool.
+00:02:28.674 - 00:02:31.546, Speaker D: So the first thing that we need.
+00:02:31.570 - 00:02:38.610, Speaker A: To do of course is connect to Devnet and then create a pay account that we're going to fund to pay our transactions.
+00:02:38.682 - 00:02:44.334, Speaker D: We're going to do const connection equals new connection.
+00:02:45.004 - 00:02:46.908, Speaker B: We're going to use cluster API.
+00:02:47.076 - 00:02:49.784, Speaker D: Devnet confirmed.
+00:02:55.484 - 00:03:10.584, Speaker C: Then I'm going to create a new payer. Then we're going to airdrop.
+00:03:14.254 - 00:03:15.074, Speaker E: Whoa.
+00:03:24.574 - 00:03:25.766, Speaker C: Then we're going to send it to.
+00:03:25.790 - 00:03:28.214, Speaker B: The payer Lamport will just take one.
+00:03:28.254 - 00:03:33.074, Speaker D: Soul and we just wait for this to finish.
+00:03:51.474 - 00:03:51.898, Speaker E: Cool.
+00:03:51.946 - 00:03:54.362, Speaker A: So we now have a pay account that is funded.
+00:03:54.498 - 00:03:56.730, Speaker B: Now we want to set up the mint.
+00:03:56.922 - 00:04:01.214, Speaker C: So we're going to create a new keeper for our mint authority.
+00:04:03.894 - 00:04:04.486, Speaker D: Then going.
+00:04:04.510 - 00:04:12.230, Speaker B: To create one for the rate authority. And this rate authority is the authority.
+00:04:12.262 - 00:04:13.994, Speaker A: That can actually update the interest.
+00:04:16.774 - 00:04:20.742, Speaker B: Then we have the actual address for.
+00:04:20.758 - 00:04:28.754, Speaker D: The Mint, and then we can set the rates.
+00:04:29.854 - 00:04:37.214, Speaker A: And as in our example, I set it to 30, let's call it 37,000, just so that you can see the.
+00:04:37.294 - 00:04:39.798, Speaker B: Interest actually occur in our demo.
+00:04:39.926 - 00:04:41.054, Speaker C: But you'll probably set it to something.
+00:04:41.094 - 00:04:43.454, Speaker A: More realistic, like 10% or so.
+00:04:43.614 - 00:04:53.430, Speaker C: And the decimals we're going to use is zero. So now that we have all of.
+00:04:53.462 - 00:04:59.674, Speaker A: The required properties for our mint, we're now going to use the new helper function.
+00:05:01.974 - 00:05:10.606, Speaker C: Which is create interest bearing mint, which takes a connection, takes a payer.
+00:05:10.790 - 00:05:14.182, Speaker D: It takes a mint authority, it takes.
+00:05:14.198 - 00:05:16.070, Speaker C: A freeze authority, which in our case.
+00:05:16.102 - 00:05:20.214, Speaker A: Is still going to be the same as the Mint authority, takes the rate.
+00:05:20.254 - 00:05:22.262, Speaker B: Authority, which is the authority that can.
+00:05:22.318 - 00:05:24.034, Speaker A: Update the interest rate.
+00:05:24.344 - 00:05:35.856, Speaker C: It takes the rate, the decimals, the keeper, and it then takes options, which.
+00:05:35.880 - 00:05:48.764, Speaker A: Is going to leave us undefined. And then finally the program id, which is the token 22 program. So this would actually create for us a new account, initialize it as a mint, and also apply the interest bearing mint extension.
+00:05:49.704 - 00:05:51.704, Speaker B: So we're just going to go ahead.
+00:05:51.824 - 00:05:52.484, Speaker A: And.
+00:05:55.784 - 00:06:01.484, Speaker C: Log that so that we can see on Solskan.
+00:06:02.104 - 00:06:04.364, Speaker A: And then if now you want to.
+00:06:04.784 - 00:06:08.176, Speaker C: View the interest rate generated for this.
+00:06:08.200 - 00:06:16.244, Speaker A: Particular mint for given amount, there's a amount to UI amount function that you can use. So let's say if the account balance.
+00:06:16.944 - 00:06:22.144, Speaker D: Was 1000, the UI amount over time.
+00:06:22.804 - 00:06:26.500, Speaker B: You would then say await amount.
+00:06:26.612 - 00:06:32.596, Speaker C: UI amount takes a connection payer the mint and the amount which in our.
+00:06:32.620 - 00:06:41.236, Speaker A: Case is the account balance. And then of course the token 22 program. So this is actually how you would view the amount of interest that has accrued.
+00:06:41.380 - 00:06:44.212, Speaker D: So we're also going to log this.
+00:06:44.268 - 00:06:46.264, Speaker C: Out just once.
+00:06:50.674 - 00:06:53.574, Speaker B: UI mount. And this will give you an actual.
+00:06:56.914 - 00:07:03.094, Speaker D: Yeah, so let's run this node.
+00:07:05.394 - 00:07:06.374, Speaker E: Okay.
+00:07:08.434 - 00:07:09.802, Speaker C: So the interest rate that we.
+00:07:09.818 - 00:07:10.706, Speaker B: Set was too much.
+00:07:10.770 - 00:07:13.362, Speaker C: The upper bound is 32,000.
+00:07:13.418 - 00:07:13.938, Speaker B: So it's actually.
+00:07:13.986 - 00:07:18.434, Speaker D: Let's just again and that again.
+00:07:20.054 - 00:07:22.554, Speaker B: So we can take a look at our mint.
+00:07:24.214 - 00:07:26.434, Speaker C: If we search for this on source scan.
+00:07:30.094 - 00:07:31.314, Speaker D: Refresh that.
+00:07:36.054 - 00:07:53.064, Speaker A: So we can see that the token minute was created and it actually has the interest bearing extension set. And that rate is set to 32,000%, which again is ridiculous, but demonstrating so what we also saw here when we log the UI amount.
+00:07:55.044 - 00:07:55.636, Speaker D: It shows that.
+00:07:55.660 - 00:08:04.444, Speaker A: There'S only 1000 tokens because no time has moved, so you haven't incurred interest from the onset. So if we were to just log.
+00:08:04.484 - 00:08:06.744, Speaker B: This in a set interval.
+00:08:22.224 - 00:08:30.800, Speaker D: This async, and let's look this here, and we.
+00:08:30.832 - 00:08:34.363, Speaker B: Want to do this to say every 2 seconds.
+00:08:34.663 - 00:08:37.079, Speaker D: Now if we run this again, you'll.
+00:08:37.111 - 00:08:38.883, Speaker B: See that this value.
+00:08:42.423 - 00:08:43.923, Speaker D: Just run this again.
+00:08:46.063 - 00:08:47.655, Speaker C: So you can see now that we.
+00:08:47.679 - 00:08:51.423, Speaker A: Have that UI amount running every 2.
+00:08:51.463 - 00:08:53.639, Speaker C: Seconds, you can see that the interest.
+00:08:53.711 - 00:09:07.254, Speaker A: Is definitely occurring over time. And this is just done based on the timestamp. So we can see that now our extension does have the interest bearing mint, and also we can see how the UI amount is changing over time.
+00:09:08.274 - 00:09:15.626, Speaker B: There is also the way to update this interest rate. So if you want to update interest.
+00:09:15.730 - 00:09:19.530, Speaker C: Rate, you'll just set the new rate.
+00:09:19.642 - 00:09:22.818, Speaker B: So we say updated rate equals something.
+00:09:22.866 - 00:09:25.334, Speaker A: More realistic of let's say 50.
+00:09:25.674 - 00:09:29.562, Speaker C: Then we use the new helper function.
+00:09:29.698 - 00:09:32.778, Speaker B: Which is update rate interest bearing mint.
+00:09:32.946 - 00:09:36.570, Speaker C: Which takes the connection, the payer, the.
+00:09:36.602 - 00:09:47.546, Speaker A: Mint, the rate authority, which again that's the authority that has the ability to update the rate. It then takes the updated rates, takes the sign in account, which in our.
+00:09:47.570 - 00:09:50.882, Speaker C: Case is empty, have your options, and.
+00:09:50.898 - 00:10:00.276, Speaker A: Then the token 22 program. So this will actually so at a later time you can update the rate using this updaterate interest bearing main function.
+00:10:00.420 - 00:10:01.876, Speaker C: With the updated rate.
+00:10:02.060 - 00:10:22.644, Speaker A: So this interest bearing extension for token 22 on Solana introduces a simple mechanism for token to increase or decrease in value over time. So that's it for this particular episode. Join us again to see more videos on the other extensions on the Token 22 program. I'm Colin from the Solana Foundation's dev developer relations team. Until next time.

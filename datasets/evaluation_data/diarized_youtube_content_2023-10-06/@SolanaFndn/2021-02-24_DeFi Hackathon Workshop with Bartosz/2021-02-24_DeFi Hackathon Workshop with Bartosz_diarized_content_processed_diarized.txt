@@ -1,0 +1,311 @@
+00:00:01.520 - 00:00:03.114, Speaker A: For scaring those things away.
+00:00:57.374 - 00:08:14.394, Speaker B: For you. Sa hello everyone.
+00:08:15.254 - 00:08:58.712, Speaker C: So we are as a part of the Defi hackathon on Solana. I wanted to talk about programming model on Solana, what it means to build a smart contract and how everything is structured. And they figure the first place to start is actually with the explorer. So something outside necessarily of your visual studio code or your vim, and just explain how programs, accounts and transactions are kind of linked together. So when you go to explorer dot Solana.com, you can actually search for different accounts. And that includes both programs accounts with the data like the token accounts or native accounts, as well as transactions.
+00:08:58.712 - 00:09:40.214, Speaker C: And the reason I think it's an interesting place to start because it shows that everything on Solana is actually an account. Smart contracts are accounts, the accounts that you are storing, your native tokens are accounts, and the token accounts are just like accounts and so on as well. So let's start with a token program itself. So this is ERC 20 equivalent of token on Solana or standard on Solana. So you can see it's actually an account. It has some bytes saved to it, and its owner is bpfloader too. And you can see the list of transactions that happened here.
+00:09:41.914 - 00:09:45.374, Speaker A: So what that actually means is we.
+00:09:45.414 - 00:10:52.650, Speaker C: Deployed smart contract that is able to model a token interactions and effectively implements the interface similar to ERC 20. The reason that's important is when you are building smart contracts, you don't need to deploy your own token program. It's effectively one smart contract that is managing all the accounts for tokens for you, and you can actually use it. So whenever I click on the instructions here and the transactions that are happening, I can see all the inputs that are here. And this is extremely useful when you are coding your program, because you can identify actually what are the balances and what instructions were executed here. So for the known programs, like for example serum Dex, the explorer implemented matching of the names to the token instructions. When you are building your own smart contract, you will actually see unknown and the list of accounts and the data here in hex format.
+00:10:52.650 - 00:11:05.204, Speaker C: Within each transaction you can execute multiple instructions, and each transaction has a limit of how many operations it can run across all the across the instruction.
+00:11:07.264 - 00:11:07.528, Speaker A: You.
+00:11:07.536 - 00:11:38.474, Speaker C: Can also have inner instructions. And this is something that's called cross program invocation. So in this case, the serum Dex called the token program to execute the transfer of the amount of like zero. This probably like a fractional amount of something. And this is the most useful part from the explorer perspective, when you are developing something is actually this logo. So sometimes it can be extremely helpful. When you are adding message instructions in your code, you will actually see them here.
+00:11:38.474 - 00:12:46.672, Speaker C: The reason there is not much here, because those programs actually disable the messages to make the operations a bit more optimized. The other thing that's worth mentioning here, when you are talking about transaction and instructions, the transactions on Solana are charged a fixed fee based on the upper bound, so there's no rebates on. Like if your instruction is for example using less operations, you will not pay less in transaction fees. It's always the same amount based on the compute like upper level of compute units. So when you are, you will be able later to basically type your program account that you deploy your smart contract into the search box and just find specific instructions that were executed. So another one that's kind of good, a swap program and people integrate with it. So we recently on our network had this radium launch a swap.
+00:12:46.672 - 00:12:52.802, Speaker C: So some of the instructions would be actually under the serum Dex as well.
+00:12:52.938 - 00:12:58.202, Speaker B: Let me look for like Dex, I think say for the token program, the.
+00:12:58.218 - 00:13:20.562, Speaker C: One that I actually had here at the very beginning. This instruction that communicates with the Dex, this is probably instruction that was created either from the Dex UI directly or from the radium project that just launched on Solana. You can also run your local cluster, so you can basically switch the URL's here. You can connect to the Testnet or Devnet.
+00:13:20.618 - 00:13:22.386, Speaker A: Testnet is usually a good choice when.
+00:13:22.410 - 00:13:40.722, Speaker C: And you want to actually search for each deploy your program and start testing it with the token program as well. So token program across the different clusters on Solana will have the same address. So whenever you go to the account you can actually see the address here and you can copy it and paste.
+00:13:40.738 - 00:13:41.774, Speaker B: It in your code.
+00:13:43.114 - 00:14:32.560, Speaker C: And those program addresses are a bit interesting because they are actually generated of the curve. So they will not have the private key. And this is fairly important for cross program invocations because Solana will basically when you are doing invoked sign instruction for cross program invocations, you can add the program address as a signer and it doesn't need to sign the transaction. The Serana runtime will figure it out that it actually was executed by the program that has the ownership of the operations. And then all the talk from this contract, they are actually separate accounts that.
+00:14:32.592 - 00:14:44.420, Speaker A: Has, I like to think of everything installed as files. So all the accounts are just like files on your operating system and just happen. Some of those files are executable and.
+00:14:44.452 - 00:14:54.304, Speaker C: In this case the token program is an executable, and it takes few inputs that are other files and uses them to process instructions.
+00:14:58.644 - 00:14:59.964, Speaker A: So one of the questions is like.
+00:15:00.004 - 00:15:06.084, Speaker C: Should you use this predefined programs? And the answer is yes. If you're trying to mint your own.
+00:15:06.124 - 00:15:19.364, Speaker A: Token on Solana, the easiest way to go about it is basically execute the instructions against SPL token program, and that will, you can do a couple of things. You can actually use this program to.
+00:15:19.444 - 00:15:21.572, Speaker D: Create fungible tokens which are equivalent of.
+00:15:21.588 - 00:15:25.148, Speaker A: ERC 20 on Ethereum, or ERC 271.
+00:15:25.316 - 00:15:30.984, Speaker C: Which are non fungible. And the only difference between them is how the mint is structured.
+00:15:36.244 - 00:15:41.966, Speaker B: Okay, so when you actually go to the specific tokens, like let's say this.
+00:15:41.990 - 00:16:09.110, Speaker A: Mint address, this is another account that basically has a layout that specifies how many fixed supplies of the given token was minted. So if you were to think in terms of how we build the token program on Solana, it has one account that has the executable, and then each time you want to create a new token, it will have one account that represents a mint. And there are different mints that can be passed.
+00:16:09.142 - 00:16:10.590, Speaker D: You can create a new mint and.
+00:16:10.622 - 00:16:23.886, Speaker A: Start issuing tokens yourself. And then there's number of accounts of the type mint that actually hold the tokens, and the difference between them is just they store different binary layout that.
+00:16:23.910 - 00:16:25.754, Speaker D: Is understood by the token program.
+00:16:26.574 - 00:16:59.704, Speaker A: So when you are thinking the first thing that's very different from Ethereum is the data is not stored in your contract, the data is starting the accounts, and your contract needs to have the ability to deserialize the data from each of the binary accounts and potentially understand different accounts that are deployed on the blockchain. So the question about like is it easy to deploy the programs? I think it's interesting question, it really depends on your personal preference.
+00:16:59.784 - 00:17:02.410, Speaker D: So I came to Solana probably like.
+00:17:02.592 - 00:17:32.400, Speaker A: A couple of months ago. I never built on Ethereum, I came from a finance background and the model on Solana kind of makes sense. I then started reading on solidity and how to build smart contracts on solidity. And sure, maybe writing a solidity is easier, the way I like to compare it to people, as solidity is maybe building a single file node JS application and Solana will be like a rust.
+00:17:32.472 - 00:17:33.672, Speaker B: Server that you're building.
+00:17:33.768 - 00:17:38.144, Speaker A: So in some respect, if you only know JavaScript it might be a bit harder.
+00:17:38.184 - 00:17:39.472, Speaker D: But if you are coming from a.
+00:17:39.568 - 00:18:04.744, Speaker A: Rust background or a c background, it should be fairly straightforward to understand what needs to happen when you are building smart contracts. So sure, the question about the mint is basically the Mint has the authority that controls when the tokens can be minted.
+00:18:07.684 - 00:18:09.700, Speaker B: And let me find a good example here.
+00:18:09.732 - 00:18:11.584, Speaker A: So you can search for USDC.
+00:18:13.444 - 00:18:16.424, Speaker B: On the mainnet, actually. So let's go back to Mainnet.
+00:18:16.724 - 00:18:40.706, Speaker A: So USDC is the same USDC that you know from Ethereum, and it's controlled by circle as well, and it's native to Solana, it's not a bridge token. Circle actually created the mint and controls the backed supply behind it. And they have the private key, this one the mint authority, that controls when.
+00:18:40.730 - 00:18:42.174, Speaker B: The tokens are minted.
+00:18:43.554 - 00:18:53.884, Speaker A: So basically mint to mint Circle to maintain the pack, they will store the US dollar in their accounts and then mint or burn the tokens in the mint.
+00:18:53.924 - 00:18:56.484, Speaker D: And they only are the people that.
+00:18:56.524 - 00:19:21.972, Speaker A: Control this private key and can do that. So you can see like total supply here, and then you can see this is just like a multisick account actually, that has multiple signers. So actually like circle, all these free keys will need to sign the transactions to mint new tokens. So that's kind of an interesting point as well. So Solana natively supports this multiseq for.
+00:19:21.988 - 00:19:23.588, Speaker D: The accounts as well that's implemented in.
+00:19:23.596 - 00:19:27.024, Speaker B: The token program, and you can take advantage of that.
+00:19:30.444 - 00:19:32.084, Speaker A: So when you are minting a token.
+00:19:32.124 - 00:19:39.540, Speaker D: From your account, depending how you do it, you need to set the authority explicitly to some private key.
+00:19:39.572 - 00:19:40.836, Speaker A: You can set it to yourself, but.
+00:19:40.860 - 00:19:42.788, Speaker D: You can set it to either multiple.
+00:19:42.836 - 00:19:49.574, Speaker A: Signers or one other signer. It doesn't need to be a creator.
+00:19:53.834 - 00:20:04.050, Speaker B: All right, any other questions around the token programs? Sure.
+00:20:04.082 - 00:20:08.586, Speaker A: So I will talk a bit about security and how you can try to.
+00:20:08.610 - 00:20:10.578, Speaker D: Think about your programs at the very end.
+00:20:10.626 - 00:20:14.868, Speaker A: So let me, let me save that question, because I want to cover other topics.
+00:20:14.916 - 00:20:15.504, Speaker B: First.
+00:20:18.164 - 00:20:22.396, Speaker A: All the documentation about the token program and you are thinking, okay, I want to make my own token.
+00:20:22.460 - 00:20:23.900, Speaker D: How do I interact with it from.
+00:20:23.932 - 00:20:35.836, Speaker A: Rust are actually on spl dot solana.com. Dot SPL stands for Solana program library. It also has a matching GitHub repository that you can navigate to actually see.
+00:20:35.860 - 00:20:37.784, Speaker D: The rust code that we implemented.
+00:20:38.644 - 00:20:47.860, Speaker A: And most of the Solana program library programs, they provide both the command line.
+00:20:47.932 - 00:20:49.804, Speaker D: Interface that you can execute.
+00:20:49.964 - 00:20:51.468, Speaker A: They give you also cargo that you.
+00:20:51.476 - 00:20:54.276, Speaker D: Can reference in your rust implementation, as.
+00:20:54.300 - 00:21:15.084, Speaker A: Well as JavaScript implementation that communicates with RPC. So you have a bunch of options how to interact with the token program in different scenarios. This is also a good point to talk about, how do you actually create an account? And maybe I will show that in code.
+00:21:17.144 - 00:21:22.392, Speaker B: Here. Let's bring some code, in this case JavaScript.
+00:21:22.448 - 00:21:40.290, Speaker A: And the reason I'm bringing JavaScript for this is smart contracts itself. They cannot create accounts. The accounts need to be passed from outside. And think of it as like the only person that when the program is.
+00:21:40.322 - 00:21:45.654, Speaker D: Running, it cannot create new files on the file system. All the files need to be created before you start executing.
+00:21:47.514 - 00:22:04.264, Speaker A: You don't need to run the validator to test your smart contracts. We have a faucet on Testnet and Devnet that you can basically request the airdrop through from code. There is a function here that you can call on the connection object.
+00:22:05.284 - 00:22:11.944, Speaker B: Let's see if I have connection somewhere. So there is a connection object here.
+00:22:12.364 - 00:22:18.384, Speaker A: And you just call request airdrop from that object and it's described.
+00:22:21.644 - 00:22:33.044, Speaker B: In the documentation. Oh yeah, sure, I can zoom in I hope. Okay, let's zoom here.
+00:22:33.944 - 00:22:44.888, Speaker A: So Solana program library, that's the GitHub repository that I referenced in this specific case.
+00:22:44.936 - 00:22:51.156, Speaker B: This is a token implementation, but you can go to the JavaScript code and.
+00:22:51.180 - 00:23:42.224, Speaker A: You can see in here what we are doing. And if I search create account, this is how you create an account from the JavaScript, so you basically pass, hey, who is the creator? Who is going to pay for it? How much balance you will store actually in this account in native tokens? And this is another interesting point to cover on Solana, you actually need to pay for storage in the lamports tokens. So this is like the divisible unit of Sol, native currency to Solana. So you can think of it like satoshi on bitcoin. You need to specify how much space you want to store and what's the program that's going to control.com.
+00:23:44.604 - 00:23:51.094, Speaker B: Yeah, let me just move the camera because it looks like it's covering the code. Sorry about that.
+00:23:56.674 - 00:24:15.142, Speaker A: So this is in JavaScript, this is coming from the web, three j's that's imported at the very top, and you basically create an account. And this is an instruction itself, so you will need to submit it to the RPC node and you can submit multiple of them. You can actually create an account and then use them within the same transaction.
+00:24:15.198 - 00:24:17.314, Speaker D: They just show us the different instructions.
+00:24:17.934 - 00:24:19.478, Speaker A: And I always like to go to.
+00:24:19.566 - 00:24:21.614, Speaker B: The explorer and show you how it looks like.
+00:24:21.734 - 00:24:23.190, Speaker A: So you go to the explorer, you.
+00:24:23.222 - 00:24:36.606, Speaker B: Click on the transaction and let's see. I just want to find one that actually creates an account, maybe tricky, but.
+00:24:36.630 - 00:24:38.126, Speaker A: It would basically show in here as.
+00:24:38.150 - 00:24:46.484, Speaker B: I created an account, maybe something older, thank you.
+00:24:47.504 - 00:25:51.044, Speaker A: But it would show up and you can then use it in the next instruction. In terms of token accounts, it's also important to know about this approved instruction. So whenever you want to transfer tokens to your smart contract from the user accounts, the user needs to approve for specific amount for the authority of the program to take the ownership of those tokens. Potentially the program doesn't need to use them, they don't own them yet, but they can transfer them from the user account during the smart contract execution. And it doesn't need to be full amount that user owns, it can be partial. And the other thing, so this is slightly touching on security, that approval is actually valid across multiple transactions so it doesn't disappear after this transaction. And this is important because then this delegate really controls the funds in the user account until the user explicitly calls revoke.
+00:25:51.044 - 00:26:06.104, Speaker A: And this leads to a bunch of patterns where what you can do, and we are doing that in the swap program, we create actually an authority which is a private key that token swap.
+00:26:06.144 - 00:26:08.524, Speaker B: Is using during the execution.
+00:26:13.424 - 00:26:43.956, Speaker A: So the question here, let me just read it. Yeah, that's true. So that's the current limitation that we have, or like, that's just the current convention where you need to allocate upfront the data and you need to manage it. That doesn't mean that you cannot allocate more data. The maximum limit of the account is ten megabytes. So if you think like you will.
+00:26:43.980 - 00:26:46.460, Speaker D: Need to grow your accounts, you can.
+00:26:46.492 - 00:27:50.918, Speaker A: Allocate more upfront and just pay for the storage. So when you are storing, when you are creating those accounts, I kind of said, hey, you have this lumpers that you need to say allocate rent to pay for the storage. Solana has this concept that if you allocate two years of native currency or native token to the account, it will be rent free, like forever, and the rent will not be collected from that account. So you could imagine you create ten megabytes of memory, create a big account, allocate the rent, and you can just use it in this account for later? Yes. So accounts can store any binary data that you want, and the smart contract is responsible and the clients are responsible for understanding it. So from the blockchain perspective, there is no difference between token account, mint account and other accounts that you create. They are all the same, they are just different sizes.
+00:27:50.918 - 00:28:07.678, Speaker A: And just the programs and the smart contracts are really responsible for understanding. So again, going back to the analogy of files, you can store anything you want with the file. There is a restriction on the size of the file and the program that's processing those files need to basically understand.
+00:28:07.766 - 00:28:09.074, Speaker B: What you store in them.
+00:28:15.604 - 00:29:11.724, Speaker A: I prefer, in terms of approve and transfer, I prefer creating the thermal keys. So like a thermal PDA where you, where basically that's gone after the transaction is executed. I think that's safer. And then if, for whatever reason, this is thinking mostly from the perspective of the writer of the smart contract, if you require people to have this, let's say user transfer authority, that user needs to pass explicitly, it's not possible for people to forget the revoke instruction, where in other case, if someone wrote a different client for this program, it's possible, maybe here, that they didn't invoke, revoke, and then the authority controls those funds.
+00:29:11.764 - 00:29:15.384, Speaker B: For prelong period of time.
+00:29:21.684 - 00:29:39.354, Speaker A: Yeah, so that's true. If you need to keep track of all the users and run the operations across them, it may be tricky. And you need to figure out how to manage, I guess, those accounts like how to pass them to your program.
+00:29:39.434 - 00:29:41.414, Speaker B: And then process them.
+00:29:48.314 - 00:30:15.476, Speaker A: But at the same time this is just like think of the account model and how you access them and pass them really as a hashmap. So you have large hashmap, you can potentially create an account that kind of link to another account and you manage that. But you need to, right now you need to basically hand code it yourself. And sometimes it's necessary to kind of.
+00:30:15.500 - 00:30:17.184, Speaker B: Split it in multiple accounts.
+00:30:19.044 - 00:30:35.090, Speaker A: So token program doesn't necessarily work like that, because the token program at any point in time doesn't need to know more than a mint or two other accounts, like where you transfer and from and to. It doesn't need to know about the.
+00:30:35.122 - 00:30:36.974, Speaker B: Whole state of the universe.
+00:30:41.514 - 00:30:52.410, Speaker A: And yes, there is a number of, there is a limit on how many accounts you can pass. So basically the transaction needs to fit in like UDP packet. So that means you need to have.
+00:30:52.442 - 00:30:57.590, Speaker B: Like, like 1 think you can fit.
+00:30:57.622 - 00:31:10.634, Speaker A: In a single transaction and you need to start splitting it into multiple transactions across. And that can be tricky to manage, but it's doable. Let me show you how it looks like in the lending program that we have.
+00:31:13.014 - 00:31:14.914, Speaker B: So if I pick one instruction.
+00:31:15.334 - 00:31:32.404, Speaker A: So here is create an account. So this is what I was talking about. You can create an account, initialize an account. This is an interesting sequence, and I will go back to this, because this one shows you how to wrap native Sol into a token so that you can then have a unified interface.
+00:31:32.444 - 00:31:34.384, Speaker D: So this is very similar to wrapping.
+00:31:34.764 - 00:31:59.616, Speaker A: ETH on Ethereum into an ERC 20 token. And I have code for that, that you can see. So in here you can see there is actually, we needed to actually split the instructions into acure interest and reserve deposit. But if you look for example at other implementation on Ethereum, that would be a single method call that collapses those two in Solana, because we have a.
+00:31:59.640 - 00:32:04.764, Speaker B: Restriction on how much sets into a single instruction we needed to split it.
+00:32:06.424 - 00:32:19.456, Speaker A: There is also a restriction on death of the cross program invocation. So right now it's four. And there's also like reentrancy restrictions, but.
+00:32:19.560 - 00:32:21.604, Speaker B: I will kind of try to cover that as well.
+00:32:23.264 - 00:32:27.416, Speaker A: And then like for example, in this wrap Sol example, you can also close.
+00:32:27.480 - 00:32:29.324, Speaker D: That count at the same time.
+00:32:29.984 - 00:32:36.952, Speaker A: And this is what's shown at the very end where closing an account that was wrapped actually releases the native sales.
+00:32:37.008 - 00:32:39.524, Speaker B: Back to the owner.
+00:32:41.524 - 00:32:43.876, Speaker A: And sometimes like in terms of specific.
+00:32:43.940 - 00:32:46.924, Speaker B: Code, let me show you how it would look like.
+00:32:47.004 - 00:32:47.984, Speaker A: So this is.
+00:33:17.664 - 00:33:34.000, Speaker B: Because the visual studio hates me. So wrapping a native token here you can see I'm just passing a normal.
+00:33:34.032 - 00:33:36.156, Speaker D: Account and wrapping it and unwrapping it.
+00:33:36.180 - 00:33:37.864, Speaker B: Is just saying close it.
+00:33:43.804 - 00:33:59.436, Speaker A: And this is an interesting place for it to start. We also created this Dapp scaffold that has both a standard like very basic hello world program that you can deploy and start coding against. And it has a decently sized react.
+00:33:59.500 - 00:34:03.578, Speaker B: Application that you can start coding that.
+00:34:03.626 - 00:34:20.234, Speaker A: Connects to the RPC nodes, downloads the accounts that are needed, communicates also with serum Dex. So if for whatever reason you need to, for example, get the dollar nominated token values, it does that as well. I covered that in the previous talk.
+00:34:20.274 - 00:34:21.746, Speaker B: But there's a readme here that kind.
+00:34:21.770 - 00:34:23.466, Speaker A: Of like walks you through it, how.
+00:34:23.490 - 00:34:35.144, Speaker B: To use the Dapp scaffold and it's available here in this repository. So camera is just like canon camera that I have.
+00:34:38.084 - 00:34:41.636, Speaker A: All right, so the token program supports basically all the operations that you would.
+00:34:41.660 - 00:34:44.036, Speaker D: Expect, like minting, burning, transferring tokens.
+00:34:44.060 - 00:34:52.172, Speaker A: And those are just, you can invoke them from your rust code as well. And let me show you how it's done most of the time.
+00:34:52.228 - 00:34:57.282, Speaker B: So Solana program library, same here.
+00:34:57.458 - 00:35:01.490, Speaker A: So this is AMM and it implements.
+00:35:01.602 - 00:35:12.458, Speaker B: Cross programming invocations here. So like for example, token transfer is a cross program invocation that's implemented somewhere here on the top if I remember it correctly.
+00:35:12.626 - 00:35:22.522, Speaker A: So you basically call this invoked sign. The signer will be the authority, which is like one of the program addresses. Like it's this find program address where.
+00:35:22.538 - 00:35:24.224, Speaker D: You find the program authority.
+00:35:25.044 - 00:35:27.412, Speaker A: And this is all covered in this.
+00:35:27.588 - 00:35:34.212, Speaker B: In this talk here in this documentation for like it also talks like how to generate the keys and everything.
+00:35:34.268 - 00:35:35.388, Speaker A: And I can show you like full.
+00:35:35.436 - 00:35:38.464, Speaker B: Example in a second of how to do it from the.
+00:35:46.564 - 00:35:48.484, Speaker A: So this program derived address is really.
+00:35:48.524 - 00:35:51.068, Speaker D: What enables those instructions to take the.
+00:35:51.116 - 00:36:22.564, Speaker B: Authority of another programs and how to do it. And when you let me open swap code here. Okay, so on the JavaScript side you basically call this find program address.
+00:36:23.104 - 00:36:56.284, Speaker A: You pass the public key of the account that you are going to use to initialize the accounts. And you also pass this program id. That's this off the curve program address. And this will create this authority that you can then pass to own the different accounts. Like in this case it's going to own the mint. And then the smart contract can sign the actions against those mint and it's handled by the runtime.
+00:36:56.624 - 00:36:59.816, Speaker B: And this like secure pattern find program.
+00:36:59.880 - 00:37:13.116, Speaker A: Address you, you basically pass this authority with the nouns to the program and then program can like sign the operations. It's not really signing them because there's no private key, but you can think.
+00:37:13.140 - 00:37:18.064, Speaker B: Of it as signing only program will be able to execute them.
+00:37:19.724 - 00:37:21.012, Speaker A: This is also a good method when.
+00:37:21.028 - 00:37:21.868, Speaker B: You are creating an account.
+00:37:21.916 - 00:37:32.624, Speaker A: So this one communicates with the RPC note and allows you to find the required amount of lamp ports that will make the account rent exempt.
+00:37:35.624 - 00:37:45.952, Speaker B: Okay, so scaffold cross programming locations. So the last part I guess that.
+00:37:45.968 - 00:37:47.524, Speaker A: I wanted to talk about, and.
+00:37:52.864 - 00:37:53.176, Speaker B: So.
+00:37:53.200 - 00:38:30.712, Speaker A: In here, the other one that's super cool on Solana, is this associated program token accounts. So that allows both the smart contracts and the user to deal only with the top level address of the native token. So we created a separate program that will basically find the derived addresses for the user and kind of manage them. So this links to the token program in a way that, let's say I have the uniswap and maybe zero x in my account, instead of sending the amounts to the dedicated public keys, you.
+00:38:30.728 - 00:38:32.804, Speaker C: Can actually send it to the user.
+00:38:33.544 - 00:38:36.520, Speaker A: Solid press and this will manage that.
+00:38:36.592 - 00:38:38.040, Speaker B: And this has a good example of.
+00:38:38.072 - 00:39:29.444, Speaker A: How to find those accounts and how to create them as well. So sometimes when you are building a full end to end up, you need to also remember that user might not have your tokens. So the good example would be I have the amm, so I have the amm and user, so I have an amm and I want to provide LP tokens. And there is a high chance that the user actually doesn't have the LP token account because they just came to my website. You will probably want to create the account for them and then actually send the tokens to the user that approved the transaction. And if you are using this associated program addresses, it will make it much easier.
+00:39:33.464 - 00:39:42.776, Speaker B: And the last part that I kind of wanted to talk about before I can answer more questions is the specific AMm.
+00:39:42.880 - 00:39:45.084, Speaker A: So we can look at the rest.
+00:39:45.604 - 00:39:47.404, Speaker B: Here from Solana program library.
+00:39:47.484 - 00:39:51.308, Speaker A: So if you want to look at the smart contract implementations, you see token.
+00:39:51.356 - 00:39:57.664, Speaker B: Swap here, let me copy the remote pop.
+00:40:16.304 - 00:40:28.112, Speaker A: So this one is super interesting because it actually supports multiple curves. You could take this program and implement different curves on top of it. We already have implementations here for the.
+00:40:28.288 - 00:40:31.880, Speaker B: Stable curve, like here.
+00:40:32.072 - 00:40:34.184, Speaker A: So there's stable curve, there's offset curve.
+00:40:34.224 - 00:40:37.376, Speaker B: There'S constant product curve, constant price, and.
+00:40:37.400 - 00:40:48.952, Speaker A: There'S just a base implementation that you can implement if you add a new curve. Right now we need to deploy a new program, but you could deploy your own AMM implementation with custom curves that.
+00:40:48.968 - 00:40:50.684, Speaker B: You have, and it will all work.
+00:40:54.984 - 00:41:10.396, Speaker A: And the AMm is kind of straightforward, like in terms of layout accounts and how you would build it. When you are starting to think about it, or when you look at the existing code, I usually like to start with the state. So in this case the swap program.
+00:41:10.460 - 00:41:13.500, Speaker B: Itself is creating a swap v one.
+00:41:13.532 - 00:41:32.444, Speaker A: In this case state, and this is the account that will be actually stored in the blockchain. You will need to deserialize it. And the account, like the program or the smart contract can control multiple accounts like that. So each one in this case represents a single pool with two tokens that user can swap between each other.
+00:41:34.944 - 00:41:35.256, Speaker B: From.
+00:41:35.280 - 00:41:52.804, Speaker A: The JavaScript side of things, or like outside of the blockchain. You can call a method find owned program accounts, and this will return you all the accounts that are owned by the program. And this is a useful method because you can basically get all the pools.
+00:41:53.544 - 00:41:56.116, Speaker B: For the AML and then do something with it.
+00:41:56.140 - 00:42:16.300, Speaker A: If you wanted to build a bot on top of AMN, this is probably the method that you would have. You would connect over WebSocket, you would track the balance between the two accounts and then try to take advantage of, let's say, impairment loss. And you could do all that in JavaScript and run a basic node JS.
+00:42:16.332 - 00:42:17.624, Speaker B: Server that does it.
+00:42:18.564 - 00:43:22.240, Speaker A: You could also do it as a smart contract and run it on chain. The setup becomes slightly trickier, because what you need to do then is to have the program that we call cranks, and it's part of the design of serum Dex, for example, where you would effectively issue this instruction that says balance the poles for example, and it would run arbitrage across the poles and it would go through all the accounts that you passed and issue cross program invocation instructions. But this is also how you would probably build Dex aggregator. So let's say you wanted to build a smart program, smart contract, that's a program that takes the amm that we have and serum Dex and routes between the two. Depending on when you have the best price, you would basically get that account in your smart contract. Program gets bid and asks as well as like event queue from the Dex. And you would issue instructions against like.
+00:43:22.312 - 00:43:24.484, Speaker B: Depending on the price, where to route.
+00:43:28.744 - 00:43:33.432, Speaker A: So once you, once you start looking at the state and that looks all good, like the second place where I.
+00:43:33.448 - 00:43:37.312, Speaker D: Like to start reviewing the existing program code is the instructions.
+00:43:37.488 - 00:43:42.572, Speaker A: And most of the Solana program library code actually has an enum that acts.
+00:43:42.588 - 00:43:44.036, Speaker D: As a switch at the very beginning.
+00:43:44.060 - 00:43:58.116, Speaker A: Of an entry point that tells you all the instructions that this program supports. So you can look at the entry point here. We basically annotate the method here that this is an entry point and it.
+00:43:58.140 - 00:44:00.504, Speaker B: Will go to the processor here.
+00:44:10.904 - 00:44:13.164, Speaker A: This one just runs a big match.
+00:44:13.664 - 00:44:15.404, Speaker B: Across all the instructions.
+00:44:16.864 - 00:44:19.456, Speaker A: And this is the message that I mentioned.
+00:44:19.480 - 00:44:21.264, Speaker D: So if you use this message thing.
+00:44:21.384 - 00:44:25.896, Speaker A: That will show up on the Explorer as the output of your program and.
+00:44:25.920 - 00:44:27.764, Speaker B: You can use as many of them as you want.
+00:44:33.484 - 00:44:49.204, Speaker A: Yeah, so the, so in terms of the, yes, you can launch a program that can act as a faucet for the specific token that you launched. It would be actually fairly straightforward. So you need to have the UI.
+00:44:49.244 - 00:44:50.956, Speaker D: Where you allow people to create the.
+00:44:50.980 - 00:45:04.520, Speaker A: Mints, let's say name them. And then basically when people request the airdrop, they need to pass the mint and the account that you specify. And you just issue cross program invocation.
+00:45:04.592 - 00:45:05.964, Speaker B: To mint the token.
+00:45:07.464 - 00:45:12.712, Speaker A: And like AMM code is, is good for that because it actually has a.
+00:45:12.728 - 00:45:23.404, Speaker B: Mint instruction somewhere here, let me just find it. Burn is better. So talk and burn. So that's one.
+00:45:23.834 - 00:45:27.858, Speaker A: And there should be also token mini. So you could literally copy this code.
+00:45:27.906 - 00:45:30.814, Speaker B: From the, from this file.
+00:45:36.594 - 00:45:51.086, Speaker A: You would invoke that in your smart contract and deliver tokens to the users. Obviously it's not possible, let's say with like USDC, because the only authority that.
+00:45:51.110 - 00:45:53.434, Speaker B: Can mint the USDC circle.
+00:45:54.774 - 00:45:56.390, Speaker A: But if you create your own token.
+00:45:56.422 - 00:46:00.114, Speaker B: You can have a faucet that mints them, burns them, whatever you want.
+00:46:06.094 - 00:46:33.878, Speaker A: In terms of like limitations, what can run on Solana? I think it really depends on like your imagination. I don't think there are per se limits of like oh, you shouldn't build this on Solana, I think it's great for certain things. I think the speed of execution and the throughput that the blockchain has is what attracted me from finance to the blockchain world. And previously I was at a company.
+00:46:33.926 - 00:46:37.034, Speaker B: Called Citadel, which is a hedge fund.
+00:46:39.814 - 00:46:41.518, Speaker A: Any other questions?
+00:46:41.646 - 00:46:46.334, Speaker B: I guess we are. We have like 15 minutes left, so I can just answer random questions.
+00:46:46.954 - 00:47:25.918, Speaker A: And I need to also talk about security. Yes, you can. Okay, so the first one, yes, you can launch a token through CLI and you can access it through the program. So basically you could create a private key using a CLI. And that's actually described in the documentation. So if you go to the token program, this has bunch of examples how to create the tokens. And those are all CLI examples.
+00:47:25.918 - 00:47:33.434, Speaker A: There is actually no rust code. So you would just call SPL token program with mint and that's it.
+00:47:37.834 - 00:47:43.374, Speaker B: So let me paste the link for that. Okay.
+00:47:54.074 - 00:48:05.924, Speaker A: So now you cannot access necessarily anything that's on local machine. That being said, there is a concept of system variables that you can access, and the lending program is a good.
+00:48:05.964 - 00:48:06.984, Speaker B: Example of.
+00:48:09.524 - 00:48:10.868, Speaker A: How it can be done.
+00:48:11.036 - 00:48:26.144, Speaker B: So let me zoom out here. So you could go to token lending, see the processor.
+00:48:28.264 - 00:48:29.576, Speaker A: So there is a bunch of variables.
+00:48:29.600 - 00:48:31.644, Speaker D: That you can pass, like rant clock.
+00:48:37.424 - 00:48:41.284, Speaker B: And you can use that to track slots, for example.
+00:48:44.384 - 00:50:05.982, Speaker A: So for the general programming tips, I think that the hardest part is really thinking about how to structure the data for your programs. So when you have an idea, you will need to, and this is the main difference also in my mind from Ethereum, where in solidity, you could try to just start coding something and hope it sticks on Solana, you need to actually start with a data model. So this may be like, if you're doing like data modeling at school, or if you ever like plant, like a database, like relational database, you might want to think, okay, what are the accounts that I will have? What will be the purpose of them? And what is the relationship? Even before you start writing code? That's the main tip. And once you get that right, I think everything kind of falls into place. So on this take pull program, I kind of want to save it for another time and we'll explain what it does and why we are building it, but just not now. So another session, and in terms of other programs. So my workflow is probably straightforward.
+00:50:06.158 - 00:50:09.374, Speaker D: I just use visual studio code for programming.
+00:50:09.454 - 00:50:58.714, Speaker A: I then use Solana CLI to deploy programs, usually to testnet or Devnet, and just interact with them there. And the other tip, that's my personal preference. I try to have as soon as possible, a full end to end working example that I can iterate on. So that would mean I would start with this dapp scaffold, build a very simple contract, deploy it, connect it to my website, and have the end to end communication. Once I have that, I will start adding instructions and whatnot and then compile as frequently as possible. In rust, really, cargo is your best friend. I think it gives you a lot of help in terms of catching errors and gives you higher level of confidence.
+00:50:58.714 - 00:51:01.270, Speaker A: Once you actually build something, it will.
+00:51:01.302 - 00:51:01.874, Speaker B: Run.
+00:51:06.454 - 00:52:10.014, Speaker A: Okay, I'm not talking about GME. So in terms of trade off for Solana, really the main, it's just different consensus mechanism. It's using verifiable delay functions, so that allows it for higher throughput, but it requires higher bandwidth. So like the nodes and the validators, they actually need to run machines that are somewhat reasonable spec and they need to run it on a reasonable connection speed. You will not run Solana on your phone and let's say GSM connection. And that's the trade off. We try to build a blockchain and a platform for smart contract execution that allows you to build high performance like DeFi financial application, but at the same time you will not run it on any device.
+00:52:10.014 - 00:52:31.394, Speaker A: Smart hacks for this taxi. So the like one is be careful with like serialization library that you pick. If you pick in rust, like let's say Google protocol buffers that will use.
+00:52:31.434 - 00:52:33.810, Speaker D: A lot of your operations on the stack.
+00:52:33.962 - 00:53:20.342, Speaker A: That's why you see most of the Solana program library. I actually hand coding serialization. Another good option is borscht. Be careful with like which math libraries you are using. Especially once you start dealing with like large numbers like 128 and 256, and you have something in a loop with like divide or multiply, you will run the out of operations fairly quickly. Multiple processor structs. Not sure if I understand, but if you have an example of the code that you want me to take a.
+00:53:20.358 - 00:53:24.870, Speaker D: Look at, like, I'm always happy to help teams with code reviews and anyone.
+00:53:24.902 - 00:53:28.282, Speaker B: On Solana site is like happy to take a look at like your program.
+00:53:28.338 - 00:53:47.494, Speaker A: And give you ideas. So either post it on Discord or just send it to me directly. So first project on Solana, I would say build something that you are passionate about. If you are passionate about finance.
+00:53:49.474 - 00:53:49.834, Speaker C: Build.
+00:53:49.874 - 00:54:01.718, Speaker A: Something that you know, that specific, that will take advantage of Solana throughput and latency. And this is what really, like, this is why I came to Solana. I figured like this is where I.
+00:54:01.726 - 00:54:05.558, Speaker D: Can actually build applications that can run.
+00:54:05.606 - 00:54:17.270, Speaker A: On, like, the proper scale. And, and I was passionate about it. But that being said, there is plenty of projects that, like, if you, if you're passionate about gaming, you could figure.
+00:54:17.302 - 00:54:19.484, Speaker D: Out how to build a, like, proper.
+00:54:20.624 - 00:54:25.160, Speaker A: Tokenized asset model within the game and, like, incorporate it into your game and.
+00:54:25.232 - 00:54:26.392, Speaker D: Make it like a project that's kind.
+00:54:26.408 - 00:54:32.136, Speaker A: Of interesting if you're just. And that's personal. I don't like building projects that are.
+00:54:32.160 - 00:54:34.128, Speaker D: Like, in the air, like just for learning.
+00:54:34.256 - 00:54:41.328, Speaker A: I kind of like to build projects with specific goals, almost like an end to end product, like a little mvp.
+00:54:41.376 - 00:54:42.964, Speaker D: That at some point I could release.
+00:54:45.154 - 00:55:19.594, Speaker A: But some people prefer, oh, like do some, like, take a hello world and maybe run it? That's it. That's a good start, too. But this is not necessarily what I would do. So you can, you can still. So CLI will let you manage everything for the token programs, if I understand it correctly.
+00:55:23.694 - 00:55:24.054, Speaker B: Right.
+00:55:24.094 - 00:55:30.994, Speaker A: If you, if you literally go through this documentation, it will show you how to, how to run the token.
+00:55:33.134 - 00:55:33.518, Speaker C: Either.
+00:55:33.566 - 00:55:59.748, Speaker A: With multisick or not multisick, and, and that will have the supply that you can manage. So, yes, since, you know, we are building block time in rust, all the Solana program libraries are in rust. That being said, there are examples in c. So you can. And c you can look for hello World.
+00:55:59.796 - 00:56:10.804, Speaker B: I can kind of publish that as well. Like, maybe not that. Okay.
+00:56:13.944 - 00:56:23.784, Speaker A: So this one has the example in c. So yes, you can build on Solana in different languages. That being said, you will not be able to quickly just copy and paste.
+00:56:23.824 - 00:56:26.472, Speaker B: Code from the existing examples, which when.
+00:56:26.488 - 00:56:41.504, Speaker A: You are starting to learn, is just easiest. So in terms of running the validator, what's required for having a connection and what kind of machine you need to run, that's also in the docs.
+00:56:43.444 - 00:56:53.104, Speaker B: And I think it's described only here, like choosing a cluster and what kind of machine you need to run. So I will just refer to the docs.
+00:57:01.664 - 00:58:10.008, Speaker A: So in terms of climbing up to speed, it's really just like team building. It's really, in my personal opinion, it's really just about grid and trying to build something. Find a project that you are passionate about and just try to build it on Solana and go on discord, ask questions and people will help you. So I think that the high learning floor, it's a relative, and I can kind of talk to that as well. The programming model and the choice of the language was really targeted for people that, that are coming from outside of blockchain. Let's say they don't know the solidity, but they know how to build complex systems, like, let's say like a trading system. They will come to Solana, and I think it's for them, it's easy to understand if you are just starting your career and you are like, the only thing you know is maybe like a.
+00:58:10.016 - 00:58:11.640, Speaker D: Bit of python or node js.
+00:58:11.752 - 00:58:46.732, Speaker A: Yes, it will be harder for you to pick up rust and understand how to structure your data and everything, but I believe that's a good thing. It will ultimately make you a better software engineer. So in terms of EVM, the short answer at the moment is no. That being said, we have a project or a grant that someone is working on the EVM compatible compiler for Solana. So right now you, you cannot write solidity on Solana. You need to use either Rust or.
+00:58:46.748 - 00:58:48.184, Speaker B: C or C.
+00:58:57.044 - 00:59:35.344, Speaker A: So, okay, so maybe going back to the security on Solana in terms of how to make your contracts more secure, at minimum, you always want to make sure that you validate the inputs. So again, if you take the look at like the Solana program library, any of the instructions that we have, most of the code actually upfront will be about validating the inputs. All this code here, like probably more than half of the code in this method is about validating the inputs, like getting the inputs, and it's kind of a common pattern across all the instructions.
+00:59:35.964 - 00:59:38.196, Speaker B: Where will cry for all the accounts.
+00:59:38.220 - 01:00:08.062, Speaker A: And start validating them. And that means quite a few things. Like is it the, like, let's say you are using token program for fermenting and burning within your smart contract. You want to make sure that that's the program that you really want to use. Someone could potentially fake it and send you a different token program that was built from the source code and just acts in the same way, but that's something different. Make sure that the accounts are really owned by you, and those are the.
+01:00:08.078 - 01:00:13.154, Speaker B: Accounts that you really want, that they have the right layout and whatnot.
+01:00:13.814 - 01:00:32.706, Speaker A: And then obviously think in terms of like fixed point math. If you are like, do you have overflows? How do you clip the numbers? And what happens in extreme cases? And I know those are like general advice, but like, everyone gets caught by.
+01:00:32.730 - 01:00:34.214, Speaker B: Them like a lot of times.
+01:00:35.634 - 01:00:45.970, Speaker A: And then use fuzzing, I guess. So you can go to serum Dex and see how they did it. So if you go to the serum.
+01:00:46.002 - 01:00:46.934, Speaker B: Dex code.
+01:00:49.114 - 01:01:00.460, Speaker A: They have the fuzzing here as well that tests for different inputs. So obviously do your unit tests, but also run fuzzing with like extreme numbers.
+01:01:00.492 - 01:01:02.172, Speaker B: And see how your program behaves.
+01:01:02.268 - 01:01:08.276, Speaker A: It's a lot of work, but if you are serious about writing a secure.
+01:01:08.300 - 01:01:10.624, Speaker B: Program, like, you will probably need to do that.
+01:01:11.564 - 01:01:17.144, Speaker A: And on ethereum, it's a lot of work as well. Just writing a secure smart contract.
+01:01:17.804 - 01:01:21.224, Speaker B: It's hard across any platform.
+01:01:25.344 - 01:01:36.232, Speaker A: Sure, I'm happy to take a look at any projects and give you pointers, but if everyone sends me all of them, then it will probably take time.
+01:01:36.328 - 01:01:45.032, Speaker B: Before I actually get to it. It looks like I'm close to finishing all the questions.
+01:01:45.208 - 01:01:51.484, Speaker A: Let's run it for another ten minutes and then close it. So if you really have some question that you want to ask, probably enter.
+01:01:51.524 - 01:02:00.148, Speaker B: It in the box right now. Sure.
+01:02:00.196 - 01:02:34.754, Speaker A: So the difference between the account signer and authority. So anything can be an account, right? And if you are talking about token account, usually that means that will be an input to something. So let's say I'm an owner of the token account that wants to transfer some funds to the smart contract. The account will be the input, the signer will be user that owns the account, and the authority will be, for example, the public key that will.
+01:02:36.454 - 01:02:36.766, Speaker B: Have.
+01:02:36.790 - 01:02:51.682, Speaker A: The permissions to transfer the funds from that account. Hopefully that kind of explains, but there's different setups that can happen. But that's the basic one that you have. If you are an owner of the account and you want to write to it, you need to sign the transaction.
+01:02:51.778 - 01:02:53.214, Speaker B: It's as simple as that.
+01:03:07.254 - 01:03:10.718, Speaker A: So I don't like, on top of my mind, I don't have any recommendations.
+01:03:10.766 - 01:03:13.126, Speaker D: On how to understand better the recovery.
+01:03:13.150 - 01:03:22.954, Speaker A: Operations right now, but maybe, like on Discord, if you have specific questions that you want to do with something, that will be a good place to get more eyes on it.
+01:03:34.194 - 01:03:34.506, Speaker B: Yeah.
+01:03:34.530 - 01:03:45.426, Speaker A: So, like general Rust questions. Like, Rust is great programming language and, you know, there's plenty of resources to learn it, but compared to other languages, one can argue it's maybe a bit.
+01:03:45.450 - 01:03:46.694, Speaker B: Harder to learn, but.
+01:03:48.794 - 01:04:03.286, Speaker A: I think it's also more secure. So the, the size doesn't. Like, the size of the account right now cannot change. So if you allocate the account with.
+01:04:03.310 - 01:04:05.794, Speaker D: A certain size, it will not grow over time.
+01:04:06.614 - 01:04:14.606, Speaker A: Hopefully that answered the question. So that kind of goes back to the. We also have this upgradeable loader, which is, in my opinion, one of the.
+01:04:14.630 - 01:04:16.990, Speaker D: Super cool things about Solana, because it.
+01:04:17.022 - 01:04:19.262, Speaker A: Allows you to give the authority to.
+01:04:19.278 - 01:04:23.966, Speaker D: The specific key to upgrade the accounts, like upgrade the smart contracts in the.
+01:04:23.990 - 01:04:31.606, Speaker A: Future, and it solves the developers, saves the developers from actually building either the.
+01:04:31.630 - 01:04:34.550, Speaker D: Diamond pattern and the proxies and whatnot.
+01:04:34.742 - 01:04:57.568, Speaker A: On Ethereum in here, because we separated the execution from the data, you can actually upgrade your smart contract and that data is still owned by the user. But smart contract obviously needs to deal with the changes potentially in the format. So if you deploy the code, that new code that potentially changes the structure of the accounts, you need to handle.
+01:04:57.616 - 01:04:59.044, Speaker B: Both new and old.
+01:05:06.944 - 01:05:21.504, Speaker A: In terms of solid, probably the easiest question to ask in terms of the increments of specific tokens is on their GitHub repository and maybe post an issue, I don't know the.
+01:05:23.204 - 01:05:27.064, Speaker B: I think the repository is skilled token wallet.
+01:05:30.484 - 01:06:02.580, Speaker A: So I would create issue here and serum team can answer on the solid part and the bridge. So the program can be upgraded by the authority that controls the, the upgradeable program. So on the pruning and the validator, I know we are using for example.
+01:06:02.612 - 01:06:05.860, Speaker D: For like archiving, we are using airwave.
+01:06:06.052 - 01:06:15.104, Speaker A: And you know, there's a few resources that you can read up on this. I will try to look them up later, but again I would from the running validator perspective, there is a group.
+01:06:15.144 - 01:06:19.284, Speaker B: On discord that can answer any questions like how do you run the node.
+01:06:20.064 - 01:07:18.040, Speaker A: And what are the good practices? And actually it's a good place probably to start thinking. If you are serious about deploying a complex smart contract platform with the front end in front of it, it might be a good idea to run your own node. So you can isolate the, the traffic and you can make sure that the node, the RPC effectively requests and the HTTP server has all the required like performance characteristics for your front end. So if you use the upgradeable loader, the program iD will not change, it will be the same. So yes, in proxy pattern that contract address will not change. I think if you think you will hit a lot of users with your product, it's good to have your own.
+01:07:18.072 - 01:07:18.804, Speaker B: Node.
+01:07:20.864 - 01:07:26.632, Speaker A: For dev purposes. I don't think so. There is a local node that you can run on your machine that you.
+01:07:26.648 - 01:07:27.884, Speaker B: Can use for testing.
+01:07:29.664 - 01:07:36.512, Speaker A: And you can always connect to testnetary.net unless you think you need like higher. So both Testnet, Devnet and Mainnet, the.
+01:07:36.528 - 01:07:39.524, Speaker D: RPC nodes provided by Solana, they have a rate limiting.
+01:07:41.784 - 01:07:47.888, Speaker A: All right, last minute for any questions and other than that, we'll probably close it.
+01:07:47.976 - 01:07:53.792, Speaker B: It was great talking with everyone. Awesome.
+01:07:53.888 - 01:07:55.488, Speaker A: Thanks a lot guys for joining and.
+01:07:55.536 - 01:07:57.044, Speaker B: Thanks for building on Solana.
+01:07:59.204 - 01:08:01.504, Speaker A: Yeah, I think we will have the recording published.
+01:08:04.804 - 01:08:06.344, Speaker B: All right, thanks a lot.
+01:08:19.884 - 01:08:20.268, Speaker C: Nice.
+01:08:20.316 - 01:08:24.054, Speaker B: That was great. It.

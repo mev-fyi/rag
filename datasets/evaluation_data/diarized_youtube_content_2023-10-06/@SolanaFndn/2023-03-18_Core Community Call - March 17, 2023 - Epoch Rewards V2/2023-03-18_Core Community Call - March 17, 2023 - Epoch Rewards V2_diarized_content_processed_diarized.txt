@@ -1,0 +1,105 @@
+00:00:01.120 - 00:00:01.408, Speaker A: Okay.
+00:00:01.408 - 00:00:18.798, Speaker B: Welcome everyone to today's core community call. We have on the agenda going through the epoch vt rewards by Howin that is. I'll let you take it away. It's in Sep. Anthony, did you want to say anything first or do you want to just skip ahead?
+00:00:18.926 - 00:00:19.998, Speaker C: Let's go, let's do it.
+00:00:20.006 - 00:00:28.574, Speaker B: Okay, go ahead. How do I show my screen?
+00:00:42.874 - 00:00:43.774, Speaker C: Okay.
+00:00:50.154 - 00:00:51.534, Speaker B: All right, we can see everything.
+00:00:52.184 - 00:00:52.924, Speaker C: Good.
+00:00:54.904 - 00:00:55.632, Speaker D: Okay.
+00:00:55.768 - 00:00:59.240, Speaker A: So good afternoon everyone, my name is.
+00:00:59.272 - 00:01:49.680, Speaker D: Haoran, I work for Sonana Labs, and in this talk I'm going to give a brief introduction about the new epoch reward proposal that we are discussing on the following link as a SIMD pull request. So here is some background information. So, we are experiencing a very long block time at the epoch boundary, and the following table shows an example of the timing for the block time around at the epoch 400. We can see that the highest number around for 90% of the validators on May night. For this particular block along the epoch boundary it will take around 38 seconds.
+00:01:49.872 - 00:01:53.684, Speaker B: I believe you're not showing the presentation, you're just showing your code right now.
+00:01:54.184 - 00:01:59.480, Speaker A: I'm not saying you're showing your code, really?
+00:01:59.592 - 00:02:03.480, Speaker B: Okay, we see a visual studio code instead.
+00:02:03.512 - 00:02:05.004, Speaker D: You're not seeing the PDF.
+00:02:05.824 - 00:02:16.804, Speaker A: Okay, let me reshare it again. How about that?
+00:02:16.964 - 00:02:18.852, Speaker C: You can see it now. Okay.
+00:02:18.908 - 00:02:20.304, Speaker D: Okay, sorry about that.
+00:02:23.684 - 00:02:26.756, Speaker A: Yeah, so let's go back.
+00:02:26.780 - 00:03:09.776, Speaker D: So basically we are having a very long epoch time at the epoch boundary, and this long time is because of paying out the rewards at the epoch boundary blocks. So the more stake account we have, the longer it will take. So the current approach won't be scalable. That's why we are proposing a change to pay out the epoch rewards. So instead of paying out the rewards at just one block at epoch boundary, the new proposal is to spread out the reward distribution over multiple blocks, and the new approach will divide the block distribution into two phases. The first one is the reward calculation.
+00:03:09.840 - 00:03:13.224, Speaker A: Phase that basically is calculated.
+00:03:13.264 - 00:03:26.764, Speaker D: The rewards are going to be paid out during the epoch after the reward calculation phase. Then there is going to be another phase called the reward distribution phase. In this phase, actual reward will be credited to the stake accounts.
+00:03:28.664 - 00:03:32.764, Speaker A: So as I mentioned earlier, reward calculation.
+00:03:33.574 - 00:03:43.462, Speaker D: Is just computed, the rewards to be distributed and based on the timing we have seen before. So we think that 40 seconds may.
+00:03:43.478 - 00:03:45.366, Speaker A: Be a good time for the reward.
+00:03:45.430 - 00:03:56.686, Speaker D: Calculation period, given that each block is 400 milliseconds. So we estimate that it's going to take 1000 blocks for the reward calculation.
+00:03:56.750 - 00:04:00.048, Speaker A: Result to be available and the reward.
+00:04:00.096 - 00:04:22.432, Speaker D: Calculation is done by background services that services start at epoch boundary and the last 4000 blocks to compute the reward result. So for validators which are faster, they may finish the computation before 1000 block height. If that's the case, then the validator.
+00:04:22.488 - 00:04:24.988, Speaker A: Would need to cache the result and.
+00:04:25.036 - 00:04:40.300, Speaker D: Make it available until the thousand blocks. And for some reason for some validators which are slow, then they will have to wait at the 1000 block height for the result to be available before they can enter into the next phase.
+00:04:40.412 - 00:04:41.944, Speaker A: Reward distribution phase.
+00:04:44.004 - 00:04:48.116, Speaker D: So following the reward calculation is a reward distribution.
+00:04:48.300 - 00:04:52.244, Speaker A: Similarly, rewarded distribution were happens over m.
+00:04:52.284 - 00:05:06.236, Speaker D: Blocks and to minimize the impact of all the block and other transaction processing during the rewarding period. So we are targeting to reward basically.
+00:05:06.300 - 00:05:12.148, Speaker A: Only 64 accounts for every tick, since.
+00:05:12.196 - 00:05:19.964, Speaker D: Each block has 64 ticks. So that will give us about 4k total rewards that can be distributed in one block.
+00:05:20.464 - 00:05:24.488, Speaker A: And the reward distribution, what happens in.
+00:05:24.496 - 00:06:29.774, Speaker D: The block before any transaction processing. And now since the reward with the new approach, the reward are not going to be distributed at one particular block, instead is going to spread out between multiple blocks. So in order to track the progress of a reward distribution, there will be two system VAR account that are added to help to track the reward distribution. The first one is the epoch reward history SySVa, and then it is basically a 500 fixed size array. To be consistent with the stake history, we choose that number to be 512 and it's a fixed size array. And each entry in the array contains three elements, three fields. The first one is the total reward in lan port for the epoch, and the second one is how much reward has already been distributed in Lampport.
+00:06:29.774 - 00:06:51.548, Speaker D: That's the progress. And the other one, the last one is the hash of all the rewards that are going to be paid out. This is introduced to verify the reward distribution. It's similar to the role of account hash, but it's just like more specific for rewards. It's only hash from all the rewards.
+00:06:51.596 - 00:06:53.024, Speaker A: That are going to be paid out.
+00:06:55.204 - 00:07:48.284, Speaker D: The second CISoIr account to introduce is called Epoch Reward reserve. As I mentioned earlier, in reward distribution, all the rewards are going to be distributed in m blocks. So we introduced the second set of SySvas. This is basically M SySVas that keeps tracks of all the reward that are going to be distributed in one blocks. And similarly it has a balance for, it has a balance field which describe how much rewards are going to be distributed for this particular block. And it also have a hash that's the hash of all the rewards are going to be distributed in this block. And since we have m c account so the address of the, of the one particular CSV account for a particular block is basically determined by hash, the.
+00:07:48.324 - 00:07:50.380, Speaker A: Base id to the block height.
+00:07:50.452 - 00:08:10.044, Speaker D: Then we will get a unique address for the rewards going to be distributed and the relationship between the hash. The root hash in the epoch of r history. Epoch history system one is the root hash as we seen earlier here. This is the root hash.
+00:08:11.264 - 00:08:14.768, Speaker A: It's computed by accumulating all the hashes.
+00:08:14.816 - 00:08:22.792, Speaker D: From all the reserves together. So after we credit all the reserves, credit all the reward from the reserves.
+00:08:22.848 - 00:08:25.456, Speaker A: We will compare the hash against the.
+00:08:25.480 - 00:08:31.604, Speaker D: Root hash, make sure they match each other so that we can be sure that the reward distribution is correct.
+00:08:33.644 - 00:08:34.124, Speaker C: Okay.
+00:08:34.164 - 00:09:09.594, Speaker D: That's the main changes of the proposal. And there are a few difference with the new reward scheme than the older one. And the first one is that we will restrict stake account access during rewarding period. That means any withdrawal, merge, split stake, or any stake manipulation have to wait until the reward finished. If any transactions that involve those operations was submitted during the reward paying out.
+00:09:09.634 - 00:09:12.538, Speaker A: Period, they will get a transaction error.
+00:09:12.626 - 00:09:25.178, Speaker D: We will introduce a new transaction error for it. Let's lock the reward account during epoch reward. That's the first impact. The second impact is that since now the rewards are going to be paid.
+00:09:25.226 - 00:09:28.670, Speaker A: Out in multiple blocks, there will be.
+00:09:28.702 - 00:10:07.346, Speaker D: Changes for snapshot and the cluster restart during those reward period. So to accommodate this reward distribution over multiple blocks. So for any snapshot that are taken during the reward period, we will include a new field in a snapshot that to store the reward calculation result. That's how much reward are going to be distributed. When the cluster restart from a snapshot taken during the reward period, it will have to load the result and resume the reward distribution process as if it.
+00:10:07.410 - 00:10:11.574, Speaker A: Was going on before it restarted.
+00:10:15.994 - 00:10:26.044, Speaker D: Yeah, that's the overview of all the new proposal for the new rewards, and the more details can be found on this link at the pull request here.
+00:10:28.144 - 00:10:33.804, Speaker A: Yeah, let's go into the q and a sessions, if you have any.
+00:10:36.144 - 00:10:45.124, Speaker B: Well, if anybody that cannot talk, feel free to raise your hand and I will give access. Zantetsu, you had a question.
+00:10:46.884 - 00:11:33.634, Speaker E: Yeah, thank you for presenting this. I do remember a brief discussion about this from in the discord, maybe three or four or five months ago, and I do remember asking this question, so I'm sorry if it's being reproduced here, but there are some dashboards that read rewards to be able to provide information to end users about rewards across the entirety of Solana. And up to this point, it's fairly easy to do. You just look at the first block of the first successful block of a, of an epoch and you get all the rewards there. How would a mechanism like that work in this new system? Would you have to be constantly watching for rewards blocks and sort of, you know, building up that information incrementally? Or will there be some point where it'll be obvious that it's done and you can do one query to an RPC server to get all the information?
+00:11:38.014 - 00:11:38.794, Speaker C: Yeah.
+00:11:45.634 - 00:11:48.978, Speaker D: If you just care about the total number of reward I think you.
+00:11:48.986 - 00:11:52.450, Speaker A: Can still do it at the first.
+00:11:52.482 - 00:11:54.014, Speaker D: Block of the epoch boundary.
+00:11:58.634 - 00:12:27.896, Speaker F: I can address a little bit of this. Since the rewards slot or blocks are going to be paid out, are going to be deterministic. You're actually going to be able to generate a query based on which stake account or validator you want to know the rewards for. So we can actually make RPC queries that function the same. It will need some extension but it'll be slightly different from what we have today.
+00:12:28.040 - 00:12:32.842, Speaker E: So per validator I'd have to make like 2000 queries or something, is that what you're saying?
+00:12:32.928 - 00:12:57.514, Speaker F: Big? Well no, I mean you could just query all of the blocks. In that case like if you, if you need to do a large range of rewards you can just get the entire payout or distribution block range for the slots. Basically like a get blocks with limit call with whatever the duration of the distribution.
+00:12:58.514 - 00:13:05.810, Speaker E: So watching to find when that point has been reached, when all the distribution is completed and then make that call, is that what you're suggesting?
+00:13:05.962 - 00:13:16.334, Speaker G: It's determined today, right? Yeah, yeah, you know, it's over by the 1000th block after the epoch so you can just make the call right there instead.
+00:13:16.914 - 00:13:17.250, Speaker C: Right.
+00:13:17.282 - 00:13:29.194, Speaker F: So today where you just know that it's, you know, the first block in the epoch, now it's going to be, you know, the thousandth log block or that, you know, however many blocks before. I don't think any of this is fully parameterized yet.
+00:13:29.974 - 00:13:30.454, Speaker C: Okay.
+00:13:30.494 - 00:13:42.430, Speaker E: And so, well, so someone would have to have sort of code that understands that to be able to compute what that block would be. Or there'll be an RPC call to ask that at some point. Like is that how you anticipate it going?
+00:13:42.622 - 00:14:01.144, Speaker F: Yeah, basically it'll depend on how much complexity that ends up being in the final thing. I don't anticipate being that difficult. This could probably be like an RPC helper versus an actual RPC endpoint. But I think it'll be fairly trivial to put together a way to equivalently get, I mean, admittedly, it's going to be a little heavier because you have to get multiple blocks. Right, but.
+00:14:01.924 - 00:14:02.292, Speaker C: Okay.
+00:14:02.308 - 00:14:06.944, Speaker E: And I do have another question, but I don't want to monopolize this, so I'll wait to see if other people have a question first.
+00:14:08.404 - 00:14:12.504, Speaker B: All right, next person with the hands raised was Jeff. So go ahead.
+00:14:22.104 - 00:14:22.464, Speaker C: Jeff.
+00:14:22.504 - 00:14:25.284, Speaker B: You should be able to unmute to ask your question.
+00:14:31.744 - 00:14:35.244, Speaker C: Oh, so sorry. Namaste.
+00:14:40.184 - 00:14:49.944, Speaker B: Okay, is there any other questions about, uh, this or otherwise? We'll go back to use ans. All right, Ashwin, go ahead.
+00:14:51.004 - 00:15:03.904, Speaker H: Hey, uh, just wanted to ask, um, if there's a cluster restart in the first thousand blocks, is there any change to, uh, change to that procedure because the snapshot won't have the, the result in it?
+00:15:05.884 - 00:15:20.284, Speaker D: Yeah, we have a talk about this. So in that case, uh, when the snapshot is taken during the reward computation phase, the snapshot has to wait. It has to wait until the result is available and stored the result there.
+00:15:22.624 - 00:15:23.564, Speaker C: Got it.
+00:15:30.344 - 00:15:33.144, Speaker B: Okay, Zanz, you're welcome to ask your question.
+00:15:33.304 - 00:16:11.074, Speaker E: Okay, so is it the case that validators will only validate a block if the leader producing that block has the appropriate amount of either computation work or rewards payout work in that block? Or is it the case that a validator can just sort of decide not to do it on their block and be like, I've modified the code to not do this because I don't want to burn the cpu on this and it doesn't give me any rewards, so I'm just not going to do it? Or is that even a possibility? Or is it the case that the cluster won't even, won't even accept a block unless it includes these details, because they're expected for, and they're sort of built into the protocol that this has to happen in this order?
+00:16:19.014 - 00:16:32.194, Speaker D: Yes, because the order is deterministic for the current epoch, but there will be some randomness across different epochs. So if the leader, for example, he.
+00:16:32.234 - 00:16:35.458, Speaker A: Doesn'T, it doesn't matter whether he's a leader or not.
+00:16:35.546 - 00:16:47.934, Speaker D: In fact, if the validator doesn't include the expected set of rewards in the block, I think the hash will mismatch and his block will be rejected.
+00:16:48.434 - 00:17:16.574, Speaker E: Okay, so these, this part of the block does go into the hash, so that validators have to agree on it to vote on it. So I guess that answers my question. And we just kind of accept that the first end leaders kind of have to do this work without any compensation. That's just kind of like built into the protocol. There's no need to add any compensation for doing this work. It's not expected to impact transactions that could be fit into a block. Like it doesn't take up extra block space or extra compute time.
+00:17:16.574 - 00:17:21.714, Speaker E: That could prevent a validator from including as many transactions as it would otherwise.
+00:17:22.414 - 00:17:39.133, Speaker G: It's the same problem as we have right now with only one. Whatever that first leader or whatever that first block is, gets screwed on including transactions because everyone is computing this. This is just spreading out the computation to make it more feasible.
+00:17:39.673 - 00:17:49.133, Speaker E: Yeah, I agree. That sounds better. I was just wondering if there's an opportunity to sort of like make that even more addressed by sort of paying a validator for having to do this. Just putting it out there.
+00:17:51.334 - 00:18:01.634, Speaker G: It samples 1000 slots, right? So it kind of spreads the workout out of everyone. You'd be kind of paying everyone equally, which means there's a no up.
+00:18:03.894 - 00:18:04.286, Speaker C: Except.
+00:18:04.310 - 00:18:10.022, Speaker E: The dudes that are unfortunate and only get one block in the first, you know, but whatever, it's fine.
+00:18:10.118 - 00:18:15.950, Speaker C: It's cool. All right.
+00:18:16.142 - 00:18:20.764, Speaker B: Are there any other questions about the epoch reward changes?
+00:18:25.424 - 00:18:26.312, Speaker C: Okay, cool.
+00:18:26.368 - 00:19:09.572, Speaker B: So this is a simd still? It's a. I put the link in the chat for everyone to add to the discussion later. SiMD 15. You're welcome to discuss it for the next rest of the time on this call. I'd like to open the floor for anybody that has just General Q and a questions. Just feel free to raise your hand and I'll give you access to speak and you can ask your question. If there's nobody with questions, we can end this early.
+00:19:09.572 - 00:19:11.544, Speaker B: So I'll give it a few more moments.
+00:19:17.544 - 00:19:23.004, Speaker E: Did you guys have a, you know, third year anniversary party or anything like that?
+00:19:24.224 - 00:19:32.324, Speaker G: Yeah, man, we were so busy, we didn't. It's a. We should.
+00:19:35.104 - 00:19:37.550, Speaker E: All right, we'll start planning for the fourth now, I suppose.
+00:19:37.672 - 00:19:37.906, Speaker C: Video.
+00:19:37.930 - 00:19:38.654, Speaker G: Thank you.
+00:19:41.834 - 00:19:42.410, Speaker C: All right, cool.
+00:19:42.442 - 00:19:59.914, Speaker B: Thank you, everyone for joining today. There will be a space afterwards that if anybody has any questions or that they don't want to ask here, you're welcome to join. So be on Twitter, you can see it on Solana Devs and we'll happy to chat there as well. Thank you guys today.

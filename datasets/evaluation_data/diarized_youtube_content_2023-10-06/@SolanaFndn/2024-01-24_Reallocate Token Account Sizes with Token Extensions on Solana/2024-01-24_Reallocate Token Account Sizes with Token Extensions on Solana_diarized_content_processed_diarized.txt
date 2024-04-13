@@ -1,0 +1,57 @@
+00:00:05.320 - 00:00:31.526, Speaker A: DM welcome to this episode of Solana Bytes. In this series we're taking a look at all of the extensions on the Token 2022 program. In this episode we're focusing on the reallocate extension. So the Token 22 program actually comes with a bunch of account extensions that can be applied after initializing a token account. So unless magically you know ahead of time which extensions you will add in the future so that you can allocate enough space for them.
+00:00:31.590 - 00:00:33.998, Speaker B: This could actually be quite tricky, because.
+00:00:34.046 - 00:01:27.330, Speaker A: In order for you to add these extensions, you may need to reallocate more space in the account for additional extension bytes. So the reallocate instruction allows an owner to reallocate more space for their token account to fit more room for extensions. So in this script we simply first start off by connecting to the cluster. We create a new token mint with the Token 22 program, and then we create a token account without any additional extensions applied. Though it's actually worth noting that when you create a new associated token account, the immutable owner extension is actually applied by default. So we create this account, and then in the next set of transactions we actually want to add the member transfer extension. So what we do, we use the reallocate extension to add more space for this account, because we're going to then add in the member transfer extension.
+00:01:27.442 - 00:01:31.414, Speaker B: So let's take a look at this account on Solscan.
+00:01:33.834 - 00:01:57.056, Speaker A: So in this account you'll notice first that there were two transactions that involve this account, and we can also see that there are two extensions applied. One is the immutable owner that you get by default by creating an associated token account. The second one is the required memory extension that we added after the token account had already been initialized. So if we take a look at.
+00:01:57.080 - 00:02:04.192, Speaker B: That first transaction, you'll notice that we create the associated token account, and we.
+00:02:04.208 - 00:02:16.776, Speaker A: Can see that that immutable owner extension was added by default, and that was it. So by the time that this transaction concluded, only the immutable owner extension would have been applied. Then if we go back and look.
+00:02:16.800 - 00:02:21.608, Speaker B: At the second transaction, this one called.
+00:02:21.656 - 00:02:42.868, Speaker A: The reallocate extension, so that we can add some extra space for the member transfer extension, and then we just enable the required member transfers. So this is how you can add an extension after the token account had already been initialized. So let's step into the code and take a look at how to do this. So we're going to make a new.
+00:02:42.916 - 00:02:47.104, Speaker B: Directory called SPL Token Realloc.
+00:02:47.444 - 00:02:49.356, Speaker A: We're going to CD into this new.
+00:02:49.380 - 00:03:23.744, Speaker B: Directory, then we are going to init a new NPM project. Then we're going to install the packages that we need. And now let's open this up in versus code. So we're going to create a new file index mjs then just add some helpers for some type checking.
+00:03:23.904 - 00:03:24.240, Speaker C: Cool.
+00:03:24.272 - 00:03:40.484, Speaker A: So now we're ready to get started. The first thing that we want to do is establish a connection to Devnet, generate a new pay account and fund it so that it can pay for all of our transactions and then create a new token Mint using the token 2022 program. So we need our connection.
+00:03:44.564 - 00:03:56.944, Speaker B: When you use cluster API. Devnet confirmed we then have our payer, we then want to fund it.
+00:04:02.124 - 00:04:03.228, Speaker C: Request.
+00:04:03.396 - 00:04:13.074, Speaker B: Airdrop payer public key and we'll just take one sole. Then we want to ensure.
+00:04:34.014 - 00:04:41.154, Speaker A: So now that we have that set up, we can now go ahead and create our mint. So we have our mint authority.
+00:04:45.934 - 00:04:46.914, Speaker C: Generate.
+00:04:47.774 - 00:04:55.434, Speaker B: We set our decimals, just use the default of nine. Then we have our mint.
+00:04:57.934 - 00:04:58.342, Speaker C: And we.
+00:04:58.358 - 00:05:03.430, Speaker A: Use the createment helper function to create this new mint. So we have connection payout the Mint.
+00:05:03.462 - 00:05:06.382, Speaker B: Authority, the freeze authority we'll also use.
+00:05:06.438 - 00:05:08.634, Speaker A: As the mint authority the decimals.
+00:05:11.894 - 00:05:12.206, Speaker C: Take.
+00:05:12.230 - 00:05:15.990, Speaker A: The key pair which can be undefined. So we get a random one, then.
+00:05:16.102 - 00:05:18.318, Speaker B: Options we don't have any options.
+00:05:18.406 - 00:05:32.172, Speaker A: And then the token 22 program. So that gives us our new token mint. The next thing that we want to do is create a new account for this mint. So we just create a new owner.
+00:05:32.318 - 00:05:36.736, Speaker B: Keeper generate then we create this new.
+00:05:36.760 - 00:05:44.656, Speaker A: Account and we're going to use the create account helper. We take a connection, a payer, a.
+00:05:44.680 - 00:05:53.204, Speaker B: Mint, the owner public key and then we just need to pass in the token 22 program.
+00:05:54.304 - 00:06:19.220, Speaker A: So now that we have a new account, actually at this junction we will actually have an account that's created and it's going to have the immutable owner extension applied. So now that this token has already been initialized, we're now going to create the set of instructions required to one reallocate additional space to this account so that we can add the memo transfer.
+00:06:19.412 - 00:06:24.004, Speaker B: Extension so we can say const first.
+00:06:24.044 - 00:06:27.184, Speaker A: Going to tell it what extensions we intend to add.
+00:06:27.884 - 00:06:43.610, Speaker B: Extensions extension type memory transfer then say const reallocate instruction equals create reallocateinstruction which.
+00:06:43.642 - 00:06:46.514, Speaker A: Again comes from the SPL token library.
+00:06:46.674 - 00:07:12.954, Speaker B: Takes an account pay your public key. So this account we need to have an await takes the extension type which is going to be our extensions takes owner public key. Then we don't have any of those. And then now the token 22 program.
+00:07:13.894 - 00:07:32.274, Speaker A: So now this would create the transaction instruction to reallocate this account to add additional bytes for it to have enough space to save the memo transfer. Now we're now going to actually enable.
+00:07:35.014 - 00:07:48.554, Speaker B: The memo transfer instruction. So create enable.
+00:07:50.254 - 00:07:52.894, Speaker C: Takes an account, the.
+00:07:52.934 - 00:07:54.638, Speaker A: Authority, which in our case is the.
+00:07:54.686 - 00:08:00.800, Speaker B: Owner, then the signers, and then the token 22 program.
+00:08:00.992 - 00:08:07.960, Speaker A: So now that we have this, these instructions, when I want to build our transaction and send this to the network.
+00:08:08.152 - 00:08:37.000, Speaker B: So const transaction equals new transaction add, and we want to add the reallocate instruction and the enable required memo transfer instruction. Now we can send this send and confirm takes connection transaction, the signers, which.
+00:08:37.032 - 00:08:39.204, Speaker A: Will be in our case the payer.
+00:08:39.584 - 00:08:42.524, Speaker B: And the mint key pair.
+00:08:44.464 - 00:08:49.772, Speaker C: Which we.
+00:08:49.788 - 00:08:55.716, Speaker B: Don'T actually need that, so just the payer. So now that we can go ahead.
+00:08:55.740 - 00:08:56.980, Speaker A: And log this so we can see.
+00:08:57.012 - 00:09:12.184, Speaker B: It on source scan. So signature verification failed for this.
+00:09:26.624 - 00:09:28.244, Speaker A: Now go ahead and run this.
+00:09:30.784 - 00:09:31.096, Speaker C: And.
+00:09:31.120 - 00:09:34.080, Speaker A: We get our transaction signature. If we take a look at this.
+00:09:34.112 - 00:09:35.244, Speaker B: On Solscan.
+00:09:42.244 - 00:10:00.620, Speaker A: We can see that we were able to use the reallocate extension on this account, and then we then enabled the required member transfer. So if we take a look at this account, actually we'll notice again there were two transactions. The first one was simply just to.
+00:10:00.652 - 00:10:03.676, Speaker B: Create the associated token account, which as.
+00:10:03.700 - 00:10:35.344, Speaker A: I mentioned, gets the immutable owner extension by default. And then when we look at the final state of that account, it has the mutable owner extension and also the required memo extension. So the reallocate extension will always come in handy when you need to add an extension on an already initialized account. Join us again for future episodes as we explore all of the other extensions on the Token 22 program. I'm Colin from the Solana foundation developer relations team. Until next time.
