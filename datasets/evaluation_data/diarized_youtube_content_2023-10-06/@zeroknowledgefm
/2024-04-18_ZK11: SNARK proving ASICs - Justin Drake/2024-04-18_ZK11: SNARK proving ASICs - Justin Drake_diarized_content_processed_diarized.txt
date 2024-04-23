@@ -1,0 +1,251 @@
+00:00:07.280 - 00:00:16.714, Speaker A: All right, I'm very excited to present our first speaker on the main stage for ZQ summit Eleven. This is Justin Drake, who's going to be talking about snark proving Asics.
+00:00:17.094 - 00:00:18.234, Speaker B: Please take it away.
+00:00:19.614 - 00:00:20.794, Speaker C: Thank you, Anna.
+00:00:24.974 - 00:00:27.286, Speaker D: Okay, zkasics and I have some props.
+00:00:27.310 - 00:00:30.034, Speaker C: Here, which I'll be talking about during the talk.
+00:00:30.544 - 00:00:43.032, Speaker D: So just a quick note, a personal note. I went to the speaker's dinner yesterday, and the quality of the people there was just so high that I wanted to add this slide that I'm feeling imposter syndrome because I left the ZK.
+00:00:43.088 - 00:00:50.604, Speaker C: Space for about a year doing Mev, and I'm coming back and I'm just overwhelmed with the amount of developments.
+00:00:51.384 - 00:01:02.642, Speaker D: Anyway, my talk will be in three parts. First of all, I want to provide some motivations and reasons why I'm excited about snark proving Asics or ZK Asics.
+00:01:02.818 - 00:01:08.734, Speaker C: A lot of it has to do with composability and sharding. And mev, I'll try and explain that to you.
+00:01:09.594 - 00:01:19.250, Speaker D: The other second part is going to be trying to give you an overview, a survey of the progress that is happening. There's so much progress happening.
+00:01:19.282 - 00:01:24.894, Speaker C: There's about ten companies that are working on the ZK Asics, and I want to tell you what they're doing.
+00:01:25.474 - 00:01:35.774, Speaker D: And then finally, I want to share some personal opinions on how a ZK could be built, one that could fulfill.
+00:01:36.194 - 00:01:39.134, Speaker C: The properties that I'd like to see out there.
+00:01:40.194 - 00:01:49.026, Speaker D: Okay, so motivation for ZK Asics, so real time proving is specifically focusing on.
+00:01:49.050 - 00:01:51.546, Speaker C: The latency aspects of snarks.
+00:01:51.570 - 00:02:03.390, Speaker D: So we want our snarks to come with low latency relative to the native execution. And specifically, we want the proof latency to be lower, ideally significantly lower than.
+00:02:03.422 - 00:02:06.286, Speaker C: The slot time, which is about 12 seconds.
+00:02:06.470 - 00:02:12.102, Speaker D: And I think we can get to 10 seconds relatively soon. But it would be much better if.
+00:02:12.118 - 00:02:16.034, Speaker C: We could get to 1 second or even 100 milliseconds proof latencies.
+00:02:17.134 - 00:02:19.366, Speaker D: Now, one of the first use cases.
+00:02:19.470 - 00:02:21.990, Speaker C: Of real time proving is this idea.
+00:02:22.022 - 00:02:32.588, Speaker D: Of cross roll up synchronous composability. So that's a bit of a mouthful, but basically every roll up today on Ethereum is, is a little bit of a silo. And we're breaking down some of the network effects.
+00:02:32.676 - 00:02:34.308, Speaker C: We're introducing fragmentation.
+00:02:34.476 - 00:03:06.136, Speaker D: And ideally what we want to do is reintroduce the full power of composability, which is known as synchronous composability. And so if you imagine these roll ups as being sequenced in time, starting from the top to the bottom. What we can do is we can do a little bit of magic and try, and at least for a subset of the time, try and have these roll ups come together and compose. Now, if we zoom in to two of these roll ups, roll up a.
+00:03:06.160 - 00:03:07.608, Speaker C: And roll up b, for example, arbitrary.
+00:03:07.616 - 00:03:48.292, Speaker D: And base, the vision is that we can create these super transactions. So a super transaction is a transaction that touches multiple roll ups. And so here you have three constituent simple transactions that only touch one roll up. And you have basically real time settlement thanks to the real time proving of these rollups. And that gives you real time trustless message passing between the roll ups and also asset bridging. So if you want to do all in one fell swoop as an atomic transaction, a swap of a token for some cash, then you can do that. But in order to achieve that kind of vision, we actually need two things.
+00:03:48.292 - 00:03:57.298, Speaker D: One, we need shared sequencing. So we need these two roll ups, a and b, to opt in to using the same sequencer. But also extremely importantly, and this is.
+00:03:57.306 - 00:04:00.294, Speaker C: The second pillar, we need this real time proving.
+00:04:01.354 - 00:04:24.586, Speaker D: And where latency comes into play is that it basically limits the opportunity for synchronous composability. So here in this diagram, if we have, for example, 1 second of proving latency at the bottom, and our slot duration is 12 seconds, well, our window for synchrony, our opportunity synchrony is only 11 seconds. And the reason is that as a.
+00:04:24.610 - 00:04:26.618, Speaker C: Sequencer that is also a builder, as.
+00:04:26.626 - 00:04:36.498, Speaker D: A builder sequencer, I have to put my proof within the block. And if it takes 1 second to generate the proof, well, I have to.
+00:04:36.546 - 00:04:45.254, Speaker C: Start the proving process at least 1 second before the end of the slot. And so I can only do this synchronous stuff and synchronous magic in the first 11 seconds.
+00:04:46.714 - 00:04:50.468, Speaker D: Okay, the second big use case of.
+00:04:50.516 - 00:04:55.464, Speaker C: Real time proving is that we can have light validators or ZK validators.
+00:04:55.844 - 00:05:07.284, Speaker D: So right now we have big nodes and small nodes. So big nodes can be like builders and provers and relays, and we want users to be on their mobile phones.
+00:05:07.324 - 00:05:07.916, Speaker C: And be like nodes.
+00:05:07.940 - 00:05:14.910, Speaker D: But we have this awkward middle kind of node, medium nodes, which are the validators that are currently running on, on.
+00:05:14.942 - 00:05:18.834, Speaker C: Laptops or if you're lucky, like a raspberry PI.
+00:05:20.094 - 00:05:38.558, Speaker D: But really what we want to do is to move these validators into the category of light nodes. But in order to do that, we need to have real time proving. And the reason is that whenever there's a new block on the ethereum chain that comes in, we need validators to know with low latency, at least before.
+00:05:38.606 - 00:05:41.144, Speaker C: The next block arrives, that this block is valid.
+00:05:41.264 - 00:05:45.976, Speaker D: And so this is where real time proving where the latencies are less than.
+00:05:46.000 - 00:05:47.804, Speaker C: The slot duration become important.
+00:05:48.824 - 00:05:53.024, Speaker D: And so what I think will happen is that one by one the clients.
+00:05:53.104 - 00:06:02.324, Speaker C: Will snorkify, so maybe Geth will become ZkgEF, and then we'll have Besu and ZK, Besu and ref, Z ref and same thing for the consensus client.
+00:06:04.064 - 00:06:24.942, Speaker D: And then the final big unlock is this idea of having an EVM precompile to do EVM execution or EVM verification within the EVM. So it's kind of this introspection, very powerful precompile. And the way it works is that it takes a few inputs, it takes a pre state route, a post state.
+00:06:24.998 - 00:06:28.166, Speaker C: Route, a state diff, and some proofs.
+00:06:28.310 - 00:06:37.472, Speaker D: And basically it will return true or false, depending as to whether or not the state transition is valid. And the proofs do indeed prove that.
+00:06:37.488 - 00:06:41.564, Speaker C: The state transition is valid for the corresponding state diff.
+00:06:44.264 - 00:06:54.936, Speaker D: And one of the important details here is that some of the aspects, some of the inputs of the precompile are not going on chain, they actually implicit.
+00:06:55.000 - 00:06:56.124, Speaker C: They go off chain.
+00:06:56.544 - 00:07:05.810, Speaker D: And the idea here is that we don't want to enshrine within ethereum a specific proof system. And so instead every execution client can.
+00:07:05.842 - 00:07:15.734, Speaker C: Have its own proof system with its own circuit for the ZKVM, for its own arithmetization or cryptographic assumptions.
+00:07:17.194 - 00:07:21.834, Speaker D: And each validator is basically running this.
+00:07:21.874 - 00:07:25.734, Speaker C: Opcode with the logic that they have in their client.
+00:07:26.994 - 00:07:33.494, Speaker D: And this is kind of highlighted in Vitalik's roadmap diagram.
+00:07:35.554 - 00:07:38.054, Speaker C: EVM verification precompile.
+00:07:39.994 - 00:07:49.786, Speaker D: And once you have this kind of magical precompile, we will be in a position where we can have a notion.
+00:07:49.810 - 00:07:51.242, Speaker C: Of a native roll up.
+00:07:51.378 - 00:08:17.910, Speaker D: So a native roll up is one that natively reuses the EVM as is virtual machine. So today, as a roll up, even if you want to be EVM equivalent, you have to re implement the evms as a circuit. You'll introduce bugs, but not only that, you won't be compatible all the time, because EVM itself is changing. And so you need a mechanism to change as well. And so you need governance. And that in and of itself is.
+00:08:17.942 - 00:08:19.262, Speaker C: Also another attack vector.
+00:08:19.358 - 00:08:46.758, Speaker D: So once we have this precompile, it's going to be effectively one line of code to deploy a new EVM equivalent rollup. It's going to be extremely easy to program and create these new rollups. Another cool thing is that by construction, the virtual machine will not have bugs. And the reason is that it will be the exact copy of the EVM.
+00:08:46.806 - 00:08:50.034, Speaker C: That is used at layer one within consensus.
+00:08:51.294 - 00:09:05.510, Speaker D: It's also going to be enjoying what I call governance synchrony. So every time there's a hard fork, well, the EVM will automatically also update and have the exact same rules. So every time we add an opcode.
+00:09:05.702 - 00:09:12.194, Speaker C: For example, within the layer one EVM, this precompile will reflect that logic immediately.
+00:09:13.414 - 00:09:21.170, Speaker D: And then another really cool use case is that we can have roll ups that remove the gas limit, no more gas limit.
+00:09:21.282 - 00:09:22.210, Speaker C: How cool would that be?
+00:09:22.242 - 00:09:27.930, Speaker D: And the reason is that the gas limit really is an anti denial of.
+00:09:27.962 - 00:09:31.654, Speaker C: Service vector where we want to make sure that the verifiers, the validators.
+00:09:33.554 - 00:09:33.906, Speaker D: Don'T.
+00:09:33.930 - 00:09:37.898, Speaker C: Get ddos with very large blocks that take a very large time to verify.
+00:09:38.026 - 00:09:40.706, Speaker D: But with a snark you have this.
+00:09:40.730 - 00:09:43.666, Speaker C: Constant time verification on the order of one millisecond.
+00:09:43.690 - 00:09:46.856, Speaker D: And so you can have the gas limit, be as high as you want.
+00:09:46.880 - 00:09:49.084, Speaker C: And you can even remove it.
+00:09:51.344 - 00:10:10.604, Speaker D: And once we have this notion of native roll ups, we actually reintroduce and kind of fulfill this vision of native execution sharding. So anyone will be able to deploy EVM shards on Ethereum.
+00:10:12.624 - 00:10:18.004, Speaker C: And this is basically the best type of sharding that I know of.
+00:10:19.664 - 00:10:32.800, Speaker D: Ok, quick summary. Real time proving unlocks a lot of things. It unlocks real time settlement for rollups and therefore synchronous composability. It gives us ZK client or snocked.
+00:10:32.832 - 00:10:35.216, Speaker C: Clients, which gives us light validators.
+00:10:35.400 - 00:11:03.636, Speaker D: And then it also gives us this EVM and EVM precompile which gives us native roll ups. And my last slide of this first section basically tries to highlight that there are some incentives for the builders to use fancy hardware to do the proofing in order to extract more mev. And that is a nice incentive alignment for people to go do the R.
+00:11:03.660 - 00:11:05.224, Speaker C: And D around this.
+00:11:06.104 - 00:11:15.992, Speaker D: In the case of synchronous composability, the more proven capabilities you have, the lower latency you have, the more transactions you are going to be able to include.
+00:11:16.048 - 00:11:22.064, Speaker C: On chain those transactions that require synchronous composability. With like clients, you're going to be.
+00:11:22.064 - 00:11:29.256, Speaker D: In a position where you'll have more time to build blocks if you can.
+00:11:29.280 - 00:11:35.988, Speaker C: Do the proving with low latency. Because if you have a high overhead for the proving, that means that you need to start the proving process, need.
+00:11:35.996 - 00:11:37.652, Speaker D: To seal your block and start the.
+00:11:37.668 - 00:11:43.504, Speaker C: Proving process early, and therefore you'll have less time to include transactions in your blocks.
+00:11:44.244 - 00:11:55.916, Speaker D: And then finally, if you have a very, very powerful proving and you're in a roll up that does not have a gas limit, then now suddenly your bottleneck is just physics.
+00:11:56.020 - 00:11:57.224, Speaker C: Like, how fast.
+00:11:59.244 - 00:12:00.764, Speaker D: Can you run these cpu's?
+00:12:00.804 - 00:12:03.476, Speaker C: How fast can you run the prover?
+00:12:03.660 - 00:12:09.284, Speaker D: And basically, the bigger and the beefier setup that you have, the more transactions.
+00:12:09.324 - 00:12:11.464, Speaker C: You'Ll be able to stuff in your blocks.
+00:12:12.444 - 00:12:14.344, Speaker D: And all of that is more mev.
+00:12:15.284 - 00:12:20.304, Speaker C: And therefore, is an incentive to go fulfill this vision of low latency proofing.
+00:12:22.644 - 00:12:38.604, Speaker D: Okay, part two. ZK ASIC progress. So I want to give you an overview of these ten companies that are working on snark Asics. The first three are kind of the.
+00:12:38.984 - 00:12:44.524, Speaker C: Flagship companies, I'd say, right now, which are axial, SiSIG, and fabric.
+00:12:44.944 - 00:12:47.808, Speaker D: And they are companies whose only mission.
+00:12:47.856 - 00:12:51.216, Speaker C: Whose sole purpose is to build snark asics.
+00:12:51.320 - 00:12:53.384, Speaker D: And they're very vocal and public about.
+00:12:53.424 - 00:12:55.584, Speaker C: It, and they're making a lot of progress.
+00:12:57.604 - 00:13:21.172, Speaker D: The second category of companies, somewhat unexpected, is basically mining companies. So Aleo will have a proof of work where the proof of work is effectively proving snarks. And so you have these four companies through the door of proof of work.
+00:13:21.308 - 00:13:24.884, Speaker C: Are coming into the world of snark proving asics.
+00:13:25.544 - 00:13:40.208, Speaker D: And then you have three companies at the bottom here that I want to mention, because they're extremely strong technically. Some of these are extremely well funded, and there have been hints of them.
+00:13:40.256 - 00:13:47.632, Speaker C: Also wanting to build a snark ASIC. So, for example, Auradyne told me that, yes, they are building an ASIC for.
+00:13:47.648 - 00:13:49.176, Speaker D: A certain ZK protocol, but they won't.
+00:13:49.200 - 00:13:50.404, Speaker C: Tell me the details.
+00:13:50.914 - 00:13:56.650, Speaker D: We have Ngonyama, who wants to build what they call a CPU, but they.
+00:13:56.682 - 00:13:57.842, Speaker C: Haven'T started work yet.
+00:13:57.898 - 00:14:05.770, Speaker D: It's still too early for them. And then you have supranational, which is the team that built these VDF Asics here.
+00:14:05.922 - 00:14:10.602, Speaker C: And by the way, this is for giveaway, so come talk to me if.
+00:14:10.618 - 00:14:15.802, Speaker D: You want one of those at the end. They also might be working on the.
+00:14:15.818 - 00:14:19.534, Speaker C: Snark ASIC, but they don't want to tell me many details.
+00:14:20.344 - 00:14:32.664, Speaker D: Okay, so let me focus on the flagship companies. The first one is axial. So I'm very proud to be able to show you today that we have.
+00:14:32.784 - 00:14:34.224, Speaker C: A first snark ASIC.
+00:14:34.264 - 00:14:38.544, Speaker D: And this is what it looks like. You're more than welcome to come inspect.
+00:14:38.584 - 00:14:40.008, Speaker C: It and have a look at it.
+00:14:40.176 - 00:15:22.516, Speaker D: I have another chip here, and really, I think axial has done a great job at just proving to the world that, yes, we can build these things is not rocket science. It's something that's totally doable. And this chip is a fairly fancy chip. It's a twelve nanometer TSMC chip with die area, roughly 100. What it does is basically acceleration of certain workloads. So it will accelerate msms and entities, and it will also do finite field.
+00:15:22.580 - 00:15:25.144, Speaker C: Vector additions and multiplications.
+00:15:25.844 - 00:15:39.308, Speaker D: And it's programmable to an extent. So it's made out of these 384 bit modular multipliers. And you can basically program the prime and program your fields, but you can.
+00:15:39.356 - 00:15:48.654, Speaker C: Also program the curves in the context of msms. So for example, it supports BN 254, it supports BS 381, it supports the pasta curves.
+00:15:50.354 - 00:16:05.946, Speaker D: And they have a test board. So in the next slide, I'll show some of the performance numbers. These are real measured performance numbers. So this is a PCie board. They've put four chips on it and 64gb of memory. This is real stuff that you should.
+00:16:05.970 - 00:16:08.904, Speaker C: Be able to buy, hopefully relatively soon.
+00:16:10.084 - 00:16:27.140, Speaker D: And these are the performance numbers. I really want to just highlight the two in green there, which basically says that this chip is capable of. It has the performance of a 380 Ti GPU.
+00:16:27.332 - 00:16:29.556, Speaker C: But obviously, yeah, it's much, much smaller.
+00:16:29.660 - 00:16:53.472, Speaker D: It costs roughly five times less. So your upfront cost is roughly five times less. And the power consumption is also five times less. So your all in all cost is going to be five times less. It consumes much less power. It has a much smaller footprint. And this is using, compared to the 380 tpis using an older node.
+00:16:53.472 - 00:17:02.390, Speaker D: And obviously Nvidia is this trillion dollar company. And you have this startup with ex academics, where in their very first iteration.
+00:17:02.462 - 00:17:07.526, Speaker C: They'Re able to get close to an order of magnitude on improvements on several metrics.
+00:17:07.550 - 00:17:10.870, Speaker D: So I'm very impressed and very optimistic.
+00:17:11.062 - 00:17:14.994, Speaker C: By what's yet to come in this direction.
+00:17:16.294 - 00:17:32.420, Speaker D: Now, Axial is only one of the three companies in the first category. The other two are seisic and fabric. You could kind of think of them as varying in ambition in what they're.
+00:17:32.452 - 00:17:34.516, Speaker C: Trying to build for their very first chip.
+00:17:34.700 - 00:17:37.748, Speaker D: So Cisig, unlike axial, which is doing.
+00:17:37.836 - 00:17:42.624, Speaker C: This partial snark acceleration, only did the heavy duty MSMs and NTTs.
+00:17:43.004 - 00:17:53.232, Speaker D: They want to do the whole end to end proving, because one of the realizations is that it's all well and good to accelerate the entities and the ffTs, but then you're left with all.
+00:17:53.248 - 00:17:59.408, Speaker C: The other stuff, and that quickly becomes your bottleneck, which is why psysic is trying to do the whole thing, and.
+00:17:59.416 - 00:18:03.640, Speaker D: Then fabric is trying to do something even more ambitious, which is basically to.
+00:18:03.672 - 00:18:18.404, Speaker C: Build a GPU for cryptography, a GPU where the basic operations are finite fields operations, as opposed to the floating point operations or integer operations that are used for AI.
+00:18:19.794 - 00:18:26.650, Speaker D: And this is the SISEc test board. So right now they're working with FPGA's.
+00:18:26.762 - 00:18:31.802, Speaker C: And this is a normal process, a normal step before going to asics.
+00:18:31.938 - 00:18:55.318, Speaker D: So they put three FPGA's per board, and this is the performance that they have. So they connect 18 boards together. Each board has three FPGA's, so there's 54 FPGA's. They can do an MSM of size 1 billion. So that's an extremely massive MSM in.
+00:18:55.446 - 00:18:57.190, Speaker C: Less than 200 milliseconds.
+00:18:57.302 - 00:19:00.710, Speaker D: So in less than one fifth of a second, they can do an MSM.
+00:19:00.742 - 00:19:03.582, Speaker C: Of size a billion, which I find absolutely amazing.
+00:19:03.678 - 00:19:32.496, Speaker D: And they have similar performance numbers for entities as well. They can do an entity of size two, circumflex 30, in roughly 200 milliseconds. And this is including, this is end to end, including the data transfer time, very, very impressive numbers. And basically what they want to do is like, take these boards and actually take three boards with nine fpgA's and compress that down to a single ASIC.
+00:19:32.640 - 00:19:37.244, Speaker C: Of die area, roughly 100 mm².
+00:19:39.524 - 00:19:43.356, Speaker D: Okay, now, the second category of companies.
+00:19:43.420 - 00:19:46.404, Speaker C: That I wanted to highlight is the proof of work companies, because we're going.
+00:19:46.404 - 00:19:57.644, Speaker D: To have Aleo launching relatively soon. And I kind of think of Aleo as being this amazing Trojan horse to get a bunch of profit maximizing mining.
+00:19:57.684 - 00:20:03.664, Speaker C: Companies into the world of asics through the backdoor.
+00:20:04.704 - 00:20:19.560, Speaker D: And the way that I think of Aleo is as this continuous z price. Instead of having z price once a year with, let's say, $10 million of prizes, we're going to have this constant block by block incentive program, and it might be an order of magnitude larger.
+00:20:19.592 - 00:20:21.884, Speaker C: Than Zee price, which is extremely exciting.
+00:20:22.904 - 00:20:53.500, Speaker D: Now, what Aleo has decided to do is to change the proof of work puzzle when they launch. And so right now, all the proof of work puzzles on Testnet don't really apply. And so all the companies are in this, like, wait and see mode. And when they will release the specs of their final puzzle, all these companies will be engaging in this roughly six month race to try and design and.
+00:20:53.532 - 00:20:56.540, Speaker C: Tape out that chip as fast as possible.
+00:20:56.612 - 00:20:59.388, Speaker D: Because proof of work is all about racing.
+00:20:59.556 - 00:21:06.064, Speaker C: Well, a part of it is about racing to having the first one in addition to having the best performance.
+00:21:06.564 - 00:21:10.876, Speaker D: And I think, roughly speaking, this is going to double the number of companies.
+00:21:11.060 - 00:21:15.284, Speaker C: That are going to be actively working on ZK Asics.
+00:21:15.404 - 00:21:29.186, Speaker D: And you can see here the test board of one of these companies called ZK two. Final part, some ideas, some opinions that.
+00:21:29.210 - 00:21:33.574, Speaker C: I have about ZK Asics and how they could be designed.
+00:21:34.074 - 00:22:05.592, Speaker D: Take this last section with a grain of salt, but hopefully there's some good ideas there. So the first idea, the first opinion is that really the witness ought to be on chip and stay on chip. So we have this traditional separation of front end and back end improved systems. And basically we have the front end generating the witness, and we have the back end consuming the witness, and the.
+00:22:05.608 - 00:22:07.648, Speaker C: Witness being at the boundary here.
+00:22:07.776 - 00:22:10.808, Speaker D: And these witnesses are enormous.
+00:22:10.936 - 00:22:12.032, Speaker C: They're huge.
+00:22:12.208 - 00:22:27.364, Speaker D: And so if you want to simplify your design and not have this massive IO to the chip, you really want to put everything on chip. So that's idea number one, just put both the front end and the backend.
+00:22:27.524 - 00:22:30.020, Speaker C: So that includes the witness generation on chip.
+00:22:30.172 - 00:22:38.220, Speaker D: And so now basically what comes in is the statement, which is not as.
+00:22:38.252 - 00:22:42.144, Speaker C: Large as the witnesses, and then you have this small proof coming out.
+00:22:43.844 - 00:22:47.516, Speaker D: Okay, idea number two, try and have.
+00:22:47.580 - 00:22:50.144, Speaker C: Bite sized chunks in your workloads.
+00:22:50.484 - 00:23:03.156, Speaker D: So there's some designs out there that have basically tried to have these massive statements. Some teams building ZK vms end up with statements so large that they need.
+00:23:03.220 - 00:23:04.732, Speaker C: Enormous amounts of memory.
+00:23:04.868 - 00:23:21.890, Speaker D: And this makes the process of creating hardware for it just way like unnecessarily hard. And so instead, why don't we have these small bite sized chunks? And probably, like, the most elegant approach here is to have a virtual machine where what comes in is byte codes.
+00:23:21.922 - 00:23:23.498, Speaker C: And now you have this notion of a cycle.
+00:23:23.546 - 00:23:30.050, Speaker D: This is your most granular atomic unit of computation, and you can batch these.
+00:23:30.082 - 00:23:34.374, Speaker C: Cycles, so you can have chunks of 1000 cycles or chunks of a million cycles.
+00:23:35.254 - 00:23:47.806, Speaker D: And the nice thing here is that you don't need much memory. And then in order to support this idea of having small chunks, well, you need a notion of recursion or a.
+00:23:47.830 - 00:23:51.430, Speaker C: Notion of proof carrying data or of continuations.
+00:23:51.582 - 00:24:13.442, Speaker D: And the nice thing about continuations is that not only will this give you the internal recursion to the chip, that you need to be able to consume, consume these chunks made of cycles, but you also have the opportunity to scale horizontally. So you could have ten chips, 100 chips, all of which are spitting out continuations, and then you do de aggregation.
+00:24:13.498 - 00:24:14.346, Speaker C: On top of that.
+00:24:14.450 - 00:24:16.562, Speaker D: So it's a really nice design to.
+00:24:16.578 - 00:24:18.854, Speaker C: Be working with these bite sized chunks.
+00:24:19.634 - 00:24:21.738, Speaker D: And my prediction is that these Asics.
+00:24:21.786 - 00:24:23.254, Speaker C: Actually won't have much memory.
+00:24:25.234 - 00:24:25.858, Speaker D: And everything.
+00:24:25.906 - 00:24:27.294, Speaker C: Will be very digestible.
+00:24:28.604 - 00:24:41.780, Speaker D: Okay, idea number three is to try and embrace off chip programmability. So programming hardware is always of magnitude.
+00:24:41.812 - 00:24:43.444, Speaker C: Harder than programming software.
+00:24:43.564 - 00:24:45.236, Speaker D: And so wherever there's an opportunity to.
+00:24:45.260 - 00:24:47.624, Speaker C: Program in software, embrace that.
+00:24:48.204 - 00:25:01.548, Speaker D: And so one of the obvious places here, if you have bytecode, is just use a general purpose turing complete virtual machine. And now you can have arbitrarily complex.
+00:25:01.716 - 00:25:04.076, Speaker C: High level programs at the user level.
+00:25:04.180 - 00:25:23.942, Speaker D: But then there's another opportunity for programmability, which is at the back end level, where basically you can have this notion of a wrapper snark. So even though your continuation might use a very opinionated proof system or opinionated curves, you can always abstract that away.
+00:25:24.078 - 00:25:27.950, Speaker C: And translate it to your environment.
+00:25:28.102 - 00:25:34.574, Speaker D: So, for example, if you're in the context of Ethereum, you might want to have a graph 16 wrap.
+00:25:34.694 - 00:25:37.834, Speaker C: So wrap is my term for wrapper proof.
+00:25:39.654 - 00:25:44.334, Speaker D: And the reason you might like graph 16 is because it consumes very little.
+00:25:44.374 - 00:25:48.394, Speaker C: Gas when you go verify it on Ethereum.
+00:25:49.504 - 00:25:58.552, Speaker D: But the point here that I'm trying to make is that really you want to do as little programming as possible on the ASIC and leverage as much.
+00:25:58.568 - 00:26:01.600, Speaker C: As possible of ASIC.
+00:26:01.712 - 00:26:24.024, Speaker D: And so one of the things you can do is you can basically totally freeze the internals and fix them, which is something a little counterintuitive, but it's basically just be very opinionated on your chip. Choose your specific field, choose your specific proof system, your specific risk, five ASIC, and you'll get all sorts of gains.
+00:26:24.484 - 00:26:26.984, Speaker C: By just having better utilization.
+00:26:28.804 - 00:26:31.084, Speaker D: And lower power consumption.
+00:26:31.124 - 00:26:33.148, Speaker C: Because you're so specialized, at the end.
+00:26:33.156 - 00:26:53.550, Speaker D: Of the day, ASIcs are all about application specific circuits. And the best way to do that is in some sense to limit the programmatic on chip and have it all off chip. Now, one of the things you may ask, okay, isn't it really risky to just choose a specific, for example, RISC.
+00:26:53.582 - 00:26:57.034, Speaker C: V circuit and just bet everything on that?
+00:26:57.694 - 00:27:01.142, Speaker D: And the answer is yes. And this is why you want to.
+00:27:01.158 - 00:27:02.914, Speaker C: Make sure that whatever you bake into.
+00:27:03.534 - 00:27:14.834, Speaker D: Your chip is as close as possible to bug free. And this problem is a problem that pervades the whole industry. There could be bugs in ZK rollups.
+00:27:14.874 - 00:27:17.258, Speaker C: And that could lead to multibillion dollar hacks.
+00:27:17.346 - 00:27:18.930, Speaker D: There could be bugs in ZK clients.
+00:27:18.962 - 00:27:21.170, Speaker C: And that could lead to consensus failures on Ethereum.
+00:27:21.282 - 00:27:39.072, Speaker D: And so this is why at the Ethereum foundation, we've started initial steps towards a very large scale formal verification company. Sorry, formal verification competition with tens of millions of dollars. And so if you're interested in helping out with this form of verification effort.
+00:27:39.168 - 00:27:43.124, Speaker C: Which will be relevant for ZK Asics, do get in touch with me.
+00:27:43.824 - 00:27:46.576, Speaker D: Okay, final slide before maybe we can.
+00:27:46.600 - 00:27:47.964, Speaker C: Have a couple questions.
+00:27:48.264 - 00:28:11.504, Speaker D: This is like back of the envelope numbers on overheads. So today, if you have like, kind of state of the art ZKVM, you have an overhead relative. You have a proving overhead relative to the native execution of roughly a million x. So if you have like one RISC five cycle, you're going to need a.
+00:28:11.544 - 00:28:13.696, Speaker C: Million cycles in order to do the proving.
+00:28:13.840 - 00:28:29.646, Speaker D: And, you know, there's like all these optimizations that are coming soon, which should bring that down, that overhead to only 100,000. And with an ASIC like ballpark figure, back of the envelope relative to a cpu, you can get 100 x.
+00:28:29.760 - 00:28:32.298, Speaker C: So the overhead will only be 1000 x.
+00:28:32.386 - 00:29:03.264, Speaker D: And so one of the things that might actually be possible when you combine all these ideas is that basically you have this chip where the native execution is happening in red. It's a RISC five core, which only consumes zero point 1 die area. And then all the rest is dedicated to the proving. And then you have this amazing ZK CPU, where in real time, you have, for every computation that's done in the little red area, you have a proof.
+00:29:03.304 - 00:29:06.884, Speaker C: As a continuation that comes out with extremely low latency.
+00:29:07.824 - 00:29:09.484, Speaker D: And that's it. Thank you.
+00:29:13.784 - 00:29:29.534, Speaker B: Okay, I think we have a couple minutes for Q and A. We don't have much, but we have some microphones on the seats. But just raise your hand and we can. Okay you, sir, there's a microphone on the seat. Can we turn the microphones on?
+00:29:33.874 - 00:29:49.294, Speaker E: Ah, there we go. I'm curious, we put GPU's on phones now, right? And this was all about builders proving, but you see room for users proving things and then builders building on that.
+00:29:50.614 - 00:30:00.398, Speaker D: Right? So I guess the first step will be for sophisticated entities to be running this. It could be a builders, but it could also be other entities in data.
+00:30:00.446 - 00:30:03.674, Speaker C: Centers running these systems. But, yeah, as you said, I expect.
+00:30:04.294 - 00:30:13.286, Speaker D: As the technology commoditizes, that maybe intel or AMD will acquire one of these companies and then eventually include one of.
+00:30:13.310 - 00:30:17.126, Speaker C: These real time proving modules on their chips. That would be a fantastic outcome.
+00:30:17.310 - 00:30:19.662, Speaker D: Realistically, it's maybe half a decade or.
+00:30:19.678 - 00:30:22.754, Speaker C: A decade away, but yes, that would be fantastic.
+00:30:23.214 - 00:30:34.454, Speaker D: And then there's also this notion of the ZPU or the VPU from fabric, where you have this, the equivalent of a GPU engine, which is extremely programmable.
+00:30:34.494 - 00:30:36.126, Speaker C: But specialized to finite fields.
+00:30:36.190 - 00:30:42.918, Speaker D: That could be also another approach for putting in Intel CPU's but that's going.
+00:30:42.926 - 00:30:44.034, Speaker C: To take a long time.
+00:30:46.354 - 00:30:57.174, Speaker B: I think we have time for one more question. Just give it a second. It should turn on.
+00:30:58.194 - 00:30:59.770, Speaker E: Inspiring presentation Justin.
+00:30:59.802 - 00:31:00.774, Speaker C: That was awesome.
+00:31:01.154 - 00:31:11.426, Speaker D: What do you think just in terms of timelines before users are able to verify zkps on their phones. So my mental model is that the.
+00:31:11.450 - 00:31:15.460, Speaker C: Real use case for proving on your phone is privacy.
+00:31:15.532 - 00:31:23.612, Speaker D: And the good news with privacy is that you tend to have small statements relative to the scaling applications where you.
+00:31:23.628 - 00:31:26.900, Speaker C: Want to be keeping up with a whole roll up.
+00:31:27.012 - 00:31:33.184, Speaker D: So I'm actually optimistic that for privacy applications we can just use the phone as it is.
+00:31:34.924 - 00:31:41.484, Speaker C: But yeah, it does feel that we are early. Yeah.
+00:31:42.184 - 00:31:52.496, Speaker D: The good news with privacy is that maybe there's these fairly cheap transformations where you can use your gpu on your phone, you translate the statement, you kind.
+00:31:52.520 - 00:31:57.896, Speaker C: Of obfuscate it and you remove all the sensitive information.
+00:31:58.000 - 00:32:02.016, Speaker D: And then what you send, you can send that to a data center that.
+00:32:02.040 - 00:32:05.538, Speaker C: Will do the actual compression and it's notification for you.
+00:32:05.696 - 00:32:08.558, Speaker D: So I think what the phone needs to do is like the ZK part.
+00:32:08.606 - 00:32:12.754, Speaker C: But not the S part, the succinct part. Yeah.
+00:32:13.574 - 00:32:14.814, Speaker D: I think we're out of questions.
+00:32:14.854 - 00:32:24.694, Speaker C: Sorry Uma, but we'd love to chat later on. And I will be in the speaker's room over there if you want to come chat. Thank you.
