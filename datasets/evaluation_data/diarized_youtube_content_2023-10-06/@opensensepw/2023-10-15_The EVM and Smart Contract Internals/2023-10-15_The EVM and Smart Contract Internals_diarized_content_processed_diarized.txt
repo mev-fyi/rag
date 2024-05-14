@@ -1,0 +1,896 @@
+00:00:01.320 - 00:00:03.918, Speaker A: Okay, so, my name is John Becker.
+00:00:04.086 - 00:00:06.514, Speaker B: I'm a software engineer at chainalysis.
+00:00:08.534 - 00:00:14.510, Speaker A: Yeah, you might know me for the Heimdall toolkit. I'm going to do a brief overview.
+00:00:14.582 - 00:00:17.014, Speaker B: Of EVM and some internal smart contract.
+00:00:17.094 - 00:00:20.126, Speaker C: Design patterns that you might find when.
+00:00:20.150 - 00:00:24.110, Speaker B: You'Re working with the EVM. So if you know nothing about the EVM, you don't have to worry.
+00:00:24.142 - 00:00:26.346, Speaker A: I'll teach you bit about it.
+00:00:26.410 - 00:00:28.254, Speaker B: So, let's get started.
+00:00:30.234 - 00:00:31.698, Speaker A: So I'm going to start by talking.
+00:00:31.746 - 00:00:33.574, Speaker B: About the anatomy of the EVM.
+00:00:34.834 - 00:00:42.162, Speaker A: How it handles signatures and selectors, bytecode, opcodes, assembly program execution, and the control.
+00:00:42.218 - 00:00:44.994, Speaker B: Flow graph, internal smart contract design.
+00:00:45.154 - 00:00:50.370, Speaker A: And then I'll leave you with some helpful tools and resources to continue your.
+00:00:50.402 - 00:01:11.348, Speaker B: Research on your own. To start, this is a nice little graphic from ethereum.org comma, which helps give a high level overview of how the different parts of the EVM come together. So you have the volatile machine state on the left. This is basically just machine state, which will only persist until the end of.
+00:01:11.356 - 00:01:14.544, Speaker C: A transaction, and then it doesn't exist anymore.
+00:01:14.924 - 00:01:16.828, Speaker A: Don't worry about what these are yet.
+00:01:16.876 - 00:01:29.694, Speaker B: I'll talk about them in depth later. This is like to give you a little overview of what we're going to talk about. So you have machine state, and then you have the evm code, which people also call bytecode.
+00:01:30.594 - 00:01:33.474, Speaker A: That's immutable in most cases.
+00:01:33.554 - 00:01:35.946, Speaker B: You can sometimes redeploy code to a.
+00:01:35.970 - 00:01:39.854, Speaker C: Contract, but not always.
+00:01:40.194 - 00:01:42.618, Speaker B: And you can also self destruct contracts.
+00:01:42.746 - 00:01:48.478, Speaker A: But the code still exists in the state. And then you also have account storage.
+00:01:48.566 - 00:01:53.222, Speaker B: Which persists all the time and is usually used to store things like ERC.
+00:01:53.278 - 00:01:57.714, Speaker A: 20 balances, NFt owners mappings, etcetera.
+00:01:58.734 - 00:02:01.314, Speaker B: All of this encompasses the EVM.
+00:02:03.134 - 00:02:03.702, Speaker D: Yeah.
+00:02:03.798 - 00:02:05.174, Speaker C: Now let's talk.
+00:02:05.254 - 00:02:06.926, Speaker B: We'll start with the stack, because it's.
+00:02:06.950 - 00:02:09.094, Speaker A: Like the core of the EVM.
+00:02:09.174 - 00:02:10.814, Speaker B: The EVM is a stack based virtual.
+00:02:10.854 - 00:02:19.762, Speaker A: Machine with a word size of 256 bits, which just means that the largest integer you can have is like two.
+00:02:19.778 - 00:02:21.414, Speaker B: To the power of 256.
+00:02:23.434 - 00:02:25.162, Speaker A: And then you can only have like.
+00:02:25.218 - 00:02:27.014, Speaker B: Bytes, up to 32 bytes.
+00:02:28.274 - 00:02:31.214, Speaker A: Yeah, that's the limitations for the EVM.
+00:02:31.754 - 00:02:33.706, Speaker C: But honestly, if you go about it.
+00:02:33.730 - 00:02:41.014, Speaker B: That number is so big, you're never really going to need anything bigger than that to write a program like most of your computers right now work off.
+00:02:41.394 - 00:02:44.802, Speaker A: Of stacks of like 86 or 64 bits.
+00:02:44.858 - 00:02:47.938, Speaker B: So yeah, if you think about it fixes a lot.
+00:02:48.026 - 00:02:51.374, Speaker E: I heard the number is bigger than the amount of atoms in the universe.
+00:02:52.034 - 00:03:01.922, Speaker A: Yeah, it's huge number. So yeah, it's a last in, first out stack, which just means the last.
+00:03:01.978 - 00:03:05.014, Speaker B: Item you add to the stack will be the first item to come out.
+00:03:07.664 - 00:03:08.632, Speaker A: And you can kind of see on.
+00:03:08.648 - 00:03:12.216, Speaker B: The left, if you push zero, one and two, you're going to get a.
+00:03:12.240 - 00:03:15.044, Speaker C: Step back that looks like that.
+00:03:17.864 - 00:03:18.240, Speaker D: Yeah.
+00:03:18.272 - 00:03:25.124, Speaker B: There's a maximum depth of 1024. You'll probably never reach that unless you're doing something weird.
+00:03:25.504 - 00:03:27.088, Speaker A: But you can only access the top.
+00:03:27.136 - 00:03:34.824, Speaker B: 16 words for technical reasons, which I'll go into later. And this is why you'll get stacked 2d bears with solidity.
+00:03:37.004 - 00:03:37.380, Speaker D: Yeah.
+00:03:37.412 - 00:03:39.028, Speaker B: So let's move on to memory.
+00:03:39.196 - 00:03:43.076, Speaker C: Memory is used for storing information that.
+00:03:43.100 - 00:03:48.740, Speaker B: Might be longer than 256 bits. Despite its name and what you might.
+00:03:48.772 - 00:03:54.092, Speaker A: Think, it actually doesn't persist. Memory will go away after the end.
+00:03:54.108 - 00:03:55.184, Speaker B: Of a transaction.
+00:03:57.214 - 00:03:58.046, Speaker A: So you don't use.
+00:03:58.070 - 00:04:06.806, Speaker B: It to store anything permanently. It's simply a long byte array. So if you know rust, you can think of it as a vec of.
+00:04:06.830 - 00:04:13.110, Speaker C: U eight s, where each byte is just an item in the vector or.
+00:04:13.182 - 00:04:14.686, Speaker B: A hex string if you're more familiar.
+00:04:14.710 - 00:04:16.154, Speaker A: With like Python or whatever.
+00:04:16.494 - 00:04:19.430, Speaker B: And internally, solidity in the EVM uses.
+00:04:19.462 - 00:04:22.680, Speaker A: This for things like return data, reverts.
+00:04:22.862 - 00:04:25.836, Speaker B: Strings, recursive length, prefix, etcetera.
+00:04:26.020 - 00:04:31.664, Speaker A: I'll talk about some of this more later. Now, if you actually want to persist.
+00:04:32.404 - 00:04:35.904, Speaker B: Information forever in a contract, you can use storage.
+00:04:37.884 - 00:04:39.076, Speaker A: And it can be thought.
+00:04:39.100 - 00:04:40.532, Speaker B: Of as like a mapping or a.
+00:04:40.548 - 00:04:43.852, Speaker A: Hash map or kind of jSon in.
+00:04:43.868 - 00:04:44.836, Speaker B: A way, where you give it a.
+00:04:44.860 - 00:04:47.316, Speaker A: Slot and it points to a value.
+00:04:47.380 - 00:04:53.296, Speaker C: So like, if you are at the zero slot and you store the value.
+00:04:53.360 - 00:04:56.632, Speaker B: For hello world, you'll get a storage that looks similar to this.
+00:04:56.768 - 00:04:57.764, Speaker D: On the right.
+00:04:59.104 - 00:05:01.648, Speaker B: Storage is used internally to store immutable.
+00:05:01.696 - 00:05:06.444, Speaker A: Variables like symbol or name, ownership information.
+00:05:06.864 - 00:05:13.084, Speaker B: Etcetera, and balances, obviously, like ERC 20. It's relatively simple.
+00:05:14.674 - 00:05:20.414, Speaker E: Amazing format, man, amazing presentation, and amazing format. I mean, this is really, really high quality.
+00:05:21.234 - 00:05:22.174, Speaker C: Thank you.
+00:05:24.034 - 00:05:24.410, Speaker D: Yeah.
+00:05:24.442 - 00:05:27.354, Speaker B: Call data is what you're actually sending.
+00:05:27.394 - 00:05:30.494, Speaker A: To a contract when you're interacting with it.
+00:05:31.194 - 00:05:35.334, Speaker B: And if you look at the bottom, that's an example of a call data.
+00:05:35.834 - 00:05:37.146, Speaker A: Or of some call data you might.
+00:05:37.170 - 00:05:37.922, Speaker B: Send to a contract.
+00:05:38.018 - 00:05:42.916, Speaker C: In this case, it's blur's token, and.
+00:05:42.940 - 00:05:46.424, Speaker B: You probably have no idea what that transaction would do.
+00:05:47.884 - 00:05:54.436, Speaker A: But I'm going to teach you how to read it, kind of. And this call data contains all the.
+00:05:54.460 - 00:05:56.904, Speaker B: Instructions that the program needs to execute.
+00:05:58.764 - 00:06:00.724, Speaker A: So if you just send a contract.
+00:06:00.804 - 00:06:04.236, Speaker B: Some call data and a value, it can do whatever you want. And that's pretty much what you do.
+00:06:04.260 - 00:06:08.324, Speaker A: Every time you interact with a contract behind the scenes.
+00:06:09.064 - 00:06:12.112, Speaker C: So now I'll teach you how to.
+00:06:12.208 - 00:06:14.164, Speaker A: Read a bit of call data.
+00:06:14.864 - 00:06:16.784, Speaker B: So the first four bytes, this two.
+00:06:16.824 - 00:06:24.424, Speaker A: E, one a is called the selector. And pretty much what that means is.
+00:06:24.504 - 00:06:29.964, Speaker B: If you take a function signature in like human readable terms like withdraw un 256.
+00:06:30.304 - 00:06:40.536, Speaker A: So a withdrawal function with one parameter 256, and then you hash it with KGAC 256. You get this long string, and if.
+00:06:40.560 - 00:06:42.752, Speaker B: You notice the first eight bytes or.
+00:06:42.768 - 00:06:44.968, Speaker C: The first four bytes, oh shit.
+00:06:45.096 - 00:06:46.952, Speaker A: First four bytes match up with the.
+00:06:46.968 - 00:06:48.584, Speaker B: First four bytes of the call data.
+00:06:48.704 - 00:06:56.936, Speaker A: So it's used internally as a little on a selector thing for the EVM to say, okay, what function are they calling?
+00:06:57.000 - 00:06:58.304, Speaker B: Let's look at the first four bytes.
+00:06:58.344 - 00:07:02.550, Speaker A: Oh, they're calling withdrawal. Let's do some code and I'll talk.
+00:07:02.622 - 00:07:10.390, Speaker B: More about this later. But using this knowledge, we can actually reverse and decode any arbitrary call data.
+00:07:10.502 - 00:07:14.294, Speaker A: By using a database of the signature selector pairings.
+00:07:14.374 - 00:07:27.200, Speaker B: And I've linked one at the end of the talk. It's called etherface. I know Sam Csun also has one called. I don't remember what it's called actually.
+00:07:27.382 - 00:07:32.580, Speaker A: But there's a lot of them out there. I just use Etherface personally for Heimdall because it's huge.
+00:07:32.612 - 00:07:35.092, Speaker C: It has a couple million selectors, and.
+00:07:35.108 - 00:07:37.836, Speaker A: With this information you can actually give.
+00:07:37.860 - 00:07:41.212, Speaker B: It any transaction hash. And without having the ABI, you can.
+00:07:41.228 - 00:07:45.228, Speaker A: Decode any of these.
+00:07:45.356 - 00:07:49.064, Speaker E: So how do you keep the list updated? Do you have a repository or something?
+00:07:50.764 - 00:07:56.804, Speaker B: I don't manage etherface, but I know that they have a scraper running. So whenever you make a new GitHub.
+00:07:56.844 - 00:07:59.060, Speaker A: Repo with solidity code in it, the.
+00:07:59.092 - 00:08:02.628, Speaker B: Scraper will find the ABI and then upload the signatures.
+00:08:02.716 - 00:08:03.784, Speaker E: Very interesting.
+00:08:04.644 - 00:08:10.588, Speaker B: It's open source, so if you want to take a look at how the scraper works, you can. So I think that's pretty cool as well.
+00:08:10.716 - 00:08:16.484, Speaker A: And you can also self host if you want to, but, so this call.
+00:08:16.524 - 00:08:29.296, Speaker B: Data that we looked at before, if you put it into Heimdall's decode module, you can see it finds two different signature matches, withdraw and owner transfer, some B's. And if you decode it, it says.
+00:08:29.320 - 00:08:34.364, Speaker A: It'S a withdraw of 32833, some integer.
+00:08:35.104 - 00:08:43.848, Speaker B: And this is just a withdrawal of some blur tokens. So now we're going to talk about bytecode and assembly.
+00:08:43.936 - 00:08:47.384, Speaker C: So the bytecode above this is for.
+00:08:47.424 - 00:08:50.796, Speaker B: Wrapped ether ox CO2, c zero, two.
+00:08:50.960 - 00:08:53.812, Speaker C: I don't know the rest, but this.
+00:08:53.828 - 00:09:05.852, Speaker B: Is the bytecode for it, you have 60, 60, 60 40. I'll talk more about what those mean. But if you actually disassemble this bytecode, you can also do this with Heimdall. You get a representation that looks similar.
+00:09:05.908 - 00:09:09.844, Speaker A: To this, and you can see that 60, push 60.
+00:09:09.924 - 00:09:11.636, Speaker B: So you're pushing 60 onto the stack.
+00:09:11.700 - 00:09:21.520, Speaker A: You're pushing 40 onto the stack and then you store it. These are called opcodes. The number on the left here is.
+00:09:21.552 - 00:09:24.004, Speaker B: The program counter, which you saw earlier.
+00:09:24.544 - 00:09:28.528, Speaker C: And the program counter basically just tells.
+00:09:28.656 - 00:09:31.216, Speaker B: The EVM what instruction to execute next.
+00:09:31.400 - 00:09:35.056, Speaker A: Do you start at one? Actually, I think it starts at zero.
+00:09:35.120 - 00:09:37.284, Speaker B: But mine starts at one because.
+00:09:38.464 - 00:09:42.024, Speaker C: I don't know. But yeah, so you have the pc.
+00:09:42.064 - 00:09:49.066, Speaker B: On the left and then you have the opcode like mnemonic name type thing. Internally, this doesn't actually exist and these.
+00:09:49.090 - 00:09:54.738, Speaker C: Can change, but most of the, they're mostly agreed upon.
+00:09:54.786 - 00:09:57.254, Speaker B: People agree 60 is push one.
+00:09:57.554 - 00:10:04.234, Speaker A: You're pushing one byte onto the stack. And I'll talk about each opcode, I think, next.
+00:10:04.394 - 00:10:05.134, Speaker D: Yeah.
+00:10:06.834 - 00:10:08.978, Speaker A: But this is what bytecode looks like.
+00:10:09.026 - 00:10:10.242, Speaker B: This is what is stored in the.
+00:10:10.258 - 00:10:14.328, Speaker A: Evm, in the state. And then this is what we can.
+00:10:14.416 - 00:10:19.764, Speaker B: Represent as and sort of read as humans, but we can make it look nicer.
+00:10:20.144 - 00:10:21.520, Speaker A: So I'm going to talk about each.
+00:10:21.552 - 00:10:22.564, Speaker B: Opcode now.
+00:10:24.464 - 00:10:25.168, Speaker D: Just to give you a.
+00:10:25.176 - 00:10:29.964, Speaker B: Feel for what they do. I'm going to go kind of fast for ones that seem self explanatory.
+00:10:32.424 - 00:10:37.704, Speaker C: Yeah, so the first opcode is zero stop.
+00:10:38.284 - 00:10:39.984, Speaker B: It just stops execution.
+00:10:40.364 - 00:10:42.504, Speaker A: Pretty simple, doesn't return anything.
+00:10:44.164 - 00:10:44.540, Speaker D: Yeah.
+00:10:44.572 - 00:10:46.444, Speaker B: And then you have some arithmetic operations.
+00:10:46.524 - 00:11:03.504, Speaker A: Like add, multiply, subtract, divide, line, division, modulo, signed modulo, and then some quality of life opcodes like add, mod and mo mod, which just taken items from the stack. And then a plus b mod n.
+00:11:04.814 - 00:11:10.814, Speaker B: It puts this back onto the stack. What I'm on right now is actually called EVM codes.
+00:11:10.974 - 00:11:14.714, Speaker C: It's a great resource for working with.
+00:11:15.254 - 00:11:18.714, Speaker B: This type of thing with EVM in general and assembly.
+00:11:19.534 - 00:11:25.414, Speaker C: If you want to see or debug.
+00:11:25.454 - 00:11:28.102, Speaker B: What you're doing with assembly and the evm, you can just do it in here.
+00:11:28.118 - 00:11:31.106, Speaker A: It's pretty sick. So you can see, I told it.
+00:11:31.130 - 00:11:36.906, Speaker B: To push 42 onto the stack, or ox 42, push one onto the stack and then store it in memory.
+00:11:37.010 - 00:11:38.694, Speaker E: Can I make a question here, bro?
+00:11:39.314 - 00:11:40.002, Speaker D: Yeah.
+00:11:40.138 - 00:11:59.154, Speaker E: So when you look at a bytecode instruction set. So a list of, let's say, opcodes to run with the program counter, it looks to be a very simple steps of execution. So I have add mood, you know, push and everything. But that seems really hard to understand.
+00:12:00.374 - 00:12:02.910, Speaker A: I know it looks simple, but it.
+00:12:02.942 - 00:12:19.274, Speaker E: Seems also really hard to understand because once you got a simple function, just a storage contract, you know, one variable, one set function, there's a lot of opcodes there. What is the real barrier in there that we need to understand to be able to decode those in our heads?
+00:12:20.734 - 00:12:31.242, Speaker B: Yeah, so I think practice makes perfect here. The more you work with opcodes, the more you're going to understand how they interact with each other. And also, working in the EVM playground.
+00:12:31.298 - 00:12:38.674, Speaker A: Here, you can also get a feel for that. There are ways and heuristics you can.
+00:12:38.714 - 00:12:47.094, Speaker B: Use to convert bytecode into solidity code, which is what Heimdall specializes in. I can probably talk more about that later.
+00:12:49.194 - 00:12:49.866, Speaker A: Awesome.
+00:12:49.970 - 00:12:52.234, Speaker B: But I just want to go into.
+00:12:52.274 - 00:13:11.354, Speaker A: What each opcode does. So you have these, some more opcodes, like exponent, exponent, and then extending some two's complements. Then you have comparison operators. Less than, greater than sign, less than sign greater than equals is zero.
+00:13:12.014 - 00:13:12.446, Speaker B: Oh yeah.
+00:13:12.470 - 00:13:14.278, Speaker A: You can also click these to expand.
+00:13:14.326 - 00:13:15.830, Speaker B: And get some examples.
+00:13:16.022 - 00:13:18.278, Speaker A: Like if you give is 00:10 it's.
+00:13:18.366 - 00:13:22.892, Speaker B: Obviously not zero, so you get zero out. If you give it zero, you get one out.
+00:13:22.988 - 00:13:23.844, Speaker D: Pretty simple.
+00:13:24.004 - 00:13:29.748, Speaker B: And then you have bitwise operations and you shouldn't come. You shouldn't confuse these with like logical operations.
+00:13:29.916 - 00:13:32.860, Speaker C: So this is a bitwise and which.
+00:13:32.892 - 00:13:40.204, Speaker A: Just means if you like, put in these two things like OxF and OxF.
+00:13:40.244 - 00:13:44.024, Speaker B: You'Re gonna get Oxf out. When you might expect to get a boolean out.
+00:13:45.284 - 00:13:46.644, Speaker A: It's not logical. And.
+00:13:46.684 - 00:13:49.516, Speaker C: And you should keep that in mind.
+00:13:49.580 - 00:13:52.708, Speaker B: Most operations in the EVM are bitwise.
+00:13:52.756 - 00:14:07.268, Speaker A: Operations because that's how computers think. You have some bitwise operations and or xor not. You have some helper functions like byte to get a byte. In a word, if you want to.
+00:14:07.276 - 00:14:10.108, Speaker C: Get like the fourth byte of hello.
+00:14:10.156 - 00:14:15.932, Speaker A: World, you can put in hello world as x that you want four for I.
+00:14:15.988 - 00:14:20.332, Speaker C: And it'll give you the fourth byte. Pretty simple.
+00:14:20.508 - 00:14:30.344, Speaker A: You have more bitwise operations like shifts. This one is an arithmetic shift. It's used sometimes.
+00:14:31.324 - 00:14:35.068, Speaker C: And then you have the Kecak 256.
+00:14:35.156 - 00:14:38.188, Speaker B: Opcode, which is called sha three. Some places.
+00:14:38.316 - 00:14:41.264, Speaker A: Some places it's called Kekak 256.
+00:14:41.934 - 00:14:50.670, Speaker B: Like I said, the names aren't completely always agreed upon. And sometimes they'll change. Don't worry too much about memorizing this.
+00:14:50.822 - 00:14:54.234, Speaker A: The more you work with them, the more you'll understand.
+00:14:55.294 - 00:15:01.126, Speaker B: And also, it's not important if you're just doing solidity. I'm just talking more about what the.
+00:15:01.150 - 00:15:05.726, Speaker A: EVM actually works on. Then you have things for getting the.
+00:15:05.750 - 00:15:09.326, Speaker C: Address of the current account, getting a.
+00:15:09.350 - 00:15:17.774, Speaker A: Balance of an account, the origin of the transaction, caller of the transaction call value sent to the transaction, loading call.
+00:15:17.814 - 00:15:24.754, Speaker B: Data at some certain index. So if you put in like call data zero, it'll give you the first 32 bytes of call data.
+00:15:26.374 - 00:15:29.142, Speaker A: Call data size is just how big.
+00:15:29.158 - 00:15:32.342, Speaker B: Is the call data? How much do they send? This is useful a lot in a.
+00:15:32.358 - 00:15:46.244, Speaker A: Lot of ways, and I'll go into that later. Call data copy copies call data code size size of the code, pretty much self explanatory. Guess price, price of guess.
+00:15:46.544 - 00:15:49.680, Speaker B: This is copying external code size, external.
+00:15:49.712 - 00:15:54.064, Speaker A: Code, copying it to memory. So you give it an address, the.
+00:15:54.104 - 00:15:55.416, Speaker B: Offset in memory where you want to.
+00:15:55.440 - 00:15:58.576, Speaker C: Store the code, and then the offset.
+00:15:58.600 - 00:16:00.884, Speaker B: And size of the code that you're looking for.
+00:16:01.654 - 00:16:03.270, Speaker A: It'll copy code from another account.
+00:16:03.342 - 00:16:05.926, Speaker C: This is used in like if you've.
+00:16:05.950 - 00:16:12.114, Speaker A: Heard of the s store, two contract people are making.
+00:16:12.974 - 00:16:20.958, Speaker B: They're storing data in contracts and then use like xcode copy to copy it into a different contract and then do something with it.
+00:16:21.126 - 00:16:22.742, Speaker A: That's pretty cool because it allows you.
+00:16:22.758 - 00:16:34.470, Speaker B: To store a lot of information for pretty cheap. So people are pretty creative with the way they use these opcodes. Return data size people also are creative.
+00:16:34.502 - 00:16:42.214, Speaker A: With it usually just returns the, if you make like an external call, like a static call, and you call return.
+00:16:42.254 - 00:16:47.918, Speaker B: Data size, it'll tell you the size of the return data, obviously. But people have realized in optimization challenges.
+00:16:47.966 - 00:16:52.614, Speaker A: That you can just say return data size. And if you haven't made an external.
+00:16:52.654 - 00:16:54.240, Speaker B: Call, it'll just return zero.
+00:16:54.422 - 00:17:07.504, Speaker A: So before the push zero operation existed, they used this to just push zero onto the stack. And it was one byte cheaper than push 10. So that's pretty interesting to me.
+00:17:08.804 - 00:17:11.356, Speaker B: You can also copy return data into memory.
+00:17:11.540 - 00:17:14.180, Speaker A: You can get external addresses as code.
+00:17:14.212 - 00:17:16.268, Speaker B: Hash, you can get the block hash.
+00:17:16.356 - 00:17:18.500, Speaker C: Of a block that you want and.
+00:17:18.532 - 00:17:21.644, Speaker B: Then some more context like coinbase timestamp.
+00:17:21.724 - 00:17:25.536, Speaker A: Number difficulty became prev randow.
+00:17:25.640 - 00:17:27.904, Speaker B: Now it's just like a relatively pseudo.
+00:17:27.944 - 00:17:35.056, Speaker A: Random generator gas limit of the transaction, the chain id you're currently on the.
+00:17:35.080 - 00:17:36.924, Speaker B: Balance of this account in way.
+00:17:39.104 - 00:17:39.440, Speaker D: The.
+00:17:39.472 - 00:17:44.320, Speaker C: Base fee for gas in Wei maybe it's g way.
+00:17:44.432 - 00:17:45.604, Speaker B: Not entirely sure.
+00:17:45.944 - 00:17:50.392, Speaker C: I forget pop will pop one item off the stack.
+00:17:50.448 - 00:17:59.954, Speaker B: So like the most recently added item will will just be removed. Nothing else happens. Then you have important memory operations. You should definitely know these.
+00:18:01.694 - 00:18:04.854, Speaker C: M load will take in an offset and then.
+00:18:04.894 - 00:18:07.670, Speaker B: Load 32 bytes from that offset.
+00:18:07.782 - 00:18:10.206, Speaker C: So if you give it like I'll.
+00:18:10.230 - 00:18:11.514, Speaker A: Go into the playground.
+00:18:16.694 - 00:18:17.994, Speaker D: Where'S the playground?
+00:18:19.674 - 00:18:24.826, Speaker C: Yeah, so this will store 42 in.
+00:18:24.850 - 00:18:30.534, Speaker B: Memory, and then if you want to get that memory back out, you can push one onto the stack.
+00:18:40.034 - 00:18:40.530, Speaker D: And then.
+00:18:40.562 - 00:18:48.184, Speaker A: This will push 42 back onto the stack. If I step through it, instead of just go through, we put 42 into.
+00:18:48.224 - 00:18:51.792, Speaker C: Memory and then we tell Mload that.
+00:18:51.808 - 00:18:54.056, Speaker B: We want the first item or we.
+00:18:54.080 - 00:19:02.804, Speaker A: Want this entire word back on the stack, and then it'll put 42 back on the stack. So it's a nice way of.
+00:19:05.144 - 00:19:05.504, Speaker D: Getting.
+00:19:05.544 - 00:19:20.564, Speaker B: Memory or getting memory back into the stack. MStore stores memory, we saw that previously. You give it an offset and a value, and it'll store that value at that offset. This value is 32 bytes.
+00:19:20.604 - 00:19:24.384, Speaker C: By default, m store eight will store.
+00:19:25.644 - 00:19:27.948, Speaker A: A single byte at the offset.
+00:19:27.996 - 00:19:30.900, Speaker B: So if you just want to store one byte somewhere, you can use m.
+00:19:30.932 - 00:19:32.104, Speaker A: Store eight for this.
+00:19:34.084 - 00:19:36.652, Speaker B: Compilers are good at doing this kind of thing, so you don't have to.
+00:19:36.668 - 00:19:52.164, Speaker A: Worry too much about the difference. It's just important to know memory operations. And then the same goes for storage. You can save a key and load a key. I'm going to also go into the playground for these.
+00:19:56.464 - 00:19:57.336, Speaker C: So you can store.
+00:19:57.360 - 00:20:03.064, Speaker A: The value 42, and then you can also load it back into stuff.
+00:20:03.184 - 00:20:05.888, Speaker C: You can also load this value back.
+00:20:05.936 - 00:20:06.964, Speaker B: Into the stack.
+00:20:12.664 - 00:20:13.604, Speaker D: Like that.
+00:20:16.624 - 00:20:19.728, Speaker B: So those are storage and memory operations.
+00:20:19.896 - 00:20:21.644, Speaker C: Pretty important.
+00:20:22.224 - 00:20:24.804, Speaker B: Jump and jump I are extremely important.
+00:20:25.704 - 00:20:32.818, Speaker A: They allow you to do everything from loops to recursive things, and they're pretty.
+00:20:32.866 - 00:20:35.654, Speaker B: Fundamental in any virtual machine language.
+00:20:36.114 - 00:20:38.466, Speaker C: So if you this will change the.
+00:20:38.490 - 00:20:39.694, Speaker B: Program counter.
+00:20:41.794 - 00:20:46.090, Speaker A: To whatever value you want. So let's say you're on like the.
+00:20:46.122 - 00:20:48.250, Speaker B: First program counter, and then you want.
+00:20:48.282 - 00:20:57.618, Speaker A: To jump to the hundredth instruction. You just say jump 100, it'll jump to 100, but it's not conditional.
+00:20:57.666 - 00:21:00.564, Speaker C: The conditional jump is jump I, and.
+00:21:00.604 - 00:21:03.944, Speaker B: You also give it a counter, but you also give it a variable or a value.
+00:21:04.364 - 00:21:26.340, Speaker A: And if this value is anything other than zero, then this jump will go through. And if this value is zero, then you just continue and you don't jump. So you can think of it sort of like an if statement in code. And actually Heimdall when decompiling a contract will, it'll take these jump bys and.
+00:21:26.412 - 00:21:28.396, Speaker B: Assume that they're if statements, just because.
+00:21:28.500 - 00:21:34.840, Speaker A: That'S how compilers like to show if statements. PC is the program counter opcode just.
+00:21:34.872 - 00:21:37.112, Speaker B: Returns the program counter empsize, returns a.
+00:21:37.128 - 00:21:45.536, Speaker A: Size memory gas, gives you the rest of the gas left jump test is if you're jumping to a counter, a.
+00:21:45.560 - 00:21:56.142, Speaker B: Program counter, it has to land on the jump test, otherwise you'll probably end up breaking something. Then you have a shit ton of push instructions like push zero, just pushes zero onto the stack.
+00:21:56.288 - 00:21:58.906, Speaker C: Pretty simple was recently added.
+00:21:58.970 - 00:22:01.258, Speaker B: It didn't exist up until the last.
+00:22:01.306 - 00:22:04.654, Speaker A: Update, which was shapella or something.
+00:22:05.074 - 00:22:05.458, Speaker D: Dang.
+00:22:05.506 - 00:22:12.538, Speaker A: Hi. Then you have the push operations where you push and then you tell it.
+00:22:12.546 - 00:22:13.490, Speaker B: How many bytes you want to push.
+00:22:13.522 - 00:22:15.442, Speaker A: So push one, push two, and then.
+00:22:15.458 - 00:22:18.734, Speaker B: You give it one byte, two bytes, three bytes, all the way up to 32.
+00:22:20.554 - 00:22:25.540, Speaker A: Then you can also duplicate values. So if you want to duplicate the.
+00:22:25.572 - 00:22:26.860, Speaker B: First item on the stack, you use.
+00:22:26.892 - 00:22:29.020, Speaker A: Up one, you want to duplicate the.
+00:22:29.052 - 00:22:32.984, Speaker B: Second item on the stack, you use up two, and so on up to 16.
+00:22:33.284 - 00:22:45.796, Speaker A: And if you remember back to the beginning of this talk, 16 was the stack depth. And this is the limit, the limiting factor that these opcodes only go up to 16.
+00:22:45.900 - 00:22:48.068, Speaker B: You don't have like a dub 256.
+00:22:48.236 - 00:22:50.012, Speaker A: If you did, then we could go.
+00:22:50.068 - 00:22:53.624, Speaker B: And fetch 256 stack items, but we don't.
+00:22:54.614 - 00:22:55.790, Speaker A: So that's kind of sad.
+00:22:55.902 - 00:22:57.914, Speaker B: And that's why you run into stack two deep.
+00:22:58.894 - 00:23:04.514, Speaker E: There's any specific reasons for that or it's just the choice for the design of the architecture.
+00:23:05.094 - 00:23:10.902, Speaker B: I'm not entirely sure why they chose to do 16. I think in my world, my perfect.
+00:23:10.958 - 00:23:13.046, Speaker C: Evm, I don't know if it'd be.
+00:23:13.070 - 00:23:16.034, Speaker B: Perfect, but in my ideal evm, you would have.
+00:23:18.454 - 00:23:20.356, Speaker A: A way to say dup.
+00:23:20.420 - 00:23:24.012, Speaker C: And then a number, but like dup.
+00:23:24.068 - 00:23:29.304, Speaker A: Space ten, and then you duplicate the 10th item on the stack. Interesting.
+00:23:29.804 - 00:23:30.180, Speaker D: Yeah.
+00:23:30.212 - 00:23:33.916, Speaker B: And that, that would allow you to. You could like duplicate the 1000th item.
+00:23:33.940 - 00:23:40.908, Speaker A: On the stack and that would give you no more stack 2d pairs. There's probably a lot of things I.
+00:23:40.916 - 00:23:42.548, Speaker B: Haven'T thought of there and like caveats.
+00:23:42.596 - 00:23:45.824, Speaker C: Or whatever, but who knows?
+00:23:47.324 - 00:23:48.604, Speaker A: So then you have swap.
+00:23:48.684 - 00:23:50.396, Speaker B: Swap also only goes up to 16.
+00:23:50.500 - 00:23:52.892, Speaker A: But you're just swapping the two items.
+00:23:52.908 - 00:23:53.932, Speaker B: So if you do swap one, you.
+00:23:53.948 - 00:23:56.300, Speaker C: Swap the first and second item, swap.
+00:23:56.332 - 00:24:02.428, Speaker B: Two, you do the first and third swap three, you do the first and fourth. Yeah, all the way up to 16th.
+00:24:02.516 - 00:24:04.264, Speaker A: First and 17th items.
+00:24:06.164 - 00:24:08.260, Speaker C: Then you have logs which if you've.
+00:24:08.292 - 00:24:13.384, Speaker B: Ever seen like events emitted, like a transfer event, it's actually a log opcode under the hood.
+00:24:14.534 - 00:24:16.510, Speaker A: And you give a log opcode offset.
+00:24:16.542 - 00:24:18.750, Speaker B: Size in memory and then it'll go.
+00:24:18.902 - 00:24:25.470, Speaker C: And pull this information out of memory. So if you have like, let's say.
+00:24:25.662 - 00:24:27.542, Speaker A: Hello world saved in memory and you.
+00:24:27.558 - 00:24:31.406, Speaker B: Want to log that for some reason, because you want to waste 375 gas.
+00:24:31.470 - 00:24:36.622, Speaker A: You just say log zero, offset size. Point that to the hello world and.
+00:24:36.638 - 00:24:38.754, Speaker B: It'Ll create a log forever on Ethereum.
+00:24:39.954 - 00:24:46.498, Speaker A: If you ever used events in solidity that you call indexed, like you have an indexed event, then you're going to.
+00:24:46.506 - 00:24:47.734, Speaker B: Be using topics.
+00:24:49.434 - 00:24:50.218, Speaker A: Most of the time.
+00:24:50.266 - 00:24:52.218, Speaker B: Topic Zero, which is this first one.
+00:24:52.266 - 00:24:56.094, Speaker A: For like log one, will correspond to.
+00:24:57.154 - 00:24:59.826, Speaker B: A keck hash of the selector, similar.
+00:24:59.890 - 00:25:04.234, Speaker A: To how functions work, but it's 32 bytes long and I can probably talk.
+00:25:04.274 - 00:25:06.122, Speaker B: More about that later if people have questions.
+00:25:06.178 - 00:25:08.054, Speaker E: This is a bloom filter too, right?
+00:25:09.674 - 00:25:10.786, Speaker B: I think so, yeah.
+00:25:10.850 - 00:25:13.770, Speaker C: Because then you can like actually look.
+00:25:13.802 - 00:25:19.094, Speaker A: Up information with these logs and it becomes pretty fast.
+00:25:20.194 - 00:25:25.090, Speaker B: It's really easy to search through the state to find logs with topics like index topics.
+00:25:25.202 - 00:25:26.266, Speaker A: But a lot of people have been.
+00:25:26.290 - 00:25:29.674, Speaker B: Moving away from index topics just because they cost more gas.
+00:25:29.834 - 00:25:36.214, Speaker E: I heard some people are using events in order to save gas instead of storing the information on storage, you know.
+00:25:37.004 - 00:25:38.064, Speaker C: What are they using?
+00:25:39.004 - 00:25:40.064, Speaker F: Events.
+00:25:41.044 - 00:25:41.444, Speaker D: Yeah.
+00:25:41.484 - 00:25:43.264, Speaker B: So the log is the event.
+00:25:45.204 - 00:25:47.740, Speaker A: It's, it's the same thing, but under.
+00:25:47.772 - 00:25:52.772, Speaker B: The hood it's called a log, or like the name that people have given it is log zero storage.
+00:25:52.828 - 00:26:00.904, Speaker E: Right. So I can just like have a log and then don't even need to use storage for that. That will cost less gas in the end, right?
+00:26:01.784 - 00:26:02.184, Speaker D: Yeah.
+00:26:02.224 - 00:26:04.672, Speaker B: So people, instead of like logging topics.
+00:26:04.768 - 00:26:10.084, Speaker A: Like, I think c port will log zero and then they just give it.
+00:26:10.424 - 00:26:12.440, Speaker B: All the information is stored in memory.
+00:26:12.552 - 00:26:24.840, Speaker A: They use log zero costs 375 gas. Plus or minus. No, just plus, plus some for how much they're logging. And they can kind of log obscene.
+00:26:24.872 - 00:26:26.880, Speaker B: Amount of information for relatively cheap.
+00:26:26.992 - 00:26:28.008, Speaker A: I have a question here.
+00:26:28.056 - 00:26:30.004, Speaker E: So where logs are stored?
+00:26:31.334 - 00:26:43.582, Speaker A: They're stored in the state merkle tree. Awesome. Yeah, I haven't talked much about that because it's something I don't completely understand myself.
+00:26:43.638 - 00:26:44.502, Speaker B: I'm still learning.
+00:26:44.598 - 00:26:47.942, Speaker C: But basically the merkle tree, like the.
+00:26:47.958 - 00:26:51.434, Speaker B: State merkle tree has all the information for account balances.
+00:26:53.574 - 00:27:12.434, Speaker A: Contract code, storage logs, et cetera, in a really easy way where each merkle root can be verified and proven. So it's a very efficient way and kind of an ingenious way that Ethereum.
+00:27:12.474 - 00:27:15.574, Speaker B: Uses to store information in a way that can be validated.
+00:27:17.754 - 00:27:19.490, Speaker A: So, yeah, those are the log opcodes.
+00:27:19.602 - 00:27:22.734, Speaker B: The number here just corresponds to the amount of topics.
+00:27:23.184 - 00:27:24.216, Speaker A: They all work the same.
+00:27:24.280 - 00:27:28.912, Speaker B: You can only log up to four index topics, which is why you can only do four in solidity.
+00:27:29.048 - 00:27:30.804, Speaker A: Because of the EVM limitations.
+00:27:32.544 - 00:27:33.304, Speaker B: We're almost done.
+00:27:33.344 - 00:27:42.656, Speaker A: So yeah, this create opcode creates an account. You give it some value to send to the account and then the offset.
+00:27:42.680 - 00:27:44.240, Speaker B: And size in memory.
+00:27:44.432 - 00:27:48.312, Speaker C: So you store the code for the.
+00:27:48.328 - 00:27:51.334, Speaker A: Account in memory and then you call.
+00:27:51.374 - 00:27:54.830, Speaker C: Create point at memory and it will.
+00:27:54.862 - 00:28:08.934, Speaker A: Create a new contract with the code and then return the address back onto the stack. And then you have different call functions. This one call is just a message.
+00:28:08.974 - 00:28:10.074, Speaker B: Call into an account.
+00:28:10.934 - 00:28:12.790, Speaker A: Call code is a message call into.
+00:28:12.822 - 00:28:15.420, Speaker B: An account with an alternative accounts code.
+00:28:15.542 - 00:28:19.512, Speaker C: So you can pretty much emulate another.
+00:28:19.568 - 00:28:21.600, Speaker B: Contract, kind of, which is how proxies work.
+00:28:21.632 - 00:28:24.104, Speaker C: But they use delegate call and then.
+00:28:24.144 - 00:28:28.152, Speaker A: Return takes in a part of memory.
+00:28:28.248 - 00:28:30.312, Speaker C: Like an offset and a size, and.
+00:28:30.328 - 00:28:36.448, Speaker A: Then we'll return that data and hold execution. Delegate call is the same as call.
+00:28:36.496 - 00:28:38.544, Speaker B: Code message into a call or message.
+00:28:38.584 - 00:28:44.854, Speaker A: Into this account with an alternative counts code persisting values for message and sent.
+00:28:44.894 - 00:28:46.274, Speaker B: Or for sender in the value.
+00:28:46.574 - 00:28:56.166, Speaker A: This is used in like proxy contracts so that the proxy contract can have its own state that persists, but then.
+00:28:56.190 - 00:28:57.914, Speaker B: The contract is still upgradable.
+00:28:59.694 - 00:29:01.326, Speaker A: Then you have the create to which.
+00:29:01.350 - 00:29:03.182, Speaker B: Is the same as create, but it.
+00:29:03.198 - 00:29:05.806, Speaker C: Takes in some salt, which is why.
+00:29:05.910 - 00:29:14.468, Speaker B: People use this one, so that they can, like mine vanity addresses. Like if you look at the seaport address, it has like 20 zeros before it or something.
+00:29:14.636 - 00:29:17.972, Speaker A: Probably not 20, but like ten. It's like ten zeros.
+00:29:18.068 - 00:29:21.988, Speaker B: And it just makes it a tiny bit cheaper for people to interact with the contract.
+00:29:22.076 - 00:29:24.428, Speaker A: So they write things where they can.
+00:29:24.476 - 00:29:26.852, Speaker B: Crunch this number and get that dangerous.
+00:29:26.908 - 00:29:30.984, Speaker E: I mean, I heard that every time you have one of these addresses.
+00:29:32.764 - 00:29:33.188, Speaker D: I don't know.
+00:29:33.196 - 00:29:35.184, Speaker E: So people are mining it all the time.
+00:29:37.254 - 00:29:46.234, Speaker B: Yeah, so there's no like, if you have an address that you want to mine and like you want to impersonate the zero address, you can't do that just because it gets impossible.
+00:29:46.734 - 00:29:48.274, Speaker A: But if you want to get like.
+00:29:49.174 - 00:29:54.382, Speaker B: An address with like ten zeros before it, you can do that within like a day. If you're just running it on your.
+00:29:54.398 - 00:29:57.846, Speaker C: Laptop, maybe, probably not a day, it.
+00:29:57.870 - 00:30:01.670, Speaker B: Might take you a lot longer, but you can get quite a few zeros for a vanity address.
+00:30:01.782 - 00:30:09.154, Speaker E: And there's also the situation that, you know, this is not a right, it's just a smart contract. So there's no way of impersonating it.
+00:30:09.894 - 00:30:12.834, Speaker B: Yeah, it's just a smart contract.
+00:30:14.094 - 00:30:16.374, Speaker A: And then recently there have been like.
+00:30:16.494 - 00:30:19.030, Speaker B: There was a random number generator like.
+00:30:19.102 - 00:30:22.166, Speaker A: Exploit for one of the things that.
+00:30:22.190 - 00:30:24.454, Speaker B: Was generating vanity addresses.
+00:30:24.614 - 00:30:30.462, Speaker A: And that was kind of bad. People had their wallets drained yeah, it.
+00:30:30.478 - 00:30:33.470, Speaker B: Can be pretty cool to have like beef babe as your ethereum address.
+00:30:33.542 - 00:30:35.622, Speaker A: Like mine is just six sixes and.
+00:30:35.638 - 00:30:37.158, Speaker B: Then some other numbers I forgot.
+00:30:37.206 - 00:30:41.398, Speaker C: But um, yeah, and then static call.
+00:30:41.486 - 00:30:43.694, Speaker B: Is another message call into an account.
+00:30:43.774 - 00:30:48.502, Speaker C: Just normal, um, revert is like if.
+00:30:48.518 - 00:30:51.674, Speaker B: You'Ve ever made a transaction and it reverted for whatever reason.
+00:30:52.174 - 00:30:54.758, Speaker A: Um, it's similar to return takes in.
+00:30:54.846 - 00:30:56.822, Speaker B: The memory and then returns it or.
+00:30:56.878 - 00:30:58.974, Speaker A: Reverts with it and that just holds.
+00:30:59.014 - 00:31:00.814, Speaker B: Execution reverts every state change.
+00:31:00.854 - 00:31:02.910, Speaker A: So like if you stored something in.
+00:31:02.942 - 00:31:07.554, Speaker B: Storage and then reverted later, that storage doesn't exist anymore, it's been erased.
+00:31:09.774 - 00:31:10.222, Speaker D: Yeah.
+00:31:10.278 - 00:31:13.838, Speaker A: And then the invalid opcode just consumes.
+00:31:13.886 - 00:31:16.670, Speaker B: All the gas and then halts execution.
+00:31:16.782 - 00:31:20.874, Speaker A: Because you're out of gas. So don't use invalid opcodes. It's great.
+00:31:21.974 - 00:31:26.886, Speaker B: Then self destruct will stop execution and then the account will be deleted.
+00:31:27.030 - 00:31:28.910, Speaker C: So you have to give it an.
+00:31:28.942 - 00:31:30.806, Speaker B: Address to send any funds to.
+00:31:30.910 - 00:31:32.998, Speaker A: But this is how you can lock funds.
+00:31:33.046 - 00:31:35.554, Speaker C: So be careful with this.
+00:31:37.014 - 00:31:41.182, Speaker B: So now that we've gone over every opcode and you probably don't remember any.
+00:31:41.198 - 00:31:45.034, Speaker C: Of them, we go back to the presentation.
+00:31:48.054 - 00:31:50.502, Speaker A: So now we're going to talk about program execution.
+00:31:50.558 - 00:31:51.974, Speaker B: You probably saw that earlier.
+00:31:52.134 - 00:31:58.390, Speaker A: Don't worry, I'm going to explain what this is and it's going to be great. So I'm actually going to unminimize this.
+00:31:58.422 - 00:32:00.286, Speaker B: Because I'm going to have to show you some things.
+00:32:00.430 - 00:32:08.070, Speaker C: But let's take the wrapped ether contract address and we can ask Heimdall to.
+00:32:08.222 - 00:32:10.406, Speaker A: Generate the control flow graph for it.
+00:32:10.590 - 00:32:11.982, Speaker B: I've already done, I don't know if.
+00:32:11.998 - 00:32:18.034, Speaker E: You can do this, but if you can make your font a little bit bigger whenever you did enough code. Okay, thank you.
+00:32:21.164 - 00:32:31.436, Speaker A: So this is this entire thing, this big tree structure is the entire execution that a contract can take.
+00:32:31.500 - 00:32:33.252, Speaker B: And you can generate this using Heimdall.
+00:32:33.308 - 00:32:37.300, Speaker C: There's other generators out there, but basically.
+00:32:37.372 - 00:32:39.624, Speaker B: It takes assembly that you saw earlier.
+00:32:40.924 - 00:32:45.460, Speaker C: To a new level and it allows.
+00:32:45.492 - 00:32:47.744, Speaker B: You to visualize the assembly.
+00:32:48.244 - 00:32:51.580, Speaker C: And we're going to talk about that.
+00:32:51.772 - 00:32:57.372, Speaker A: So we're going to start here at the first operation, we're going to push.
+00:32:57.428 - 00:33:01.596, Speaker B: 60 or Ox 60 onto the stack, push Ox 40 onto the stack and.
+00:33:01.620 - 00:33:02.664, Speaker A: Store it in memory.
+00:33:04.084 - 00:33:08.220, Speaker B: In solidity. This is a solidity contract. So in solidity they use a message.
+00:33:08.252 - 00:33:10.724, Speaker C: Or they use a free memory pointer.
+00:33:10.764 - 00:33:12.572, Speaker B: Which is basically, you can think of.
+00:33:12.588 - 00:33:14.792, Speaker C: It as just like, let's save some.
+00:33:14.888 - 00:33:17.524, Speaker B: Space for later for memory operations.
+00:33:18.224 - 00:33:20.248, Speaker C: So this is what that does.
+00:33:20.296 - 00:33:23.064, Speaker A: These, these first three instructions just create.
+00:33:23.104 - 00:33:25.124, Speaker B: That memory for solidity to use later.
+00:33:26.264 - 00:33:28.844, Speaker A: Then we're going to push four onto the stack.
+00:33:30.784 - 00:33:32.912, Speaker C: Check call data size, and.
+00:33:32.928 - 00:33:35.128, Speaker B: If call data size is less than.
+00:33:35.256 - 00:33:37.804, Speaker C: Four, we're going to jump somewhere.
+00:33:38.744 - 00:33:40.164, Speaker A: And where are we going to jump?
+00:33:40.884 - 00:33:43.904, Speaker C: All the way down here?
+00:33:45.044 - 00:33:46.860, Speaker A: We jump here, which is the fallback.
+00:33:46.892 - 00:33:48.572, Speaker B: Function if you've ever used solid id.
+00:33:48.708 - 00:33:51.388, Speaker A: If you try to call something and.
+00:33:51.476 - 00:33:59.116, Speaker B: That call doesn't exist, you can go to a fallback function. So in wrapped ether, this is the fallback. I'm not going to go and decode every single one of these things because.
+00:33:59.220 - 00:34:00.624, Speaker A: That would take me all day.
+00:34:01.284 - 00:34:05.904, Speaker C: But this is a deposit fallback function.
+00:34:08.544 - 00:34:08.880, Speaker D: Yeah.
+00:34:08.912 - 00:34:10.224, Speaker B: So if you don't, if you send.
+00:34:10.264 - 00:34:13.576, Speaker C: Wrapped ether, like one ether, and you.
+00:34:13.680 - 00:34:19.312, Speaker A: Don'T call anything, you'll still get your one ether deposit back, which is kind of nice.
+00:34:19.408 - 00:34:21.312, Speaker B: And that's because it's checking the call.
+00:34:21.368 - 00:34:24.096, Speaker A: Value for the four bytes that you.
+00:34:24.120 - 00:34:25.284, Speaker B: Send at the beginning.
+00:34:26.344 - 00:34:28.912, Speaker C: And if you don't send anything, we.
+00:34:28.928 - 00:34:34.382, Speaker A: Go to the fallback. But let's say you do send something, then you go to this block and.
+00:34:34.398 - 00:34:35.754, Speaker C: You jump to here.
+00:34:36.174 - 00:34:38.834, Speaker A: You jump to instruction Oxoe.
+00:34:40.094 - 00:34:43.126, Speaker B: No, you don't jump. So if the jump was not taken.
+00:34:43.230 - 00:34:44.314, Speaker A: Then you go here.
+00:34:44.654 - 00:34:45.434, Speaker D: Yeah.
+00:34:45.774 - 00:34:48.754, Speaker A: So then you push zero onto the stack.
+00:34:49.334 - 00:34:54.478, Speaker B: This contract was deployed before push zero existed. So they do push 10, but it's the same thing.
+00:34:54.526 - 00:35:01.012, Speaker C: Push zero onto the stack, load the first 32 bytes of call data, and.
+00:35:01.028 - 00:35:03.132, Speaker B: Then do some arithmetic to shorten the.
+00:35:03.148 - 00:35:05.988, Speaker C: Call data, blah, blah, blah.
+00:35:06.076 - 00:35:07.544, Speaker B: Perform an and mask.
+00:35:07.884 - 00:35:09.436, Speaker A: Yeah, so I'm not going to assume.
+00:35:09.460 - 00:35:11.460, Speaker B: You know how to read this. So we're going to go and dump.
+00:35:11.492 - 00:35:17.020, Speaker C: It into this playground because that makes.
+00:35:17.052 - 00:35:18.944, Speaker B: It easier to visualize what we're doing.
+00:35:19.724 - 00:35:24.312, Speaker C: If we take this first code, where.
+00:35:24.328 - 00:35:26.164, Speaker B: Do we want to go? Let's go up until.
+00:35:27.864 - 00:35:29.244, Speaker A: Oxb nine.
+00:35:31.664 - 00:35:32.024, Speaker D: B.
+00:35:32.064 - 00:35:41.224, Speaker C: Nine jump by paste this into the evM playground, you'll see all these here is this.
+00:35:41.344 - 00:35:52.212, Speaker A: All these opcodes correspond to what you see here. So we can actually start. Let's give it some.
+00:35:52.268 - 00:35:57.348, Speaker B: If we don't give it call data, you'll see it'll revert because we didn't give it the fallback function path all.
+00:35:57.356 - 00:35:59.140, Speaker C: The way down here.
+00:35:59.292 - 00:36:01.036, Speaker A: We don't, we didn't copy this part.
+00:36:01.060 - 00:36:04.304, Speaker C: Of the code, but it'll just error out.
+00:36:05.524 - 00:36:08.332, Speaker A: So let's give it some call data and see what's happening.
+00:36:08.508 - 00:36:09.784, Speaker C: But if we give it.
+00:36:11.604 - 00:36:19.624, Speaker A: Ox 696-9696 917 just to show the end mask working and we run this.
+00:36:22.404 - 00:36:23.036, Speaker D: Step through.
+00:36:23.100 - 00:36:27.948, Speaker C: Free memory pointer, I want to clear.
+00:36:27.996 - 00:36:31.396, Speaker B: This storage, but it doesn't matter for now. So this storage doesn't exist.
+00:36:31.460 - 00:36:36.668, Speaker A: This is from the previous thing, just ignore that. So we free the memory pointer.
+00:36:36.756 - 00:36:39.064, Speaker B: This is internally solidity. Doing it.
+00:36:39.644 - 00:36:42.686, Speaker C: Push forward onto the stack, push the.
+00:36:42.710 - 00:36:44.030, Speaker B: Call data size onto the stack.
+00:36:44.102 - 00:36:46.102, Speaker A: Since we gave it five bytes of.
+00:36:46.118 - 00:36:51.038, Speaker C: Call data, five is not less than four.
+00:36:51.086 - 00:36:52.194, Speaker B: So we get zero.
+00:36:54.094 - 00:36:57.206, Speaker A: Now we're going to push this jump I.
+00:36:57.310 - 00:36:59.006, Speaker B: Since the jump I is zero, we're.
+00:36:59.030 - 00:37:01.702, Speaker A: Not going to jump and we're just going to continue.
+00:37:01.838 - 00:37:03.710, Speaker B: So now we're, now we've went from.
+00:37:03.742 - 00:37:08.086, Speaker A: This block to this block. So now we're going to load the.
+00:37:08.110 - 00:37:11.126, Speaker B: First word from call data. So you can see it loads all.
+00:37:11.150 - 00:37:13.526, Speaker A: Of this into the stack and then.
+00:37:13.550 - 00:37:15.726, Speaker C: It adds all the zeros at the.
+00:37:15.750 - 00:37:17.822, Speaker B: End because every word on the EVM.
+00:37:17.878 - 00:37:24.350, Speaker A: Is 32 bytes, if you remember. So then we don't want all this.
+00:37:24.382 - 00:37:27.074, Speaker B: Because this number is a lot different than this number.
+00:37:27.974 - 00:37:30.974, Speaker C: It's a huge difference if you can.
+00:37:31.054 - 00:37:32.434, Speaker B: Convert hex to int.
+00:37:33.154 - 00:37:34.574, Speaker A: So we're going to divide.
+00:37:36.874 - 00:37:37.306, Speaker D: And just.
+00:37:37.330 - 00:37:41.122, Speaker C: Get the first four bytes and then.
+00:37:41.218 - 00:37:44.974, Speaker B: We'Ll perform an and mask, which I'll talk about a bit later.
+00:37:45.274 - 00:37:47.414, Speaker A: And that just gives you the same output.
+00:37:48.514 - 00:37:59.294, Speaker C: Ff eight or f eight times ff, whatever. This just makes it so that if we gave it, how do I explain this?
+00:38:00.134 - 00:38:02.246, Speaker A: It's just a bit wise and mask.
+00:38:02.310 - 00:38:05.438, Speaker C: So it'll take only the first four.
+00:38:05.486 - 00:38:07.430, Speaker B: Bytes of whatever you give it.
+00:38:07.582 - 00:38:20.566, Speaker A: And since we did this division, it's kind of not needed, but it's still nice to have. And I'll talk more about an masks here. But yeah, so now we have our.
+00:38:20.590 - 00:38:22.354, Speaker B: Function selector on the stack.
+00:38:23.494 - 00:38:24.806, Speaker A: We're going to check if it's equal.
+00:38:24.830 - 00:38:30.242, Speaker B: To this function selector. First we duplicate it so that we don't just lose it and have to.
+00:38:30.258 - 00:38:32.002, Speaker C: Do all this stuff again.
+00:38:32.098 - 00:38:34.906, Speaker A: But then we push this function selector.
+00:38:34.930 - 00:38:36.974, Speaker B: On the stack, check if it's equal.
+00:38:38.714 - 00:38:42.674, Speaker A: Give it the place to jump to and jump.
+00:38:42.794 - 00:38:44.970, Speaker B: Since they're not equal, we're not going to jump.
+00:38:45.162 - 00:38:50.134, Speaker A: And I didn't copy anything else. So execution ends.
+00:38:51.194 - 00:38:55.862, Speaker C: But these first two blocks here I.
+00:38:55.878 - 00:39:01.830, Speaker B: Like to call the function dispatcher. Actually it goes on a bit longer where you.
+00:39:02.022 - 00:39:07.254, Speaker C: So this ox zero six ffd, it.
+00:39:07.294 - 00:39:08.734, Speaker B: Actually is a function selector.
+00:39:08.774 - 00:39:11.314, Speaker C: So if we go to ether face.
+00:39:14.054 - 00:39:25.730, Speaker A: And we paste it in, it's actually the name function. So if I explain what this is doing in a higher level term, it's.
+00:39:25.762 - 00:39:27.706, Speaker B: Basically checking the first four bytes of.
+00:39:27.730 - 00:39:31.874, Speaker A: The call data against every selector in the contract.
+00:39:32.034 - 00:39:35.174, Speaker C: So if I did give it this.
+00:39:35.554 - 00:39:39.682, Speaker A: Ox, six, fdde, zero, three a name selector.
+00:39:39.738 - 00:39:48.264, Speaker C: It would jump me to this name function right here and then it would.
+00:39:49.724 - 00:39:51.916, Speaker A: Form the name function and return the.
+00:39:51.940 - 00:39:53.264, Speaker B: Name of the smart contract.
+00:39:54.084 - 00:40:00.484, Speaker A: But since it didn't match, we move on to the next selector, which I think is transfer.
+00:40:00.564 - 00:40:03.300, Speaker C: I could be wrong again, but if.
+00:40:03.332 - 00:40:04.628, Speaker B: We'Re doing a transfer, we jump to.
+00:40:04.636 - 00:40:08.196, Speaker C: The transfer block and then if we're.
+00:40:08.220 - 00:40:13.284, Speaker B: Doing whatever this is, we jump to that block and it basically all the smart contracts work in the same way.
+00:40:13.864 - 00:40:16.280, Speaker C: Where you have a list of these.
+00:40:16.312 - 00:40:21.160, Speaker B: Selectors that you want to check for and you just keep checking. Like is the first four bytes of.
+00:40:21.192 - 00:40:23.704, Speaker A: This call data matching a selector?
+00:40:23.824 - 00:40:32.444, Speaker B: If it does, we're going to jump to that function and continue with the execution. So I call this the function dispatcher.
+00:40:33.064 - 00:40:37.324, Speaker C: And it actually allows you to like.
+00:40:38.554 - 00:40:41.722, Speaker A: Like Heimdall can detect the eleven selectors.
+00:40:41.818 - 00:40:46.306, Speaker C: In the wrapped ether contract just by.
+00:40:46.330 - 00:40:47.938, Speaker B: Following this kind of pattern.
+00:40:48.106 - 00:40:49.842, Speaker A: And it seems like okay, this is.
+00:40:49.858 - 00:40:51.562, Speaker B: A function selector because we're comparing it.
+00:40:51.578 - 00:40:53.050, Speaker A: To the first four bytes.
+00:40:53.242 - 00:40:56.106, Speaker C: This is a function selector and then.
+00:40:56.130 - 00:40:58.010, Speaker B: We can use that information to build.
+00:40:58.042 - 00:41:05.844, Speaker A: The ABI without having any knowledge of the actual contract itself or the actual validity code.
+00:41:07.144 - 00:41:10.312, Speaker B: So that's, that's a bit about function program execution.
+00:41:10.408 - 00:41:12.216, Speaker A: You start at the first block, we're.
+00:41:12.240 - 00:41:14.560, Speaker B: Checking call data, checking for function signatures.
+00:41:14.592 - 00:41:18.352, Speaker A: And then jumping to block of code.
+00:41:18.488 - 00:41:20.604, Speaker B: Block of assembly that represents.
+00:41:23.104 - 00:41:31.124, Speaker A: Solidity. Now we're going to talk about how solidity DBM represent types.
+00:41:32.414 - 00:41:35.874, Speaker B: So I was trying to explain and bitwise masking earlier.
+00:41:38.254 - 00:41:40.494, Speaker C: But basically it just.
+00:41:40.534 - 00:41:44.794, Speaker B: Allows for the EVM. Include a subset of bits from the whole word.
+00:41:45.214 - 00:41:48.434, Speaker A: I'm going to go to the playground so I can explain this better.
+00:41:49.694 - 00:41:57.226, Speaker C: Want to be invite, I want to be mnemonics. If I go over here, just say.
+00:41:57.250 - 00:41:58.014, Speaker B: We push.
+00:42:02.034 - 00:42:03.162, Speaker A: This onto the stack.
+00:42:03.258 - 00:42:11.786, Speaker C: I think that's eight. You push it, push this onto the stack. If we just want the first four.
+00:42:11.810 - 00:42:14.134, Speaker A: Bytes we can push for.
+00:42:16.514 - 00:42:16.946, Speaker D: And then.
+00:42:16.970 - 00:42:17.774, Speaker B: Run that.
+00:42:20.234 - 00:42:35.062, Speaker A: Or not. Maybe I have them backwards. Okay, well, I don't know what I.
+00:42:35.078 - 00:42:39.590, Speaker C: Did, but basically if you want the.
+00:42:39.622 - 00:42:41.614, Speaker B: First four bytes here, then you would.
+00:42:41.654 - 00:42:49.522, Speaker C: And it with Oxff, so you would have four bytes of just f's and.
+00:42:49.538 - 00:42:53.054, Speaker B: That'Ll give you the first four bytes here. If you wanted the second four bytes.
+00:42:53.714 - 00:42:55.186, Speaker A: You could do this and it'll give.
+00:42:55.210 - 00:42:57.130, Speaker B: You these bytes instead.
+00:42:57.322 - 00:43:08.698, Speaker A: And it's just a way that Ethereum EVM uses to cut types down. So if you go to wrapped ether, I saw in the fallback function down.
+00:43:08.746 - 00:43:13.614, Speaker C: Here like I can just tell types.
+00:43:13.914 - 00:43:22.742, Speaker A: Just by looking at these masks. So if you remember back to the opcodes, caller returns an address and then.
+00:43:22.878 - 00:43:26.622, Speaker B: We'Re pushing 20 f's or 20 bytes worth of f's onto the stack and.
+00:43:26.638 - 00:43:31.934, Speaker A: Then, and masking it. So anytime we see this 20 bytes.
+00:43:32.014 - 00:43:33.926, Speaker B: Of f's, we can just assume that.
+00:43:33.950 - 00:43:43.090, Speaker A: The variable it's doing, the variable it's masking is an address because addresses are 20 bytes long. So hopefully that makes a bit of.
+00:43:43.122 - 00:43:46.334, Speaker B: Sense, but that this is how solidity.
+00:43:46.914 - 00:43:50.090, Speaker A: Drops off bad data and sanitizes its.
+00:43:50.122 - 00:43:52.802, Speaker C: Variables to make sure that it's only.
+00:43:52.858 - 00:43:56.226, Speaker B: Working with what it's looking for. So in this case, it's looking for.
+00:43:56.250 - 00:44:02.706, Speaker A: The caller and it wants that variable as an address. So we're going to cut it down with an and.
+00:44:02.810 - 00:44:04.866, Speaker C: And I never realized this, but they.
+00:44:04.890 - 00:44:06.094, Speaker B: Actually do it twice.
+00:44:07.254 - 00:44:14.874, Speaker A: And I think this entire second part can just be cut out. So we need an optimizer to talk to wrapped ether.
+00:44:17.334 - 00:44:18.474, Speaker C: If we go back.
+00:44:20.294 - 00:44:20.798, Speaker B: How can we.
+00:44:20.806 - 00:44:24.966, Speaker A: Tell the difference between types within the EVM? I just showed it.
+00:44:25.110 - 00:44:27.102, Speaker B: If a bitwise operation other than a.
+00:44:27.118 - 00:44:30.270, Speaker A: Mask is performed on a word, it's.
+00:44:30.302 - 00:44:31.534, Speaker B: Likely a bytes type.
+00:44:31.614 - 00:44:35.392, Speaker A: So like, if we go to the EVM codes and we look at byte.
+00:44:35.528 - 00:44:39.096, Speaker B: Like, if we're calling byte on something, it's probably a byte type because we're.
+00:44:39.120 - 00:44:41.840, Speaker A: Extracting a single byte from that variable.
+00:44:41.952 - 00:44:45.256, Speaker B: And these are just, these aren't facts. These are heuristics that I found in.
+00:44:45.280 - 00:44:50.400, Speaker A: My time from reversing bytecodes. But like if we're calling Xor, that's.
+00:44:50.432 - 00:44:55.044, Speaker B: Not an arithmetic operation. I don't know why you would ever do that on a non integer.
+00:44:56.984 - 00:44:57.272, Speaker D: Or.
+00:44:57.288 - 00:45:00.944, Speaker A: On an integer and not want it.
+00:45:01.484 - 00:45:03.644, Speaker B: So if you're doing these operations like.
+00:45:03.684 - 00:45:11.144, Speaker A: Xor, byte sometimes shifts. Then I assume they're bytes types.
+00:45:11.444 - 00:45:16.036, Speaker C: If you're doing arithmetic operations like this.
+00:45:16.180 - 00:45:24.084, Speaker A: Arithmetic shift, or add, multiply, divide, mod, all those actually not mod, because that's.
+00:45:24.124 - 00:45:26.092, Speaker B: Technically not always arithmetic.
+00:45:26.268 - 00:45:34.444, Speaker A: It could be cryptographic. But if you're doing like multiplication with two things from the stack, two words.
+00:45:34.484 - 00:45:38.584, Speaker B: From the stack, it's probably a uint or another number type like integer.
+00:45:39.324 - 00:45:46.452, Speaker A: And then strings, dynamic types, arrays, etcetera are stored in memory because they're typically.
+00:45:46.508 - 00:45:49.784, Speaker B: A lot longer than 32 bytes and you can't fit those on the stack.
+00:45:51.124 - 00:46:00.808, Speaker A: And they're typically encoded in RLP format, which is recursive length prefix. I'll talk a tiny bit about that on the next slide, but it's a.
+00:46:00.816 - 00:46:04.040, Speaker B: Really complicated like protocol thing. And if you want to learn more.
+00:46:04.072 - 00:46:07.592, Speaker A: About it, you can read about it on ethereum.org.
+00:46:07.608 - 00:46:07.712, Speaker D: Comma.
+00:46:07.728 - 00:46:09.704, Speaker B: They have a nice blog that details.
+00:46:09.744 - 00:46:19.894, Speaker A: What it is, how it works. Then how does the EVM represent mapping done solidity?
+00:46:20.594 - 00:46:22.774, Speaker B: You kind of type something like this.
+00:46:23.874 - 00:46:32.534, Speaker A: You have a mapping from one type to another type, and then you have the variable name. So under the hood this is represented as.
+00:46:36.234 - 00:46:36.618, Speaker D: Well.
+00:46:36.666 - 00:46:40.330, Speaker C: First to get the key of this.
+00:46:40.402 - 00:46:42.018, Speaker B: Like if you're putting in this key.
+00:46:42.106 - 00:46:45.980, Speaker C: The bytes 32 key, then that becomes.
+00:46:46.012 - 00:46:50.064, Speaker B: This 1st 32 bytes. So let's say we're putting in the key one.
+00:46:50.844 - 00:46:52.964, Speaker A: It's just going to be zeros until.
+00:46:53.004 - 00:46:53.836, Speaker B: You get to one.
+00:46:53.940 - 00:46:58.884, Speaker A: And then we're also going to concatenate the mapping slot.
+00:46:58.924 - 00:47:01.548, Speaker B: So let's assume this is the first mapping we've ever added.
+00:47:01.676 - 00:47:04.724, Speaker C: It's going to be zeros, and then.
+00:47:04.844 - 00:47:05.504, Speaker B: We.
+00:47:08.644 - 00:47:18.260, Speaker A: Get the hash of this entire thing. So sha three in memory, I'm going to assume the memory is just whatever. So we pass this into sha three.
+00:47:18.332 - 00:47:21.180, Speaker B: We get some random hash output that's.
+00:47:21.212 - 00:47:23.996, Speaker C: 32 bytes long out, and then we.
+00:47:24.020 - 00:47:25.944, Speaker B: Store the value at that slot.
+00:47:26.484 - 00:47:29.100, Speaker A: And this is great because it ensures.
+00:47:29.132 - 00:47:31.036, Speaker B: That there's no collisions with either the.
+00:47:31.060 - 00:47:32.660, Speaker A: Key or the slot.
+00:47:32.732 - 00:47:37.740, Speaker C: So like these two mappings have different.
+00:47:37.852 - 00:47:39.512, Speaker A: Even though they're the same types, they.
+00:47:39.528 - 00:47:42.284, Speaker C: Have different internal hash.
+00:47:42.904 - 00:47:45.640, Speaker A: Like this first one would be this.
+00:47:45.672 - 00:47:49.528, Speaker C: Number, the second one, I don't know.
+00:47:49.536 - 00:47:50.344, Speaker A: If I can copy this.
+00:47:50.384 - 00:47:51.164, Speaker D: I can't.
+00:47:51.944 - 00:48:00.104, Speaker C: But the first mapping, this mapping would be this hashed and then store it.
+00:48:00.224 - 00:48:03.320, Speaker B: The second mapping would be this, except instead of the zero at the end.
+00:48:03.352 - 00:48:06.364, Speaker A: It would be a one. And then you hash and store.
+00:48:07.864 - 00:48:09.656, Speaker B: Since hash functions are like one way.
+00:48:09.680 - 00:48:13.080, Speaker A: And deterministic and there's a very tiny.
+00:48:13.112 - 00:48:17.244, Speaker B: Chance of collision, this is a very efficient way to store information.
+00:48:17.584 - 00:48:29.164, Speaker A: And this is actually the way that all the contracts used to store information, like NFT owners, balances, approvals, etcetera.
+00:48:29.944 - 00:48:31.924, Speaker B: It's pretty efficient at what it does.
+00:48:34.364 - 00:48:34.748, Speaker D: Then.
+00:48:34.796 - 00:48:36.452, Speaker B: RLP again, I'm not going to go.
+00:48:36.468 - 00:48:47.876, Speaker A: Into depth here because it's kind of complicated and not fun, but it's just a way of encoding data in theory, and it's primarily used for serializing and.
+00:48:47.900 - 00:48:51.724, Speaker C: Deserializing data in memory.
+00:48:51.884 - 00:48:52.584, Speaker D: So.
+00:48:54.524 - 00:48:55.944, Speaker B: It'S pretty complex.
+00:48:57.044 - 00:49:03.116, Speaker C: Like this is the actual outline of.
+00:49:03.180 - 00:49:05.060, Speaker B: How ethereum does it. Exactly.
+00:49:05.252 - 00:49:10.428, Speaker A: You can see the string dog is this monstrosity.
+00:49:10.556 - 00:49:12.476, Speaker B: You first push this byte and then.
+00:49:12.500 - 00:49:21.412, Speaker A: You have all these individual bytes. There's a lot of rules to it. If you want to read this on.
+00:49:21.428 - 00:49:36.044, Speaker B: Your own, go for it. I'm not going to talk about it right now. All you have to know is that the EVM uses RLP to store pretty much everything. They store lists in RLP strings, arrays, other data types.
+00:49:36.344 - 00:49:38.512, Speaker A: Because the EVM can understand these and.
+00:49:38.528 - 00:49:52.874, Speaker B: All the operations that the EVM has can easily do RLP decoding and encoding. Yeah, it basically involves just prefixing the data with the length of the data so that it can be indexed pretty quick.
+00:49:54.934 - 00:49:56.342, Speaker A: That's all for RLP.
+00:49:56.478 - 00:49:57.966, Speaker B: I don't want to go too in.
+00:49:57.990 - 00:50:09.794, Speaker A: Depth with it because it's a lot. Yeah, so I think I'll share these slides later. Just go and read this if you want to learn more about it.
+00:50:11.494 - 00:50:18.144, Speaker B: So now we're on to the helpful tools and resources. I'll show you the decompilation thing, because.
+00:50:18.304 - 00:50:19.632, Speaker A: I know that you asked a question.
+00:50:19.688 - 00:50:22.760, Speaker C: About it, but Heimdall is an EVM.
+00:50:22.792 - 00:50:27.056, Speaker A: Toolkit for reversing, decompiling, decoding, call data.
+00:50:27.120 - 00:50:28.960, Speaker B: Viewing, contract storage and more.
+00:50:29.112 - 00:50:31.528, Speaker A: It's really great for working with unverified contracts.
+00:50:31.576 - 00:50:35.004, Speaker B: You don't have to have the source code or the ABI to work with them.
+00:50:37.424 - 00:50:59.972, Speaker A: EVM codes we've been using this whole time. It has this entire opcode directory where each opcode has examples with edge cases and you can click to expand. You have the playground here, they have precompiles here. It's one of the best EVM resources.
+00:51:00.028 - 00:51:01.404, Speaker B: Out there, and you should definitely be.
+00:51:01.444 - 00:51:10.324, Speaker A: Using it if you plan on learning. The EVM boundary is obviously cutting edge.
+00:51:10.364 - 00:51:18.674, Speaker B: Toolkit for working with smart contracts. The EVM and more. You can use things like cast in foundry to send raw transactions.
+00:51:19.454 - 00:51:21.074, Speaker A: That's pretty useful as well.
+00:51:21.814 - 00:51:24.982, Speaker B: Ethereum.org has great resources for reading more.
+00:51:24.998 - 00:51:27.790, Speaker A: About the EVM, like obviously RLP.
+00:51:27.942 - 00:51:29.926, Speaker B: I think I linked one earlier, but.
+00:51:30.110 - 00:51:35.742, Speaker A: They also had that graphic on the first slide. They have pretty much any question you.
+00:51:35.758 - 00:51:37.874, Speaker B: Have about the EVM can be answered here.
+00:51:39.994 - 00:51:43.394, Speaker A: Ether face is this signature database here.
+00:51:43.474 - 00:51:53.650, Speaker B: That we used earlier to find out that that was actually name. So yeah, if you're trying to reverse call data and you don't want to use Heimdall, then you can just like.
+00:51:53.762 - 00:52:10.616, Speaker A: Type in a hash here and you can also do text search balance of this is the signature for it. It's a very useful tool for reversing EVM call data and then RevM is.
+00:52:10.640 - 00:52:15.832, Speaker B: A rest based implementation of the EVM if you want to read the source code for it.
+00:52:15.848 - 00:52:18.392, Speaker A: It's great for obtaining a deep understanding.
+00:52:18.408 - 00:52:28.496, Speaker B: Of the internals of the EVm and all the caveats and stuff. I would recommend reading our EVM's code over Heimdall's VM code, because Heimdall's VM.
+00:52:28.560 - 00:52:34.864, Speaker C: Is an EVM that specializes in symbolic execution.
+00:52:34.944 - 00:52:37.124, Speaker B: Like if you look at the stack implementation.
+00:52:39.304 - 00:52:41.152, Speaker A: It doesn't just store the value.
+00:52:41.208 - 00:52:42.416, Speaker B: On the stack, it has a lot.
+00:52:42.480 - 00:52:45.032, Speaker A: Other, lot of other things that you.
+00:52:45.048 - 00:52:46.444, Speaker B: Don'T really need to worry about.
+00:52:47.424 - 00:52:59.840, Speaker C: And before we finish, I'm going to go back to what you asked about earlier, and I will show you how.
+00:52:59.872 - 00:53:01.684, Speaker B: We can actually decompile the contract.
+00:53:03.524 - 00:53:06.372, Speaker C: So if we like.
+00:53:06.508 - 00:53:14.092, Speaker B: Since assembly is really hard to read and it's hard to understand what's happening in your head when you're reading assembly.
+00:53:14.228 - 00:53:16.508, Speaker A: What you can actually do is just.
+00:53:16.556 - 00:53:18.892, Speaker B: Decompile a contract using Heimdall.
+00:53:19.068 - 00:53:23.916, Speaker A: And this takes all the knowledge that I have about the EVM and compiles.
+00:53:23.940 - 00:53:26.876, Speaker C: It in a way where you can.
+00:53:26.900 - 00:53:30.328, Speaker A: Just run this command and it will.
+00:53:30.416 - 00:53:34.544, Speaker C: Start to do all this heuristic type stuff.
+00:53:34.664 - 00:53:35.444, Speaker E: Awesome.
+00:53:37.024 - 00:53:38.752, Speaker D: What's up? Awesome.
+00:53:38.808 - 00:53:39.484, Speaker E: Awesome.
+00:53:40.184 - 00:53:45.224, Speaker A: Yeah, so it first like finds every.
+00:53:45.264 - 00:53:50.128, Speaker C: Single possible selector in the symbolic execution.
+00:53:50.176 - 00:53:53.960, Speaker B: And then executes them. It'll handle resolving all the signatures for.
+00:53:53.992 - 00:53:57.320, Speaker A: You, all the events for you in plain text.
+00:53:57.392 - 00:54:01.684, Speaker B: So instead of you getting like a hash, you get all these nice little.
+00:54:02.984 - 00:54:06.072, Speaker A: Human readable outputs, which is great.
+00:54:06.128 - 00:54:10.364, Speaker B: So like you can see name is that ox, six, FDDE, zero, three.
+00:54:11.144 - 00:54:12.632, Speaker A: Nobody knows what this is, but you.
+00:54:12.648 - 00:54:14.324, Speaker B: Can see that it's the name function.
+00:54:15.024 - 00:54:18.536, Speaker C: And then what's great is that you.
+00:54:18.560 - 00:54:23.994, Speaker A: Can actually, it'll output a solidity like file.
+00:54:25.894 - 00:54:27.274, Speaker B: I have to redo this.
+00:54:27.814 - 00:54:32.514, Speaker A: Got some flags. So if you tell it to include solidity.
+00:54:33.054 - 00:54:38.534, Speaker D: I don't know if that worked. Did it? Yeah.
+00:54:38.574 - 00:54:41.366, Speaker A: So it'll output an ABI and this.
+00:54:41.390 - 00:54:42.326, Speaker B: Abi can be called.
+00:54:42.390 - 00:54:44.182, Speaker C: So you can see like the entire.
+00:54:44.238 - 00:54:50.402, Speaker B: Contract Abi is here. And it does that working solely off the bytecode. This is what it's working on.
+00:54:50.458 - 00:54:54.414, Speaker A: It just takes this massive string and.
+00:54:55.034 - 00:54:57.642, Speaker B: Crunches it down into this ABI and.
+00:54:57.658 - 00:54:59.826, Speaker A: It also outputs solidity code.
+00:54:59.850 - 00:55:01.294, Speaker B: You can read kind of.
+00:55:01.714 - 00:55:06.050, Speaker A: I think it's a lot easier to read this format than assembly.
+00:55:06.162 - 00:55:10.026, Speaker B: Hopefully you agree with me. I don't know why.
+00:55:10.170 - 00:55:12.094, Speaker A: Oh, it's made a change.
+00:55:13.914 - 00:55:14.338, Speaker D: And not.
+00:55:14.346 - 00:55:15.946, Speaker E: A lot of people are doing it, so.
+00:55:16.050 - 00:55:17.454, Speaker C: I bet it is, you know?
+00:55:18.424 - 00:55:19.168, Speaker D: Yeah.
+00:55:19.336 - 00:55:26.564, Speaker B: Like you can see name is returning a string from RLP encoding, the first storage slot.
+00:55:27.024 - 00:55:31.320, Speaker A: So wrapped ether actually stores their name.
+00:55:31.392 - 00:55:36.016, Speaker B: In storage, which is kind of silly because they could just hard code it. It's not changing anytime soon.
+00:55:36.200 - 00:55:38.392, Speaker A: But that's just how the EVM works.
+00:55:38.488 - 00:55:40.488, Speaker B: You can see total supply is actually.
+00:55:40.536 - 00:55:43.044, Speaker A: Just returning the balance of the contract.
+00:55:44.824 - 00:55:47.160, Speaker B: Symbol is returning a storage value.
+00:55:47.272 - 00:55:50.888, Speaker C: RLP encoded deposit takes in the message.
+00:55:50.936 - 00:56:01.324, Speaker B: Sender and then stores it in a mapping and then emits deposit event. So you can use Heimdall to just process all this information that you have.
+00:56:01.944 - 00:56:05.204, Speaker A: And distill it down to a readable format.
+00:56:05.864 - 00:56:12.248, Speaker B: And if you want to read y'all instead, you can. I don't recommend it because this is not fun and it's probably easier to.
+00:56:12.256 - 00:56:17.842, Speaker C: Read assembly maybe, but it's an option for you.
+00:56:17.938 - 00:56:21.294, Speaker B: You can also generate the control flow graph with Heimdall.
+00:56:22.074 - 00:56:23.214, Speaker A: It can do a lot.
+00:56:23.514 - 00:56:24.258, Speaker D: Yeah, yeah.
+00:56:24.306 - 00:56:28.214, Speaker E: Seems like a pretty good tool. I don't know, David, do you have questions?
+00:56:29.154 - 00:56:29.554, Speaker D: Yep.
+00:56:29.594 - 00:56:30.730, Speaker B: Feel free to ask questions.
+00:56:30.802 - 00:56:32.654, Speaker A: That's all I have for now.
+00:56:33.594 - 00:56:37.482, Speaker E: Amazing, amazing presentation. High quality. This will be a huge success, bro.
+00:56:37.538 - 00:56:39.914, Speaker C: Thank you so much. Thank you.
+00:56:40.374 - 00:56:41.470, Speaker D: Yes, hi.
+00:56:41.662 - 00:56:55.534, Speaker G: Very interesting presentation. Thanks a lot. I have a question I asked in the chat about self destruct. I thought it was going deprecated. Do you know something about that I have not made?
+00:56:55.574 - 00:56:57.394, Speaker E: Yeah, they'd be deprecated, right.
+00:56:59.254 - 00:57:01.598, Speaker A: Might be planning on it, but I.
+00:57:01.606 - 00:57:02.634, Speaker B: Don'T think it's been.
+00:57:03.894 - 00:57:06.304, Speaker C: Yeah. Has it?
+00:57:06.684 - 00:57:07.364, Speaker A: Yeah, I think.
+00:57:07.404 - 00:57:13.424, Speaker E: I think you don't have self destruct on solid anymore, but you do have it as an opcode on assembly.
+00:57:14.524 - 00:57:15.532, Speaker B: Okay, that makes sense.
+00:57:15.588 - 00:57:16.224, Speaker A: Yeah.
+00:57:17.124 - 00:57:17.700, Speaker D: Okay.
+00:57:17.772 - 00:57:19.544, Speaker A: I did not know that. That's pretty interesting.
+00:57:19.924 - 00:57:22.024, Speaker B: I actually don't know how to see chat.
+00:57:22.884 - 00:57:47.524, Speaker E: There is a. Yeah, it's a little bit tricky. The UI on discord for that is terrible, but if you see the user room on the, on the meeting itself there's a small box, but that's the. I only have one more question in the chat here, which is. Is the jump idestination block of the function hard coded in the compiling process when compiling the code from solidity to bytecode.
+00:57:48.504 - 00:57:49.764, Speaker A: Yeah, I see it now.
+00:57:50.464 - 00:57:50.864, Speaker D: Yeah.
+00:57:50.904 - 00:57:55.296, Speaker B: So all the jump instructions are decided by the compiler.
+00:57:55.400 - 00:57:57.164, Speaker A: So you don't have to worry about that.
+00:57:59.964 - 00:58:01.676, Speaker C: If we go back to the control.
+00:58:01.740 - 00:58:10.372, Speaker A: Flow graph view, you can see like this will never change. It's always going to jump to ox.
+00:58:10.428 - 00:58:12.424, Speaker B: B nine as its next instruction.
+00:58:15.564 - 00:58:22.424, Speaker C: And you can see it'll here. And the jump dust is here.
+00:58:23.444 - 00:58:25.076, Speaker B: So these jump dest op codes, it.
+00:58:25.100 - 00:58:30.426, Speaker A: Has to jump to one of them. If it doesn't, I think execution reverts.
+00:58:30.490 - 00:58:32.026, Speaker B: Or it might just crash.
+00:58:32.210 - 00:58:35.162, Speaker A: I'm not entirely sure I know you.
+00:58:35.258 - 00:58:37.186, Speaker B: The compiler will freak out if you.
+00:58:37.290 - 00:58:38.554, Speaker A: Try to do something weird.
+00:58:38.674 - 00:58:48.146, Speaker B: So these always have to be hard coded. If you're writing raw assembly you can do something called like a dynamic jump, which actually was in a kurta contract.
+00:58:48.250 - 00:58:51.854, Speaker C: So like, nope, nope.
+00:58:53.294 - 00:58:54.954, Speaker D: Okay, thank you, Bob.
+00:58:55.574 - 00:59:10.766, Speaker C: Like if you push something onto the stack, like actually let's say you're loading push one. So we're loading the 32 or the.
+00:59:10.790 - 00:59:12.342, Speaker B: First word from call data.
+00:59:12.438 - 00:59:16.006, Speaker A: So offset 32 and then let's say.
+00:59:16.030 - 00:59:19.712, Speaker C: That'S a jump instruction and we actually.
+00:59:19.768 - 00:59:24.604, Speaker B: Want to jump to this value in call data. Let's say push zero.
+00:59:26.304 - 00:59:30.872, Speaker A: And we want to jump to program counter 100. If you run this, it'll try to.
+00:59:30.888 - 00:59:32.524, Speaker B: Jump to program counter 100.
+00:59:37.624 - 00:59:38.364, Speaker D: What?
+00:59:42.024 - 00:59:43.760, Speaker A: Okay, it'll try to jump to this.
+00:59:43.792 - 00:59:45.684, Speaker B: Program encounter ox ten.
+00:59:49.274 - 00:59:59.034, Speaker A: But it doesn't exist. Actually not lx ten, that huge number. But yeah, so these are called dynamic.
+00:59:59.074 - 01:00:04.194, Speaker B: Jumps and they make symbolic execution really hard. The good news is solidity's compiler doesn't.
+01:00:04.234 - 01:00:05.534, Speaker A: Do it by default.
+01:00:06.594 - 01:00:08.442, Speaker B: I don't think vipers does either.
+01:00:08.618 - 01:00:09.802, Speaker A: So the only time you're going to.
+01:00:09.818 - 01:00:10.986, Speaker B: Run into these is going to be.
+01:00:11.010 - 01:00:13.822, Speaker A: Like someone's trying to make it so.
+01:00:13.838 - 01:00:15.274, Speaker B: You can't reverse their contract.
+01:00:17.334 - 01:00:24.034, Speaker C: Yeah, so I think, look, hook has a question. Go for it.
+01:00:25.894 - 01:00:50.472, Speaker F: Amazing, bro. Thank you for the presentation. I just have some confusion about, for example, when you write solid smart contracts, then you compile it. So the first thing we have some lock of functions that are separate in chunks, like I think, I don't know. Correct me please. Then we have the first thing of.
+01:00:50.568 - 01:00:56.184, Speaker C: Execution, we have all the function selectors.
+01:00:56.304 - 01:01:14.874, Speaker F: It go, it's gonna loop about all this function selectors. Then when it match, for example with one function selector, it jumps to this chunk where the exact block of this function and execute the rest of code. Am I right or.
+01:01:15.174 - 01:01:16.878, Speaker A: Yeah, that's right.
+01:01:16.926 - 01:01:20.806, Speaker B: So you start, when you compile a.
+01:01:20.830 - 01:01:27.582, Speaker C: Contract, it compiles to this, this big code that no one can read and.
+01:01:27.598 - 01:01:29.750, Speaker B: Then you can disassemble it to see.
+01:01:29.782 - 01:01:37.152, Speaker A: This, but also you can't read this. So the control flow graph is completely right. You start at the top and then.
+01:01:37.168 - 01:01:38.648, Speaker B: You'Re checking the selectors.
+01:01:38.816 - 01:01:40.616, Speaker A: If the selector matches, you jump to.
+01:01:40.640 - 01:01:42.284, Speaker B: That function body like this.
+01:01:43.264 - 01:01:44.884, Speaker A: So yeah, you're completely right.
+01:01:48.104 - 01:01:48.512, Speaker D: Question.
+01:01:48.568 - 01:01:49.464, Speaker F: Thank you again.
+01:01:49.544 - 01:01:50.416, Speaker C: Thank you.
+01:01:50.600 - 01:01:51.096, Speaker D: Awesome.
+01:01:51.120 - 01:01:51.656, Speaker A: Anyone else?
+01:01:51.720 - 01:01:54.244, Speaker E: I think this is it. You have anything else to add?
+01:01:56.984 - 01:02:01.734, Speaker G: One couple other questions on my self destruct if you have some time still.
+01:02:02.354 - 01:02:03.714, Speaker A: Yeah, go for it.
+01:02:03.874 - 01:02:10.626, Speaker G: Yeah, so if a contract don't implement cell destruct, I am thinking of c.
+01:02:10.770 - 01:02:15.894, Speaker C: 46 26 volts is there a way.
+01:02:17.314 - 01:02:21.602, Speaker G: To stop the possibility to deposit to.
+01:02:21.618 - 01:02:24.734, Speaker C: This volt or is just not possible?
+01:02:25.314 - 01:02:27.522, Speaker B: Is it after you self destruct you.
+01:02:27.538 - 01:02:28.868, Speaker A: Can'T deposit to it?
+01:02:29.026 - 01:02:29.952, Speaker D: No, no.
+01:02:30.128 - 01:02:38.044, Speaker G: I have a world, an orc 4626 that is deployed but there is no self destruct function in it.
+01:02:39.384 - 01:02:41.352, Speaker A: Yeah, a lot of contracts don't implement.
+01:02:41.408 - 01:02:44.164, Speaker B: Self destruct just because it's very dangerous.
+01:02:44.624 - 01:02:47.404, Speaker C: Yeah, a lot of the time it's just like.
+01:02:48.464 - 01:03:03.994, Speaker B: Or exploit contracts will. But you're not going to see it in the wild a lot like very few contracts use it just because it's so volatile. Well, and it does destroy things and break things, which is why it's been depreciated or whatever.
+01:03:05.454 - 01:03:05.742, Speaker D: So.
+01:03:05.758 - 01:03:05.926, Speaker A: Yeah.
+01:03:05.950 - 01:03:07.674, Speaker B: You're not going to run into it too often.
+01:03:09.254 - 01:03:14.590, Speaker G: Yeah, but my question is I want, I want to, you know, mrc 46.
+01:03:14.622 - 01:03:19.286, Speaker C: 26 is for regenerating yield and I.
+01:03:19.310 - 01:03:32.250, Speaker G: Want, I have a deployed such a contract and I want people to stop depositing this contract using the deposit function. Do you know somewhere? I don't think it's possible, but I don't.
+01:03:32.322 - 01:03:34.794, Speaker C: I just wonder that you want people.
+01:03:34.834 - 01:03:36.626, Speaker B: To stop being able to deposit.
+01:03:36.810 - 01:03:40.970, Speaker A: Yes, I think if you self destruct they can't anymore.
+01:03:41.082 - 01:03:44.722, Speaker C: No, no, no they can't because it.
+01:03:44.778 - 01:03:46.594, Speaker B: You can send ether to any contract.
+01:03:46.714 - 01:03:51.690, Speaker A: Address and it'll just be lost there forever. If you want to stop people from.
+01:03:51.722 - 01:03:59.668, Speaker B: Depositing you can add like a flag, like a, like in storage, like stole flag.
+01:03:59.796 - 01:04:01.108, Speaker A: And if the flag is true and.
+01:04:01.116 - 01:04:04.772, Speaker C: It'S like deposits paused and if the.
+01:04:04.788 - 01:04:10.664, Speaker B: Deposits are paused then you just revert and that'll stop them from sending money. It'll send the money back to their account.
+01:04:13.484 - 01:04:14.784, Speaker D: So I don't think.
+01:04:16.844 - 01:04:18.664, Speaker B: For that you would use revert.
+01:04:20.664 - 01:04:29.136, Speaker D: There. Hello?
+01:04:29.240 - 01:04:31.808, Speaker C: Hey, hey, can you still hear me?
+01:04:31.896 - 01:04:34.864, Speaker E: Yeah, I think you dropped for a second there. Yeah.

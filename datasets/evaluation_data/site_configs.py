@@ -1012,4 +1012,9 @@ site_configs = {
         'img_selector': '.img_ev3q',
         'base_name': '-snaps',
     },
+    'dune': {
+        'base_url': 'https://docs.dune.com/home',
+        'content_selector': '#content-area',
+        'img_selector': '.img_ev3q',
+    },
 }

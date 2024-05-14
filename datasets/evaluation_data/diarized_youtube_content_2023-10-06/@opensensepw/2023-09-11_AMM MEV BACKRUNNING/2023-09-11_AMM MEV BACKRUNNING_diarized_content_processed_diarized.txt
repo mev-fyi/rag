@@ -1,0 +1,696 @@
+00:00:00.520 - 00:00:24.582, Speaker A: Company founded in 2021 was to provide consulting services. And at the beginning, and this is still an activity we have in place, we found ourselves through proprietary trading and some mev. And so the subject of this talk is to discuss how we implemented in 2021. An AMM back running.
+00:00:24.718 - 00:00:25.514, Speaker B: Awesome.
+00:00:25.884 - 00:00:35.356, Speaker A: So, since then, there have been some major changes, but I still believe there's a lot of information which could be useful for you from this presentation.
+00:00:35.420 - 00:00:36.304, Speaker B: Let's go.
+00:00:39.044 - 00:00:40.144, Speaker C: Okay.
+00:00:42.084 - 00:00:43.868, Speaker A: So, what we'll speak about today.
+00:00:43.916 - 00:00:48.196, Speaker C: Is first, we'll speak about AmM arbitrage.
+00:00:48.260 - 00:00:54.976, Speaker A: In general before focusing on the board architecture, and then focus on each of.
+00:00:55.000 - 00:01:11.736, Speaker C: The sub components to give you a hands on approach of how this kind of arbitrage board can be implemented in practice. So, first, as you know, in traditional finance, we have market maker, which professional.
+00:01:11.840 - 00:01:23.924, Speaker A: Actors who provide liquidity between assets. And so what they usually do is that they quote a price both at the bid, when buying and when selling. So what we call it the ask.
+00:01:25.104 - 00:01:27.720, Speaker C: And they make a profit in the.
+00:01:27.752 - 00:01:29.352, Speaker A: Difference between the bid price and the.
+00:01:29.368 - 00:01:36.456, Speaker C: Ask price, which is called the spread. And in DeFi, the major innovation of.
+00:01:36.480 - 00:01:46.368, Speaker A: The summer of 2020 was the advent of automated market maker. In fact, this is what launched the Defi summer. And these are smart contracts, which are.
+00:01:46.416 - 00:01:54.146, Speaker C: Always willing to quote a price between a set of assets. So, in the defense with traditional finance.
+00:01:54.170 - 00:02:03.174, Speaker A: Where market maker are active, here we have an automated and passive setup when we can just lp into a smart contract and be providing liquidity.
+00:02:03.954 - 00:02:06.602, Speaker C: So the four most popular protocols at.
+00:02:06.618 - 00:02:09.202, Speaker A: The time and still are Uniswap and.
+00:02:09.218 - 00:02:11.938, Speaker C: Balancer, and first, Uniswap V two.
+00:02:12.026 - 00:02:19.964, Speaker A: And as you know, in, in Uniswap V two, we have a smart contract which provides liquidity between a pair of.
+00:02:20.084 - 00:02:23.516, Speaker C: Crypto assets along an invariant formula.
+00:02:23.660 - 00:02:28.884, Speaker A: And so, if we denote x and y, respectively, the balance of the smart.
+00:02:28.924 - 00:02:33.156, Speaker C: Contract in both tokens, then there is.
+00:02:33.180 - 00:02:42.634, Speaker A: This invariant, which must always remain true, which is that the product of the quantity of both tokens must remain constant.
+00:02:43.174 - 00:02:51.918, Speaker C: And so, using this basic invariant, we can obtain the output amount when you.
+00:02:51.966 - 00:02:55.714, Speaker A: Send some tokens into smart contract.
+00:02:56.294 - 00:03:00.870, Speaker C: So you can compute how much you get of the token B when you.
+00:03:00.902 - 00:03:03.742, Speaker A: Send token a into the smart contract.
+00:03:03.918 - 00:03:06.362, Speaker C: And you can also obtained the swap.
+00:03:06.418 - 00:03:10.054, Speaker A: Price, which is obtained as how much.
+00:03:10.554 - 00:03:15.214, Speaker C: You pay divided by how much you get.
+00:03:15.634 - 00:03:18.050, Speaker A: So, using this formula here, we did.
+00:03:18.082 - 00:03:20.290, Speaker C: Use the swap price is equals to.
+00:03:20.322 - 00:03:27.106, Speaker A: The ratio of how much input token you have into the smart contract divided by how much output token you have.
+00:03:27.210 - 00:03:29.458, Speaker C: Within the smart contract, which is the.
+00:03:29.546 - 00:03:31.894, Speaker A: Marginal price for a zero size swap.
+00:03:32.524 - 00:03:37.492, Speaker C: Okay? So this means that basically when you.
+00:03:37.508 - 00:03:39.436, Speaker A: Trade a very small quantity, this is.
+00:03:39.460 - 00:03:46.084, Speaker C: The instantaneous price that you get plus another factor which at the first order.
+00:03:46.244 - 00:03:49.084, Speaker A: Is equal to the input divided by the reserve output.
+00:03:49.164 - 00:03:49.904, Speaker D: Okay?
+00:03:50.284 - 00:03:54.676, Speaker A: So that basically what we have done.
+00:03:54.740 - 00:04:02.378, Speaker C: Here is that we computed the swap price alti first order.
+00:04:02.546 - 00:04:08.930, Speaker A: So, with linear impact. So in truth, the impact is more than linear. So you have also quadratic terms, which.
+00:04:08.962 - 00:04:18.018, Speaker C: Appears here, but for small traders, it is accurate enough.
+00:04:18.186 - 00:04:29.136, Speaker A: And so what happens when you trade is that you displace yourself on this curve, which describes the x y k invariance function. Okay?
+00:04:29.160 - 00:04:30.992, Speaker C: So at the beginning, let's say you.
+00:04:31.008 - 00:04:43.284, Speaker A: Are here, then you trade, you will come here, and when you divide the difference x prime minus x divided by y prime minus y, you get the obtained swap price.
+00:04:44.104 - 00:04:51.958, Speaker C: Okay, awesome stuff, bro. This was the first example of ammo.
+00:04:52.036 - 00:04:57.274, Speaker A: Which is uniswap v two. And this has been generalized in balancer.
+00:04:57.394 - 00:05:05.458, Speaker C: Where they took this two asset pool and generalized it for n assets. So, instead of having just a product.
+00:05:05.586 - 00:05:17.050, Speaker A: Of two tokens balance which is equal to a constant, we have a product with more than two tokens which is still equal to a constant. And in fact, what we have here.
+00:05:17.162 - 00:05:21.592, Speaker C: Is that we can weigh the influence.
+00:05:21.688 - 00:05:28.084, Speaker A: Of each token by a factor which is the weight of the token within the zippool.
+00:05:29.064 - 00:05:31.984, Speaker C: In fact, what we are here describing.
+00:05:32.024 - 00:05:46.626, Speaker A: As this has been shown into the balanced white paper, is that the invariant, so, the constant is some sort of the geometric mean of the token balance of all the tokens, which makes the liquidity pool.
+00:05:46.720 - 00:05:51.518, Speaker C: So I'm spending a little bit of time here on this.
+00:05:51.566 - 00:05:58.038, Speaker A: But this is important because this is how you can obtain the impact function and the prices you get.
+00:05:58.166 - 00:05:59.398, Speaker C: And so this is how, at the.
+00:05:59.406 - 00:06:01.046, Speaker A: End of the day, you compute how.
+00:06:01.070 - 00:06:02.158, Speaker C: You do the arbitrage.
+00:06:02.286 - 00:06:02.886, Speaker D: Okay?
+00:06:02.990 - 00:06:06.926, Speaker C: And so now the action, instead of.
+00:06:06.950 - 00:06:09.582, Speaker A: Just being reserve inputs divided by reserve.
+00:06:09.598 - 00:06:13.642, Speaker C: Output plus this factor, you now get.
+00:06:13.698 - 00:06:23.066, Speaker A: Something which has an exponent which depends on the difference of the weights of the input token and the output token.
+00:06:23.170 - 00:06:25.882, Speaker C: And in the case of uniswap, you.
+00:06:25.938 - 00:06:27.602, Speaker A: Just have the weight of the output.
+00:06:27.658 - 00:06:34.402, Speaker C: Token, which is equal to the weight of the input token. So you find the same formula than.
+00:06:34.458 - 00:06:35.786, Speaker A: The one you had before.
+00:06:35.890 - 00:06:36.498, Speaker D: Okay?
+00:06:36.626 - 00:06:55.822, Speaker C: So this being said, let's focus now on the four types of arbitrage that you can do when interacting with amm. And so here they are ranked from the most aggressive to the less aggressive. So the most aggressive, the one which.
+00:06:55.838 - 00:07:02.302, Speaker A: Is most known, is front running or sandwiching. So in traditional markets, this is illegal.
+00:07:02.398 - 00:07:02.686, Speaker D: Okay?
+00:07:02.710 - 00:07:04.610, Speaker C: So here what you do is that.
+00:07:04.722 - 00:07:06.106, Speaker A: When you have one guy who wants.
+00:07:06.130 - 00:07:10.154, Speaker C: To pass a significant rate, let's say.
+00:07:10.234 - 00:07:28.374, Speaker A: Buying $100,000 of links, detect it into the mempool. You buy the coins before him, thus increasing the price. He buys it at an inflated price, and then you sell the token just after him. So what you have done here is that you extracted value from the unwilling buyer.
+00:07:29.854 - 00:07:33.278, Speaker C: Then you have sniping, which consists into.
+00:07:33.326 - 00:07:35.390, Speaker A: Buying new coins as soon as they are listed.
+00:07:35.462 - 00:07:37.630, Speaker C: You have back running, which is when.
+00:07:37.662 - 00:07:43.950, Speaker A: You arbitrage price inefficiencies within Imm, which have been created by previous trades.
+00:07:44.102 - 00:07:47.166, Speaker C: So here, instead of going before the.
+00:07:47.190 - 00:07:52.774, Speaker A: Trader, you come after him. So instead of front running, you back run. And then you have just in time.
+00:07:52.814 - 00:08:01.220, Speaker C: Liquidity, where you detect man pool. That has a big trade, and you provide liquidity for it.
+00:08:01.332 - 00:08:02.104, Speaker D: Okay?
+00:08:02.444 - 00:08:06.972, Speaker A: And you just trade. You provide liquidity for the trade.
+00:08:07.108 - 00:08:07.612, Speaker D: One question.
+00:08:07.668 - 00:08:10.076, Speaker A: You withdraw the liquidity just after the trade.
+00:08:10.180 - 00:08:26.476, Speaker B: One question, bro, for you is I never heard about just in time liquidity. Can you talk a little bit about this? So we're talking about watching a big trade and providing liquidity really fast and then taking the liquidity out with the fees and everything. Still worth it.
+00:08:26.620 - 00:08:27.504, Speaker C: Exactly.
+00:08:28.764 - 00:08:38.884, Speaker A: For big enough trades, it's worth it, but I'm really big trades. So for small trades, it's not worth it. But when you have one guy who is ap several millions in one single.
+00:08:38.924 - 00:08:42.532, Speaker C: Transactions, it's worth it also depending on.
+00:08:42.548 - 00:08:44.404, Speaker A: The gas fees, etcetera.
+00:08:44.484 - 00:08:45.184, Speaker D: Awesome.
+00:08:45.564 - 00:08:50.252, Speaker A: There has been a poster I have seen on Twitter recently of how you.
+00:08:50.268 - 00:08:53.780, Speaker C: Can use a mix of front running.
+00:08:53.892 - 00:09:03.188, Speaker A: And just in time liquidity to extract the maximum value. Because when you front run, you extract value from the buyer. And when you use just in time.
+00:09:03.236 - 00:09:06.068, Speaker C: Liquidity, you extract value from the other.
+00:09:06.116 - 00:09:09.244, Speaker A: Liquidity provider because you take the fees instead of them.
+00:09:09.324 - 00:09:09.596, Speaker D: Okay?
+00:09:09.620 - 00:09:10.892, Speaker A: And so when you use the base.
+00:09:10.908 - 00:09:16.716, Speaker C: Of the boss, this is a way to extract the maximum value out of a single trade.
+00:09:16.860 - 00:09:22.516, Speaker A: But this is not the topic of today's talk. Today is about back running.
+00:09:22.580 - 00:09:23.140, Speaker D: That's cool.
+00:09:23.212 - 00:09:31.892, Speaker C: How you can detect inefficiencies within imm and arbitrage them.
+00:09:31.948 - 00:09:34.132, Speaker A: Okay, so this is not aggressive.
+00:09:34.228 - 00:09:34.580, Speaker D: Okay.
+00:09:34.612 - 00:09:36.044, Speaker C: So this is just, you know, some.
+00:09:36.084 - 00:09:49.924, Speaker A: Guy, he changed the price, he created inefficiencies, and so you arbitrage it back, whereas front running. You know, there is a bit of a moral dilemma here because, you know, in traditional finances is illegal.
+00:09:50.344 - 00:09:51.160, Speaker D: Okay.
+00:09:51.312 - 00:09:53.840, Speaker C: And so we'll focus on background implementing.
+00:09:53.872 - 00:10:02.008, Speaker A: A back running algorithm on Ethereum. And this was done, you know, at the beginning of 2021. So it was pre EIP 1559.
+00:10:02.056 - 00:10:10.884, Speaker C: So it was at the time where gas tokens, and it was before flashbots, which was launched, I think in March or April.
+00:10:11.484 - 00:10:12.804, Speaker A: And so here, the idea is very.
+00:10:12.844 - 00:10:17.124, Speaker C: Simple is we are starting from the.
+00:10:17.204 - 00:10:25.772, Speaker A: Set of all trading pairs, which we represent as a graph. So let's say here we are representing all the trading pairs of new in.
+00:10:25.788 - 00:10:36.548, Speaker C: Swap, you can trade from weth to WBTC, from weth to USDC, from USDT to USDC, but not USDC to TRON.
+00:10:36.596 - 00:10:40.584, Speaker A: But you can trade from WBTC to TRON and USDC to TRON.
+00:10:41.054 - 00:10:46.754, Speaker C: This is an illustrative example. And so we are building a graph.
+00:10:47.814 - 00:10:55.670, Speaker A: Which represents all the imm pairs. And so you notice that the vertex of the graphs are the pairs and.
+00:10:55.702 - 00:11:00.914, Speaker C: The edges are the IMF are the nodes, okay?
+00:11:01.854 - 00:11:10.102, Speaker A: And so the idea of finding an arbitrage here is finding a cycle which yields a positive profit, okay?
+00:11:10.198 - 00:11:16.830, Speaker C: So for instance, maybe if I sell weth to WBTC and then I sell.
+00:11:16.862 - 00:11:21.358, Speaker A: My WBTc to Tron and then Tron to USDT and the USDT to Wth.
+00:11:21.526 - 00:11:26.630, Speaker C: I can obtain a profit because the market is not very efficient.
+00:11:26.782 - 00:11:35.694, Speaker A: And the nice thing about it is that as I end where I started, well, I can do it with a flash swap. So I do not need to mobilize.
+00:11:35.734 - 00:11:38.402, Speaker C: Any capital, because when I do, for.
+00:11:38.418 - 00:11:46.450, Speaker A: Instance, front running, I need to mobilize capital. I cannot do it with a flash swap. Whereas here I need zero capital to do this.
+00:11:46.602 - 00:11:48.370, Speaker C: And so in order to do this.
+00:11:48.482 - 00:11:52.282, Speaker A: What you need to do is we need to compute all the possible trades.
+00:11:52.418 - 00:11:54.578, Speaker C: And so one trade is a cycle.
+00:11:54.706 - 00:11:59.306, Speaker A: We need to compute the output of a cycle given a specific input.
+00:11:59.410 - 00:12:01.882, Speaker C: So here in this cycle here, what.
+00:12:01.898 - 00:12:10.852, Speaker A: Do I obtain when I input one? Weth. What do I obtain when I input x? Weth. We need to find the maximum for.
+00:12:10.868 - 00:12:14.784, Speaker C: Each cycle, then find the best cycle, and then we execute.
+00:12:15.564 - 00:12:15.980, Speaker D: Okay?
+00:12:16.012 - 00:12:20.956, Speaker C: And please don't hesitate to cut me if anything is.
+00:12:21.060 - 00:12:55.704, Speaker B: Yeah, yeah. One, one question that I have for you is when you say that. So you're going to use flash swaps, right, to get the money and all you need to do is have enough to pay the fee at the end. And one question is regarding computing possibilities with the amount of pairs we have today on uniswap, it seems a little bit like a, you know, complicated task in the sense that is a lot of computing. At the same time, I saw some people using Rif and RevM to do these things like massively fast, you have any inputs on that?
+00:12:58.004 - 00:13:03.476, Speaker C: Well, in fact, the later part of.
+00:13:03.500 - 00:13:06.516, Speaker A: The presentation focuses on optimization you can.
+00:13:06.540 - 00:13:07.804, Speaker C: Do to reduce complexity.
+00:13:07.924 - 00:13:35.184, Speaker A: So, at the time, we were computing about 15 million possibilities within one block. Okay, so what you want to do is that you want to optimize your computing power, and at the same time, you'd want to avoid doing useless computations. So you want to heat select which cycles, you know, have a better chance of yielding a profit so that you don't waste computing power on useless cycles.
+00:13:35.224 - 00:13:37.256, Speaker C: So, for instance, if you see that.
+00:13:37.280 - 00:13:38.296, Speaker A: There is a pair, there is no.
+00:13:38.320 - 00:13:44.560, Speaker C: Money in it, or it is very lowly connected, so it does not have.
+00:13:44.752 - 00:13:50.840, Speaker A: Many possibilities going through it. Obviously, you may think that this pair.
+00:13:50.872 - 00:13:54.962, Speaker C: Is less interesting, and so you'll spend.
+00:13:55.018 - 00:13:59.250, Speaker A: Less computing power on it or even exclude it from your set.
+00:13:59.362 - 00:14:02.658, Speaker C: Okay, and so, this is what we do here.
+00:14:02.746 - 00:14:04.874, Speaker A: So, at the time, the ETH block.
+00:14:04.994 - 00:14:12.570, Speaker C: Thing was a bit random. So here. And you just ask a very important question.
+00:14:12.762 - 00:14:21.344, Speaker A: We focus on computing, you know, very complicated stuff. So we find a lot of arbitrage, which are complicated.
+00:14:21.474 - 00:14:29.612, Speaker C: So with a cycle length of five, six, seven point. And so our reference time is to.
+00:14:29.628 - 00:14:31.588, Speaker A: Be included into the next block, because.
+00:14:31.636 - 00:14:33.988, Speaker C: There are two ways you can do backlink, right?
+00:14:34.116 - 00:14:36.332, Speaker A: Either you can be the fastest possible.
+00:14:36.428 - 00:14:39.556, Speaker C: On earth, and so you arbitrage the.
+00:14:39.580 - 00:14:42.100, Speaker A: Transaction while it is still in the mempool.
+00:14:42.172 - 00:14:45.292, Speaker C: So you get the placed as the.
+00:14:45.308 - 00:14:51.062, Speaker A: Next transaction after the one which created the price discrepancy. And so you need to be extremely fast.
+00:14:51.118 - 00:14:56.814, Speaker C: You know, it is in a matter of two milliseconds, or you can focus.
+00:14:56.934 - 00:15:09.134, Speaker A: On having more complex responsibility at the expense of speed. And in this case, what is important is not to be included into the same block as a transaction which created.
+00:15:09.174 - 00:15:12.602, Speaker C: The discrepancy, but to be included into the next block.
+00:15:12.758 - 00:15:13.106, Speaker D: Okay?
+00:15:13.130 - 00:15:14.666, Speaker A: And so you have more time, but.
+00:15:14.690 - 00:15:20.906, Speaker C: When you do this, then you are in competition with all the other who.
+00:15:20.930 - 00:15:25.858, Speaker A: Are also doing it. And so this is where a PGA or price gas option comes into play.
+00:15:25.906 - 00:15:27.554, Speaker C: Because you want to be the first.
+00:15:27.634 - 00:15:34.434, Speaker A: One with this idea into the block. And so here, this bot focuses on finding complicated arbitrage.
+00:15:34.554 - 00:15:41.774, Speaker C: And so here, the flow is quite simple. Okay, so, first we begin by getting all possible pairs.
+00:15:41.814 - 00:15:47.070, Speaker A: So, uniswap, sushiswap balancer. We then have to sanitize the graph.
+00:15:47.182 - 00:15:49.254, Speaker C: Okay, so here we compute a graph.
+00:15:49.294 - 00:15:54.910, Speaker A: Of all possible, you know, traits, but we need to ensure that it is healthy enough so there are a few.
+00:15:54.942 - 00:16:13.396, Speaker C: Algorithms to do this. We then need to update the balance of the pair. So to have the price of each token into each of the pair, we then need to get all possible passes.
+00:16:13.540 - 00:16:21.228, Speaker A: We then optimize it. So we need to find the output of a cycle given an input, and find the maximum for each cycle possible.
+00:16:21.316 - 00:16:28.164, Speaker C: Trade, and depending on the result, we execute. Okay, and when we execute we need.
+00:16:28.204 - 00:16:37.880, Speaker A: To interact with the mempool. And at the time there were considerations such as the gas token and the efficient arrays. I won't spend too much time on it because it is history now, but.
+00:16:37.912 - 00:16:41.704, Speaker C: It is also interesting to see how.
+00:16:41.744 - 00:16:44.256, Speaker A: Was the competitive landscape at the time.
+00:16:44.400 - 00:16:54.244, Speaker C: So first let's begin by the first subcont. So we need to get the pairs.
+00:16:54.944 - 00:16:58.696, Speaker A: From Uniswap and sushiswap from balancer and to update the pair balance.
+00:16:58.800 - 00:17:03.156, Speaker C: So this can be done in half a second to 1 second, and then.
+00:17:03.180 - 00:17:10.780, Speaker A: You optimize, which is also done in half a second to 1.5 seconds. But now what I will focus on is the graph sanity part, which is.
+00:17:10.892 - 00:17:13.084, Speaker C: Once I have gotten all the pairs.
+00:17:13.164 - 00:17:16.780, Speaker A: By interacting, let's say, with the routers of Uniswap v two in sub v.
+00:17:16.812 - 00:17:36.174, Speaker C: Three, how do I compute a nice graph. Okay, and so here the problem, as you were saying, is that we now got a lot of pairs, so about thirty k at the time, and so this will make too much passes for.
+00:17:36.214 - 00:17:38.510, Speaker A: Us to be efficient in our computation.
+00:17:38.662 - 00:17:40.558, Speaker C: Plus we also have the problems that.
+00:17:40.606 - 00:17:42.342, Speaker A: Some pairs are not valid because there.
+00:17:42.358 - 00:17:44.582, Speaker C: Is no money in it, or that.
+00:17:44.638 - 00:17:49.550, Speaker A: There are scam tokens. And so we need to cleanse our graph.
+00:17:49.662 - 00:17:50.318, Speaker D: Okay?
+00:17:50.446 - 00:18:00.928, Speaker A: And so this is done through the graph sanity model, which is which are describing now. And first we construct an optimistic graph.
+00:18:01.056 - 00:18:08.264, Speaker C: Of all tokens and pair, okay? And so that we can rank all.
+00:18:08.304 - 00:18:10.224, Speaker A: The pairs and all the tokens by.
+00:18:10.264 - 00:18:17.528, Speaker C: How connected they are. And obviously what you have here is that if you have one token which.
+00:18:17.576 - 00:18:19.964, Speaker A: Is only connected to one other token.
+00:18:20.104 - 00:18:23.316, Speaker C: Then you know that no arbitrage will go through it.
+00:18:23.500 - 00:18:25.940, Speaker A: Because when you do an arbitrage, you.
+00:18:25.972 - 00:18:28.396, Speaker C: Have to find a cycle which is.
+00:18:28.420 - 00:18:33.188, Speaker A: You have to end at the same place you started. And so if there is one token.
+00:18:33.236 - 00:18:41.644, Speaker C: Which is alone, as you cannot go through an imm and come back, you know you will never go through this token. Okay, so this is the first part.
+00:18:41.684 - 00:18:46.020, Speaker A: Of the cleansing operation. You remove all the lowly connected tokens.
+00:18:46.052 - 00:18:48.676, Speaker C: Which you will never use.
+00:18:48.780 - 00:18:49.468, Speaker D: Okay?
+00:18:49.596 - 00:18:51.196, Speaker A: And then we need to compute like.
+00:18:51.220 - 00:19:33.596, Speaker C: An estimated value of each of each pair. And for this we use a breath first search algorithm. So here what we are doing basically is here is this, starting with this graph, okay, we start from WTh, which is our reference token, okay? And here what we do is that we are constructing our graph of the value of all the tokens. Start by assuming that whth has a value of one. So first, as we know that weth.
+00:19:33.660 - 00:19:41.154, Speaker A: Is connected to WBtC, okay, we can compute the value of WBtc compared to Wth.
+00:19:41.454 - 00:19:43.334, Speaker C: When we have it, we will then.
+00:19:43.374 - 00:19:45.198, Speaker A: Be able to compute the value of.
+00:19:45.246 - 00:19:47.366, Speaker C: All the token which is connected, which.
+00:19:47.390 - 00:19:48.950, Speaker A: Are connected to WBTC.
+00:19:49.062 - 00:19:50.486, Speaker C: Now why are we doing this?
+00:19:50.590 - 00:19:53.434, Speaker A: Well, it is in order to eliminate.
+00:19:54.054 - 00:20:01.742, Speaker C: As the greater number of unnecessary trades as possible, we need to compute the.
+00:20:01.798 - 00:20:07.982, Speaker A: Estimated us dollar or weth value of each of the tokens of our graph.
+00:20:08.038 - 00:20:10.430, Speaker C: And we want to remove all the.
+00:20:10.462 - 00:20:12.062, Speaker A: Tokens which have no value because they.
+00:20:12.078 - 00:20:13.062, Speaker C: Are useless to us.
+00:20:13.158 - 00:20:21.158, Speaker A: And we are not relying on external data feeds such as Congecko contentmarketcap. We are doing this directly from the ammo.
+00:20:21.246 - 00:20:28.278, Speaker C: Okay, so the algorithm works as follows. You assume that the value of weth.
+00:20:28.366 - 00:20:29.674, Speaker A: Is equal to one.
+00:20:31.514 - 00:20:38.378, Speaker C: And while the token value of all tokens is not stable, for each token a, we consider.
+00:20:38.506 - 00:20:45.458, Speaker A: S, a pair which contains a and b, okay? And b is a token which has a value, okay? And then we write that the token.
+00:20:45.506 - 00:20:49.010, Speaker C: Of the value of a in this.
+00:20:49.042 - 00:20:54.334, Speaker A: Pair is equal to the instantaneous price.
+00:20:54.674 - 00:21:14.854, Speaker C: Of the mm, okay, which we had here multiplied by the value of b and the apparent value of a, okay, amongst all the s is equal to the weighted sum of all the relative values in all the token pairs.
+00:21:15.474 - 00:21:18.914, Speaker A: And so this algorithm, it can be shown to converge.
+00:21:19.034 - 00:21:22.214, Speaker C: What this means is that when you.
+00:21:22.954 - 00:21:27.118, Speaker A: Loop through it at one point in time, its value will not change.
+00:21:27.206 - 00:21:29.446, Speaker C: And when it has converged, you have.
+00:21:29.470 - 00:21:37.078, Speaker A: An estimated value of all the prices of the tokens within your graph. And so you can remove the token.
+00:21:37.126 - 00:21:47.886, Speaker C: Which value is inferior to a given threshold. And so this can be used to cleanse 30 to 50% to 60% of.
+00:21:47.950 - 00:21:50.020, Speaker A: All the tokens in your database.
+00:21:50.142 - 00:21:52.872, Speaker C: Hence by reducing the complexity and so.
+00:21:52.928 - 00:21:58.208, Speaker A: Helping you in your computation by focusing on the passes on the arbitrage which.
+00:21:58.256 - 00:22:19.298, Speaker C: Have the highest chance of working. Okay, so once we have done this can get all possible arbitrage which with a model which is called get pass get passes. And here it is a depth first search. So here we have a breadth first church.
+00:22:19.386 - 00:22:23.498, Speaker A: Starting with WTH, we wanted to compute the value of the token which were.
+00:22:23.546 - 00:22:26.458, Speaker C: Adjacent to it and then going down.
+00:22:26.586 - 00:22:30.018, Speaker A: But when you want to find a cycle, you do it differently.
+00:22:30.146 - 00:22:40.786, Speaker C: It's a depth first search. So here what you do is go to Wth, then you go to WBTC.
+00:22:40.970 - 00:22:43.868, Speaker A: Then you see what is under WPTC.
+00:22:43.916 - 00:22:47.364, Speaker C: You go to USDT.
+00:22:47.484 - 00:23:03.304, Speaker A: And here you branch into two possibilities, either wt eight, either you go down to USDC and send to WT. So here we are doing the search vertically, so in depth instead of doing it in breadth.
+00:23:05.124 - 00:23:08.068, Speaker C: And so the algorithm works as follows.
+00:23:08.106 - 00:23:12.164, Speaker A: We construct a dictionary of who is connected with whom.
+00:23:13.344 - 00:23:16.408, Speaker C: And then at each we use a.
+00:23:16.416 - 00:23:30.936, Speaker A: Distributed depth algorithm in order to find the Weth bay cycle, which are inferior to given lengths. And at each level we apply some checks. So you don't have the right to cross a given contract twice.
+00:23:31.080 - 00:23:32.568, Speaker D: Twice, okay.
+00:23:32.736 - 00:23:38.684, Speaker A: And also you can implement some constraint to reduce complexity. So for instance, you don't want more.
+00:23:38.724 - 00:23:43.340, Speaker C: Than two balanced Imms within a path.
+00:23:43.492 - 00:23:45.700, Speaker A: Of complexity, for instance.
+00:23:45.772 - 00:23:46.508, Speaker D: Okay.
+00:23:46.676 - 00:23:48.276, Speaker A: And so what is nice here is.
+00:23:48.300 - 00:23:59.044, Speaker C: That you can save base by only saving cycles in one direction, okay? Because with a naive search, you'll save each cycle twice, because you can go.
+00:23:59.084 - 00:24:00.740, Speaker A: In this direction, let's say, and also.
+00:24:00.772 - 00:24:02.812, Speaker C: In this direction, but you only need.
+00:24:02.828 - 00:24:11.444, Speaker A: To define one direction and then you have to compute the arbitrage possibility in both directions. And so this allows you to save some space.
+00:24:11.564 - 00:24:12.372, Speaker C: And so at the end of the.
+00:24:12.388 - 00:24:17.020, Speaker A: Day, we ended up with a data frame of about 15 million passes with.
+00:24:17.052 - 00:24:20.504, Speaker C: A maximum length of time.
+00:24:21.164 - 00:24:22.024, Speaker D: Okay.
+00:24:22.644 - 00:24:28.980, Speaker A: And associated to this, we could compute the data frame of the passes, weights and fees to be used into the optimization.
+00:24:29.132 - 00:24:30.988, Speaker C: So the weights are the weights within.
+00:24:31.036 - 00:24:32.652, Speaker A: The imm, within the pairs.
+00:24:32.748 - 00:24:39.004, Speaker C: So this is, this matches the balance of weights. And in the case of.
+00:24:41.304 - 00:24:41.800, Speaker D: Case of.
+00:24:41.832 - 00:24:45.804, Speaker C: Uniswap, you have weights which are equals to 50%.
+00:24:49.744 - 00:24:52.080, Speaker A: Okay, now let's go to the optimization part.
+00:24:52.152 - 00:24:53.616, Speaker B: Okay, amazing presentation.
+00:24:53.680 - 00:24:56.484, Speaker A: Boy, you're doing really good. Okay, when a new block.
+00:24:58.544 - 00:25:03.610, Speaker C: Thank you. So when a new block arrives, you.
+00:25:03.642 - 00:25:07.466, Speaker A: Want to get the balance of all the pairs within your graph in order.
+00:25:07.530 - 00:25:11.426, Speaker C: To have an updated price. And so through this you will be.
+00:25:11.450 - 00:25:19.374, Speaker A: Able to update the function which gives you how much each possible cycle yields as a profit.
+00:25:19.794 - 00:25:23.018, Speaker C: And so we first define a data.
+00:25:23.066 - 00:25:25.414, Speaker A: Frame which tells you for each path.
+00:25:27.074 - 00:25:33.742, Speaker C: How many reserves or how many any tokens of each component of the pairs you have.
+00:25:33.838 - 00:25:34.478, Speaker D: Okay.
+00:25:34.606 - 00:25:40.022, Speaker A: And then using this, we compute the best arbitrages and save the results. One of the data from which is.
+00:25:40.038 - 00:25:44.542, Speaker C: The Arp data frame. So when we are doing it only.
+00:25:44.598 - 00:26:03.064, Speaker A: With uniswap v two or sushiswap pairs. So at the time v two. Also, it was possible to easily derive a closed ended formula of the optimal input for each path, because as a matter of fact, when you have unit three.
+00:26:04.764 - 00:26:13.156, Speaker C: Swap PI's formula, okay, you can chain all the inputs and outputs of.
+00:26:13.180 - 00:26:16.092, Speaker A: The various components of your swap path.
+00:26:16.148 - 00:26:18.860, Speaker C: So that the output of the first.
+00:26:19.012 - 00:26:24.734, Speaker A: Amm is the input into the second imm, etcetera. And so you can have a closed.
+00:26:24.774 - 00:26:36.674, Speaker C: Formula for the output amount of your cycle. So of the chained imm based onto the first input amount.
+00:26:37.494 - 00:26:43.990, Speaker A: And the nice thing about it, it is a quadratic. So you can easily have a formula.
+00:26:44.102 - 00:26:59.308, Speaker C: Of how much you must put in order to optimize profit. But when you use balance, it is not anymore the case, unfortunately. And because here we don't have a.
+00:26:59.316 - 00:27:01.588, Speaker A: Nice chaining effect such as a uniswap.
+00:27:01.636 - 00:27:17.878, Speaker C: Because here what we have is that the output of step n of trade n is equal to this formula, okay, so the reserve of the nth pair.
+00:27:17.966 - 00:27:24.510, Speaker A: Into the first token, okay, times one minus this, where here you have the.
+00:27:24.662 - 00:27:37.262, Speaker C: Output of the last steps times the fees, of course. But to the power here we have minus gamma to n and gamma, it.
+00:27:37.278 - 00:27:38.830, Speaker A: Is the ratio of weights, because you.
+00:27:38.862 - 00:27:42.702, Speaker C: Remember that the imbalance, okay, so here.
+00:27:42.798 - 00:27:45.070, Speaker A: You had output amount equal to reserve.
+00:27:45.102 - 00:27:48.814, Speaker C: Output times something, which depends on the.
+00:27:48.974 - 00:27:51.966, Speaker A: Input amount divided by the reserve of.
+00:27:52.070 - 00:27:56.206, Speaker C: Input to the power of the ratios.
+00:27:56.230 - 00:27:58.846, Speaker A: Of the weights of the input and output tokens.
+00:27:58.910 - 00:28:07.974, Speaker C: So with uniswap v two, the weights are equal. So this simplifies nicely and you can change the formula, but here with balancer.
+00:28:08.014 - 00:28:09.430, Speaker A: It is not anymore the case, because.
+00:28:09.502 - 00:28:16.596, Speaker C: In the general case you can have a different weight for the output token than for the input token.
+00:28:16.740 - 00:28:18.268, Speaker A: So we don't have the training effect.
+00:28:18.316 - 00:28:34.972, Speaker C: And so we don't have the closed formula effect. But what we see here is that first get some intuition into the effect that the derivative of the input is positive. So when you get more input, you.
+00:28:35.028 - 00:28:37.592, Speaker A: Get more output, okay, which is logical.
+00:28:37.748 - 00:28:56.088, Speaker C: But its second derivative is negative, okay, because, which means that you have a price impact. So the more input you put into your cycle, the smaller the marginal output you get is because you have price impact.
+00:28:56.216 - 00:28:57.848, Speaker A: And so what you want to find.
+00:28:57.976 - 00:29:02.804, Speaker C: Okay, we want to optimize the inputs.
+00:29:03.724 - 00:29:07.584, Speaker A: The cycle minus the input, which is x, okay?
+00:29:08.124 - 00:29:16.584, Speaker C: And so we want to find the point such that the first derivative is equal to one, okay, and so this.
+00:29:16.924 - 00:29:18.756, Speaker A: Maximize the profit which is equal to.
+00:29:18.780 - 00:29:29.834, Speaker C: This, okay, but, and we know that this exists because here we have a concave function, so we know that this point exists okay.
+00:29:31.534 - 00:29:33.790, Speaker A: And the way to do it basically.
+00:29:33.902 - 00:29:49.102, Speaker C: Is this Newton's method, which is a way to do mathematical convex optimization. And here, basically what you do is that you start from some point and.
+00:29:49.118 - 00:29:51.694, Speaker A: You want to find the minimum of some function.
+00:29:51.734 - 00:30:03.546, Speaker C: So here, in this case, we want to find where this function here crosses zero. And so the way it works here.
+00:30:03.690 - 00:30:08.266, Speaker A: Is that we start from a given point and we iterate by using a.
+00:30:08.290 - 00:30:12.698, Speaker C: First order development, so that we attempt.
+00:30:12.746 - 00:30:15.058, Speaker A: To find where this function crosses zero.
+00:30:15.186 - 00:30:17.402, Speaker C: And this function here that we are.
+00:30:17.418 - 00:30:19.394, Speaker A: Optimizing, in fact, is equal to this.
+00:30:19.434 - 00:30:34.774, Speaker C: One, j prime, n of x minus one. Okay, want to find one crosses zero. And so this is done. Repeat computation of this formula, which allow.
+00:30:34.814 - 00:30:42.262, Speaker A: You to start from a given point and find the next point you want to try as being the optimal inputs.
+00:30:42.438 - 00:30:43.134, Speaker D: Okay?
+00:30:43.254 - 00:30:50.324, Speaker A: So here there are two computations which are a bit costly in terms of computation, which are the first derivative and the second derivative.
+00:30:52.384 - 00:31:08.120, Speaker C: And what we have done to reduce, excuse me, what we have done to reduce the complexity is that we use.
+00:31:08.152 - 00:31:10.764, Speaker A: Some number of paths we are searching upon.
+00:31:11.104 - 00:31:12.096, Speaker C: And so at the end of the.
+00:31:12.120 - 00:31:13.984, Speaker A: Day, we finish the data frame of.
+00:31:14.024 - 00:31:22.110, Speaker C: Arbitrage, which are ranked by decreasing profitability. This is a technical point, a mesh.
+00:31:22.142 - 00:31:24.030, Speaker A: Between no fee and Fiona transfer tokens.
+00:31:24.062 - 00:31:26.694, Speaker C: Because at the time, fee on transfer.
+00:31:26.734 - 00:31:37.462, Speaker A: Tokens, so deflationary tokens or fee, which extracted a percentage of the transfer amount at each transfer, were very, very popular.
+00:31:37.598 - 00:31:44.930, Speaker C: And so of course, this rex fabric into the optimization formula.
+00:31:45.082 - 00:31:51.706, Speaker A: And so you can have a nice optimization and nice result for standard tokens. But for Fiona transfer token, you are.
+00:31:51.730 - 00:31:55.914, Speaker C: Always bound to some kind of estimation.
+00:31:56.034 - 00:32:07.694, Speaker A: Or you have uncertainty about the exact amount you will get. You will get, you cannot have easily a formula which will give you, which will be the output.
+00:32:08.464 - 00:32:19.392, Speaker C: And so now what we have obtained, after getting all the possible pairs, after getting the balance of all tokens within.
+00:32:19.448 - 00:32:22.080, Speaker A: All the pairs, after computing all the.
+00:32:22.112 - 00:32:27.216, Speaker C: Possible passes amongst a set of plants.
+00:32:27.360 - 00:32:31.152, Speaker A: And healthy Imm pairs, and after doing.
+00:32:31.208 - 00:32:40.290, Speaker C: The optimization, so, finding the most possible cycle among 15 million possible cycles, what.
+00:32:40.322 - 00:32:47.106, Speaker A: We have obtained is a data from all possible arbitrage, ranked by decreasing profitability.
+00:32:47.210 - 00:32:47.690, Speaker C: Okay.
+00:32:47.762 - 00:32:50.242, Speaker A: And so what remains to be done is execution.
+00:32:50.298 - 00:32:53.666, Speaker C: So, okay, we know what is the.
+00:32:53.770 - 00:32:55.970, Speaker A: Arbitrage want to do, but it is.
+00:32:56.002 - 00:32:58.330, Speaker C: Still a matter of getting this onto.
+00:32:58.362 - 00:33:00.754, Speaker A: The blockchain at the minimal cost, but.
+00:33:00.834 - 00:33:12.564, Speaker C: With the highest success rate. And so this is the job of the execution module. So at the time, the problem was.
+00:33:12.604 - 00:33:14.596, Speaker A: Price gas auction, because you didn't have.
+00:33:14.700 - 00:33:19.756, Speaker C: Private FPC's such as a flashbot and price gas option was a way to.
+00:33:19.780 - 00:33:35.418, Speaker A: Compete with other searchers. And this is also relevant today on networks where you don't have FPC's such as flashboards. And so, given an arbitrage, what we do is that first we check, so we do an estimate gas or coal.
+00:33:35.546 - 00:33:39.954, Speaker C: If the arbitrage is profitable.
+00:33:40.114 - 00:33:44.258, Speaker A: And at the time, there was a possibility to burn gas tokens in order.
+00:33:44.306 - 00:34:04.110, Speaker C: To have a discount in terms of gas fees. So, this has been removed with EIP 1559. And at the time you had the option within the smart contract to burn.
+00:34:04.142 - 00:34:14.926, Speaker A: Some gas tokens or to free up some storage in order to have a discount in terms of gas usage. And so this was used in order to reduce the transaction fee of your transactions.
+00:34:14.990 - 00:34:17.190, Speaker C: And of course, you get profit.
+00:34:17.342 - 00:34:20.350, Speaker A: It is the gross profit of the arbitrage.
+00:34:20.502 - 00:34:24.324, Speaker C: We should a flash swap minus the transaction fee.
+00:34:24.404 - 00:34:27.796, Speaker A: And then you launch it, the transaction on the network, and you begin to.
+00:34:27.820 - 00:34:29.660, Speaker C: Check the mempool and you want to.
+00:34:29.692 - 00:34:31.340, Speaker A: See if you have competitors.
+00:34:31.452 - 00:34:33.548, Speaker C: And so, and you want to be better than them.
+00:34:33.676 - 00:34:36.804, Speaker A: And so, the way to do it is that you have to always study.
+00:34:36.844 - 00:34:43.628, Speaker C: The blockchain to see if there are other people doing arbitrage, which define who is a competitor.
+00:34:43.796 - 00:34:45.908, Speaker A: And then you have to see if.
+00:34:46.076 - 00:34:51.044, Speaker C: What they are doing is impact, what you attempt to do.
+00:34:51.504 - 00:34:54.992, Speaker A: Okay, so if they are trying to arbitrage the same pair or the same.
+00:34:55.048 - 00:34:59.536, Speaker C: Cycle as you, okay, and the way.
+00:34:59.560 - 00:35:02.064, Speaker A: To do it is when you detect.
+00:35:02.104 - 00:35:17.196, Speaker C: Such a trade, well, you have two options. Either you raise or you fold. So, raising means that you attempt to.
+00:35:17.220 - 00:35:22.196, Speaker A: Raise your gas price to go in front of your competitor. Because if you have a higher gas.
+00:35:22.260 - 00:35:26.436, Speaker C: Price, then you will be executed before.
+00:35:26.500 - 00:35:29.180, Speaker A: Him into the next block. And so you will get the arbitrage.
+00:35:29.212 - 00:35:30.464, Speaker C: And he will not.
+00:35:30.884 - 00:35:40.430, Speaker A: And folding is that you cancel your arbitrage in order to minimize your loss. Because of course, only one person will get the arbitrage. And so what happens is that the.
+00:35:40.462 - 00:35:43.462, Speaker C: Guy who is losing this auction.
+00:35:43.518 - 00:35:44.846, Speaker A: So this is why it is called.
+00:35:44.870 - 00:35:47.118, Speaker C: A price gas auction, because you are.
+00:35:47.166 - 00:35:54.558, Speaker A: Competing with others in order to get executed first. And the one who pays the highest gas price gets executed.
+00:35:54.686 - 00:36:03.462, Speaker C: So the guy who loses, well, he loses money even if he is using.
+00:36:03.518 - 00:36:06.090, Speaker A: Flash swap, etcetera, because there is a.
+00:36:06.122 - 00:36:08.214, Speaker C: Cost to canceling a transaction.
+00:36:08.954 - 00:36:12.482, Speaker A: And so this brings some interesting game.
+00:36:12.618 - 00:36:22.602, Speaker C: Theory application, because, well, a possible strategy is that you always raise, for instance.
+00:36:22.738 - 00:36:33.470, Speaker A: Even if it makes you lose money, because at some point in time it may be optimal to fold. So you lose less money by folding than by raising. But the idea of always raising it.
+00:36:33.502 - 00:36:38.710, Speaker C: Is that when you are punishing your.
+00:36:38.742 - 00:36:41.174, Speaker A: Opponents by preventing them to make any.
+00:36:41.214 - 00:36:45.526, Speaker C: Profit and forcing them to take the.
+00:36:45.550 - 00:36:48.910, Speaker A: Loss by folding or having that head not executed.
+00:36:49.022 - 00:36:51.326, Speaker C: And so when it happens, you are.
+00:36:51.350 - 00:36:57.134, Speaker A: Losing money yourself in order to make other, your competitors lose money. And so it is the guy who.
+00:36:57.174 - 00:37:04.272, Speaker C: Has the deepest get who wins. Okay, so this is an interdiction strategy.
+00:37:04.368 - 00:37:14.272, Speaker A: So you see all your competitors and you reduce the profits to nil or to zero, or even you make it negative in order to drive your competition.
+00:37:14.328 - 00:37:20.656, Speaker C: Out of the market. Okay, very interesting. So there are something you can do.
+00:37:20.680 - 00:37:22.344, Speaker A: At a smart contract level in order.
+00:37:22.384 - 00:37:30.064, Speaker C: To help you in your endeavors, because the name of the game here is.
+00:37:32.284 - 00:37:34.588, Speaker A: To optimize your gas costs.
+00:37:34.676 - 00:37:35.424, Speaker D: Okay?
+00:37:36.684 - 00:37:39.332, Speaker A: And so there are some optimization you.
+00:37:39.348 - 00:38:02.704, Speaker C: Can do at this level. And first is that you always want to check on chain if an arbitrage is still valid, okay? Because sometimes you lose an auction and if you attempt to do the trade by not checking it even before then.
+00:38:02.744 - 00:38:11.600, Speaker A: You will lose more money than if you trade. If you check on chain, if the trade is still valid and if it is not valid, you cancel all execution.
+00:38:11.712 - 00:38:14.840, Speaker C: So this adds a bit of an.
+00:38:14.912 - 00:38:16.600, Speaker A: Upfront cost in terms of gas, but.
+00:38:16.632 - 00:38:22.274, Speaker C: It allows you to minimize, reduce by.
+00:38:22.314 - 00:38:25.162, Speaker A: A factor of ten x how much money you lose when you have a.
+00:38:25.178 - 00:38:32.814, Speaker C: Trade which is not executed. A second technique you may use is to obfuscate what you are doing, because.
+00:38:33.114 - 00:38:38.214, Speaker A: Competitors will interact with you based on what you see, what they think you are doing.
+00:38:39.434 - 00:38:47.430, Speaker C: So if for instance, put into the cold data the address of the pairs.
+00:38:47.462 - 00:38:54.454, Speaker A: And the tokens you are interacting with, then obviously it will make, they will find it easy to find what you are doing.
+00:38:54.574 - 00:39:00.078, Speaker C: And so they will know when to bet, when to raise and when to fold.
+00:39:00.246 - 00:39:04.654, Speaker A: So they will be able to have some sort of an optimal strategy.
+00:39:04.774 - 00:39:07.422, Speaker C: So a possibility you can have in.
+00:39:07.438 - 00:39:09.390, Speaker A: Order to mess with them is that.
+00:39:09.502 - 00:39:13.276, Speaker C: You hide what you are doing, okay?
+00:39:13.380 - 00:39:20.116, Speaker A: And so they won't be able to do this optimal computation without really simulating.
+00:39:20.300 - 00:39:28.224, Speaker C: The transaction within an EVM. And this takes a lot of time. Okay, so you make them lose time.
+00:39:29.004 - 00:39:42.044, Speaker A: And of course you have got gas optimization technique. So this is standard stuff, minimize storage usage, use a higher end value, minimize external function call. And we went even to down to.
+00:39:42.084 - 00:39:46.660, Speaker C: Assembly optimization with custom function selectors, minimizing.
+00:39:46.692 - 00:39:50.484, Speaker A: The call, data length, etcetera. And one trick you have, you know.
+00:39:50.524 - 00:39:55.024, Speaker C: Is that the gas cost depends within.
+00:39:56.724 - 00:40:00.548, Speaker A: Observable data transaction depends of the number.
+00:40:00.636 - 00:40:04.680, Speaker C: Of non nil bytes which make out.
+00:40:04.752 - 00:40:09.072, Speaker A: The transaction in terms of full address, in terms of call data.
+00:40:09.208 - 00:40:10.520, Speaker C: And so when you have a smart.
+00:40:10.552 - 00:40:13.056, Speaker A: Contract which has a lot of zeros.
+00:40:13.200 - 00:40:15.656, Speaker C: In it instead of ones or any.
+00:40:15.680 - 00:40:17.728, Speaker A: Other number, then it costs a little.
+00:40:17.776 - 00:40:19.944, Speaker C: Bit less in terms of gas, so.
+00:40:20.024 - 00:40:21.984, Speaker A: Interacting, so per byte.
+00:40:22.064 - 00:40:23.424, Speaker B: Wow, I never knew that.
+00:40:23.464 - 00:40:29.326, Speaker A: Four gas for zero and 16 for non zero bytes. And so this is what you have.
+00:40:29.350 - 00:40:33.654, Speaker C: A lot of TGA smart contracts which.
+00:40:33.694 - 00:40:37.966, Speaker A: Have a lot of zeros into their address. So this is not just random luck.
+00:40:38.030 - 00:40:43.902, Speaker C: This has been mined. And that's it, brother.
+00:40:44.038 - 00:40:44.714, Speaker B: Wow.
+00:40:45.774 - 00:40:49.774, Speaker A: Me and my company, we also do some consulting services.
+00:40:49.934 - 00:40:50.310, Speaker D: Okay.
+00:40:50.342 - 00:40:51.910, Speaker A: And so this was it.
+00:40:51.982 - 00:40:55.654, Speaker C: So what we went through is first.
+00:40:56.034 - 00:41:16.978, Speaker A: The some generalities about the IMM, the mathematical formula to compute the prices, etcetera, then how to construct a bot. And we went from the constructing of all the possible passes to the mathematical optimization in order to obtain the arbitrage. And we finished up with some remarks.
+00:41:17.066 - 00:41:20.090, Speaker C: On the execution on chain.
+00:41:20.242 - 00:41:27.094, Speaker B: Amazing presentation, bro. Thank you so much. Yes, I mean, I do, I do have a few questions for you.
+00:41:27.994 - 00:41:28.834, Speaker C: Tell me something.
+00:41:28.914 - 00:41:46.868, Speaker B: So there's no kind of scam token. How do you deal with those tokens that they get a lot? Because we were talking about keeping the threshold under a certain value, but there are certain honey pot tokens that they go up crazy in value, you know, how do you manage to skip those, you know?
+00:41:46.946 - 00:41:50.456, Speaker C: Okay, okay, so this is part of.
+00:41:50.520 - 00:41:53.272, Speaker A: The graph sanity algorithm.
+00:41:53.368 - 00:41:59.240, Speaker C: Okay? So when we construct the graph of all can spare.
+00:41:59.312 - 00:42:05.032, Speaker A: Okay, we inspect. So I didn't speak about it. We inspect each pair and we try to simulate a transaction.
+00:42:05.088 - 00:42:13.048, Speaker C: Okay, so we try to simulate a swap involving the pair, and we check if we get, you know, a good output.
+00:42:13.136 - 00:42:20.234, Speaker A: And so with this, we can detect the honeypot token and exclude them from our data set.
+00:42:21.334 - 00:42:22.422, Speaker B: That's very interesting.
+00:42:22.518 - 00:42:25.126, Speaker A: 100 watt token. You can, you can buy it, but.
+00:42:25.150 - 00:42:26.158, Speaker C: You cannot sell it.
+00:42:26.246 - 00:42:26.686, Speaker D: Yes.
+00:42:26.750 - 00:42:28.834, Speaker A: And so this, it will be excluded.
+00:42:29.294 - 00:42:31.274, Speaker C: But by this step here.
+00:42:31.734 - 00:42:41.994, Speaker B: So the application itself has several agents doing different things. One is analyzing the main pool, one is building the execution chain, one is trying the different swaps, right?
+00:42:43.454 - 00:42:44.494, Speaker A: Yeah, exactly.
+00:42:44.574 - 00:42:50.594, Speaker B: And are you guys building your own data structure or you use like some regular database for everything?
+00:42:53.494 - 00:42:56.314, Speaker A: Well, this is a regular database, so.
+00:42:56.974 - 00:43:00.118, Speaker C: Because we focus on complicated stuff.
+00:43:00.206 - 00:43:15.494, Speaker A: So a lot of mathematics and slow arbitrage. So our reference time was about 10 seconds. We didn't need to go very much low level into the database management itself.
+00:43:15.574 - 00:43:24.622, Speaker C: So basically all, everything was done in python. Okay, so very nice custom stuff in.
+00:43:24.638 - 00:43:29.726, Speaker A: Order to store the data into. We hacked a bit pandas data frames.
+00:43:29.790 - 00:43:31.274, Speaker C: But it was enough.
+00:43:31.614 - 00:43:48.034, Speaker B: And how you guys usually deal with slippage. So you guys are always simulating the transaction for the, I mean, how you do with slippage, you know, when that, when the chains is going nuts, the gas is too high, how you guys deal with that?
+00:43:50.334 - 00:43:55.710, Speaker C: Okay, so you have two things. First, you have the slippage, which is.
+00:43:55.742 - 00:43:58.582, Speaker A: A function of how much, which is.
+00:43:58.598 - 00:44:00.714, Speaker C: The size of your trade, okay? So.
+00:44:02.774 - 00:44:14.520, Speaker A: The more you trade within a single imm, the worse your price you'll get. And so this is done through the optimization algorithm. So you remember that we optimized some.
+00:44:14.552 - 00:44:26.104, Speaker C: Function which is the result of the arbitrage minus its input. And so this result, well, it has.
+00:44:26.144 - 00:44:27.924, Speaker A: A negative second derivative.
+00:44:28.624 - 00:44:30.884, Speaker C: So this means that you have price impact.
+00:44:31.944 - 00:44:37.704, Speaker A: And so when you optimize it, you find the optimal value, okay, which maximizes.
+00:44:37.744 - 00:44:40.502, Speaker C: Your profit, taking slippage into account.
+00:44:40.648 - 00:44:46.154, Speaker A: And because of balancer, we did not have any closing formula, so we had.
+00:44:46.194 - 00:44:57.974, Speaker C: To use a newton method to obtain, by computation, some sort of optimal ish points.
+00:44:58.514 - 00:45:06.042, Speaker A: So this is regarding the price impact slippage. And also, the second part of your question was on the gas fees. Well, here what you obtain is a.
+00:45:06.058 - 00:45:11.020, Speaker C: Gross profit of gas fees. So this is the best you can.
+00:45:11.052 - 00:45:16.620, Speaker A: Do if you have zero gas, gas fees, and then you need to subtract the estimated gas fees.
+00:45:16.732 - 00:45:19.316, Speaker C: So we maintain a ledger of this.
+00:45:19.380 - 00:45:21.700, Speaker A: Rate, how much we estimate.
+00:45:21.772 - 00:45:22.984, Speaker C: It will be difficult.
+00:45:23.284 - 00:45:25.868, Speaker A: And with this, depending on the gas.
+00:45:25.916 - 00:45:31.972, Speaker C: Price, we can have an estimated net profit. But of course, everything changes when once.
+00:45:32.028 - 00:45:33.716, Speaker A: You get into an auction with a.
+00:45:33.740 - 00:45:43.046, Speaker C: Competitor, because then when you have to raise your price, okay, it will reduce your profit.
+00:45:43.150 - 00:45:46.238, Speaker A: And so at each time, you want to assess what you want to do.
+00:45:46.286 - 00:45:53.054, Speaker C: Either to raise or to fold, to retire from the auction, you compute what.
+00:45:53.094 - 00:45:57.950, Speaker A: Would be your net profit, and you see, okay, is it optimal to raise or is it optimal to fold?
+00:45:58.022 - 00:46:00.254, Speaker C: Or am I really nice to lose.
+00:46:00.294 - 00:46:04.060, Speaker A: A little bit of money to make the other party lose money, okay?
+00:46:04.182 - 00:46:06.456, Speaker C: For instance, on the short run, you.
+00:46:06.480 - 00:46:09.856, Speaker A: Might be paying $10 to make the other guy lose $4.
+00:46:10.000 - 00:46:14.184, Speaker C: So it sounds idiot, you know, but idiotic.
+00:46:14.264 - 00:46:18.584, Speaker A: But if it is enough, you know, to drive him out of the market.
+00:46:18.744 - 00:46:26.200, Speaker C: Then it is worth it, because when it's gone, then you don't have competition anymore and you have a high profit margin.
+00:46:26.392 - 00:46:36.084, Speaker B: And how do you manage to keep, does the bot has any smart contracts deployed or he's only executing functions from the python code?
+00:46:39.694 - 00:46:48.926, Speaker A: Of course, because everything is done through custom smart contract. Okay. So the execution is done through a custom smart contract, which is highly optimized.
+00:46:48.990 - 00:46:51.794, Speaker C: In terms of gas. Okay.
+00:46:52.094 - 00:47:00.414, Speaker A: So with assembly optimization, and also which obfuscate a bit what it is doing because you don't want to show to other people what are the pairs you have?
+00:47:00.454 - 00:47:05.554, Speaker B: Yeah, yeah, that was my question. Like, how do you hide it? You know, how do you hide the smart contract.
+00:47:07.684 - 00:47:08.284, Speaker C: Now?
+00:47:08.404 - 00:47:12.956, Speaker A: Well, basically, there are ways you can encrypt what you are doing.
+00:47:13.100 - 00:47:13.644, Speaker D: Okay.
+00:47:13.724 - 00:47:14.984, Speaker A: So you are not.
+00:47:16.724 - 00:47:17.900, Speaker C: Passing, I understand.
+00:47:17.972 - 00:47:23.984, Speaker A: Directly, the address of these, of the token, but an encrypted version of it.
+00:47:26.204 - 00:47:26.620, Speaker D: Awesome.
+00:47:26.652 - 00:47:34.084, Speaker B: I have more questions. I don't know black hat, you have a question? I do have questions here from the community.
+00:47:35.544 - 00:47:40.684, Speaker D: Hello, I'm joined recently now and. Yeah, hello.
+00:47:41.944 - 00:47:42.856, Speaker A: Yeah, hello.
+00:47:43.000 - 00:47:44.416, Speaker D: I wish you doing well.
+00:47:44.560 - 00:47:49.004, Speaker C: By the way, you have a question?
+00:47:50.624 - 00:47:52.724, Speaker B: I don't know if black hat has a question.
+00:47:55.224 - 00:48:01.624, Speaker A: I'm new to this web3, and by the way, I have a problem in algebra.
+00:48:02.604 - 00:48:07.984, Speaker B: Yeah, really? No problem, no problem. I think our guys has a question. Agais.
+00:48:15.644 - 00:48:16.396, Speaker C: How'S it going, man?
+00:48:16.420 - 00:48:51.854, Speaker B: All good. Hey, while he's setting up his mic, I have questions from the community. So, first question is from Xavier. He's asking how you are updating those 15 million cycles whenever there's a swap on the amm, how are you finding the most profitable cycle to trade? Doesn't finding the best cycle out of 15 million every time a point new swap, renewable, takes a lot of time, I think they are constantly doing it. Right, right, enemy, how is it going? How are you doing that? How you keeping the liveness of the block?
+00:48:51.894 - 00:48:52.834, Speaker A: This is done.
+00:48:54.454 - 00:48:57.798, Speaker C: Okay. So what happened is that during each.
+00:48:57.846 - 00:49:01.794, Speaker A: Block, okay, we opt, we update the pair balances, okay?
+00:49:02.214 - 00:49:06.194, Speaker C: Based on the pair balances, we extract.
+00:49:07.534 - 00:49:14.102, Speaker A: The passes which are impacted by the last price changes.
+00:49:14.198 - 00:49:25.808, Speaker C: Because, of course, when you have computed the optimal passes given one state, if there is only one token which price.
+00:49:25.896 - 00:49:29.616, Speaker A: Changes, you don't need to redo the whole computation on everything.
+00:49:29.760 - 00:49:32.724, Speaker C: You only need to do it where you had the changes.
+00:49:33.344 - 00:49:36.120, Speaker A: You extract this subset of all the.
+00:49:36.152 - 00:49:41.514, Speaker C: 15 million passes which are impacted by the latest block update.
+00:49:41.634 - 00:49:47.174, Speaker A: And based on this subset, which is much smaller than the 15 million, you do the optimization.
+00:49:49.434 - 00:49:50.218, Speaker C: Very smart.
+00:49:50.306 - 00:49:51.354, Speaker A: Described here.
+00:49:51.514 - 00:49:52.494, Speaker C: Very smart.
+00:49:52.954 - 00:50:04.294, Speaker B: Another question is from, from our friend Ponetta, regarding the profitability is a lot of money will be spent driving the competition away at the end. Is the. Is the arbitrage profitable?
+00:50:06.274 - 00:50:10.832, Speaker C: Well, depends on your competitors, basically.
+00:50:10.888 - 00:50:13.920, Speaker A: Depends on how deep their pocket pockets are.
+00:50:14.072 - 00:50:25.104, Speaker C: Okay. And, you know, how relentless they are. So if somebody who is, who has.
+00:50:25.144 - 00:50:29.192, Speaker A: A lot of money and who is very tough mentally, because at the end.
+00:50:29.208 - 00:50:35.332, Speaker C: Of the day, it's also a mental game, you know, it will take. Cost you a lot of money, yeah.
+00:50:35.388 - 00:50:42.748, Speaker A: To drive him out. But sometimes you have people that they abandon after a few days or a.
+00:50:42.756 - 00:50:45.660, Speaker C: Few weeks, because they can't take it anymore.
+00:50:45.692 - 00:50:49.984, Speaker A: Because here you have to be relentless, okay. You have to.
+00:50:51.684 - 00:50:57.380, Speaker C: Don'T let them taste any profit. So you have to always to notice.
+00:50:57.532 - 00:51:00.272, Speaker A: When they try to change their technique a bit, etcetera.
+00:51:00.388 - 00:51:06.792, Speaker C: So there was one guy, for instance, he would deploy a new contract in.
+00:51:06.808 - 00:51:18.048, Speaker A: Order to try to lose me, because when he deployed a new contract, I had not yet mapped it as a competitor, so I could not know that he was doing arbitrage through it.
+00:51:18.136 - 00:51:19.832, Speaker C: But it was very tedious for him.
+00:51:19.968 - 00:51:31.142, Speaker A: So what we done at the time, we automated away, and we had people looking at, you know, always on chain, whenever the guy would deploy a contract. So he would deploy a contract, and.
+00:51:31.158 - 00:51:40.094, Speaker C: Then ten minutes later, we would find that he had done it. And so after a while, he got.
+00:51:40.134 - 00:51:47.718, Speaker A: Bored or discouraged and he stopped. But yes, it may cost a lot of money, depending on, you know, it's a mental game. And sometimes it may be possible, you.
+00:51:47.726 - 00:51:51.062, Speaker C: Know, to find an agreement with the other guy.
+00:51:51.238 - 00:52:03.344, Speaker B: Amazing stuff, but it is very, very interesting. Another question here is, how do you usually initiate a transaction using flashbots, or do you run a node to have a lower latency?
+00:52:07.164 - 00:52:15.412, Speaker A: So, this is not done through flashbots. In this case, at the time, it was done through PGA, so through our own node.
+00:52:15.468 - 00:52:18.996, Speaker C: So obviously, with flashbots, the first flashbot.
+00:52:19.020 - 00:52:20.444, Speaker A: You only have it, yet you don't.
+00:52:20.484 - 00:52:32.224, Speaker C: Have, you know, there are a lot of chance you don't have, and also you don't have a 100% chance of getting executed. This is the second point and third.
+00:52:32.264 - 00:52:34.528, Speaker A: Point, you are also betting a bit blindly.
+00:52:34.696 - 00:52:37.804, Speaker C: The only advantage of flashbots is that.
+00:52:39.944 - 00:52:42.912, Speaker A: You don't lose money if you don't get executed.
+00:52:43.008 - 00:52:47.352, Speaker C: So here, when we are doing PGA.
+00:52:47.408 - 00:52:49.944, Speaker A: It was more optimal to have our.
+00:52:49.984 - 00:52:54.364, Speaker C: Own node and launch on chain.
+00:52:56.384 - 00:53:01.524, Speaker B: Very nice, very nice, guys, please go with your question.
+00:53:02.104 - 00:53:02.696, Speaker D: Yeah, hi there.
+00:53:02.720 - 00:53:30.842, Speaker E: Thanks for much. Thank you very much for putting this presentation together. The question I have about optimization, are you using any, like, half for gas optimization? And the other question I have is, yeah, in order to be, because this space is very high competition. So where do you see, like, if someone is want to be successful in.
+00:53:30.858 - 00:53:34.362, Speaker C: This, what skills they need to have.
+00:53:34.458 - 00:53:51.476, Speaker E: And what, how they can have each, because there's a lot of competition out there. A lot of people, as you mentioned, the people with the money, they use, always them, they can use the gas. But how, like the normal people like us, how can we be better in terms of technology? In terms of where do you think.
+00:53:51.500 - 00:53:53.428, Speaker C: That we should do more?
+00:53:53.516 - 00:53:54.364, Speaker E: We should focus more.
+00:53:54.404 - 00:53:55.144, Speaker C: Thank you.
+00:53:56.364 - 00:54:01.324, Speaker A: Okay, so, first, regarding gas optimization. Yes, it's a very important part, especially.
+00:54:01.404 - 00:54:05.788, Speaker C: When you do press gas option. So when you are working with a.
+00:54:05.796 - 00:54:10.280, Speaker A: Very fast algorithm, or when you are working through flashbots, it is much less important.
+00:54:10.452 - 00:54:10.928, Speaker D: Okay.
+00:54:10.976 - 00:54:22.728, Speaker A: But in this setup, gas optimization is critical. And so what was done within the smart contract is we went down up to assembly optimization. So instead of using native solidity, we.
+00:54:22.776 - 00:54:25.684, Speaker C: Rewrote the functions in assembly.
+00:54:26.504 - 00:54:28.872, Speaker A: We even overrode the function selector in.
+00:54:28.888 - 00:54:32.684, Speaker C: Order to optimize a few gas points.
+00:54:33.304 - 00:54:36.196, Speaker A: So it was very highly optimized.
+00:54:36.360 - 00:54:38.412, Speaker C: Okay, so, for instance, easy stuff you.
+00:54:38.428 - 00:54:48.944, Speaker A: Can do is you don't use storage, you optimize a contract, etcetera, you minimize external function calls. You can also have unchecked computation, etcetera.
+00:54:49.284 - 00:54:52.108, Speaker C: And then you can use assembly, and.
+00:54:52.196 - 00:54:55.548, Speaker A: You can rewrite the call data to take less place.
+00:54:55.596 - 00:55:00.372, Speaker C: So, for instance, you know, an ethereum address, it takes 20 bytes, but it.
+00:55:00.388 - 00:55:02.798, Speaker A: Is stored in 32 bytes, so you.
+00:55:02.846 - 00:55:09.062, Speaker C: Have twelve bytes, which are wasted. So the way to do it is.
+00:55:09.078 - 00:55:20.894, Speaker A: That you can have in assembly, you can manually extract the data and so reduce the size of cold data. So this is the first part of the question, and the second part, you know, there are two types of mev.
+00:55:20.974 - 00:55:26.710, Speaker C: Basically, you have what is called low tail mev.
+00:55:26.782 - 00:55:35.802, Speaker A: So mev, you know, everybody knows about which is high volume, such as sandwiching, and which is very competitive.
+00:55:35.978 - 00:55:38.810, Speaker C: And you have long tail mev, which.
+00:55:38.842 - 00:55:51.130, Speaker A: Is mev, which is much more specialized. So what I would advise is that you find where your edge is. Maybe it's mathematical, maybe it's in it. Maybe you can have, you know, better.
+00:55:51.202 - 00:55:58.114, Speaker C: Understanding of a very niche and complex protocol.
+00:55:58.654 - 00:56:09.230, Speaker A: And you start from a given niche. So you don't want to start out in competition with Jared from a subway, because he will just obliterate you.
+00:56:09.342 - 00:56:11.470, Speaker C: But what you can do is that.
+00:56:11.502 - 00:56:13.046, Speaker A: You find some sort of a niche.
+00:56:13.150 - 00:56:15.350, Speaker C: On a side chain, and you work.
+00:56:15.382 - 00:56:22.242, Speaker A: Out the inner details of a complex protocol. And there that you will have no.
+00:56:22.378 - 00:56:28.814, Speaker C: No to non competition, basically. And so you can start from there.
+00:56:30.394 - 00:56:31.570, Speaker E: Excellent, excellent. Thanks.
+00:56:31.642 - 00:56:33.458, Speaker A: Because, you know, big actors, they will.
+00:56:33.506 - 00:56:34.094, Speaker C: Not.
+00:56:35.954 - 00:56:39.534, Speaker A: You know, both themselves, extract a few hundred dollars of Mav.
+00:56:42.954 - 00:56:43.894, Speaker C: Good day.
+00:56:45.554 - 00:56:56.104, Speaker B: Awesome stuff, bro. Awesome stuff. I have a follow up question from, from our friend here, Savior saying are you storing a map with token address to cycle container that token?
+00:56:56.264 - 00:56:56.888, Speaker D: Sorry.
+00:56:57.016 - 00:57:06.324, Speaker B: Are you storing a map with token address to cycle containing that token address to find all those cycles that need to be recalculated?
+00:57:10.424 - 00:57:13.924, Speaker C: So, so what we do, we have.
+00:57:14.224 - 00:57:17.832, Speaker A: Basically when you have all the cycle, it's pretty easy to find all the.
+00:57:17.848 - 00:57:19.900, Speaker C: Cycle which contain a given token.
+00:57:20.072 - 00:57:23.916, Speaker A: So you can either you store it or you have an algorithm which allows.
+00:57:23.940 - 00:57:25.024, Speaker C: You to find it.
+00:57:25.964 - 00:57:36.276, Speaker B: Awesome. Awesome. And I have another question here from f is how many people are working in this operation? And if you can't disclose, feel free to not say it.
+00:57:36.300 - 00:57:36.944, Speaker C: Okay.
+00:57:40.244 - 00:57:48.296, Speaker A: I know this, this was not much. It was a personal operation as a side project.
+00:57:48.400 - 00:58:08.004, Speaker B: Very interesting. Very interesting. I don't know. Do you guys have more questions? If you're typing, please be fast. So other question here from Cinderblock. Do you take in account trade activity on centralized exchange? If there's a, if there's a huge order on a particular pair?
+00:58:12.844 - 00:58:17.308, Speaker A: This is only amm arbitrage. We don't interact with centralized exchanges.
+00:58:17.436 - 00:58:19.820, Speaker C: In this case, yeah, you have other.
+00:58:20.012 - 00:58:21.876, Speaker A: You know, other strategy where you will.
+00:58:21.900 - 00:58:28.708, Speaker C: Integrate with centralized exchanges, but it is out of the scope of this particular strategy. Another question.
+00:58:28.756 - 00:58:29.788, Speaker E: I have another question.
+00:58:29.956 - 00:58:30.524, Speaker A: Thank you.
+00:58:30.604 - 00:58:31.684, Speaker D: I have another question.
+00:58:31.844 - 00:59:00.354, Speaker E: Thanks. So as I mentioned, you mentioned we all know the competition is very high. So will you recommend someone to start like a solar searcher or you will recommend to start joining a team because there's a lot of things. So being in a solo searcher, you have to do a lot of things because as you have hand back in your presentation, there's a lot of steps you need to build. So being in the one person will be difficult. And so do you think that you should join a team or be a solar searcher?
+00:59:00.394 - 00:59:01.134, Speaker C: Thank you.
+00:59:04.574 - 00:59:11.910, Speaker A: Well, I think if you are motivated, motivated enough, I would advise you to be single searcher because you can own.
+00:59:11.942 - 00:59:14.486, Speaker C: All the stocks from top to bottom.
+00:59:14.630 - 00:59:20.550, Speaker A: And of course it's complicated. Of course you need to develop transversal competences, but this is where you will.
+00:59:20.582 - 00:59:26.034, Speaker C: Grow the most as an individual, you know? And this is also why you get.
+00:59:26.374 - 00:59:29.194, Speaker A: All your own profit and you have to.
+00:59:31.834 - 00:59:34.538, Speaker C: And you decide upon everything because.
+00:59:34.586 - 00:59:36.610, Speaker A: You know, with a team you always.
+00:59:36.682 - 00:59:39.186, Speaker C: Have, you first have to develop trust.
+00:59:39.250 - 00:59:41.306, Speaker A: You have to develop how specialized you are.
+00:59:41.330 - 00:59:46.210, Speaker C: So either you have to work with people you are very close to or.
+00:59:46.322 - 00:59:51.338, Speaker A: I think the best thing is to begin as a single searcher.
+00:59:51.426 - 00:59:59.154, Speaker C: Even afterwards you want to join a team because no every part is related to the other parts.
+00:59:59.274 - 01:00:03.770, Speaker A: So in order to have a good algorithm, you need to understand everything from.
+01:00:03.802 - 01:00:05.134, Speaker C: Top, top to bottom.
+01:00:05.714 - 01:00:06.234, Speaker D: Yeah.
+01:00:06.314 - 01:00:08.134, Speaker A: Because you have interdependence.
+01:00:10.474 - 01:00:25.164, Speaker E: Yeah, there's a lot of data analytics. I mean, lately, I mean it's. They're using a lot of machine learning, data learning. Artificial intelligence is, that's the new game. I mean, that's where, I mean, the things are heading. I mean there's a lot of data analytics. So you need to wear multiple hats.
+01:00:25.164 - 01:00:53.212, Speaker E: Not only the crypto part, but you also have to learn data analysis, data analytics. Algorithms you need to define. Because the high frequency trading technology is coming to crypto math. That's actually where the market's headed. Because they are bringing, because there's a lot of high frequency traders. I mean, big guys with the big money are coming to this and they have all kind of skilled people. So it'll be very difficult as a solar searcher to compete with them.
+01:00:53.212 - 01:00:54.864, Speaker E: That's the point I'm making here.
+01:00:55.684 - 01:00:56.796, Speaker B: Makes total sense.
+01:00:56.900 - 01:01:02.244, Speaker A: It's difficult, but, you know, nothing like.
+01:01:02.404 - 01:01:05.756, Speaker C: Yeah, yeah, very good point.
+01:01:05.820 - 01:01:22.544, Speaker B: By the way, I have another question from savior, which is there's any tricks to finding a niche of mev because we always using the classic stuff, right? Compound, av, uniswap, maybe some lending, some futures.
+01:01:23.644 - 01:01:25.940, Speaker C: Well, you know, this is the thing.
+01:01:26.052 - 01:01:32.076, Speaker A: If it is easy to find a nation, it is not a niche anymore because everybody knows about it.
+01:01:32.100 - 01:01:33.236, Speaker B: Good, good word.
+01:01:33.420 - 01:01:37.700, Speaker A: So it's like a bit of an oxymoron.
+01:01:37.852 - 01:01:47.264, Speaker C: But you know, I would focus on starting with maybe second tier protocols, understand how they work.
+01:01:49.164 - 01:01:56.196, Speaker A: You know, you open DeFi llama, you see where there are transactions where there is value on protocols which are non.
+01:01:56.260 - 01:02:00.464, Speaker C: Standard, maybe on chains which are not so popular.
+01:02:01.324 - 01:02:03.620, Speaker A: And you try to understand how it.
+01:02:03.652 - 01:02:06.104, Speaker C: Works from a computing point of view.
+01:02:07.524 - 01:02:09.284, Speaker A: From Nike point of view, but also.
+01:02:09.324 - 01:02:10.984, Speaker C: From a financial point of view.
+01:02:11.844 - 01:02:17.894, Speaker A: And this is how you can find ways to, to generate new arbitrage.
+01:02:18.014 - 01:03:10.874, Speaker B: Very interesting. Can I put something here? So I don't know if this counts as Amm or IB trash, but I had a bot in the past that made me some money. What he would do is he would scan the binance network to see which DEXs are being deployed. So once a Dex was deployed, it would be looking for whenever the MasterChef contract was deployed in the DEX, because that contract was deploying the Dex tokens for the farms and everything. And every time developers will fuck up the parameters and pay too much. So you could buy stick the tokens and make like 50% of the pool, you know, in 24 hours until they fix the heights, you know, but that was gone, you know, but I think this would this count as ammo?
+01:03:13.284 - 01:03:27.584, Speaker A: It is a way to arbitrage it. It's not, you are arbitrary. Another property which is not the trade price per se, but the incentive to be an LP. But yes, it's a clever way to find Mev.
+01:03:28.724 - 01:03:29.500, Speaker D: Amazing.
+01:03:29.572 - 01:03:33.024, Speaker C: So is it still live?
+01:03:34.004 - 01:03:51.634, Speaker B: No, not at all. But you can try. You can still try this technique. I think it's still going to work for some chains. So I have another question here is, I'm good with maths and computer science. How long will it take for me to create an MEV bot?
+01:03:57.214 - 01:04:01.654, Speaker A: How long it will take for you to take to create an MEV bot?
+01:04:01.694 - 01:04:05.674, Speaker B: Consider there is a very good developer knows math.
+01:04:10.994 - 01:04:14.514, Speaker C: So depending on exactly what you want to do, okay.
+01:04:14.594 - 01:04:16.466, Speaker A: And how complex and your competition.
+01:04:16.610 - 01:04:22.826, Speaker C: But such a project, depending also if you already have some code working, you.
+01:04:22.850 - 01:04:26.714, Speaker A: Are good with cloud computing, et cetera.
+01:04:26.874 - 01:04:30.746, Speaker C: But I think yes, you have to.
+01:04:30.770 - 01:04:33.570, Speaker A: Settle aside at least two months of.
+01:04:33.602 - 01:04:44.996, Speaker C: Work in order to have some first actionable results. Awesome. Not something which gives you a profit.
+01:04:45.060 - 01:04:48.404, Speaker A: But two months is full time. You have an idea of where you are.
+01:04:48.484 - 01:04:58.944, Speaker B: Awesome. Last question also guys, because we need to release our friend and be here. Okay. What does the future in this space looks like and from where we are right now?
+01:05:03.184 - 01:05:10.624, Speaker C: But I cannot speak for the space. But obviously what you heard is that.
+01:05:10.784 - 01:05:25.960, Speaker A: Have a market which becomes more and more professional with more and more efficient algorithm. So clearly for low tail or very popular strategy, what you have is a concentration of actors. So you have the most sophisticated and.
+01:05:25.992 - 01:05:28.402, Speaker C: Powerful actors which are getting a bigger.
+01:05:28.418 - 01:05:30.414, Speaker A: And bigger share of the market.
+01:05:30.714 - 01:05:32.514, Speaker C: And so there was a question about.
+01:05:32.554 - 01:05:39.786, Speaker A: It a bit earlier, but the market is becoming more and more professional because at the beginning, amm by granite, you.
+01:05:39.810 - 01:05:47.226, Speaker C: Were able to do it directly from your script into your backyard, speaking with uniswap router.
+01:05:47.370 - 01:05:51.202, Speaker A: And now you have to have your own node, you have to do a lot of stuff.
+01:05:51.338 - 01:05:55.456, Speaker C: And the more time passes, the higher.
+01:05:55.520 - 01:05:57.848, Speaker A: The barriers to entry are.
+01:05:57.896 - 01:06:03.524, Speaker C: So if you want to get in, sooner is better than later.
+01:06:04.504 - 01:06:19.484, Speaker B: Amazing, brother. Thank you so much. This was incredible. You know, I hardly see people so excited making questions all the time like that. So this was really cool. You have any closing thoughts? Any final message to people that will hear CDs on YouTube?
+01:06:21.524 - 01:06:26.148, Speaker A: Well, thank you so much for your invitation. Feel free to contact me.
+01:06:26.276 - 01:06:28.404, Speaker C: So now you have my discord.
+01:06:28.444 - 01:06:30.516, Speaker A: I'd be happy to jump on.
+01:06:30.540 - 01:06:32.548, Speaker C: One to one chats if you want.
+01:06:32.676 - 01:06:36.484, Speaker B: Amazing. Thank you so much, brother. And this is it, guys. Talk to you later.

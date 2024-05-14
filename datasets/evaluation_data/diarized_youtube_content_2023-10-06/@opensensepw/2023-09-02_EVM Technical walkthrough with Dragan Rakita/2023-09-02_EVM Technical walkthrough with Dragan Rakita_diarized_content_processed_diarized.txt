@@ -1,0 +1,317 @@
+00:00:00.240 - 00:00:00.780, Speaker A: Nice.
+00:00:02.414 - 00:00:05.462, Speaker B: This presentation that I did maybe a.
+00:00:05.478 - 00:00:26.586, Speaker A: Little bit my background, I basically evm like two something years ago. Basically I want to use some EVM library in the rust there was like Sputnik.
+00:00:26.650 - 00:00:27.858, Speaker B: It's like very hard.
+00:00:27.906 - 00:00:31.658, Speaker C: It was very hard to use and.
+00:00:31.746 - 00:00:34.654, Speaker B: I just built my own.
+00:00:35.194 - 00:00:36.522, Speaker A: I didn't know that it's going to.
+00:00:36.538 - 00:00:39.266, Speaker B: Be like used that much in like.
+00:00:39.330 - 00:00:42.214, Speaker A: One year, two years, but you're just.
+00:00:43.834 - 00:00:44.574, Speaker C: Like.
+00:00:50.634 - 00:00:52.868, Speaker A: Any was included in the foundry.
+00:00:53.066 - 00:01:06.844, Speaker B: Before that I was basically building rust. Ethereum client ret if you have heard that this presentation, I made it like one year ago, nothing major have changed.
+00:01:07.664 - 00:01:10.424, Speaker C: So EVF is still the same.
+00:01:10.584 - 00:01:17.680, Speaker B: So it should be like up to date. An idea for this presentation is to.
+00:01:17.792 - 00:01:18.604, Speaker C: Basically.
+00:01:21.084 - 00:01:34.664, Speaker B: Meetings inside the BBM, what's inside? Ram. And basically try to connect like abstract ideas to the code, basically. So it's not that like.
+00:01:37.524 - 00:01:39.988, Speaker A: So if you connect that, it's a.
+00:01:39.996 - 00:01:54.484, Speaker B: Lot easier to figure out what's going on inside because there is not like, there is like yellow paper for EVM, but it's very hard to read. And most EVM developers just use code to check some things. Not just some, but a lot of things.
+00:01:55.024 - 00:01:58.112, Speaker A: So it can be very usable and.
+00:01:58.248 - 00:02:04.512, Speaker B: In the end, like EVM is very small library. It's like four or 5000 lines code.
+00:02:04.648 - 00:02:09.144, Speaker A: And idea behind EVM is, let's say.
+00:02:09.184 - 00:02:32.361, Speaker B: Simple, but you need to cover every detail. That's the tricky part. First few slides are basically what are the inputs of the EVM? Maybe I should have asked, do you want to have conversation like presentation?
+00:02:32.457 - 00:02:34.705, Speaker A: Or should I just go on?
+00:02:34.809 - 00:02:37.557, Speaker D: Yeah, bro, just go on. I think this is better for us to understand.
+00:02:37.665 - 00:02:37.942, Speaker B: Okay.
+00:02:37.958 - 00:02:42.434, Speaker D: If I'm trying to conversate, we're just gonna. I'm just gonna be saying dumb things while you explain everything.
+00:02:43.974 - 00:02:44.526, Speaker A: Okay.
+00:02:44.590 - 00:02:56.794, Speaker B: If you like, you can just say stop and I can just do guys question something like that. I'm just seeing like the slides, I'm not seeing the chat. So if you can stop me at any time, that should be.
+00:02:57.814 - 00:02:59.470, Speaker D: We're gonna do a session of questions.
+00:02:59.502 - 00:03:00.274, Speaker C: Thank you.
+00:03:01.254 - 00:03:12.146, Speaker A: Nice inputs of EVM. Basically, EVM has two main things that depends on one of them are inputs.
+00:03:12.330 - 00:03:20.494, Speaker B: Those are like environments that I call this side ram. One of that environment is transaction.
+00:03:20.874 - 00:03:24.866, Speaker A: There is block and there is configuration.
+00:03:24.930 - 00:03:33.194, Speaker B: But I didn't write it here. Second thing is database. That is basically how you fetch your.
+00:03:33.234 - 00:03:38.148, Speaker A: Storage and accounts for account for transaction.
+00:03:38.276 - 00:03:43.824, Speaker B: You have standard fields that transaction can basically contain.
+00:03:44.484 - 00:03:47.572, Speaker A: There are some things that are newer.
+00:03:47.708 - 00:03:53.404, Speaker B: That's from the Berlin that I'll access list AIP 559 are from the London.
+00:03:53.564 - 00:03:59.740, Speaker C: Basically all these fields are given from the section block.
+00:03:59.852 - 00:04:04.336, Speaker B: Same thing. These are the fields that EVM needs.
+00:04:04.480 - 00:04:13.528, Speaker A: Or some opcode of the EVM need. Those fields I structured as the like.
+00:04:13.656 - 00:04:24.044, Speaker B: Struct as data and it was a lot easier to set up and just set values that you want or leave it as default if you don't care about them.
+00:04:26.484 - 00:04:28.028, Speaker A: For the block there is of course.
+00:04:28.076 - 00:04:47.892, Speaker B: Some additional fields that are not needed for DVM. Those are omn hash, parent hash, state, every like hash, merkel route that there is bloom filters. But those are, these are. These are only the fields that EVM needs. Gas limit for the block.
+00:04:47.988 - 00:04:52.412, Speaker C: This for example is needed to hack.
+00:04:52.508 - 00:04:56.804, Speaker B: If the dissection gas limit is less than the block glass limit.
+00:04:56.844 - 00:04:57.744, Speaker A: For example.
+00:04:58.684 - 00:05:12.356, Speaker B: Number, coinbase, time step difficulty are needed for the opcodes. There is time step op code I think difficulty opcode basically are there for calculation of how much transaction are going.
+00:05:12.380 - 00:05:18.224, Speaker C: To be taken by the AIP 559 database interface.
+00:05:19.164 - 00:05:47.686, Speaker B: Second input that's needed for EVM. Those are fetched dynamically while the EVM is executed. Basically byte while the bytecode is executed. You can think about that as transaction calls. Basically one execute one by code from one account. You fetch the debt account by address. You get that account Defo, that is.
+00:05:47.750 - 00:05:51.426, Speaker C: Account Defo is bad balance nonce and.
+00:05:51.490 - 00:05:55.890, Speaker B: Bytecode hash if it is, if it is containing inside.
+00:05:56.082 - 00:06:00.042, Speaker A: And then you get the code that.
+00:06:00.058 - 00:06:01.214, Speaker B: You need to execute.
+00:06:01.514 - 00:06:11.130, Speaker A: It's very simple interface, but it's like. Because it is simple, it's very nice.
+00:06:11.202 - 00:06:36.278, Speaker B: And very easy to basically navigate to reason about. Now we talk without inputs. Now what's inside the EVM? There is two main basically EVM is stack based machine. Let's start with that. The section are executed one by one, basically in serial fashion. There is two types of section.
+00:06:36.366 - 00:06:38.606, Speaker A: One is the call and one is.
+00:06:38.670 - 00:06:56.154, Speaker B: The create great destruction. Create some bytecode, some address calls, some even that is like there's subtypes to type subtypes. One subtype to call is just transfer.
+00:06:56.194 - 00:07:01.774, Speaker C: The values ether and second is call of the bytecode.
+00:07:02.114 - 00:07:06.106, Speaker B: EVM in general are divided in two parts.
+00:07:06.170 - 00:07:10.854, Speaker A: One is the host that is handling reorgs.
+00:07:11.154 - 00:07:24.722, Speaker B: Not reorgs, but reverts. They handling the state they are handling outside connection of the VM. And interpreter is like standard interpreter of the virtual machine.
+00:07:24.778 - 00:07:27.530, Speaker A: That's like one big loop that executes.
+00:07:27.562 - 00:07:46.896, Speaker B: Bytecode by bytecode and calls particular function of instruction. We need to have support of the hard forks. Output of EVM is basically the map of the accounts that got changed, logs that got created. Status is important.
+00:07:47.000 - 00:07:49.624, Speaker A: One that tells you if it is.
+00:07:49.664 - 00:07:52.840, Speaker C: Reverted or not, how much gas is.
+00:07:52.872 - 00:07:54.844, Speaker B: Used and output bytes.
+00:07:57.624 - 00:07:58.408, Speaker A: In general.
+00:07:58.496 - 00:08:01.364, Speaker C: This looks like this.
+00:08:02.924 - 00:08:05.424, Speaker B: Do you see my mouse cursor?
+00:08:07.244 - 00:08:08.164, Speaker A: Hope so.
+00:08:08.324 - 00:08:09.824, Speaker C: Yes, we can see it.
+00:08:10.364 - 00:08:11.304, Speaker A: I hope.
+00:08:11.684 - 00:08:12.544, Speaker B: Okay.
+00:08:19.084 - 00:08:19.864, Speaker A: Yeah.
+00:08:23.364 - 00:08:26.732, Speaker C: This upper thing, upper like block is.
+00:08:26.748 - 00:08:37.214, Speaker A: The host part and this lower part is interpreter. What we see from the interpreter interpreter.
+00:08:37.334 - 00:08:39.262, Speaker B: Is you have a big loop where.
+00:08:39.318 - 00:08:46.926, Speaker A: You increase program counter.
+00:08:47.110 - 00:08:52.702, Speaker B: You fetch the opcode of the bytecodes on the memory on the stack and goes back.
+00:08:52.838 - 00:08:57.780, Speaker A: Or if it is returned, basically it.
+00:08:57.812 - 00:08:59.068, Speaker B: Returns to the host.
+00:08:59.236 - 00:09:04.524, Speaker A: Or if this sub call basically calls.
+00:09:04.564 - 00:09:09.624, Speaker C: Another, another Python code or another.
+00:09:11.764 - 00:09:12.292, Speaker B: Basic.
+00:09:12.348 - 00:09:31.684, Speaker A: Contract to go to the per civil calling if needed. Up there we have call a create. That's like two major functions that the VM host has.
+00:09:35.064 - 00:09:47.828, Speaker B: It has precompiles that are optimized, not optimized, but the contracts made inside the native language. So it's a lot faster. There is call stack and subroutines.
+00:09:47.916 - 00:10:00.948, Speaker A: Call stack is needed to both the having the. And there is a connection to the.
+00:10:00.996 - 00:10:06.604, Speaker C: Database and inspector for the tracing that.
+00:10:06.684 - 00:10:08.664, Speaker B: Are done for the host part.
+00:10:10.004 - 00:10:15.624, Speaker C: Really nice. Yeah.
+00:10:15.664 - 00:10:16.560, Speaker A: Interpreter.
+00:10:16.712 - 00:10:17.112, Speaker C: Nice.
+00:10:17.168 - 00:10:17.924, Speaker B: Thank you.
+00:10:18.584 - 00:10:24.200, Speaker A: Interpreter. Interpreter, I always say that wrongly, is.
+00:10:24.232 - 00:10:36.492, Speaker B: Basically responsible for execution. It has two stages. First stage, currently in the ram is pre calculated.
+00:10:36.688 - 00:10:41.108, Speaker C: There is like analysis, but before that.
+00:10:41.156 - 00:10:48.092, Speaker B: And I think few evms do that. But analysis is basically going through the.
+00:10:48.108 - 00:10:56.324, Speaker A: Bytecode to find the jump destinations. Jump destinations are important because if you.
+00:10:56.364 - 00:11:19.544, Speaker B: Want to jump, do the jump and it kind of jump in the inside there, you need to be sure that your jump destination is correct. But you cannot do that dynamically in the runtime because there is possibility that you can target the byte of the push opcode.
+00:11:20.164 - 00:11:25.252, Speaker C: The push opcode is basically, in general.
+00:11:25.348 - 00:11:50.904, Speaker B: Has, if you imagine the bytecode is not just like byte by byte structure for the push op op opcode, it's like one byte for type of instruction and next n bytes are for the data, the pushup. What it does is basically use that data to push it to the stack.
+00:11:51.564 - 00:11:56.052, Speaker A: So if we are jumping in runtime.
+00:11:56.188 - 00:12:02.106, Speaker B: We can potentially jump in that data section of the push. And we will not be sure if.
+00:12:02.130 - 00:12:04.986, Speaker A: This part of the push or is.
+00:12:05.090 - 00:12:17.530, Speaker B: Part of like ordinary instruction. So that analysis needs to be done like from the beginning, from the start to the end of the bytecode. And that can be expensive.
+00:12:17.682 - 00:12:21.706, Speaker A: So you have like in virtual machine.
+00:12:21.770 - 00:12:24.906, Speaker B: And like everything matters because you need.
+00:12:24.930 - 00:12:27.498, Speaker A: To be very, very performant.
+00:12:27.666 - 00:12:32.842, Speaker B: So that first transition, first iteration for.
+00:12:32.858 - 00:12:35.770, Speaker A: The bytecode is expensive and we do.
+00:12:35.802 - 00:12:42.454, Speaker B: That like we pre calculate that you must save in database.
+00:12:44.194 - 00:12:47.218, Speaker A: So if you go in the ram.
+00:12:47.266 - 00:12:49.722, Speaker B: And see like the bytecode struct, there.
+00:12:49.738 - 00:12:53.192, Speaker A: Is like raw bytecode, there is like.
+00:12:53.338 - 00:12:54.508, Speaker B: I forgot house name.
+00:12:54.556 - 00:12:59.284, Speaker A: It's checked bytecode and analyzed bytecode.
+00:12:59.364 - 00:13:02.276, Speaker B: Analyzed bytecode contains like jump table.
+00:13:02.420 - 00:13:03.184, Speaker C: Yep.
+00:13:08.364 - 00:13:10.892, Speaker A: Yeah. Second stage is execution.
+00:13:10.948 - 00:13:14.224, Speaker B: It's like big loop. It's what you could expect.
+00:13:15.844 - 00:13:22.064, Speaker A: It operator contains the memory stack gas calculation host.
+00:13:22.804 - 00:13:39.504, Speaker B: How it can basically, if some opcode can you call opcode difficulty or something like that, it will call the host for that information. Memory stack is done on things on any stack based virtual machine.
+00:13:40.084 - 00:13:44.892, Speaker A: Gas calculation is like every opcode contains.
+00:13:45.028 - 00:13:52.694, Speaker B: Basically sprites, some gas. It's very standard.
+00:13:56.274 - 00:13:56.746, Speaker A: Yeah.
+00:13:56.810 - 00:13:58.778, Speaker B: This is the structure of the interpreter.
+00:13:58.906 - 00:14:08.306, Speaker A: You have contract, you have program counter that's like pointer. The current on the next top code.
+00:14:08.330 - 00:14:09.562, Speaker B: Is going to be executed.
+00:14:09.698 - 00:14:18.364, Speaker A: Memory stack gas return buffer of the transaction of when the contract got called.
+00:14:18.524 - 00:14:28.044, Speaker B: Subcontract got called, it returned something. So it saved here. Return rate for example is when you.
+00:14:28.124 - 00:14:31.548, Speaker A: Return from this call back, you are.
+00:14:31.596 - 00:14:35.956, Speaker B: Setting this buffer range of the memory.
+00:14:36.020 - 00:14:39.868, Speaker C: That'S going to be copied back to.
+00:14:39.916 - 00:14:42.216, Speaker A: The parent call and call Dep is.
+00:14:42.240 - 00:14:43.400, Speaker B: Used only for the inspector.
+00:14:43.432 - 00:14:47.648, Speaker C: It's like helper information opcodes.
+00:14:47.696 - 00:14:49.364, Speaker B: There is a lot of them.
+00:14:50.704 - 00:14:54.968, Speaker A: Standard instruction that can be found in the server.
+00:14:55.096 - 00:15:04.288, Speaker B: Push pop related to stack memory memory load memory store program counter job program.
+00:15:04.336 - 00:15:09.092, Speaker A: Counter job destination store job codes are.
+00:15:09.148 - 00:15:14.900, Speaker B: Specific to EVM storage load. The storage store environment is depending on.
+00:15:14.932 - 00:15:18.524, Speaker A: The, basically it fetches the section information.
+00:15:18.644 - 00:15:28.188, Speaker B: Or the block information. Halting is how you want to our.
+00:15:28.276 - 00:15:28.904, Speaker A: Log.
+00:15:31.164 - 00:15:33.700, Speaker B: Call create to call static.
+00:15:33.732 - 00:15:47.084, Speaker C: Basically every sub call, all that you have in the lock basically. Yeah.
+00:15:48.104 - 00:15:50.616, Speaker B: Those two are how to create new.
+00:15:50.640 - 00:15:55.512, Speaker A: Bytecode create nice thing here is how.
+00:15:55.568 - 00:15:59.240, Speaker C: You are calculating address.
+00:15:59.392 - 00:16:01.720, Speaker B: It's catch of the LLP of the.
+00:16:01.752 - 00:16:07.084, Speaker A: Caller address and doesn't depend.
+00:16:07.164 - 00:16:11.624, Speaker B: Nice thing here. It doesn't depend on the nons, it depends on the salt and cold hash.
+00:16:11.924 - 00:16:20.264, Speaker A: So it can be predetermined. There is multiple calls there and.
+00:16:23.444 - 00:16:25.784, Speaker B: Yeah, how you're going to call.
+00:16:26.644 - 00:16:30.884, Speaker C: How are you going to call the next.
+00:16:36.704 - 00:16:37.208, Speaker A: Contract?
+00:16:37.296 - 00:16:40.924, Speaker B: If you like logs, logs contain address where it's.
+00:16:44.704 - 00:16:47.488, Speaker A: Who basically created it topics.
+00:16:47.576 - 00:16:49.484, Speaker B: It's like something that is.
+00:16:51.744 - 00:16:52.480, Speaker C: Popped from.
+00:16:52.512 - 00:16:57.334, Speaker A: The stack and data is popped from the memory gas.
+00:16:58.994 - 00:17:15.734, Speaker B: This is yeah. Few fee spent is basically calculated on the gas used, the gas price, but supported here there is like.
+00:17:19.794 - 00:17:20.654, Speaker A: There is.
+00:17:24.894 - 00:17:34.518, Speaker C: Like the gas that's used inside the evms. And on top of that there is.
+00:17:34.606 - 00:17:38.114, Speaker B: A gas price mechanism that.
+00:17:41.334 - 00:17:43.710, Speaker C: Depends on.
+00:17:43.782 - 00:17:48.162, Speaker B: Older one, original one, maybe calculate differently, but the idiom.
+00:17:48.218 - 00:17:53.294, Speaker C: But the color pace is the.
+00:17:55.754 - 00:17:56.250, Speaker A: Gas.
+00:17:56.322 - 00:17:59.574, Speaker B: Used multiplied by the gas price.
+00:18:02.394 - 00:18:02.970, Speaker A: Nice.
+00:18:03.082 - 00:18:13.558, Speaker B: Basically 559 Berlin hard fork introduced the base fee. That base fee is the, the base.
+00:18:13.646 - 00:18:15.274, Speaker A: That every transaction.
+00:18:18.454 - 00:18:22.670, Speaker C: Needs to pay.
+00:18:22.862 - 00:18:25.670, Speaker B: It's basically base fee price, let's say.
+00:18:25.822 - 00:18:32.110, Speaker A: And top action by this period. Fee, that's additional fee that the section.
+00:18:32.182 - 00:18:37.194, Speaker B: Or that caller wants to pay. So in the end, gas price is.
+00:18:42.354 - 00:18:44.066, Speaker A: Yeah, gas price is calculated by base.
+00:18:44.090 - 00:18:57.574, Speaker B: Fee and priority fee. It should be base price plus, plus priority price. Multiply multiplied by gas used. So that's like priority fee.
+00:18:58.194 - 00:19:02.722, Speaker A: That's like the fee. Yeah. There's even like idea of the gas.
+00:19:02.778 - 00:19:06.270, Speaker C: Rip funds that in the end it.
+00:19:06.302 - 00:19:10.478, Speaker A: Was idea was nice, but it didn't.
+00:19:10.566 - 00:19:21.670, Speaker B: Live and didn't get used in the practice. Idea was if you're going to reduce the state in some way, remove something.
+00:19:21.742 - 00:19:23.670, Speaker A: From the state you need, you are.
+00:19:23.742 - 00:19:26.078, Speaker B: Getting some gas back.
+00:19:26.166 - 00:19:26.550, Speaker D: Nice.
+00:19:26.622 - 00:19:30.058, Speaker A: But in the end it, it become.
+00:19:30.186 - 00:19:31.810, Speaker B: Complex to do all that.
+00:19:31.882 - 00:19:35.154, Speaker A: And it's, in the end, it's not.
+00:19:35.194 - 00:19:38.694, Speaker B: Like usable, it's not like proper way to clear the state.
+00:19:42.354 - 00:19:45.266, Speaker A: Traces, basically there is, in the Ram.
+00:19:45.370 - 00:20:03.954, Speaker B: There is inspector and any other vm, there is some kind of traces where you can access everything inside that. I just wanted to mention it here because it's like, it's very useful when you want to debug something. On the virtual machine level, most use traces are the cold traces.
+00:20:04.654 - 00:20:12.914, Speaker A: But yeah, these are nice to debug with machine inspector is specific for the Ram.
+00:20:14.054 - 00:20:16.590, Speaker B: For dropcommitool full selected dev.
+00:20:16.742 - 00:20:20.246, Speaker A: These slides are made like one and.
+00:20:20.270 - 00:20:26.204, Speaker B: A half years ago, basically, but they are super nice. Even that's put inside the forge.
+00:20:28.584 - 00:20:29.404, Speaker C: Yeah.
+00:20:36.904 - 00:20:44.004, Speaker B: I'm not sure if you guys would like to do a little bit code exploration. Just see it. Or we can do it like later.
+00:20:44.344 - 00:20:47.200, Speaker A: Yeah, you okay, let's do it later.
+00:20:47.272 - 00:20:47.782, Speaker D: Awesome.
+00:20:47.888 - 00:20:51.614, Speaker C: Okay. Okay.
+00:20:52.914 - 00:20:53.466, Speaker A: Host.
+00:20:53.570 - 00:21:07.574, Speaker B: It's second part of the vital machine. It's like the starting point of execution. That's what you call EVM. To start, you call the host and host calls the creates and calls interpreter.
+00:21:08.114 - 00:21:10.934, Speaker A: Lot of evms have that separated.
+00:21:12.114 - 00:21:19.394, Speaker B: The vital machine is just the interpreter while the host lies inside the client.
+00:21:19.894 - 00:21:20.918, Speaker A: I didn't like that.
+00:21:20.966 - 00:21:28.434, Speaker B: Like Division and I bundled that inside the ram by library and it became a lot easier to use.
+00:21:31.974 - 00:21:32.758, Speaker C: Yeah.
+00:21:32.926 - 00:21:36.794, Speaker B: This host acts as the binding between interpreter and need data.
+00:21:38.854 - 00:21:41.814, Speaker C: From database environment.
+00:21:41.974 - 00:21:45.620, Speaker A: Or storage are what's happening.
+00:21:45.652 - 00:21:45.844, Speaker C: Yeah.
+00:21:45.884 - 00:21:51.220, Speaker A: It has the journaling thing that can.
+00:21:51.252 - 00:21:55.116, Speaker B: Revert state if needed and contains principals.
+00:21:55.260 - 00:22:01.412, Speaker A: Yeah those, yeah, structures are mostly the same.
+00:22:01.548 - 00:22:15.304, Speaker B: There is like environment that are containing section environment, blocked environment configuration. Subroutines are renamed to journaling. It's journal not subroutine. So it's like more for.
+00:22:17.404 - 00:22:23.644, Speaker A: Better naming database. Of course principals inspector if there is.
+00:22:23.724 - 00:22:29.788, Speaker B: Some fantom that specific data are here.
+00:22:29.916 - 00:22:33.716, Speaker C: Yeah, subroutine journaling.
+00:22:33.860 - 00:22:35.020, Speaker A: Everybody calls it journaling.
+00:22:35.052 - 00:22:45.388, Speaker B: Not sure why I named subroutine at the first but it was renamed. It contains state logs, depth and changelog. Changelog.
+00:22:45.476 - 00:22:51.624, Speaker A: You can imagine that for every change on the state I am creating the.
+00:22:52.244 - 00:22:57.744, Speaker B: Now it's called changelog but I'm calling it it's called now journal entry.
+00:22:58.084 - 00:23:01.276, Speaker A: For example when the nonsense changed from.
+00:23:01.340 - 00:23:03.956, Speaker B: Three to four I am making journal.
+00:23:04.020 - 00:23:06.068, Speaker A: Entry of the non tree.
+00:23:06.236 - 00:23:08.812, Speaker B: So when I want to revert back.
+00:23:08.988 - 00:23:13.540, Speaker A: On the call I am going basically.
+00:23:13.612 - 00:23:38.500, Speaker B: To apply nonce tree to the current state. Or there is multiple journaling entries, one related to the touching of the state, one related to the loading, one related to the changes. But either way those main idea behind them is to revert back the change that happened. This is the host basically the binding.
+00:23:38.532 - 00:23:39.104, Speaker A: Between.
+00:23:40.884 - 00:23:51.764, Speaker B: But the thing that is sent to interpreter so that it can interact with outside step step and is used.
+00:23:51.844 - 00:23:54.740, Speaker A: By the inspector environment.
+00:23:54.852 - 00:24:06.824, Speaker B: If some need for environment those guys next are used by different opcodes. Log for example if you want to log something from the interpreter you just.
+00:24:06.864 - 00:24:11.328, Speaker A: Call this and it's logged inside.
+00:24:11.496 - 00:24:15.688, Speaker B: Create call or this is recursive function.
+00:24:15.776 - 00:24:22.104, Speaker A: The call in the loop pre compiles.
+00:24:22.264 - 00:24:24.324, Speaker B: There's currently nine of them.
+00:24:24.704 - 00:24:26.336, Speaker A: Some of them are not used, some.
+00:24:26.360 - 00:24:30.924, Speaker B: Of them are used. List is probably going to be expanded.
+00:24:32.164 - 00:24:35.304, Speaker A: But yeah those are.
+00:24:39.084 - 00:24:41.524, Speaker C: Yeah I'm not sure what else to say.
+00:24:41.604 - 00:24:49.756, Speaker B: It's like every, every precompiler depends on the input and because, and depending on the input, depending on the pre compiler.
+00:24:49.780 - 00:24:52.156, Speaker A: To spend some gas and it will.
+00:24:52.180 - 00:24:55.932, Speaker B: Calculate how gas spend it depending on like how much time cpu is going.
+00:24:55.948 - 00:25:01.170, Speaker A: To be used there we will come to this.
+00:25:01.282 - 00:25:02.094, Speaker D: Awesome.
+00:25:02.834 - 00:25:34.814, Speaker B: Hard forks I think I am near in the end basically are important. It's like how the ethereum got upgraded. Gets better as the time goes. Berlin hard fork arrow glacier Mu glacier hard forks that are just delaying the then difficulty bomb now deprecated because we.
+00:25:34.854 - 00:25:40.990, Speaker A: Have we transitioned to proof stake Berlin with use.
+00:25:41.062 - 00:26:19.004, Speaker B: For example I want to just show what kind of changes you can have inside the VM. What in history what, what kind of changes did we have. Lowering of the mod gas cost for example. That's lamp precopal where some researchers found that it's overpriced. 20 718 introduced new types and the section type inside the ethereum. So this needs to be supported. This was the gas cost increase for the state tax subcodes.
+00:26:19.004 - 00:26:26.344, Speaker B: This was the introduction of the hot and cold account loading.
+00:26:26.684 - 00:26:28.692, Speaker A: For example, when you load account for.
+00:26:28.708 - 00:26:41.924, Speaker B: The first time, it's considered cold loading. So it's priced a little bit more. But if you call it again it will be a lot lower, like few times slower.
+00:26:43.024 - 00:26:47.440, Speaker C: And it will, yeah, because its idea.
+00:26:47.472 - 00:27:04.284, Speaker B: Is you already have that account loaded in memory, so you don't need to fetch database that's expressing operation. London was AIP 559 for example. Turn the base three from the block is one opcode that's going. That was included.
+00:27:06.484 - 00:27:08.868, Speaker A: This was one, sorry.
+00:27:09.036 - 00:27:11.064, Speaker B: This was one of the.
+00:27:13.084 - 00:27:15.704, Speaker A: 35 41.
+00:27:17.244 - 00:27:50.640, Speaker B: It's one for the future proofing like stop deployment of the code that starts with EF. This is needed for the Ethereum object format that introduces the bytecode format that every VM needs to have where it introduces a lot of changes to EVM, introduces static jumps, it removes dynamic jumps. And there is a lot of goodies that are going to be introduced hopefully soon.
+00:27:50.712 - 00:27:57.684, Speaker A: But you never know. There is few optimizations that are like.
+00:28:00.124 - 00:28:10.796, Speaker B: They were not needed at the start when the VM was started. But as a time go it does make sense. For example, gas calculation all done in.
+00:28:10.900 - 00:28:15.084, Speaker C: U 64 because the limit is like.
+00:28:15.124 - 00:28:23.644, Speaker B: 30 million and that number fits inside U 64 very well. Memory calculation is done in U 64, it doesn't matter.
+00:28:23.724 - 00:28:30.784, Speaker A: It doesn't in the spec it is used as the U 256, but it doesn't make sense.
+00:28:33.404 - 00:28:43.904, Speaker B: Ethereum is a big andian with all the all in the stack. But because the stack calculation, everything around that is easy to do in the.
+00:28:44.204 - 00:28:49.384, Speaker A: Like the slice of four U 64, we use that.
+00:28:52.104 - 00:28:55.384, Speaker C: Yeah, that's mostly it, brother.
+00:28:55.424 - 00:28:59.528, Speaker D: That was amazing. That was amazing. Shows the amount of time you spent.
+00:28:59.576 - 00:29:01.976, Speaker C: Researching the EVM, you know, to the.
+00:29:02.000 - 00:29:10.604, Speaker D: Point of creating your own version. So this is fucking amazing. Thank you so much for that. What is the biggest challenge in developing this today?
+00:29:13.784 - 00:29:18.974, Speaker B: Basically you need to be very detailed. It's like.
+00:29:20.754 - 00:29:25.634, Speaker A: A virtual machine. An immun static based virtual machine is.
+00:29:25.674 - 00:29:33.786, Speaker B: Very easy to do. You just like push something. Instruction is doing like push something to state pop some different state.
+00:29:33.930 - 00:29:40.106, Speaker A: Idea was simple. Problem is you need to be compliant.
+00:29:40.170 - 00:29:45.300, Speaker B: With the state, with the ethereum test and with other evms.
+00:29:45.492 - 00:29:47.412, Speaker A: And that requires a lot of time.
+00:29:47.508 - 00:29:55.664, Speaker B: Like you need to be sure that you have same behavior across the multiple evms that are built in different language.
+00:29:56.404 - 00:30:07.444, Speaker D: And I was doing some research and I saw that today you can use Rif and have a node much faster. You know I think someone was commenting that 2 hours or so you can.
+00:30:07.484 - 00:30:13.840, Speaker A: Have the node running and also much more space efficient.
+00:30:13.992 - 00:30:15.160, Speaker C: How does that work?
+00:30:15.272 - 00:30:17.804, Speaker D: Why that implementation is so much more efficient?
+00:30:19.544 - 00:30:20.736, Speaker B: You mean about thread?
+00:30:20.840 - 00:30:25.928, Speaker A: Yes, I have blog post about that.
+00:30:26.096 - 00:30:30.084, Speaker B: Basically it depends what you.
+00:30:31.384 - 00:30:33.560, Speaker A: I mean it started with Aragorn.
+00:30:33.592 - 00:30:35.920, Speaker B: Aragorn had that idea how basically what.
+00:30:35.952 - 00:30:42.368, Speaker A: They did is they, they removed Mercatree.
+00:30:42.536 - 00:30:48.072, Speaker B: From the past proofing everything around it and just introduced the change sets on.
+00:30:48.088 - 00:30:51.256, Speaker A: The block and that deleted a lot.
+00:30:51.280 - 00:30:52.912, Speaker B: Of data from the client.
+00:30:52.968 - 00:30:53.760, Speaker D: Amazing.
+00:30:53.912 - 00:30:59.968, Speaker B: That deleted like terabytes of data to like two terabytes. That's really cool.
+00:31:00.056 - 00:31:10.812, Speaker C: And there is, yeah, I share, I share it later.
+00:31:10.908 - 00:31:18.584, Speaker A: I don't have and I have pulled my screen shared but yeah, it's like.
+00:31:21.044 - 00:31:32.754, Speaker B: Open Ethereum gets like archive node is 1560 terabytes and they contain full mercury of the every block in the past in the history.
+00:31:33.254 - 00:31:39.862, Speaker A: And that means that you can get.
+00:31:39.918 - 00:31:42.662, Speaker B: Proof in every state of the history.
+00:31:42.798 - 00:31:45.790, Speaker A: But that's mostly not needed.
+00:31:45.942 - 00:32:06.122, Speaker B: But the people need is how just a state. You don't need the proofs for that. So the idea was hey, let's do that a little bit differently. Let's do it, save it in different way. And they like removed a lot of data, a lot of like unnecessary data. You get like two terabytes of the.
+00:32:06.178 - 00:32:09.538, Speaker C: Just the state that you need.
+00:32:09.706 - 00:32:12.134, Speaker D: How big is that scene working with you today?
+00:32:17.034 - 00:32:19.234, Speaker B: Eight, nine people, something like that. Wow.
+00:32:19.354 - 00:32:21.334, Speaker C: Wow, that's really cool man.
+00:32:22.374 - 00:32:24.854, Speaker B: Um, do you guys have any questions?
+00:32:24.974 - 00:32:28.542, Speaker C: Um, yeah, I think, I think we don't have questions.
+00:32:28.558 - 00:32:34.874, Speaker D: That was really well explained, you know, and really important, bro. Do you have any message you want to leave us? Any closing thoughts?
+00:32:37.894 - 00:32:38.714, Speaker A: Uh.
+00:32:41.534 - 00:32:44.886, Speaker B: Not really. Keep on curious to be honest.
+00:32:45.070 - 00:32:46.310, Speaker A: Yeah, keep on.
+00:32:46.462 - 00:32:47.314, Speaker D: Keep on.
+00:32:48.914 - 00:32:49.694, Speaker C: Yeah.
+00:32:50.354 - 00:32:52.042, Speaker B: Amazing brother to be honest.
+00:32:52.098 - 00:32:54.186, Speaker C: Yeah, yeah.
+00:32:54.370 - 00:33:01.414, Speaker D: Thank you so much Dargan and bro, this is going to be on YouTube really soon. It's going to help a lot of people. Thank you for your time. Okay.
+00:33:03.034 - 00:33:05.534, Speaker C: Thank you for having me.
+00:33:05.874 - 00:33:06.962, Speaker A: No problem, brother.
+00:33:07.058 - 00:33:07.554, Speaker D: Thank you guys.

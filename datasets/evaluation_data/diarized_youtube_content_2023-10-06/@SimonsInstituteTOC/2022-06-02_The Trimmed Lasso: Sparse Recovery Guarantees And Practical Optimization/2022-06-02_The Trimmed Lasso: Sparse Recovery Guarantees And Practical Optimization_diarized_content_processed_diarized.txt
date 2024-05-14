@@ -1,0 +1,366 @@
+00:00:05.520 - 00:00:18.638, Speaker A: All right, everybody can hear me. All right? So I would like to thank the organizers for inviting me. It's a great pleasure to be here. And I'll talk about joint work with.
+00:00:18.806 - 00:00:24.314, Speaker B: Tal Amir, who was my PhD student, and with Ronin Bazley. And it will be about sparsity.
+00:00:24.774 - 00:00:38.422, Speaker A: And I don't know if Peter knows this, but he had a major non sparse influence on my work. As I started my first steps into statistics and heteros statistics, I remember this clearly.
+00:00:38.558 - 00:00:40.326, Speaker B: I had some idea about something, and.
+00:00:40.350 - 00:00:50.314, Speaker A: I talked with David Dongha, and he told me after five minutes, you should read this paper by Peter and Lisa. And I read it, and indeed, it.
+00:00:51.134 - 00:00:53.474, Speaker B: Was somewhat connected to things that I was doing.
+00:00:53.834 - 00:01:13.854, Speaker A: And later on, I started thinking about covariance matrices. And again, Lisa and Peter were way ahead of me. They had amazing papers about covariance regularization by thresholding. But with Ian Johnson and others, we still were able to do something about sparse PCA.
+00:01:14.154 - 00:01:19.514, Speaker B: And of course, there was a paper by Sasha and Yankee and Peter on.
+00:01:19.594 - 00:01:31.340, Speaker A: Sparsity, and actually papers by many other people here. But in 2010, I was here on sabbatical with Peter, and we had many, many discussions on various types of sparsity.
+00:01:31.532 - 00:01:33.044, Speaker B: And yeah, it took me about ten.
+00:01:33.084 - 00:01:47.896, Speaker A: Years or more, but I'll talk about sparsity today. Okay, so the talk will be about something that I think essentially maybe everybody here has worked or has heard heard.
+00:01:47.920 - 00:01:54.072, Speaker B: About sparse approximation of best opposite selection. The problem setup is very simple.
+00:01:54.168 - 00:02:06.968, Speaker A: There is a design matrix a. There is a response vector y. Someone gives me a sparsity parameter k. And I would like, in principle, to solve this problem. I'll call this p zero.
+00:02:07.096 - 00:02:08.844, Speaker B: Okay? Because I have.
+00:02:11.264 - 00:02:15.244, Speaker A: A requirement that I'm looking for a vector that exactly takes part.
+00:02:17.464 - 00:02:20.640, Speaker B: So this polar appears in many different contexts.
+00:02:20.712 - 00:02:24.416, Speaker A: One is in signal image processing or morning analysis.
+00:02:24.600 - 00:02:28.232, Speaker B: Y is typically your sampling of some signal.
+00:02:28.408 - 00:02:35.128, Speaker A: A would be, it's called a dictionary. Its columns are basic signals, or they're called atoms.
+00:02:35.176 - 00:02:37.840, Speaker B: And you want to find how to.
+00:02:37.872 - 00:02:43.234, Speaker A: Best represent your signal by a linear combination of atmos k. Dictionary atoms.
+00:02:43.394 - 00:02:45.498, Speaker B: Another application is compressed sensing.
+00:02:45.586 - 00:02:50.586, Speaker A: And there you have this pulse vector x, and you observe linear projections of.
+00:02:50.610 - 00:02:54.242, Speaker B: It, possibly with noise. And you would like to solve the.
+00:02:54.258 - 00:02:59.094, Speaker A: Inverse problem, recover x from these observations y.
+00:02:59.514 - 00:03:03.134, Speaker B: And of course, in statistics we have linear regression.
+00:03:03.594 - 00:03:12.274, Speaker A: Regression. We have pairs of observations here change a bit notation x y. And here, my unknown is a vector.
+00:03:12.314 - 00:03:22.034, Speaker B: Beta, which is d dimensional but assumed to be sparse. And I'd like to try to predict.
+00:03:22.114 - 00:03:26.054, Speaker A: Y with at most k variables.
+00:03:26.594 - 00:03:29.786, Speaker B: Okay, in this talk, I will assume.
+00:03:29.810 - 00:03:33.294, Speaker A: That k is known. Of course, in practice, k is typically unknown.
+00:03:33.914 - 00:03:35.378, Speaker B: It needs to be estimated.
+00:03:35.426 - 00:03:43.864, Speaker A: So one possible approach is to solve the original problem, p zero for many different values of k, and then apply.
+00:03:43.904 - 00:03:50.576, Speaker B: Close validation or some model selection criterion or something. I will not talk about this. So in this talk, I will assume.
+00:03:50.600 - 00:04:05.726, Speaker A: That k is given okay? And I'll focus on trying to solve this problem, p zero for a given value of k given a given y. Okay? So the first thing to keep in mind that the main challenge in problem.
+00:04:05.830 - 00:04:12.814, Speaker B: In solving this problem, is support detection. If someone tells me, choose these columns.
+00:04:12.854 - 00:04:15.862, Speaker A: Or these variables, then I only need.
+00:04:15.878 - 00:04:20.994, Speaker B: To solve this problem. There's no difficulty whatsoever.
+00:04:21.494 - 00:04:26.554, Speaker A: Unfortunately, finding the optimal support is np hard.
+00:04:27.174 - 00:04:28.914, Speaker B: And yet this one is so important.
+00:04:29.214 - 00:04:37.608, Speaker A: That you have really extensive work, algorithms, theory, lower bounds, upper bounds, et cetera.
+00:04:37.776 - 00:04:41.864, Speaker B: By vast different communities from statistics, machine.
+00:04:41.904 - 00:04:52.368, Speaker A: Learning, applied math, signal processing, etcetera. I think that just on the algorithmic side, there at least 100 different methods, or variants of methods that try to.
+00:04:52.416 - 00:04:54.004, Speaker B: Approximately solve this problem.
+00:04:54.904 - 00:04:56.528, Speaker A: So what I'll try to do is.
+00:04:56.576 - 00:05:01.324, Speaker B: Is of course, also lots of theoretical guarantees.
+00:05:01.784 - 00:05:05.244, Speaker A: So try to do it in three slides. Okay?
+00:05:06.544 - 00:05:16.000, Speaker B: So first, let's talk about the algorithmic side. There are many methods that are greedy. You start from an empty support set.
+00:05:16.032 - 00:05:30.984, Speaker A: And you try to add one variable at a time. And there's many papers, this goes back essentially to the 1960s with forward stepwise linear regression. These methods, most of them are very fast, very easy to program.
+00:05:31.924 - 00:05:36.836, Speaker B: But I'll show you later, they may use suboptimal solutions when the problem starts.
+00:05:36.860 - 00:05:47.504, Speaker A: To become more challenging. A different approach, which we like very much in statistics, is to replace our non convex constraint by some penalty.
+00:05:47.884 - 00:06:01.222, Speaker B: The most, of course, we have this parameter lambda. We need to tune it. And if we want to case pass solution, we need to maybe scan several values of lambda. And of course, the most popular penalty is the lasso, which is convex.
+00:06:01.278 - 00:06:09.054, Speaker A: So everybody's happy. And we also have various recovery guarantees for it under various conditions like incoherence.
+00:06:09.134 - 00:06:12.214, Speaker B: Or property or eigenvalue, etcetera, etcetera.
+00:06:12.294 - 00:06:21.804, Speaker A: It's also, by now, there are very, very fast methods to solve the sole problems, even very large scale and yet.
+00:06:23.944 - 00:06:25.764, Speaker B: Highly suboptimal solutions.
+00:06:28.024 - 00:06:28.480, Speaker A: Okay?
+00:06:28.512 - 00:06:47.890, Speaker B: Now, in the last maybe eight years, as far as I'm aware, there was very interesting work by people at MIT. This paper, for example, they proposed a mixed integer programming approach that when it.
+00:06:47.922 - 00:06:50.898, Speaker A: Ends, it found the globally optimal solution.
+00:06:51.066 - 00:06:58.562, Speaker B: And you read the paper, it's very convincing. It solves it globally. And at least if you look at.
+00:06:58.578 - 00:07:00.442, Speaker A: The examples in their paper, they're able.
+00:07:00.578 - 00:07:02.138, Speaker B: To solve problems, let's say with 100.
+00:07:02.186 - 00:07:13.406, Speaker A: Variables or so, much faster than exhaustive search, but it could be very slow. For example, we took their code and.
+00:07:13.430 - 00:07:15.834, Speaker B: On a very small, relatively small matrix.
+00:07:16.734 - 00:07:20.158, Speaker A: We ran this on a huge cluster and it took us several days.
+00:07:20.246 - 00:07:27.886, Speaker B: Okay, I'm talking about 30 observations, 180 variables. They significantly speeded up this approach.
+00:07:27.990 - 00:07:30.190, Speaker A: There's a new paper with the cutting.
+00:07:30.222 - 00:07:32.214, Speaker B: Plane method, and this method is able.
+00:07:32.254 - 00:07:37.462, Speaker A: To solve things much louder in, let's say, ten minutes runtime.
+00:07:37.638 - 00:07:58.926, Speaker B: And yet another, a recent approach is also by Rol Mazunder from MIT. He proposed some coordinate descent with a small local combinatorial. So this is a greedy approach. There is no certificate of optimality, but at least his code can handle, you know, a million variables in less than a minute.
+00:07:58.990 - 00:07:59.594, Speaker A: And.
+00:08:01.774 - 00:08:02.862, Speaker B: I would say, you know, it's.
+00:08:02.878 - 00:08:06.994, Speaker A: A relatively recent paper with relatively excellent performance.
+00:08:08.094 - 00:08:19.886, Speaker B: On the theoretical side, we have many, many guarantees. I'm not going to list all of them under center conditions. Many different people, some of them are.
+00:08:19.910 - 00:08:21.086, Speaker A: Here in the audience, have proved that.
+00:08:21.110 - 00:08:23.566, Speaker B: Current methods are either optimal if there's.
+00:08:23.590 - 00:08:28.366, Speaker A: No noise, or rate optimal. And so you could ask yourself, has.
+00:08:28.390 - 00:08:31.998, Speaker B: The problem been solved? Has not been solved yet.
+00:08:32.126 - 00:08:36.186, Speaker A: Should someone work on it? My point I'll try to convince is.
+00:08:36.210 - 00:08:38.854, Speaker B: That there's still some work to be done.
+00:08:40.354 - 00:08:42.706, Speaker A: And again, the key limitation, just from.
+00:08:42.730 - 00:08:45.014, Speaker B: The practical point of view, is that.
+00:08:46.514 - 00:08:51.498, Speaker A: As the pollen becomes more difficult, let's say, as you start to have higher.
+00:08:51.546 - 00:08:53.698, Speaker B: Values of k, okay, larger k is.
+00:08:53.746 - 00:08:56.334, Speaker A: Less sparse, the poly becomes more difficult.
+00:08:57.754 - 00:08:59.650, Speaker B: Either all of the muscles that I've.
+00:08:59.682 - 00:09:02.622, Speaker A: Reviewed, either they will find solutions that.
+00:09:02.638 - 00:09:05.158, Speaker B: Are far from optic, from optimal, or.
+00:09:05.246 - 00:09:14.478, Speaker A: May take essentially forever to run. Okay, so let me understand optimal, so two ways.
+00:09:14.526 - 00:09:21.974, Speaker B: One is when there is no noise, and your vector is exactly case sparse, you want. So the, under certain conditions, solving a.
+00:09:22.054 - 00:09:25.634, Speaker A: Basis pursuit recovers the l zero sparse solution.
+00:09:27.074 - 00:09:31.254, Speaker B: On the statistical side, you add noise and you ask what is.
+00:09:33.914 - 00:09:35.882, Speaker A: The, you.
+00:09:35.898 - 00:09:38.134, Speaker B: Add a statistical model and you ask.
+00:09:40.914 - 00:09:44.610, Speaker A: No, I'll talk about something slightly different.
+00:09:44.642 - 00:09:53.108, Speaker B: Because I'm going to have noise that is not random. I'm not going to have a random noise.
+00:09:53.186 - 00:09:57.392, Speaker A: Okay, all right, but just to illustrate.
+00:09:57.528 - 00:10:20.016, Speaker B: The empirical performance of various methods, this is a very simple simulation. Your matrix is 100 by 800 gaussian matrix. I'm making the problem harder and harder. Okay, I generate a case, pass vector x, add noise to it, and try to run various different algorithms.
+00:10:20.080 - 00:10:21.784, Speaker A: And first I'm just asking.
+00:10:21.864 - 00:10:24.616, Speaker B: On the optimization side, not even about.
+00:10:24.680 - 00:10:27.688, Speaker A: Accuracy of recovery or anything else, did.
+00:10:27.776 - 00:10:39.160, Speaker B: I get a solution whose residual is smaller or comparable to that of the original x zero. If this ratio is close to one.
+00:10:39.192 - 00:10:46.320, Speaker A: Or even smaller than one, then my x hat may possibly be an accurate estimate of x.
+00:10:46.432 - 00:10:55.040, Speaker B: And if this ratio is much larger than one, then probably I, you know, I just, on the optimization side, I was not able to find a good solution.
+00:10:55.152 - 00:10:55.968, Speaker A: Okay.
+00:10:56.136 - 00:10:58.176, Speaker B: All right, so this is the result.
+00:10:58.240 - 00:11:01.680, Speaker A: For the lasso or basis pursuit.
+00:11:01.792 - 00:11:08.680, Speaker B: So the x axis is the sparsity. As you can see for this specific example, the lasso essentially works only for.
+00:11:08.712 - 00:11:10.752, Speaker A: Sparsity levels less than 16 or so.
+00:11:10.808 - 00:11:14.060, Speaker B: Okay? Because from ERD 16, it starts to.
+00:11:14.092 - 00:11:15.784, Speaker A: Go higher and higher.
+00:11:16.644 - 00:11:22.108, Speaker B: These two are iteratively weightedly squares. Iteratively weighted l one.
+00:11:22.236 - 00:11:22.904, Speaker A: What?
+00:11:25.404 - 00:11:25.764, Speaker B: Yes.
+00:11:25.804 - 00:11:28.012, Speaker A: We'll discuss this lower in a minute, okay?
+00:11:28.108 - 00:11:39.024, Speaker B: But let's focus on this region for a minute. Okay, this is iterative support detection. And what I want to show you.
+00:11:39.584 - 00:11:46.720, Speaker A: Is our method, which does this to anticipate your question.
+00:11:46.832 - 00:11:49.456, Speaker B: In this region, there is overfitting. Okay, there is.
+00:11:49.480 - 00:11:51.136, Speaker A: Now, the fact that you find a.
+00:11:51.160 - 00:12:07.384, Speaker B: Solution with this ratio smaller than one does not mean that you were able to find the correct support, but the focus would be on this region. Just to illustrate your point, I'm going to take this.
+00:12:07.464 - 00:12:10.576, Speaker A: K equals 36. This is the average of many, many, many runs.
+00:12:10.680 - 00:12:17.392, Speaker B: So I'm going to show you the hundred specific realization.
+00:12:17.488 - 00:12:20.964, Speaker A: So what I'm showing you here is for a sparsity of 36.
+00:12:23.504 - 00:12:25.944, Speaker B: Now I'm really showing you the reconstruction.
+00:12:25.984 - 00:12:28.416, Speaker A: Error both of our method and of.
+00:12:28.440 - 00:12:38.276, Speaker B: Iterative support detection over maybe 100 different realizations when this ratio is much smaller than one.
+00:12:38.380 - 00:12:43.344, Speaker A: So the points that are here, both methods succeeded.
+00:12:43.884 - 00:12:48.900, Speaker B: All of these points are realizations where our method succeeded and iterative support detection didn't.
+00:12:49.012 - 00:13:01.144, Speaker A: And these are cases where both methods fail to succeed. Okay, so, all right. Okay, so that was the motivation. And now let's talk about.
+00:13:01.884 - 00:13:13.980, Speaker B: So our goal is to solve p zero, but I want to do it by a penalization approach. Okay, so what would be good properties for a penalty function?
+00:13:14.172 - 00:13:18.636, Speaker A: Well, first of all, if someone gives me the value of k, the target.
+00:13:18.700 - 00:13:25.484, Speaker B: Sparsity, I may want my penalty to depend explicitly on this target sparsity level.
+00:13:25.524 - 00:13:29.144, Speaker A: That I wish to achieve in terms.
+00:13:29.184 - 00:13:44.404, Speaker B: Of my penalty parameter lambda. I would like that when I solve this problem and I take very large lambda, I would like the solution to be close to those of the original p zero. And better yet, maybe I would like them to coincide for sufficiently large lambda.
+00:13:45.104 - 00:13:49.120, Speaker A: And the third property, which is important.
+00:13:49.192 - 00:13:50.568, Speaker B: Otherwise, I would not be giving this talk.
+00:13:50.616 - 00:13:53.216, Speaker A: I would like whatever penalty I suggest.
+00:13:53.280 - 00:13:59.486, Speaker B: To be somehow easy with double quotations to optimize. Otherwise, I didn't do much.
+00:13:59.630 - 00:14:02.222, Speaker A: Okay, so first let me discuss a.
+00:14:02.238 - 00:14:08.046, Speaker B: Penalty that satisfies the first two points depends on k, and its solutions are.
+00:14:08.070 - 00:14:09.582, Speaker A: Close to the p zero.
+00:14:09.758 - 00:14:21.914, Speaker B: This penalty is called, I'll call it the trim lasso. We came up with it, but later we find out that smart people came up with this penalty before us.
+00:14:22.664 - 00:14:26.008, Speaker A: So you just take like the lasso.
+00:14:26.056 - 00:14:28.712, Speaker B: But you just don't penalize the top.
+00:14:28.848 - 00:14:33.424, Speaker A: K coefficients, you just penalize the l one norm of the tail.
+00:14:33.544 - 00:14:37.256, Speaker B: Okay. So it's essentially, it measures the distance.
+00:14:37.360 - 00:14:40.616, Speaker A: Of your vector to the nearest k sparse vector.
+00:14:40.680 - 00:14:43.224, Speaker B: Okay? If your vector is k sparse, the penalty is zero.
+00:14:43.344 - 00:14:48.696, Speaker A: Okay, so this penalty appeared in paper.
+00:14:48.760 - 00:15:02.052, Speaker B: By people from approximation theory and people in signal processing, and also in people from optimization, and also in the work by the people from MIT. And they actually coined, at least as.
+00:15:02.068 - 00:15:06.944, Speaker A: Far as I know, they coined the name tremblass. Okay.
+00:15:08.684 - 00:15:13.372, Speaker B: So this is the penalty that we're going to look at, and you.
+00:15:13.388 - 00:15:15.908, Speaker A: Can ask various questions. First of all, if you add a.
+00:15:15.916 - 00:15:17.372, Speaker B: Penalty of this form, rather than the.
+00:15:17.388 - 00:15:20.152, Speaker A: Lasso, what is the relation to the.
+00:15:20.168 - 00:15:43.144, Speaker B: Original problem, p zero? What values of the penalty parameter lambda should you use? How well can you recover a vector x if you're using this penalty? And on the practical side, how can you optimize an objective when you have such a penalty? Now keep in mind, this penalty is how to opt. It's non convex, and it's hard to optimize.
+00:15:43.184 - 00:15:44.544, Speaker A: If you have a vector which has.
+00:15:44.584 - 00:15:49.476, Speaker B: Kicked large coefficient and the other one are small, your penalties is the l.
+00:15:49.500 - 00:15:51.084, Speaker A: One norm of the ones that are small.
+00:15:51.124 - 00:15:52.412, Speaker B: But if you make a small perturbation.
+00:15:52.468 - 00:15:56.252, Speaker A: And you switch the roles of the.
+00:15:56.308 - 00:16:02.744, Speaker B: Kth and k plus one or k minus one, who's become largest, the penalty is highly non smooth.
+00:16:05.204 - 00:16:06.744, Speaker A: As you perturb x.
+00:16:07.604 - 00:16:11.104, Speaker B: So what I'm going to show in this talk is.
+00:16:13.394 - 00:16:16.214, Speaker A: I'll try to address, essentially questions one to three.
+00:16:17.194 - 00:16:20.410, Speaker B: I'll try to convince you that actually.
+00:16:20.562 - 00:16:22.546, Speaker A: You should solve, if you're interested in.
+00:16:22.570 - 00:16:30.218, Speaker B: Sparse solutions, you should actually solve problems with the primal saw. But that is typically difficult to optimize.
+00:16:30.266 - 00:16:33.106, Speaker A: And you should actually use a surrogate.
+00:16:33.210 - 00:16:37.284, Speaker B: Penalty that is much easier to optimize.
+00:16:37.474 - 00:16:38.324, Speaker A: Okay.
+00:16:39.744 - 00:16:46.680, Speaker B: All right, so here is, so the original problem is p zero. I'll call this problem p lambda.
+00:16:46.832 - 00:16:51.256, Speaker A: With the stream, does the penalty. And the first question we'll ask is.
+00:16:51.280 - 00:17:18.764, Speaker B: How to choose lambda. And here's a very simple lemma that we proved that if you have your design matrix a, you compute what is the largest norm of your, of your atoms, of your columns. And if you take any penalty that is larger than the norm of y times this largest norm of any column, then any local minimum of p lambda is k sparse.
+00:17:21.984 - 00:17:24.520, Speaker A: What this means is that for large.
+00:17:24.552 - 00:17:59.504, Speaker B: Enough lambda, the optimal solutions of p lambda coincide with those of p zero. Okay, so you could instead solve p lambda. Of course, this would also be np hard. Yes, there's no free lunch yet. It will be maybe later. Okay, but in terms of a strategy, you can think about trying to solve the problem with a set of increasing values of lambda until you get to a case power solution. And this is guaranteed to happen suddenly once lambda surpasses that threshold.
+00:17:59.504 - 00:18:16.388, Speaker B: Okay, now a little bit about a relatively simple signal recovery guarantee that we're able to derive, and this will be related to your question about optimality. You see, my model is that I observe a vector y, which is ax.
+00:18:16.436 - 00:18:19.548, Speaker A: Zero plus e. X zero is unknown.
+00:18:19.636 - 00:18:21.532, Speaker B: Is what I want to recover.
+00:18:21.628 - 00:18:24.414, Speaker A: And e is not random, just measurement error.
+00:18:24.574 - 00:18:32.982, Speaker B: And what I'm going to assume that x zero is approximately case pass. So approximately means this, that its distance to the nearest case pass vector is.
+00:18:32.998 - 00:18:35.478, Speaker A: Much, much smaller than its l one norm.
+00:18:35.526 - 00:18:36.702, Speaker B: And I'm going to assume that the.
+00:18:36.718 - 00:18:41.390, Speaker A: Norm of e is smaller. Okay? And the question is, well, my problem.
+00:18:41.422 - 00:18:56.204, Speaker B: Of course is to recover x zero given a y and k. And the question is, can I do it by solving p lambda? Yeah, we will see immediately what, what it means to be small. Okay.
+00:18:56.584 - 00:18:57.404, Speaker A: All right.
+00:18:57.984 - 00:19:38.524, Speaker B: Now this problem is of course imposed because I didn't yet say anything but the matrix a. So for example, even in the absence of noise and with the supercomputer to be able to recover my x zero, I need, or any x zero, I need any two k columns of a to be linearly independent. And what I'm going to assume for my analysis is something similar to a restrictive resonatory property. I'm going to assume that this requirement, so it's like an rip, it's one sided, I don't care about the other side, and it's with mixed nose because.
+00:19:39.744 - 00:19:42.972, Speaker A: That'S maybe some of our limitations.
+00:19:43.028 - 00:19:46.684, Speaker B: But this coefficient alpha two k, I only need it to be larger than.
+00:19:46.724 - 00:19:48.652, Speaker A: Zero, but I don't need it to.
+00:19:48.668 - 00:20:06.528, Speaker B: Be bounded away from zero. So this is the assumption I'm going to make. And two more things before I describe the result. One is that notation. If you give me a vector x, I'll define by PI k of x's projection into the nearest case pass vector. Okay?
+00:20:06.676 - 00:20:07.016, Speaker A: All right.
+00:20:07.040 - 00:20:33.916, Speaker B: So now I want to describe some recovery guarantee with this stream loss of penalty. And so I'm solving a non convex problem. So what I'm going to assume is something maybe non standard. I'm going to assume that whatever algorithm you employed was able to find a reasonably good solution. So what is a reasonably good solution? I'm assuming that they found a solution.
+00:20:34.020 - 00:20:37.348, Speaker A: Whose objective is smaller than that of.
+00:20:37.396 - 00:20:45.572, Speaker B: The projection of the original x zero. Okay, so PI k of x zero is a feasible solution. It's case pals, and I want to.
+00:20:45.588 - 00:20:48.580, Speaker A: Find the, I would say that my.
+00:20:48.652 - 00:20:51.060, Speaker B: Optimization algorithm succeeded if it will find.
+00:20:51.092 - 00:20:53.972, Speaker A: The vector x hat whose objective is smaller than this.
+00:20:54.028 - 00:20:55.068, Speaker B: So what I'm going to show you.
+00:20:55.076 - 00:20:58.208, Speaker A: Is that if this occurred, I cannot.
+00:20:58.256 - 00:20:59.040, Speaker B: Guarantee it will occur.
+00:20:59.072 - 00:21:03.360, Speaker A: I'm solving a non convex problem. But if this occurred, then X hat.
+00:21:03.472 - 00:21:05.808, Speaker B: Or its projection are close to x zero.
+00:21:05.936 - 00:21:07.816, Speaker A: Okay, and this is the.
+00:21:07.920 - 00:21:21.976, Speaker B: Okay, so, and this is the result. This is the result. If X hat is not case false. But let's take it. Let's look at this formula. It's a bit simpler. If X hat itself was case sparse, then I have a bound on its.
+00:21:22.000 - 00:21:24.680, Speaker A: L1 norm, and it involves two terms.
+00:21:24.792 - 00:22:08.072, Speaker B: One is how non k sparse was x zero. If x zero was k sparse, then this first term would be zero. And the other term involves the arrow, the norm of e, and also how much x zero was non spouse. And of course, it's exploded by one over alpha two k. So this is exactly where, how small can the measurement error be? Two important things about this result. It holds for any alpha I don't, and alpha can be close to zero, and I don't need it to be.
+00:22:08.088 - 00:22:11.524, Speaker A: Bounded away from zero. Okay, so.
+00:22:16.504 - 00:22:17.904, Speaker B: Okay, yeah, this is if.
+00:22:17.944 - 00:22:19.986, Speaker A: X hat was, was k spouse.
+00:22:20.160 - 00:22:31.238, Speaker B: If x hat is not ksparse, there is a more involved formula, which also depends on your penalty parameter lambda. And the important take home lesson from.
+00:22:31.286 - 00:22:35.046, Speaker A: This formula is that, in fact, I.
+00:22:35.070 - 00:22:40.390, Speaker B: Don'T necessarily need to solve the problem p lambda with a very large lambda. I may solve it with a lambda.
+00:22:40.422 - 00:22:42.190, Speaker A: Smaller than a lambda.
+00:22:42.222 - 00:22:49.362, Speaker B: Where I get a k spar solution, I may still get a solution whose projection is close to my x zero.
+00:22:49.538 - 00:22:51.818, Speaker A: So I can solve.
+00:22:51.906 - 00:22:54.650, Speaker B: I can try to solve my objective.
+00:22:54.682 - 00:22:57.426, Speaker A: With a lambda for which this optimal.
+00:22:57.450 - 00:23:08.682, Speaker B: Solution doesn't necessarily coincide with p zero, and smaller lambda, hopefully, is a somewhat easier problem to optimize. And again, the recovery is stable with.
+00:23:08.698 - 00:23:12.414, Speaker A: Respect to measurement error and inexactions of sparsity.
+00:23:14.274 - 00:23:30.234, Speaker B: In comparison to the laser, our guarantees are worse. They have a worse dependence on the inexpensive of the x zero, but they don't require the rip constant to be.
+00:23:30.274 - 00:23:32.214, Speaker A: Strictly bounded away from zero.
+00:23:33.754 - 00:23:39.578, Speaker B: We only require it to be just positive, which is a necessary condition for.
+00:23:39.706 - 00:23:46.854, Speaker A: Uniform successful recovery by any algorithm whatsoever. Okay, so, before I move to the.
+00:23:47.874 - 00:24:08.540, Speaker B: Computational part, I hope that I've convinced you that maybe trying to optimize things with the trimblessore is a promising approach. The question now is how to do it. Okay, so this is our objective. And these two papers, they both also consider this objective, and they try to.
+00:24:08.612 - 00:24:11.380, Speaker A: They both propose different methods to optimize it.
+00:24:11.532 - 00:24:24.452, Speaker B: Both methods don't work so well, at least not on challenging problems. And again, the reason is that this penalty is highly non smooth. You change, you take a vector, you know, whose coefficients are slowly decaying, you.
+00:24:24.468 - 00:24:25.692, Speaker A: Perturb it a bit.
+00:24:25.868 - 00:24:40.670, Speaker B: The top k coefficients change by a lot. And many of these methods get stuck at some local minima at the incorrect support. Okay, let me show you some results. So, this is comparison to DC programming.
+00:24:40.702 - 00:24:44.222, Speaker A: This programming was a method proposed in this paper.
+00:24:44.398 - 00:24:47.326, Speaker B: So I'm showing you results for different sparsity levels.
+00:24:47.350 - 00:24:49.302, Speaker A: When the sparsity is small, k equals 15.
+00:24:49.358 - 00:24:50.310, Speaker B: This is an easy problem.
+00:24:50.382 - 00:24:51.034, Speaker A: Yes.
+00:24:52.294 - 00:25:09.494, Speaker C: On the previous slide, I mean, I'm just extrapolating from the title. Is it just to write tau k, the l one, o minus the sum of the largest k term, and then it's a difference between two convex functions, and they are good heuristic for this.
+00:25:09.914 - 00:25:11.042, Speaker A: Not so good.
+00:25:11.218 - 00:25:16.174, Speaker C: Not so good. But maybe in this case, it's not so good. But in general, there's some good heuristics.
+00:25:17.674 - 00:25:20.714, Speaker A: We took their code, or we re implemented it.
+00:25:20.794 - 00:25:22.322, Speaker B: I'll show you a totally different approach.
+00:25:22.418 - 00:25:23.058, Speaker A: Okay.
+00:25:23.186 - 00:25:29.974, Speaker C: Okay, because you see, like, a good heuristic is to linearize the second one so it becomes a fine.
+00:25:31.154 - 00:25:32.674, Speaker A: Yeah, I don't even know by heart.
+00:25:32.714 - 00:25:33.906, Speaker C: What exactly they did.
+00:25:34.010 - 00:25:35.570, Speaker B: Let me show you what, what we did.
+00:25:35.602 - 00:25:41.322, Speaker A: And, okay, but empirically, when k is.
+00:25:41.338 - 00:25:45.306, Speaker B: Small, it's an easy problem. What I'm showing you here is the.
+00:25:45.490 - 00:25:50.570, Speaker A: Whether the optimization succeeded, okay? Whether you find a solution which is.
+00:25:50.642 - 00:25:56.410, Speaker B: Feasible and has a lower objective than the true solution, then it's on a logarithmic scale.
+00:25:56.442 - 00:26:00.386, Speaker A: So anything here is success. Anything here is failure.
+00:26:00.530 - 00:26:02.610, Speaker B: And all of these are instances where.
+00:26:02.642 - 00:26:05.650, Speaker A: Our method succeeded and DCP failed.
+00:26:05.802 - 00:26:12.354, Speaker B: The story with ADMM is similar. When case small, it succeeds. When k starts to be large, it fails.
+00:26:12.474 - 00:26:13.930, Speaker A: Okay. All right.
+00:26:14.002 - 00:26:17.154, Speaker B: So now we come to the last.
+00:26:17.194 - 00:26:22.330, Speaker A: Part of my talk, which is how.
+00:26:22.362 - 00:26:26.074, Speaker B: To practically optimize this penalty.
+00:26:27.454 - 00:26:32.686, Speaker A: And for that I'll rewrite it in a different way.
+00:26:32.790 - 00:26:39.078, Speaker B: Okay, so this is the definition of the trim lasso, but instead I'm going.
+00:26:39.086 - 00:26:40.590, Speaker A: To write it as follows.
+00:26:40.782 - 00:26:44.798, Speaker B: Take your vectors of length d, go.
+00:26:44.846 - 00:26:50.266, Speaker A: Over, choose any possible subset of size k or size d minus k. Let's.
+00:26:50.290 - 00:26:58.962, Speaker B: Say size d minus k, and sum up its corresponding coefficients. And take the one whose sum is smallest.
+00:26:59.058 - 00:27:03.562, Speaker A: Okay? All right, so this just tells you.
+00:27:03.578 - 00:27:05.146, Speaker B: That the trim Glossor can be viewed.
+00:27:05.170 - 00:27:06.810, Speaker A: As a hard minimum.
+00:27:07.002 - 00:27:12.334, Speaker B: Namely, you go over all possible subsets and you choose the one with the minimal l, one norm.
+00:27:12.954 - 00:27:17.682, Speaker A: And our idea is to, we're going.
+00:27:17.698 - 00:27:23.574, Speaker B: To replace this hard minimum by soft minimum. This is what people in neural networks do all the time.
+00:27:25.514 - 00:27:31.054, Speaker A: So this will be our surrogate. Okay, so you start with a vector x.
+00:27:31.874 - 00:27:53.864, Speaker B: Right. Now it's a thought experiment. We're going to expand it to a vector z of length exponentially in x, whose coordinates will be for any subset omega, its coordinates will be the sum of the corresponding entries. The trim glosso is the minimum of this vector. And we're going to replace this minimum.
+00:27:53.944 - 00:27:55.120, Speaker A: By a soft mean.
+00:27:55.272 - 00:28:11.076, Speaker B: Okay, so this is exactly what people do in neural networks. It's the last layer. It's a softmax, a formula used in multiclass classification.
+00:28:11.260 - 00:28:16.424, Speaker A: So here's a softmax of from m categories.
+00:28:17.124 - 00:28:18.364, Speaker B: We need the soft means.
+00:28:18.404 - 00:28:21.596, Speaker A: We're going to add a minus, we're.
+00:28:21.620 - 00:28:23.704, Speaker B: Going to add a smoothness parameter gamma.
+00:28:24.524 - 00:28:32.332, Speaker A: And we're going to average. The thing inside doesn't matter, just adds a constant. And we're going to plug in the.
+00:28:32.348 - 00:28:35.352, Speaker B: Original definition of the huge vector z.
+00:28:35.528 - 00:28:40.552, Speaker A: And this is our surrogate penalty.
+00:28:40.648 - 00:28:43.124, Speaker B: Okay, we call it the generalisoft mean.
+00:28:43.424 - 00:28:44.164, Speaker A: So.
+00:28:45.864 - 00:28:47.764, Speaker B: Let'S see, what is my next.
+00:28:48.424 - 00:28:49.392, Speaker A: Yes, so what?
+00:28:49.448 - 00:29:02.836, Speaker B: So we are going to replace tau, the trim glass, by this penalty. And let's look a bit, what are its properties? So first of all, it's infinitely differentiable.
+00:29:02.940 - 00:29:09.464, Speaker A: In terms of absolute value of x. That's good. We'll be able to maybe do stuff with gradients and such.
+00:29:10.004 - 00:29:13.620, Speaker B: The parameter gamma controls its level of smoothness.
+00:29:13.692 - 00:29:14.604, Speaker A: We'll show in a minute.
+00:29:14.644 - 00:29:18.624, Speaker B: It has nice properties. When gamma goes to zero, gamma goes to infinity.
+00:29:19.684 - 00:29:24.844, Speaker A: You can also think about it from a bayesian perspective. If your target x zero is k.
+00:29:24.884 - 00:29:27.928, Speaker B: Sparse, but you don't know, but you.
+00:29:27.936 - 00:29:37.048, Speaker A: Have a uniform prior over all possible subsets where it's k sparse. You could think about this as your vision prior and add it as a.
+00:29:37.176 - 00:29:45.204, Speaker B: You know, and I'll show you in a minute that it is somewhat significantly easier to optimize.
+00:29:45.944 - 00:29:49.344, Speaker A: Okay, so some properties about this function.
+00:29:49.424 - 00:30:13.614, Speaker B: It'S more than decreasing as you increase gamma. And it has a nice property. You take gamma to zero, you get the lasso up to a multiplicative factor, and when you take gamma to infinity, you get the trim lesson. Okay, so it actually, you can somehow interpolate between the convex lasso and the penalty that is much closer to the original problem, p zero, that you wanted to solve.
+00:30:16.154 - 00:30:22.166, Speaker A: And as I said, instead of optimizing this, we suggest to optimize a sequence.
+00:30:22.190 - 00:30:31.814, Speaker B: Of functions with this generalized soft mean where we propose a homotopy scheme. We start from a very small gamma.
+00:30:31.854 - 00:30:34.278, Speaker A: Zero, let's say even zero for zero.
+00:30:34.406 - 00:30:53.564, Speaker B: Usually start from the convex l one problem, and you start to increase gamma, and you track your solution, you initialize your new object, you try to optimize your object, your new objective, starting from the previous solution for a slightly smaller gamma.
+00:30:56.464 - 00:31:03.920, Speaker A: Okay, all right. Now, still as appealing as it, this.
+00:31:03.952 - 00:31:12.464, Speaker B: May seem, there is a problem because this objective is non convex as well.
+00:31:13.204 - 00:31:16.276, Speaker A: And the way we're going to approach.
+00:31:16.340 - 00:31:47.964, Speaker B: It is again standard in optimization. We're going to use modularization minimization. We're going to construct a different function that majorizes this penalty. We're going to do a first order Taylor expansion. This is a definition of a majorizer function. It's a function of two variables, and it coincides with the original penalty when the two variables are the same. So if you do modular minimization, you're guaranteed to decrease monotonically, typically only to a stationary point.
+00:31:47.964 - 00:32:11.294, Speaker B: I'm not going to go into the details. I'm going to tell you. So these are some ways that are related to the gradient of my penalty. The key point is that you do a first order Taylor expansion. You get this as your majorizer. And what's important about this majorizer is that, you know, you have two variables, x and x. Tilde.
+00:32:11.914 - 00:32:19.894, Speaker A: Ah, so this majorizer, some of these terms are constant with respect to x. And therefore.
+00:32:21.794 - 00:32:55.684, Speaker B: Doing a majorizer minimization step, you only need to solve a convex weighted l one problem. So you can just plug in into any classical standard solver that is out there, solve this, do several major steps, and I'm done. Okay, so this is essentially similar to iteratively weighted l one. There's an important difference that although all my weights are bounded between zero and one, they have the same sum. So you don't need, how much time?
+00:32:56.724 - 00:32:58.124, Speaker A: Two minutes. Okay.
+00:32:58.164 - 00:33:00.744, Speaker B: I started two minutes late, three minutes.
+00:33:01.324 - 00:33:05.824, Speaker A: I only have 15 slides to go. Okay.
+00:33:06.324 - 00:33:10.796, Speaker B: So I don't need to regularize, which.
+00:33:10.820 - 00:33:14.828, Speaker A: Is crucial in interval weighted l one. Okay.
+00:33:14.876 - 00:33:23.158, Speaker B: The last technical thing, all of this would not be useful if I didn't have a way to compute these terms.
+00:33:23.276 - 00:33:25.854, Speaker A: These terms involve an exponential number of terms.
+00:33:26.234 - 00:33:29.826, Speaker B: So if you think about it a little bit, so naive calculation is close.
+00:33:29.890 - 00:33:33.546, Speaker A: Out of the question. If you think a little bit, you.
+00:33:33.570 - 00:33:34.826, Speaker B: Will be able to come up with.
+00:33:34.850 - 00:33:37.834, Speaker A: A recursive formula to compute these quantities.
+00:33:37.954 - 00:33:47.642, Speaker B: It will be highly unstable because you're computing x of gamma times something, and gamma is going to be large. So you need to be very, very careful. I'm not going to go into the details.
+00:33:47.778 - 00:33:54.494, Speaker A: We developed a scheme that takes order KD operations to compute the various required quantities.
+00:33:54.614 - 00:33:58.374, Speaker B: So it's not the bottleneck. The bottleneck is solving the l one problems.
+00:33:58.414 - 00:33:59.154, Speaker A: Okay.
+00:33:59.734 - 00:34:02.494, Speaker B: And let me show you some results.
+00:34:02.574 - 00:34:07.774, Speaker A: Let's keep everything else. Okay.
+00:34:07.814 - 00:34:14.302, Speaker B: I'll show you some results. This is a similar simulation to the one in Hazim and Mazumde, which in.
+00:34:14.318 - 00:34:15.766, Speaker A: Turn, I think is also similar to.
+00:34:15.790 - 00:34:18.636, Speaker B: The simulation that Peter Bohlmann had in.
+00:34:18.660 - 00:34:19.420, Speaker A: One of his papers.
+00:34:19.452 - 00:34:29.228, Speaker B: So you have a sparse signal. The design matrix is correlated. I generate a vector y it has.
+00:34:29.276 - 00:34:32.344, Speaker A: Noise, and I have various measures of success.
+00:34:32.684 - 00:34:36.572, Speaker B: So this is the coordinate descent method of Mazumdel.
+00:34:36.668 - 00:34:42.724, Speaker A: This is when I add his local combinatorial search. And this is our method, so we're.
+00:34:42.764 - 00:34:58.732, Speaker B: Able to recover the correct support with roughly 20% fewer observations, which at least in some compressed sensing applications, could be important. This is for a relatively high snr. If I have a lower snR, the.
+00:34:58.748 - 00:35:00.892, Speaker A: Same picture, just you need more samples.
+00:35:00.948 - 00:35:05.504, Speaker B: To recover the correct support voltage, the air. But to do it with few observations.
+00:35:06.964 - 00:35:14.810, Speaker A: I'll stop here before Yankee stops me himself. Okay, so, to conclude, as we all.
+00:35:14.842 - 00:35:18.274, Speaker B: Know, the sparsity plays a key role in many, many applications.
+00:35:18.354 - 00:35:20.642, Speaker A: I think that on challenging instances, there.
+00:35:20.658 - 00:35:36.654, Speaker B: Is still room for improvement. I think that the trimble saw is a desirable approach, and I think the approach I described may be useful in other problems involving a combinatorial search and sparsity.
+00:35:36.834 - 00:35:39.714, Speaker A: There is code, there's a paper. Thank you very much.
+00:35:45.174 - 00:35:52.902, Speaker D: If there is a really burning question, I'm happy to hear it. Oh, and boss, to answer it, thank.
+00:35:52.918 - 00:35:54.474, Speaker E: You very much for nice talk.
+00:35:59.614 - 00:36:01.230, Speaker A: Thank you very much for nice talk.
+00:36:01.382 - 00:36:29.204, Speaker E: So my question is, um, is there any, like, solid theoretical evidence on, like, this trim lasso is better than lasso? Say, could you give us some setups where, like, let's say I can have a, like, infinitely powerful optimizer that just solves the trim lasso and lasso? Just so statistically, um, is there any case where trim lasso is absolutely better in terms of, say, mse or support recovery?
+00:36:31.204 - 00:36:35.780, Speaker B: Are you assuming that you have an oracle that is able to minimize the trim loss?
+00:36:35.812 - 00:36:38.500, Speaker E: So, yes, yes, I assume such oracle.
+00:36:38.692 - 00:36:55.970, Speaker B: For example, the recovery guarantee that I showed you holds for any alpha larger than zero. And for the lasso, you know that there are dictionaries with alpha small for which the lasso will probably fail.
+00:36:56.082 - 00:37:05.426, Speaker D: But how big can be your error? Because the alpha is the numerator, but you have the error norm in the numerator.
+00:37:05.610 - 00:37:06.146, Speaker A: Right.
+00:37:06.250 - 00:37:15.866, Speaker D: So what is the SNR that you can work with? The ratio between the ax and.
+00:37:15.930 - 00:37:31.686, Speaker B: Yeah, yeah. So it depends on how practically I didn't work with. I did simulations similar to what previous people designed and I. This is what I didn't play with actual data.
+00:37:31.830 - 00:37:32.594, Speaker C: Okay.
+00:37:40.054 - 00:37:42.998, Speaker F: Theoretical results are not about selection, but about.
+00:37:43.086 - 00:37:45.874, Speaker B: The theoretical result is assuming k is known.
+00:37:46.254 - 00:37:48.848, Speaker F: No, I mean that they are bound to the l. One error.
+00:37:48.926 - 00:37:50.020, Speaker A: Yes, yes.
+00:37:50.132 - 00:37:54.108, Speaker F: And this is not a selection type result. This is estimation result, correct?
+00:37:54.156 - 00:37:57.100, Speaker B: Yeah, yeah, yeah. It's an estimation.
+00:37:57.292 - 00:38:08.224, Speaker F: To your question, I have an answer. In one case, it is minimax optimal. If matrix is identity matrix, then one can prove that this solution is exactly minimum optimal.
+00:38:12.364 - 00:38:32.238, Speaker E: There's a very famous, like, statute science paper comparing best obsessed selection and lasso, and also, um, other. Lots of approaches. Basically the message is that if the signal to noise ratio is high, then best the subset solution is better. But on the other end, like, if the signal is weak, then lasso can better. Can be better.
+00:38:32.286 - 00:38:40.954, Speaker A: So you're talking about the paper by Tibshirani, right, right, the review paper. I have some criticisms about the paper, but I'm not.
+00:38:43.054 - 00:38:44.318, Speaker B: I can discuss it offline.
+00:38:44.366 - 00:38:45.526, Speaker E: Sure. I'm happy to discuss.
+00:38:45.590 - 00:38:46.394, Speaker A: Thank you.
+00:38:48.104 - 00:38:49.424, Speaker D: Any other questions?
+00:38:49.584 - 00:38:53.944, Speaker A: No, it's not a question. I know it's an answer.
+00:38:54.104 - 00:39:23.022, Speaker G: Let's thank both and all the speakers. I just have a couple of housekeeping announcements. So we have a reception and poster session starting at five. Just outside. You can probably see the poster boards. There is food there, dinner is tomorrow. And if you registered for the dinner, you should have received an email from Judy McDonald confirming it.
+00:39:23.022 - 00:39:52.764, Speaker G: If you haven't received such an email, then you probably didn't register. If you can't remember whether you registered or not, you can send me an email tonight. We had a few last minute consolations, so I do have a few open spaces for the dinner. So if you didn't register but you changed your mind and you want to go, you can also send me an email tonight about that. But please don't do it tomorrow. So tonight only. And I will see everybody tomorrow at 09:00 thanks.

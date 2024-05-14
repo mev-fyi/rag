@@ -1,0 +1,510 @@
+00:00:00.160 - 00:00:29.494, Speaker A: So just to say, next speaker is David Mitchell. And if there is one thing to say that David's paper that was already mentioned several times today on easy, hard easy was one of the earlier papers. And then David has done beautiful work both on propositional side and constrained programming side. Oh, thanks, the floor.
+00:00:30.954 - 00:00:45.854, Speaker B: Okay, thanks for the invitation and the introduction. And thanks, BJ and Laurent, for setting up lots of things for me so I don't have to explain many things.
+00:00:46.554 - 00:00:49.374, Speaker C: I'm going to talk about attempts to.
+00:00:49.994 - 00:00:53.764, Speaker B: Exploit instance structure in CDL CEO solvers.
+00:00:56.704 - 00:01:04.000, Speaker C: So if we go back to prehistory of Sat solving, basically everybody agreed that.
+00:01:04.032 - 00:01:12.680, Speaker B: Reduction to Sat couldn't be a practical problem solving method. And practitioners and algorithms researchers both said this.
+00:01:12.712 - 00:01:17.856, Speaker C: And the arguments were basically all of the form. These are hard problems.
+00:01:17.880 - 00:01:23.954, Speaker B: There's no way you can solve them without taking the structure, structure of the problems or the instances into account.
+00:01:26.854 - 00:01:30.694, Speaker C: And curiously, I think actually the history.
+00:01:30.734 - 00:01:34.234, Speaker B: Of south solvers since then has been a proof that they're wrong.
+00:01:36.974 - 00:01:39.926, Speaker C: But anyway, so a little bit less.
+00:01:39.990 - 00:01:48.202, Speaker B: Long ago, the word structure was everywhere you went that people were talking about SAP.
+00:01:48.318 - 00:01:55.418, Speaker C: So random instances were hard because they had no structure. Industrial instances were easy relative to their.
+00:01:55.506 - 00:01:56.254, Speaker B: Size.
+00:01:58.314 - 00:02:02.674, Speaker C: Because they have some kind of nice structure. And.
+00:02:02.834 - 00:02:05.254, Speaker B: Sorry, I'm just getting my pointer up here.
+00:02:05.594 - 00:02:08.922, Speaker C: And crafted instances are hard because they.
+00:02:08.938 - 00:02:14.694, Speaker B: Have this regular structure, so no messy edges that algorithms could chew on.
+00:02:15.594 - 00:02:27.666, Speaker C: But at some point, my feeling was that the word structure actually almost became a dirty word because everyone would be invoking it all the time. But nobody could justify it.
+00:02:27.690 - 00:02:31.854, Speaker B: Nobody could say what the heck they meant when they said it's because of the structure.
+00:02:32.634 - 00:02:35.322, Speaker C: Between then and now, a whole bunch.
+00:02:35.338 - 00:02:41.134, Speaker B: Of things have happened. So applied sat solving has become a success story.
+00:02:42.104 - 00:02:45.152, Speaker C: It's clear that real instances have all.
+00:02:45.168 - 00:02:51.684, Speaker B: Kinds of visible structure. Laurent showed you some visualizations that illustrate that by various ways. We see that.
+00:02:53.664 - 00:03:00.320, Speaker C: There'S a number of structural measures that have identified that correlate.
+00:03:00.392 - 00:03:05.124, Speaker B: With various aspects of solver behavior, either.
+00:03:05.544 - 00:03:09.382, Speaker C: Runtime or the choices bsids makes, or.
+00:03:09.398 - 00:03:11.470, Speaker B: The clauses that are learned, etcetera.
+00:03:11.582 - 00:03:12.182, Speaker D: Okay?
+00:03:12.278 - 00:03:14.486, Speaker C: We have a rich theory of structure.
+00:03:14.550 - 00:03:19.022, Speaker B: Based fixed parameter tractable algorithms, okay?
+00:03:19.118 - 00:03:22.486, Speaker C: And the best solvers that we've had.
+00:03:22.550 - 00:03:28.754, Speaker B: During all these times have never used structure.
+00:03:29.254 - 00:03:44.000, Speaker C: Okay, so what, I mean, so I've been messing around with SAT solvers on and off since 1989. So in that 32 years, I don't believe it's ever been the case that the dominant solvers have had any mechanism.
+00:03:44.112 - 00:03:47.456, Speaker B: For making use of instant structure.
+00:03:47.560 - 00:03:50.128, Speaker E: You mean, you mean explicit mechanism explicit.
+00:03:50.176 - 00:03:58.504, Speaker C: So, yeah, so of course it's almost autologous that they use implicit structure, because what the heck else are they doing.
+00:03:58.544 - 00:04:01.724, Speaker B: If they're not somehow exploiting the structure that's there?
+00:04:03.084 - 00:04:07.340, Speaker C: But beyond that, even if you want to make an argument that they're using.
+00:04:07.412 - 00:04:12.364, Speaker B: Implicit structure, that they're using it, it's really tough.
+00:04:12.404 - 00:04:22.676, Speaker C: I think even with all the experiments that Laurent, Carlos and various other people have done, there's nothing there that really.
+00:04:22.780 - 00:04:26.864, Speaker B: Convinces you it's using structural properties. That's really tough.
+00:04:28.384 - 00:04:31.104, Speaker C: Okay, so let me just, again, people.
+00:04:31.144 - 00:04:42.040, Speaker B: Have different notions of structure. So this is pretty much known. I'm talking about global or macroscopic structure.
+00:04:42.152 - 00:04:44.800, Speaker C: And usually we associate the structure of.
+00:04:44.832 - 00:04:48.404, Speaker B: A set of clauses with the structure of some graph.
+00:04:49.024 - 00:04:49.456, Speaker D: Okay?
+00:04:49.480 - 00:04:53.912, Speaker C: And here I'll mostly be talking about what's called the primal graph, or the.
+00:04:53.928 - 00:05:00.114, Speaker B: Variable incidence graph, where vertices are atoms.
+00:05:00.454 - 00:05:06.222, Speaker C: And we have an edge between two atoms if they co occur in a.
+00:05:06.238 - 00:05:16.634, Speaker B: Clause regardless of sign. So we have a not p or an s here, and we have an edge between p and s in this graph.
+00:05:18.174 - 00:05:23.666, Speaker C: Now there's lots of other graphs are possible. If you're a theoretician, you probably spend a lot more time thinking about the.
+00:05:23.690 - 00:05:26.694, Speaker B: Incidence graph, which I think is more interesting.
+00:05:27.074 - 00:05:29.626, Speaker C: And occasionally even people might look at.
+00:05:29.650 - 00:05:33.394, Speaker B: The directed incidence graph. Laurent had a different name for it.
+00:05:33.514 - 00:05:37.778, Speaker C: But that's where you put the directions on these edges.
+00:05:37.946 - 00:05:40.814, Speaker B: It completely describes the instance.
+00:05:41.954 - 00:05:46.474, Speaker C: The problem in practice is the incidence.
+00:05:46.554 - 00:05:48.706, Speaker B: Graph is a lot larger than the.
+00:05:48.730 - 00:05:56.258, Speaker C: Primal graph, typically, and it's also harder to think about. And I think for that reason, not.
+00:05:56.306 - 00:06:02.014, Speaker B: All, but a large majority of kind of experimental work has used the primal graph.
+00:06:02.914 - 00:06:03.282, Speaker D: Okay.
+00:06:03.298 - 00:06:04.482, Speaker C: If we want to make use of.
+00:06:04.498 - 00:06:07.842, Speaker B: A structure in our solver before we.
+00:06:07.858 - 00:06:09.090, Speaker C: Can even find out if it works.
+00:06:09.122 - 00:06:10.410, Speaker B: We need at least three things, right?
+00:06:10.442 - 00:06:13.634, Speaker C: So we need a property that somehow.
+00:06:13.674 - 00:06:15.894, Speaker B: Is related to solver behavior.
+00:06:17.004 - 00:06:19.596, Speaker C: This property needs to be computed fast.
+00:06:19.660 - 00:06:23.492, Speaker B: Enough that you can get information about.
+00:06:23.548 - 00:06:31.476, Speaker C: It, fast enough to use in a SAT store, and then you need a.
+00:06:31.500 - 00:06:37.624, Speaker B: Way to exploit it within CDCL algorithm. Each one of these things is really tough.
+00:06:38.204 - 00:06:44.596, Speaker C: So you've already heard. As you know, we've been doing this for, I've been doing it for 32.
+00:06:44.660 - 00:06:45.264, Speaker B: Years.
+00:06:47.564 - 00:06:50.580, Speaker C: And almost every reasonable candidate that's.
+00:06:50.612 - 00:07:00.756, Speaker B: Been shown up has already been discussed in the previous two talks. So in all those times, there's not that many great candidates. Most of these properties are hard to.
+00:07:00.780 - 00:07:06.796, Speaker C: Compute, so typically takes you longer to compute them on large instances than it.
+00:07:06.820 - 00:07:08.344, Speaker B: Does to run the SAT solver.
+00:07:08.904 - 00:07:09.808, Speaker D: Okay.
+00:07:09.976 - 00:07:11.776, Speaker C: And it's very hard to find ways.
+00:07:11.800 - 00:07:14.644, Speaker B: To make use of them inside CDCL solver.
+00:07:14.984 - 00:07:16.880, Speaker C: So I'm going to talk just briefly.
+00:07:16.912 - 00:07:24.044, Speaker B: About a few here. Centrality, community structure and tree width. You've heard about them all. Most people in this community already knew about them all.
+00:07:25.864 - 00:07:28.024, Speaker C: And let me just emphasize, I'm talking.
+00:07:28.064 - 00:07:31.204, Speaker B: About industrial type CDCL SAT solvers.
+00:07:32.384 - 00:07:33.664, Speaker C: If you look at, if you're doing.
+00:07:33.704 - 00:07:41.454, Speaker B: Max sat or sharp saT, or if you're doing solvers for random formulas, a lot of things are different, but I'm just going to focus on those.
+00:07:43.074 - 00:07:51.938, Speaker C: Okay, so centrality comes from the idea. Well, so we might want to focus on important variables, and important variables maybe.
+00:07:51.986 - 00:08:01.814, Speaker B: Are those with a lot of near neighbors, a large d neighborhood for some d or something like that, or so, central nodes.
+00:08:03.034 - 00:08:03.490, Speaker D: Okay.
+00:08:03.522 - 00:08:06.726, Speaker C: And we have experimental result and some.
+00:08:06.750 - 00:08:12.630, Speaker B: Of it's been been referred to showing that vsynth has a preference for central variables.
+00:08:12.662 - 00:08:17.158, Speaker C: Okay, so, but when I see it as a preference, I mean it chooses.
+00:08:17.206 - 00:08:22.638, Speaker B: Those kinds of variables a lot more often than others for just as your decision variable. Right.
+00:08:22.686 - 00:08:26.550, Speaker C: So first likes high degree variables.
+00:08:26.622 - 00:08:35.048, Speaker B: That's shown in nuschement all a few years ago, high eigenvalue centrality variables. Lauren just mentioned that.
+00:08:35.176 - 00:08:38.624, Speaker C: And high between the centrality variables.
+00:08:38.784 - 00:08:45.444, Speaker B: Kent has a high preference for all of these things. That's with my student Seema Giomali.
+00:08:46.544 - 00:08:46.960, Speaker D: Okay.
+00:08:46.992 - 00:08:51.584, Speaker C: And also we have that learned clause.
+00:08:51.624 - 00:08:56.764, Speaker B: Variables are more central than conflict clause variables, again from catzerales and Sima.
+00:08:57.144 - 00:09:05.472, Speaker C: Okay, so when you, so this looks promising. Okay, so competing centralities, at least between.
+00:09:05.528 - 00:09:12.312, Speaker B: The centralities, is probably time. It's all pairs, shortest paths, but that's too expensive for big formats.
+00:09:12.448 - 00:09:14.456, Speaker C: So we can do some rough approximations.
+00:09:14.520 - 00:09:16.064, Speaker B: And what we see is that, well.
+00:09:16.104 - 00:09:20.280, Speaker C: In a lot of cases the time taken is way too much to think.
+00:09:20.312 - 00:09:26.604, Speaker B: About using this in a SAP solver. In larger cases, you can do it fast.
+00:09:29.154 - 00:09:31.858, Speaker C: Okay, next, community structure.
+00:09:31.906 - 00:09:32.494, Speaker B: So.
+00:09:34.674 - 00:09:38.802, Speaker C: We may like the idea that.
+00:09:38.818 - 00:09:41.698, Speaker B: We can partition our set of variables.
+00:09:41.786 - 00:09:45.442, Speaker C: In such a way that very few.
+00:09:45.498 - 00:09:47.054, Speaker B: Edges occur between.
+00:09:49.074 - 00:09:51.982, Speaker C: The blocks of the partition and most occur within.
+00:09:52.178 - 00:09:52.582, Speaker D: Okay.
+00:09:52.598 - 00:09:54.142, Speaker C: And so there's a particular measure, but.
+00:09:54.158 - 00:09:58.558, Speaker B: We don't need to get into it. And so we may call one of.
+00:09:58.566 - 00:10:02.710, Speaker C: These blocks the community and variable that.
+00:10:02.742 - 00:10:07.274, Speaker B: Occurs on an edge between communities we call a bridge variable.
+00:10:07.654 - 00:10:09.574, Speaker C: And we can kind of look at.
+00:10:09.614 - 00:10:22.442, Speaker B: This with this community graph where nodes correspond to communities. The size of the node in a typical picture is the size of the.
+00:10:22.458 - 00:10:24.306, Speaker C: Community, and the thickness of an edge.
+00:10:24.330 - 00:10:27.134, Speaker B: Is the number of edges between those two communities.
+00:10:28.954 - 00:10:29.418, Speaker D: Okay?
+00:10:29.466 - 00:10:35.282, Speaker C: And of course, one of the things you like about this is that if you take all the bridge variables, that's.
+00:10:35.298 - 00:10:36.854, Speaker B: A separator for the graph.
+00:10:37.754 - 00:10:38.186, Speaker D: Okay?
+00:10:38.210 - 00:10:40.930, Speaker C: So we know, again, there's a number.
+00:10:40.962 - 00:10:50.594, Speaker B: Of connections between community structure and solving. We know industrial pointers have relatively good.
+00:10:51.374 - 00:10:59.038, Speaker C: Community structure structures correlated with solving time. Or at least community structure makes a.
+00:10:59.166 - 00:11:09.234, Speaker B: Better predictor of solving time than other things like variables or number of clauses, etcetera.
+00:11:11.544 - 00:11:33.360, Speaker C: I feel there's two sides to this claim, because on the one hand, it's not very much of a claim that it's better than say, number of variables because the number of variables or the number of clauses tells us so little. If I tell you I have a formula with a million variables, about all you can tell me about how hard.
+00:11:33.392 - 00:11:36.124, Speaker B: It is to solve is. It's going to take more than a couple of seconds.
+00:11:36.264 - 00:11:38.748, Speaker C: We don't even have a good upper, we don't even have an upper bound.
+00:11:38.876 - 00:11:40.460, Speaker B: That'S worth talking about.
+00:11:40.652 - 00:11:41.124, Speaker D: Okay?
+00:11:41.164 - 00:11:47.628, Speaker C: So on the other hand, we're desperate for any kind of measure that actually.
+00:11:47.716 - 00:11:52.664, Speaker B: Does have reasonable predictive value. And so this is very interesting.
+00:11:53.604 - 00:11:56.764, Speaker C: Okay, and vsids likes to pick bridge.
+00:11:56.804 - 00:12:06.114, Speaker B: Variables, has a preference for bridge variables more than others. Okay, that appears in Yang et al. And, and was replicated.
+00:12:09.094 - 00:12:15.174, Speaker C: Okay, so community structure is hard to communicate precisely, hard to find the NP.
+00:12:15.214 - 00:12:17.354, Speaker B: Hard to find the optimum partition.
+00:12:17.734 - 00:12:20.526, Speaker C: But we can use heuristics and pretty.
+00:12:20.590 - 00:12:22.990, Speaker B: Often something happened to my slide there.
+00:12:23.102 - 00:12:23.614, Speaker D: Okay?
+00:12:23.694 - 00:12:29.918, Speaker C: So again, sometimes it takes way too long, but in a lot of cases.
+00:12:29.966 - 00:12:39.034, Speaker B: We can do a reasonable approximation. That is, we can come up with some kind of reasonable partition fast.
+00:12:40.814 - 00:12:47.194, Speaker C: Here's just, if people haven't seen them, we take these measurements. But sometimes.
+00:12:49.214 - 00:12:51.806, Speaker B: You should look at things, okay?
+00:12:51.830 - 00:12:54.854, Speaker C: So some, regardless of what the q.
+00:12:54.894 - 00:13:00.654, Speaker B: Value is, how it scores by measuring. Some have nice structure like this one.
+00:13:01.954 - 00:13:06.682, Speaker C: And somehow maybe less nice structure like.
+00:13:06.738 - 00:13:09.306, Speaker B: This and this, right, these are community.
+00:13:09.490 - 00:13:12.402, Speaker C: These are, I'm not going to tell.
+00:13:12.418 - 00:13:17.974, Speaker B: You which formulas, these are formulas from the probably 2016 benchmark set.
+00:13:19.874 - 00:13:23.666, Speaker C: Okay, the colors here are the centrality.
+00:13:23.730 - 00:13:30.474, Speaker B: Score for the nodes in the community graph.
+00:13:33.094 - 00:13:33.526, Speaker D: Okay?
+00:13:33.550 - 00:13:37.822, Speaker C: And finally, tree decompositions. Okay, so we have a formula like this.
+00:13:37.878 - 00:13:39.990, Speaker B: This gives us this graph, and a.
+00:13:40.022 - 00:13:47.494, Speaker C: Treaty composition is a tree like say this one, okay? Where you can think of it this.
+00:13:47.534 - 00:13:58.800, Speaker B: Way, each edge from the graph has to appear in one of the nodes. So the nodes of the tree will be collections of vertices. Each edge has to appear in a node.
+00:13:58.952 - 00:14:01.624, Speaker C: So I've distributed my edges around this.
+00:14:01.664 - 00:14:15.444, Speaker B: Tree and then it needs the additional property that if a variable occurs in two nodes, it must occur in every node on the path in between them.
+00:14:16.584 - 00:14:19.594, Speaker C: The largest node here has a c.
+00:14:19.784 - 00:14:23.634, Speaker B: Vertices that tells me that the width of this decomposition is five.
+00:14:24.454 - 00:14:26.190, Speaker C: Okay, so the tree width is the.
+00:14:26.262 - 00:14:30.294, Speaker B: Minimum width of a treaty composition of the graph of the formula.
+00:14:30.374 - 00:14:31.774, Speaker C: Again, if you're a theoretician, you're probably.
+00:14:31.814 - 00:14:34.514, Speaker B: Used to using the incidence graph, but.
+00:14:39.014 - 00:14:40.766, Speaker F: Excuse me, can I ask a quick question?
+00:14:40.910 - 00:14:41.594, Speaker B: Sure.
+00:14:43.174 - 00:14:56.674, Speaker F: So when you create these communities and they are connected by bridges, does it make sense to somehow arrange them given how big one community is or how small in other communities? And which one would be more important in this case?
+00:14:58.094 - 00:15:04.806, Speaker C: I think the answer is probably yes. In fact, in fact, on my whiteboard I have a sketch of an algorithm.
+00:15:04.870 - 00:15:06.326, Speaker B: To use that that's been sitting there.
+00:15:06.350 - 00:15:10.654, Speaker C: For ten years, but I'm not aware.
+00:15:10.694 - 00:15:14.354, Speaker B: Of work really doing anything with that idea.
+00:15:16.884 - 00:15:22.636, Speaker C: Yeah, thanks. Okay, so, okay, so tree width is.
+00:15:22.660 - 00:15:30.996, Speaker B: Hard to compute, but if we restrict ourselves to some bounded tree width, then.
+00:15:31.020 - 00:15:34.644, Speaker C: We have very fast algorithms. Well, okay, so linear time algorithms with.
+00:15:34.684 - 00:15:41.658, Speaker B: Some very large constant in front that's exponentially dependent on k in practice.
+00:15:41.706 - 00:15:44.934, Speaker C: Unfortunately, computing even weak bounds.
+00:15:46.714 - 00:15:47.122, Speaker B: On the.
+00:15:47.138 - 00:15:51.082, Speaker C: Tree width usually takes more time than.
+00:15:51.098 - 00:16:03.842, Speaker B: It takes to run a sats over on the formula and also the tree with the bench. Most industrial type formulas are so large that the standard methods you would apply.
+00:16:03.898 - 00:16:06.610, Speaker C: At least to get these complexity results can't be used.
+00:16:06.642 - 00:16:17.614, Speaker B: Now, people are of course working on this to improve things, but it's a tough game. Okay, here's some treaty compositions of some industrial benchmark formulas.
+00:16:18.834 - 00:16:20.130, Speaker C: When I first saw these, I thought.
+00:16:20.162 - 00:16:22.494, Speaker B: Gee, these are beautiful, this has to be good news.
+00:16:23.274 - 00:16:25.574, Speaker C: But I can tell you, you see.
+00:16:26.034 - 00:16:46.104, Speaker B: In these central branches here with a long string of large nodes, these tree nodes have, they're big, so they have 600, 900, 1200 variables in them.
+00:16:46.804 - 00:16:47.284, Speaker D: Okay?
+00:16:47.324 - 00:16:53.732, Speaker C: So you can't even think about doing standard dynamic programming where, you know, you.
+00:16:53.748 - 00:16:59.904, Speaker B: Have two to the 500 work in each of these, in each of these nodes.
+00:17:02.064 - 00:17:07.928, Speaker C: Okay, so this little thing here has.
+00:17:07.976 - 00:17:12.204, Speaker B: Hundreds of nodes in it, right? That are tiny and these are big.
+00:17:13.904 - 00:17:19.184, Speaker C: Okay, so now we want to, so, but we have some interesting measures now.
+00:17:19.224 - 00:17:26.152, Speaker B: We'D like to use them in our solvers. So here's an abstracted CDCL, okay, we.
+00:17:26.168 - 00:17:32.062, Speaker C: Have a clause set input, and we start with an empty assignment. And then as long as either you.
+00:17:32.078 - 00:17:44.398, Speaker B: Don'T have the empty clause in your clause set and the assignment doesn't satisfy the set of clauses, then we're going to extend our truth assignment. Right.
+00:17:44.566 - 00:17:44.870, Speaker D: How?
+00:17:44.902 - 00:17:51.406, Speaker B: By making decisions and doing unit propagation until either we satisfy the formula as a conflict.
+00:17:51.550 - 00:17:54.766, Speaker C: If there's a conflict, we derive a.
+00:17:54.910 - 00:18:04.624, Speaker B: Special kind of clause by resolution called an assertive clause. Right. And this gives us some information that lets us back jump, throw out some chunk of the partial assignment.
+00:18:04.784 - 00:18:05.200, Speaker D: Okay.
+00:18:05.232 - 00:18:08.328, Speaker B: And then we add that clause to our clause set.
+00:18:08.456 - 00:18:08.840, Speaker D: Okay.
+00:18:08.872 - 00:18:09.744, Speaker B: That we've derived.
+00:18:09.824 - 00:18:10.184, Speaker D: Okay.
+00:18:10.224 - 00:18:12.128, Speaker C: And possibly, if it looks like we.
+00:18:12.136 - 00:18:15.604, Speaker B: Have too many clauses in the clause set to be, to be efficiently deleted.
+00:18:16.144 - 00:18:21.904, Speaker C: Okay, so this, it looks like we have a lot of room to mess.
+00:18:21.944 - 00:18:30.684, Speaker B: Around here, and in some sense we do. But, but solvers. And Laurent has a nicer expression than this, right? Actual solvers.
+00:18:32.984 - 00:18:39.296, Speaker C: Are implemented in a way that makes it very hard to make substantive changes without breaking them.
+00:18:39.360 - 00:18:44.016, Speaker B: Almost everything you drew that's big will break it.
+00:18:44.040 - 00:19:00.184, Speaker C: So the operations and a solver are highly interdependent. Everything's essentially local. Implementations have properties carefully designed to maintain.
+00:19:00.264 - 00:19:04.240, Speaker B: Locality and cache behavior, etcetera.
+00:19:04.432 - 00:19:07.248, Speaker C: There are often details that are finely.
+00:19:07.296 - 00:19:08.784, Speaker B: Tuned and relate to each other.
+00:19:08.824 - 00:19:14.608, Speaker C: You can't, there's many places where you can make small changes and nothing big.
+00:19:14.656 - 00:19:22.276, Speaker B: Happens, but there's a lot of, but it's hard to do too much. Okay.
+00:19:22.300 - 00:19:23.716, Speaker C: So the question is, how can we.
+00:19:23.740 - 00:19:26.004, Speaker B: Bring in global structure to such a thing?
+00:19:26.084 - 00:19:28.292, Speaker C: And there's not that many ideas, at.
+00:19:28.308 - 00:19:29.564, Speaker B: Least in the literature. Okay?
+00:19:29.604 - 00:19:39.708, Speaker C: So one is you can add extra clauses, okay. Or you can tweak the heuristics. So the main heuristics in CDCL solvers.
+00:19:39.756 - 00:19:47.764, Speaker B: Are the decision heuristic, okay. The clause deletion heuristic, and the restart policy.
+00:19:50.784 - 00:19:51.240, Speaker D: Okay?
+00:19:51.272 - 00:19:53.504, Speaker C: So a couple of examples of adding.
+00:19:53.544 - 00:20:05.616, Speaker B: Clauses, Osfhat Guiller et al, about five years ago, I now guess, came up with this scheme. You take your formula, okay.
+00:20:05.680 - 00:20:09.924, Speaker C: You compute its community structure. Now, you can often do this, but.
+00:20:10.424 - 00:20:12.450, Speaker B: As I said, not always, okay?
+00:20:12.562 - 00:20:15.202, Speaker C: And then you make formulas that consist.
+00:20:15.258 - 00:20:19.218, Speaker B: Of the clauses from pairs of adjacent, adjacent pairs of communities.
+00:20:19.306 - 00:20:19.690, Speaker D: Okay?
+00:20:19.722 - 00:20:22.402, Speaker B: And you solve them, okay.
+00:20:22.418 - 00:20:25.594, Speaker C: And then you take the learned clauses and you, and you give those learned.
+00:20:25.634 - 00:20:28.974, Speaker B: Clauses together with the original formula.
+00:20:29.474 - 00:20:30.890, Speaker C: So they got a speed up with.
+00:20:30.922 - 00:20:50.694, Speaker B: Mini sat and glucose on unsatisfiable. So that's pretty interesting. And I think you can, you can speculate about this being related to various other techniques for generating a bunch of.
+00:20:50.734 - 00:20:54.214, Speaker C: Clauses, very, a bunch of conflict. Learn clauses very fast at the beginning.
+00:20:54.254 - 00:20:56.874, Speaker B: Using very special techniques at the beginning of a run.
+00:20:57.854 - 00:20:58.622, Speaker D: Okay.
+00:20:58.758 - 00:20:59.714, Speaker C: Very recently.
+00:21:02.254 - 00:21:05.662, Speaker B: Sped up. This is a, one of the best.
+00:21:05.798 - 00:21:12.438, Speaker C: Parallel multicore solvers by developing a clause.
+00:21:12.486 - 00:21:18.246, Speaker B: Sharing scheme that use a combination of LBD, literal block distance, and small community numbers.
+00:21:18.270 - 00:21:19.846, Speaker C: A community number is the number of.
+00:21:19.870 - 00:21:22.634, Speaker B: Different communities that the variables and the clauses.
+00:21:24.294 - 00:21:25.194, Speaker D: Okay.
+00:21:27.214 - 00:21:40.242, Speaker C: So, influencing decisions. I'll spend a little bit more time on this. So the VSIS decision policy is you keep an activity value for each variable.
+00:21:40.298 - 00:21:45.042, Speaker B: And you choose as your next decision the variable with the unassigned variable with.
+00:21:45.058 - 00:21:52.802, Speaker C: The largest activity, and you update these activities by an additive bump every time.
+00:21:52.978 - 00:21:55.186, Speaker B: The variable is used in a learned.
+00:21:55.210 - 00:21:59.074, Speaker C: Clause derivation and a multiplicative decay to.
+00:22:00.214 - 00:22:07.234, Speaker B: Emphasize a recent activity, Laurent talked about how strong that recency is.
+00:22:08.494 - 00:22:11.374, Speaker C: Okay. And I've already suggested that the VSIDS.
+00:22:11.494 - 00:22:14.726, Speaker B: Has strong preferences for certain types of variables.
+00:22:14.750 - 00:22:18.310, Speaker C: In fact, more than 60% of variables.
+00:22:18.342 - 00:22:23.914, Speaker B: Are never chosen as a decision during an entire run of a solver.
+00:22:26.024 - 00:22:28.304, Speaker C: But among the 40% that are chosen.
+00:22:28.344 - 00:22:39.764, Speaker B: There'S still a lot of preferences. Okay, so high degree variables are preferred over others. High centrality variables by various measures of centrality are preferred. Bridge variables are chosen more.
+00:22:40.144 - 00:22:46.632, Speaker C: And VSIDs has been so good for so long that people kind of tend to behave as if VSIDs does it.
+00:22:46.648 - 00:22:49.984, Speaker B: It's good, but I'm not sure if that's always the case.
+00:22:50.064 - 00:23:07.656, Speaker C: So we can ask if this is good and can we influence it? And the answer is, we can influence it by a very simple technique we call preferential bumping. Just for some special variables, we're going to make the additive bump a little.
+00:23:07.680 - 00:23:13.600, Speaker B: Bit bigger or maybe a little bit smaller, but we used a little bit bigger. And what happened is, you can see.
+00:23:13.632 - 00:23:14.204, Speaker C: Well.
+00:23:17.644 - 00:23:26.944, Speaker B: Here'S the fraction of clause of the blue line that glucose chooses that are bridge variables.
+00:23:27.444 - 00:23:32.620, Speaker C: And if we bump the bridge variables a little bit extra, we can increase that fraction.
+00:23:32.652 - 00:23:33.444, Speaker B: That's the green line.
+00:23:33.484 - 00:23:34.556, Speaker C: And if we bump them a little.
+00:23:34.580 - 00:23:36.532, Speaker B: Bit extra, but just at the beginning.
+00:23:36.668 - 00:23:38.516, Speaker C: Then that's the red line, it goes.
+00:23:38.580 - 00:23:48.894, Speaker B: Up and then it gradually falls down, but it continues. Okay, so there's a subtle change, but it changes the behavior.
+00:23:48.974 - 00:23:52.918, Speaker C: And we did in glucose, we got a speed up.
+00:23:52.966 - 00:23:57.606, Speaker B: This is glucose, and we got a little bit of improvement by doing this.
+00:23:57.710 - 00:23:59.014, Speaker C: And maybe Maple LC.
+00:23:59.054 - 00:24:11.014, Speaker B: And this is the winner from 2016, 2017. Okay, we went from this line to these lines by doing this kind of operation.
+00:24:14.394 - 00:24:23.714, Speaker C: Okay, what about the clause deletion? So, CDCL solvers need to delete clause.
+00:24:23.754 - 00:24:30.774, Speaker B: They generate a lot of learned clauses. We can't keep them all forever because it's just too many and propagation gets too slow.
+00:24:31.474 - 00:24:37.936, Speaker C: Okay, so the typical deletion strategy is we call it a. To delete half scheme, almost all solvers.
+00:24:38.000 - 00:24:43.656, Speaker B: Use some variant of this. And it's simply periodically you sort all.
+00:24:43.680 - 00:24:47.928, Speaker C: Your learned clauses according to some clause quality measure.
+00:24:48.096 - 00:24:48.496, Speaker D: Okay.
+00:24:48.520 - 00:24:51.088, Speaker B: And you, and you delete the worst half of them.
+00:24:51.256 - 00:24:51.576, Speaker D: Okay.
+00:24:51.600 - 00:24:56.216, Speaker B: There's some details in there that I'm ignoring, but that's roughly the idea.
+00:24:56.360 - 00:24:59.992, Speaker C: In glucose, Q is a literal block distance.
+00:25:00.048 - 00:25:00.964, Speaker B: And that was.
+00:25:06.404 - 00:25:07.676, Speaker C: Kind of an exciting.
+00:25:07.860 - 00:25:09.464, Speaker B: Discovery at the time.
+00:25:11.724 - 00:25:18.612, Speaker C: It may be LCM dis. The clause management strategy is pretty complex.
+00:25:18.668 - 00:25:32.244, Speaker B: So learned clauses go to one of three places. I'm not going to go through the details. Core are small clauses that are essentially kept forever. And local is clauses with LBD greater than six.
+00:25:34.544 - 00:25:35.288, Speaker D: Okay.
+00:25:35.416 - 00:25:38.416, Speaker C: And these are treated as probably not.
+00:25:38.520 - 00:25:40.528, Speaker B: You know, possibly not very valuable.
+00:25:40.696 - 00:25:46.880, Speaker C: So in local is they use a delete half scheme where the quality measures.
+00:25:46.952 - 00:25:55.064, Speaker B: Activity, clause activity is similar to VSID scores for variables. So we did a comparison of.
+00:25:56.844 - 00:25:57.356, Speaker C: Maple.
+00:25:57.380 - 00:25:58.704, Speaker B: LCM disk with.
+00:26:00.444 - 00:26:01.716, Speaker C: Using for the quality.
+00:26:01.780 - 00:26:05.584, Speaker B: Measure activity or LBD or centrality.
+00:26:07.724 - 00:26:08.300, Speaker D: Okay.
+00:26:08.372 - 00:26:10.580, Speaker C: And we define the centrality of cloths.
+00:26:10.612 - 00:26:13.664, Speaker B: To just be the mean centrality of the variables that appear.
+00:26:14.284 - 00:26:14.740, Speaker D: Okay.
+00:26:14.772 - 00:26:15.332, Speaker C: Again, we're using.
+00:26:15.388 - 00:26:17.788, Speaker B: So we're using between the centrality here.
+00:26:17.956 - 00:26:22.542, Speaker C: Which maybe I didn't define. So, between the centrality is, is the.
+00:26:22.598 - 00:26:31.234, Speaker B: Fraction of all shortest paths in the graph in which that variable appears.
+00:26:33.374 - 00:26:33.902, Speaker C: With.
+00:26:33.998 - 00:26:35.314, Speaker B: Some kind of normalization.
+00:26:37.214 - 00:26:39.470, Speaker C: Okay, so what happened is, well, this.
+00:26:39.502 - 00:26:56.008, Speaker B: Is, this is the default solver and this is the performance of a solver with using centrality, clause centrality as the clause quality measure.
+00:26:56.136 - 00:26:56.520, Speaker D: Okay.
+00:26:56.552 - 00:27:04.444, Speaker B: So we went from 215 being solved to 224 par score went down significantly.
+00:27:04.784 - 00:27:06.672, Speaker C: So that's nice. So that's a big enough speed up.
+00:27:06.688 - 00:27:08.524, Speaker B: That you get to write a paper about it.
+00:27:09.184 - 00:27:13.520, Speaker C: But I'm more interested in understanding why.
+00:27:13.592 - 00:27:16.644, Speaker B: In which, of course, we don't understand why any of these things work.
+00:27:17.854 - 00:27:25.518, Speaker C: So let's look just briefly at this scatter plot. So you see a whole bunch of.
+00:27:25.606 - 00:27:27.094, Speaker B: Points just below the line.
+00:27:27.174 - 00:27:28.654, Speaker C: Those are the points where we spent.
+00:27:28.694 - 00:27:33.274, Speaker B: Time trying to compute centralities, but we didn't get centrality values to use.
+00:27:34.334 - 00:27:36.462, Speaker C: But if I compare, if I just.
+00:27:36.518 - 00:27:44.586, Speaker B: Ignore things close to this line, like here, you'll see that there's very few points down here. There's a bunch of points up here.
+00:27:44.610 - 00:27:51.986, Speaker C: So about 80% of the formulas got a speed up. In my experience, that's a bit unusual. So every time you make a change.
+00:27:52.050 - 00:27:54.146, Speaker B: To a solver, you get a few.
+00:27:54.210 - 00:27:54.962, Speaker C: You know, you get a bunch of.
+00:27:54.978 - 00:27:57.074, Speaker B: Formulas go faster and a bunch go slower.
+00:27:57.154 - 00:27:59.050, Speaker C: And overall, nothing really changes.
+00:27:59.162 - 00:28:01.694, Speaker B: That's what happens most of the time, or you break it.
+00:28:03.514 - 00:28:08.594, Speaker C: So, to get 80% of formulas being sped up and very few bad cases.
+00:28:08.674 - 00:28:12.734, Speaker B: This, to me, is actually. Is actually interesting.
+00:28:14.154 - 00:28:17.374, Speaker C: So say just one more bit about.
+00:28:19.194 - 00:28:20.934, Speaker B: This before I finish up.
+00:28:21.554 - 00:28:24.426, Speaker C: Okay, so we like this idea of.
+00:28:24.450 - 00:28:27.778, Speaker B: Clause centrality as a quality measure.
+00:28:27.906 - 00:28:30.374, Speaker C: And we measured a couple of other things.
+00:28:30.994 - 00:28:33.654, Speaker B: Well, a number of other things, but I'll mention two.
+00:28:33.994 - 00:28:40.066, Speaker C: So Vijay and his group introduced this idea of global learning rate as a.
+00:28:40.090 - 00:28:44.914, Speaker B: Measure of how good your decisions are.
+00:28:44.994 - 00:28:47.410, Speaker C: Okay, so this is the ratio of.
+00:28:47.442 - 00:28:51.826, Speaker B: Conflicts to decisions, right? The same as the ratio of learned clauses to decision.
+00:28:51.890 - 00:28:53.082, Speaker C: It's almost the same thing as the.
+00:28:53.098 - 00:28:56.894, Speaker B: Ratio of deleted clauses to decisions over a long period.
+00:28:58.354 - 00:29:04.174, Speaker C: And if we look at the version, the standard version of Maple LCM and our.
+00:29:04.854 - 00:29:08.846, Speaker B: And our centrality based deletion version, the.
+00:29:08.870 - 00:29:19.294, Speaker C: Global learning rate is the same, okay? But the deletion version produces more conflicts per second, does more decisions per second.
+00:29:19.334 - 00:29:23.198, Speaker B: Does more propagations per second, but the.
+00:29:23.326 - 00:29:24.726, Speaker C: Other heuristics are identical.
+00:29:24.790 - 00:29:25.014, Speaker B: Right?
+00:29:25.054 - 00:29:25.634, Speaker F: So.
+00:29:27.974 - 00:29:29.710, Speaker C: This deletion strategy is letting us.
+00:29:29.742 - 00:29:32.394, Speaker B: Learn clauses that just make the thing go faster.
+00:29:35.024 - 00:29:35.504, Speaker D: Okay.
+00:29:35.544 - 00:29:36.872, Speaker C: And the second thing is, we look.
+00:29:36.888 - 00:29:41.484, Speaker B: At the quality of clauses in local by various measures.
+00:29:41.864 - 00:29:46.144, Speaker C: Okay, so if we look at the.
+00:29:46.224 - 00:29:48.936, Speaker B: Clause centrality of the clauses in local.
+00:29:49.000 - 00:29:53.004, Speaker C: Unsurprisingly, centrality, base deletion.
+00:29:57.224 - 00:30:14.364, Speaker B: Rates highest. And activity based deletion is less successful at keeping central clauses, and LBD based deletion is even less successful at keeping central clauses. And this ordering corresponds exactly to the ordering of the solving time or the inverse ordering of the solvent.
+00:30:16.184 - 00:30:17.084, Speaker D: Okay.
+00:30:18.584 - 00:30:21.120, Speaker C: Whereas the order is different for.
+00:30:21.272 - 00:30:23.844, Speaker B: If you look at LBD or clause signs.
+00:30:24.324 - 00:30:34.860, Speaker C: So this suggests to us that the centrality is a lot better than LBD, but it's a little bit misleading.
+00:30:34.892 - 00:30:35.084, Speaker B: Right.
+00:30:35.124 - 00:30:35.380, Speaker D: Okay.
+00:30:35.412 - 00:30:37.540, Speaker C: Because we're taking all the small LBD.
+00:30:37.572 - 00:30:41.064, Speaker B: Clauses and we're storing them at core t two forever.
+00:30:42.004 - 00:30:48.436, Speaker C: So what I'm really suggesting is that when the LBD is larger than six, it doesn't provide that information.
+00:30:48.540 - 00:30:51.044, Speaker B: Right. Much information. Still a really good measure.
+00:30:51.944 - 00:30:52.400, Speaker D: Okay.
+00:30:52.432 - 00:30:56.920, Speaker B: But clause centrality is something we think is really interesting.
+00:30:57.072 - 00:30:58.952, Speaker C: But I had an agenda there, which.
+00:30:58.968 - 00:31:06.064, Speaker B: Is not just to convince you that clause centrality is interesting. I'll tell you something else if I don't run out of time.
+00:31:06.104 - 00:31:12.152, Speaker C: Okay, so, no conclusions, but some thoughts. After spending a lot of time on.
+00:31:12.168 - 00:31:17.224, Speaker B: This stuff and having very weak results, I'm still.
+00:31:17.764 - 00:31:18.700, Speaker C: I think we can.
+00:31:18.772 - 00:31:25.060, Speaker B: We can improve CDCL solvers using properties of instance structure, but I don't think.
+00:31:25.092 - 00:31:27.188, Speaker C: We have the right kind of notions.
+00:31:27.236 - 00:31:30.364, Speaker B: Of incident structure yet. Okay.
+00:31:30.524 - 00:31:32.172, Speaker C: We can make lots of arguments why.
+00:31:32.228 - 00:31:34.464, Speaker B: The community structure is not right.
+00:31:35.324 - 00:31:39.004, Speaker C: And I can tell you something that's not in the papers about these centrality.
+00:31:39.164 - 00:31:40.264, Speaker B: Measures is.
+00:31:42.104 - 00:31:56.312, Speaker C: For our preferential bumping, we approximated centralities. And what we found is that when the centrality approximation algorithm ran fast, it.
+00:31:56.328 - 00:31:57.924, Speaker B: Got very useful information.
+00:31:58.864 - 00:32:00.720, Speaker C: When it ran slow, it didn't give.
+00:32:00.752 - 00:32:13.004, Speaker B: Useful information, even though it still gave information. But worse than this, if we computed exactly centralities, they weren't very useful.
+00:32:14.344 - 00:32:18.144, Speaker C: So this algorithm that approximates centralities is.
+00:32:18.184 - 00:32:23.284, Speaker B: Finding really useful information, but it's not actual centrality values.
+00:32:24.104 - 00:32:24.704, Speaker D: Okay?
+00:32:24.784 - 00:32:27.232, Speaker C: So there's a mystery property in there.
+00:32:27.288 - 00:32:30.684, Speaker B: That'S useful and useful in a bunch of ways.
+00:32:31.064 - 00:32:31.496, Speaker D: Okay.
+00:32:31.520 - 00:32:32.804, Speaker B: But I don't know what it is.
+00:32:33.944 - 00:32:34.336, Speaker D: Okay.
+00:32:34.360 - 00:32:39.560, Speaker C: Next thing is the methods of trying to get this stuff into CDCL are really weak.
+00:32:39.592 - 00:32:42.844, Speaker B: They're really, you know, I'd almost call it lame.
+00:32:43.224 - 00:32:44.936, Speaker C: You know, they're potentially useful, but they're.
+00:32:44.960 - 00:32:46.404, Speaker B: Not going to change the earth.
+00:32:47.264 - 00:33:01.292, Speaker C: And so we need to think a lot about what we can do to still have this algorithm running and doing what it does well and somehow get.
+00:33:01.468 - 00:33:02.744, Speaker B: Other kinds of information.
+00:33:04.084 - 00:33:06.020, Speaker C: Anyone who does this kind of stuff.
+00:33:06.052 - 00:33:16.704, Speaker B: Can tell you that doing meaningful experiments on this kind of material is really hard. It's really a lot of work, and it takes a long time to find something interesting.
+00:33:17.724 - 00:33:21.100, Speaker C: And it's made worse by a few things that, you know, partly to do.
+00:33:21.132 - 00:33:32.950, Speaker B: With the competition, which is a double sided coin. Right. The competition has done a lot of great things for the community, but studying.
+00:33:32.982 - 00:33:34.806, Speaker C: These things is made much harder by.
+00:33:34.830 - 00:33:36.974, Speaker B: The fact that the benchmark sets are.
+00:33:37.014 - 00:34:02.980, Speaker C: Sometimes rapidly changing one year to the next. Suddenly a method doesn't work, and then the solvers change. And the only way I can publish the stupid paper is if I can beat last year's solver on last year's. Okay, but everything changed. Right? So it's very disheartening now. Like, I have to spend three months.
+00:34:03.012 - 00:34:04.972, Speaker B: Re implementing stuff just to find out.
+00:34:04.988 - 00:34:09.236, Speaker C: If even still works. And sometimes it doesn't still work. And it's not because it was bad.
+00:34:09.300 - 00:34:15.196, Speaker B: It'S just because the benchmark selection changed and disfavors it. Right.
+00:34:15.380 - 00:34:21.784, Speaker C: And the winner from last year was chose because it was chosen because it happens to align with last year's benchmarks.
+00:34:21.884 - 00:34:25.176, Speaker B: Not, I'm not suggesting it's a bad solver. It's a really good solver.
+00:34:25.360 - 00:34:29.164, Speaker C: But which one came first is a lot of luck.
+00:34:29.584 - 00:34:30.444, Speaker D: Okay.
+00:34:32.584 - 00:34:34.800, Speaker C: And so I'm stuck with that bias.
+00:34:34.832 - 00:34:36.244, Speaker B: There's a bias there.
+00:34:36.824 - 00:34:37.256, Speaker D: Okay.
+00:34:37.280 - 00:34:38.632, Speaker B: That makes it hard to proceed.
+00:34:38.728 - 00:34:41.976, Speaker C: And additional, as Laurel was arguing, the.
+00:34:42.000 - 00:34:44.056, Speaker B: Solvers now are very complex, and we've.
+00:34:44.080 - 00:34:46.736, Speaker C: Actually done some work trying to, and.
+00:34:46.760 - 00:35:03.652, Speaker B: A few other people have. I think the solvers can be actually be much simpler if our Focus was to make simple, good solvers instead of to make solvers that beat last years. And that would maybe make it a little bit easier to do this kind of work. And I think, but I think a.
+00:35:03.668 - 00:35:06.996, Speaker C: Lot more of this Experimentation of the sort that Laurent was describing, I think.
+00:35:07.020 - 00:35:16.464, Speaker B: A lot more of that is needed, and as a community, we should try to find ways to encourage it. Sorry for my time.
+00:35:20.924 - 00:35:32.744, Speaker A: Okay, thank you so much. David was great. Really interesting. So much cool stuff and challenges. Any questions? Comments?
+00:35:33.644 - 00:36:05.222, Speaker G: Hi, Antonino. I have a question. I have a comment, actually, I was silent throughout, but, you know, David says comments on the difficulty of doing experiments just reminded me of something that I think, as a community, we should be able to do. It's difficult to do by one person or one group in other fields. They have data that they make available over time. They curate it. They make it available so that we can go and do study on the data.
+00:36:05.222 - 00:36:44.004, Speaker G: So the way that we have done these competitions is every competition is different. There is no repeatability, etcetera. So I proposed a few years ago to have some kind of a database that is kind of. That collects all of the benchmarks over time, all of the solvers that were used and what their versions were and what options they had on them and so on, so forth. And this will grow over time. And we can go and mine that database. We can repeat experiments to see if we can find patterns.
+00:36:44.004 - 00:37:15.114, Speaker G: I think this would enrich our understanding of what's going on much more than the yearly competition that is meant basically to show I'm faster than you by a nanosecond, or I can solve two more benchmarks than you. And the competition is very good, but it's not helping us increase our understanding. So I think we have a lot of data, but the data is not organized in a way that makes it easy to do any kind of systematic analysis.
+00:37:17.734 - 00:37:21.354, Speaker C: Yeah, I think that's right. I think there are a number of things potentially we could do.
+00:37:23.054 - 00:37:25.118, Speaker B: And that's one.
+00:37:25.166 - 00:37:27.214, Speaker C: You know, Laurent was already pointing out.
+00:37:27.254 - 00:37:29.222, Speaker B: That sometimes a solver from, from a.
+00:37:29.238 - 00:37:45.096, Speaker C: Few years ago that's. That's practically set aside, turns out to be very good on some current problems of interest. This has happened actually many times, and also sometimes formulas that were left behind.
+00:37:45.200 - 00:37:48.804, Speaker B: Are still interesting or their families of formulas are still interesting.
+00:37:49.704 - 00:37:58.518, Speaker C: Well, a very, very simple thing, a very trivial thing, is a couple of times I said to a student, oh, that formula is looked interesting.
+00:37:58.566 - 00:38:03.358, Speaker B: What sort of formula is that? And the student is new to the community, right?
+00:38:03.406 - 00:38:05.126, Speaker C: So they try to look up what.
+00:38:05.150 - 00:38:10.874, Speaker B: The formula, what that formula application comes from.
+00:38:11.214 - 00:38:15.070, Speaker C: Of course, it's not documented because it got inherited from last year's competition and.
+00:38:15.102 - 00:38:17.334, Speaker B: Inherited from the previous company. Right.
+00:38:17.414 - 00:38:25.334, Speaker C: And they go back eight years and they still can't find the definition of the formula. So, you know, we can't even do that.
+00:38:26.514 - 00:38:32.434, Speaker B: You know, how can we have a, we need to, we need to find a way to look after this.
+00:38:32.514 - 00:38:58.266, Speaker G: I see Lauren had just put in chat links to the solvers and the benchmarks. I'm thinking about a more centralized repository, you know, that is accessible from anywhere so that we can, you know, and I think that's missing. We really need to do that. I have colleagues here who are in chemical engineering who have that, you know, when they're doing studies in chemical engineering, we ought to be, we computer science, we ought to be able to do.
+00:38:58.290 - 00:39:14.578, Speaker C: That, I think, when. So Holger hose, you know, created this satisfiability.org website. I think that was, that was his intention that we do that, but it didn't catch on for whatever, you know, whatever reason.
+00:39:14.626 - 00:39:15.934, Speaker B: But, you know, we should.
+00:39:16.924 - 00:39:19.300, Speaker G: Maybe this could be a polymath project. I don't know.
+00:39:19.372 - 00:39:22.148, Speaker B: I wish this idea, it's a great.
+00:39:22.196 - 00:39:30.732, Speaker E: Idea, I think just to add to the voices here, and I was looking at the benchmark website that Laurent sent.
+00:39:30.908 - 00:39:31.864, Speaker B: Laurent.
+00:39:33.084 - 00:39:38.836, Speaker E: Maybe I'm missing something, but I don't see practical problem verification problems.
+00:39:38.900 - 00:40:00.010, Speaker H: Yeah, no, I mean, the benchmark database is nice. Now it's almost full. It's not. It's a project I was following from outside, but we missed is something between the two. So we have a very, very nice global repository for all the solvers based on the source. So you have the receipt to build the solvers. Everything is GitHub.
+00:40:00.010 - 00:40:05.962, Speaker H: You also have a very nice database of all the benchmarks. So what we need is a database that links the two.
+00:40:06.058 - 00:40:06.586, Speaker G: Yes.
+00:40:06.690 - 00:40:13.518, Speaker H: Say, okay, with this tag we. And that's it. I mean, we already have some nice bricks, I think.
+00:40:13.566 - 00:40:16.318, Speaker B: Yeah, yeah. But it's, this is great.
+00:40:16.446 - 00:40:17.574, Speaker E: Yeah, this is a good start.
+00:40:17.654 - 00:40:48.854, Speaker I: I have a question to David first. Thank you. It's a very interesting presentation. I'm wondering, did you come along across some structural parameter which is costly to compute, but let's say you have an oracle or you don't count the time it requires to compute it. But when you then give the subsolver this information, there is a significant speed up.
+00:40:55.114 - 00:41:03.326, Speaker C: I think the answer is no. I mean, I'm not sure. Currently I didn't talk about methods to.
+00:41:03.350 - 00:41:06.262, Speaker B: Try to use tree width, but currently.
+00:41:06.318 - 00:41:14.502, Speaker C: I think even if we have a nice treaty composition, we don't know how to use it. I mean, we have lots of work.
+00:41:14.638 - 00:41:19.446, Speaker B: On algorithms to use treaty compositions.
+00:41:19.550 - 00:41:22.262, Speaker C: What I mean is, I don't think we know how to make use of.
+00:41:22.278 - 00:41:28.170, Speaker B: That information in a CDCL solver. As far as I know, there are.
+00:41:28.202 - 00:41:37.906, Speaker C: A couple of, there are a couple of papers making an effort to do that. My impression is that they're using, they're.
+00:41:37.930 - 00:41:40.634, Speaker B: Succeeding on fairly special formulas, but it's.
+00:41:40.674 - 00:41:44.210, Speaker C: Unclear whether that's just because of, those.
+00:41:44.242 - 00:41:57.374, Speaker B: Are the ones they can get decompositions that are nice for, or whether the CDCL speed up just doesn't happen in other cases. I don't know.
+00:41:57.754 - 00:42:51.812, Speaker I: Yeah, I know, of course, trivets very well. And for me, it's also not really a surprise to hear about these results, because trivia is some kind of too strong of a parameter, because you can even do model counting, exact model counting, when the trivet is small. So it's somehow a waste to use this trivia machinery. And then you quote unquote, only want to solve sat, usually. So for harder problems, I think also for QVF solvers, or there's a tribute space QVF solver, which is quite interesting and good performance. But of course, model counting, I think many of these space and reasoning network algorithms actually use trivia, so. But for Sat, it's really a waste of power.
+00:42:51.988 - 00:42:53.300, Speaker C: Yeah, I think it's, I agree.
+00:42:53.332 - 00:42:55.184, Speaker B: It's much, it's much too strong.
+00:42:55.884 - 00:43:00.364, Speaker C: The thing is, do you have ideas for replacement?
+00:43:00.404 - 00:43:01.904, Speaker B: And it's really tough to.
+00:43:02.404 - 00:43:14.004, Speaker C: There's wonderful theory generalizing tree width. Right, to bigger classes of sparse graphs, but the bigger the class you make.
+00:43:14.944 - 00:43:18.528, Speaker B: You know, the more, the more graphs you include.
+00:43:18.696 - 00:43:22.312, Speaker C: But, but it doesn't look like it gets easier.
+00:43:22.368 - 00:43:25.724, Speaker B: Right? So, you know, nowhere dense graphs are wonderful, but, but.
+00:43:27.584 - 00:43:37.684, Speaker C: You have to, you know, if you want to talk about what's a nowhere dense, what's, what's, what's a single graph or a small finite.
+00:43:37.724 - 00:43:39.516, Speaker B: Collection of graphs that correspond to where.
+00:43:39.540 - 00:43:51.624, Speaker C: Dense graphs, then you have to, you have to make something very concrete, which again, is too hard, seems to be, I mean, hard computation, but kind of rigid.
+00:43:52.284 - 00:43:52.668, Speaker D: Right.
+00:43:52.716 - 00:43:54.916, Speaker C: I have no sense of how you.
+00:43:54.940 - 00:44:05.780, Speaker B: Make something where you can. You don't want kind of soft edges, right? You don't care about some number of exceptions to being right.
+00:44:05.812 - 00:44:13.268, Speaker C: If you had a tree comp, if you had something a lot like a tree decomposition, but with a, you know, a small number of kind of semi.
+00:44:13.316 - 00:44:17.784, Speaker B: Random edges that made it not a tree, you would be, you know, that would be fine.
+00:44:20.964 - 00:45:18.994, Speaker I: Maybe there's also. The problem is all these concepts that these theoretical models are proposed by theoreticians, and the theoretician wants to have a very rigid, very elegant definition. And for exceptions, of course, there's no place there, whereas the solver can basically do anything it wants to do and exploits here that some part is like horn like, and then exploits some other things somewhere else. And if there are many exceptions, for the exceptions, it does just brute force. So I think there's also a bit of a clash of community or of culture, because the theorists look at things maybe from the more rigid point of view.
+00:45:20.334 - 00:46:37.094, Speaker E: Well, if I may add, I think I do agree with you, Stefan, that there, if I may add a thought there, I think one thing is clear, that from Laurence talk, and David's talk as well, that trying to find exactly the separation between easy and hard is impossible. And we may have to settle for just. Here is a subclass of instances for which we can prove a theorem. And it also happens to be a class of instances for which CDCL solvers run fast, but it doesn't explain, you know, its efficacy in all settings. And with regard to the point that you raised about rigidity of definition versus, you know, solver can work well in, even outside that definition, actually goes to the point that I'm raising, which is the. We may only be able to define a subclass of instances for which solvers work and just settle for that and declare victory and move on. Additionally, the difficulty has been that the parameters that theorists have been working with, we have tested them often, and they don't quite connect with reality.
+00:46:37.094 - 00:47:06.194, Speaker E: So finding at least one class set of parameters, or at least one parameter that works well both in theory and practice, I think, is already a big focus step. I don't know if that makes sense. But, for example, community structure seems to work well empirically. But there are. There are problems with it from a theoretical point of view. Tree width is a very nice theoretical parameters, but, you know, doesn't there have been. There has been empirical work that shows it's not the right parameter?
+00:47:08.294 - 00:47:12.314, Speaker A: There are very social questions in the chat questions. Comments?
+00:47:15.074 - 00:47:34.614, Speaker E: Yeah, Akhil has this question about monotone formulas. Akhil, the answer to your question as we should just try it. And maybe if you send me an email, we can set up a generator that will generate these formulas and just give it a try.
+00:47:34.914 - 00:47:39.498, Speaker I: Could we please read out the questions in the chat? It's not even clear. Everybody can see them.
+00:47:39.626 - 00:48:06.094, Speaker E: Sorry about that. So Akhil Dixit asked the question, a question to all three speakers of today. Is there any well known optimization heuristic that's specially designed to solve monotone SAT instances faster? By monotone, I mean every clause in the formula has all positive or all negative literals. More generally, do you think it's even possible to exploit the monotonicity of the formula by a CDCL solver?
+00:48:07.674 - 00:48:08.010, Speaker B: Yeah.
+00:48:08.042 - 00:48:38.624, Speaker E: So, to answer the first part of your question, I think it's just a matter of trying. And I'm assuming that you mean you have clauses where all of the literals are positive, all are negative, but there's a mix of such clauses. I don't know whether monotonous city can be exploited. You know that sat remains NPC for such formulas. Stefan, please.
+00:48:40.484 - 00:49:04.312, Speaker I: Yeah, sorry, it's just a general observation that what in this question is called the Monton formula, that SAT remains np hard for such formulas. And you can transform relatively easily with a local transformation, any formula, into a satisfiability equivalent formula with this property.
+00:49:04.488 - 00:49:05.324, Speaker E: I see.
+00:49:06.224 - 00:49:12.664, Speaker C: The thing about CDCL is as soon as you start running, you're generating new clauses.
+00:49:12.704 - 00:49:14.800, Speaker B: Those clauses are not going to be monotone. Right?
+00:49:14.912 - 00:49:15.564, Speaker E: Right.
+00:49:15.864 - 00:49:17.744, Speaker B: Trivially right.
+00:49:17.904 - 00:49:18.464, Speaker E: That's true.
+00:49:18.504 - 00:49:23.856, Speaker C: They're not going to be monotone. And so, very fast, you're not working.
+00:49:23.920 - 00:49:33.884, Speaker B: In a monotone setting anymore. So even if you have an idea, that special idea, again, it's unclear, you could exploit that in CBCL.
+00:49:37.824 - 00:49:38.304, Speaker F: Okay?
+00:49:38.344 - 00:49:39.808, Speaker E: Right. Thank you, everybody.
+00:49:39.936 - 00:50:18.800, Speaker A: Thank you so much, everybody. Thank you to all the speakers and all the participants for great talks and great questions. So I'm posting a link to Gazer town, if you'd like to go and continue talking there. And I guess next week we'll kind of continue talking about structure, or whatever word you prefer for structure. And hopefully we will have even more discussions there. Sorry for cutting it short. This is really, really interesting, but I think we're like, more than 15 minutes of a time.
+00:50:18.800 - 00:50:22.024, Speaker A: And so thank you so much, everybody. This was fantastic.

@@ -1,0 +1,243 @@
+00:00:00.520 - 00:00:01.060, Speaker A: Count.
+00:00:01.694 - 00:00:03.630, Speaker B: Please note that with the system update.
+00:00:03.662 - 00:00:11.222, Speaker A: Of February 2023, the RX concept is only used by the VM, while the API layer operates with gas.
+00:00:11.398 - 00:00:17.470, Speaker B: For more information, read the changelog introduction on Ethereum, there are two types of.
+00:00:17.502 - 00:00:21.382, Speaker A: Accounts, the externally owned account and the contracts account.
+00:00:21.518 - 00:00:23.446, Speaker B: The former type is the only one.
+00:00:23.470 - 00:01:16.974, Speaker A: That can initiate transaction, while the letter is the only one that can implement arbitrary logic. For some use cases like smart contract wallets or privacy protocols, this difference can create a lot of friction and as a result of such applications require layer one relayers like an EOA to help facilitate the transaction from a smart contract wallet. Accounts in the casing era can initiate transactions like a new a, but they can also have arbitrarily logically implemented intruding like a smart contract. This feature is called account obstruction and aims to resolve the issues described above. Zksync Era is the first EVM compatible chain to implement native account abstraction. We are evaluating how well the implementation works with EVM projects on Testnet and Mainnet. No incompatibles have been found so far.
+00:01:17.754 - 00:01:21.296, Speaker B: To the early stage nature of feature.
+00:01:21.490 - 00:01:34.584, Speaker A: You may see some breaking changes to the account abstraction API interfaces. However, even that the account or version in the secant seq era, older accounts will work even after breaking changes are released.
+00:01:35.444 - 00:01:39.716, Speaker B: Native account abstraction Native account abstraction on.
+00:01:39.740 - 00:01:48.064, Speaker A: Zksync era fundamentally changes how accounts operate it by introducing the concept of smart contracts and accounts.
+00:01:48.534 - 00:01:51.750, Speaker B: Smart accounts and paymastered smart accounts are.
+00:01:51.782 - 00:02:40.158, Speaker A: Fully programmable, allowing for various customizations such as signature schemes, native multisync capabilities, spending limits, and application logic specific restrictions info the native account abstraction of zk sync and Ethereum IPs 4337 aim to enhance accounts flexibility and user experience, but they differ in key aspects. Paymaster conservatively can sponsor transactions for users, enable them to pay transaction fees in ERC 20 tokens. This innovative approach to account management significantly enhances the user experience security flexibility, paving the way for a broader adoption. Prerequisites to better understand this page, recommend.
+00:02:40.206 - 00:02:43.480, Speaker B: The first reader guide on accounts design.
+00:02:43.632 - 00:02:57.952, Speaker A: The account obstruction protocol on zksync is very similar to EIP. Our protocol is still different for the sake of efficiency and beta ux hypnosis.
+00:02:58.008 - 00:03:01.760, Speaker B: Unique the current model does not allow.
+00:03:01.792 - 00:03:06.624, Speaker A: For custom wallets to send multiple transactions at the same time and maintain deterministic.
+00:03:06.664 - 00:03:10.160, Speaker B: Ordering for real ACE nonsense are expected.
+00:03:10.272 - 00:03:13.912, Speaker A: To grow sequentially, while custom accounts, the.
+00:03:13.928 - 00:03:18.976, Speaker B: Order of transactions cannot be guaranteed. In the future, we plan to switch.
+00:03:19.000 - 00:03:34.884, Speaker A: To a model where accounts can choose between sequential and arbitrary notice ordering. One of the important invariants of every blockchain is that each transaction has a unique hash. Holding this property with an arbitrary account is not trivial.
+00:03:35.024 - 00:03:38.228, Speaker B: No accounts can in general accept multiple.
+00:03:38.276 - 00:03:41.476, Speaker A: Identical transactions, even though those transactions would.
+00:03:41.500 - 00:03:44.340, Speaker B: Be technically valued by the rules of the blockchain.
+00:03:44.452 - 00:03:50.424, Speaker A: Violating hash uniqueness would be very hard for indexers and other tools to process.
+00:03:51.604 - 00:03:53.348, Speaker B: There needs to be a solution on.
+00:03:53.356 - 00:04:06.624, Speaker A: The protocol level that is both cheap for users and will boast in case of mastery of a malicious operator. One of the easy ways to ensure that transaction hashems do not repeat is to have a pair sender nonce always unique.
+00:04:07.324 - 00:04:12.348, Speaker B: The following protocol is before each transaction.
+00:04:12.396 - 00:04:19.064, Speaker A: Starts, the system queries the notes holder to check whether the provided notes has already been used or not.
+00:04:19.404 - 00:04:21.148, Speaker B: If the note cannot be used yet.
+00:04:21.196 - 00:04:33.344, Speaker A: The transaction validation is run. The provided notes is expected to be marked as used during this time. After the validation, the system checks whether this nonce is now marked as used.
+00:04:34.184 - 00:04:36.328, Speaker B: Users will be allowed to use any.
+00:04:36.376 - 00:04:43.764, Speaker A: 256 bit number as known if they can put any nonzero value under the corresponding key in the system contract.
+00:04:44.184 - 00:04:46.416, Speaker B: This is already supported by the protocol.
+00:04:46.520 - 00:05:23.152, Speaker A: But not on the server side. More documentation on various interactions with the noseholder system contract, as well as tutorials will be available once support on the server is released. For now, it is recommended they only use the incremental NOS if equals method, which practically enforces the sequential ordering of noses. Standardizing transaction hashes in the future, it is planned to support efficient proofs of abstractions inclusion on the casing. This would require us to calculate transactions.
+00:05:23.208 - 00:05:25.716, Speaker B: Hash hash in the bootloader, since these.
+00:05:25.740 - 00:05:36.464, Speaker A: Calculations won't be free to the user is only fair to be included in the hash in the interface of the aa methods in case the accounts may need to value it for some reason.
+00:05:36.964 - 00:05:38.904, Speaker B: Mainly the value for some reason.
+00:05:39.204 - 00:05:56.278, Speaker A: That's why all methods of the Iaccount and Ip master interfaces which are described below, contain hash of the transaction as well. The recommended sign and digest the digest that is signed by the UA's for this transaction.
+00:05:56.406 - 00:05:57.462, Speaker B: Now let's take a look at the.
+00:05:57.478 - 00:06:10.394, Speaker A: Interfaces aiaccount interface each account is recommended to implement the iaccount interface contain the following five methods.
+00:06:11.814 - 00:06:15.046, Speaker B: Validate transaction is mandatory and will be.
+00:06:15.070 - 00:06:22.162, Speaker A: Used by the system to determine if he if the AA logic agrees. If the account abstraction logic agrees agrees.
+00:06:22.178 - 00:06:24.570, Speaker B: To proceed with the transaction in case.
+00:06:24.602 - 00:06:28.210, Speaker A: The transaction is not accepted. Like if the signature is wrong, the.
+00:06:28.242 - 00:06:31.586, Speaker B: Method should revert in case the call succeeds.
+00:06:31.690 - 00:06:40.134, Speaker A: The implemented logic is considered accepted in the transaction to the transaction and the system will proceed with the transaction flow.
+00:06:41.354 - 00:06:46.690, Speaker B: Execute transaction is mandatory and will be called sorry.
+00:06:46.762 - 00:06:49.078, Speaker A: Next method execute transaction.
+00:06:49.206 - 00:06:51.366, Speaker B: It is mandatory and will be called.
+00:06:51.430 - 00:06:57.874, Speaker A: By the system after the fee is charged from the user. This function should perform the execution of the transaction.
+00:06:58.174 - 00:07:02.006, Speaker B: Next method pay for transaction is optional.
+00:07:02.150 - 00:07:14.240, Speaker A: And will be called by the system if the transaction has no paymaster. Example, the account is willing to pay for the transaction. The method should be used to pay for the fees by the account.
+00:07:14.382 - 00:07:16.796, Speaker B: Note if your account will never pay.
+00:07:16.860 - 00:07:51.932, Speaker A: Any fees and will always rely on the paymaster, you don't have to implement this method. This method must send at least the xCAd's price times the xCAd's limit to if to the bot loader address. Prepare for paymaster is optional and will be called by the system if the transaction has a paymaster. Example, there's a different address that pays transactions fees for the user. This method should be used to prepare for the interaction with the paymaster. One of the notable examples where it can be useful is to approve ERC.
+00:07:51.988 - 00:07:54.024, Speaker B: 20 tokens for the paymaster.
+00:07:55.284 - 00:07:59.700, Speaker A: Execute transaction from outside technically not mandatory.
+00:07:59.852 - 00:08:03.956, Speaker B: But highly encouraged since there is a need to be in some way in.
+00:08:03.980 - 00:08:09.624, Speaker A: Case of priority mode. Example if the operator is responsive unresponsive.
+00:08:09.944 - 00:08:11.776, Speaker B: To be able to start a transaction.
+00:08:11.800 - 00:08:20.164, Speaker A: For your account outside. Basically, this fall back the standard Ethereum approach where you always start the transactions from your smart contract.
+00:08:21.784 - 00:08:33.552, Speaker B: Now let's look at the IP master interface like an EIP 4337 or account abstraction protocol to ports paymasters accounts that.
+00:08:33.568 - 00:08:37.761, Speaker A: Can compensate other accounts transactions execution.
+00:08:37.927 - 00:08:40.325, Speaker B: You can read more about them here.
+00:08:40.469 - 00:08:43.821, Speaker A: Each paymaster should implement the ipaymaster interface.
+00:08:43.957 - 00:08:47.613, Speaker B: It contains the following two methods, validate.
+00:08:47.653 - 00:08:54.069, Speaker A: And pay for paymaster transaction is mandatory and will be used by the system to determine if the paymaster approves for.
+00:08:54.101 - 00:08:57.445, Speaker B: Paying for this transaction. If the paymaster is willing to pay.
+00:08:57.469 - 00:09:01.869, Speaker A: For this transaction, this method must send at least cash price time cash limit.
+00:09:01.901 - 00:09:03.877, Speaker B: To the operator and if you return.
+00:09:03.965 - 00:09:05.725, Speaker A: Contest, that will be one of the.
+00:09:05.749 - 00:09:11.130, Speaker B: Call parameters through the post transaction method. Post transaction is optional and is called.
+00:09:11.202 - 00:09:20.530, Speaker A: After the transaction is secured. Note that unlike IP 4337, there is no guarantee that this method will be called.
+00:09:20.722 - 00:09:23.674, Speaker B: In particular, this method won't be called.
+00:09:23.714 - 00:09:35.250, Speaker A: If the transaction fails with out of guise error. It takes four parameters, the context returned by validating pay for pay master transaction, the transaction itself a flag that indicates.
+00:09:35.322 - 00:09:38.620, Speaker B: Whether the execution succeeded the maximum amount.
+00:09:38.652 - 00:09:41.268, Speaker A: Of cash the paymaster might be refunded.
+00:09:41.316 - 00:09:41.904, Speaker B: With.
+00:09:45.324 - 00:09:47.444, Speaker A: Reserve or fields of the transaction.
+00:09:47.484 - 00:09:52.068, Speaker B: Struct with special meaning, so fields are reserved.
+00:09:52.236 - 00:09:54.788, Speaker A: Note that each of the methods above.
+00:09:54.916 - 00:09:56.948, Speaker B: Except the transaction struct.
+00:09:57.116 - 00:10:16.004, Speaker A: While some of its fields are self explanatory. There are six reserved fields that meaning the meaning of each field is defined by the transaction type. We decide not to give these field names since they might be unneeded in some future transaction time. For now, the convention is.
+00:10:17.824 - 00:10:31.568, Speaker B: Reserved. Zero is the NOS reserved. One is the message value. Transaction flow each transaction goes through the following flow the validation step during the.
+00:10:31.576 - 00:10:34.352, Speaker A: Validation step, the account should decide whether.
+00:10:34.408 - 00:10:41.250, Speaker B: It accepts the and if so, pay the fees for it. Any part of the validation fails, the.
+00:10:41.282 - 00:10:45.986, Speaker A: Account is not charged the fee and such transaction cannot be included in the block.
+00:10:46.170 - 00:10:48.778, Speaker B: Step one assistant check if the loans.
+00:10:48.826 - 00:10:50.986, Speaker A: Of the transaction has not been used.
+00:10:51.050 - 00:10:53.534, Speaker B: Before, you can read more about that.
+00:10:54.994 - 00:10:58.098, Speaker A: Step two system calls the validate transaction.
+00:10:58.146 - 00:11:00.170, Speaker B: Method from the account and does not.
+00:11:00.202 - 00:11:02.334, Speaker A: Revert proceeds to netstation.
+00:11:03.424 - 00:11:05.632, Speaker B: Step three the system checks that the.
+00:11:05.648 - 00:11:08.124, Speaker A: Notes of the transaction has been marked as use.
+00:11:08.664 - 00:11:11.360, Speaker B: Step four when no pay master system.
+00:11:11.432 - 00:11:16.056, Speaker A: Calls the pay for transaction method for the account and it does not revert.
+00:11:16.240 - 00:11:22.440, Speaker B: Proceeds to the next step. Step four with paymaster assistant calls the.
+00:11:22.472 - 00:11:31.330, Speaker A: Prepare for paymaster method. If this call does not revert, then the validate and pay for paymaster transaction method of the paymaster is called.
+00:11:31.512 - 00:11:37.966, Speaker B: That does not be virtue. Proceed to next step. Step five the system verifies that the.
+00:11:37.990 - 00:11:41.954, Speaker A: Bootloader has received at least tax price.
+00:11:42.454 - 00:11:47.110, Speaker B: Transaction gas price times transaction gas limit.
+00:11:47.182 - 00:11:49.254, Speaker A: E fer to the bootloader.
+00:11:49.414 - 00:11:50.190, Speaker B: This is the case.
+00:11:50.222 - 00:12:17.044, Speaker A: The verification is considered complete and we can proceed to the next step. Execution step execution step is considered responsible for this actual execution of the transaction sending the refunds of any unused guests back to the user. If there's any rewards on this tab, the transaction will still be considered valid and will be included in the block. System calls the execute transaction method of the account.
+00:12:17.944 - 00:12:21.144, Speaker B: Step six system will call the execution.
+00:12:21.184 - 00:12:37.480, Speaker A: Transaction method of the account. Step seven only in case of transaction has a paymaster. The post transaction method of the paymaster is called. This step should typically used for refunding the sender and unused gas in the case that the paymaster was used to.
+00:12:37.512 - 00:12:46.888, Speaker B: Facilitate paying the fees. In ERC 20 in the IP 4337.
+00:12:47.016 - 00:12:49.924, Speaker A: You can see three types of gas.
+00:12:50.704 - 00:13:06.390, Speaker B: Station gas, fusion gas pre verification gas that describes the gas limit for different steps of the transaction. Inclusion in the block the casync era has only a single field as limit. It covers the fee for all three.
+00:13:06.502 - 00:13:14.446, Speaker A: And submitting a transaction and make sure that gas limit is enough to cover verification, paying the fee and the actual execution itself.
+00:13:14.630 - 00:13:17.830, Speaker B: By default college Smith Gas adds a.
+00:13:17.862 - 00:13:22.434, Speaker A: Constant took over the charging fee. The signature verification.
+00:13:24.934 - 00:13:26.038, Speaker B: Let'S read that again.
+00:13:26.166 - 00:13:31.118, Speaker A: By default colonist Midgas adds a constant choke overcharging the fee in the signature.
+00:13:31.166 - 00:13:57.950, Speaker B: Referral or eBay accounts using existing contracts called a library for the sake of security. Both the notes hold contract deploy assistant contracts can only be called with a special flag assistant flag. You can read more about it here to make a call with this flag assistant call assistant call with propagating revert.
+00:13:58.122 - 00:14:03.394, Speaker A: System call with revert the methods of the system contracts call library should be used.
+00:14:03.694 - 00:14:06.142, Speaker B: Using this library is practically a must.
+00:14:06.198 - 00:14:07.886, Speaker A: When developing hostile accounts.
+00:14:07.910 - 00:14:15.606, Speaker B: Since it's the only way to call nonview methods of the non holder system contract. You have to use this library if.
+00:14:15.630 - 00:14:17.238, Speaker A: You want to allow users to deploy.
+00:14:17.286 - 00:14:29.130, Speaker B: Contracts on their and use this implementation of an EOA account extend the EIP for 337 to provide the OS protection for the operator.
+00:14:29.282 - 00:14:34.042, Speaker A: EIP service imposes several restrictions on the validation step of the account.
+00:14:34.218 - 00:14:39.034, Speaker B: Most of those regarding for beating opcodes are still relevant.
+00:14:39.114 - 00:15:01.594, Speaker A: However, several restrictions have been lifted for better ux extending allowed opcodes. It is allowed to call delegate call any static call contracts that were already deployed. Unlike Ethereum, we have no way to edit the code that was deploy or delete the contract via self destruct via.
+00:15:01.634 - 00:15:06.882, Speaker B: Self destruct, so we can be sure that the code during the execution of.
+00:15:06.898 - 00:15:13.010, Speaker A: The contract will be the same. Extending the setup slots belong to a.
+00:15:13.042 - 00:15:16.034, Speaker B: User in the original EIP, the validate.
+00:15:16.074 - 00:15:44.870, Speaker A: Transaction step of account abstraction allows the account to read only storage lot on its own. However, their slots that are semantically belong to the user but are actually located on another contract address. Another a notable example is the ERC 20 balance. This limitation provides a DDoS safety by ensuring that the slot used for validation by various accounts do not overleap, so there's no need for them to actually belong in the account.
+00:15:44.942 - 00:15:50.758, Speaker B: Storage to enable reading the user's ERC.
+00:15:50.806 - 00:15:56.924, Speaker A: 20 balance or allowance on the validation step, the following slots will be allowed.
+00:15:57.044 - 00:16:10.724, Speaker B: For an account with an address a on the validation step, slots that belong for address a slots a or any other addresses slots of type kcheck a.
+00:16:10.844 - 00:16:20.944, Speaker A: Or x or any other addresses choke over mapping address value which is usually used for balance in ERC 20 tokens.
+00:16:23.194 - 00:16:25.074, Speaker B: What could be allowed in the future?
+00:16:25.194 - 00:16:42.082, Speaker A: In the future we might even allow time bounding transactions allow checking that block timestamp is smaller or equals value if returned false. This will require deploying a separate library such as trusted methods will greatly increase.
+00:16:42.178 - 00:16:52.334, Speaker B: The capabilities of the accounts building custom accounts as already mentioned before of each.
+00:16:52.454 - 00:17:01.494, Speaker A: Account should implement the iAccount interface. An example of the implementation of the account abstraction interface is the implementation of an UA account.
+00:17:01.654 - 00:17:03.350, Speaker B: Note that this account, just like any.
+00:17:03.382 - 00:17:13.274, Speaker A: Standard UA, successfully returns empty when called by external address. While it may not be the behavior you would expect you would like for your account.
+00:17:13.894 - 00:17:18.766, Speaker B: AIP 1271 if you are building a.
+00:17:18.790 - 00:17:31.774, Speaker A: Smart wallet, we highly encourage you to implement AIP 1271, a signature validation scheme. This is the standard endorsed by the K sync team and is used for signature verification library described below.
+00:17:31.854 - 00:17:36.190, Speaker B: Section the deployment process the process process.
+00:17:36.192 - 00:17:54.922, Speaker A: Process of deploying uncalled logic is very similar to the one I deploy in a smart contract. In order to protect smart contracts that do not want to be treated as account, a different method of the deployer system contract should be used. Instead of using create, you issue use create account and create your account.
+00:17:55.058 - 00:17:56.258, Speaker B: Let's take a look on how that.
+00:17:56.306 - 00:17:59.854, Speaker A: Works with Zksync web3 SDK.
+00:18:01.074 - 00:18:11.150, Speaker B: So pretty much what's happening here is we loading the create account actually and.
+00:18:11.182 - 00:18:13.606, Speaker A: After actually yeah, create account new contract.
+00:18:13.670 - 00:18:21.594, Speaker B: Factory create account contract factory deploys so he will deploy the create account. Awesome.
+00:18:22.694 - 00:18:24.470, Speaker A: This is the byte code for the.
+00:18:24.502 - 00:18:31.794, Speaker B: Contract for the smart account and we will be deployed using create account.
+00:18:32.174 - 00:18:34.862, Speaker A: Limitations of the verification step the verification.
+00:18:34.918 - 00:18:38.324, Speaker B: Rules are not yet fully endorsed enforced.
+00:18:38.484 - 00:18:53.924, Speaker A: Even if your customer card works at the moment, it could stop working in the future if it does not follow the rules below. Very important for audits, huh? In order to protect the system from a DLS tract, the verification step must.
+00:18:53.964 - 00:18:57.484, Speaker B: Have the following the account logic can.
+00:18:57.524 - 00:19:06.624, Speaker A: Only touch slots that belong to the account. The account logic cannot use context variables like block number.
+00:19:08.014 - 00:19:10.046, Speaker B: It is also required that your account.
+00:19:10.150 - 00:19:12.034, Speaker A: Increases notes by one.
+00:19:12.934 - 00:19:14.862, Speaker B: This restriction is only needed to preserve.
+00:19:14.878 - 00:19:17.114, Speaker A: The transaction hash collision resistance.
+00:19:18.854 - 00:19:24.374, Speaker B: Transactions that violate the rules above will not be accepted by the API, though.
+00:19:24.414 - 00:19:26.950, Speaker A: These requirements cannot be enforced on the.
+00:19:26.982 - 00:19:29.798, Speaker B: Secret vm level and do not apply.
+00:19:29.846 - 00:19:32.154, Speaker A: To layer one to L2 interactions.
+00:19:34.354 - 00:19:36.034, Speaker B: To like to try out the future.
+00:19:36.114 - 00:19:44.130, Speaker A: Faster, we decided to release account abstraction publicly before fully implementing the limitation checks for the verification step of the account.
+00:19:44.282 - 00:19:46.906, Speaker B: Currently, your transactions may pass through the.
+00:19:46.930 - 00:19:50.974, Speaker A: API despite violating the requirements. Assume this will be changed.
+00:19:51.634 - 00:19:55.546, Speaker B: NOS holder account for optimization purposes, both.
+00:19:55.610 - 00:20:14.498, Speaker A: The TX nodes and the deployment knowns are put in one storage slot inside the nodes. Holder system contracts in order to increase the notes of your account, it is widely recommended to call increment minus if equals function and pass the value of the notes provided in the transaction.
+00:20:14.626 - 00:20:17.810, Speaker B: This is one of the whitelist calls.
+00:20:17.922 - 00:20:19.706, Speaker A: Where the account logic is allowed to.
+00:20:19.730 - 00:20:25.490, Speaker B: Call contract to call titlesmart contracts sending.
+00:20:25.522 - 00:20:40.870, Speaker A: Transactions from an account for now only EIP 712 transactions are supported. Submit a transaction on a specific account. You need to provide the from field of the transaction of the address of the sender, the custom signature and the custom data.
+00:20:40.942 - 00:20:51.302, Speaker B: Let's take a look at it. So we import in the case in qwab tree, we load the address is the data for the signature, then we.
+00:20:51.318 - 00:20:54.514, Speaker A: Crise everything and we send the transaction.
+00:20:55.014 - 00:21:02.056, Speaker B: Awesome. Pretty simple, straightforward paymasters imagine being able.
+00:21:02.120 - 00:21:09.952, Speaker A: To pay fees for users of your paymasters are accounts that cant compensate for other accounts transactions.
+00:21:10.128 - 00:21:17.016, Speaker B: The other important use case of paymasters is to facilitate pay fee token what.
+00:21:17.080 - 00:21:18.904, Speaker A: It is the form of fee token.
+00:21:18.944 - 00:21:21.296, Speaker B: In this case, simply paymasters can provide.
+00:21:21.360 - 00:21:37.786, Speaker A: The ability to exchange ERC tokens to ETH on the fly. If users want to interact with a paymaster, they should provide the non zero paymaster address in their EIP 712 transaction. They input data of the paymastery provider.
+00:21:37.810 - 00:21:45.930, Speaker B: In the paymaster input field of the Paymaster Paymaster verification rules the verification rules.
+00:21:45.962 - 00:22:01.080, Speaker A: Are not yet fully enforced. Even though your paymaster works at the moment. You could stop work in the future if do not follow the rules below. Since multiple users should be allowed to access the same paymaster, malicious paymaster can do a deal denial of service attack.
+00:22:01.152 - 00:22:04.280, Speaker B: Inner system to work around this, a.
+00:22:04.312 - 00:22:23.860, Speaker A: System similar to EIP 4337, reputation scoring will be used. Unlike in the original IP, pain masters are allowed to touch any storage slots. The paymasters won't be throttled if either of the following is true. More than x minute have passed since.
+00:22:23.892 - 00:22:27.084, Speaker B: The verification sorry, more than x minute.
+00:22:27.124 - 00:22:32.836, Speaker A: Have passed since the verification has passed on the API nodes.
+00:22:33.020 - 00:22:35.260, Speaker B: The order of slots being read is.
+00:22:35.292 - 00:22:46.184, Speaker A: The same during the run of the API nodes. The first slot whose value has changed is one of the user slots. This is needed to protect the pin master from malicious users.
+00:22:47.784 - 00:22:51.768, Speaker B: Built in paymaster flows while some paymaster.
+00:22:51.816 - 00:23:21.428, Speaker A: Can trivially operate without any interaction from the user example a protocol that always pays fees for the users, some requires active participation from the transaction sender. A notable example is a paymaster that swaps users ERC 20 tokens to if it requires the user to set the necessary allowance for the pay master. The account abstraction protocol by itself is generic and allows a couple of accounts and paymasters to implement arbitrary interactions.
+00:23:21.556 - 00:23:24.988, Speaker B: However, the code of the accounts evades.
+00:23:25.036 - 00:23:28.996, Speaker A: Content, but we still want them to be able to participate in the ecosystem.
+00:23:29.020 - 00:23:31.068, Speaker B: Of custom accounts and paymasters.
+00:23:31.196 - 00:23:36.732, Speaker A: That's why we standardized the paymaster input field of the transaction to cover the most common use cases.
+00:23:36.788 - 00:23:39.664, Speaker B: In the future, your accounts are free.
+00:23:39.704 - 00:23:48.512, Speaker A: To implement or not implement the support of these flows. However, this is highly encouraged to keep the interface the same for both UA's and custom accounts.
+00:23:48.688 - 00:23:51.404, Speaker B: Let's take a look at the general paymaster workflow.
+00:23:52.144 - 00:23:58.856, Speaker A: It should be used if no prior actions are required from the user for.
+00:23:58.880 - 00:24:02.872, Speaker B: The paymaster to operate, the paymaster input.
+00:24:02.928 - 00:24:06.254, Speaker A: Field must be encoded as the following.
+00:24:07.114 - 00:24:14.122, Speaker B: Function generate cost data the paymaster input.
+00:24:14.178 - 00:24:18.214, Speaker A: Field must be encoded as a call to a function with the following.
+00:24:20.114 - 00:24:20.854, Speaker B: General.
+00:24:22.434 - 00:24:27.614, Speaker A: UA accounts will do nothing and the paymaster can wrap back data in any way.
+00:24:28.474 - 00:24:32.226, Speaker B: Approval based pay master flow it should.
+00:24:32.250 - 00:24:33.714, Speaker A: Be used if the user is required.
+00:24:33.754 - 00:24:37.334, Speaker B: To certain allowance through a token for the Paymaster tool.
+00:24:38.394 - 00:24:43.386, Speaker A: The parameter input field must be included as a call to a function with.
+00:24:43.410 - 00:25:03.900, Speaker B: The following robo based token allowance. The EOA will ensure that the allowance of the token towards the master reset should at least minimum allowance in their input.
+00:25:03.932 - 00:25:07.844, Speaker A: Param is additional payload that can be sent to the paymaster to implement any.
+00:25:07.884 - 00:25:11.516, Speaker B: Logic example additional signature or key to.
+00:25:11.540 - 00:25:13.464, Speaker A: Be validated by the paymaster.
+00:25:14.164 - 00:25:16.252, Speaker B: If you are developing a paymaster, you.
+00:25:16.268 - 00:25:19.380, Speaker A: Should not trust the transaction sender to behave honestly.
+00:25:19.532 - 00:25:23.220, Speaker B: Provide the requirement allows with the example.
+00:25:23.332 - 00:25:37.796, Speaker A: Provide the requirement allowance with the approval basis flow this flow served limosa instruction through UA's and requirements should always be double checked by the Paymaster. Working with Paymaster flows using the Zksync.
+00:25:37.820 - 00:25:41.260, Speaker B: Web three SDK the Zksync web3.
+00:25:41.292 - 00:25:47.624, Speaker A: SDK provides methods for encoding correctly formatted Paymaster program and throughout the built in Paymaster flow.
+00:25:48.284 - 00:25:52.060, Speaker B: Testnet Paymaster to ensure user experience Paymaster.
+00:25:52.092 - 00:25:54.700, Speaker A: On Testnet as well keeping support paying.
+00:25:54.732 - 00:25:58.112, Speaker B: Fees in DRC 20 tokens the matterlab.
+00:25:58.168 - 00:26:06.088, Speaker A: Teams provides a testnet Paymaster that enables pay fees in ERC tokens. A two one one exchange paid with.
+00:26:06.136 - 00:26:10.804, Speaker B: If one unit of token is well one way equal one way of if.
+00:26:13.224 - 00:26:28.924, Speaker A: The paymaster supports only approval based paymaster flow and requires the token params is equal to the token being swapped and min allowance to equal at least max v per gas times gas limit.
+00:26:29.224 - 00:26:31.896, Speaker B: In addition, the testnet paymaster does not.
+00:26:31.920 - 00:26:33.864, Speaker A: Make use of the inner input parameter.
+00:26:33.984 - 00:26:41.312, Speaker B: So nothing should be provider provided empty bytes. An example on how to use the.
+00:26:41.328 - 00:26:43.104, Speaker A: Paymaster can be seen in the quick.
+00:26:43.144 - 00:26:46.444, Speaker B: Start tutorial signature validation.
+00:26:47.784 - 00:27:15.682, Speaker A: Your project can start preparing for native account abstraction support. We highly encourage you to do so. Cin City will allow you to onboard hundreds of thousands of users archangel users that are already using the first version of zksync. We expect that in the future even more users will switch to smart wallets. One of the most notable differences between several various types of accounts to be built is the different signature schemes.
+00:27:15.818 - 00:27:23.260, Speaker B: We can expect accounts to support EIP 1271 standard the signature opens up link.
+00:27:23.292 - 00:27:34.024, Speaker A: Library provides a way to verify signatures for different account implementations. We strongly encourage you to use this library if you need to check if a signature of account is correct.
+00:27:34.684 - 00:27:37.664, Speaker B: Here's how added just to yarn add.
+00:27:38.484 - 00:27:40.900, Speaker A: And let's see an example of using it.
+00:27:40.972 - 00:27:43.116, Speaker B: We can get the hash and the.
+00:27:43.140 - 00:27:51.044, Speaker A: Signature and we can verify if that's valid. Verifying account abstraction signatures within our SDK.
+00:27:52.464 - 00:27:54.464, Speaker B: It is also not recommended to use.
+00:27:54.504 - 00:27:57.600, Speaker A: Ethers JS library to verify for signatures.
+00:27:57.792 - 00:28:00.168, Speaker B: Or SDK provides your methods with its.
+00:28:00.216 - 00:28:07.728, Speaker A: Utils to verify signatures. Let's see the methods is message signature correct takes in the address, the message.
+00:28:07.856 - 00:28:23.164, Speaker B: And the signature returns a boolean and is type data signature correct, takes the address, the domain type data domain, the types, the value and the signature. Really nice. So this one is typed.
+00:28:23.704 - 00:28:39.944, Speaker A: Currently these methods only support and verify CDSA signatures. Assume they will allow for EIP twelve seven one signature verification as well. Both these methods can turn true or false depending on whether the signature is correct.

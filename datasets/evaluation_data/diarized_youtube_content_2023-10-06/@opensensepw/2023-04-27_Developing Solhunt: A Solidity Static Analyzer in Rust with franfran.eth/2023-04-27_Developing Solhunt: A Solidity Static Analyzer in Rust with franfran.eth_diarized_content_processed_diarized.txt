@@ -1,0 +1,213 @@
+00:00:00.560 - 00:00:25.462, Speaker A: Bro, feel free to. First of all, thank you for being here. You know, I'm recording. Thank you for being here. This is very nice of you, a lot of very useful information, and feel free to share your screen, you know, and just go through what you prepared. So even if not a lot of people joining right now, we can always have this on YouTube and more people.
+00:00:25.518 - 00:00:27.288, Speaker B: Can learn from you.
+00:00:27.336 - 00:00:28.084, Speaker A: Okay?
+00:00:29.504 - 00:00:31.964, Speaker B: Yeah, thanks for having me. Thanks buddy.
+00:00:33.544 - 00:00:34.924, Speaker C: I share my screen.
+00:00:54.964 - 00:00:55.704, Speaker B: Nice.
+00:00:56.924 - 00:01:04.364, Speaker D: So, solvent, essentially, what is Solohunt? It's a tool for security folks like.
+00:01:04.444 - 00:01:10.020, Speaker C: Auditors or developers who write solid contracts.
+00:01:10.212 - 00:01:20.944, Speaker D: And they want to detect vulnerabilities or do some checks like style issues or gas optimizations in their contract.
+00:01:21.614 - 00:01:23.854, Speaker C: And they wanted to do it fast.
+00:01:23.974 - 00:01:31.918, Speaker D: Without too much knowledge about programming. So essentially this is a static analyzer.
+00:01:32.006 - 00:01:32.634, Speaker C: Like.
+00:01:34.414 - 00:01:48.650, Speaker D: Slither and Solstats. Slidar is the old one, it's very established, it has a lot of tools attached to it, and source stat is a bit more recent.
+00:01:48.762 - 00:01:50.850, Speaker B: Maybe you guys don't know it, compared.
+00:01:50.882 - 00:01:54.018, Speaker C: To cither, it's written in rust.
+00:01:54.146 - 00:02:04.258, Speaker D: It's quite similar to Solhunt, but it has some differences as well. And so my aim in this talk would be to show you what our.
+00:02:04.306 - 00:02:08.094, Speaker C: Differences, and hopefully do a little.
+00:02:10.354 - 00:02:10.738, Speaker B: Life.
+00:02:10.786 - 00:02:14.054, Speaker D: Code view to show you how to.
+00:02:14.524 - 00:02:17.704, Speaker C: Develop detection modules in solvents.
+00:02:19.204 - 00:02:21.796, Speaker D: Another thing is that, you know, when.
+00:02:21.820 - 00:02:33.644, Speaker C: You code live, nothing works. Yeah, so the main issue with slither.
+00:02:33.724 - 00:02:37.948, Speaker D: Is that it might be slow, it's.
+00:02:38.036 - 00:02:42.764, Speaker C: Written in Python, but it's quite fine.
+00:02:46.624 - 00:02:52.072, Speaker D: The time that was shown in the GitHub page was about 1 second per.
+00:02:52.128 - 00:02:55.644, Speaker B: Contract, which I could reproduce.
+00:02:57.424 - 00:03:24.270, Speaker D: So statinsolent are two static analyzers written in rest. They are both much faster. And so the issue with slither install stats is that they are fetching the node. So let me explain a bit more. These three tools are compiling using the.
+00:03:24.382 - 00:03:27.550, Speaker C: Solid compiler salk, and one of the.
+00:03:27.582 - 00:03:36.530, Speaker D: Step of a compiler is to give some insights about the code. So you could just don't compile it.
+00:03:36.602 - 00:03:39.554, Speaker C: And apply some rejects and stuff.
+00:03:39.714 - 00:03:46.578, Speaker D: But that wouldn't work very well because you have to maintain it a lot.
+00:03:46.706 - 00:03:48.482, Speaker C: And there will be a lot of hks.
+00:03:48.658 - 00:03:53.090, Speaker D: So what compilers do is that they return an ast.
+00:03:53.162 - 00:03:55.614, Speaker C: So it means the abstract syntax tree.
+00:03:55.914 - 00:04:02.212, Speaker D: And what is essentially is that it's a, it's a bunch of nodes that.
+00:04:02.348 - 00:04:06.108, Speaker C: Designate the variables, the function, the contract.
+00:04:06.196 - 00:04:08.864, Speaker D: The pragma, everything in a smart contract.
+00:04:10.044 - 00:04:14.052, Speaker B: And what you're going to do is.
+00:04:14.068 - 00:04:14.864, Speaker E: That you.
+00:04:16.844 - 00:04:18.744, Speaker B: See eventually.
+00:04:20.764 - 00:04:23.144, Speaker E: Convert it into.
+00:04:24.324 - 00:04:39.734, Speaker B: Another thing that would be a higher resolution. And then so the issue with slither is that.
+00:04:41.514 - 00:04:42.814, Speaker C: It'S not.
+00:04:45.194 - 00:04:46.254, Speaker B: Too easy.
+00:04:56.214 - 00:04:56.954, Speaker D: Because.
+00:04:57.814 - 00:05:00.554, Speaker B: Of the catch texture.
+00:05:02.814 - 00:05:04.990, Speaker D: And the issue is that they are.
+00:05:05.022 - 00:05:11.874, Speaker C: Fetching the nodes compared to solent. And the reason is that for solent.
+00:05:13.054 - 00:05:16.974, Speaker B: I based myself on APR that was.
+00:05:17.014 - 00:05:20.180, Speaker D: Made from Andre on the ethereum, and.
+00:05:20.212 - 00:05:28.384, Speaker B: This PR was above. And so I've made some pieces on this PR because I could tell.
+00:05:29.004 - 00:05:30.264, Speaker D: And it also.
+00:05:32.404 - 00:05:34.344, Speaker B: And I also tried to push.
+00:05:37.164 - 00:05:41.276, Speaker D: The ethers repo and the foundry repo, which was relying on it.
+00:05:41.300 - 00:05:46.944, Speaker C: A lot and it was a bit famous, but hopefully we get merged in the future.
+00:05:47.394 - 00:05:49.306, Speaker D: And what I've done also is a.
+00:05:49.330 - 00:05:52.786, Speaker C: Visitor, and what is a visitor is.
+00:05:52.810 - 00:05:56.498, Speaker D: That it's a code that go through.
+00:05:56.546 - 00:05:59.458, Speaker C: All the nodes and notify the implementers.
+00:05:59.506 - 00:06:02.226, Speaker D: Of the threat that it's going to.
+00:06:02.250 - 00:06:03.810, Speaker C: Visit a specific node.
+00:06:03.962 - 00:06:08.794, Speaker D: And when you write detection module it's going to check what is in this.
+00:06:08.834 - 00:06:14.276, Speaker C: Node, and depending on what is in this node that you may want to.
+00:06:14.300 - 00:06:21.584, Speaker D: Detect in your code, you're going to add some findings, and then at the end they are going to be formatted.
+00:06:22.204 - 00:06:26.356, Speaker C: With the GitHub link so you can.
+00:06:26.380 - 00:06:31.036, Speaker D: Access it very easily. A view also of the code with.
+00:06:31.060 - 00:06:38.100, Speaker C: The line and cool stuff. So here on the top left it's.
+00:06:38.132 - 00:06:55.534, Speaker D: A view of a slither detection module, on the top right it's solstats, and on the bottom it's solvent. And as you can see, the issue with these two codes is that it's.
+00:06:55.574 - 00:06:59.710, Speaker C: Fetching the nodes, and the issue of.
+00:06:59.742 - 00:07:06.750, Speaker D: That is that it's not a very scalable solution. And so what I came up with.
+00:07:06.862 - 00:07:12.420, Speaker C: Is using the visitor I've written, and.
+00:07:12.452 - 00:07:14.460, Speaker D: What you're doing is that you're writing.
+00:07:14.532 - 00:07:17.940, Speaker C: Function visit function definition the node name.
+00:07:17.972 - 00:07:19.820, Speaker D: Is the function definition you can see.
+00:07:19.852 - 00:07:23.612, Speaker C: Here and you're writing some condition, and.
+00:07:23.668 - 00:07:31.824, Speaker D: If those are rights, then you're going to push finding. So here the finding is the id zero.
+00:07:32.524 - 00:07:45.000, Speaker C: So it's this one to tell that x because of Y. And I run some benchmarks, you can.
+00:07:45.032 - 00:07:59.144, Speaker D: See that it's pretty fast. This was run on a wall codebase, it's beconomy, you may know it, the account abstraction, I'm not affiliated with them.
+00:07:59.184 - 00:08:00.576, Speaker B: But I don't know.
+00:08:00.640 - 00:08:02.080, Speaker D: I wanted to run it against it.
+00:08:02.112 - 00:08:22.520, Speaker C: Because code arena made a contest about economy and I thought that I could try test my modules against live contests with other people's submissions. And so the main issue, which is.
+00:08:22.552 - 00:08:25.976, Speaker D: An upgrade access, is that the state.
+00:08:26.040 - 00:08:31.504, Speaker C: Module is painfully slow, 1 second because.
+00:08:33.244 - 00:08:43.024, Speaker D: It has a lot of visited functions and it from the ast and.
+00:08:44.724 - 00:08:45.060, Speaker B: It.
+00:08:45.092 - 00:09:03.244, Speaker D: Just not very optimized. And once I will optimize it more, it's going to be much faster. And thanks to earth you can just parallelize everything. And the world detection plus compilation should.
+00:09:03.284 - 00:09:06.904, Speaker C: Be really quick at the end.
+00:09:07.924 - 00:09:24.560, Speaker D: So the cool thing with Solent is that you can write unit testing and integration testing similar to these terms in software development. Unit testing is testing a detection module.
+00:09:24.652 - 00:09:29.144, Speaker C: On a specific line. So for example, you are using an.
+00:09:29.224 - 00:09:38.136, Speaker D: Assembly block and you say that using assembly is bad because it's super dangerous. You're going to write a mock contract.
+00:09:38.280 - 00:09:42.144, Speaker C: That has an SMB block and you're.
+00:09:42.184 - 00:09:44.000, Speaker D: Going to say that the assembly block.
+00:09:44.072 - 00:09:50.020, Speaker C: Is at line five, for example. Then you're going to run the tool.
+00:09:50.192 - 00:10:14.724, Speaker D: And if the lines found for the assembly block module is five, you won. The other cool part is integration testing. So as I said earlier, I run benchmarking tests on the biconomy contest. And so what you can do is that you can just pull a world.
+00:10:14.764 - 00:10:18.016, Speaker C: Code base and test for the location.
+00:10:18.080 - 00:10:24.344, Speaker D: Of findings on specific line. It's going to do exactly the same.
+00:10:24.384 - 00:10:27.736, Speaker C: As the unit testing to make sure.
+00:10:27.760 - 00:10:30.644, Speaker D: That you have much less false positives.
+00:10:31.864 - 00:10:37.004, Speaker B: Rather than if you just wrote unit testing, for example.
+00:10:41.924 - 00:10:52.692, Speaker C: And now I'm going to code how to write detection module. So the, of course it's not going.
+00:10:52.708 - 00:10:57.932, Speaker D: To be complete, it's just a demo. So for example, there is contract called.
+00:10:57.988 - 00:11:05.868, Speaker C: Mule, which is just multiplying a value by two. And there is a gas optimization which.
+00:11:05.916 - 00:11:08.196, Speaker D: Consists of using a left shift, which.
+00:11:08.220 - 00:11:11.048, Speaker C: Is going to shift all the bits.
+00:11:11.136 - 00:11:25.524, Speaker D: To the left one time rather than multiplying a variable by two. And so what I will do usually is that you define the build visitor macro.
+00:11:25.944 - 00:11:30.632, Speaker C: Then you write the findings, the ones you want to find.
+00:11:30.688 - 00:11:33.244, Speaker D: So this one has an id of two.
+00:11:33.664 - 00:11:38.284, Speaker C: Summary will be for example, use left shifts.
+00:11:39.664 - 00:12:10.508, Speaker D: And description is use left shifts rather than mule because it needs gas optimization. This is our unit test. You're going to write a mocked contract which is super small. And you hope to find that the optimization, that detector module is going at this line. And this line is five if I'm not mistaken. Yes. And this is exactly what we are writing here.
+00:12:10.596 - 00:12:12.664, Speaker C: The line for filing with con module.
+00:12:13.004 - 00:12:18.424, Speaker D: Of this specific module is the id zero at line five.
+00:12:19.804 - 00:12:38.204, Speaker C: Now we need to register it, the module in the, in the speaker array. I'm just going to copy paste this then it's called gas and it's called mat.
+00:12:40.264 - 00:12:40.720, Speaker B: Right?
+00:12:40.792 - 00:12:44.208, Speaker D: So now we just register the module.
+00:12:44.296 - 00:12:48.504, Speaker C: Usually that's the path you just forget.
+00:12:48.624 - 00:12:53.096, Speaker D: You run the test and it cannot find anything for some reason, but that.
+00:12:53.120 - 00:12:54.484, Speaker C: Just because you didn't.
+00:12:57.774 - 00:13:05.094, Speaker D: So what you can do is that you can pass the debug flag. You call it debug and you write.
+00:13:05.134 - 00:13:08.354, Speaker C: True, and you are going to just.
+00:13:08.734 - 00:13:11.794, Speaker D: Test as it was a rust test.
+00:13:12.334 - 00:13:14.994, Speaker C: So it's called new AMA.
+00:13:16.974 - 00:13:38.504, Speaker D: And what it's going to do is that bypassing the debug flag, it's going to show you the full ist that I've talked about earlier. And hopefully we're going to find something that is related to this expression with a mule inside it.
+00:13:40.884 - 00:13:43.764, Speaker C: So it seems like it's close to.
+00:13:43.844 - 00:13:44.464, Speaker D: This.
+00:13:48.464 - 00:13:55.488, Speaker C: As this, okay, so here we have an operator, it's the mule and.
+00:13:55.536 - 00:14:11.044, Speaker D: The main, the main node is, let's say binary operation. So it's binary operation that you, that we want to find. So what we're going to do is that we're going to define a function.
+00:14:13.044 - 00:14:13.944, Speaker B: Generation.
+00:14:15.964 - 00:14:17.584, Speaker C: And you can call it like this.
+00:14:20.484 - 00:14:26.916, Speaker D: Now the issue is that the LSP doesn't work very well in the macros.
+00:14:27.060 - 00:14:30.396, Speaker C: Because it's very hard for the LSP.
+00:14:30.540 - 00:14:38.804, Speaker D: To forest analyzer to reason about the macro. What I'd like to do is just.
+00:14:38.924 - 00:14:44.342, Speaker C: Debug prints the node, then we can.
+00:14:44.478 - 00:14:49.134, Speaker D: Run it again without the flag, or it's just going to write the ist.
+00:14:49.174 - 00:14:53.514, Speaker C: Again, which we don't want, not clutter or eyes.
+00:14:55.974 - 00:14:58.374, Speaker D: And what it should do is that.
+00:14:58.494 - 00:15:05.394, Speaker C: It should debug print the node that we were interested in.
+00:15:05.804 - 00:15:08.044, Speaker D: So now what we have is that.
+00:15:08.084 - 00:15:11.180, Speaker C: We have this binary operation, okay.
+00:15:11.252 - 00:15:13.944, Speaker D: And the operator is a mule, okay.
+00:15:15.164 - 00:15:33.034, Speaker C: So we could just say if your dot operator, we can just push finding. Nice it, find it. And thus is the node we just.
+00:15:33.074 - 00:15:33.654, Speaker D: Found.
+00:15:35.754 - 00:15:40.226, Speaker C: That we are going to clone because the, there's no reference to this.
+00:15:40.250 - 00:15:50.774, Speaker D: Value and it should find it. Let's comment this.
+00:15:52.954 - 00:16:07.874, Speaker B: For it. No. Okay. But let me check.
+00:16:24.834 - 00:16:26.774, Speaker D: Should be in the ether settings.
+00:16:29.394 - 00:16:29.706, Speaker B: Which.
+00:16:29.730 - 00:16:32.082, Speaker C: I do right now.
+00:16:32.218 - 00:16:34.154, Speaker D: I don't know if you have some.
+00:16:34.194 - 00:16:35.814, Speaker B: Spare time at the end.
+00:16:37.234 - 00:16:43.974, Speaker D: So the issue is that package, but you get the idea, I think.
+00:16:46.554 - 00:16:58.634, Speaker B: Now what we can do is that as this is gas optimization, we can create a contract.
+00:17:01.334 - 00:17:03.974, Speaker D: Measure the time, the.
+00:17:04.014 - 00:17:25.254, Speaker B: Gas that you spend before the optimization and the gas after determination, and it's going to compare the gas after and before to just tell you how much you saved.
+00:17:31.634 - 00:17:38.602, Speaker E: And I think that it's need for.
+00:17:38.698 - 00:17:48.454, Speaker B: People passwords for test because it's going to write the reports for you.
+00:17:52.754 - 00:17:58.094, Speaker D: So for example, there is gas optimization.
+00:17:59.274 - 00:18:12.564, Speaker B: When you define the error, because a value pushed stored in the memory. So you have the left of the.
+00:18:13.264 - 00:18:22.752, Speaker E: Value, which is this expensive. And what it's going to do is.
+00:18:22.768 - 00:19:00.764, Speaker B: That it's going to deploy the contract run, call the gas meter function and deploy the contract to call the guest method function and compare the usage. And then it's going to start in the database. The name is, is zero.
+00:19:09.664 - 00:19:17.360, Speaker D: In your Mac. I submitted to Kalarina asymmetric because it's very far.
+00:19:17.432 - 00:19:18.364, Speaker E: It's quite sad.
+00:19:22.784 - 00:19:25.364, Speaker D: Now the main blasting, I do integration.
+00:19:26.284 - 00:19:29.316, Speaker B: So I'll give you the data. I'm going to show you how I.
+00:19:29.340 - 00:19:45.076, Speaker D: Implemented, for example, the bay economy integration testing. So what you have to do is to copy paste the B economy report into this data. And then you're going to test biconomy. And what it's doing is that you.
+00:19:45.180 - 00:19:53.838, Speaker C: Write a testing function and you call this, those almost the same as foundry.
+00:19:53.966 - 00:19:54.794, Speaker B: Takes.
+00:19:56.494 - 00:20:03.474, Speaker D: This directory and it's going to compile. I couldn't compile without the optimizer.
+00:20:03.934 - 00:20:12.038, Speaker C: Probably one of the limitations because of stack two dip. And now you are going to asserting.
+00:20:12.086 - 00:20:16.518, Speaker D: That it has a finding. It has gas optimization.
+00:20:16.646 - 00:20:25.660, Speaker C: For example, at this location here, you may use another thing related to code.
+00:20:25.692 - 00:20:33.224, Speaker D: Style, or it may have some kind of vulnerability that you may have identified.
+00:20:36.324 - 00:20:37.064, Speaker B: Now.
+00:20:39.244 - 00:20:41.252, Speaker D: What you can do is that.
+00:20:41.388 - 00:20:45.936, Speaker C: You can write in easy gas optimization.
+00:20:46.080 - 00:21:10.512, Speaker D: Which will have low amount of false positives. But the issue is that when you starting to write something a bit more complicated, it may be a bit harder to reason about and you may have more fast positive. For example, I don't know if you were at some kind of re entrancy, you have a lot more complexity because.
+00:21:10.568 - 00:21:14.244, Speaker C: You are assigning value to variables.
+00:21:14.404 - 00:21:23.148, Speaker D: And eventually this may not be a re entrance because there is a guard or something which is maybe a bit.
+00:21:23.196 - 00:21:28.132, Speaker C: More the role of dynamic analysis and.
+00:21:28.308 - 00:21:29.624, Speaker D: This kind of stuff.
+00:21:37.214 - 00:21:37.822, Speaker B: Interesting.
+00:21:37.878 - 00:21:45.134, Speaker A: First time I've seen this kind of approach, you know, of actually building a static analyzer, you know, looking at an ast.
+00:21:45.214 - 00:21:59.006, Speaker B: So this is quite cool. Unless anyone has questions. Yeah, good one.
+00:21:59.030 - 00:22:00.742, Speaker D: Let me see if the, if we.
+00:22:00.758 - 00:22:08.294, Speaker A: Have anything in the chat here. So Jack is asking, all gas comparisons are with what compiler optimization.
+00:22:10.874 - 00:22:11.562, Speaker B: Will test.
+00:22:11.618 - 00:22:13.614, Speaker A: All the variations for the compiler.
+00:22:15.274 - 00:22:16.014, Speaker B: Yes.
+00:22:16.314 - 00:22:32.656, Speaker D: So it's about the gas metering. So yeah, you write contract form and contract two and this is the versioning thing. So you just said that the, it's going to deploy the contract from m.
+00:22:32.680 - 00:22:37.524, Speaker C: Two and measure the gas metering from this version.
+00:22:38.144 - 00:22:39.680, Speaker D: And I don't know if you can.
+00:22:39.752 - 00:22:43.128, Speaker C: Know this one is the same for.
+00:22:43.136 - 00:22:46.112, Speaker D: Example, this one is more than zero.
+00:22:46.208 - 00:22:55.662, Speaker C: 5.0, and that's because some contract may not be compatible, such as this one.
+00:22:55.768 - 00:23:01.094, Speaker D: Because customs errors have been introduced a bit later in the solidity compiler.
+00:23:01.954 - 00:23:04.334, Speaker A: How long did you build in that so far, bro?
+00:23:08.114 - 00:23:11.842, Speaker D: I started pretty much when the PR.
+00:23:11.938 - 00:23:19.534, Speaker C: Got opened, so it was something like eight, six months ago.
+00:23:20.954 - 00:23:22.254, Speaker B: I just kept it.
+00:23:25.044 - 00:23:28.864, Speaker A: Are you taking contributions so you might go there and help you?
+00:23:30.924 - 00:23:31.956, Speaker B: Not yet.
+00:23:32.140 - 00:23:33.624, Speaker E: Yeah, sure.
+00:23:34.284 - 00:23:37.784, Speaker C: So it's called soul hands.
+00:23:38.964 - 00:23:50.464, Speaker D: And I will be glad if you guys manage to write some detection modules and just open a pr to it. Maybe I can just send a link.
+00:23:52.314 - 00:23:55.618, Speaker C: Yeah, that was really good.
+00:23:55.666 - 00:24:02.650, Speaker A: Really interesting. Really nice to see these kinds of preserves, you know. And thank you so much for coming here.
+00:24:02.682 - 00:24:02.906, Speaker B: You know.
+00:24:02.930 - 00:24:04.170, Speaker A: You have any closing thoughts?
+00:24:04.202 - 00:24:05.690, Speaker D: Do you want to talk anything?
+00:24:05.802 - 00:24:08.014, Speaker A: Talk a little bit about yourself or.
+00:24:08.434 - 00:24:10.254, Speaker D: Maybe give out your twitter.
+00:24:13.194 - 00:24:15.082, Speaker B: I mean, thanks for having me.
+00:24:15.098 - 00:24:22.434, Speaker D: It was really great to present my tool. I'm going to think about maybe making.
+00:24:22.554 - 00:24:25.474, Speaker C: Another talk about, I don't know, some kind of tool.

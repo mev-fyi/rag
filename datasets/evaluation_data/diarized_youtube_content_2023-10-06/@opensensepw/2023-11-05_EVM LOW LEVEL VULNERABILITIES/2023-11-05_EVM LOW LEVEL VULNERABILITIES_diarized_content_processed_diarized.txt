@@ -1,0 +1,543 @@
+00:00:03.000 - 00:00:03.660, Speaker A: Okay.
+00:00:06.734 - 00:00:12.754, Speaker B: So it's great to be here guys. This is, this will be a talk about low level stuff.
+00:00:13.214 - 00:00:32.716, Speaker C: Flow level vulnerabilities, low level assembly code into the EVM, obviously for the solidity developers. A bit of background about me, I'm Victor Martinez. I'm a EVM and security researcher, consulting smart contract auditorial security.
+00:00:32.900 - 00:00:36.052, Speaker B: I've been a white hack since almost.
+00:00:36.108 - 00:00:42.092, Speaker D: Two years or three years, and software engineer and a bit more stuff then.
+00:00:42.188 - 00:00:46.572, Speaker C: What's the purpose of this talk? Yeah, so the purpose of this talk.
+00:00:46.708 - 00:00:51.132, Speaker B: Is to reduce friction with low level languages.
+00:00:51.228 - 00:00:56.454, Speaker C: I know that sometimes those can be, be challenging to learn, especially when there's.
+00:00:56.494 - 00:01:00.994, Speaker B: Not a lot of resources. So just trying to put out there.
+00:01:02.294 - 00:01:17.430, Speaker C: Another resource for people to learn low level stuff. Assembly. Then obviously as it, the more, the more lower you go, the more risk you have. So spread a bit of risk awareness.
+00:01:17.502 - 00:01:25.502, Speaker B: Where are the box, how to avoid them, how to introduce the less possible amount of bugs in our code, then.
+00:01:25.558 - 00:01:28.430, Speaker C: Explain real bugs exploits in a comprehensive way.
+00:01:28.462 - 00:01:32.734, Speaker D: We will cover, we will cover common.
+00:01:32.774 - 00:01:34.622, Speaker C: Bugs like theoretical bugs.
+00:01:34.678 - 00:01:37.702, Speaker D: We will see a few of live.
+00:01:37.758 - 00:01:40.214, Speaker C: Bugs in protocols, and then we will.
+00:01:40.254 - 00:01:47.490, Speaker B: See compiler bugs also, because if you remember the viper, the viper bug that.
+00:01:47.522 - 00:01:57.346, Speaker C: Caused the rect of curve and a few other protocols a few months ago, that's one of the low level bugs that no one had in their mind until it happened.
+00:01:57.370 - 00:02:01.826, Speaker B: So we will cover it then.
+00:02:01.970 - 00:02:04.014, Speaker C: First of all, the table of contents.
+00:02:04.594 - 00:02:07.258, Speaker B: I will do for them, not the.
+00:02:07.266 - 00:02:44.784, Speaker C: Newbies, but for the ones entering the low level world. I will do a quick introduction of how the EVM works. The computer behind Ethereum works. I will also explain where Juul sits on the development stack of Ethereum. As I said, common vulnerabilities, then real world vulnerabilities, and how to prevent bugs when writing low level code, when writing Joule. And if I have time at the end, if we have time at the end, I will do a little bonus with some alpha.
+00:02:45.524 - 00:02:50.780, Speaker B: Okay, so let's start the, the AVM.
+00:02:50.892 - 00:02:56.052, Speaker C: I know all of you know the, you should know that the EVM is.
+00:02:56.068 - 00:03:01.284, Speaker B: The computer behind Ethereum, but it's not a normal computer.
+00:03:01.324 - 00:03:08.220, Speaker C: It's a stack based computer. That means that it has no registers. So everything works on the stack.
+00:03:08.292 - 00:03:22.522, Speaker B: With the stack it has a depth of stack of 1024 items. And then all the words on the computer are 256 words in order to.
+00:03:22.698 - 00:03:30.602, Speaker C: Be compatible with the huge cryptographic algorithms and premises on the blockchain.
+00:03:30.778 - 00:03:32.602, Speaker B: And that's basically 32 bytes.
+00:03:32.618 - 00:03:40.194, Speaker C: So every number, every the words that the virtual machine handles are 32 bytes.
+00:03:40.534 - 00:03:42.742, Speaker B: Then it has transient memory.
+00:03:42.798 - 00:03:46.142, Speaker D: This means that the memory is created.
+00:03:46.198 - 00:03:49.038, Speaker B: And destroyed after every transaction.
+00:03:49.166 - 00:03:54.354, Speaker C: So the memory does not keep stored between transactions.
+00:03:55.494 - 00:03:59.526, Speaker B: And how does this computer work?
+00:03:59.590 - 00:04:02.594, Speaker C: It executes the so called opcodes.
+00:04:03.364 - 00:04:15.492, Speaker D: These are just, we can see them all here. These are just all the instructions that the computer will, will execute against the.
+00:04:15.548 - 00:04:18.304, Speaker C: Inputs on the stack and it will provide an output.
+00:04:21.604 - 00:04:27.184, Speaker B: So let's talk about, let's talk a bit more about opcodes we've seen.
+00:04:28.084 - 00:04:30.784, Speaker C: I have already showed you like right now.
+00:04:31.364 - 00:04:32.104, Speaker A: Yes.
+00:04:32.564 - 00:04:34.104, Speaker B: Yeah, should be here.
+00:04:34.724 - 00:04:35.268, Speaker A: Yeah.
+00:04:35.356 - 00:04:39.652, Speaker C: There's a few opcodes. The more, the more famous ones are pushed.
+00:04:39.788 - 00:04:41.724, Speaker B: In order to push items to bytes.
+00:04:41.764 - 00:04:45.588, Speaker D: To the stack, we can go to.
+00:04:45.636 - 00:04:48.064, Speaker C: The playground and play a vit.
+00:04:49.204 - 00:04:54.660, Speaker B: This is the most low level you can go. You actually don't program using this when.
+00:04:54.692 - 00:05:01.606, Speaker C: You do assembly, but you need to understand this in order to understand how Juul works. So you can run this code and.
+00:05:01.630 - 00:05:05.694, Speaker D: It will basically push into, it will.
+00:05:05.734 - 00:05:07.434, Speaker C: Push 42 on the stack.
+00:05:09.294 - 00:05:14.878, Speaker B: Then if we click, if we push zero, and then the, this instruction will.
+00:05:14.926 - 00:05:18.634, Speaker C: Start in the address zero, the number 42.
+00:05:19.054 - 00:05:20.806, Speaker B: Then we can see how in memory.
+00:05:20.870 - 00:05:23.474, Speaker C: It stores in the address zero the number 42.
+00:05:24.574 - 00:05:26.910, Speaker B: So that's basically, that's basically how Ethereum.
+00:05:26.942 - 00:05:32.922, Speaker C: Works, of course, with a lot more complexity and huge amounts of bytecode.
+00:05:33.058 - 00:05:43.042, Speaker B: But what is this bytecode? This bytecode is not actually stored like this. Each of these instructions has a number, half a number.
+00:05:43.098 - 00:05:44.938, Speaker C: So when you convert it to bytecode.
+00:05:45.026 - 00:05:47.802, Speaker B: This would be push the instruction number.
+00:05:47.858 - 00:05:49.954, Speaker C: 60 and then the number 42.
+00:05:50.034 - 00:06:04.876, Speaker B: This will be push and then the number zero. This would be, if I'm not wrong, Ms store. And then this is push again and again again. So now that we know a bit.
+00:06:04.940 - 00:06:07.932, Speaker C: More about how the computer works, the.
+00:06:07.948 - 00:06:10.584, Speaker B: Underlying machine works, we can.
+00:06:12.564 - 00:06:13.172, Speaker C: Get into.
+00:06:13.228 - 00:06:16.620, Speaker B: You'Ll get into some code. So what is Yule?
+00:06:16.692 - 00:06:18.764, Speaker C: Because we don't want to be inputting.
+00:06:18.844 - 00:06:24.306, Speaker B: A M store or inputting binary combinations in order.
+00:06:24.410 - 00:06:30.226, Speaker C: Inputting the instructions manually for the VA, for the virtual machine, that would be a nightmare and no one would be.
+00:06:30.250 - 00:06:33.854, Speaker D: Able to code efficiently.
+00:06:34.754 - 00:06:40.294, Speaker B: There's an abstraction layer to abstract.
+00:06:42.634 - 00:06:42.994, Speaker A: The.
+00:06:43.034 - 00:06:46.682, Speaker D: Stack of the manipulate memory in storage.
+00:06:46.738 - 00:06:50.444, Speaker B: But the stack abstractions please push and.
+00:06:51.624 - 00:07:03.084, Speaker C: Pop from the stack. You don't control them. They are done behind the scenes. There's like a middle layer between real assembly, real EVM assembly and solidity.
+00:07:03.864 - 00:07:06.264, Speaker B: Also it can be inlined inside.
+00:07:06.304 - 00:07:09.104, Speaker C: Solidity is the common way to use it.
+00:07:09.144 - 00:07:14.924, Speaker B: Normally people don't write pure dual contracts.
+00:07:16.094 - 00:07:19.990, Speaker D: Second, I'm drinking water and it was.
+00:07:20.022 - 00:07:23.234, Speaker C: Created by the Ethereum foundation. It was called Julia at first.
+00:07:23.734 - 00:07:26.374, Speaker B: So this is an example of how.
+00:07:26.414 - 00:07:28.554, Speaker C: A function would be written in solidity.
+00:07:29.294 - 00:07:31.646, Speaker B: And how a function would be written.
+00:07:31.670 - 00:07:35.394, Speaker C: In solidity plus inline jewel, the common assembly.
+00:07:37.614 - 00:07:47.476, Speaker B: Again, you can see these are the opcodes, the abstraction of the opcodes, but it's just checking that one number is.
+00:07:47.500 - 00:07:49.492, Speaker C: Greater than the other, and if so.
+00:07:49.628 - 00:08:02.876, Speaker B: It stores some error in the, in the memory and then reverts. It's a bit more difficult than solidity, but it's actually pretty useful.
+00:08:02.980 - 00:08:06.584, Speaker C: And it's not that deep, deep, deep into the low level.
+00:08:09.304 - 00:08:12.324, Speaker B: So we are going to cover some.
+00:08:12.984 - 00:08:20.924, Speaker C: Non vulnerabilities or some common bugs or miss, I don't know, just not good practices.
+00:08:21.904 - 00:08:24.152, Speaker B: First of all is bit safety, then.
+00:08:24.328 - 00:08:30.164, Speaker C: Memory constraint violations, because solidity uses dynamic memory.
+00:08:30.544 - 00:08:31.856, Speaker B: So it's important to know how to.
+00:08:31.880 - 00:08:37.430, Speaker C: Handle memory in solidity in order to not break the whole contract or execution flow.
+00:08:37.592 - 00:08:38.730, Speaker B: Then memory manipulation.
+00:08:38.802 - 00:08:41.294, Speaker C: This is also common in web two.
+00:08:41.874 - 00:08:44.162, Speaker B: It's less common here, but it could.
+00:08:44.178 - 00:08:46.050, Speaker C: Be a case where the user is.
+00:08:46.082 - 00:08:49.254, Speaker D: Able to manipulate the memory and then.
+00:08:49.594 - 00:08:54.434, Speaker C: The order of execution. Some things in Joule were different than in solidi, so you have to really.
+00:08:54.474 - 00:08:58.394, Speaker B: Know Joule in order to not commit those errors.
+00:08:58.514 - 00:09:00.834, Speaker C: And of course there's no safe math.
+00:09:00.874 - 00:09:10.084, Speaker B: In Joule, so it's like solidity a few years ago. So you have to control overflow and underflow.
+00:09:10.424 - 00:09:12.448, Speaker D: First of all, bit safety.
+00:09:12.576 - 00:09:17.576, Speaker B: What is bit safety? I said that all the words on.
+00:09:17.600 - 00:09:22.244, Speaker D: The EVM are 32 bytes, so internal.
+00:09:24.224 - 00:09:26.936, Speaker B: But you can actually call, you can.
+00:09:26.960 - 00:09:33.948, Speaker D: Actually set up types less than 32 bytes. Unit eight is not 32 bytes, is one byte.
+00:09:34.116 - 00:09:38.060, Speaker B: An address is 20 bytes. So you, you will be wondering, how.
+00:09:38.132 - 00:09:42.224, Speaker C: Does the evM clean the upper bits? Because words are words.
+00:09:42.604 - 00:09:47.504, Speaker B: Eight bytes is just the whole world. I have a skull drawer on here.
+00:09:48.204 - 00:09:52.476, Speaker D: So if this is 32 bytes, you.
+00:09:52.500 - 00:09:58.924, Speaker C: Intate will be here. So how does the EVM make sure that these values are empty and will.
+00:09:58.964 - 00:10:01.752, Speaker B: Not be used by the EVM in.
+00:10:01.768 - 00:10:04.324, Speaker C: Another, only these are going to be used.
+00:10:04.664 - 00:10:07.684, Speaker D: So for that is bit safety.
+00:10:08.424 - 00:10:09.216, Speaker B: Internal function.
+00:10:09.240 - 00:10:11.404, Speaker C: The problem is that in the public.
+00:10:12.064 - 00:10:15.056, Speaker B: Public functions really clean the upper bits.
+00:10:15.080 - 00:10:20.328, Speaker C: You cannot pass a dirty upper bits to a public function from the steer.
+00:10:20.376 - 00:10:23.684, Speaker B: But internal functions do not clean them.
+00:10:24.304 - 00:10:27.256, Speaker C: So all the types less than 32.
+00:10:27.280 - 00:10:29.876, Speaker B: Bytes have a problem problem there.
+00:10:29.900 - 00:10:30.972, Speaker C: And how do you clean them?
+00:10:31.028 - 00:10:40.316, Speaker B: Basically you just do bit shift. You will do sh l or sh write in order to clean them, or.
+00:10:40.380 - 00:10:42.916, Speaker C: Bitmasks for example, in order to clean.
+00:10:42.940 - 00:10:45.332, Speaker B: This value you could just type I.
+00:10:45.348 - 00:10:47.664, Speaker C: Have remix around here somewhere.
+00:10:49.204 - 00:10:51.304, Speaker B: Yeah, I should have remix here.
+00:10:51.604 - 00:10:56.224, Speaker D: So imagine if this was un eight.
+00:10:57.444 - 00:10:59.664, Speaker B: In order to clean that, you could.
+00:11:00.044 - 00:11:05.084, Speaker D: I'm not wrong, you could say a.
+00:11:05.244 - 00:11:07.584, Speaker B: Equals a.
+00:11:09.444 - 00:11:11.836, Speaker D: And zero x.
+00:11:11.940 - 00:11:18.884, Speaker C: And we said ff because each f is four bytes. So you are just bitmasking, only selecting.
+00:11:19.004 - 00:11:30.910, Speaker B: The, the less significant bits, the eight less least significant bits. You can do it with bitmas, bit.
+00:11:30.942 - 00:11:33.494, Speaker C: Shift, or even the mod operator, because.
+00:11:33.574 - 00:11:36.302, Speaker D: Essentially what mod does is you could.
+00:11:36.358 - 00:11:38.950, Speaker C: Just do a mod and keep the last values.
+00:11:39.022 - 00:11:43.454, Speaker B: If you have like, everything works in Powershell too.
+00:11:43.574 - 00:11:46.466, Speaker D: So if you have a value that.
+00:11:46.490 - 00:11:53.410, Speaker B: You want to keep these bytes, you can just mod it from here and you will keep the rest of the values.
+00:11:53.442 - 00:11:57.774, Speaker D: It's like dividing and keeping the values that you want.
+00:11:58.274 - 00:12:00.498, Speaker B: So there's, we've seen that there's a.
+00:12:00.506 - 00:12:04.690, Speaker C: Few ways to actually implement bit safety, and it's mandatory.
+00:12:04.762 - 00:12:06.506, Speaker B: This is not like you cannot have.
+00:12:06.530 - 00:12:10.762, Speaker C: This function like this is a demo and you cannot have this function in.
+00:12:10.778 - 00:12:12.814, Speaker B: Your code without cleaning v.
+00:12:16.414 - 00:12:26.958, Speaker C: Now we are going to talk about memory constraints. As I said, solidity is quite weird the way it handles memory. It has a dynamic memory layout.
+00:12:27.086 - 00:12:35.390, Speaker B: So from zero x to zero x from e, not including four e, so.
+00:12:35.422 - 00:12:37.150, Speaker C: It has two words of scratch.
+00:12:37.182 - 00:12:39.410, Speaker D: Space is basically used.
+00:12:39.562 - 00:12:52.254, Speaker C: That space is used for hashing functions, but we can use it for ourselves and not expand the memory. And that's how we reduce the gas costs most of the time.
+00:12:52.794 - 00:12:54.938, Speaker B: Then it has the free memory pointer.
+00:12:55.066 - 00:12:59.934, Speaker C: At zero x four, obviously not including zero x 60.
+00:13:00.674 - 00:13:02.946, Speaker B: And free memory pointer is just a.
+00:13:02.970 - 00:13:08.934, Speaker C: Pointer to a place in memory that safe to store. It's just free is the next free.
+00:13:08.974 - 00:13:16.726, Speaker B: Slot of the memory. Since we don't have garbage collector like on other more high level languages like.
+00:13:16.750 - 00:13:21.966, Speaker D: Java or another languages, then from, from.
+00:13:22.070 - 00:13:25.334, Speaker B: Zero x to zero x, from zero.
+00:13:25.374 - 00:13:48.594, Speaker C: X 62 to zero x 80, there's a space that, that should always be zero. That is because in normal virtual machines there's zero registries, but when you want a zero you just call the registry one. And here, here, since it's only a stack based machine, there's no registries. So I cannot call the zero registry.
+00:13:48.714 - 00:13:50.970, Speaker B: To get the zero, so I should get the zero.
+00:13:51.162 - 00:14:01.082, Speaker C: The machine sometimes gets a zero from the 60 array and then from 80 onwards is all available memory for the user.
+00:14:01.218 - 00:14:08.938, Speaker B: But you have to keep in mind that each time you expand the memory, we've seen it in the, in the.
+00:14:08.986 - 00:14:11.474, Speaker C: Playground of the VM codes that the memory was expanding.
+00:14:11.514 - 00:14:13.386, Speaker B: Each time that you expand it, it.
+00:14:13.410 - 00:14:15.186, Speaker C: Will cost exponential gas.
+00:14:15.250 - 00:14:17.410, Speaker B: There's a formula for that, but the.
+00:14:17.442 - 00:14:19.266, Speaker C: Plan is to, if you're going to.
+00:14:19.290 - 00:14:23.234, Speaker B: Use assembly to make everything optimized whenever.
+00:14:23.274 - 00:14:26.162, Speaker C: You can, the plan is to leverage.
+00:14:26.218 - 00:14:30.010, Speaker B: Scratch space a lot, then allocate memory.
+00:14:30.202 - 00:14:37.002, Speaker C: Using the free memory pointer. If you have to allocate more than two things in memory, something bigger than.
+00:14:37.018 - 00:14:38.906, Speaker B: The scratch space, you would have to.
+00:14:38.930 - 00:14:43.266, Speaker D: Follow the rules that solidity follows in.
+00:14:43.290 - 00:14:44.522, Speaker C: Order to store memory.
+00:14:44.578 - 00:14:46.314, Speaker B: And that is checking where the free.
+00:14:46.354 - 00:14:48.738, Speaker C: Memory pointer is storing there, and then.
+00:14:48.786 - 00:14:52.818, Speaker B: After that, calculating the next free zone.
+00:14:52.906 - 00:15:06.864, Speaker C: And updating the memory pointer. Also, it's mandatory to not collide with any memory allocated by solidity. Solidity will be playing with the memory, and then you open an assembly block.
+00:15:08.004 - 00:15:10.308, Speaker B: And it's important to check where the.
+00:15:10.396 - 00:15:14.108, Speaker D: Pointer is in order to not change.
+00:15:14.156 - 00:15:19.124, Speaker C: Anything that solidity would have think that there's like to not change what solidity.
+00:15:19.164 - 00:15:25.724, Speaker D: Is doing before and after the assembly block, and then after the assembly block.
+00:15:27.304 - 00:15:35.304, Speaker C: You can either, if you've been using the space on 40 where the memory.
+00:15:35.344 - 00:15:42.080, Speaker B: Pointer should go on 60, instead of making the memory bigger, you should restore.
+00:15:42.112 - 00:15:49.640, Speaker C: Them to the values they had at the start. Here, for example, you can see that we cached the pointer, the free memory.
+00:15:49.672 - 00:15:51.704, Speaker B: Pointer, and then at the end, I'm.
+00:15:51.744 - 00:15:59.296, Speaker C: Storing it, I'm storing it again at the place where it should be. So nothing. It's like nothing has happened.
+00:15:59.400 - 00:16:02.056, Speaker B: But we have saved a lot of.
+00:16:02.080 - 00:16:07.256, Speaker D: Gas by not spanning memory, actually, we.
+00:16:07.280 - 00:16:10.408, Speaker C: Would have expand like four words of memory.
+00:16:10.456 - 00:16:16.628, Speaker B: So we have saved quite a lot of gas. Memory manipulation, this is not real common.
+00:16:16.676 - 00:16:19.132, Speaker C: And I know the issue, but I.
+00:16:19.148 - 00:16:22.164, Speaker D: Haven'T seen any live issue of this.
+00:16:22.204 - 00:16:41.076, Speaker C: But I know it could be an issue. Basically, it's like if these values where you are storing memory or accessing memory from, can be directly influenced by inputs of the user. There's a problem there, because you don't want the user to be the one.
+00:16:41.100 - 00:16:49.326, Speaker B: To handle memory that handles memory. So just keep in mind that this value should be really either calculated from.
+00:16:49.430 - 00:16:52.366, Speaker D: Other values on the contract, or set.
+00:16:52.390 - 00:16:55.754, Speaker B: Up by yourself, but not let the user decide.
+00:16:57.014 - 00:16:59.054, Speaker C: If the variable is number six, then.
+00:16:59.094 - 00:17:01.714, Speaker B: I must store this in the position.
+00:17:02.134 - 00:17:10.373, Speaker C: Number six, because then something wrong can happen. And you let the user, or a hacker, access memory, and he will probably.
+00:17:10.713 - 00:17:20.289, Speaker D: Either change some variables, or access the variables he wants, then order of execution.
+00:17:20.321 - 00:17:22.129, Speaker C: I have a quick demo.
+00:17:22.321 - 00:17:24.313, Speaker B: So this is some of the things.
+00:17:24.473 - 00:17:34.493, Speaker C: One of the problems that Juul has that it does not really work like solidi does. So a lot of devs, especially like junior devs, that try to get into.
+00:17:34.884 - 00:17:38.972, Speaker B: Try to get into assembly, commit these types of errors.
+00:17:39.148 - 00:17:43.476, Speaker D: So Juul does, in normal solidity, when.
+00:17:43.500 - 00:17:48.764, Speaker C: You do an or, what you think is that this is, this piece of code is going to be executed first.
+00:17:48.844 - 00:17:50.700, Speaker B: And this is going to be executed.
+00:17:50.772 - 00:17:52.904, Speaker D: After that first one.
+00:17:53.404 - 00:17:55.980, Speaker B: Well, in Joule, that does not happen.
+00:17:56.092 - 00:18:08.544, Speaker C: The first one executed is the last one, and the first one. And the last one executed is the first one. What this means is that you have to keep in mind that the flows of the code are backwards in some, in some cases.
+00:18:08.964 - 00:18:16.852, Speaker B: So here is a simple example that does not, that does not really care.
+00:18:16.908 - 00:18:18.660, Speaker C: About the order of execution.
+00:18:18.692 - 00:18:22.396, Speaker B: But normally you can have calls to.
+00:18:22.420 - 00:18:25.060, Speaker C: Another contract, you have a storage value.
+00:18:25.132 - 00:18:29.404, Speaker B: Set to dab or something like that. That could really, if you think that.
+00:18:29.444 - 00:18:30.988, Speaker C: You, that this value is going to.
+00:18:30.996 - 00:18:33.808, Speaker D: Be, this piece of code is going.
+00:18:33.816 - 00:18:37.064, Speaker C: To be executed first, you will be wrong and there will be an issue.
+00:18:37.104 - 00:18:39.604, Speaker B: Introduced in that part of the code.
+00:18:41.064 - 00:18:48.644, Speaker C: Then, as I said, the last of the common box I mentioned in this talk, in this talk is the underfloor overflow.
+00:18:49.224 - 00:18:51.640, Speaker D: We are going to see how, since.
+00:18:51.712 - 00:18:54.320, Speaker C: We don't have safe math on Joule.
+00:18:54.472 - 00:18:55.696, Speaker B: I mean, we don't have safe math.
+00:18:55.720 - 00:18:58.364, Speaker D: Because it basically wastes.
+00:18:58.934 - 00:19:00.478, Speaker B: So you have to implement it yourself.
+00:19:00.526 - 00:19:02.474, Speaker C: Will be, or be really careful.
+00:19:02.774 - 00:19:12.634, Speaker B: And we are going to see how both of the top libraries of assembly code handles.
+00:19:13.134 - 00:19:17.710, Speaker D: How do they handle these safety checks on math?
+00:19:17.862 - 00:19:20.954, Speaker B: So if I can, if I'm not wrong, yeah.
+00:19:21.334 - 00:19:27.710, Speaker C: So multip down a basic multip functionality from the solme library, and you will say, oh, it's easy.
+00:19:27.742 - 00:19:30.070, Speaker B: I just put this code, I just.
+00:19:30.102 - 00:19:42.158, Speaker C: Multiply both values and then divide by the denominator. So you are wrong, because if you divide by the denominator here, like, there's a ton of overflow and underflow possible issues.
+00:19:42.326 - 00:19:47.966, Speaker B: So these people, what they do is come up with a rule that's efficient.
+00:19:48.070 - 00:20:01.426, Speaker C: Like an efficient way to check for underflows. And sometimes there's bugs also introduced in these checks. And we can see on solid, if.
+00:20:01.450 - 00:20:04.374, Speaker B: I'm not wrong here, it's solid. Should be.
+00:20:05.554 - 00:20:06.362, Speaker A: Yeah.
+00:20:06.538 - 00:20:10.054, Speaker C: For example, in Soleil, the optimizer handles it different.
+00:20:10.474 - 00:20:15.834, Speaker B: Move what up? You can come up with huge optimized.
+00:20:15.914 - 00:20:18.314, Speaker C: Ways, or like very optimized ways of.
+00:20:18.434 - 00:20:22.290, Speaker B: Checking overflow and underflow. So I would just recommend using these.
+00:20:22.322 - 00:20:25.054, Speaker C: Libraries or taking inspiration from these libraries.
+00:20:25.554 - 00:20:29.162, Speaker D: Instead of doing just putting this, because.
+00:20:29.218 - 00:20:30.402, Speaker C: You will have problems.
+00:20:30.498 - 00:20:35.634, Speaker B: It's just like using unsafe math. And one thing to say is that.
+00:20:35.714 - 00:20:43.814, Speaker C: These pieces of code are more optimized than usually more optimized than the integrated safety checks on Solidi.
+00:20:45.954 - 00:20:52.184, Speaker D: On Solidi, if I'm not wrong, 0.8 onwards.
+00:20:53.524 - 00:20:56.544, Speaker B: So let's, let's see some real world vulnerabilities.
+00:20:57.004 - 00:20:59.144, Speaker D: I have found three.
+00:20:59.964 - 00:21:05.964, Speaker C: I think they are my favorite, not my favorite ones, because they are vulnerabilities, but the most interesting ones I could.
+00:21:06.004 - 00:21:07.940, Speaker B: Find, first of all, is a length.
+00:21:07.972 - 00:21:12.584, Speaker D: Overflow check in Cantina.
+00:21:13.524 - 00:21:16.184, Speaker C: In Soleil. It was found by Cantina.
+00:21:16.984 - 00:21:18.976, Speaker B: I have the report here.
+00:21:19.080 - 00:21:22.936, Speaker D: Yeah, well, I have the pr of the fix here.
+00:21:23.080 - 00:21:25.400, Speaker C: So as you have all these values.
+00:21:25.432 - 00:21:29.584, Speaker D: Hard coded into the contract, there's times.
+00:21:29.664 - 00:21:33.144, Speaker C: Where edge cases are weird, or either.
+00:21:33.184 - 00:21:36.416, Speaker B: You miss calculations, you either not add.
+00:21:36.600 - 00:21:43.764, Speaker C: Two bytes or you don't consider some edge case. So here the developer was not considering.
+00:21:44.524 - 00:21:46.300, Speaker B: An edge case, and he says here.
+00:21:46.332 - 00:21:52.628, Speaker C: That for some value there should be a difference of two bytes taken into account.
+00:21:52.756 - 00:21:54.684, Speaker B: So on the pr, he fixed it.
+00:21:54.764 - 00:21:56.444, Speaker C: It was super low probability, a super.
+00:21:56.484 - 00:21:59.820, Speaker D: Low probability bug, but it was actually.
+00:21:59.932 - 00:22:05.584, Speaker C: Pretty interesting to know how deep and how complicated is to find these kind of bugs.
+00:22:08.524 - 00:22:13.354, Speaker B: If I'm going too fast or you guys are like, you can ask questions.
+00:22:20.294 - 00:22:20.702, Speaker A: Sure.
+00:22:20.758 - 00:22:21.394, Speaker B: Perfect.
+00:22:23.894 - 00:22:24.598, Speaker A: Yep.
+00:22:24.726 - 00:22:28.230, Speaker C: This one is actually a more probable one.
+00:22:28.342 - 00:22:33.542, Speaker B: I have it here too. It was on seaport.
+00:22:33.638 - 00:22:38.634, Speaker C: Yeah, there's basically a few, apart from these two libraries, there's basically a few.
+00:22:41.024 - 00:22:48.360, Speaker B: Protocols that went the assembly way. So imagine there's huge issues, or not.
+00:22:48.392 - 00:22:53.444, Speaker C: Huge issues, but the probability of issues or having where issues is higher.
+00:22:54.144 - 00:22:57.584, Speaker B: So first of all, here, it's an error buffer.
+00:22:57.744 - 00:23:04.144, Speaker C: It's a way to efficiently classify errors and then emit either one revert or.
+00:23:04.224 - 00:23:11.364, Speaker B: Another, depending on the type of the error. And they checked only for one and two.
+00:23:11.484 - 00:23:16.380, Speaker D: So they have, they have this or.
+00:23:16.412 - 00:23:18.204, Speaker C: Clause that checks if the last bit.
+00:23:18.244 - 00:23:26.172, Speaker B: Is one or the second least significant bit is one, and they did not check that.
+00:23:26.228 - 00:23:28.708, Speaker C: Both could be, as the report says.
+00:23:28.756 - 00:23:32.084, Speaker D: That both could be one and one.
+00:23:32.384 - 00:23:37.304, Speaker B: In some edge case. So there's no, since one and one.
+00:23:37.384 - 00:23:39.964, Speaker C: Two one is the number three in binary.
+00:23:41.944 - 00:23:43.840, Speaker B: In decimal, since two one sim.
+00:23:43.872 - 00:23:49.304, Speaker C: Binary is the number three in decimal, there's no case that handles that error.
+00:23:49.384 - 00:23:56.408, Speaker B: And then the default case executes we.
+00:23:56.456 - 00:24:00.324, Speaker C: Does not raise an error, even though there's two errors to account.
+00:24:01.484 - 00:24:07.916, Speaker B: So this was actually a great bug found by Sperbid and a few other researchers.
+00:24:08.020 - 00:24:09.716, Speaker C: And I think it's one of the.
+00:24:09.740 - 00:24:13.756, Speaker D: Most, one of the biggest assembly bugs.
+00:24:13.780 - 00:24:15.664, Speaker C: Found in a protocol.
+00:24:16.804 - 00:24:17.956, Speaker B: You can check it out, it's on.
+00:24:17.980 - 00:24:21.316, Speaker D: The code arena report for seaport, and.
+00:24:21.340 - 00:24:23.504, Speaker C: You can understand it better.
+00:24:25.204 - 00:24:26.804, Speaker B: Then another.
+00:24:26.964 - 00:24:38.238, Speaker C: Common bag is to is the, the use of. Again, the use of solidity and joule is not similar. So when you are using something new that you have never used on Juul.
+00:24:38.326 - 00:24:43.158, Speaker B: You really have to check down to how it works to check how it works.
+00:24:43.286 - 00:24:49.510, Speaker D: So erc, easy recover when you easy.
+00:24:49.542 - 00:24:53.758, Speaker C: Recover does return either reverts or returns.
+00:24:53.806 - 00:24:58.434, Speaker B: Zero for when you try to recover a wrong signature.
+00:24:58.974 - 00:25:00.862, Speaker C: But the pre compile, when calling the.
+00:25:00.878 - 00:25:03.526, Speaker D: Pre compile you can see it in.
+00:25:03.550 - 00:25:11.974, Speaker C: This block when calling the precode. This is another way of recommend signature. Instead of calling easy recovery from solidity, you call the static code.
+00:25:12.014 - 00:25:24.066, Speaker B: We published this yesterday on Turing consulting Twitter. So this is a way to call the per compile instead of calling it with solidity.
+00:25:24.170 - 00:25:27.934, Speaker C: But the issue is that this does not return zero.
+00:25:28.314 - 00:25:29.698, Speaker B: This what it was.
+00:25:29.866 - 00:25:32.762, Speaker C: What this will do is return nothing.
+00:25:32.938 - 00:25:50.142, Speaker B: So you, instead of just checking for the zero, you will have to check, or waiting it for revert, you will have to check the return data size. So that's the last, that's the last real world bug.
+00:25:50.238 - 00:25:55.234, Speaker C: And then we are into compiler bugs. We've seen the Viper compiler bag.
+00:25:57.614 - 00:26:04.326, Speaker B: The Viper compiler bag was a bug introduced by the compiler where some Viper.
+00:26:04.390 - 00:26:07.154, Speaker C: Has reentrancy checks built in.
+00:26:07.694 - 00:26:10.390, Speaker D: But some of them, I think from.
+00:26:10.462 - 00:26:23.160, Speaker C: One version to, for a few versions, like three versions were not compiling good. So these checks were not being taken into account. And also that's why you should test.
+00:26:23.232 - 00:26:27.088, Speaker D: Everything and verify everything because these checks.
+00:26:27.136 - 00:26:41.654, Speaker C: Were like having non reentrant functions and not having the, and the reentrant modifiers not working. But we are not bypass programmers, so we will follow it with a couple solidity debugs.
+00:26:41.824 - 00:26:47.934, Speaker B: This first one is, it was raised a year ago on the solid compiler.
+00:26:48.354 - 00:26:51.762, Speaker D: It's here you can see this is.
+00:26:51.818 - 00:26:55.906, Speaker B: A very interesting webpage for the bugs.
+00:26:55.930 - 00:26:58.454, Speaker C: On the compiler, on the, on salsie.
+00:26:59.394 - 00:27:02.474, Speaker D: So it was a bug that in.
+00:27:02.514 - 00:27:07.418, Speaker B: Some cases it eliminated some opcodes of Juul.
+00:27:07.546 - 00:27:10.706, Speaker C: So in this I have demo here.
+00:27:10.730 - 00:27:13.306, Speaker D: Yeah, so when you try to return.
+00:27:13.370 - 00:27:15.850, Speaker C: From jewel, if you had an sstore.
+00:27:15.962 - 00:27:20.274, Speaker B: Opcode before an sstore call, before the.
+00:27:20.354 - 00:27:23.242, Speaker C: Optimizer will eliminate this call and it.
+00:27:23.258 - 00:27:30.370, Speaker B: Will be like, if you haven't written this. So the code deployed and deploy the.
+00:27:30.402 - 00:27:32.778, Speaker C: Code compile will be like not doing.
+00:27:32.826 - 00:27:34.054, Speaker B: Anything to the storage.
+00:27:35.444 - 00:27:39.300, Speaker C: And it is not so many versions of solidity for a go.
+00:27:39.332 - 00:27:49.864, Speaker B: It's like these things happen actually like from the zero 8.13 to the zero 8.17.
+00:27:50.884 - 00:27:56.596, Speaker C: The thing is that no one really does return into solid into assembly.
+00:27:56.740 - 00:27:59.922, Speaker D: They usually what you do is you.
+00:28:00.068 - 00:28:02.646, Speaker B: Go here, you make a variable.
+00:28:02.710 - 00:28:05.034, Speaker C: For example, if I want to return.
+00:28:06.574 - 00:28:10.114, Speaker B: Doing 250, I call it a. And then I just.
+00:28:12.414 - 00:28:13.342, Speaker C: Put some value.
+00:28:13.438 - 00:28:15.326, Speaker B: And a, or something like that.
+00:28:15.430 - 00:28:19.814, Speaker C: But you don't really return from assembly. But there was an edge case where.
+00:28:19.854 - 00:28:23.526, Speaker D: If you return from assembly, the code.
+00:28:23.710 - 00:28:27.946, Speaker B: Would not execute the, the earliest opcode.
+00:28:28.090 - 00:28:33.614, Speaker C: And then this issue is also related to this other issue found by the Torah.
+00:28:36.234 - 00:28:38.314, Speaker B: Yeah, here, exactly the same.
+00:28:38.354 - 00:28:51.562, Speaker C: This one is a bit more probable because you actually log and emit, and emit logs on with assembly. So this issue, the optimizer, the optimizer is a routine that when the code.
+00:28:51.578 - 00:28:56.138, Speaker B: Is compiled, it tries to eliminate useless opcodes.
+00:28:56.306 - 00:28:59.374, Speaker C: Just basically optimize even more the bytecode.
+00:29:00.034 - 00:29:04.146, Speaker B: So with certain flags, this just exactly.
+00:29:04.170 - 00:29:10.802, Speaker C: Like the other byte. This would not be in the bytecode, this instruction would not be into the.
+00:29:10.818 - 00:29:14.098, Speaker B: Bytecode, and only the log would be into the bytecode.
+00:29:14.146 - 00:29:18.570, Speaker C: So this is a real issue that we have to be aware of and.
+00:29:18.722 - 00:29:32.552, Speaker B: Check that we are not compiling with this then. Yeah, we already seen this. And yes, how to prevent, we've seen.
+00:29:32.648 - 00:29:43.824, Speaker C: All these bugs, these common bugs, these real world bugs, and how to prevent them. First of all, is mastering the EVM, knowing how they. Now that you know this little introduction.
+00:29:43.864 - 00:29:47.672, Speaker B: That I've presented on this talk, if.
+00:29:47.688 - 00:29:48.936, Speaker C: You really want to go down to.
+00:29:48.960 - 00:29:53.008, Speaker D: The assembly level, you should really check.
+00:29:53.056 - 00:30:12.608, Speaker C: How the EVM works and read all the papers on it, and how the stack works, how all the opcode works, what is the runtime code, what is the creation code. Then once you get understanding of the lowest level, you can hop into Juul. I mean, this is my recommendation.
+00:30:12.656 - 00:30:15.430, Speaker D: You can do whatever you want, obviously.
+00:30:15.582 - 00:30:24.470, Speaker C: Then learn about memory safety, because I think it's one of the biggest issues on people calling Joule, as we've seen.
+00:30:24.662 - 00:30:26.374, Speaker B: You really have to leverage.
+00:30:26.534 - 00:30:28.790, Speaker C: I've seen people using Joule and not.
+00:30:28.822 - 00:30:33.190, Speaker D: Leveraging script space when they could also.
+00:30:33.262 - 00:30:47.792, Speaker B: Keep in mind how the pre memory pointer works, keep in mind to reset the pre memory pointer and the zero space. And once you get that only you.
+00:30:47.808 - 00:30:49.216, Speaker C: Have to think that once you have.
+00:30:49.240 - 00:30:52.096, Speaker B: The tools to write in assembly, you.
+00:30:52.120 - 00:30:56.496, Speaker C: Should know you have this optimizer, this.
+00:30:56.520 - 00:30:59.816, Speaker D: Guy that Bill Soledi says that you.
+00:30:59.880 - 00:31:15.754, Speaker C: Should have kind of a fifth sense or 6th sense on where to use assembly and where not. And that only comes with practice. So I really recommend only use assembly when extremely necessary, because some of the most of the times, just writing solidity.
+00:31:15.794 - 00:31:20.450, Speaker B: Code, it's efficient enough, like properly optimized.
+00:31:20.482 - 00:31:32.394, Speaker C: Solidity codes is efficient enough. And then just like I learned, just like my colleagues at Turing learn, learn from the great ones, try to learn.
+00:31:32.474 - 00:31:36.410, Speaker B: From the top libraries, from the top.
+00:31:36.442 - 00:31:37.974, Speaker C: Protocols that use assembly.
+00:31:38.544 - 00:31:42.336, Speaker B: I will list a few later. And yeah, and also if you have.
+00:31:42.360 - 00:31:48.904, Speaker C: Any questions when you are studying, feel free to reach out and Twitter to any of us or comment on Twitter.
+00:31:48.984 - 00:31:58.896, Speaker B: And ask us questions about it. And yeah, we basically finished the main points of the talk and I have.
+00:31:58.920 - 00:32:03.044, Speaker C: Time for some bonus questions. Some real alpha for awesome.
+00:32:04.374 - 00:32:06.070, Speaker B: First of all, in order to make.
+00:32:06.102 - 00:32:14.434, Speaker C: Sure your optimized functions or your assembly written functions are safe, you should really try get into fuzzing.
+00:32:15.174 - 00:32:17.582, Speaker B: It's not needed to get into a.
+00:32:17.598 - 00:32:19.358, Speaker C: State of fuzzing just to be able.
+00:32:19.406 - 00:32:23.622, Speaker D: To model the function with a lot of random values.
+00:32:23.718 - 00:32:25.646, Speaker C: To make sure that your assembly code.
+00:32:25.670 - 00:32:30.110, Speaker B: Is correctly written for all the spectre.
+00:32:30.142 - 00:32:36.024, Speaker D: Of values here, vectorize the optimizer does.
+00:32:36.064 - 00:32:38.964, Speaker C: It almost in all test on Soleil.
+00:32:39.304 - 00:32:43.160, Speaker D: He tries to fast every parameter so.
+00:32:43.192 - 00:32:46.760, Speaker B: All the tests for the ESC 20 are fast.
+00:32:46.912 - 00:32:50.844, Speaker C: This way he makes sure that the standards of security are higher.
+00:32:54.584 - 00:32:55.524, Speaker B: And then.
+00:32:59.644 - 00:33:14.564, Speaker C: I'm going to show you an example of this. Basically, humanless testing is a way to you take the function written in Solidi, and then you take the function written in assembly, for example one of these.
+00:33:14.604 - 00:33:17.812, Speaker B: Libraries, and you use halmos.
+00:33:17.868 - 00:33:31.792, Speaker C: That is a tool compatible with boundary that lets you reduce all these functions to a equation and then compare both equations for 99.9999% of the cases of the probabilities.
+00:33:31.928 - 00:33:36.312, Speaker D: And you can ensure that both, that.
+00:33:36.448 - 00:33:43.136, Speaker B: Both functions are equal, really equal down to the, to the formal level.
+00:33:43.320 - 00:33:48.564, Speaker E: So you can literally compare the code, the equations that will be generated by the compiler. This is really cool.
+00:33:49.284 - 00:33:59.268, Speaker B: Yeah, exactly, exactly. For example, here, Zach Obrand did some testing for Soleil in order to compare.
+00:33:59.316 - 00:34:02.868, Speaker C: Both soulmate and Solidi and Soleil functions.
+00:34:02.956 - 00:34:04.820, Speaker B: And he has some tests laying around.
+00:34:04.892 - 00:34:07.236, Speaker D: Let me know if I should be.
+00:34:07.260 - 00:34:08.424, Speaker B: Able to find them.
+00:34:10.164 - 00:34:12.524, Speaker A: Yeah, here. Yes.
+00:34:12.684 - 00:34:19.318, Speaker B: So what you do is you write the test and you do an equivalent testing.
+00:34:19.486 - 00:34:24.862, Speaker C: These values will be formal symbolic values. It's just like with passing with boundary.
+00:34:25.038 - 00:34:28.830, Speaker D: And you call both functions and check.
+00:34:28.862 - 00:34:31.606, Speaker B: That the result of both functions are.
+00:34:31.630 - 00:34:36.074, Speaker C: Equal always for all the spectre of possible values and equation.
+00:34:36.454 - 00:34:42.582, Speaker B: This is such an interesting thing. And I think this is going to be super popular in the future.
+00:34:42.638 - 00:34:45.102, Speaker C: Equivalence testing third Torah, they also have.
+00:34:45.118 - 00:34:48.613, Speaker D: A paper, Certora is like the most.
+00:34:52.353 - 00:35:08.853, Speaker C: The best formal verification tool. So it's obviously better than Halmos, but you can do it with Halmos. Tertora does it with their own prover. And they have a few papers on optimizing things with assembly and comparing equalness or equivalence between functions.
+00:35:10.313 - 00:35:11.785, Speaker B: So if you want to check it.
+00:35:11.809 - 00:35:17.093, Speaker C: Out, go to the sac oprance or yes, search solely and it will appear.
+00:35:18.564 - 00:35:22.664, Speaker D: And last but not least is the.
+00:35:25.564 - 00:35:26.300, Speaker B: Yeah.
+00:35:26.452 - 00:35:33.628, Speaker C: Again, the resources I mostly learned from reading seaport from top to bottom and.
+00:35:33.796 - 00:35:38.372, Speaker B: Reading and either code from Soleili.
+00:35:38.548 - 00:35:46.030, Speaker C: I mostly follow soleil rules and soleil based practices and writing assembly or where when auditing assembly code.
+00:35:46.182 - 00:35:50.190, Speaker B: And also soulmate has a few a.
+00:35:50.222 - 00:35:52.926, Speaker C: Good chunk of assembly blocks.
+00:35:53.070 - 00:35:55.094, Speaker B: And this is it.
+00:35:55.134 - 00:35:56.478, Speaker C: Actually, this was the talk.
+00:35:56.526 - 00:35:58.982, Speaker B: I hope you guys now have a.
+00:35:58.998 - 00:36:03.190, Speaker D: Great insight on assembly and that you enjoyed it.
+00:36:03.302 - 00:36:03.694, Speaker A: Bro.
+00:36:03.774 - 00:36:23.960, Speaker E: This was an amazing talk. One of the best we ever had. I mean, I'm pretty sure those small details are the one that take the most time for you to learn. What I'm gonna do now is I'm gonna invite, if you still have time, of course I'm gonna invite everybody to speak. So if anyone has a question that they want to do in the mic.
+00:36:24.152 - 00:36:25.256, Speaker B: They can do it.
+00:36:25.360 - 00:36:27.844, Speaker E: And I'll read the questions from our community.
+00:36:30.744 - 00:36:31.440, Speaker B: There's one.
+00:36:31.472 - 00:36:45.534, Speaker E: There's a little bit more tricky. So let's do this. Let's do it. First is asking you to repeat, if you can, the spare bitbug there process where they found a specific case in the Soleil library.
+00:36:49.554 - 00:36:51.210, Speaker B: In the Soleili library.
+00:36:51.362 - 00:36:53.082, Speaker C: The canvino bug.
+00:36:53.178 - 00:36:53.854, Speaker E: Yes.
+00:36:54.754 - 00:36:55.746, Speaker A: Yeah, yeah.
+00:36:55.770 - 00:37:08.954, Speaker C: That one is actually pretty tricky. So I not really sure how they found. I think it's here. I'm not really sure how they found it. We should get the cantina.
+00:37:12.414 - 00:37:14.754, Speaker B: We should be able to check the.
+00:37:16.734 - 00:37:19.574, Speaker C: Report. If you want you can go to the Solidi library.
+00:37:19.614 - 00:37:20.194, Speaker B: So.
+00:37:20.654 - 00:37:22.154, Speaker C: Solidi library.
+00:37:26.534 - 00:37:36.002, Speaker B: And check on audits container. And it's one of the medium bugs. So if you.
+00:37:36.098 - 00:37:37.514, Speaker C: There's a lot of stuff.
+00:37:37.594 - 00:37:43.810, Speaker B: And then if you go here, it's one of the. Yeah. Is the high risk bug length overflow.
+00:37:43.842 - 00:37:52.818, Speaker C: Alongs allows corruption of the created proxy. And you go here and this explains everything.
+00:37:52.986 - 00:37:54.786, Speaker B: It's basically that they didn't take into.
+00:37:54.810 - 00:37:58.794, Speaker C: Account an edge case where the.
+00:38:00.054 - 00:38:08.086, Speaker B: The length of the array could be two bytes longer. But it was super over that, you.
+00:38:08.110 - 00:38:09.798, Speaker E: Know, was fuzzy in your.
+00:38:09.926 - 00:38:11.398, Speaker C: I don't know, they are just good.
+00:38:11.486 - 00:38:20.194, Speaker E: Maybe using houmos like you did right now. Sorry, can you repeat maybe using houmos like you did.
+00:38:21.054 - 00:38:21.814, Speaker B: Yeah, probably.
+00:38:21.854 - 00:38:38.772, Speaker C: They probably did some stress test. If not they. They are familiar with the. Is that what I was talking? You develop kind of a 6th sense or how the EVM should work and how it treats this value. It treats values. So you kind of find these boxes just matter of practice and practice and practice.
+00:38:38.908 - 00:38:39.724, Speaker B: Very interesting.
+00:38:39.764 - 00:38:46.584, Speaker E: I have another question here from Bolex. The question is, do you have any setup or good methods to debug you code?
+00:38:48.204 - 00:38:50.064, Speaker A: Yeah, yeah.
+00:38:51.984 - 00:38:54.444, Speaker D: You can do it two ways.
+00:38:55.544 - 00:39:03.024, Speaker C: This is the way I used to use by now I don't use it remix as a debugger.
+00:39:03.184 - 00:39:15.760, Speaker B: So when you compile code, you compile code, you deploy it. You deploy it. And then if you want to check.
+00:39:15.792 - 00:39:18.160, Speaker C: It, you can hit debug and it.
+00:39:18.192 - 00:39:20.552, Speaker D: Goes step by step and all the.
+00:39:20.568 - 00:39:26.312, Speaker C: Opcodes and you can see it clearly. But also foundry has this, going to check it here.
+00:39:26.368 - 00:39:28.564, Speaker D: Foundry debug.
+00:39:36.704 - 00:39:43.240, Speaker B: You can call a test and basically it will pop up this.
+00:39:43.312 - 00:39:46.164, Speaker C: In your console and you can go with the scroll.
+00:39:47.914 - 00:39:54.474, Speaker B: With the mouse, scroll wheel and you can go instruction by.
+00:39:54.514 - 00:40:03.130, Speaker C: Instruction and see how the stack works, what's on memory and what's the opcode? Being a Turing consulting, we usually use.
+00:40:03.162 - 00:40:06.090, Speaker D: This because it's easier.
+00:40:06.242 - 00:40:10.014, Speaker C: You don't have to be pasting code around in remix, for example.
+00:40:15.094 - 00:40:21.394, Speaker E: So next question is, what are your go to step to wrap bytecode?
+00:40:23.974 - 00:40:25.326, Speaker B: Sorry, can you repeat?
+00:40:25.470 - 00:40:30.074, Speaker E: What is your go to step to unwrap bytecode?
+00:40:32.734 - 00:40:34.966, Speaker C: I didn't hear the last part.
+00:40:35.030 - 00:40:41.804, Speaker E: I don't know if, I don't know what he means by unwrapping the byte goes. I'm gonna, I'm gonna just write here.
+00:40:42.664 - 00:40:43.444, Speaker A: Yeah.
+00:40:52.144 - 00:40:56.924, Speaker E: Robin, I'm gonna invite you to speak unwrap by code. Yes.
+00:40:57.784 - 00:40:58.248, Speaker A: Yeah.
+00:40:58.296 - 00:41:01.884, Speaker D: What, what do you mean with unwrap by code?
+00:41:10.044 - 00:41:12.292, Speaker B: You mean decompile?
+00:41:12.388 - 00:41:13.700, Speaker E: I guess you understand.
+00:41:13.892 - 00:41:14.824, Speaker B: Okay.
+00:41:15.364 - 00:41:16.844, Speaker A: Yeah, yeah.
+00:41:16.884 - 00:41:20.828, Speaker D: So that's basically you have to study.
+00:41:20.876 - 00:41:23.092, Speaker C: The EVM, know the opcodes and you.
+00:41:23.108 - 00:41:30.020, Speaker B: Can go here, EVM codes. And as I said, you just play here.
+00:41:30.172 - 00:41:33.844, Speaker D: Around here, you, you won't normally under.
+00:41:33.964 - 00:41:36.012, Speaker C: Have to read by code, but for.
+00:41:36.028 - 00:41:39.452, Speaker D: Example on the, on the cantina, for.
+00:41:39.468 - 00:41:41.676, Speaker C: Example on the cantina bag, if I.
+00:41:41.700 - 00:41:45.184, Speaker D: Can find it now, you'll be able.
+00:41:47.644 - 00:41:50.676, Speaker C: Remix here on the cantina by, by.
+00:41:50.780 - 00:41:53.292, Speaker B: You can see that they, this is.
+00:41:53.308 - 00:41:59.220, Speaker C: The code for a proxy and you can check that. What is the 61?
+00:41:59.372 - 00:42:08.436, Speaker B: We can check it now. What is the 61 opcode? So you go to opcodes, you go.
+00:42:08.460 - 00:42:12.436, Speaker D: To 61 and you can see that is pushed to.
+00:42:12.500 - 00:42:15.676, Speaker B: So that will push the following two.
+00:42:15.700 - 00:42:17.824, Speaker C: Bytes into the stack.
+00:42:18.844 - 00:42:20.572, Speaker B: So that will push zero, zero and.
+00:42:20.588 - 00:42:23.460, Speaker C: Zero, zero into stack 3d. It's another opcode.
+00:42:23.492 - 00:42:27.144, Speaker B: And then the rest are values and you keep working on it.
+00:42:29.564 - 00:42:43.304, Speaker E: I have one last question here from cold light. The question is, there's any way to manipulate the order of the opcodes in the stack or even to add your own malicious opcodes.
+00:42:47.724 - 00:42:50.344, Speaker B: I mean, they call deploy this they call deployed.
+00:42:50.674 - 00:42:54.162, Speaker D: Unless you are, like, creating new, new.
+00:42:54.218 - 00:42:59.210, Speaker B: Contracts, you are not able to change. Yes, I guess.
+00:42:59.242 - 00:43:01.026, Speaker E: Unless you have some strange call data.
+00:43:01.090 - 00:43:01.694, Speaker D: Right.
+00:43:02.314 - 00:43:02.810, Speaker A: Yeah.
+00:43:02.882 - 00:43:09.874, Speaker C: From a malicious user perspective is not an issue. I think it's not an issue. But from a malicious deployer, you can.
+00:43:09.914 - 00:43:18.702, Speaker B: Include assembly things into your contracts and for example, rouge protocol, draga protocol. Yeah, yeah.
+00:43:18.758 - 00:43:23.374, Speaker E: And I guess there's no way to create your own malicious opcode unless, I mean.
+00:43:23.534 - 00:43:24.230, Speaker B: Oh, no.
+00:43:24.302 - 00:43:32.646, Speaker C: Yeah, yeah. I mean, the opcode specification for each evm, you can see it here. For each EVM implementation, each of the.
+00:43:32.670 - 00:43:35.942, Speaker D: Hard forks is a new EVM, and.
+00:43:35.958 - 00:43:37.814, Speaker C: You can change it here from the.
+00:43:37.894 - 00:43:40.062, Speaker D: First one to the last one.
+00:43:40.078 - 00:43:42.630, Speaker C: There is Sangai, the last one from.
+00:43:42.662 - 00:43:45.170, Speaker B: The last hard fork, and it has.
+00:43:45.202 - 00:43:50.538, Speaker C: The set of op quotes, and that's on the node level that cannot be changed.
+00:43:50.706 - 00:44:10.054, Speaker E: There's a bit of philosophical question here from infinite, and he's asking, how does the emergence of post quantum cryptography impact the security of cryptographic foundations of the Ethereum virtual machine? So how post quantum cryptography influences the EVM?
+00:44:10.634 - 00:44:12.778, Speaker D: Yeah, this should be.
+00:44:12.906 - 00:44:15.810, Speaker C: I'm not really the best on cryptography.
+00:44:15.922 - 00:44:19.362, Speaker B: I mean, this. This is really computer like.
+00:44:19.418 - 00:44:31.490, Speaker C: This talk was focused on computer stuff, on virtual machines and stuff like that. But I read some. I'm not really. I don't really know nothing about post.
+00:44:31.642 - 00:44:35.002, Speaker B: Quantum computers, but I've seen a lot.
+00:44:35.018 - 00:44:41.354, Speaker C: Of tweets and a lot of papers about Vitalik and people like him that they say that it's not a problem right now.
+00:44:41.474 - 00:44:43.530, Speaker B: So they will just implement some kind.
+00:44:43.562 - 00:44:48.586, Speaker D: Of new cryptography algorithms when time comes.
+00:44:48.650 - 00:44:50.746, Speaker B: And when they consider it necessary.
+00:44:50.810 - 00:44:58.654, Speaker C: But it's really not. Not related to the topic of the. It does not have much to do with the assembly.
+00:44:59.674 - 00:45:13.088, Speaker E: Awesome, brother. This is it. Amazing talk. Thank you so much. I'm pretty sure people will love this. Feel free to come back anytime you want. I'll send you all the video numbers as soon as possible.
+00:45:13.088 - 00:45:20.324, Speaker E: Do you have any closing message or closing thought for people that will hear this in the future on YouTube?
+00:45:24.184 - 00:45:28.004, Speaker C: Closing thoughts? I have a great.
+00:45:28.744 - 00:45:37.104, Speaker B: I have a great. I have a great.
+00:45:41.524 - 00:45:43.524, Speaker A: Quote from, from.
+00:45:43.564 - 00:45:46.252, Speaker B: Carl Sagan about assembly, and it says.
+00:45:46.308 - 00:45:50.516, Speaker C: If you wish to make an apple pie from scratch, you must first invent the universe.
+00:45:50.660 - 00:45:51.384, Speaker B: Wow.
+00:45:52.244 - 00:45:53.024, Speaker A: Wow.
+00:45:53.484 - 00:45:54.744, Speaker B: That's deep, bro.
+00:45:55.724 - 00:46:06.996, Speaker E: Wow. Thank you so much. Thanks, everybody. And everybody, remember to follow our friends on Twitter. I'm gonna drop the link. All the links here. Thanks, everyone, for attending and talk to you guys later.
+00:46:07.100 - 00:46:07.380, Speaker B: Bye.
+00:46:07.412 - 00:46:08.024, Speaker E: Bye.
+00:46:09.004 - 00:46:09.524, Speaker A: Bye, guys.

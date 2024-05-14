@@ -1,0 +1,88 @@
+00:00:00.560 - 00:00:01.180, Speaker A: Hello.
+00:00:02.054 - 00:00:02.834, Speaker B: Hey.
+00:00:14.814 - 00:00:27.254, Speaker C: So the last issue for me is the ESC sender. I'll fix it so. And deploy it to you with empty blocks filled in.
+00:00:28.634 - 00:00:39.934, Speaker A: Yeah. You're feeling them with the block timestamp with one, I guess. Mm hmm. Yeah.
+00:00:40.794 - 00:00:41.534, Speaker B: Good.
+00:00:43.874 - 00:00:49.854, Speaker A: Let's see if others are joining. Micah said that he cannot join this time, but let's see the others.
+00:00:53.544 - 00:01:03.564, Speaker C: Just wondering if in theory we want to make it dynamic or this is not really needed for v one.
+00:01:07.624 - 00:01:24.624, Speaker A: Yeah, I would imagine if there could be some constant parameter that is. That is what is the timestamp, then I think should come from those, but. Yeah, but I know where the 12 seconds come from. I don't know if they EVM even knows about it. And so there's probably, there might not be a variable.
+00:01:26.644 - 00:01:27.464, Speaker C: All right.
+00:01:36.084 - 00:01:42.824, Speaker A: Have you been able to run the test suite locally so that you are getting the differences that I get?
+00:01:44.924 - 00:01:59.174, Speaker C: Not yet. I was mainly focusing on fixing the main issues with the merge conflict that I had. And the little things that you've sent to me.
+00:01:59.554 - 00:02:27.254, Speaker A: Yeah, like, I checked the trailer and I think all of those whatever that has thing, but other than those, I think everything was fixed there. And I think that getting the hash should be in the last thing that when everything else matches and has doesn't match, then should look what's wrong with it. But I think in many places it's already matches and there's some inputs where it doesn't.
+00:02:27.754 - 00:02:30.854, Speaker C: Do we have really cases where the hash matches?
+00:02:32.834 - 00:03:10.804, Speaker A: I think, yeah, perfect. But not always. There are some differences with the timestamps, for example, and those are some weird that I know why the timestamps are somehow different. And that's something that I wouldn't expect a timestamp to be different. I think Nethermind is getting somewhere for the 12 seconds thing and then get is using 1 second or something like that. But it didn't happen every time, so no, that's why I wasn't really able to figure out where it comes from.
+00:03:12.484 - 00:03:19.584, Speaker C: It's strange. We actually like, tried to force plus one in timings, but. I'll take a look.
+00:03:20.084 - 00:03:20.864, Speaker A: Yeah.
+00:03:25.964 - 00:03:26.864, Speaker D: Hey, guys.
+00:03:27.324 - 00:03:28.012, Speaker A: Hey.
+00:03:28.148 - 00:03:28.864, Speaker B: Hello.
+00:03:35.724 - 00:03:56.274, Speaker D: Sorry for missing out last time. I was traveling and I don't really have a lot to report for this week, but yeah, I'm planning to look into the things that Kimmy found and also do the refactor for it.
+00:03:58.054 - 00:04:07.704, Speaker A: Yeah. And you asked about the test that I'm simulating it, not latest, and I have been. I have some tests like that already there. So it should overwrite the blocks the.
+00:04:07.744 - 00:04:10.164, Speaker B: Future blocks with that. Okay.
+00:04:11.104 - 00:04:19.764, Speaker A: And I think that has been working with Botnet and get them one. Hey, Lucas.
+00:04:20.704 - 00:04:21.644, Speaker B: Hey. Hey.
+00:04:30.284 - 00:05:10.964, Speaker A: Then I think we have everyone Micah is joining today. I don't think we have much to discuss. I asked about that. When we are doing the feeling then what should we add to the timestamp? I think it would be logical in the main 12 seconds between the blocks, but then we have agreed beforehand that we always add one. And I wonder if this can be confusing for the users. But is there any way how we could get the kind of blocks, what is the general timestamp difference between the blocks? Go ahead.
+00:05:18.784 - 00:05:48.254, Speaker E: So we have, I think a configurable parameter because on some networks we have different slot time. So for example on gnosis chains we have 5 seconds blocks. But yeah, we can generally use it very easily. So it's fine for us to add for example 12 seconds or 5 seconds or whatever. This only actual train.
+00:05:50.794 - 00:05:59.374, Speaker D: I think we can even potentially add a parameter to the config object like default timestamp.
+00:06:01.394 - 00:06:23.454, Speaker A: That's the default diff timestamp or something like that. I think there was some other place that when you generate new blocks, that's also that we add 1 second to those and before we agreed 1 second because that would work on all of the chains. But I don't know if it's complex to make it depend on some variable instead of always being 1 second.
+00:06:26.554 - 00:06:28.574, Speaker D: No, I think it should be straightforward.
+00:06:32.674 - 00:06:46.554, Speaker A: Should it be config variable or is there already some known variable that we could use for that? Some kind of client config that they are already setting somewhere that they could utilize the same thing?
+00:06:47.734 - 00:07:10.334, Speaker D: Gith doesn't have something like this. That's why I'm also suggesting potentially adding into the method if you want to have this feature as standard that every client implements it. But yeah, I'm not a strong position.
+00:07:12.914 - 00:07:43.034, Speaker A: Yeah, that's something that I'm worrying about that we add new variable there if it doesn't exist already. But I'm bit surprised it doesn't exist already. I don't know where the 12 seconds come from. That's not in the EVM I guess. But I guess then we should keep it at 1 second. But I can imagine that people will have issues with that.
+00:07:46.054 - 00:08:08.354, Speaker E: So 12 seconds comes from CL layer. Currently this is how it's configured, that every 12 seconds there's a slot there. Sometimes there are missed slots and this results in longer pauses for el more than 12 seconds. But 12 seconds is default and most of blocks come every 12 seconds.
+00:08:09.294 - 00:08:32.044, Speaker C: Just wondering what happens to a transactional contract when for example we had like intervals, one, one, one, and then we would get something like 1000 because a user can specify any time in his block and so he could specify like time number one and then time number 1 million. Would it be all right?
+00:08:34.024 - 00:08:38.368, Speaker E: It will happen whatever will be programmed in the contract.
+00:08:38.456 - 00:08:38.728, Speaker B: Right.
+00:08:38.776 - 00:08:39.364, Speaker E: So.
+00:08:44.464 - 00:08:52.404, Speaker A: The EVM can just ask for the timestamp, but then it can be whatever depends on the contract. Does it break or not? But it should work.
+00:08:53.024 - 00:08:58.124, Speaker E: Yeah, but by default I would use the default block time for the network.
+00:08:59.564 - 00:09:09.692, Speaker A: Yeah, that's just the problem. Where do we get that information? If we made new config parameter, then it can be, it's kind of more broad that someone forgets to change it.
+00:09:09.708 - 00:09:10.264, Speaker B: But.
+00:09:13.484 - 00:09:29.314, Speaker E: You know, like I said, nevermind, it's already there in the config for the network because we need it for something. I don't remember what we are using it for, but we needed here and there. So it's already there.
+00:09:29.654 - 00:09:31.634, Speaker A: I wonder why get doesn't have it.
+00:09:32.734 - 00:09:57.924, Speaker D: Well, we don't explicitly support other chains and I think if the other chains were, because usually they have a fork of geth and they could override this variable, let's say. So, yeah, I'm kind of okay with Lucas's suggestion to use 12 seconds and then for other changes. Somehow they need to figure it out.
+00:10:01.024 - 00:10:27.364, Speaker A: That should be when we are filling blocks, then we have 12 seconds and also when the user is adding more blocks but they don't specify the timestamp. Then I think we should set the timestamp as the parent plus 12 seconds. So do we agree on doing that then? But yeah, I feel get should make it so it's somehow some constant that can be easily modified.
+00:10:33.544 - 00:10:34.444, Speaker B: Okay.
+00:10:36.584 - 00:10:44.164, Speaker C: So which would be our default time, the time of current network? 12 seconds, meaning for now?
+00:10:46.004 - 00:10:52.196, Speaker A: Yeah, 12 seconds. But then you should ask from Lucas if there's a variable where you should fetch it so that you are not.
+00:10:52.260 - 00:11:04.224, Speaker C: Recording it data from the variable. But as I remember, currently in the protocol we have something like specified it to be 1 second. So we are changing that. Yes.
+00:11:05.684 - 00:11:26.484, Speaker A: Yeah, I think everywhere we are using that 1 second and we said 12 seconds is that there's two places. There's when we are filling the blocks and then there's when the user hasn't set the timestamp. Then the default will be 12 seconds. Okay, do anything else?
+00:11:38.924 - 00:11:40.264, Speaker D: Not from my side.
+00:11:45.684 - 00:12:01.744, Speaker A: I guess everything is clear. There's still some amount of failing tests and hopefully those will be going down. So we can then release finally.
+00:12:05.224 - 00:12:05.512, Speaker B: I.
+00:12:05.528 - 00:12:07.152, Speaker C: Guess first it will go up when.
+00:12:07.168 - 00:12:09.484, Speaker D: We do the refactor and then they will go down.
+00:12:14.104 - 00:12:39.290, Speaker A: Yeah. Do you know when you get that done so I can start looking that, and I haven't modified any of the tests so that I'm expecting a lot of the tests failing. And then I can see if I should modify them or some of them. I probably keep as, as they are, so that they're testing that it doesn't behave like it used to behave. Yeah.
+00:12:39.322 - 00:12:49.854, Speaker D: I mean, if I get better now, I am hoping in a few days. I started on that on Friday. But yeah.
+00:12:52.234 - 00:12:56.564, Speaker A: It still feels, it still feels straightforward to implement.
+00:12:59.704 - 00:13:25.434, Speaker D: Yeah. There was only one small nuance I remember, because when we are generating the blocks in the gap, then we cannot do it. Like fill all the fields in advance, because for parent hash, we need to first execute the parent block and then fill it. But that's, that's the only one I faced right now.
+00:13:27.174 - 00:13:27.486, Speaker B: Yeah.
+00:13:27.510 - 00:13:35.474, Speaker A: You have to do it sequentially. I guess that's, that's a problem. But you always have to generate one block and then you can. Only after that you can generate the next block.
+00:13:37.974 - 00:13:38.350, Speaker B: Yeah.
+00:13:38.382 - 00:13:48.394, Speaker D: So I think what I'm going to do is just like do a first pass and fill in as much as I can, and then start executing the blocks and then fill in the parentheses.
+00:13:49.214 - 00:13:51.582, Speaker F: The base fee also is dependent on.
+00:13:51.598 - 00:13:54.374, Speaker C: The previous box, though.
+00:13:54.414 - 00:13:57.994, Speaker F: If they're empty, you can, the calculation is pretty simple.
+00:14:00.094 - 00:14:10.014, Speaker D: True. Yes. Well, but for. Wait, wait for. Ah, yeah, yeah. We can't even fill them for empty blocks. Right.
+00:14:10.014 - 00:14:13.594, Speaker D: Because we need the parent guest used.
+00:14:17.034 - 00:14:31.906, Speaker F: Yes. Yes. So I guess if your empty box blocks are at the beginning, then you can pre fill them. If there's like empty block, empty block, filled block, empty block. Then that last empty block, you can't pre calculate until after you've kept run.
+00:14:31.970 - 00:14:49.674, Speaker A: With the filled block. But why are you even filling some of the fields? Wouldn't you just over generate one block and then you run the EVM and everything, and then you generate another block, like one by one.
+00:14:57.494 - 00:15:24.524, Speaker D: So this was for a preparation phase, basically. Like there are some validations being done, for example, that the block number is increasing and so on. And I use this chance to details, but yeah, I mean, I was actually thinking about your suggestion also to just do the minimal thing, only the validation in the first pass, and fill in everything during execution.
+00:15:25.264 - 00:15:33.008, Speaker A: I'm gonna. Diana, I guess you wanted to fail as fast as possible if the input is incorrect.
+00:15:33.176 - 00:15:33.568, Speaker B: Yeah.
+00:15:33.616 - 00:15:42.964, Speaker D: Devalidation, I insist it should happen in the beginning and fail as fast as possible. But like everything else can come later.
+00:15:43.304 - 00:15:50.084, Speaker A: But there can be for example wrong nonce and you don't know that. You only know that after the simulation.
+00:15:50.464 - 00:15:55.484, Speaker D: Yeah, only the things that we can know in advance.
+00:16:00.844 - 00:16:11.664, Speaker A: Yeah. Guess you could pre compute all the nonsense before beforehand. But then I'm not sure if it's worth the complexity to do it beforehand. And then you calculate it again anyway later on.
+00:16:19.684 - 00:16:29.144, Speaker D: Yeah, I'm. I would start with something simple and then add in optimizations if it was necessary.
+00:16:30.284 - 00:16:31.064, Speaker C: Yeah.
+00:16:31.604 - 00:16:39.624, Speaker A: Does Mika have anything to discuss about. Is everything clear?
+00:16:46.324 - 00:16:48.064, Speaker F: I don't have anything else, I don't think.
+00:16:50.864 - 00:17:03.244, Speaker A: Then we can continue next week. Sorry I was late. No worries. We already made decisions that you don't agree.
+00:17:06.544 - 00:17:07.324, Speaker B: Yeah.
+00:17:09.504 - 00:17:11.084, Speaker A: Okay, talk to you later.
+00:17:11.664 - 00:17:12.464, Speaker B: Bye.
+00:17:12.624 - 00:17:13.184, Speaker A: Thanks guys.
+00:17:13.224 - 00:17:13.844, Speaker D: Bye.
+00:17:14.184 - 00:17:16.224, Speaker F: Thanks everyone. Bye.
