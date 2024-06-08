@@ -1,0 +1,238 @@
+00:00:03.440 - 00:01:10.664, Speaker A: Could you open up this one? Clary, could you open up this one? I was wondering. So the issue there is that we have a set of calls or overwrites, but you are asking me to set base feed per guess to non zero. But immediately when I'll do that, it will most probably potentially stop passing, because we are in the, like, if call mode where we allow everything and anything to be zero. So the question is, shall we set base fiberglass as if it was filled in, like correctly ish, but keep the validation, like, running in non validation mode, and thus, in real life, the base fiber gas will be zero? Or shall we just say to the user, sorry, no, we cannot run this?
+00:01:11.084 - 00:01:46.364, Speaker B: That's a good question. Now I realize that why it returns zero. Yeah, but the get read, I think get is lying in that situation. I don't know how the get is doing that situation. See, now, so if you are running a non validation mode and then you are asking for the base fee opcode, then do you return zero, or do we return the kind of the current base fee and at the moment get this return in the kind of the real base fee by gas. But then that is somewhat wrong, because then those transactions are not using that.
+00:01:51.884 - 00:01:53.704, Speaker C: That's a good question.
+00:01:54.884 - 00:02:10.144, Speaker B: At the moment, I think get is kind of lying what the base fee per gas is, and the nethermite is just returning zero. Okay. Which is the correct way. I think both ways have their problems and benefits.
+00:02:11.204 - 00:02:34.254, Speaker A: If we set it to zero, then the user will at least see that if he wants to set it not to zero, he can do that. And when he will do that, we will evaluate it respectfully as if it was set to not zero, for example, and like, validate it a little bit. Tiny, tiny little part of validation. But yeah, I get why it can be confusing somewhat.
+00:02:39.394 - 00:02:43.122, Speaker C: But why? Because I thought that we are setting to zero.
+00:02:43.178 - 00:02:43.774, Speaker D: Actually.
+00:02:47.564 - 00:02:52.904, Speaker B: If you create a new block, don't you send it to what is expected to normal block to be?
+00:02:55.364 - 00:03:24.428, Speaker C: I thought that if we are in non validating. Well, yeah, we do actually have this code to set base fee to zero, so I am surprised that it is returning something else. Actually, this was the. I remember it was the other way around. It used to be that guest was returning zero. Nether one was not returning zero. And we had a discussion of which one makes more sense.
+00:03:24.596 - 00:03:29.184, Speaker A: Yeah, I think it was because we had validation mode on by default.
+00:03:30.564 - 00:03:44.924, Speaker C: Okay, so now the question is, I mean, if. If get is returning non zero base fee, then that's probably a bug.
+00:03:47.104 - 00:04:19.572, Speaker B: Our SPAC is just saying that you should return what it is. But then I think this is something that we should add to the spec, what we decide to do here. But at the moment it should return the current base fee. But then I think it's weird because the transaction should still go through. Would it? One way to do that, you set the base fees, calculate correctly, but then somehow when you are sending the transaction, then you are not actually subtracting the base fee from those transactions. But I don't know if that would be confusing as well.
+00:04:19.668 - 00:04:46.354, Speaker C: So I think the point here is that the gas price is also zero. One of the reasons why we decided to set base fee to zero was then when you do something like subtract gas price from base fee, which should be valid all the time, but in case base fee is non zero and gas price is zero, then that would be a negative number which is going to be invalid.
+00:04:51.374 - 00:04:55.474, Speaker B: Yeah, I don't know what is the correct way. I don't like either of the solutions.
+00:04:55.894 - 00:04:59.674, Speaker C: Yeah, it's a, it's a nasty thing, but.
+00:05:02.214 - 00:05:09.222, Speaker B: So my kind of ideas, I.
+00:05:09.238 - 00:05:13.354, Speaker D: Have been trying to figure out what you guys are talking about unveiling because I missed the first part.
+00:05:14.014 - 00:05:39.384, Speaker A: Yeah. So just to recap, there is a set of calls that are made to simulate in validation mode off and the base guess fee is not set. So the question is, do we set it explicitly to zero to indicate that we are like in this no validation land, or do we set it to something else guided by some rules.
+00:05:41.924 - 00:05:44.144, Speaker D: Specifically for validation mode off?
+00:05:44.804 - 00:05:45.252, Speaker A: Yep.
+00:05:45.308 - 00:05:59.234, Speaker B: Yeah, I would. But we want to send free transactions. But I would still want to kind of get correct execution. You cannot have both.
+00:05:59.394 - 00:06:08.174, Speaker D: Good point. So either, anyone who's looking at the gas price op code is going to get a bizarre result. Possibly divide by zero and revert.
+00:06:08.794 - 00:06:09.290, Speaker B: Yeah.
+00:06:09.362 - 00:06:23.434, Speaker D: Which is impossible on Mainnet. But this is validation mode off. So I would say set it to zero because the freeness. Well, okay, so two options. Either set it to zero or set it to the right value, but don't charge the user.
+00:06:23.894 - 00:06:25.634, Speaker B: That's what I was suggesting.
+00:06:26.214 - 00:06:53.684, Speaker D: Or I guess that's part of the perfect world. You would set it to the base fee of the block and you would set the priority fee to zero. And you would deduct the deduct from their balance if they had enough to cover it. If they don't, then you just say, eh, okay, we tried. That would be ideal. I don't know if it's worth the complexity to do all that, though.
+00:06:56.264 - 00:07:00.804, Speaker A: Let's do it in v two. Yes.
+00:07:01.304 - 00:07:09.036, Speaker D: Okay. So for v one, just set it to zero or set it to base view of the block. Zero, I think.
+00:07:09.060 - 00:07:09.824, Speaker A: Sounds like.
+00:07:12.764 - 00:07:15.504, Speaker D: Work with contracts and addresses that have no money.
+00:07:18.124 - 00:07:25.300, Speaker B: I think zero is better because most cases want to make free transactions and that's less important that the base fee is correct, I think.
+00:07:25.452 - 00:07:30.904, Speaker D: Yeah. Okay. Yeah. On board of zero for non validation mode.
+00:07:32.044 - 00:07:38.470, Speaker C: And just to be clear, so we return zero in EVM and also in the block header.
+00:07:38.542 - 00:07:50.074, Speaker D: Yes. This is assuming this is easy for you guys. I know the base fee technically can never go to zero, so it may actually be hard in some clients to make this happen.
+00:07:54.814 - 00:07:56.194, Speaker E: Base fee seven.
+00:07:57.534 - 00:07:58.274, Speaker D: Right.
+00:07:58.734 - 00:08:01.704, Speaker E: From the maths in practice.
+00:08:02.364 - 00:08:17.132, Speaker D: Right. And so that's my only worry is that if we say set it to zero, there might be some clients we're setting to zero. Like just is really hard to do or break something or it has a divide by zero error or something like that. Yeah.
+00:08:17.148 - 00:08:35.308, Speaker E: I'm not sure. Might need custom code because it's, we can definitely run transactions without it, but transactions are not blocks and. Yeah. So it's like a lever deeper. Right. In terms of abstraction, I guess we.
+00:08:35.316 - 00:08:41.544, Speaker D: Could have, we can have the block, still have a base fee. Right. It's just the transactions would skip the base fee check.
+00:08:42.644 - 00:08:45.196, Speaker B: I think that would be the best way. If you can do that.
+00:08:45.380 - 00:08:47.024, Speaker E: Yeah, we can probably do that.
+00:08:48.284 - 00:08:57.444, Speaker D: Okay, so the block has a bit of a hash. Yes, because the base fee is part of the block header.
+00:09:00.184 - 00:09:22.664, Speaker B: But then again, if the address can offer it, then I think it would be nice that if you would, then it would pay the base based fee. But then that, again, it gets more complex. And then it can be also confusing that if you send the money to one that then it actually can afford. Can't afford and getting a behavior produce quite weird behavior.
+00:09:23.244 - 00:09:49.822, Speaker D: Yeah. Okay. I think, I'm convinced that the best way forward in my mind at the moment is user can put whatever they want for their fee. And we just always accept at whatever fee they said they wanted to pay. Like if user says max fee of x, we will allow their transaction through even if that is lower than the current base fee. So basically we're in non validating mode. We're removing the check that the max v is less than the base fee.
+00:09:49.958 - 00:09:56.638, Speaker A: Yeah, but the main question here is what do we do when it is not set at all? So the user haven't set it explicitly for us.
+00:09:56.686 - 00:09:58.114, Speaker D: Yeah, sure. Zero.
+00:09:58.854 - 00:09:59.294, Speaker A: All right.
+00:09:59.334 - 00:10:01.114, Speaker B: Then I would ask a material. Yeah.
+00:10:04.414 - 00:10:28.424, Speaker D: So it's on set zero and skip the check that validates that the max V is above the base fee. Otherwise everything else is like normal, they get deducted for the min of base fee and their max fee. And again, it's just, we just removed the check that max fee has to be greater than base fee.
+00:10:31.764 - 00:10:46.514, Speaker B: Is that something that can be done or is that difficult? I can tell if you the transaction is ready to pay more than the base fee, then we should only reduct the base fee though. Otherwise just what they are willing to pay.
+00:10:46.974 - 00:10:47.754, Speaker D: Yes.
+00:10:51.534 - 00:10:56.514, Speaker B: I think that that would be the best way, if that's easy to implement. Otherwise we had to think something else.
+00:11:00.174 - 00:11:02.394, Speaker A: Let's make some tests and see.
+00:11:04.614 - 00:11:33.624, Speaker C: So what we are saying is, if gas price was not set, set both gas price and base fee to zero. If gas price was set, then doesn't matter what base fee is, we just, we pass the validation. Is my understanding correct?
+00:11:35.274 - 00:11:38.374, Speaker A: Sorry, I lost you for a few moments. I think.
+00:11:40.434 - 00:11:51.214, Speaker B: I think you're setting the base fee always the correct value. You just skip the validation for it. Then you just allow transactions to go through without it being higher than the base fee.
+00:11:51.874 - 00:12:23.304, Speaker D: I put in, in chat what I believe is currently in production mainnet, which is the first block, and then what we're proposing here would be the second block. So you'll notice the assert is missing and we default max v per gas to zero. If it's missing, that double bar means fallback two in this example.
+00:12:26.444 - 00:12:30.344, Speaker B: Yeah. And then the question is if this is easier to implement or not.
+00:12:31.934 - 00:12:46.394, Speaker D: Yeah, I'm hoping that the clients, I'm being optimistic here. The clients have the implementation like this, where the assertion is separate from the fee calculation. If they're like the same thing, like they're done in one line, then it might make this more complicated to.
+00:12:46.734 - 00:12:49.754, Speaker C: Okay, so, but what is the base fee here then?
+00:12:51.054 - 00:12:54.594, Speaker D: The base fee is whatever the base fee for the block is as calculated normally.
+00:12:55.214 - 00:13:02.634, Speaker C: Okay. Then in that case, likely the transaction will fail on balance. Check.
+00:13:04.454 - 00:13:24.314, Speaker D: For the non validation mode that I have there in chat. This is saying we take the smaller of the base fee, or the max fee for gas, the user supplied, and if the user supplied no max fee for gas, then we just take zero, a smaller of zero, or base fee, which is always going to be zero.
+00:13:24.754 - 00:13:27.294, Speaker C: Oh yeah. Okay. Okay, okay. Yeah, sure.
+00:13:35.634 - 00:13:45.334, Speaker D: I've got like 40% optimism, so this is gonna be easy and get another mind 60% that one of you is gonna have a hard time making doing this, and we're gonna have to change.
+00:13:51.734 - 00:14:08.754, Speaker A: My main question would be, if it would be as if for the end user he is calling eth call. So if we can keep that, everything is probably fine and dandy for the end user and otherwise we have some issues to think about.
+00:14:10.014 - 00:14:14.914, Speaker B: I think with eth call you are getting the correct page for you.
+00:14:16.034 - 00:14:22.734, Speaker D: Ethical lets you provide no base fee and it will treat or no fee and it will treat it as a fee free transaction.
+00:14:23.074 - 00:14:26.534, Speaker B: Yeah, but if you ask what the base fee is, you are getting the correct value.
+00:14:27.434 - 00:14:54.224, Speaker D: Oh, you get the base fee for the block. Yeah, I'd be okay with that. Is that. It's a good question to ask is in geth nother mind if you do an ETH call with a with no fee set and therefore a fee set to zero and then inside of your your contract. So in the EVM execution, it calls the gas price op code. What's returned? Is it zero or is it the block space fee?
+00:14:55.124 - 00:15:05.064, Speaker C: If the user did not provide any fee or any price, then we return zero for both gas price and base fee.
+00:15:08.384 - 00:15:11.164, Speaker D: Interesting. For nevermind.
+00:15:12.864 - 00:15:17.084, Speaker A: I think so. But we'll have to create a test to check.
+00:15:18.824 - 00:15:26.444, Speaker B: Really. If you in 8th call, you're calling a contract that is getting the base fee. You are getting zero. I would imagine you are not.
+00:15:27.264 - 00:15:31.484, Speaker C: Yeah. So this was a behavior change a few months ago.
+00:15:32.184 - 00:15:33.066, Speaker B: Okay.
+00:15:33.240 - 00:15:33.954, Speaker C: Yeah.
+00:15:35.334 - 00:15:38.754, Speaker B: I don't like that because then you cannot get the base view.
+00:15:39.974 - 00:15:46.754, Speaker D: Is there anything with the code? I don't think there is a base view of code, is there?
+00:15:47.334 - 00:15:50.674, Speaker B: Yeah, there is. That's what I'm doing in that test.
+00:15:52.734 - 00:16:00.978, Speaker D: Was this added after 1559? I'm looking at 1559 eap right now and I do not see a new opcode.
+00:16:01.126 - 00:16:04.174, Speaker C: It was a separate EIP, but it was shipped at the same time.
+00:16:04.634 - 00:16:09.734, Speaker D: Oh, that's right. Yeah. Okay. I think remember that.
+00:16:12.714 - 00:16:18.694, Speaker B: Yeah. I guess the reason why it's redundant Zero is exactly the case that we have now. The problem we have now.
+00:16:21.674 - 00:16:40.604, Speaker D: I tend to agree with Kalari. It'd be nice if the base fiat code returned the block space fee. However, I don't know if I care enough to want to postpone getting this out to mainnet anymore. And so if that's like not more than zero work for either of you, then I would say let's just go with what ethcall does.
+00:16:42.544 - 00:17:05.404, Speaker B: Well, I prefer if we can do that, but I don't know if it's difficult to implement and if it's difficult to implement, then I'm strongly kind of pushing for this. If it's easy to do, then I should think, think we should do this way. But I imagine that it's difficult to do if get has decided already to return Zero for the base field.
+00:17:08.344 - 00:17:12.084, Speaker C: Yeah, we would have to diverge from each call. Which is not super nice.
+00:17:15.544 - 00:17:34.074, Speaker B: It'S. But the simulation is more difficult if you need to. But I guess if you really want to get it correct then you can always calculate the base for yourself and set it. I think that's in a way fine that then the user needs to do more effort. But it's still possible to simulate with the correct page view. I think that's cool.
+00:17:40.494 - 00:18:01.774, Speaker A: Do we have a test for that? For each call for if simulate that would actually like test this thing to be valid both on the contract side like inside the contract call and in the output.
+00:18:02.594 - 00:18:31.414, Speaker B: That's what the test you said is doing. It's getting all that, it's returning all those block parameters from the evM. And then of course it seem right. It's also returning all those block values and then I'm comparing them to each other that they are matching. And that's how we found this issue. Because get another might is disagreeing on the output but only on that base view of code and not on the others.
+00:18:37.354 - 00:19:05.084, Speaker A: All right, so another one question I had was. I remember we had the page for the error codes. Or at least error codes were included into some page. What happened to it? Does anybody know where I can find the page with error code that are like error codes explanation laid out? Because I remember I had seen it but I don't cannot find it like.
+00:19:08.144 - 00:19:13.084, Speaker B: It'S, it's in the executions pack. I can share the link.
+00:19:14.064 - 00:19:15.044, Speaker A: Please do.
+00:19:25.634 - 00:19:39.894, Speaker B: Here. But then there's a lot of stuff and just, just find for error. You can find the list. There's two lists. There's that when the transaction fails and then there's when the whole thing fails.
+00:19:50.934 - 00:20:01.474, Speaker A: Could we somehow edit to the wiki page if it is possible? Because it was. I think it was best some time ago. But here.
+00:20:04.934 - 00:20:11.462, Speaker B: I don't remember it has been there. But maybe we can add it. You mean to read me?
+00:20:11.478 - 00:20:49.206, Speaker A: You mean the one that we had on the like docs folder? But yeah. Now when I see it's all right. I think it is all right. So I can give some status updates. So we've reviewed simulate codebase. So probably the at least core of the code base will be someday soon ish merged into the client, into the master. And we'll have, I think at least for now a flag that would be set to false by default.
+00:20:49.206 - 00:22:30.064, Speaker A: That would be able to enable if simulate if a user wants. So when you'll be starting a docker image you'll just pass in the flag set to true and users will be able to call it. Otherwise it will be disabled by default and yeah, so we'll be able to at least merge the changes and not have a lot of pain of rebasing and merging it. Time we do any updates to the call and also I done the call header as a base for return of the call so we'll have the in today's release I think we'll have the correct ish call header so not call header simulate result that you'll be able to compare with Gethbun. It should be noted that types are different at least by default between how we do it on the client and what you are referencing in the the RPC docs. So there may be some differences like long versus uint 256, but hopefully nobody would really really check it. I think so the potential issue potential test that would be quite interesting to check would be set block number to something bigger than long in c hash and to see what will happen.
+00:22:33.804 - 00:22:37.984, Speaker C: Did you have to write custom code for returning these types?
+00:22:38.484 - 00:23:05.544, Speaker A: So before that I had a custom object that I returned with the fields Killary wants and I just cast it forward and backwards from the types we really use to the types that are sent. But now when we are just like inheriting from the from the call header from the block database it will be a little bit different but it should.
+00:23:05.584 - 00:23:09.804, Speaker C: Be consistent with is underscore get block.
+00:23:12.424 - 00:23:16.124, Speaker A: Yes it probably shell okay great.
+00:23:17.784 - 00:23:36.794, Speaker C: Yeah so as for my updates, it's I did this refactor of like returning the full block header last week. So yeah, curious to see the differences but never mind. Maybe we can finally hunt the block hash difference issue.
+00:23:40.934 - 00:24:42.324, Speaker B: I just added the spec to add those block stuff but otherwise I haven't been doing testing because at the moment net and get their mind are differing a lot from each other. I guess if Oleg did those testings we can get a new version and then I could run the tests again and see what are the differences. Do any discuss over how to make a decision on what to do with the but I guess we need to wait from the client clients to decide if that's difficult to do or should we should we differ from the ETh call or not? I haven't read that full request yet, so maybe there's a good reason why it's done that way and that's actually pull request for cat. So is Nethermind is doing the same thing with it. Call, I would imagine.
+00:24:45.504 - 00:24:46.604, Speaker A: I don't remember.
+00:24:49.424 - 00:24:50.856, Speaker E: Are we doing with ETh?
+00:24:50.880 - 00:24:51.064, Speaker B: Call?
+00:24:51.104 - 00:24:51.724, Speaker E: Sorry.
+00:24:52.664 - 00:25:11.744, Speaker B: If you are doing it, call and calling a contract that returns basefit. And what is that base fee going to be? Get is going to return zero, but I would expect it to return the correct base fee, but seems like it's returning zero instead. Yeah.
+00:25:14.524 - 00:25:50.314, Speaker D: Peter has a reasonably good argument here. The normally in production gas price is by definition always larger than base fee. And so if you have code in your contract that does gas price minus base fee, which is not uncommon because it's, that's how you find out what the priority fee of a transaction was. That will be divided by zero. It'll be a overflow. And since I believe those are uns that will revert. And so by setting the base fee down, you're basically guaranteeing that that code will not revert anymore.
+00:25:54.094 - 00:25:57.954, Speaker A: So will such thing happen currently with Ifcol?
+00:25:59.654 - 00:26:32.024, Speaker D: So in Geth, someone does an ETH call, and they don't specify a base fee, which is almost always a contract that did gas price minus base fee would revert. And so in November, Geth changed it, so base fee is now always zero. So those contracts do not revert. I don't know what Nethermind does right now, but maybe different than Geth. If they didn't talk to you guys about this, this looks like they just did it as like, fix. What was that?
+00:26:32.844 - 00:26:33.984, Speaker E: I'm checking.
+00:26:34.404 - 00:26:42.384, Speaker D: Okay, so this is not a bad reason to set the base feed to zero. It's unfortunate.
+00:26:46.724 - 00:26:57.898, Speaker B: I think it's one of the cases when you actually need it, then you find out that it doesn't behave as you expect, and this can cause a lot of bugs. So because it's somewhat, you know, they expect it to return zero.
+00:26:58.066 - 00:27:04.414, Speaker E: No, we are taking, I think, the block parameter base fee.
+00:27:04.914 - 00:27:16.666, Speaker D: Okay, so currently it sounds like then ETH call for another mine geth differ as of November since guest changed their behavior in November.
+00:27:16.850 - 00:27:22.644, Speaker A: Yeah, but we set it to zero by default here. So it will be zero. Zero.
+00:27:25.464 - 00:27:27.484, Speaker D: Oh, I see. You're saying, you're saying that.
+00:27:30.264 - 00:27:38.136, Speaker A: We already have this, like, special code that explicitly sets it to zero when we are in non valid. In non validation mode.
+00:27:38.160 - 00:27:43.632, Speaker D: Yeah, in. But in ETH call or in esimulate or both.
+00:27:43.728 - 00:27:45.024, Speaker A: In Eth simulate.
+00:27:45.184 - 00:27:59.824, Speaker D: I see. Okay, so currently, nethermind. Okay, this is non validating mode. I feel like maybe following each call here is the right thing to do. So people's transactions don't revert.
+00:28:01.604 - 00:28:06.104, Speaker E: So why Geth is setting into zero. Sorry, I missed that again too.
+00:28:06.724 - 00:28:38.342, Speaker D: So Geth is setting the base fee opcode to zero if, rather than setting it to the block base, the block space fee to avoid causing a revert in contracts that do gas price minus base fee, which is a very common way to identify how much priority fee a particular transaction paid that's used for things like meta transactions and stuff like that because they're both uns and so subtracting would give you. Yeah, got it.
+00:28:38.358 - 00:28:42.214, Speaker E: We got it under flow. Ah.
+00:28:44.274 - 00:28:45.254, Speaker D: Exactly.
+00:28:46.114 - 00:28:48.894, Speaker A: And this is why we are just using long.
+00:28:54.794 - 00:29:01.574, Speaker B: There's some discussing about the blob base fear, and I guess we need to decide the same thing for it, what to do with it.
+00:29:02.714 - 00:29:38.750, Speaker D: Yeah, I'm leaning kind of towards for the non validating mode, I'm leaning towards just setting up to zero. It does feel wrong because the base fee is a block parameter and you're asking for a block parameter and so you should get the block parameter. But at the same time, I recognize that a lot of people stuff is going to not work if we don't set it to zero. I mean, we could just say for those people, go and fix your, provide a, provide a gas price when you're testing. But then they can't do, they can't run simulations with no eth. That also sucks.
+00:29:38.942 - 00:29:44.274, Speaker B: But that won't work either. They had to run the one with validation mode.
+00:29:45.814 - 00:30:17.876, Speaker E: Ah, sorry, sorry, I went to too soon. Now I see there is more logic on that. So we have a should say set base fee. Okay, okay, now I see what we're doing. If transaction gas price is above zero, or transaction from if it call or transaction max v per gas is above zero, or transaction max priority fee per gas is above zero, then we do set the base fee. Otherwise we zero the base fee. Sorry, found another line when this is being done earlier, and then I just see we use the base fee.
+00:30:17.876 - 00:30:21.064, Speaker E: So I thought we use the base fee, but we modified earlier.
+00:30:23.764 - 00:30:26.396, Speaker D: A virtual base fee. That could be any number of things.
+00:30:26.460 - 00:30:42.734, Speaker E: So base fee is zero only if gas price, max v per gas and max priority fee per gas weren't specified, right? If we set the base fee to zero, if they were specified, we set the base fee to the previous base fee. That's our logic. Okay, now I get it.
+00:30:43.394 - 00:30:53.242, Speaker D: Sorry, is that, is that compatible with what geth is doing? Sino is the same like you guys only set it to zero if the user doesn't provide anything.
+00:30:53.418 - 00:30:54.374, Speaker C: Exactly.
+00:30:54.954 - 00:31:03.634, Speaker D: Okay, okay. So should we just go with that then? Sounds like, sounds like I think.
+00:31:04.574 - 00:31:12.794, Speaker B: I think we have. When we are returning the base, we should also say to zero so that EVM and what we are returning should also agree to each other.
+00:31:16.374 - 00:31:18.394, Speaker D: That feels even worse to me.
+00:31:19.694 - 00:31:25.974, Speaker B: Well, I think it's more confusing if the EVM reduce different value then what. Yeah, block is.
+00:31:26.274 - 00:31:35.294, Speaker D: I understand. I just hate when the lies expand out too. So would we then hash the block based on the base fee of zero as well?
+00:31:36.554 - 00:31:37.334, Speaker B: Yep.
+00:31:38.594 - 00:31:56.594, Speaker D: So you're saying actually make the base fee for the whole blocks here? What if one transaction, the block has this fee set and one doesn't? Currently the code zero, it's the code is gonna, one of those transactions will have a base fee set to something non zero and another one will have a base fee set to zero.
+00:31:57.494 - 00:32:05.394, Speaker B: I mean, the default value for base fee on non validation mode is zero. And then if you set validation mode, then it's calculate correctly.
+00:32:06.734 - 00:32:15.994, Speaker D: Oh, you're saying that we should just, the base fee is just fixed at zero. And what if the thing you're trying to simulate though is depend on base fee?
+00:32:16.314 - 00:32:21.538, Speaker B: The default is zero so you can override it, but then you have to calculate yourself what it, what it should be.
+00:32:21.706 - 00:32:28.946, Speaker D: I see. So if you're saying in non validation mode, if you don't give the block a base fee, the block space fee is going to be zero.
+00:32:29.130 - 00:32:56.034, Speaker C: Yeah, well, or the transaction a gas price. I see. But that's kind of, I think in guest. Or if simulate we return the actual block base fee in the header. But for each call specifically if the gas price was zero, then the base fee is kind of set to zero.
+00:32:56.734 - 00:33:12.150, Speaker D: Right. So in geth esimulate, the header results that you return are correct, not lies. But the EVM opcode for base fee sometimes is a lie depending on contextual situation, I think.
+00:33:12.182 - 00:33:15.154, Speaker C: So I have to double check, but that's my understanding.
+00:33:16.774 - 00:33:36.914, Speaker D: Yeah. I mean I can appreciate Kalari's position that having saying, oh, the base fee for this block was five, but then the transactions reported in the EVM, the base fee was zero is very confusing. And so I definitely appreciate that argument, but ugh, I really don't like lying in more places than we need to.
+00:33:38.744 - 00:33:45.284, Speaker B: I think it's just lying in one place and then being consistent about the lie instead of lying somewhere and not be consistent about your lying.
+00:33:45.864 - 00:33:54.724, Speaker E: Is it lying? I wouldn't call it lying. It's just special case and lie by returning it. Right.
+00:33:55.104 - 00:34:05.760, Speaker D: Well, so the question is you have two transactions in one block and one of them has a some fee set. One of them doesn't, you know, there's.
+00:34:05.792 - 00:34:10.124, Speaker E: Always a good idea for that. Throw an error.
+00:34:13.224 - 00:34:18.272, Speaker D: If you want any of your transactions that have no base fees or no fees, then all of them have no fees either.
+00:34:18.328 - 00:34:21.804, Speaker E: All no fees or even all fees explicit.
+00:34:22.584 - 00:34:23.964, Speaker B: That's more consistent.
+00:34:25.904 - 00:34:47.504, Speaker A: And then you're actually the problem with like one transaction having, actually having something set to it. We just like calculated based on the fact that for a block as a whole, the base fee is zero. And this specific transaction had something set to it. All right, let's multiply this by zero. We get the zero. No.
+00:34:48.604 - 00:35:01.134, Speaker D: Yeah, that was, I think, aligned with what Clari was proposing earlier, is that if the user doesn't explicitly give us a base fee for a block, we just set it to zero and then everything else kind of works at that point. No other special cases needed.
+00:35:02.834 - 00:35:11.242, Speaker C: Well, I mean, then if my transaction provides a gas price, it'll still work.
+00:35:11.338 - 00:35:18.186, Speaker D: Like, it'll just get a base fee of zero. And so it's going to do the min of the max fee they set and zero and get zero out.
+00:35:18.330 - 00:35:31.194, Speaker C: I would just pay a lot mainnet, like on Mainnet. So base fees high few ways.
+00:35:34.134 - 00:35:49.034, Speaker D: Right. So Clarice and Oleg, if I understand correctly, are saying even instead of having the base fee be derived correctly, it's just always zero unless the user overrode it. The block.
+00:35:49.114 - 00:35:51.922, Speaker A: Base fee invalidation mode false.
+00:35:52.098 - 00:36:01.134, Speaker D: Yeah, invalidation mode false. Yeah. And so all transactions are free unless the user pays a priority fee.
+00:36:03.074 - 00:36:06.394, Speaker B: Or if the user wants to set the base fee themselves, then they can pay.
+00:36:06.434 - 00:36:19.594, Speaker D: Yeah, yeah. They could do an override if they wanted to set it to something. But like I said, that means the user is now going to have to manually calculate the base fee changes themselves. They're not going to get accurate base fee changes.
+00:36:22.454 - 00:36:23.234, Speaker C: Yeah.
+00:36:25.254 - 00:36:28.914, Speaker D: Unfortunate, but it does make the system consistent.
+00:36:31.134 - 00:36:36.034, Speaker B: And it's quite clear because you're also returning it and you are clearly saying that it's zero.
+00:36:37.994 - 00:36:49.414, Speaker D: Yeah, I can get on board with this. Makes me sad, but it's acceptable. And I do like consistency. Anyone opposed?
+00:36:57.274 - 00:36:59.054, Speaker B: I think it's quite clear solution.
+00:37:05.534 - 00:37:07.354, Speaker C: Yeah, I can get behind it.
+00:37:11.534 - 00:37:13.486, Speaker B: Oh, like a logash? Fine with it.
+00:37:13.550 - 00:37:15.194, Speaker E: Yeah, yeah, yeah.
+00:37:16.254 - 00:37:17.062, Speaker B: Okay.
+00:37:17.198 - 00:37:25.754, Speaker D: Okay. I just typed in chat what I think we agreed on. So let's get that in the spec and updating the clients and this problem will go away.
+00:37:26.254 - 00:37:34.112, Speaker B: Yeah. So Carlott sent a free and paid transaction at, at the same time anymore. They are either all free or they all pay.
+00:37:34.288 - 00:37:40.888, Speaker D: You could pay a priority fee and if you want, if you wanted to pay. You could pay a priority fee.
+00:37:41.016 - 00:37:41.944, Speaker B: Oh yeah, that's true.
+00:37:41.984 - 00:37:44.124, Speaker D: Yeah. If you really needed to.
+00:37:44.464 - 00:37:50.364, Speaker B: Yeah. So you could simulate it so that you can calculate the base fee and then set the priority fee by enough.
+00:37:51.224 - 00:37:54.564, Speaker D: Yeah. Okay.
+00:38:00.004 - 00:38:13.704, Speaker C: Well, basically will be zero. So basically the whole fee will go to the miner. Right. So max fee per gas becomes the priority.
+00:38:14.124 - 00:38:15.412, Speaker D: No, no, the whatever.
+00:38:15.468 - 00:38:16.064, Speaker E: The.
+00:38:17.764 - 00:38:32.504, Speaker D: User sets some max priority fee and that will go to the miner, assuming that number is lower than the max fee. So they set their max fee for gas to 100 and their max priority fee to one. They're going to pay one of those two.
+00:38:35.044 - 00:38:36.144, Speaker C: Yes, yes.
+00:38:37.164 - 00:38:41.224, Speaker B: Actually. What about the blob place? Should we do the same thing for it?
+00:38:42.564 - 00:38:43.984, Speaker D: Yeah, blobs.
+00:38:46.124 - 00:38:52.784, Speaker A: We have in is called something like simulation of blobs or we don't.
+00:38:54.724 - 00:38:57.944, Speaker C: I think believe so. Yeah.
+00:38:59.444 - 00:39:02.104, Speaker D: Really? The Eth call supports blobs.
+00:39:03.924 - 00:39:07.864, Speaker B: I think it doesn't. Oh really?
+00:39:09.884 - 00:39:21.184, Speaker C: Maybe not east call, but I vaguely remember having. Didn't we add blob version hashes? Or if not, I think we should definitely do it.
+00:39:21.724 - 00:39:37.224, Speaker D: Yeah. So I remember talking about blob stuff and we were talking about using it as a way to convince people to move from ETH call to Eth simulate by just saying we have no plans on adding blob support to Eth call. I don't know if that actually we agreed on that or not. I just remember us discussing that.
+00:39:50.704 - 00:40:02.604, Speaker B: But actually in the get pull requested, they are talking about the block base fee for the 8th call. But it's just something that they discussed that they should discuss about. But I don't know if it was ever discussed.
+00:40:09.224 - 00:40:28.234, Speaker C: No, I don't. I don't remember that being discussed. But I'm, I mean, so I have code here for blob base fee. Definitely we can, I mean we have an override for blob base fee. That's part of the spec.
+00:40:30.894 - 00:40:39.374, Speaker D: And by default it's just calculated properly. Like from the parent block.
+00:40:40.514 - 00:40:43.906, Speaker C: Yes, yes.
+00:40:44.090 - 00:40:52.174, Speaker D: And so the question is, should we do the same logic where it's zero by default rather than calculated properly and user can override it if they want something else.
+00:40:56.314 - 00:40:57.894, Speaker C: To read? Blob basically.
+00:40:59.274 - 00:41:02.574, Speaker D: That's a good question. Can the EVM access blob base fee?
+00:41:04.134 - 00:41:09.074, Speaker B: Yes, I think this already have support for it. Or maybe they have.
+00:41:09.974 - 00:41:11.914, Speaker D: Is there an opcode for it, is the question.
+00:41:12.414 - 00:41:18.034, Speaker C: Yeah, I mean there's a IP 7516.
+00:41:22.094 - 00:41:32.454, Speaker D: Okay. And this is deployed. The CIP went out, I'm guessing so.
+00:41:34.034 - 00:41:36.734, Speaker B: Oh yeah. There's solely this report there.
+00:41:39.074 - 00:41:39.578, Speaker E: Okay.
+00:41:39.626 - 00:41:44.186, Speaker D: I mean, just for consistency, I kind of feel like we should do the same thing.
+00:41:44.370 - 00:41:50.894, Speaker C: But do we have the situation with gas price minus base fee? Do we have like.
+00:41:51.794 - 00:41:55.634, Speaker D: No, I think there's only blob base fee.
+00:42:00.774 - 00:42:17.354, Speaker C: So blobs don't have necessarily the same issue, why we had to set base feature to zero. I'm happy to go either way. Like, not as strict, not a strong opinion on this.
+00:42:18.014 - 00:42:33.444, Speaker B: I guess the question is, is it common to send free blob transactions? Like with eth call? You quite often want to make free calls, so you don't want to bother with the gas prices. And I guess if blob gets popular, then there would be similar kind of need.
+00:42:34.784 - 00:42:38.524, Speaker D: I would imagine so. Sending free does seem useful.
+00:42:42.464 - 00:42:49.774, Speaker B: In general. It's very useful that you can make free eat calls and you wouldn't need to bother with the other transactions, gas stuff all the time.
+00:42:50.074 - 00:43:29.714, Speaker D: Yeah, I'm kind of leaning towards setting it to zero just so it's consistent with base fee. And when you're in non validating mode, even though the only reason to have it zero is because of this underflow error, I think people aren't going to know that. And so if they see one of them as zero, they're going to expect the other one to also be set to zero. I guess that would be my instinct as to what the default expectations of users are. And so having them, having them both be zero feels like the right way to go, to me.
+00:43:31.494 - 00:43:33.474, Speaker B: Yeah, I think it's better to do it like that.
+00:43:36.374 - 00:44:06.014, Speaker D: But I'm also very weakly in this position. Not strong. Anyone feel strongly about blob, base fee zero or non zero? No. Let's go with zero then. So same behavior as base fee flo, base v will have the same behavior.
+00:44:10.534 - 00:44:13.234, Speaker B: Sounds good or consistent?
+00:44:15.734 - 00:44:17.114, Speaker D: Consistent. Not good.
+00:44:20.254 - 00:44:25.394, Speaker B: Do we have anything else to discuss? Every week we'll change the spec.
+00:44:26.814 - 00:44:28.754, Speaker D: I keep feeling like we're so close.
+00:44:30.814 - 00:44:34.964, Speaker E: No 80 20% rule. We are 80% done.
+00:44:35.384 - 00:44:53.084, Speaker D: Yeah, I feel like we're now at the. We got 80% done, and then we got the next 80% done and the next 80% of that done. And so we're at like, whatever. Whatever that small number is.
+00:44:55.544 - 00:44:58.084, Speaker B: At least we are moving forward, look backward.
+00:44:58.604 - 00:45:02.464, Speaker D: 99.2%. 80%. 80%. 80%.
+00:45:07.644 - 00:45:07.980, Speaker B: Yeah.
+00:45:08.012 - 00:45:09.784, Speaker C: From here it is bug fixes.
+00:45:11.924 - 00:45:27.244, Speaker D: Just what bug fixes, hopefully. Yes. Okay, so we'll get the. Our team will get the spec updated. And by our team, I mean Gloria. Volunteering him again.
+00:45:30.624 - 00:45:31.684, Speaker C: Okay, guys.
+00:45:34.584 - 00:45:35.952, Speaker B: Thank you. Bye.
+00:45:36.048 - 00:45:36.936, Speaker E: Thank you.
+00:45:37.120 - 00:45:37.904, Speaker C: Bye.
+00:45:38.064 - 00:45:40.184, Speaker D: Thanks, everybody. Bye.

@@ -1,0 +1,230 @@
+00:00:00.320 - 00:00:37.802, Speaker A: Okay. Hello everyone, and welcome to EOF implementers call number 47. And let's kick off with client updates. First on my list is myself, so we can give an update on EVM. One, there isn't much I guess there we have two changes in the pipeline. One is the validation of init code mode, and the other is UF creation transaction. I think both are in review right now.
+00:00:37.802 - 00:00:41.134, Speaker A: Anything else, Andre? I'm forgetting Pavel.
+00:00:43.194 - 00:00:44.394, Speaker B: I think that's about it.
+00:00:44.434 - 00:00:45.094, Speaker C: Yeah.
+00:00:45.874 - 00:01:02.924, Speaker B: In it code mode validation is not merged, mostly because testing turned out a bit challenging. Like it's better to refactor validation interface a bit to make it easier. So we are working on that.
+00:01:04.784 - 00:01:13.364, Speaker A: Right. Okay, next on my list is Danokan. Are you okay to give an update on this?
+00:01:13.984 - 00:01:55.950, Speaker D: Yeah, our current mega EOF branch passes all the tests in the Epsilon east repository. I'm working on getting it merged into main. That's going to be a moving topic into the main of Bayesu. It's going to be moving talk with the next two weeks as to which work you get to sign. My current proposal is to create a prog EOF fork for stuff configured by Genesis file and in stuff configured by reference tests it'll include Progiof, and in Genesis it won't include it unless you use the proG EOF fork. And my reason is that the devnets don't have it yet, but the reference tests do. So that's what might be coming down the pipe.
+00:01:55.950 - 00:02:00.994, Speaker D: But there's topics on the ACD schedule that might move this decision.
+00:02:04.534 - 00:02:11.354, Speaker A: Okay, thank you. Next, I can recognize Marius from Geth. Would you like to give an update?
+00:02:15.194 - 00:02:16.654, Speaker E: Can you guys hear me now?
+00:02:16.994 - 00:02:18.690, Speaker A: Yes. Very well.
+00:02:18.882 - 00:03:15.584, Speaker E: Perfect. Yeah, so as I said on the interrupt, our code validation was working, but it was sub optimal because it didn't go like the kind of. The work listing wasn't great. And so I started completely rewriting the stack validation. It's kind of done, but it's not passing a lot of the tests. And so I just need to go test by test, figure out where the problems is, where the problems are, and why it's not working the way I wanted to. Yep, that's it.
+00:03:18.204 - 00:04:19.844, Speaker A: Okay, thank you. Do we have any other clients participating? Client teams? I mean, anyone wants to give an update? Okay, I guess not then. Compiler updates. Do we have anyone from compiler team on the call? We don't, but I don't want to speak for Radek, but we have. So Radek has been working on the solidity PoC implementation, which would be able to compile a couple of well known contracts and it's working right now. I think the main purpose was to confer the bytecode sizes. And the results are optimistic so far, but I think we're still working on fully, I don't know, cross checking the results.
+00:04:19.844 - 00:04:47.132, Speaker A: Optimistic as in I think there were no call size regressions. And then the next point, obvious back updates. Do we have anything to discuss here? I don't think so.
+00:04:47.308 - 00:04:49.384, Speaker D: I think everyone's burnt out from Interop.
+00:04:50.044 - 00:04:51.064, Speaker F: Yeah, yeah.
+00:04:52.864 - 00:04:57.564, Speaker E: Yeah. So the one that you tagged me on this today, Pavel.
+00:04:58.824 - 00:05:38.312, Speaker C: Yeah, I think I counted. So how, how well can you hear me? Because something. So Mike, can you hear you okay? Yeah, I think I counted like four different issues we kind of need to resolve. And there's a different level of complexity. So one that was we discussed for longer was this return data copy instruction. I think this, I think most of the people are in favor of changing this and we discussed what exactly how exactly to do that. I think there were two variants.
+00:05:38.312 - 00:06:51.236, Speaker C: One is we kind of remove the old opcode in Oauth and introduce new opcodes. So mostly we change the name of the instruction somehow so it's more clear that it is different. The other option is to just change the semantic of the instruction, depending if they're running in unof or not. That's, I think it's slightly in favor of, compilers are slightly more in favor in this change semantic version. So I think that would be nice to figure out if we're doing this and likewise version because that's kind of one of the longest pending issues. And yeah, I'm not sure, I kind of also in favor just changing how it works, but is it good enough? I'm not sure. So I actually asked Geoff because I wanted if they have any strong opinions about it.
+00:06:51.236 - 00:06:59.944, Speaker C: So mostly my idea was to collect this comment so we can move any progress.
+00:07:06.984 - 00:07:37.314, Speaker E: I don't have any strong opinions about it. It kind of sucks for us because we have to maintain two versions of basically the exact same opcode. But I understand what the compiler teams want and why they want it. And it seems like a good analogy. Ask for me to say let's do it.
+00:07:39.934 - 00:07:44.034, Speaker A: And by kind of sucks you mean both variants?
+00:07:44.774 - 00:07:47.166, Speaker E: Yes, changing it sucks.
+00:07:47.310 - 00:07:48.646, Speaker A: Equally sucking.
+00:07:48.830 - 00:07:49.594, Speaker E: Yeah.
+00:07:50.214 - 00:08:37.554, Speaker A: Okay, for background, I think we had a bunch of not so strong arguments, the ones in favor of having a new opcode was that it's kind of consistent with how we treated ext call. And yeah, I think this one is like the main precedent. Were there any other arguments in favor of the other, like introducing the new opcode. We had like a big notion of it being more secure, like more separated, but I don't know if it's actually a thing.
+00:08:41.094 - 00:09:20.444, Speaker E: I think the only argument that I came up with was that with this change, we're kind of breaking how it works and maybe assumptions around how it works. So if someone like, assumes this old behavior and only knows this old behavior, then they might be surprised by it. But I don't know if there are any people that really know about this behavior that are not in the room right now. So I would be fine with changing this.
+00:09:22.424 - 00:10:08.724, Speaker C: Yeah, I think that was the main argument. So if we introduce new opcode, at least like people will notice, inspecting EVM, they will notice that this is something new and they will need to find the spec, what it does, and they will find out that it's like the old one, but like with a change. Otherwise they will see kind of the same name on the trace, for example. And, but I think it's also fine. So I would, I would suggest we actually go along with the change so we kind of spec it out because I think we don't have it done. I mean, in the EOF repo, we have it, but we need eap updates. So maybe let's do it with the change change semantic.
+00:10:08.724 - 00:10:24.204, Speaker C: And I guess that's like next phase when we will see the EAP updates and then we can also collect some objections, I think. But I would move on. How, it's, how it's suggested.
+00:10:29.024 - 00:10:50.344, Speaker A: I'm thinking also, like, about things like formal verification or static analysis. Would, would that not impact, I can try bytecode analysis because then it's, then it's dependent on whether it's Uf or not EOF. And maybe some methods don't have that knowledge. I don't know, just, just that there.
+00:10:50.684 - 00:11:17.004, Speaker E: Shouldn'T, like, I think their whole stuff will be broken by uf anyway. So like they will need to look into it either way. So it's like, I don't, I don't, I really don't see a scenario where someone would be surprised by this. And even then.
+00:11:20.824 - 00:11:21.604, Speaker A: Yes.
+00:11:30.644 - 00:11:57.354, Speaker E: And even if someone would be surprised by it, it's probably only going to be one person in the history of everything ever. So I don't know. Okay, then I guess, yeah, I think we will be fine. Just check changing the semantics of it.
+00:11:59.334 - 00:12:03.594, Speaker A: Okay. I think we're leaning towards change the semantics option.
+00:12:10.734 - 00:12:11.594, Speaker G: Okay.
+00:12:14.974 - 00:12:19.446, Speaker A: What were the other things? But we were mentioning four items.
+00:12:19.510 - 00:12:48.004, Speaker C: Yes. So otherwise this init code mode validation. I think that's in progress. So I think we don't have to spend time on it. But it's kind of. The spec is not updated yet, so that I wanted to mention. There was one more thing which I can't blockhash, probably.
+00:12:48.004 - 00:12:51.650, Speaker C: Maybe I don't count this one.
+00:12:51.842 - 00:12:53.894, Speaker D: I think it was bamblock hash.
+00:12:54.834 - 00:13:05.294, Speaker C: Yeah, I think I didn't count this one because seems like no change here. I think we didn't collect enough arguments to make any changes.
+00:13:10.034 - 00:13:55.054, Speaker D: So the thing with band blockhash would be that since there's a new contract, that they're storing it with hashes as part of a system update before all the transactions, that we could let EOf get the block hash from that contract rather than relying on the operation. And this would force people to live in the future. The contract has a lookback of 8192 blocks instead of block hash operations 255. So there is, you know, some incentive to use the contract just before vertical shifts. However, doing block hash and eof will be more expensive than doing block hash and legacy. But once verkel ships, it's going to be quite a different gas regime for sure.
+00:13:57.914 - 00:14:19.792, Speaker E: I don't know if. Well, yeah, ok. Yeah, no, sorry. I thought that maybe the gas costs wouldn't change with worker, but I believe that even though they will keep the opcode alive, they need to change the gas costs because it touches the stage right.
+00:14:19.848 - 00:14:30.604, Speaker D: You do a block hash call and it implies it requires that you bring the slot in the account into the witness. And so we have to change the price or it's going to become a broken meter attack.
+00:14:30.904 - 00:14:31.684, Speaker E: Yeah.
+00:14:42.364 - 00:14:53.584, Speaker F: I am in favor of not changing removing block hash because the pricing will change eventually anyways and it just creates more friction to upgrading to euro.
+00:14:57.564 - 00:15:06.244, Speaker C: Yeah, I also kind of feel like it's better to leave it as it is. Not so strong arguments to it.
+00:15:08.824 - 00:15:12.924, Speaker D: Should we log this as considered and rejected in one of the eips then?
+00:15:17.224 - 00:15:24.204, Speaker C: Yeah, probably makes sense. That's why I created the issue. What I can move this to EIP as well.
+00:15:26.264 - 00:15:30.744, Speaker A: Should be the military IP maybe, I don't know, the rational section of my AP.
+00:15:34.724 - 00:15:40.464, Speaker D: Whichever eip we're listing all the laundry list of banned opcodes I think is the right place for it.
+00:15:41.164 - 00:15:50.980, Speaker A: This way. Yeah, and also be that would be like the general list of bundle codes is the first eap, which is 35 40 right now.
+00:15:51.012 - 00:15:58.704, Speaker B: I think it's instruction, validation plans, all the gas, etcetera.
+00:15:59.404 - 00:15:59.884, Speaker F: Maybe.
+00:15:59.924 - 00:16:04.864, Speaker A: I don't know. I remember that we were kind of discussing where to put it.
+00:16:16.844 - 00:16:52.074, Speaker C: Okay, I'll make a note about it and try to handle this. So the last item I can bring is this creation transaction, right. Because there was new idea how to do it coming through from Pyotr to my, to my understanding. And we kind of discussed it a bit during interop and seems a bit like going in circles here, but let's maybe summarize what's going on right now.
+00:16:54.734 - 00:16:58.554, Speaker A: In terms of the creation transaction. Ap. Is that it?
+00:16:59.934 - 00:17:30.464, Speaker C: I'm not sure that was written down, but mostly I think the difference from the current spec was that instead of running this in. You remember it correctly. Yeah. Instead of running this in creation mode, we just kind of execute the code and of create instruction in the code which will create a contract.
+00:17:30.884 - 00:17:34.864, Speaker A: Well that was an idea tossed, but I think it didn't get traction.
+00:17:36.084 - 00:18:04.874, Speaker C: Okay. There's some interesting, like think properties of this one, is that with EOF create instruction we only stick to this create to address scheme. This. No. Ever used this alt create address scheme for UF. That's kind of think it's kind of interesting difference.
+00:18:06.494 - 00:18:10.894, Speaker A: Let me maybe open on the thread here.
+00:18:12.794 - 00:18:25.574, Speaker F: There's a disadvantage of requiring salt by the way, which is that you need to generate new salts and there's no nonsoft code.
+00:18:28.674 - 00:18:39.224, Speaker D: Right. So in this case a compiler, if the desire is to get a new contract of a random address, effectively random address, the compiler just could dedicate it.
+00:18:41.204 - 00:18:42.660, Speaker A: You broke up? Dunno.
+00:18:42.812 - 00:18:43.984, Speaker F: No, sorry. What?
+00:18:46.404 - 00:18:46.756, Speaker C: Hello?
+00:18:46.780 - 00:18:47.504, Speaker A: Daniel?
+00:18:49.244 - 00:18:50.180, Speaker E: NSA?
+00:18:50.332 - 00:18:50.708, Speaker D: Hello?
+00:18:50.756 - 00:18:51.348, Speaker G: Can you hear me?
+00:18:51.396 - 00:18:52.384, Speaker E: God damn it.
+00:18:53.564 - 00:18:54.668, Speaker G: Can you hear me?
+00:18:54.836 - 00:18:55.492, Speaker A: Yes.
+00:18:55.628 - 00:18:55.996, Speaker B: Okay.
+00:18:56.020 - 00:19:07.874, Speaker G: My headphones died. The solution would be to dedicate a storage slot to become the moving salt. If you need to create new contracts that have random addresses that aren't driven by salt and the user doesn't want to manage it themselves.
+00:19:09.374 - 00:19:10.794, Speaker E: Can you not just use.
+00:19:14.574 - 00:19:15.514, Speaker F: What's that?
+00:19:16.454 - 00:19:18.554, Speaker E: Can you not just use Rendell?
+00:19:20.654 - 00:19:37.370, Speaker F: No, because you need to add something every time in the block. Like if you have multiple creations spread out across, you know, in the same transaction.
+00:19:37.522 - 00:19:39.374, Speaker E: I see. Yeah. Okay. Sorry.
+00:19:43.714 - 00:20:01.144, Speaker F: Yeah, maybe that's already. Yeah, I have to think about it, because like the gas of create already accounts for the nonce update. Right. So maybe this somehow more expensive. It's like penalizing people for doing something that was available before.
+00:20:03.084 - 00:20:12.252, Speaker G: So you would just put a warning in the compiler saying you can save gas by including assault, or if it's in the constructor just apply a default assault because you know it'll only be used once.
+00:20:12.388 - 00:20:19.904, Speaker F: Those are some options, but the user has to keep track of it, not too, if they don't have like, input for it.
+00:20:21.184 - 00:20:21.924, Speaker G: Right.
+00:20:26.184 - 00:20:33.484, Speaker F: Like it solves by having a nonce opcode, which people also ask for.
+00:20:34.224 - 00:20:39.724, Speaker G: But we would also need to burn the nonce, not just use the nonce. Because what if you do multiple the same contract?
+00:20:44.664 - 00:20:50.544, Speaker F: I don't understand. Like every create call or whatever invocation increments the nonce.
+00:20:51.884 - 00:20:55.024, Speaker G: Right. So the nonce would give you a nonce and increment it.
+00:20:56.404 - 00:20:59.504, Speaker F: Yes. Which is like exactly what create does.
+00:20:59.884 - 00:21:25.324, Speaker G: Right. That is with 3074 in that it's supposed to be a transaction count, not just in contract count, not just a nonce increase. So that's. That's. That's an issue there. Another considered was a sentinel value where if you pass the salt of a certain value, that dopcode could increment the nonce. But that feels like we're overloading too much.
+00:21:25.864 - 00:21:27.444, Speaker F: Yeah. What's the sentinel?
+00:21:27.984 - 00:21:28.724, Speaker G: Right.
+00:21:30.104 - 00:21:35.324, Speaker F: It could also be an immediate, because we have that now.
+00:21:39.524 - 00:21:41.104, Speaker G: Which would be a new opcode.
+00:21:44.924 - 00:21:46.584, Speaker F: It's the same opcode.
+00:21:51.964 - 00:21:54.384, Speaker G: Good. How would you signal a variable immediate?
+00:21:56.084 - 00:21:58.704, Speaker F: It would be uf create plus an immediate.
+00:22:00.404 - 00:22:03.184, Speaker G: But you need a signal with the opcode number that you have an immediate.
+00:22:06.664 - 00:22:10.524, Speaker F: That's what I'm saying. Like the existing UFC would change.
+00:22:10.944 - 00:22:11.392, Speaker G: Yeah.
+00:22:11.448 - 00:22:47.424, Speaker F: So there always has to be. By the way, sorry, I'm driving, so I have to mute and unmute myself. But another fun thing could be if legacy contracts can deploy EOF contracts, I think Vitalik presented a variant of this. But like, if legacy contracts can deploy EUF contracts which are like, start with EF and then build the EOF validation rules, then we don't need to think about bootstrapping EOF contracts, we just let users deploy them with legacy contracts.
+00:22:48.884 - 00:23:08.764, Speaker G: So in achieving the goal of code isolation, this was not achievable, because once you put EOF in memory, you can manipulate it and you lose a lot of the benefits of EOF being. Being self contained. So this is one of the barriers that's necessary for our code introspection. Danny.
+00:23:13.104 - 00:23:24.364, Speaker F: I'm not convinced, because you can only code introspect at the barrier when you're going into EUF, but once you're in UF, you can't do introspection.
+00:23:25.064 - 00:23:44.164, Speaker G: Right. But if we're keeping the barrier at the creation contract, that enables a lot of rich features in that the systems only have to check at that point versus any create that any contract could do. And bringing in new dynamically generated code, that reduces a lot of the abilities of systems to say, hey, I only have these five contracts.
+00:23:46.824 - 00:23:53.184, Speaker A: And you can also escape from the UF world with a, with a call, right?
+00:23:54.964 - 00:23:59.548, Speaker G: Yeah. Because you can delegate call and then escape into it. What are banned delegate call into legacy.
+00:23:59.716 - 00:24:03.396, Speaker A: Yeah. You would need to normal call, I guess, but I.
+00:24:03.460 - 00:24:06.464, Speaker F: Wait, how do you escape UF.
+00:24:09.164 - 00:24:12.864, Speaker G: Right now? You can't because we banned delegate calls into legacy code.
+00:24:15.044 - 00:24:33.180, Speaker A: They can escape with code call and then create. So you can manipulate EOF code inside an EOF context and then you can ext call outside of it, and then that context will call create too. Right? If that's a lot.
+00:24:33.212 - 00:24:33.836, Speaker G: Oh, yeah.
+00:24:33.940 - 00:24:34.196, Speaker D: Yeah.
+00:24:34.220 - 00:24:36.784, Speaker G: You make it as input data and you don't care who's creating it.
+00:24:39.564 - 00:24:57.164, Speaker F: That's really interesting. Yeah. I don't know. It doesn't seem very different from the regular state where you have a God contract which can also deploy UF code. But maybe I need to think about it more.
+00:25:13.044 - 00:25:23.264, Speaker A: Okay, so back to the topic of how to call it the mode. That would be the creation transaction, top frame mode, right?
+00:25:26.564 - 00:25:27.344, Speaker C: Yes.
+00:25:29.044 - 00:25:47.604, Speaker A: It has some benefits. Like I guess the one is which we discussed just now, which is the enabling creation transaction to run off of the salt based hashing scheme for the contract address.
+00:25:52.104 - 00:26:18.104, Speaker C: Well, it's like this new idea. I think it's much more powerful and maybe that's actually a risk because you don't need, you don't need to create anything, you can just execute this code. So it kind of works as a rich transaction kind of off. So yeah, we also consider this and maybe that's too much.
+00:26:18.564 - 00:26:31.344, Speaker A: I mean, but you still. Well, it, maybe it's not very elegant, but in that top frame, you would still be executing inside the.
+00:26:33.364 - 00:26:37.796, Speaker C: Well, no, in some address, but yeah.
+00:26:37.820 - 00:26:45.824, Speaker A: In the address which you would normally be creating. I don't know how to put it. Like the non and sender hash kind of address.
+00:26:46.404 - 00:26:51.140, Speaker C: Yes, I think so. Yes. But it won't be the address of created.
+00:26:51.292 - 00:26:51.984, Speaker A: Right.
+00:26:53.664 - 00:27:32.014, Speaker C: What I think we probably, it's worth to read, written down this somewhere for the next week and allow people to read it, but I don't think it's like clear, clear cut. So maybe we just move on what we have currently and we can discuss it next week, I believe. Shouldn't be so big deal to delay this one week because I have understanding. Like this is probably most of the people don't understand what I am talking about anyway.
+00:27:34.434 - 00:27:45.394, Speaker A: I can translate this into APR to the creation transaction, EAp or EOF megaspecially, if that's helpful.
+00:27:45.694 - 00:27:56.994, Speaker C: Yeah, definitely. So what I'm saying, like let's written down this idea somehow and allow people to read it before we actually want to discuss it.
+00:27:57.814 - 00:28:13.254, Speaker A: But just to be clear, what would be the main motivation behind it? Would it be more the hashing scheme or the simplifying effect of it? What are we after?
+00:28:14.034 - 00:28:15.734, Speaker B: Is there a simplifying effect?
+00:28:17.034 - 00:29:02.746, Speaker C: Well, somehow it is. So one is that you don't, you can, I think, get away with. You can get away with this split between EOF container and, and this like core data that is going. It's, it's appended after. So I think the, the version, the version that only has container may work, but it's kind of, we kind of circled back to like the original idea about this and this kind of breaks the tooling and stuff. So yeah, that's, it's kind of. I don't know.
+00:29:02.930 - 00:29:10.654, Speaker B: Yeah, it seems appended data will work the same as your current proposal. Yeah, it's still appended, but I still have to split.
+00:29:11.634 - 00:29:32.484, Speaker C: Yeah, but if you don't, if you don't allow to have appended data, appended call data, I think you can stay still, make this work. Well, maybe the same. Actually. I don't know. That's why I kind of also need to have it written down so I can think about it.
+00:29:34.784 - 00:29:35.544, Speaker A: Gotcha.
+00:29:35.664 - 00:29:51.528, Speaker B: Yeah. One subtle potential simplification that I see is maybe that like top level container would be then always runtime container for both like on chain containers and creation transaction.
+00:29:51.696 - 00:30:05.434, Speaker A: Yeah, that's one. And the other is like, we don't. Right now we specify what return contract does in two places which are kind of similar but different in some fine details.
+00:30:06.134 - 00:30:07.234, Speaker B: How's it different?
+00:30:10.614 - 00:30:29.734, Speaker A: The address hashing scheme is different. The 63, 64. I mean, you know, the obvious parts, but it's still like we repeat the spec just, just almost the same thing.
+00:30:38.714 - 00:31:15.154, Speaker F: They also don't appear at first glance like one is obviously better, but this thing, it basically allows eoas to run arbitrary code. Right. So it's like way more powerful because like you can do things like have calls, you can run, you can have like multiple u of create invocations, which I'm in favor of personally, but I don't know if that like makes it like some political thing about account abstraction.
+00:31:17.054 - 00:31:18.994, Speaker A: True. We don't want to.
+00:31:19.654 - 00:31:24.354, Speaker F: Yeah, I prefer it because it's like way more powerful.
+00:31:27.254 - 00:31:45.028, Speaker B: I'm not sure it's kind of the same what you can do with current legacy creation transactions. It's not exactly executing anything from EoA because current address executing the code is not EOA address, but this fake created address. Not fake.
+00:31:45.076 - 00:31:47.644, Speaker A: Yeah, I mean, I think the main.
+00:31:47.764 - 00:31:52.584, Speaker B: It'S not quite rich transaction, but something more similar to legacy creation transaction.
+00:31:55.524 - 00:32:07.284, Speaker A: Yeah, I think the difference comes from the fact that we do not allow for return or stop in an init container. If we allowed that then.
+00:32:08.504 - 00:32:12.224, Speaker B: But we do allow in this new idea because it's.
+00:32:12.264 - 00:32:15.360, Speaker A: Yes, but then it is a runtime container, right?
+00:32:15.552 - 00:32:22.284, Speaker B: Yeah. If also, like not clear whether it doesn't deploy right after stop.
+00:32:24.104 - 00:32:33.604, Speaker A: Yeah, but right now, what happens if you will send a mt two transaction with legacy init code and then stop on?
+00:32:35.854 - 00:32:38.874, Speaker B: Yeah, I think it deploys empty code.
+00:32:39.174 - 00:32:49.594, Speaker F: Yeah. Andre, that's interesting. Right. Like what is the executing address of this new runtime container?
+00:32:51.414 - 00:32:58.954, Speaker A: It will be hash of nonce and sender address. Yeah, it's almost trivial.
+00:32:59.674 - 00:33:09.274, Speaker F: So you're not actually deploying code to that address though, because like the code that you actually deploy with Uf create is going to be like deployed from that address too, right?
+00:33:09.394 - 00:33:10.094, Speaker A: Yes.
+00:33:10.434 - 00:33:14.482, Speaker F: Yeah. It's like double hashed plus whatever sold.
+00:33:14.618 - 00:33:52.572, Speaker A: Salt and hash of init code. Yes, yes, yes. I mean, I mean, but that's not by design. It's just by having been left out of the idea I wrote down. Right. It's not like we have, like anyone has pondered this if it's right or not. So if you, if you have a christian transaction in legacy and you stop, it actually deploys empty contract.
+00:33:52.572 - 00:33:53.262, Speaker A: Okay.
+00:33:53.388 - 00:33:54.094, Speaker B: Yeah.
+00:34:01.154 - 00:34:17.534, Speaker F: Yeah. It's interesting, right? Because then you end up with garbage addresses, which are the intermediate things that actually call UFC. What if you just remove those, then we have like free account abstraction.
+00:34:19.014 - 00:34:31.790, Speaker B: Yeah, actually, yeah. We then will need to do stop after UF create and then it supposedly deploys this empty code contract, which is garbage.
+00:34:31.982 - 00:34:33.790, Speaker A: I mean, I mean, we don't have to. Right.
+00:34:33.982 - 00:34:38.634, Speaker B: We're designing, it's like too much divergence from legacy.
+00:34:41.734 - 00:34:44.194, Speaker F: I don't know. Like you don't actually have to deploy.
+00:34:46.034 - 00:34:54.794, Speaker A: Oh, you're breaking up, Charles. I cannot understand.
+00:34:54.874 - 00:34:55.614, Speaker B: Charles.
+00:34:58.794 - 00:34:59.574, Speaker A: Hello?
+00:35:05.834 - 00:35:13.584, Speaker F: What I'm saying is you don't actually have to deploy code to the address. You can just. From the transaction.
+00:35:14.244 - 00:35:17.944, Speaker A: Yeah, for your f. You mean. Right.
+00:35:21.124 - 00:35:33.180, Speaker F: For the new. For this scheme. Right. Like if you have returning a contract, you're just like literally, it's like the same as calling a contract that returns data. You just have returned data transaction.
+00:35:33.292 - 00:35:34.424, Speaker A: Yeah, yeah, yeah, yeah.
+00:35:37.544 - 00:35:38.072, Speaker B: Sort of.
+00:35:38.128 - 00:36:13.588, Speaker A: That was my thinking. But, um. So, okay, so maybe to move on to the next thing, I will write down the pr I mentioned and I can also potentially write down two with with both versions and we see how it pairs. Okay, and back to the agenda, which I have. Okay, there it is. I presume that was all for spec updates. And now there was one more.
+00:36:13.588 - 00:36:15.624, Speaker A: Sorry, go ahead.
+00:36:17.404 - 00:37:42.104, Speaker B: So there was this question about new status code returned from calls in case you call EOA or empty account, which is the requirement from solidity. They want to issue an error in case you call a contract, but there is no code at this address and also like minor details that it only is required when non empty return data is expected. So for this case, like very, this specific case, they want to issue an error and there is no way to do it in case you like in current UF spec, because in legacy they do this using xcode hash or xcode size actually to check whether a contract exists. They do this check before the call and fail if contract doesn't exist in EOF, xcode size is banned, so they need some other way and like failing or like rather succeeding with some special status code from the X calls would solve this. That's what we agreed on at the interop. Yeah. Like the only unsolved question is which exactly status code to use, I guess.
+00:37:47.924 - 00:38:29.194, Speaker C: Well, I think we have some proposal in terms of status codes, how to, how to solve it, I think so we can write it down. I think the question is more or less do we actually want to fix this? So that's kind of more philosophical aspect to this. Like, yeah, do you actually want to discover this information? And we are, I mean, we had some discussions with solidity. I'm not sure. I can't tell exactly how much they care about this. Probably to some distinct. But yeah, I think so.
+00:38:29.194 - 00:39:23.884, Speaker C: Because it comes to count abstraction, we're like we kind of going into direction that we don't want to actually distinguish accounts with code and accounts without code because we want to kind of abstract this away. So I mean, technically this is kind of, I think, okay, okay, you solution to this by extending return codes from call. So we'll have two codes for successful call and two codes for unsuccessful calls. So there's one more status quo added to the, the spec we currently have. And it's kind of, I think it's much more efficient than what we had in legacy. But I think the question is like, do we actually want to fix this?
+00:39:43.244 - 00:40:17.094, Speaker F: We do it because it's like a common mistake. But in uf, like there's this whole point like it's like the same, like I said in the chat, it's the same as having, is the UA op code it's also a way of inspecting code. And the whole point is, like, you can't inspect anything about the account. So I think it's, like, fine, actually, to not have a separate status code.
+00:40:22.914 - 00:40:34.354, Speaker E: So what warning would happen there? Or, like, what's the. What would be the outcome of.
+00:40:36.374 - 00:40:37.114, Speaker A: Like.
+00:40:37.414 - 00:40:40.714, Speaker E: Why is solid doing this right now? I don't really understand.
+00:40:43.654 - 00:41:22.524, Speaker F: There's common con. So in the ABI, it's possible to have no return data. And there's also, like, contracts which can not return data. And so you can have a call which succeeds and does stuff, and it's because you called a contract, but it doesn't return any data. Or you can call an EOA, and the code size check is there to help you distinguish the two cases, but it's actually not necessary.
+00:41:23.894 - 00:41:34.554, Speaker E: Yeah, I don't get why. Why you would want to distinguish between those two cases.
+00:41:35.774 - 00:41:41.674, Speaker B: Well, like, if there's no code, then no execution happened, but EVM, call returned, success.
+00:41:43.294 - 00:41:52.294, Speaker F: Yeah, but that's the whole point of EOF and account instructions. Like, you can't distinguish if, like, you call the contract which did nothing, or you called an EOA.
+00:41:53.634 - 00:42:28.124, Speaker E: Yes. That's also kind of like how I see it. So in my opinion, this should not be a thing. If you want to. If we want to ban code introspection, then we should ban introspection and not get it back into the back door. Through the backdoor.
+00:42:29.384 - 00:42:46.408, Speaker F: Yeah. The current way is done because we have code introspection. So we're like, okay, we might as well inspect the code and see if it's an EOA or not. Or. Sorry. See if there's code or not because it could be the same, but, like, it doesn't actually. It's like, a minor safety improvement.
+00:42:46.408 - 00:43:04.044, Speaker F: Like, you can also, of course, call a contract which, you know, does nothing and then returns, you know, return data. So if you're going to, like Mary said, if you're going to ban code, introspection is, like, one of the outcomes, which is like, you can't do this check anymore.
+00:43:28.404 - 00:43:52.240, Speaker A: Okay. Any other comments on this? Should we move on to testing updates now? So, testing updates, we have Mario on the call. Hey.
+00:43:52.272 - 00:43:54.800, Speaker H: Yes, hello. So, yeah.
+00:43:54.992 - 00:43:56.040, Speaker F: Can you hear me?
+00:43:56.192 - 00:43:57.368, Speaker A: Yeah, go on.
+00:43:57.456 - 00:43:57.880, Speaker F: All right.
+00:43:57.952 - 00:43:58.200, Speaker B: Yeah.
+00:43:58.232 - 00:44:22.004, Speaker H: So I saw the message that we need to clear up some prs. I'm doing this today, so it's just a matter that I haven't gotten the time to review. But I will do this today. I will go over the PR, the PRS, and if anything is necessary, I will just try to rebase and fix and merge, get it merged as soon as possible.
+00:44:26.084 - 00:44:27.544, Speaker A: Awesome. Thank you.
+00:44:28.564 - 00:45:37.734, Speaker H: There's another comment on the tracker, I think, and I saw the response that it's taking too much time and I agree it's maybe too much overhead. I really like the suggestion of just using the existing documentation and I see the point that it's maybe a little bit it requires for us to copy more information from the actual test functions and I think that's doable. So what we could do is I think we can improve the doc strings in the testing functions and rely only on that for the description of the implemented test cases. The main reason I pushed for a tracker was just to make sure that the unimplemented, not yet implemented test cases were not left out of implementation. That's the only reason why I wanted for us to keep a tracker. But I am open to a discussion if you think that this is still too much. Yeah, too much of our head, I think we can discuss other options.
+00:45:43.254 - 00:46:52.514, Speaker C: Yeah, I think it's fine to continue what we agreed with this single tracker file for now, just like wonder how it will play in practice because it's kind of like the central conflict point probably for many pull requests. But I think we can continue as we, as we discussed and see if, how big the issue is. So I, yeah, let's, let's, let's move on for now. What I had what the idea was more or less that if the, if the generated documentation is good enough, then instead of adding new kind of entries to this, to this file, you can, instead of at like test placeholders in Python. So I don't know how to exactly do it. If you need to define like empty tests or something. So then it will be pulled by this documentation generator and you can browse kind of the same information.
+00:46:52.514 - 00:47:50.208, Speaker C: But so like then if you need to add this test case, you just go to this place holder and just fill the body of this test somehow like that. So like placeholder would be just like the, like the function of the name and the description potentially. So the description also goes to this. So it's kind of the same work, more or less. You just add some like piece of like some number of lines for test case you want to have, but it's, it's already has its place in the source code. So you don't need to kind of map this file to the source code and make sure it's consistent and so on. But I think it might be too much to, I mean, we can work on this feature maybe in parallel, but I wouldn't wait for it and like try to now stick out the, this, this kind of upgrade.
+00:47:50.208 - 00:47:56.224, Speaker C: So I think we should continue as we, as we're doing. But that's the idea.
+00:47:56.684 - 00:48:21.098, Speaker H: Yeah, that's a very good idea. I like it. So I think there should be some modifications to the current script that we use to fill the documentation. And what we can do is maybe if the body is missing of the function, we can also add the x. No, no, not X failed. But skip. So bytes has this marker that is basically just skip this test case.
+00:48:21.098 - 00:48:40.526, Speaker H: And when we find this we might add something into the documentation, like either warning or something to signal that the test case is thought of but not yet implemented. Yeah, sounds good. Let me explore that idea and see how it plays out in parallel.
+00:48:40.710 - 00:48:43.034, Speaker C: Okay, yeah, sounds great. Awesome.
+00:48:52.074 - 00:49:04.054, Speaker A: All right, so this is the plan for the tracker. Do we have any other testing updates or discussion topics on the testing field?
+00:49:04.514 - 00:49:44.814, Speaker B: Yeah, I want to bring up one topic. So we discussed this briefly at interop. So we'll probably want to change the format for validation tests a bit because, so these containers that we validate them can be different kind. There are like init containers, runtime containers, and some containers can be both of these. There are like different validation rules. And currently it's kind of confusing what validation tests are actually validating which rules. And to make it more explicit, we would want probably to add some new field for each test case for the container kind, which is provided in this case.
+00:49:44.814 - 00:50:13.374, Speaker B: So I plan to try this first in EVM one unit tests because they have similar structure. And after that I'll probably open an issue or pr in musician spec tests. And. Yeah, then we'll have to change all existing tests, I guess, but probably not very difficult because there are not many yet. Yeah.
+00:50:18.874 - 00:50:52.664, Speaker C: Yeah, just like this moment idea. I think it might be enough to have like test definition, but maybe actually validate like both, every case in two different modes and we can record the result for every case. So it's kind of, you don't have to actually specify in the test definition, you expect this mode, you just execute these in both and record both, both results sometimes like that. But we can talk later about this.
+00:50:56.404 - 00:51:14.414, Speaker G: Each contract will have to have a return or a. Well, I guess can only have revert. That's kind of a weird case, but it'll have to have a return or stop or a return contract at the top level. So it has to be one mode. So running two executions of it feels like wasted cycles when we know in advance which one it should be.
+00:51:18.434 - 00:51:23.814, Speaker F: Maybe you don't know which one it should be. Maybe you want to validate it in both init code and runtime mode.
+00:51:25.394 - 00:51:47.464, Speaker G: And only in the corner case would it only have reverse. Would that come to where both of them might be valid? You wouldn't know. In an operating mainnet system you're going to know it's in a niccode mode or in runtime mode, because you only get it in a nicode mode at the create transaction, and you get it in runtime mode when you pull it off the tree. You know when you're executing and validating it which mode it is. You never don't know.
+00:51:51.404 - 00:51:58.144, Speaker C: Okay, I understand, but I, I don't think it's like super heavy in terms of cpu time.
+00:51:59.924 - 00:52:16.704, Speaker F: It's also helpful information because you like kind of double the number of tests. Like all clients should return the same validation result for both runtime and indicate mode for each code sample.
+00:52:24.184 - 00:52:29.408, Speaker G: But unless it's a contract that only sends a revert, half of those cases are always going to be invalid by.
+00:52:29.456 - 00:52:38.204, Speaker F: Rule, which is like. Yeah, and I'm saying that's like a good thing because you're like doubling the amount of things you test.
+00:52:40.104 - 00:52:44.004, Speaker G: I think it's wasted cycles, but I'm not going to die on this all.
+00:52:47.444 - 00:52:51.104, Speaker F: I'm not testing anything, so it's just my opinion.
+00:52:55.404 - 00:53:01.784, Speaker E: Dano, do you have this verification of the two different modes already implemented?
+00:53:03.004 - 00:53:54.964, Speaker G: Yes, I know upfront whether it's in runtime or netcode mode, and then when you go into the subcontainer validation, you'll know whether it's in code mode because you're calling it with EOF create, or if it's going to be in runtime mode because you're calling it with return contract. So once you know the top level one, you know the state of all the ones below, and it only affects which opcodes of those three, you can return in those. So it's mostly the same validation. Just in those cases you need to refer to the mode, and you can do this linearly, the validation you do the top container, and then if a subcontainer has the wrong load, you would detect it there because you'd have a return contract and a runtime code, and that's what the error would be. So you don't have to do it in anything other than straightforward reading rendition of it. The error code gets kind of wonky. But that's okay.
+00:53:59.864 - 00:54:01.976, Speaker C: I think we also have it right.
+00:54:02.160 - 00:54:05.660, Speaker A: We have it in the prime, which is review.
+00:54:05.852 - 00:54:08.824, Speaker C: Isn't the PR just refactoring? What? We have.
+00:54:10.724 - 00:54:23.424, Speaker B: No implement this validation. But now I want to do some refactoring to make this different modes of validation more explicit.
+00:54:25.044 - 00:55:28.244, Speaker C: Okay. So yeah, I want one more comment. So we released this execution spectre fixtures. I think that was mentioned a week ago, but I kind of mostly talking to Marius because Dano confirmed like EVM one and Bessel agree on this and it has like set of EOF validation tests. I don't know how big the set is, but I think the promise of execution spec test is that it's a bit more clear what the expected outcome is and what the tests actually tests and so on. So I wonder if you, Marius has used that because you said you need to check the tests with your new validation implementation and maybe that's a better starting point so that I wanted to check on this.
+00:55:28.984 - 00:55:58.204, Speaker E: Yeah, so I implemented the new validation yesterday and today and I started testing it with a like we have 16 test cases within Geth inherited from some really, really old version and three of them still fail. So I need to make them pass first before I can think about any other test cases.
+00:56:02.264 - 00:56:17.044, Speaker C: Okay, that's fine. Yeah. But if in case this like execution spec test work we have a tipsy on and we just published the fixtures in case someone needs to.
+00:56:19.864 - 00:56:22.004, Speaker E: I will keep it in mind. Thanks.
+00:56:29.664 - 00:56:43.034, Speaker A: Okay, we are 1 minute past time. Charles, can we schedule the EIP 663 discussion for the next question? You have next call?
+00:56:43.224 - 00:56:49.486, Speaker F: Yeah, I was going to bring it up on discord, but I figured probably here as well.
+00:56:49.670 - 00:56:51.354, Speaker A: Okay, how's it prepare?
+00:56:53.254 - 00:57:05.954, Speaker F: But just the overview is like I wonder if allocating that many registers possibly it hurts compilation. And if this has been considered.
+00:57:11.694 - 00:57:29.314, Speaker A: Okay then, any closing notes or should we wrap up? Okay then. Thank you very much everyone. Thank you guys and see you next week at the usual hour.
+00:57:29.894 - 00:57:31.114, Speaker E: Thank you too.
+00:57:31.734 - 00:57:33.350, Speaker A: Bye bye bye.
+00:57:33.382 - 00:57:33.654, Speaker C: Thank you.
