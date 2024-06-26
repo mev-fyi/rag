@@ -1,0 +1,167 @@
+00:00:07.640 - 00:01:07.958, Speaker A: Hi everyone, my name is Pari Lingampali and I am the lead product manager at Paypal and here to talk to you today about PyUSD on Solana Paypal USD. PyUSD is an open stablecoin that solves many of the challenges of current payment solutions. Combined with the power of the Solana blockchain, PYSD offers near instant global settlements. Low to no cost transactions can be integrated into apps inside and outside of the PayPal ecosystem. Built with the trust of PayPal and 100% reserved and audited, PYUSD sets the standard for us based stablecoins. With that, I'm going to hand it over to ilan, who is here from Paxos.
+00:01:08.126 - 00:01:34.698, Speaker B: Thanks Pari. My name is Elon Gitter. I'm an engineering manager at Paxos, the issuer of the PyUSD stablecoin. So I'm here to talk a bit about how you can start working with PyUSD and other token 2022s, also known as token extension tokens, on Solana today. So we have this example application here that is a splitter.
+00:01:34.746 - 00:01:37.466, Speaker C: Basically what it can do is be.
+00:01:37.490 - 00:01:46.006, Speaker B: Able to accept a list of addresses and an amount and automatically send that that amount to all of the addresses provided.
+00:01:46.150 - 00:01:47.798, Speaker C: We're going to talk through this particular.
+00:01:47.886 - 00:01:52.094, Speaker B: Rust program here using the anchor framework, as well as run a couple tests.
+00:01:52.134 - 00:01:54.782, Speaker C: And also dig into a client library here.
+00:01:54.918 - 00:01:59.758, Speaker B: I know that some of you have already noticed that secret key. Don't worry, it's not in main net.
+00:01:59.806 - 00:02:07.110, Speaker C: You cannot actually get money from this. Feel free to try whenever you want though. So let's dive right in.
+00:02:07.222 - 00:02:18.156, Speaker B: We have this program splitter as I mentioned before. If you haven't seen this before, we are using the Solana playground. Really awesome way to get up and running quickly. When you load this page, you'll be.
+00:02:18.180 - 00:02:21.540, Speaker C: Able to see a few different frameworks to get started.
+00:02:21.652 - 00:02:23.732, Speaker B: This is using anchor, as I mentioned.
+00:02:23.868 - 00:02:28.548, Speaker C: And it automatically gives you access to a whole number of things that are.
+00:02:28.676 - 00:02:31.692, Speaker B: Available to you, including the different newest.
+00:02:31.748 - 00:02:37.646, Speaker C: Version of the anchor rust crate. We'll start at the top here we.
+00:02:37.670 - 00:02:41.886, Speaker B: Have a program id that is created by the playground. When you build the program, it will.
+00:02:41.950 - 00:02:43.950, Speaker C: Attach a particular public key to this.
+00:02:43.982 - 00:02:47.574, Speaker B: So you can access this on Devnet right away and be able to interact.
+00:02:47.614 - 00:02:49.434, Speaker C: With it within the browser here.
+00:02:49.894 - 00:02:54.206, Speaker B: This will be updated as you see when we build, and then I'll jump all the way to the bottom.
+00:02:54.270 - 00:02:56.158, Speaker C: We have the struct that's going to.
+00:02:56.166 - 00:03:03.982, Speaker B: Be passed into this program here. Right here, right we have send tokens which is being passed into the common. This is the list of accounts that.
+00:03:03.998 - 00:03:11.074, Speaker C: Are involved in this particular function here. So we have the from which is going to have the.
+00:03:12.894 - 00:03:14.742, Speaker B: Token that you want to send.
+00:03:14.878 - 00:03:21.030, Speaker C: In this case, it will be a test token that will represent PyUSD. We'll have the authority that is able.
+00:03:21.062 - 00:03:22.526, Speaker B: To sign for that from.
+00:03:22.630 - 00:03:25.774, Speaker C: In this case, it's an ATA that.
+00:03:25.814 - 00:03:27.702, Speaker B: Was already created in the client, as.
+00:03:27.718 - 00:03:34.658, Speaker C: We'Ll get to in a couple minutes. And the mint account, which is going to be used here, which is the.
+00:03:34.746 - 00:03:37.306, Speaker B: Specific instantiation of the Mint using the.
+00:03:37.330 - 00:03:42.826, Speaker C: New token 2022 program. Don't worry if this doesn't look too familiar.
+00:03:42.890 - 00:03:44.666, Speaker B: Hopefully you'll be able to download this.
+00:03:44.690 - 00:03:47.762, Speaker C: From GitHub and dive in and be able to mess around with it on.
+00:03:47.778 - 00:03:50.490, Speaker B: Your own and build something pretty innovative on your own.
+00:03:50.522 - 00:03:53.722, Speaker C: So let's go into this particular function.
+00:03:53.778 - 00:03:57.986, Speaker B: It is called send to all. That's what we're going to do today. We're going to send tokens to all.
+00:03:58.130 - 00:04:00.834, Speaker C: And we're going to dive in.
+00:04:00.874 - 00:04:15.114, Speaker B: So we have the first four lines here, which are just being able to pull the items from the context accounts to be used for easier referencing later down in the program. Then we're going to iterate through the number of remaining accounts.
+00:04:15.154 - 00:04:19.370, Speaker C: I'll get to that in a second, what that means, and go ahead and.
+00:04:19.442 - 00:04:25.394, Speaker B: Use them as recipients to actually receive that particular token. We're going to construct the object here.
+00:04:25.434 - 00:04:27.782, Speaker C: For the transfer checked call, and then.
+00:04:27.798 - 00:04:29.030, Speaker B: We'Re going to go ahead and use.
+00:04:29.062 - 00:04:32.314, Speaker C: The new token 2022 transfer checked function.
+00:04:32.614 - 00:04:35.278, Speaker B: That requires the amount, the decimals and.
+00:04:35.326 - 00:04:38.154, Speaker C: The particular object that we create above here.
+00:04:38.614 - 00:04:40.558, Speaker B: And that is the entire program.
+00:04:40.646 - 00:04:52.234, Speaker C: So a bit about remaining accounts. Remaining accounts is an anchor specific way to accept an undetermined number of accounts for a given action.
+00:04:52.414 - 00:04:55.010, Speaker B: Use some caution when you use this.
+00:04:55.082 - 00:04:58.698, Speaker C: As they are not validated as something.
+00:04:58.746 - 00:05:02.194, Speaker B: You can actually use in the program. Make sure you do any error handling.
+00:05:02.274 - 00:05:06.826, Speaker C: Before just blindly using this particular variable and remaining accounts, which is what we.
+00:05:06.850 - 00:05:09.770, Speaker B: Are doing right here. So we are doing some validation to.
+00:05:09.802 - 00:05:15.010, Speaker C: Make sure that the given accounts are valid ATA's associated token accounts that have.
+00:05:15.042 - 00:05:16.934, Speaker B: Been instantiated as well.
+00:05:17.554 - 00:05:20.210, Speaker C: Yeah, and that is basically the program here.
+00:05:20.242 - 00:05:25.572, Speaker B: So let's go ahead and build. And if I didn't do anything wrong.
+00:05:25.748 - 00:05:27.744, Speaker C: It will build successfully.
+00:05:28.084 - 00:05:29.540, Speaker B: Great, awesome.
+00:05:29.692 - 00:05:35.060, Speaker C: That's a perfect amount of time for it to build. And we dig into the declare ideas.
+00:05:35.132 - 00:05:37.644, Speaker B: At the top here. Again, this is the program that is.
+00:05:37.684 - 00:05:40.804, Speaker C: Now available on the Solana Devnet let's.
+00:05:40.844 - 00:05:42.908, Speaker B: Go ahead and jump into the test.
+00:05:42.956 - 00:05:48.356, Speaker C: To go ahead and use it in the test here. We're in typescript now, so back in.
+00:05:48.380 - 00:05:54.414, Speaker B: JavaScript, land away from rust and we'll go ahead and jump down to the main function here.
+00:05:55.034 - 00:06:00.978, Speaker C: We do some setup at the top here, basically creating our different accounts and.
+00:06:01.026 - 00:06:02.522, Speaker B: Getting the mint ready to go.
+00:06:02.578 - 00:06:03.994, Speaker C: We're going to then call this function.
+00:06:04.034 - 00:06:05.114, Speaker B: To create the mint.
+00:06:05.194 - 00:06:07.562, Speaker C: We're going to then instantiate the owner.
+00:06:07.618 - 00:06:14.306, Speaker B: And also give it some of that new token. We're going to create the destination atas, and then we are going to call.
+00:06:14.370 - 00:06:16.610, Speaker C: That program with the send to all.
+00:06:16.762 - 00:06:19.222, Speaker B: Method here, passing in the data, which.
+00:06:19.278 - 00:06:22.390, Speaker C: As you, if you remember, jump back here.
+00:06:22.422 - 00:06:23.958, Speaker B: The data is this amount.
+00:06:24.086 - 00:06:29.074, Speaker C: And so we're going to say how many tokens we want to send to the destination atas.
+00:06:29.534 - 00:06:32.926, Speaker B: And we have the accounts that are available here as well as the remaining.
+00:06:32.990 - 00:06:34.966, Speaker C: Accounts that we're going to be mapping.
+00:06:34.990 - 00:06:36.754, Speaker B: The destination atas into.
+00:06:37.054 - 00:06:38.766, Speaker C: And then once you call this, it's.
+00:06:38.790 - 00:06:49.176, Speaker B: Going to go ahead and complete everything. So let's jump. Before we do that, let's jump to the create mint all the way up here. This is just a function that's going.
+00:06:49.200 - 00:06:51.484, Speaker C: To create that particular transaction.
+00:06:51.904 - 00:06:56.040, Speaker B: To create the mint again, we are using the new token 2022 program.
+00:06:56.112 - 00:06:57.392, Speaker C: So if you are going to be.
+00:06:57.408 - 00:07:02.280, Speaker B: Coding something yourself, be sure to use everything that's related to Token 2022 and.
+00:07:02.312 - 00:07:05.120, Speaker C: Not the old Token program that applies.
+00:07:05.192 - 00:07:09.456, Speaker B: Also to the rust side of things. Be sure to use token 2022 instead.
+00:07:09.480 - 00:07:11.516, Speaker C: Of token, and be sure to use.
+00:07:11.540 - 00:07:13.668, Speaker B: The token interface instead of the old.
+00:07:13.716 - 00:07:24.108, Speaker C: Token there as well. So once that is completed, it's going to create the new token. And the next step is to mint to the owner.
+00:07:24.156 - 00:07:26.020, Speaker B: So this function, just quickly we'll look.
+00:07:26.052 - 00:07:30.892, Speaker C: At it, is to create the associated token account.
+00:07:31.028 - 00:07:35.700, Speaker B: This is an idempotent call, which means that we can call it as many.
+00:07:35.732 - 00:07:41.190, Speaker C: Times as we want and nothing will change. It will create it if needed, and it will ignore it if it's not.
+00:07:41.222 - 00:07:44.686, Speaker B: Needed, and then it will go ahead and mint, in this case a million.
+00:07:44.750 - 00:07:49.034, Speaker C: Tokens to that particular new ATA.
+00:07:50.014 - 00:07:51.678, Speaker B: Now, the last thing we'll go to.
+00:07:51.726 - 00:07:54.310, Speaker C: Before we run this is the create.
+00:07:54.382 - 00:08:00.574, Speaker B: ATA's for the destination. This is going to look familiar because we just use the same function for the owner.
+00:08:00.614 - 00:08:02.966, Speaker C: So we will just go through the.
+00:08:02.990 - 00:08:04.510, Speaker B: Different public keys that are passed in.
+00:08:04.542 - 00:08:07.804, Speaker C: Right here and create the different atas.
+00:08:07.884 - 00:08:17.224, Speaker B: And return them in an array. So back down to here, we have everything we need. If you're ready let's go ahead and run this test.
+00:08:17.524 - 00:08:18.564, Speaker C: It will take a moment.
+00:08:18.604 - 00:08:25.628, Speaker B: We have the new token created and it failed because I did not deploy. Live demo, everyone, live demo.
+00:08:25.676 - 00:08:30.784, Speaker C: So if we go ahead and deploy first, it's going to take a second and.
+00:08:33.684 - 00:08:35.704, Speaker B: Then we'll run the test again.
+00:08:41.724 - 00:08:44.388, Speaker C: And here we go.
+00:08:44.516 - 00:08:45.664, Speaker B: Almost there.
+00:08:46.004 - 00:08:46.744, Speaker C: Great.
+00:08:47.644 - 00:08:49.340, Speaker B: Now let's run this one more time.
+00:08:49.452 - 00:08:54.464, Speaker C: New token created. We're not using the same one as before. Minted a bunch of tokens.
+00:08:55.124 - 00:08:58.340, Speaker B: And here we go. Here's the actual usage of that program.
+00:08:58.412 - 00:09:05.460, Speaker C: That we just collaboratively created together. And let's go to this particular transaction signature.
+00:09:05.612 - 00:09:10.980, Speaker B: You can see it confirmed on chain on Devnet right now. You can see the amounts that were.
+00:09:11.012 - 00:09:15.964, Speaker C: Transferred for to the two destination accounts right here. Pretty cool to be able to do.
+00:09:16.004 - 00:09:24.516, Speaker B: This in such a quick way using that Solana playground. Lastly, we will go over and have a client set up so you can use this in the real world and.
+00:09:24.540 - 00:09:26.672, Speaker C: Not just have a test related to it.
+00:09:26.868 - 00:09:28.808, Speaker B: So it's a very similar setup here.
+00:09:28.856 - 00:09:31.704, Speaker C: Except we are going to be setting.
+00:09:31.744 - 00:09:32.648, Speaker B: Up a couple things.
+00:09:32.696 - 00:09:36.124, Speaker C: So we have the new program id. Copy this over.
+00:09:39.024 - 00:09:39.984, Speaker B: And then we will.
+00:09:40.024 - 00:09:42.600, Speaker C: Use this program id in a minute.
+00:09:42.752 - 00:09:51.472, Speaker B: We have a mint address. This is a test token that I had deployed earlier. You can use anything that you want for this. Just make sure it is a token 2022 account.
+00:09:51.608 - 00:09:56.948, Speaker C: As I mentioned, we have the sender private key, which is the playgrounds account.
+00:09:56.996 - 00:09:59.156, Speaker B: That they gave me when I started the session.
+00:09:59.220 - 00:10:06.692, Speaker C: So I have 7.5 sol on Devnet right now. You can always get more yourself by doing an airdrop to yourself either in.
+00:10:06.708 - 00:10:08.940, Speaker B: The CLI or in a command, which.
+00:10:08.972 - 00:10:19.240, Speaker C: I'll show in a moment as well. And then we have a couple destinations that are set up here, put into an array. So it's the public key of some random new key pairs.
+00:10:19.412 - 00:10:21.304, Speaker B: And in this particular one we're going.
+00:10:21.304 - 00:10:30.024, Speaker C: To go through, we have the create ATA. Again, similar sort of things that we've done before. We have the destination ATA's that we will also set up.
+00:10:30.144 - 00:10:38.784, Speaker B: The token that I had deployed previously is six decimal. So we'll use that again here. We're going to create the amount, which in this case is going to be.
+00:10:38.944 - 00:10:40.216, Speaker C: I think it's one. Yeah.
+00:10:40.240 - 00:10:41.280, Speaker B: So we're going to send one to.
+00:10:41.312 - 00:10:47.528, Speaker C: Each destination and then we have our program that's loaded. That's another great thing about the Solana.
+00:10:47.576 - 00:10:49.280, Speaker B: Program, is anything you build in here.
+00:10:49.312 - 00:10:53.104, Speaker C: Is available in the different files here.
+00:10:53.144 - 00:10:57.360, Speaker B: In typescript as PG program. And you can access the things directly.
+00:10:57.392 - 00:11:03.320, Speaker C: So we have method create to all which is going to get one of.
+00:11:03.352 - 00:11:15.872, Speaker B: That amount to each address. We have the accounts that are listed in here, again, similar to the anchor test TS file and the remaining accounts we also set up here. Similarly to the other one, we have.
+00:11:15.888 - 00:11:17.248, Speaker C: The signers that we have set up.
+00:11:17.296 - 00:11:18.712, Speaker B: And the main difference here is that.
+00:11:18.728 - 00:11:24.392, Speaker C: We are now using a deployed Token 2022 program that was created previously.
+00:11:24.568 - 00:11:31.664, Speaker B: If we run this client as well, we should see a similar sort of experience. Transaction was confirmed super fast, super great.
+00:11:31.704 - 00:11:35.032, Speaker C: Solana is amazing and let's go ahead.
+00:11:35.048 - 00:11:39.656, Speaker B: And take a look here. Success. All right, so we have the same thing.
+00:11:39.720 - 00:11:45.726, Speaker C: We have the different amounts going to the destination ATas and we do have.
+00:11:45.910 - 00:11:52.134, Speaker B: The minus two as well on the source account. A couple things that I do want to mention before we finish up here.
+00:11:52.214 - 00:11:54.674, Speaker C: Is that whenever you're creating your own.
+00:11:55.094 - 00:11:57.430, Speaker B: Programs, it's very important to make sure.
+00:11:57.462 - 00:11:58.150, Speaker C: You get an audit.
+00:11:58.182 - 00:12:02.206, Speaker B: Of course. Also very important to make sure that you are doing any error handling to.
+00:12:02.230 - 00:12:05.262, Speaker C: Make it easier for users. If you do not do this, you're.
+00:12:05.278 - 00:12:13.032, Speaker B: Going to get a pretty confusing error back when you call this incorrectly. And having your own custom errors just makes it that much easier for anyone.
+00:12:13.128 - 00:12:16.152, Speaker C: Actually involved with the usage of your programs.
+00:12:16.248 - 00:12:18.376, Speaker B: So you can define the errors at the bottom here.
+00:12:18.400 - 00:12:31.464, Speaker C: In this case, it would be fired if the particular usage used an ATA that was not initialized or is not a correct one. And yes, hope you download this and.
+00:12:31.504 - 00:12:34.328, Speaker B: Hope you mess around with it. Create your own real world use case.
+00:12:34.376 - 00:12:36.396, Speaker C: Of this particular particular program.
+00:12:36.500 - 00:12:40.932, Speaker B: There are so many different options that are helpful here. Lastly, I will mention there will be.
+00:12:40.948 - 00:12:44.836, Speaker C: A link to Briana's presentation that she.
+00:12:44.860 - 00:12:49.724, Speaker B: Did recently about Token 2022 and all of the token extensions involved.
+00:12:49.844 - 00:12:52.516, Speaker C: Really, really great presentation to go through.
+00:12:52.580 - 00:12:54.132, Speaker B: And learn a lot more about all.
+00:12:54.148 - 00:13:01.576, Speaker C: The different use cases that you can dig into. And so thank you all so much for joining us today and I hope.
+00:13:01.600 - 00:13:05.084, Speaker B: You have a great rest of the day and look forward to seeing what you all build.
+00:13:05.584 - 00:13:06.144, Speaker A: Thank you everyone.
