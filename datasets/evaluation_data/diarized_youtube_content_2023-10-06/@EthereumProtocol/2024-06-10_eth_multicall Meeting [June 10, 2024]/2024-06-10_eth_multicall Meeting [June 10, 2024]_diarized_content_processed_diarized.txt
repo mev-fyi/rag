@@ -1,0 +1,55 @@
+00:00:00.520 - 00:00:01.862, Speaker A: I guess we can also start.
+00:00:02.046 - 00:00:04.550, Speaker B: All right. But he hears us. Yeah. All right.
+00:00:04.710 - 00:00:07.490, Speaker A: Not sure if he can hear us. I don't think he can hear us.
+00:00:08.310 - 00:00:56.958, Speaker B: Maybe he'll watch vod later. All right, so from our side, we've managed to finally merge the changes so that tests won't fail that much. And we now have published the version where we publish block headers instead of default call structure that we had before. So now clients shall be more or less synchronized in that regards. So we'll be wondering what you'll see there. We after the fixes of some of the issues that you reported on trailer, I get some of my own tests related to timing fail. So I wonder when you'll be testing Clari this new version.
+00:00:56.958 - 00:01:33.942, Speaker B: Please take a look at the timing ones. It seems like after we introduce this checks for timings of the default block, it starts to behave potentially unexpectedly. So please check that. And yeah, there is one more argument now that shall be passed to the docker when you start up the container so that you'll be able to get the functionality of esimulate up and running. Running. And it's just one. One simple argument.
+00:01:33.942 - 00:01:37.890, Speaker B: And yeah, I think that's it with us.
+00:01:39.510 - 00:01:41.730, Speaker A: What do you mean by timing stuff?
+00:01:43.950 - 00:02:29.260, Speaker B: Yeah, so you asked to introduce the check that the given block timestamp is larger than is less than the given by a user. So we're now checking that, and this may lead to some of the tests fail. So if you like, post an issue on Trello, clarifying that, or clarifying what shall be fixed to that, that will be good. So the basic question would be, if we do that only on validation mode on. Or do we do it always like this? Check that the timing is right if it is given.
+00:02:32.760 - 00:02:34.020, Speaker A: That sounds good.
+00:02:34.960 - 00:02:35.900, Speaker B: Thank you.
+00:02:42.760 - 00:03:04.870, Speaker C: Yeah, I believe last week the only thing I worked on was. What was it? Oh yeah, base fee. What were we discussing last week again? Sorry, I'm having very hard difficulty remembering.
+00:03:06.810 - 00:03:11.270, Speaker A: It about setting the base fee to zero on the block level if it's offset.
+00:03:12.290 - 00:04:04.930, Speaker C: Yes. So, yeah, that is implemented. So, yeah, basically we set base fee to zero on in non validating mode if it was not overridden, and for blocks that it is overridden, then they are going to be non zero. And yeah, I push the changes. I did discover what, while rebasing against master that one of my tests started failing. So I know there's some issue in there, but it only is there for when you try to override the whole storage of a contract. Pardon me? Otherwise everything else should be working fine.
+00:04:04.930 - 00:04:18.310, Speaker C: So cool. Now I guess we can do some, some testing and see the differences in the block header. I'm kind of curious about this.
+00:04:19.730 - 00:04:32.190, Speaker A: Yeah, I need to try. What about the base fee stuff? Did you implement it as we discussed? And I guess Nethermin doesn't have that implement yet. I said it was only designed on the weekend.
+00:04:33.570 - 00:04:41.760, Speaker B: Yeah, we only return it correctly, but we don't generated correctly. So there is still that issue and we'll fix it soon.
+00:04:47.020 - 00:04:54.012, Speaker A: And you agree on the things that we discussed or chat that that's how nethermind wants to be implemented as well.
+00:04:54.036 - 00:05:06.090, Speaker B: Can you recite for the word version so that everybody would like be would know what happened and what was decided. Please.
+00:05:09.150 - 00:05:21.006, Speaker A: Check. See now can't find it now there.
+00:05:21.038 - 00:05:44.940, Speaker C: Was so one thing is that when we, when the user overrides base fee, if it is lower than the gas price or like max fee per gas, then we still like in geth, we still allow them to do this because it's in non validating mode.
+00:05:48.080 - 00:05:54.060, Speaker B: So what would change for the user if you're still allowed to do that?
+00:05:57.040 - 00:06:10.380, Speaker C: I mean, they chose this base fee, so they, I assume it's like they chose both the base fee and the gas price. So I assume that in this case they know what they're doing.
+00:06:16.000 - 00:07:00.598, Speaker A: The problem is that you can set the base before each, each block level. And if you had the block base fee as zero, then what is the next blocks page we got to be is going to be adjusted based on the previous block or it's going to be zero. And there's an issue, but the page we actually cannot be zero in the adjustment logic. And then if we use that always the normal rules, then it kind of. Yes. So the issue is that when do you calculate the base fee according to normal rules and when you don't. And we agreed that when in non validation mode there should never be the normal calculation rules.
+00:07:00.598 - 00:07:38.940, Speaker A: And when it's validation true, then they should be always on. And then I think the next block space fee should be always the previous block space view. There was no, it's zero if it's not set in the non validation mode. So it's the issue in non violation mode, because sometimes it's zero and sometimes it's not. So then you don't. The client doesn't really know if it should follow the normal rules or not. So we decide that it's always zero unless it's set as explicit to something else.
+00:07:42.040 - 00:07:45.620, Speaker B: Yeah, I think we can manage to make it work like that.
+00:07:48.800 - 00:07:50.096, Speaker A: How does it work in the Netherland.
+00:07:50.128 - 00:08:15.570, Speaker B: At the moment it definitely doesn't. So it will be done anyway because I just tested it and there is a whole pipeline to return the correct result but there is no pipeline to set it correctly for now. So we'll implement it and I you'll be able to set it correctly again.
+00:08:16.510 - 00:08:30.206, Speaker A: That sounds good. I don't think there's any other spec changes that we have done and that's something that I still need to write. The motivation why it works like this.
+00:08:30.238 - 00:08:45.259, Speaker B: Way when you check between us and geth, could you please like say that they are like matching or where they have mismatched so that we maybe would freeze the spec next week if it is all fine and then.
+00:08:48.359 - 00:09:05.259, Speaker A: Yeah, I can try that. The problem is that there we always minor differences. So it has been hard to see, see that there have been so many different changes that it's hard to say which are the all differences. But I guess now we are getting closer. So there's smaller, smaller amount of them.
+00:09:09.330 - 00:09:19.026, Speaker B: Yeah. It will always be like 95% same and 5% fluctuating back and forward.
+00:09:19.098 - 00:09:34.480, Speaker A: Yeah. So you are now adding that flag and I guess the point is that then you are pushing those changes to the main version of nethermines and then maybe at some point we are making the default that is on by default and I guess now off by default.
+00:09:34.900 - 00:10:10.652, Speaker B: Yes, now it's off by default and to enable it you need to explicitly set the flag. And when we'll like look on how it works on your side, look at like the current state of things and maybe do some more minor fixes, we'll merge it into the master and finally Midi and each week on the merges will be completed because we are like a bit far from the master branch. A bit in some ways.
+00:10:10.676 - 00:10:20.492, Speaker A: Yeah. But is it that Sean should be able to merge it to the master with the flag or is that there's a lot of things to be done.
+00:10:20.676 - 00:10:43.490, Speaker B: Yeah, currently it's like it's mergeable to the master with the flag and we'll be just probably waiting for you to confirm that. Yeah, that new block structure that we've implemented is correct and aligning with geth version or if there is some like major change that we shall implement, we'll do that first and then merge it in.
+00:10:45.390 - 00:10:48.250, Speaker A: Okay. Yeah, I tried to do it this week.
+00:10:49.830 - 00:10:50.770, Speaker C: Thank you.
+00:10:51.800 - 00:10:57.220, Speaker A: Does get has that kind of similar kind of flag that allows you to enable and disable each simulate.
+00:10:58.920 - 00:11:04.860, Speaker C: No, there's no flag. So I suppose when we merge it, it will just be enabled.
+00:11:06.400 - 00:11:12.420, Speaker A: Yeah, I guess it somewhat makes sense because you cannot accidentally use the HTML because it's got a new method.
+00:11:17.250 - 00:11:36.710, Speaker C: Yeah. And I suppose so. I think that I will hold on with the merge until we have some assurance that it's okay and other clients are okay with it and so on.
+00:11:38.610 - 00:11:39.442, Speaker A: Yeah.
+00:11:39.626 - 00:11:46.330, Speaker C: From that point on, it should become part of the main specs and so every client should kind of have it.
+00:11:48.110 - 00:11:54.690, Speaker B: And to do that, we'll need a spec freeze. So let's push for it at least a little bit.
+00:11:57.710 - 00:12:06.090, Speaker A: Yeah, I can try to do more testing. And now nethermines should be providing more of those hashes as well, so maybe we can easily identify if there's any issues.
+00:12:09.350 - 00:12:10.570, Speaker B: Yep, probably.
+00:12:11.000 - 00:12:37.234, Speaker A: Do we have anything else to discuss? And nether might also fix that issue that when you are that there's no zero value, it transfers being logged. Yeah.
+00:12:37.322 - 00:12:38.750, Speaker B: Yeah, it is fixed now.
+00:12:39.530 - 00:12:40.298, Speaker A: Good.
+00:12:40.474 - 00:12:47.190, Speaker B: So the stuff on Trello that is like the column of fixed shall be more or less fixed. So yeah, please do check that.
+00:12:47.570 - 00:12:56.874, Speaker A: Okay. I should start going through those, but I guess we can finish now if you don't have anything else. Yeah, yeah.
+00:12:56.962 - 00:12:57.910, Speaker C: Thank you guys.
+00:12:58.610 - 00:12:59.554, Speaker A: Thank you.
+00:12:59.722 - 00:13:00.114, Speaker C: Bye.
+00:13:00.162 - 00:13:00.690, Speaker B: Thank you. Bye.

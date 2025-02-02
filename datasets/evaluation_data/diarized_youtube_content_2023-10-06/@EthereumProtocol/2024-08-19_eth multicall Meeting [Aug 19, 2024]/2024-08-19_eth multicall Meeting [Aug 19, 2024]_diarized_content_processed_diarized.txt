@@ -1,0 +1,154 @@
+00:00:00.600 - 00:01:01.098, Speaker A: All right, so this was a fun week for us. We released 128 with basic simulate init. We are currently mixing some of the hashes, in my understanding, and we are missing the interesting issue that Killary found on when contract is terminated and it sends guess or is to the, to somebody. We have not tracked that yet, so we are currently on it. Also, we are on the full transactions to make them show in the more complete view and also current time finalizing data simulate primitives into the if call and seed of three other calls. So that's it with us. I know that there was some nice discussion this week on the chat.
+00:01:01.098 - 00:01:06.190, Speaker A: Maybe we'll get to it after the updates.
+00:01:07.330 - 00:02:03.090, Speaker B: Yeah. Hello, Kingo. So I was, let's see, we started the week with some CI problems, so I was looking into that and generally making sure that the test effort is going forward. And I think there was also, we found one issue. It was the default timestamp in gethse that I fixed. And, yeah, one of my teammates has reviewed the pr, left extensive comments. So I just half an hour ago, finished addressing all of the comments, and one of them turned out to be kind of interesting.
+00:02:03.090 - 00:02:17.811, Speaker B: And this is what we discussed on Friday, and maybe I will just talk about it shortly for Oleg's benefit.
+00:02:17.955 - 00:02:24.067, Speaker A: Yeah, please do. So that everybody who watches on demand would also know what's happening.
+00:02:24.243 - 00:03:42.454, Speaker B: Yeah. Cool. So basically what happened was, so we have the state overrides for every block. And when overriding an account, you can also specify if it's a precompiled address, then you can specify that this precompile should be moved to another address. Now, what we had an account for in the get implementation was that because the state overrides is an associative array, like it's a dictionary, so the keys are not ordered. And there can be some edge cases where, like, you specify, let's say you say that account one, which is the first precompile, should be moved to account two, and then you later on say, okay, account two should be moved to account three. Now, depending on the order of how, like, depending on which order Geth sees these overrides and tries to execute them, you will get different results in one, and there will be an error, and in the other one, the precompiler would actually move in the correct order.
+00:03:42.454 - 00:04:28.622, Speaker B: So after some discussion, basically, it came down to adding some restriction to the move precompile two feature. And that is that basically, if you have moved a precompile, that is, that makes the destination address dirty in the sense that it cannot be, that address cannot be overridden anymore and that should fix the error. And I think it's. Sorry, I see somebody's hand raised up.
+00:04:28.806 - 00:04:41.398, Speaker A: Yeah. So my question would be, say you want to do a basic swap. You want to move one to two and two to one. So how do we go about that?
+00:04:41.574 - 00:05:00.060, Speaker C: Not allowed. You get an error. The idea being that there's not really any good reason to do a swap of a precompiler doesn't really make sense and it adds complexity to the implementation to support it. So it's easier to just say swapping not allowed. Does that seem reasonable to everybody?
+00:05:01.000 - 00:05:04.536, Speaker B: I think Nethermat allows the overriding and.
+00:05:04.568 - 00:05:13.780, Speaker D: Moving all the contracts. And I guess there it might be more useful to use case but not for precompiler. But the spec is only for pre compiler as well.
+00:05:16.650 - 00:05:37.990, Speaker C: Even for overriding contracts, I feel like a swap is unnecessary. You can always just move two to five and three to seven and just. Or, you know. Yeah, I can't. I sure will think of an example where you'd want to do a swap. Like you can just put new code on the chain using a state override.
+00:05:40.180 - 00:05:40.628, Speaker B: Yep.
+00:05:40.684 - 00:05:44.760, Speaker D: With contracts you can replace the code better, but with precompiles you cannot do that.
+00:05:45.420 - 00:06:03.480, Speaker C: Right. But like, why would you want to replace like a math, one math function with another math function? It doesn't make any sense. Or like, you know, ECDSA replace it with, I don't know, groth 16 or whatever people are using these days. It's just, it's a kind of a nonsensical operation.
+00:06:04.220 - 00:06:20.540, Speaker A: Well, basically it can be a test of stability, of implementation. Basically you have implementation a, you had implementation, you compare how they are going around the tests. So. But yeah, that is like stretched out case.
+00:06:21.200 - 00:06:43.750, Speaker C: Yeah. Does anyone want to defend that use case strongly? Again, the worry here is that it adds significant complexity to guess implementation at least, and I would assume similarly in nethermine because JSON objects are not ordered. And so you guys probably have the same fundamental problem where you have to like turn it into an ordered list first or something.
+00:06:46.170 - 00:06:58.750, Speaker A: Yeah. Okay, so let's just, so basic idea is that we flag addresses. It is dirty as soon as they used, and we allow them to be used only once here.
+00:06:59.290 - 00:07:12.500, Speaker C: Yeah, you can move from, you can move from a clean address to any other address. Any address you move something to is considered dirty. Any address you move something from is considered dirty after the move.
+00:07:13.160 - 00:07:17.904, Speaker A: The address I'm moving to shall be clean or shall be dirty, or can be dirty.
+00:07:18.072 - 00:07:20.392, Speaker C: It'll become dirty by moving to it.
+00:07:20.536 - 00:07:22.744, Speaker A: Can it be dirty when I'm moving into it?
+00:07:22.832 - 00:07:24.220, Speaker B: No, also not.
+00:07:25.080 - 00:07:30.620, Speaker C: Yeah, so basically you can touch each address one time in the entire override section.
+00:07:30.930 - 00:07:32.234, Speaker A: Yes. Lukash, please.
+00:07:32.402 - 00:07:38.270, Speaker E: What's the problem is that when we have multiple overrides on same addresses. I know.
+00:07:38.690 - 00:07:40.010, Speaker C: Yeah, multiple overrides.
+00:07:40.090 - 00:07:40.710, Speaker E: That.
+00:07:41.090 - 00:08:00.116, Speaker C: So you override too by saying, I want to move the content of precompile at address two to address three, and then later on you say, okay, I want to move the content of address three to address four, depending on the order. Execute those two operations, you get a different result.
+00:08:00.268 - 00:08:01.252, Speaker E: I get it.
+00:08:01.436 - 00:08:02.880, Speaker C: The object's unordered.
+00:08:04.380 - 00:08:19.316, Speaker E: To be honest, I would just say that if you do this, there's like, the order is not guaranteed because I don't see any real use case to do this.
+00:08:19.468 - 00:08:41.336, Speaker C: Yeah, agreed. And so the question is, we can say the order is not guaranteed, but like in the case of geth, it's a difference of one of the operations will succeed, the other one will actually give you an error and fail. And so they'd have to write extra code to make the second one actually work at all. One of those orders just doesn't work in the way they've implemented it. And so the second thing is just.
+00:08:41.408 - 00:08:46.780, Speaker E: Ordered by address before we apply all the overrides.
+00:08:47.520 - 00:08:55.030, Speaker C: Yeah, that would be the other option, actually. Would that solve your problem, Sina, or would you still run into problems?
+00:08:56.290 - 00:09:43.600, Speaker B: Yeah, that would also solve. That's the alternative, I think. I slightly prefer the restriction to have just to allow ones and others to be touched, but I'm also easily convinced to go for the ordering. Like, did we define one order and go with it? I do find that. Okay, there's not a real, I mean, I couldn't think of any use case for wanting to do any of these things. So the error should not matter to the user and the ordering. Yeah, I just don't think that it should be order dependent at all.
+00:09:43.720 - 00:10:07.178, Speaker C: You know, I tend to agree. And if we did decide to go order dependent, though, we would have to define what the expected behavior is. If you tried, if you did one to two and then three to one, let's say, what is that behavior? Do we assume that? Or let's say you go, maybe better example. Let's say you go. That works.
+00:10:07.194 - 00:10:07.410, Speaker E: Yeah.
+00:10:07.450 - 00:10:23.194, Speaker C: So let's say you sort them by address and you move whatever is at one to address two. And then you say, take whatever is at address two and move it to one. Does that take, what was it addressed to before the override or was it addressed to after the override? Or does it result in an error?
+00:10:23.322 - 00:10:57.090, Speaker A: It is linear, so it will take whatever is in two and place it into one. So it's like a simple instruction set that is ordered by the number of the what we are moving. And yeah, it's currently what is implemented at netmind because we pass whatever is given to us by a user into an ordered dictionary. Basically that is sorted by the key. So it is like, it is exactly what we are like. What is the option b?
+00:10:58.270 - 00:11:31.268, Speaker B: So just to confirm, then you're not able to perform the swap also, because if you move one to two, that means that there's one. One has overridden two. So when you move two to one, then already the first precompiler is being moved to one. So both, yeah, two is going to be cleared. There will be nothing in it. Well, there will be the EVM code that you're supposed to also put in the override and one will have the same precompiler as before.
+00:11:31.444 - 00:11:42.760, Speaker A: It seems to me that there is a simple solution of doing just a swap instead of just moving. So if you swap, then there is always something somewhere and everywhere.
+00:11:43.820 - 00:11:59.980, Speaker E: We can also change the algorithm to firstly read all the things that will be moved, store it into some temporary thing, and then just move it to the thing. It will be moved too. So even the swap would just work then.
+00:12:02.040 - 00:12:08.300, Speaker C: Yeah. My instinct is that's a lot of complexity for a use case that none of us can think of a legitimate use for.
+00:12:08.720 - 00:12:17.700, Speaker A: So my question to cine would be, if you always execute the swap instead of just move, would it solve the issue?
+00:12:20.960 - 00:12:27.200, Speaker B: I'm not sure I understand. What do you mean? Like change the move operation to a swap operation?
+00:12:27.240 - 00:12:29.420, Speaker E: Yeah, we don't want to do that. Probably.
+00:12:30.660 - 00:12:55.720, Speaker C: You basically have to go through and you do two passes. First pass where you look at all the things that are being moved from, you save what's currently there up in some temporary location, and then you do the second pass where you look. Okay, what is going into each of the locations? And then you can then pull from the original code. It's more complex, and I would argue against it because it's not for a good reason.
+00:12:56.910 - 00:13:01.290, Speaker E: Okay. I'm actually like fine with it. It's a very simple solution. And.
+00:13:03.030 - 00:13:05.326, Speaker C: With the swapping, is it simple?
+00:13:05.518 - 00:13:12.250, Speaker E: Yeah, yeah, it's not that hard. You just introduced one like intermediate collection too.
+00:13:14.550 - 00:13:25.110, Speaker B: So we would need to add the swapping and the ordering. Right, because order doesn't matter. Yeah, I think it does.
+00:13:25.890 - 00:13:32.290, Speaker C: If you go one to two and then two to one, that two to one is actually taking the original two, not the overridden two.
+00:13:32.450 - 00:13:40.190, Speaker E: Yes. So order doesn't matter because we always will take the original as original as possible.
+00:13:40.570 - 00:13:42.470, Speaker A: Is it a DDos vector?
+00:13:42.810 - 00:13:43.194, Speaker E: No.
+00:13:43.242 - 00:14:33.700, Speaker B: Yeah, but you also have to consider that, like, when do we do the one to two? Like, one can be overridden with EVM contract and two can be also overridden with EVM contract. There's also the semantic of whether something is a pre compile at the end of this override procedure or not, that we also have to determine. So if you first do the one to two move, that means that one is not a precompiler anymore and two is now a precompile. And, and so, like, if you do it in the other order, when you move two to one first, then two is not a precompiler anymore and one is. So I think, yeah, there's something that we also, so I think what we need to do is to take swap and ordering into account both. And then this would work.
+00:14:34.040 - 00:14:52.440, Speaker E: I don't follow. Right. If you move one to two and two to one, if you firstly take the original values of one and two and store it and then apply the move from the, from this and not the, like temporary swaps, then I don't get it. Why, why is it a problem?
+00:14:54.140 - 00:15:14.494, Speaker B: So the, the example that, okay, maybe it doesn't demonstrate in this example, but there's a, if you move one to two and then you want to move two to three. And so that means that two has been overridden.
+00:15:14.582 - 00:15:41.570, Speaker E: Yeah, but you're not, I think you're not using the algorithm I told about. So firstly, store all the froms. So if you move one to two and two to three, then you store one and two temporarily at your what you're moving, and then you do the path. So if you move one to two, you move the original one, and then you move two to three, you move the original two, not the overridden two.
+00:15:44.350 - 00:15:44.710, Speaker C: Yeah.
+00:15:44.750 - 00:15:50.450, Speaker A: Basically you store everything that is addressed in a buff, in a buffer, and then you move copies.
+00:15:51.470 - 00:16:05.360, Speaker E: Yeah, kind of. So you move from like the, you store the original values of everything you will be moving and, and then you use those for moving and not the things that you're already overridden.
+00:16:06.540 - 00:16:21.900, Speaker B: Just, let's just look outside the algorithm. What should happen when I do one to two and two to three? And I'm not saying original origin.
+00:16:21.940 - 00:16:26.160, Speaker E: So at the three, we'll have what you had at two before any move.
+00:16:26.700 - 00:16:33.304, Speaker B: Three should have original two. Original two, so that the second precompile.
+00:16:33.472 - 00:16:33.864, Speaker E: Yeah.
+00:16:33.912 - 00:16:35.060, Speaker B: And what about two?
+00:16:35.520 - 00:16:38.336, Speaker E: Two should have the, what was originally.
+00:16:38.368 - 00:16:43.040, Speaker B: At one, but it's also being overridden with EVM code.
+00:16:43.160 - 00:17:16.332, Speaker C: Oh, I see. The issue here is that when you do a move, you always, you leave something behind with the move. I forgot about that. So it's not just you move two to three, you're moving two to three, and then you're putting that same operation as dropping something in two, like moving two out of the way so you can replace two with some EVM code that you supply. These are supplied. And so if you moved one to two, that means that we want two to contain whatever used to be in one. But then the user also said, move two to three and leave this in address two.
+00:17:16.332 - 00:17:24.474, Speaker C: And so we have two conflicting things that both want to be in address two. The thing that used to be at one, and the thing, the EVM code, the user supplied in the two to three override.
+00:17:24.642 - 00:17:26.790, Speaker E: Okay, let's just throw an error then.
+00:17:27.290 - 00:18:00.980, Speaker C: Okay. I totally forgot that we have that EVM code that gets dropped, left behind. It's not just a simple move. Okay, so if the, if I understand correctly, the consensus is you can touch a given address one time in the overrides, either as a source or as destination. Doesn't matter which, but only one time. If you touch any address twice, we just throw an error and we say mad parameters or whatever. If you do one to two and two to three, you're touching the two address twice.
+00:18:00.980 - 00:18:16.970, Speaker C: So it's an error if you do one to two and three to two, also an error because you're touching the address two twice that align with everybody. Okay.
+00:18:19.150 - 00:18:24.890, Speaker D: I think one big project still ahead. Is that getting the hashes to match between Nethermode and get.
+00:18:26.310 - 00:18:32.446, Speaker A: Yeah. By the way, could you send to me in a DM or something the spec for the full transactions that we.
+00:18:32.478 - 00:18:36.970, Speaker D: Shall have the full transaction flag.
+00:18:37.470 - 00:18:43.830, Speaker A: Yeah, basically. To what shall we shall be changed in the return stuff?
+00:18:44.730 - 00:18:47.350, Speaker D: Yeah, I think it's the spec, but I can share it.
+00:18:48.770 - 00:18:49.990, Speaker A: Yeah, please do.
+00:18:51.130 - 00:19:09.970, Speaker D: Then I guess getting those transaction has to match the first thing we should do and then see if those fixes again the issue. And if not, then we need to look more carefully. What? Why they're different. I don't think I have, I don't have any test cases where the hashes would be the same between the clients.
+00:19:11.630 - 00:19:17.690, Speaker A: Do our current, like, hashes match if you send blocks without transactions?
+00:19:18.270 - 00:19:19.610, Speaker B: Oh, that's a good question.
+00:19:20.870 - 00:19:23.330, Speaker D: I don't, I don't think it matches.
+00:19:27.150 - 00:19:28.510, Speaker C: Blank blocks?
+00:19:28.670 - 00:19:30.570, Speaker A: Yeah, blank blocks.
+00:19:32.110 - 00:19:34.770, Speaker C: Okay, let's. We can find out. I.
+00:19:35.420 - 00:19:37.640, Speaker D: They don't match. The hash is different.
+00:19:38.220 - 00:19:41.732, Speaker C: Okay. We should probably troubleshoot that one first. Maybe I'll solve all of them.
+00:19:41.836 - 00:19:47.840, Speaker A: Yeah. So full transactions won't help you a bit. As long as the basic blocks are different.
+00:19:49.020 - 00:19:54.360, Speaker D: Well, it's about all the values are going to default and it's about if the default values are the same.
+00:19:55.140 - 00:20:14.370, Speaker C: Do both clients have an easy way of just exporting what the object you're hashing is? Perhaps after RLP encoding or before either one, like the actual thing that you're encoding to hash. You have an easy way to export that for one test?
+00:20:16.470 - 00:20:21.810, Speaker A: I don't really think so, but we can do more logs.
+00:20:22.150 - 00:20:34.430, Speaker C: Yeah, log it out, something just, we can get the RLP object or the pre RLP version of that same object. Either one would be fine. I think we just compare and it should be obvious where the difference is at that point.
+00:20:36.050 - 00:20:51.950, Speaker B: Yeah. So what we can do is maybe temporarily add the full objects as a field in the API and then remove it or before the pr is merged. It's a dirty hack, but.
+00:20:53.490 - 00:21:22.116, Speaker A: So my question would be what other fields that we are currently not printing out about the block? We know basically that the issue is inside the block difference. So there is a lot of information that we print about every block, just like in vanilla e simulate. So the question would be what fields don't we print out? And if every other field that we print out is the same?
+00:21:22.268 - 00:21:31.960, Speaker D: Uh, the size is different. The size and hases are different. But yeah, with the size it's also hard to say why it's different.
+00:21:32.860 - 00:21:34.620, Speaker A: And this is the only difference.
+00:21:34.660 - 00:21:38.760, Speaker D: Yeah, the only difference is the blocks here.
+00:21:40.060 - 00:21:41.040, Speaker A: Quite fun.
+00:21:43.900 - 00:22:04.400, Speaker C: Yes. I would say just if each client can just simply do an log out just the RLP encoded block, you can then just diff the two and you'll see where the difference at. I don't think we need an API for it. Just log it from your client.
+00:22:06.460 - 00:22:12.280, Speaker B: I'm wondering if the size refers to the full block or just the header.
+00:22:14.190 - 00:22:29.770, Speaker C: The header is what's hashed, right? Body's not hashed. So if the size matters, then it's going to be the header size. And there's only a few fields that can vary by in size in the header.
+00:22:31.510 - 00:22:36.086, Speaker A: Do we print out metadata? We do.
+00:22:36.118 - 00:22:37.250, Speaker D: What do you mean by metadata?
+00:22:39.480 - 00:22:45.952, Speaker A: The special field that every client can set with basically text like this block.
+00:22:46.016 - 00:22:47.740, Speaker C: Oh, the extra data.
+00:22:48.360 - 00:22:49.140, Speaker A: Yeah.
+00:22:50.000 - 00:22:56.460, Speaker D: No, that's not returned. Is the default photos different?
+00:22:58.600 - 00:23:07.070, Speaker A: It may be at least in our production line. Definitely.
+00:23:10.570 - 00:23:12.670, Speaker D: Because we empty.
+00:23:13.170 - 00:23:17.350, Speaker A: No, we would have a default like built by netherlands or something like that.
+00:23:20.730 - 00:23:26.230, Speaker B: I think. I'm not setting any value for that. So if nether one has a default, that could explain.
+00:23:31.460 - 00:23:34.800, Speaker C: Should we just define that as empty byte array?
+00:23:38.540 - 00:23:43.880, Speaker A: Yeah, basically the question is, are there any other like such fields that we may be missing?
+00:23:47.500 - 00:23:49.280, Speaker C: Certainly seems like the most likely one.
+00:23:54.100 - 00:23:56.246, Speaker A: Yeah. And it would affect the size probably.
+00:23:56.388 - 00:24:12.950, Speaker C: There's the block author fields, right? I think there's still a block author field that may be something that you guys default differently. It's one of those fields that will break a hash but isn't going likely to be overridden or set by anybody explicitly.
+00:24:16.130 - 00:24:36.630, Speaker A: Yeah, we'll check the defaults that we have. Maybe. If so, there is a nice page, that is the markdown page that we have on is simulate. Maybe we could like check if it has complete defaults so that we'll be sure that we have something to compare to.
+00:24:36.970 - 00:24:49.710, Speaker C: Yeah, that's a good idea. We can probably take care of that color, you think? Just basically make sure that our specs page or the markdown associated with it has a full block header including all of the defaults for every field that has defaults.
+00:24:52.410 - 00:24:56.870, Speaker D: I didn't know, but that extra data that's probably not there.
+00:24:57.970 - 00:25:05.670, Speaker C: I'll give you a link on the official docs for the blockader. We should make sure everything's in there. Okay.
+00:25:07.210 - 00:25:13.270, Speaker D: But like that extra data is not something that when you're getting blocked and I don't think it's returned.
+00:25:15.410 - 00:25:21.230, Speaker C: It may not be returned by getblock, but it is part of the header. And the thing we care about here is the actual header itself.
+00:25:21.840 - 00:25:46.432, Speaker D: Well before we have been carrying what the get block by number is returning and it's not there. I don't know why it's returning. Oh, there's extra data in the book and we are not returning it. No, we have, we are returning. So, Trader. So it's there.
+00:25:46.496 - 00:25:47.180, Speaker B: It's.
+00:25:51.640 - 00:26:02.340, Speaker D: And I think both are returning it as empty. Yeah, we are both returning as an empty.
+00:26:07.120 - 00:26:10.340, Speaker A: So they differ by size but by nothing visible.
+00:26:11.000 - 00:26:11.780, Speaker D: Yeah.
+00:26:15.330 - 00:26:24.350, Speaker B: And the size itself is not part of the hash, so. But it's a clue. Maybe we can check why under the hood.
+00:26:24.930 - 00:26:25.710, Speaker A: Yeah.
+00:26:30.410 - 00:26:35.350, Speaker D: But something that is hash, then if its size varies, then it also changes the hash.
+00:26:36.490 - 00:27:00.260, Speaker C: That limits it to the integer fields and the bytes field. Everything else is fixed size. So in that link I just sent the uints the U 256 and the bytes that's extra to add timestamp gas limit gas used number and difficulty and blob gas and extra blob gas.
+00:27:01.440 - 00:27:52.920, Speaker D: One explanation can also be that the client is lying and it's returning something else than it's actually hashing. So that something is hashed but it's not returned. That's the same, but I don't know, I don't know the client cloud if that's possible. Hopefully not, because that has been the case before, that some gas used values were differing in what was returned and what, when you sum up all the gas used together, it did match up to the block gas used. So nether might use to have that kind of bug. So I wonder if that kind of issue could be there. Would it be difficult that you would get all the fields that the multicore is returning and then you would calculate outside what the hash of that box should be.
+00:27:52.920 - 00:27:56.400, Speaker D: Do we have all the information for that?
+00:27:56.700 - 00:28:24.174, Speaker C: Maybe. How about this? Chlorine. So we have guest netherminds disagreeing. Can you this week generates a block and hash it using a third algorithm, like a JavaScript thing or something. And then, well, if we don't, then we should. This exercise will answer that question. So you try to construct a block header following that link I just gave.
+00:28:24.174 - 00:28:35.010, Speaker C: Just make sure you fill it in RLP, encode it and then hash it and see if you match Nethermind, or see if you match geth, or see if you match neither, or see if you don't have enough information to actually fill it in.
+00:28:36.910 - 00:28:56.820, Speaker A: And can we, by the way, like fill as much as possible of the same block in a plane, like issimulate call. So basically to have an issimulate call that fills in like explicitly sets everything to be whatever we want, or we are limited in that regards.
+00:28:57.400 - 00:29:20.910, Speaker C: That's a good idea we should have. So there's two test cases that I think are good for debugging. This one is a test case of a block with no transactions, no overrides, nothing. Right. And then another one, which is a test case where you have a block that overrides literally everything, two very explicit values. And so we might see agreements on the latter, but not on the former, for example. So those would be both very good test cases.
+00:29:20.910 - 00:29:26.234, Speaker C: But in that second one, don't include transactions or override, still just fill in fields.
+00:29:26.362 - 00:29:28.190, Speaker A: Yeah, just plain empty block.
+00:29:29.930 - 00:29:39.470, Speaker D: I don't think we can override everything. So there can be still something that we cannot override. And then with Nethermind there's a bug that you cannot override the timestamp, for example.
+00:29:41.050 - 00:29:43.310, Speaker A: Yeah, we'll fix that.
+00:29:44.060 - 00:29:56.600, Speaker C: We should override as much as we can and then compare those and see if we. That'll help us narrow down which fields might be the difference since it seems like it's going to be challenged to get RLP encoded blocks from the clients.
+00:30:01.380 - 00:30:09.720, Speaker D: Yeah, it would be nicer to get what is being hashed and then get that printed out and then, you know, right away.
+00:30:12.290 - 00:30:24.870, Speaker A: Yeah, we would also, if we could have a page where we would have this, like hashes to compare to or compare against, that would be perfect.
+00:30:29.690 - 00:30:34.550, Speaker D: Yeah, I can try to do some test cases to calculate those.
+00:30:38.460 - 00:30:42.960, Speaker C: I think I have some code lying around somewhere that will hash a block.
+00:30:47.500 - 00:30:48.680, Speaker D: Do anything else?
+00:30:52.420 - 00:30:58.520, Speaker A: No, probably not. All right, thank you for coming and I'll see you all next week.
+00:30:59.820 - 00:31:00.760, Speaker D: Thank you.
+00:31:01.060 - 00:31:02.400, Speaker B: Thank you, guys.
+00:31:03.180 - 00:31:03.500, Speaker E: Bye.
