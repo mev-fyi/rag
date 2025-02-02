@@ -1,0 +1,183 @@
+00:00:00.280 - 00:00:01.488, Speaker A: Done a stream in the same place.
+00:00:01.593 - 00:00:02.285, Speaker B: Yeah.
+00:00:02.865 - 00:00:45.043, Speaker A: Welcome to Build stream number five. Build Stream is a series where we go through some projects built on the Celestia ecosystem and learn about how they're built, to learn about how to build roll ups, and then also to inspire us for what to build next. So the first stream that we did or that I did was with Ryan, and Ryan showed us how to build a base roll up with Rust. And during that stream, we were going through some ideas about what we could do next in terms of what different ideas we could have for other roll ups. One of those ideas Ryan had was a jukebox. Right.
+00:00:45.139 - 00:01:09.917, Speaker B: And I mean, like, the idea behind this is not necessarily that it's the most useful thing, of course, but we're kind of wanting to like, think about fun ideas, cute little roll ups, you know, if you think about it like Celestia's original vision is to make roll ups easier to deploy than smart contract. I think originally it's as easy as a smart contract, but I think that it's easier than. A lot easier than a smart contract.
+00:01:09.981 - 00:01:10.717, Speaker A: Yeah, I think so.
+00:01:10.781 - 00:01:34.035, Speaker B: So, like, we got to that point, like, okay, we can make decentralized apps now, but nobody really knows how to do it without going to roll up frameworks like Roll or Sovereign Labs. Yeah. And it can be a lot simpler. So I was like, yesterday we sat down. Nice to meet you. Nice to meet you.
+00:01:35.295 - 00:01:43.455, Speaker A: So I guess like, yeah, we are live from devcon right now, so no problem. We got Fico in the house. What's up?
+00:01:43.495 - 00:01:46.967, Speaker B: What else? Sorry. Oh, you're good.
+00:01:47.031 - 00:01:51.327, Speaker A: No, it's all good. It's the whole fun of this. So. Yeah, this is totally.
+00:01:51.431 - 00:01:57.851, Speaker B: Yeah. So I was like, yesterday we sat on like, let's make it 60 hours. So we're just going to.
+00:01:57.923 - 00:02:33.879, Speaker A: Yeah, I guess like a little more context. The other day I did a talk at Rejected, which was our event at devcon, and I went through a long list. As Ryan said, like, some of these ideas make a little bit less sense than others, but this is something that's meant to show you how you can build something and get started with building a roll up without so many dependencies. So on that note, I think it's a good idea to preview kind of like what we're trying to replicate here. And what we got is a jukebox. So today we're going to be going through building a version of this as a base roll out.
+00:02:33.927 - 00:02:57.695, Speaker B: Like what it is. Yeah. Yeah. Good. So I mean, like the whole kind of concept behind the Jukebox is that, you know, you can make a room with your friends and then you go add YouTube videos to the queue and then you can all listen to the same music at the same time. So that's what we wanted to build. Now in our version, like for simplicity and because we made it in a few hours, does not have rooms, everything's in a single room.
+00:02:57.695 - 00:03:04.519, Speaker B: But the idea is that everybody can go to the roll up site and listen to the same songs at the same time as everybody else. Yep.
+00:03:04.647 - 00:03:10.823, Speaker A: And all you would need to do in theory, if you had your own node in like the browser, you'd be able to just read from that namespace. Right.
+00:03:10.879 - 00:03:13.715, Speaker B: And I'll get around to that. Yeah, yeah, yeah. Cool.
+00:03:14.055 - 00:03:18.567, Speaker A: So on that note, we're going to go ahead and switch the screen share here.
+00:03:18.631 - 00:03:19.275, Speaker B: Yeah.
+00:03:19.675 - 00:03:27.843, Speaker A: And check out the code. Do we want to show the demo after we're done going through? Yeah, yeah, we'll wait for that.
+00:03:27.899 - 00:03:39.055, Speaker B: Yeah. So I'm worried if you run the thing from your computer you might get a coarser. But we'll figure it out. Oh, it's okay. Yeah, yeah, it'll be good.
+00:03:41.275 - 00:03:42.455, Speaker A: Which window?
+00:03:43.115 - 00:03:50.031, Speaker B: The Z window. Is it not picking it up? Nice. What about entire screen? I guess cursed.
+00:03:50.103 - 00:03:50.835, Speaker A: Okay.
+00:03:53.335 - 00:03:56.115, Speaker B: I don't think he's going to find it. I think we have to do entire screen.
+00:04:00.615 - 00:04:01.935, Speaker A: All right, we're sharing the entire screen.
+00:04:01.975 - 00:04:04.359, Speaker B: All right. Let's hope we don't get any embarrassing notifications.
+00:04:04.447 - 00:04:05.295, Speaker A: There we go.
+00:04:05.455 - 00:04:33.859, Speaker B: So I wanted to like first go back to the base roll up that we did on stream in our first stream. Yep. Which was like a chat thing where we're sending messages. And the whole basic idea of is that we have an enum for the transaction types. We have two types of transactions, Send, message and register. And then these contain everything that your roll up transaction would need to update the state. And then we have a state file.
+00:04:33.859 - 00:04:44.029, Speaker B: And I mean in the case for both of these rollups, the state is purely in memory. Like it's not merkelized. You can't ZK prove any of it. We will talk about that on the next stream.
+00:04:44.077 - 00:04:45.741, Speaker A: Yeah, I think that's a good one to do next.
+00:04:45.813 - 00:05:11.243, Speaker B: And but you had like, you know, users which are like public keys to their usernames. And then we also had channels which are rooms that just linked to a list of messages. So it was super simple. And then for the state you just have like two methods here. One of them is validating a transaction, like making sure that the transaction is like valid when you get it from the base layer because anybody can post through your name and you want to.
+00:05:11.259 - 00:05:13.955, Speaker A: Make sure it fits the struct that you showed above.
+00:05:13.995 - 00:05:37.295, Speaker B: Exactly, yeah. And then processing like applying the actual transaction to that in memory state that I just showed. So all we had to do to make the jukebox was I said okay, what's the simplest thing we can do? You have one single transaction type called add to queue. And it just takes a YouTube link. And a YouTube link is just a string with some like extra validation stuff that makes.
+00:05:37.455 - 00:05:39.199, Speaker A: Help me write actually YouTube.
+00:05:39.287 - 00:06:00.355, Speaker B: Right, exactly. So like just. Yeah, I have some like utilities, whatever. And then this is kind of like a. Another interesting part because I might get back to. But we needed something to get the video duration. Like the transaction type itself only actually contains.
+00:06:00.355 - 00:06:23.015, Speaker B: Where is it? Txrs? Yeah, only actually contains this like string. We don't have the duration of the video. Like this is what gets posted on the DA layer. So this is what all the other nodes sync. They only see the link. So when they process the transaction they have to like go retrieve the duration. And that's what this method is for, I guess.
+00:06:23.095 - 00:06:27.135, Speaker A: And that's like the duration when it gets fetched. Is that from the roll up node itself?
+00:06:27.295 - 00:07:06.739, Speaker B: Yeah, like whatever node is running. So if you have the node running in your browser, which we would have liked to do in time, but going time constraints, it's just connecting to a full node. So it's kind of shitty. But that node, when it sees the transaction, notices it's valid. We'll go fetch the duration of the video and that gets put into the state. So you'll see here that even though the transaction only contains the link, we actually, when we process the transaction we add duration to the struct, which is of course how long the video goes on and then the time it starts.
+00:07:06.827 - 00:07:08.355, Speaker A: And this is like UNIX time.
+00:07:08.475 - 00:07:30.267, Speaker B: Yeah, yeah, but this is actually a hacky solution. If you had a like browser light node then you wouldn't be in sync with everybody else because the way that this processes it doesn't get the time from the header. That's. It's an implementation detail that like is fixable. But like just so you know, like the system time is derived from like the first video it finds. It doessystemtime. Now.
+00:07:30.331 - 00:07:30.675, Speaker A: Got it.
+00:07:30.715 - 00:07:41.659, Speaker B: So it's like kind of unique to every node which doesn't make a ton of sense. If you're doing like in browser lightning implementation detail.
+00:07:41.707 - 00:07:43.107, Speaker A: If you wanted to like polish this.
+00:07:43.131 - 00:07:58.635, Speaker B: Up, I ended up not using this. So this is kind of bullshit. I tried to, but whatever. And then I just have a list of these cute songs and then what happens is so kind of unemployment compared to grudchat.
+00:07:58.755 - 00:08:04.131, Speaker A: The only thing that like really changed in terms of the state of the roll up was the kind of like different fields that you.
+00:08:04.163 - 00:08:27.353, Speaker B: Yeah, it's literally just fields like. So I mean the things that are common of course is that we have a transaction type enumerated and then we have a state struct and then the like the interface I'm filling out is validate transaction, process transaction. So first is this transaction I just read from the DA layer valid?
+00:08:27.409 - 00:08:27.801, Speaker A: Yeah.
+00:08:27.873 - 00:08:51.607, Speaker B: And then once we know it's valid, we apply it to the state that's. Or I guess process transaction validates it. Yeah, so I just misspoke. But it basically puts the sets the song's start time as the last song start time plus the duration of the last song. So it knows when to start the next song based on the last go.
+00:08:51.631 - 00:08:55.775, Speaker A: Like run my own version of this and sync from the same exact node. It's going to start at the same.
+00:08:55.815 - 00:09:24.761, Speaker B: Time in this implementation. No, because of what I said earlier, it gets system time, not now. If you use the header timestamp it would. But yeah, then everybody would be in sync. And then I just. What do I do? I grab the URL out of the transaction. So I pass in the transaction and then this is just like a variable declaration for URL and I get the duration with that method I showed earlier that uses some API.
+00:09:24.833 - 00:09:25.369, Speaker A: Yeah.
+00:09:25.497 - 00:09:28.145, Speaker B: And then I put it into that list in the state.
+00:09:28.305 - 00:09:28.937, Speaker A: Nice.
+00:09:29.081 - 00:09:32.969, Speaker B: So then what happens is we have.
+00:09:33.017 - 00:09:37.401, Speaker A: Our full node that was transaction state. Yeah, now we're going to jump to the full node.
+00:09:37.473 - 00:09:42.289, Speaker B: Now the full node is basically exactly copy pasted from Grog chat. It's the same thing. It's just sync logic.
+00:09:42.377 - 00:09:48.233, Speaker A: Okay. And the sync logic is to just basically pull everything from Cholestia.
+00:09:48.329 - 00:10:00.425, Speaker B: Right? Yeah, it's called full node. But if I did a light node in the browser, it would also be a light node because the state is so light it doesn't actually matter. So like this terminal, I should just call this node probably technically a full.
+00:10:00.465 - 00:10:01.865, Speaker A: Node, but in terms of like how.
+00:10:01.905 - 00:10:09.985, Speaker B: Much it's actually a full roll up would not need light node, it would only need one node type because the status is full and it's just.
+00:10:10.845 - 00:10:12.437, Speaker A: It is also like another light.
+00:10:12.541 - 00:10:26.013, Speaker B: Yeah, yeah, this is like exactly the same. It has sync logic and then also it posts batches. So like we subsidize the transactions because yeah, mainly because I couldn't figure out how to get Kepler working quickly enough.
+00:10:26.069 - 00:10:27.053, Speaker A: That's for another one too.
+00:10:27.109 - 00:10:55.801, Speaker B: Yes, that's for another stream. And then we. This is just logic for. So Celeste produces blobs. And then I also have batch, which is just like a vector of the transactions. So I try to parse blobs into batches and then if the batches don't work, I mean, if it's not a batch but it's a single transaction, it puts it into like a batch of the single transaction. Cool.
+00:10:55.801 - 00:11:04.153, Speaker B: I know I'm flying over this if you're interested in deep diving more into this. We cover it pretty well in depth in the first live. Yeah.
+00:11:04.169 - 00:11:08.041, Speaker A: So build stream number one. If you're here, you can find that as well.
+00:11:08.233 - 00:11:43.903, Speaker B: And then it's just processing the block, so it gets the transactions and then it gets the blobs. So it gets a vector of blobs from the DA layer and then it tries to put them into a vector of transactions. It locks the state and then processes every transaction. That's it. And then that's the only thing that's different there. Oh, no, there's one other thing, and that is a Greg set had like a web server for like making it easy to interact with the front end. Of course.
+00:11:43.903 - 00:12:17.227, Speaker B: Now if you did a browser light node with Lumina, which is the next step of this, you wouldn't need this because you'd just be interacting directly with the node. But I just provided some utility methods over the state get queue, for example, call state get queue, which returns that list. Got it. I just add the. One sec. When I start the full node, it starts this web server. And this is a subsidized transaction endpoint.
+00:12:17.227 - 00:12:37.191, Speaker B: I don't need to sign or pitch yet to add a song to the queue, but our batch will. Right now it's a free for all. And then we have queue, which gets the queue. This, like I said, ended up not being used. It looks like it gets used in the web app, but I forgot about it until I'm looking at it now.
+00:12:37.263 - 00:12:37.935, Speaker A: Oh, good.
+00:12:38.055 - 00:12:48.605, Speaker B: So anyways, and then the web server is just literally like. Okay, well, we have a request type for the API. It's like this 40 line rest file. Right.
+00:12:48.645 - 00:12:50.845, Speaker A: Nice. Not even 40.
+00:12:50.965 - 00:12:56.173, Speaker B: Yeah, yeah. So then we run the node.
+00:12:56.309 - 00:12:57.385, Speaker A: Yeah, I guess.
+00:12:57.805 - 00:13:04.173, Speaker B: Well, we could just like SSH into the box and open pmux. Yeah, and then show the logs maybe.
+00:13:04.229 - 00:13:04.825, Speaker A: Yeah.
+00:13:06.845 - 00:13:09.861, Speaker B: We'Re showing the full screen anyways. Everything's out in the open.
+00:13:09.933 - 00:13:13.905, Speaker A: Yeah, we're Going to just bank on notifications not coming through.
+00:13:15.605 - 00:13:17.197, Speaker B: So you can.
+00:13:17.341 - 00:13:18.065, Speaker A: Yeah.
+00:13:26.765 - 00:13:28.505, Speaker B: Should I. Sorry, it's.
+00:13:29.885 - 00:13:32.453, Speaker A: Yep. All right.
+00:13:32.549 - 00:13:38.185, Speaker B: So first of all we have a like Celestia node instance running. So this is the Golang node.
+00:13:39.335 - 00:13:41.399, Speaker A: It's just like a normal light node running.
+00:13:41.447 - 00:14:00.995, Speaker B: Yeah, yeah, but like in the next streams we're going to show you how you can remove this entirely and just do everything in the browser. Like have the roll up itself also in the browser. So I get without connecting to any rpc, which is of course the original dream of like Ethereum of crypto.
+00:14:02.655 - 00:14:04.783, Speaker A: We have like decentralized applications.
+00:14:04.839 - 00:14:15.899, Speaker B: Exactly. And this is how easy it is to make one on Celestia. So these are the logs from the jukebox. I love when it does that.
+00:14:16.027 - 00:14:16.895, Speaker A: All good.
+00:14:17.555 - 00:14:20.387, Speaker B: But anyways, I guess we can try to post.
+00:14:20.571 - 00:14:21.699, Speaker A: Yeah, I think I can try to.
+00:14:21.707 - 00:14:22.499, Speaker B: Do it from my computer.
+00:14:22.547 - 00:14:23.963, Speaker A: I think everything's running.
+00:14:24.099 - 00:14:26.563, Speaker B: Let me. Let me try to submit a song and see what happens.
+00:14:26.699 - 00:14:28.131, Speaker A: And we'll watch the logs here.
+00:14:28.203 - 00:14:31.655, Speaker B: Yeah, let's see if it finds it.
+00:14:32.895 - 00:14:45.955, Speaker A: Okay, so we have on Ryan's computer that has been added successfully and in the next few blocks it's the moment of where we are processing that incoming transaction.
+00:14:46.415 - 00:15:02.795, Speaker B: Right. So I just put a blink182 so I need to read that before we get copyright strike. But anyways, so this is because we like posted it to the batcher, the full node instead of just posting it directly to Mocha. Yeah, it is running on Mocha by the way.
+00:15:04.015 - 00:15:13.315, Speaker A: But so if this weren't using like one node to post everything, in theory anyone could post directly to Mocha and they.
+00:15:14.175 - 00:15:20.727, Speaker B: Yeah, but it processed the transaction so now we should be able to open the demo.
+00:15:20.791 - 00:15:27.095, Speaker A: Yeah, I think so. We'll try to save your eyes from the infinity screen, but.
+00:15:27.755 - 00:15:50.855, Speaker B: Oh my gosh. So this is. You can add new songs here Right now this one's playing. I guess I'll add another. Maybe you should probably. I don't know if the video is going to get us copyrighted strikes, but. Yeah, so if I go to the.
+00:15:50.855 - 00:16:03.495, Speaker B: The roll up as well, then it will show me the same video at the same time. What about this one?
+00:16:04.595 - 00:16:06.055, Speaker A: Yeah, go for it.
+00:16:10.275 - 00:16:16.131, Speaker B: I'll play later. But I'm going to add another song to the queue.
+00:16:16.203 - 00:16:19.735, Speaker A: Okay, so we're adding another song and then.
+00:16:19.775 - 00:16:27.687, Speaker B: Whoa, it's going to take a minute for the like roll up to see.
+00:16:27.711 - 00:16:33.567, Speaker A: It go back and watch that live stream. Okay, so we got another one process.
+00:16:33.671 - 00:16:36.959, Speaker B: It's gonna like it. It tries to Resync everything.
+00:16:37.047 - 00:16:38.075, Speaker A: Oh, look at that.
+00:16:39.455 - 00:16:42.455, Speaker B: So it's gonna start and what, like a minute or something?
+00:16:42.495 - 00:16:48.353, Speaker A: Yeah, I want to go ahead and.
+00:16:48.369 - 00:16:49.365, Speaker B: Is going to work.
+00:16:49.865 - 00:17:06.529, Speaker A: No song added successfully. Let's check it out. So our jukebox has more than one song. All right, we got another one that's processed and if we are working correctly, we got Covington queued up as well. Nice.
+00:17:06.617 - 00:17:10.855, Speaker B: Yeah, that's pretty much it. Okay, so now I want to talk about like why this is bullshit.
+00:17:11.595 - 00:17:13.907, Speaker A: All right, let's get it. I'm gonna stop sharing for now.
+00:17:14.051 - 00:17:16.147, Speaker B: Oh no, wait, can you keep sharing?
+00:17:16.211 - 00:17:17.815, Speaker A: Yeah, let's do it.
+00:17:18.275 - 00:17:19.467, Speaker B: We can pause the video.
+00:17:19.571 - 00:17:20.415, Speaker A: That's fine.
+00:17:26.155 - 00:17:44.685, Speaker B: Mean something very specific. So yeah, just do that. All right. So thanks for checking on that last. The last live stream I did, I drew for 25 minutes and I looked at the stream and I wasn't even screen sharing. I was just talking, pretending. Yeah, it was pretty shitty.
+00:17:44.725 - 00:17:49.101, Speaker A: I'm gonna go back and maybe notice, but didn't notice. I think we need to hit play.
+00:17:49.133 - 00:17:56.277, Speaker B: Though, because I pushed. I pushed pause. Very cool. I don't want like to get copyright if we upload this to YouTube or something.
+00:17:56.341 - 00:17:57.581, Speaker A: Oh no. We're on YouTube already.
+00:17:57.653 - 00:18:04.345, Speaker B: Yeah. Yeah. Okay. We'll see. I guess. Now this is really shitty. Yeah.
+00:18:04.345 - 00:18:06.457, Speaker B: So this is going on any other.
+00:18:06.521 - 00:18:11.233, Speaker A: Like Ethereum that's like a central. Like the centralization here is the fact that our nodes running in the.
+00:18:11.329 - 00:18:18.289, Speaker B: You have to connect to our roll up node to be able to like get the web request and everything.
+00:18:18.377 - 00:18:19.825, Speaker A: You can't actually like sample it yourself.
+00:18:19.905 - 00:18:48.607, Speaker B: In this form as of I don't know. Right now basically Lumina is like really getting their product really well rounded for actually making roll ups work in the browser. So because Celestia just shipped Schwap, which is the new like data retrieval protocol on Celestia. Yeah. Oh yeah. The next song played.
+00:18:48.671 - 00:18:51.395, Speaker A: So it started playing even though you paused the other one.
+00:18:54.415 - 00:19:06.335, Speaker B: Swap is the new data retrieval protocol in slasia. And Lumina has had it implemented since forever. But now that it's shipped, we can integrate it and they have WASM light nodes. That means that.
+00:19:06.415 - 00:19:07.823, Speaker A: What's the WASM light node?
+00:19:07.919 - 00:19:25.577, Speaker B: So that means that instead of needing to connect to something that's a part of that blockchain network by us visiting the site. If we use Lumina us visiting it, my browser would act as node in the Celestial network and in our roll up network.
+00:19:25.641 - 00:19:29.485, Speaker A: So like your light nodes in the browser. Right, it's running the roll up node.
+00:19:30.025 - 00:19:52.091, Speaker B: Exactly. So you would be participating in the Celestial Protocol, actually adding security back to the Celestia network. Like the more apps there are, the more secure Celestia is. Yep. Bigger blocks and then you wouldn't need that like connect to any rpc. This would be purely in the browser. Everybody would have the same view of the roll up.
+00:19:52.091 - 00:20:10.939, Speaker B: It's the decentralized app dream that we all dreamed about with Ethereum back in the day. And if you think about what was browser and stuff like that, we're finally there as of right now. This is just now becoming possible and it's the most exciting thing that's happening in crypto right now for me at least.
+00:20:11.067 - 00:20:14.701, Speaker A: I mean same it sounds like it's like a fully decentralized app.
+00:20:14.733 - 00:20:15.061, Speaker B: Yeah.
+00:20:15.133 - 00:20:20.797, Speaker A: What would be like the next step? You like put it on Arweave or something. So yeah, access it from any gateway there.
+00:20:20.901 - 00:20:33.053, Speaker B: There are a few next steps here so one of them is if you, if you were to use Lumina. Yeah that works great for little cute baby roll ups like this because there's no real state.
+00:20:33.189 - 00:20:33.669, Speaker A: So like.
+00:20:33.717 - 00:20:34.973, Speaker B: But the second that you have the.
+00:20:34.989 - 00:20:37.725, Speaker A: Roll up node itself wouldn't be enough to like crash the browser.
+00:20:37.765 - 00:21:11.005, Speaker B: Right, right. The second that you have a lot of states if like you actually have I don't know some VM there or you're doing something that has a lot of throughput, your light node isn't going to be able to go read all the transactions. So what you can do is if you have that state put into a Merkle tree, you can throw the transaction processing into SG1 and then you post the output of those proofs also to Celestia and then the light node would just verify those proofs and then be able to get like get the state.
+00:21:11.045 - 00:21:13.085, Speaker A: Of the roll up without getting like.
+00:21:13.205 - 00:21:35.039, Speaker B: Without having to process every single transaction. And that is also possible as of I think last week or two weeks ago SG1 released their like no std or no standard. I just, I never pronounced it out loud. No standard implementation for like verifying gross exchange proofs. So you'd be able to like. And we're going to do this in a stream too, I promise.
+00:21:35.087 - 00:21:35.367, Speaker A: Nice.
+00:21:35.431 - 00:21:43.367, Speaker B: Yes, you'd be able to have like your roll of light node just verifying the ZK boost without needing to run every transaction and basically like recompute the.
+00:21:43.431 - 00:21:44.767, Speaker A: State is what it sounds like.
+00:21:44.831 - 00:22:21.825, Speaker B: Not recompute the state but you would know that the state is valid. You'd get the state from the network and be able to know that it's Valid because you're following the validity proofs of like the actual full nodes in the network. So in that case we would have full node, light node for this. It's just like a general node. So that'd be one step. Another really cool thing you can do is you can put this on arweave or ipfs because it's just client, everything's happening on the static site and then you wouldn't be relying on some server, this is a terrible server by the way. Localhost.
+00:22:21.825 - 00:22:48.403, Speaker B: You wouldn't be relying on some server to stay up because it would be distributed like in Arby's case they're like 250 gateways and then you'd have to take down all 250 gateways to take down pretty much. So you can do some really cipher punk shit with this and it's the most exciting thing that's happening anyways. Yeah, this was just a short little quick example like how to make. I really want to show how easy it is to do shit like that.
+00:22:48.419 - 00:22:58.321, Speaker A: I mean you did this like we're at devcon right now. You did this in the co working space last night, basically polished it up to day. You got a base roll up running on.
+00:22:58.393 - 00:23:06.745, Speaker B: That's all you need. So base roll ups are so simple. Like people don't realize that. I mean you don't need all of this extra to make a roll up. Yeah.
+00:23:06.785 - 00:23:21.395, Speaker A: And I guess like when even in the first stream when you were explaining it to me, I was still like kind of figuring it out myself. Like I, I still was understanding it and now I basically understand it that you don't need to make blocks, you just make your block.
+00:23:22.295 - 00:23:23.167, Speaker B: Yeah, basically.
+00:23:23.231 - 00:23:25.835, Speaker A: So there's no like in terms of dependencies.
+00:23:27.135 - 00:23:28.431, Speaker B: Yeah, I mean if we look at.
+00:23:28.583 - 00:23:29.855, Speaker A: Stuck in like dependency.
+00:23:29.975 - 00:23:32.755, Speaker B: No, we don't need to. I was going to show like the dependencies of the project.
+00:23:33.055 - 00:23:33.719, Speaker A: Yeah, why not?
+00:23:33.767 - 00:23:34.623, Speaker B: No, no, no, it's fine.
+00:23:34.679 - 00:23:35.503, Speaker A: I mean it's like the same as.
+00:23:35.519 - 00:23:55.195, Speaker B: Grg but yeah, it's like we have very little dependencies because we're not like using any roll up framework. We don't need to run all that code. I'm like a crude minimalist. I want to reduce the amount of code that everybody's running and we don't need all this complexity. We can just write a few lines of rust and have a roll up. That's all it is.
+00:23:55.235 - 00:23:55.935, Speaker A: What are the.
+00:23:58.075 - 00:23:58.483, Speaker B: More.
+00:23:58.539 - 00:23:59.495, Speaker A: But not much.
+00:24:01.275 - 00:24:25.193, Speaker B: Some of these I'm not even using actually there's for the web server that's for serialization. That's less of stuff. Obviously these are standard in any rest application pretty much. Also for web requests for JSON, just like Hex. And then this is like key stuff. Actually we're not using this. We're also not using this.
+00:24:25.289 - 00:24:26.045, Speaker A: Yep.
+00:24:26.465 - 00:24:50.507, Speaker B: I could remove those in the projects for just like. Well, regex is for a specific thing. Yeah, exactly. And then log logging because I. In grogchat we only have print lines and it's kind of like eye cancer or an eyesore. And then this is for being able to develop locally. I was having some issues with cores as we all do.
+00:24:50.507 - 00:25:01.747, Speaker B: It goes as it goes. So I got rid of that by using that dependency. But it's like yeah, it's nothing. It's nothing.
+00:25:01.851 - 00:25:02.323, Speaker A: It's not like.
+00:25:02.339 - 00:25:21.915, Speaker B: And you have a full little decentralized app now. When you implement Lumina, it adds quite a bit more code because you are then needing to compile it to wasm. But it's still super minimal. It's not comparable to any other way to build a roll up right now in terms of how little code you need to write.
+00:25:25.295 - 00:25:47.065, Speaker A: I think that's it. It looks like there's some people in the chat watching. Thank you for tuning in. This has been a quick overview of how to build a mini jukebox roll up. And I guess like with the clarification that this is also a base roll up written in rust again. But yeah. Any final words here for the viewers?
+00:25:47.725 - 00:25:49.765, Speaker B: Make rollups tiny again.
+00:25:49.805 - 00:25:50.869, Speaker A: Yeah, I believe.
+00:25:50.917 - 00:26:09.879, Speaker B: I don't know. Just go like this is whatever by the way. Just go build whatever. We finally can do the things that we wanted to make with smart contracts a decade ago in a decentralized way. If you're interested, please reach out because it's. Because it's so new, it's really difficult to just go. There are no docs, for example, for how to use.
+00:26:09.927 - 00:26:11.271, Speaker A: This is like the doc, right?
+00:26:11.343 - 00:26:21.591, Speaker B: Yeah. Like this video is kind of a doc now unfortunately. So we're going to be putting more content out about how to do this kind of thing. But yeah, yeah, I mean, all right, reach out if you're interested in making.
+00:26:21.703 - 00:26:42.965, Speaker A: Something and don't forget to build whatever. And as Ryan mentioned, this is us kind of showing what whatever is because it's kind of for you to decide. So yeah, looking forward to tuning back into build stream again soon. To learn more with Ryan. Thank you again. Thanks for showing us how to do that.
+00:26:43.045 - 00:26:43.477, Speaker B: Thanks.
+00:26:43.581 - 00:26:44.013, Speaker A: Peace.
+00:26:44.109 - 00:26:44.389, Speaker B: Peace.
+00:26:44.437 - 00:26:45.325, Speaker A: Have a good rest of devcon.
+00:26:45.365 - 00:26:45.445, Speaker B: Every.
