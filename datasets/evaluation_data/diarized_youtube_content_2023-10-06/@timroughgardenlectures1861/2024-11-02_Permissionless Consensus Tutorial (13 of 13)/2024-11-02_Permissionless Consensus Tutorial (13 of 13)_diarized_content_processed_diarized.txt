@@ -1,0 +1,124 @@
+00:00:01.480 - 00:00:05.105, Speaker A: Okay, welcome back everyone. So in the last video, we were looking at various different ways of separating.
+00:00:05.145 - 00:00:14.017, Speaker B: The dynamically available and the quasi permissionless settings. And then the last thing I want to do is to look at a nice way of separating the quasi permissionless and permission settings.
+00:00:14.121 - 00:00:16.113, Speaker A: Okay, in order to do that, we're.
+00:00:16.129 - 00:00:22.125, Speaker B: Going to re examine our definition of what it means for the adversary to be row bounded. Okay, so let's do that next.
+00:00:23.345 - 00:00:30.373, Speaker A: So let's recall our earlier definition. Okay, so we say an execution of a protocol is row bounded if it.
+00:00:30.389 - 00:00:32.829, Speaker B: Satisfies the conditions laid out here.
+00:00:32.957 - 00:00:37.069, Speaker A: This first bullet point here is just related to external resources, so I'm not.
+00:00:37.077 - 00:00:37.837, Speaker B: Worried about that for now.
+00:00:37.861 - 00:00:39.077, Speaker A: I'm really interested in the aspect of.
+00:00:39.101 - 00:00:41.485, Speaker B: The definition which relates to the proof of stake.
+00:00:41.645 - 00:01:01.263, Speaker A: Okay, the assumption we made was basically that among active players, Byzantine players never control more than a row fraction of the stake. And as I suggested earlier on, in some ways this is a funny definition to make because it's really as much a condition on the protocol as it.
+00:01:01.279 - 00:01:12.839, Speaker B: Is on the transactions issued by the environment. So why is this a reasonable assumption? Why can we assume that this is true for any arbitrary protocol? In particular, what would happen if we.
+00:01:12.847 - 00:01:14.815, Speaker A: Had some strange protocol that purposely tries.
+00:01:14.855 - 00:01:18.075, Speaker B: To finalize to confirm Byzantine transactions, for example?
+00:01:19.015 - 00:01:23.143, Speaker A: So we wrote this definition down basically because that's the way people normally think about things.
+00:01:23.239 - 00:01:25.595, Speaker B: But it's interesting to examine this further.
+00:01:28.375 - 00:01:34.383, Speaker A: Okay, so to examine it a bit more, let's start by thinking about why proof of work protocols can't be live.
+00:01:34.439 - 00:01:39.615, Speaker B: And consistent in the partial synchrony model. Okay, that might not initially sound relevant, but you'll see that it is in a second.
+00:01:39.655 - 00:01:49.187, Speaker A: Okay, so in particular, what goes wrong with Bizcoin or with Hybrid or Solidr? Right, so we previously we considered this sort of generic form of a.
+00:01:49.311 - 00:01:50.915, Speaker B: A proof of work protocol, a bft.
+00:01:50.995 - 00:01:52.187, Speaker A: Well, a proof of work protocol that.
+00:01:52.251 - 00:01:55.455, Speaker B: Integrates BFT style protocols in the following way.
+00:01:56.315 - 00:02:10.571, Speaker A: Okay, so you need to think about a proof of work protocol, which we start with the Genesis block that specifies an initial committee. Then once a committee is selected, they carry out a classical BFT style permissioned protocol for a while in order to.
+00:02:10.603 - 00:02:13.015, Speaker B: Implement the next consensus decision.
+00:02:14.235 - 00:02:23.831, Speaker A: That consensus decision includes the next sequence of transactions to be committed to blockchain, as well as determining which players have provided sufficient proof of work in the mean for inclusion in the next committee.
+00:02:24.023 - 00:02:32.235, Speaker B: And then we just repeat this process. That committee then carries out the BFT style protocol to determine the next sequence of transactions and the next Committee and so on.
+00:02:33.175 - 00:02:35.975, Speaker A: Okay, so we just have this rolling sequence of committees.
+00:02:36.135 - 00:02:40.315, Speaker B: Each one just carries out this classical BFT style protocol.
+00:02:41.455 - 00:02:46.135, Speaker A: Now, it's interesting to ask here, right? So why, what goes wrong if we.
+00:02:46.175 - 00:02:50.795, Speaker B: Try executing using such a protocol in partial synchrony?
+00:02:51.435 - 00:02:57.043, Speaker A: On the face of it, it seems like it might. Maybe it should be fine, because BFT style protocols can certainly be live and.
+00:02:57.059 - 00:02:58.615, Speaker B: Consistent in partial synchrony.
+00:02:58.955 - 00:03:00.515, Speaker A: All we're doing here is we're just.
+00:03:00.675 - 00:03:04.715, Speaker B: Executing one BFT style protocol after another.
+00:03:04.875 - 00:03:12.851, Speaker A: What can go wrong? What goes wrong is that the proof of work produced by honest players might.
+00:03:12.883 - 00:03:15.375, Speaker B: Not make its way to the blockchain during a network partition.
+00:03:16.285 - 00:03:24.661, Speaker A: So maybe the honest guys are producing lots of proof of work. But if we don't hear about it, and we only hear about proof of work produced by Byzantine players, then we.
+00:03:24.693 - 00:03:27.425, Speaker B: Might end up with committees that have Byzantine majorities.
+00:03:30.365 - 00:03:38.877, Speaker A: Okay, so then it becomes a natural question, when actually can something similar happen with proof of stake? Our previous definition basically just assumed it didn't.
+00:03:38.941 - 00:03:44.881, Speaker B: Could something similar happened? And the basic answer is yes. Okay, so let's see.
+00:03:44.913 - 00:03:47.257, Speaker A: Why. See a simple example that shows you.
+00:03:47.281 - 00:03:48.725, Speaker B: The sort of thing that can happen.
+00:03:49.105 - 00:03:50.377, Speaker A: Okay, so I'm going to consider the.
+00:03:50.401 - 00:03:52.617, Speaker B: Example of what I call the payment circle.
+00:03:52.721 - 00:04:00.809, Speaker A: Okay, so we're going to consider a set of n players, p0 up to pn minus 1. I want to imagine p0 is byzantine.
+00:04:00.857 - 00:04:03.817, Speaker B: And the rest are honest, each with a single unit of stake.
+00:04:03.881 - 00:04:07.689, Speaker A: So everybody's starting off with a single unit of stake. So we start off in a situation.
+00:04:07.777 - 00:04:12.865, Speaker B: Where byzantine, again, the adversary controls 1 over n of the total stakeholders.
+00:04:17.155 - 00:04:25.411, Speaker A: Now we imagine that in each of n consecutive rounds, each player PI just authorizes a new transfer for a single unit of stake from PI to PI.
+00:04:25.443 - 00:04:30.627, Speaker B: +1 mod n. So basically, the stake is just passed around the circle. Nothing really changes.
+00:04:30.771 - 00:04:32.203, Speaker A: Each unit of stake is just passed.
+00:04:32.219 - 00:04:35.615, Speaker B: To the next player in line so that everybody still has one unit of stake.
+00:04:38.565 - 00:04:41.789, Speaker A: Okay, that's n squared transactions overall, because we've got n in each round and.
+00:04:41.797 - 00:04:48.261, Speaker B: We'Re considering n rounds. Yeah, as I just pointed out before.
+00:04:48.293 - 00:04:58.301, Speaker A: So each round of transactions leaves everyone's stake unaffected. Each player still controls one unit of stake. So the set of transactions t allocates the adversary still a single unit of.
+00:04:58.333 - 00:05:00.505, Speaker B: Stake, one over n of the total stake.
+00:05:02.045 - 00:05:03.485, Speaker A: But then the question is, can we.
+00:05:03.525 - 00:05:11.025, Speaker B: Extract some subset of those transactions which allocate the adversary more than 1 over n of the stakeholders? And yes, we certainly can.
+00:05:11.065 - 00:05:17.565, Speaker A: So now choose t prime to contain the first I transactions issued by player PI.
+00:05:19.505 - 00:05:19.905, Speaker C: Okay?
+00:05:19.945 - 00:05:21.713, Speaker A: That's basically just enough transactions to get.
+00:05:21.729 - 00:05:24.565, Speaker B: That unit of stake to P0, our Byzantine player.
+00:05:25.905 - 00:05:26.345, Speaker C: Okay?
+00:05:26.385 - 00:05:28.605, Speaker B: This then is a valid set of transactions.
+00:05:29.305 - 00:05:29.697, Speaker C: Okay?
+00:05:29.721 - 00:05:37.975, Speaker A: But if you think it through, if you consider this set of transactions T prime, this gives the player P0, the Byzantine player, all n units of stakeholders.
+00:05:38.985 - 00:05:39.337, Speaker C: Okay?
+00:05:39.361 - 00:05:48.825, Speaker B: So the set of transactions T just ends up giving everybody, ends up with everybody having one unit of stake. The adversary owns one over n of the total stake.
+00:05:48.985 - 00:05:57.337, Speaker A: We take this subset T prime. Okay? Now the adversary owns all the stake. Okay, so what does this mean then for proof of stake protocols?
+00:05:57.401 - 00:05:58.633, Speaker B: Okay, well, I'm going to say that's.
+00:05:58.689 - 00:06:00.193, Speaker A: A rough form of a theorem here.
+00:06:00.209 - 00:06:00.913, Speaker B: And then we'll make it a bit.
+00:06:00.929 - 00:06:06.991, Speaker A: More precise later on. So basically, if we drop the assumption the adversary is row bounded and assume.
+00:06:07.023 - 00:06:10.535, Speaker B: Instead only that the set of all transactions issued by the environment allocates the.
+00:06:10.575 - 00:06:15.671, Speaker A: Adversary and most of row fraction of the stake, then proof of stake protocols.
+00:06:15.703 - 00:06:25.155, Speaker B: Cannot be row resilient in partial synchrony for any row greater than zero. Basically, we can't deal with any size of adversary more than zero in partial synchrony. In that case.
+00:06:27.415 - 00:06:29.679, Speaker A: Okay, so that's a rough form of the theorem.
+00:06:29.767 - 00:06:33.115, Speaker B: Let's go through the details a little bit more.
+00:06:36.525 - 00:06:46.869, Speaker A: Okay, so a slight complication here is we can't actually directly impose requirements on the state distribution resulting from the set of transactions instead of all transactions issued by the environment, basically because that set.
+00:06:46.917 - 00:06:55.025, Speaker B: May not be valid relative to the initial state distribution. We're allowing that the environment can issue pairs of transactions that are not consistent with each other.
+00:06:57.645 - 00:06:59.301, Speaker A: Okay, so instead we impose a requirement.
+00:06:59.333 - 00:07:08.151, Speaker B: On every maximal valid subset transactions issued by the environment up until any given time slot. And we do that in the obvious way.
+00:07:08.223 - 00:07:09.591, Speaker A: So, formally, we're going to say T.
+00:07:09.623 - 00:07:11.511, Speaker B: Is a maximal valid set of transactions.
+00:07:11.583 - 00:07:22.735, Speaker A: At some time slot T if it's a valid set of transactions relative to the initial state distribution, if every transaction in that set T is received by at least one honest player from the environment at some times less than or.
+00:07:22.735 - 00:07:28.595, Speaker B: Equal to t. And that's just a sort of technical condition, if you like. Basically, we're only really caring about transactions once they're passed to honest players.
+00:07:28.925 - 00:07:31.653, Speaker A: Okay, and then the third condition is.
+00:07:31.669 - 00:07:32.421, Speaker B: What makes it maximal.
+00:07:32.453 - 00:07:34.525, Speaker A: So no proper superset of t satisfying.
+00:07:34.565 - 00:07:37.645, Speaker B: 1 and 2 is valid relative to the initial state distribution.
+00:07:37.765 - 00:07:55.009, Speaker A: Okay, so that's just the obvious definition, I'd say. Okay, and then it's called an environment maximally arrow bounded with respect to the initial State distribution and it satisfies the following two conditions. So the first condition here is just a sort of technical condition that says.
+00:07:55.117 - 00:07:58.225, Speaker B: We only really care about transactions once they're passed to honest players.
+00:07:58.345 - 00:07:58.617, Speaker A: Okay?
+00:07:58.641 - 00:08:00.765, Speaker B: They don't matter until some honest player has seen them.
+00:08:01.945 - 00:08:05.609, Speaker A: And the second condition is the important one really. So it says for every time slot.
+00:08:05.657 - 00:08:23.645, Speaker B: T and every set of transactions T, which is a maximal valid set of transactions at that time slot T, okay, that set of transactions allocates byzantium players at most a row fraction of the stake. So basically, maximal valid sets of transactions allocate the bursary and most of row fraction of the.
+00:08:24.385 - 00:08:28.081, Speaker A: Okay, so this is now a condition on the transactions issued by the environment.
+00:08:28.153 - 00:08:29.445, Speaker B: Rather than the protocol.
+00:08:32.105 - 00:08:42.777, Speaker A: Okay, so now here is the resulting theorem more precise version of the approximate version that I showed you just before. Okay, so consider the quasi permissionless authenticated.
+00:08:42.841 - 00:08:44.081, Speaker B: Just means we have a signature scheme.
+00:08:44.113 - 00:08:52.485, Speaker A: Available and partially synchronous adding for every row greater than zero. There is no blockchain polygon that uses a reactive set of on chain resources.
+00:08:52.625 - 00:08:58.985, Speaker B: And satisfies consistency and liveness with respect to an externally row bounded adversary and a maximally row bounded environment.
+00:08:59.405 - 00:09:00.225, Speaker C: Okay?
+00:09:00.845 - 00:09:03.573, Speaker A: Okay, so this gives us a separation.
+00:09:03.629 - 00:09:06.505, Speaker B: Between the quasi permissionless and the permissionless setting.
+00:09:06.925 - 00:09:08.637, Speaker A: And as we said before here, it's.
+00:09:08.661 - 00:09:13.065, Speaker B: Not surprising that we have to consider reactive sets of resources in order to get such a separation.
+00:09:19.255 - 00:09:21.207, Speaker A: Okay, so in some sense that might sound like bad news.
+00:09:21.271 - 00:09:23.375, Speaker B: In fact, we can deal with this issue.
+00:09:23.495 - 00:09:27.543, Speaker A: Okay, so what was the basic problem there then? Well, the problem with the payment circle.
+00:09:27.559 - 00:09:32.103, Speaker B: Is really that we have these nested sequences of transactions passing the unit of.
+00:09:32.119 - 00:09:36.423, Speaker A: Stake around the circle. And the players are in particular, honest.
+00:09:36.479 - 00:09:39.151, Speaker B: Players are issuing transactions in these nested.
+00:09:39.183 - 00:09:42.247, Speaker A: Sequences before the previous elements of the.
+00:09:42.271 - 00:09:44.075, Speaker B: Sequence have already been finalized.
+00:09:44.385 - 00:09:50.369, Speaker A: Okay, so what we can do is we can show that things won't be so problematic.
+00:09:50.537 - 00:09:58.241, Speaker B: Basically, if honest players wait to finalize transactions they wait for before issuing a.
+00:09:58.273 - 00:09:59.865, Speaker A: Transaction tr, we basically have to wait.
+00:09:59.905 - 00:10:03.097, Speaker B: For all transactions that TR relies on to be valid to be finalized.
+00:10:03.241 - 00:10:04.353, Speaker A: Okay, so here's a rough form of.
+00:10:04.369 - 00:10:08.845, Speaker B: Ethereum and I invite you to look at the paper to see the precise version.
+00:10:09.795 - 00:10:11.467, Speaker A: So basically this stops being an issue.
+00:10:11.531 - 00:10:20.815, Speaker B: In the UTXO model. This is the UTXO model of Bitcoin. If no honest player issues any transaction TR until all transactions require the TR to be valid are already confirmed.
+00:10:22.635 - 00:10:28.635, Speaker A: Okay, good. So that's, that's everything I'm going to go through in the sequence of videos. I very much Hope you enjoyed it.

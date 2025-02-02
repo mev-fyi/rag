@@ -1,0 +1,156 @@
+00:00:00.960 - 00:00:29.818, Speaker A: We have Rohit today who will be taking implementation duties from Oleg. Rohit just started today looking into. So he's not really up to date on. On most things. We had a knowledge transfer internal session today. But yeah, please be not. You know, he's not up to date on everything yet.
+00:00:29.818 - 00:00:40.122, Speaker A: He's looking into through the implementation specification, etc. So still fresh everyone.
+00:00:40.226 - 00:00:42.070, Speaker B: Hello guys. Thank you.
+00:00:42.610 - 00:00:44.190, Speaker C: Hey Rohit. Welcome.
+00:00:45.250 - 00:00:46.190, Speaker D: Welcome.
+00:00:48.770 - 00:00:55.880, Speaker B: Yeah, so I'll be walking on the nethermind side on each simulate. Let's see how it goes.
+00:00:57.660 - 00:01:00.200, Speaker D: I guess we don't really have updates on the progress.
+00:01:03.340 - 00:01:16.440, Speaker A: No, not really. But would be good to define the next steps. For example, for Rohit to what he should look into. If you can give a bit of context.
+00:01:18.950 - 00:01:22.766, Speaker D: Oleg doesn't know what's the state and what's missing and what's needed.
+00:01:22.958 - 00:01:39.534, Speaker A: More or less knows, but I'm not sure. He's also like up to date. So I think we were discussing something about timestamps, but I don't know what's the next thing. Is it there? I'm also a bit out of the loop to be honest. Yes.
+00:01:39.582 - 00:01:56.570, Speaker B: I kind of think that the next step that I want to do is just read about the proposal about it. I think 484 pull requests. Then I'll see the implementation on the NIDA mindset. I will play with it. I'll try to run some tests.
+00:01:58.030 - 00:02:04.250, Speaker E: I believe we have hive tests and the hive tests are currently not all passing another mindset. Correct. You know Kalari.
+00:02:05.230 - 00:02:08.450, Speaker D: Yeah. There's huge amount of tests that we need to get past.
+00:02:09.559 - 00:02:11.499, Speaker E: So that might be a good place to start.
+00:02:12.359 - 00:02:22.139, Speaker D: Yeah, I think the good place to start is to run the hive test and try to kind of run them and see what are the differences and then start fixing those issues.
+00:02:23.559 - 00:02:35.810, Speaker B: Sure. So once they get familiar with all the implementation from the demo side, then I'll run those tests and we'll start fixing them and working on.
+00:02:37.390 - 00:02:52.170, Speaker E: And I believe we have a suspicion that the timestamp is the root cause of a lot of the failures. Right. And so look for whatever tests. I haven't looked at them, but presumably one of the tests will focus on that. So I'd say start, start there. I think the timestamps are wrong.
+00:02:53.390 - 00:03:05.950, Speaker D: There's many tests where the determine and get are disagreeing on the timestamps and those should be looked at. And I think if that time stamp issue is fixed, then I would imagine many tests will pass after that.
+00:03:09.050 - 00:03:17.510, Speaker B: Okay. The first reason I need to look on the timestamp I think the OLEG was talking about the default time for Nidaman is 12 second. Right, Lucas?
+00:03:19.850 - 00:03:28.670, Speaker A: Yeah, he mentioned that our first timestamp is 12 seconds. Why it shouldn't be and. Yeah, but I'm not sure. I haven't looked myself.
+00:03:29.410 - 00:03:31.510, Speaker B: I mean I'll look into it.
+00:03:32.050 - 00:03:33.510, Speaker D: It should be one second.
+00:03:34.050 - 00:03:35.590, Speaker B: Should be one second here.
+00:03:38.690 - 00:04:20.254, Speaker D: Then we discussed with MetaMask and some node providers in Devcon and they had some worries about each simulate and we were thinking that the kind of consuming gas will stop most of the DoS attacks, but they were mostly worried about that you make calls that produce huge amount of traffic so you can send very small each simulate query and that will produce huge amount of outbound traffic and that is expensive for the node providers and at the moment we don't have really good fixes for that. But that's one thing that they were worried about.
+00:04:20.422 - 00:04:41.570, Speaker A: I think we have a global setting for JSON RPC to cut the traffic at some point. Cut the. I would have to double check but it can potentially maybe allocate some memory bigger chunks. So maybe that's potential problem. Let me check.
+00:04:42.800 - 00:05:03.060, Speaker D: I think there's probably outputs. I think it's the same issues with the ETH call. I think with ETH call you can make similar kind of stuff but with the ETH simulator you can produce logs and that kind of stuff. With ethical you just produce one call data but I guess you can produce huge call data as well. You could still attack the nodes with that.
+00:05:03.520 - 00:05:06.580, Speaker A: Yes, some extent you can.
+00:05:10.600 - 00:05:21.820, Speaker C: Yeah. I do believe that RPC in gats also has a limit on how much you can. You can output. So there will be a cutoff point.
+00:05:23.080 - 00:05:34.400, Speaker A: Yeah, there is a max response body size and it's I think around 30 megabytes by default. Never mind.
+00:05:34.440 - 00:05:35.420, Speaker D: That's quite a lot.
+00:05:37.440 - 00:05:59.352, Speaker A: Yeah, 32 megabytes. That's our default. But someone can lower it. Right. So it's. I expect RPC providers would be aware of this. Let's say at least that they can manipulate this and lower this if this wants.
+00:05:59.352 - 00:06:16.960, Speaker A: Because if you're running a local node, we don't want it to set it by default to low. I think and for RPC providers, I think they can. They should explicitly set it. Even if they set it for 32, they should have this explicitly defined in their own spec.
+00:06:19.340 - 00:06:42.320, Speaker D: Yeah, I agree. Then MetaMask also wanted that we could have pre states and post stage for all of the state that is changing. And if they would have this then they wouldn't need to have some kind of own infrastructure in doing that kind of calculations. And then Sinner at least said that this shouldn't be too difficult.
+00:06:44.180 - 00:07:00.760, Speaker A: Gather some kind of state diffs. That's what you mean. Basic state diff here, but okay, that's doable. That would be, you know, extension of the spec. Right. And would this be optional? I think so, right?
+00:07:01.180 - 00:07:10.320, Speaker E: Definitely. Those states are going to be huge, I guess, if they're not being proven. Does Metamask want proven states or just the data?
+00:07:11.100 - 00:07:12.240, Speaker D: That's the data.
+00:07:12.780 - 00:07:20.880, Speaker E: Oh, I see. Okay, that's maybe not too bad then. But yeah, I definitely feel like that should be optional. I'm guessing most people won't need it.
+00:07:21.580 - 00:07:55.942, Speaker D: I was surprised that when they are running the simulations to get the what tokens the user is getting and what they are losing, they are not using events for that at all, but they are just using the state and they're saying that you cannot trust the events and you cannot calculate on the events when you are using tokens that are kind of behaving badly. But for that reason they don't want to use events. And I kind of disagreed with that. And I think those events should be. Or those contracts should be kind of. You shouldn't pick. The user needs to trust the contracts in any way.
+00:07:55.942 - 00:08:00.370, Speaker D: So then they need to trust the events as well. But they disagreed with this.
+00:08:04.510 - 00:08:12.170, Speaker E: Yeah, I agree with you. I feel like if some contract is not emitting the proper events, it's not an ERC20 token and if you don't support it, that's fine.
+00:08:14.670 - 00:08:26.440, Speaker D: It's mostly those rebasing tokens where you can send certain amount of tokens, but then your balance changes differently based on the and you cannot tell from the token event how much your balance has changed.
+00:08:27.100 - 00:08:32.400, Speaker E: Yeah, I don't know. It feels wrong to bend over backwards to support ridiculous things.
+00:08:36.300 - 00:08:45.160, Speaker D: Yeah, but for that reason they would need the pre state and post state because they want to calculate the token balance from those instead of from the events.
+00:08:51.750 - 00:09:04.210, Speaker E: So I'm not convinced that's a great use case. However, I do think that I can see other use cases where pre and post day could be useful. That was mostly for developers and analytics.
+00:09:06.070 - 00:09:32.580, Speaker D: But yeah, that could be an optional flag and then you could enable them. So we could still use the HTML1 for that to add that kind of feature. But I still think we should first get the spec working before kind of starting to add new stuff so that we have two clients that both are supporting each simulator. Do you still have any comments on this stage stuff?
+00:09:33.640 - 00:09:37.340, Speaker C: No, you summed it up pretty much for me.
+00:09:39.330 - 00:09:41.350, Speaker D: You want to include them as well?
+00:09:44.130 - 00:10:06.550, Speaker C: Yeah, I'm fine with it. So metamask was one user that asked and there was also someone else from one of these Dexes. I don't remember exactly. They also explicitly asked for something similar. So seems to be a use case that people need.
+00:10:08.530 - 00:10:11.430, Speaker D: Is there some standard format on how to return those?
+00:10:14.850 - 00:10:15.990, Speaker C: Actually, no.
+00:10:16.770 - 00:10:23.418, Speaker D: Do we return them after the whole query or after each transaction or each block or how they should be returned?
+00:10:23.514 - 00:11:15.210, Speaker C: Oh yeah, I think we should return it after each transaction because at least as far as I know, one of the use cases is to be able to then do estimate gas. So we. Yeah, we have it simulate. But if you want to do like full GAS estimation for a call, then you need to know all the state up until given transaction so that you can then at least in gas we have we it's possible to do estimate gas and override the state. So if we return the state div at transaction boundary, then users can do the estimate gas and provide this state overrides to get something in the middle of the call stack.
+00:11:16.350 - 00:11:23.530, Speaker E: Would it be more useful to just build eth. Simulate estimate gas or equivalent.
+00:11:24.590 - 00:11:25.730, Speaker C: Yes, also.
+00:11:29.720 - 00:11:46.940, Speaker E: So two. Two follow up questions on that. One, if we had simulate estimated gas, would it still be worthwhile to do the pre and post state? And two, should we focus on estimate gas as a first next feature before the pre and post states?
+00:11:49.800 - 00:12:11.940, Speaker C: I think the there was a separate distinct use case from like for metamask about this. So it seems like it's still a valid thing to add. Like valid feature about priorities. I'm not sure.
+00:12:14.800 - 00:12:22.180, Speaker D: Yeah, I think they still want to estimate transactions with the each simulate. So with the gas, do the GAS estimations with the.
+00:12:23.520 - 00:12:35.220, Speaker E: Yeah, I feel like you simulate estimate gas is probably what I would pick for a higher priority one and I would suspect a little bit easier. But maybe I'm very wrong about that.
+00:12:37.600 - 00:12:45.814, Speaker D: There. There's also a lot of things that you need to decide. Do you estimate for each transaction or you just estimate the whole bundle or how would it work?
+00:12:45.982 - 00:12:53.250, Speaker E: Each transaction, definitely. Because the user needs to be able to prepare the bundle before they submit it and each transaction needs to know how much gas it needs.
+00:12:55.550 - 00:13:01.170, Speaker D: I don't know how that would work. If you do it for each transaction, then do those transactions also depend from each other?
+00:13:01.710 - 00:13:16.550, Speaker E: Yes, we're assuming it's basically the exact same thing that we do in Interceptor where we're assuming that the user will at some point in the future Submit all these transactions in the order that you, you're simulating them. And in order to do so they need to know how much gas to give each one.
+00:13:19.650 - 00:13:36.790, Speaker D: I guess that depends. Even more complicated problems, you're going to estimate multiple. It's kind of combinatorics problem. If one transaction takes more gas than the other transaction, might change how much it requires. Yeah, so you optimize multiple gas limits at the same time.
+00:13:38.460 - 00:13:58.920, Speaker E: I mean, you optimize them in order. So you do the first transaction, calculate how much gas is going to cost, and then you move on. And then the second transaction, calculate how much gas is going to cost, move on. I don't think it's any different than just the normal procedure people follow where they estimate the gas for the approval and then they estimate the gas for the transfer.
+00:14:01.900 - 00:14:07.300, Speaker D: Yeah, but in that case those are sent separately. You understanding them those at the same time.
+00:14:13.200 - 00:14:34.550, Speaker C: Not to change the topic, but I think at some point somebody even raised like adding call calls, like call information too. But then it feels like we're basically sneakily standardizing this tracing API.
+00:14:40.650 - 00:14:44.750, Speaker E: I mean, is that it's sneakily standardizing the tracing API so bad?
+00:14:45.770 - 00:14:52.310, Speaker C: It's not. I mean, yeah, I think that would be nice.
+00:14:57.140 - 00:15:28.840, Speaker E: I do know there are a lot of people who would like to get in internal call tracing. So they don't want full tracing and operators or node administrators don't want to enable full tracing because it can be very expensive. But I would assume that just doing call tracing and nothing else is probably not too bad. And so maybe node operators would be more interested in turning that on instead of turning on full tracing. And so maybe we could just focus on that.
+00:15:32.660 - 00:15:54.020, Speaker C: Yeah, I definitely agree that full tracing is probably not something that we would want to add. But like, call traces seem interesting and they do seem to cover like most of the use cases that people care about. So yeah, something to think about.
+00:15:57.680 - 00:16:06.140, Speaker E: Okay, so step one, get all the test passing for E, simulate. Step two, head call tracing or es, estimate gas. Step three and everything else.
+00:16:08.240 - 00:16:09.580, Speaker A: Easy peasy.
+00:16:17.210 - 00:16:19.030, Speaker D: All the time. More features.
+00:16:20.730 - 00:16:35.230, Speaker A: Always. You know, guys, you created a RPC method that behaves as a whole blockchain. So what did you expect?
+00:16:37.290 - 00:16:38.596, Speaker D: It solves everything.
+00:16:38.738 - 00:16:40.992, Speaker E: Yeah, that's right.
+00:16:41.096 - 00:16:43.900, Speaker A: The trans blockchain rpc. Right. So.
+00:16:47.960 - 00:16:54.100, Speaker D: After it works well enough that we can remove all the other RPC methods, kind of optimization.
+00:16:55.000 - 00:17:23.600, Speaker E: Yeah, you can also replace consensus and just have everybody run eth simulate on a larger, larger transaction history. I don't have anything else. Sounds like we're the primary thing I think is getting another mind passing the HIVE test. Right. That's our major roadblock at the moment.
+00:17:26.180 - 00:17:33.796, Speaker D: Yeah, it would be really good to get it matching with all of the GET stuff and then we can be more confident that get is also working correctly.
+00:17:33.908 - 00:17:53.160, Speaker A: But we need. What do we need for that? Mostly the biggest problem. Okay. The timestamp is our like what we think is wrong, but we generally need. We need correctly doing everything. Like all the block hashes.
+00:17:54.300 - 00:18:18.860, Speaker E: Yeah. In the end. Yes. The current suspicion is the timestamp is causing many the test to fail. And once we fix that many of them hopefully will pass, maybe all of them. If they don't, then we need to go and figure out what the next one that's failing is and figure out who's correct nethermind or Guest, fix it in the appropriate client, move on to the next one, et cetera. We know right now that perspec the timestamp one is nethermind's doing it wrong.
+00:18:18.860 - 00:18:22.508, Speaker E: Kath is doing it right. But whatever's after that maybe I expect.
+00:18:22.564 - 00:18:44.264, Speaker A: There will be more issues. So do we have a way of logging, dumping block, rlps or anything like that? We can compare the other parts of the block rather than just timestamp because I don't remember at the moment we were talking about it at some point.
+00:18:44.352 - 00:18:47.976, Speaker D: I think we are returning quite many blocks.
+00:18:48.168 - 00:18:54.024, Speaker A: Yeah, but we are returning them. Are we returning them through our JSON rpc? Right.
+00:18:54.192 - 00:18:54.940, Speaker C: Yeah.
+00:18:55.440 - 00:19:04.378, Speaker A: And I would like to have something more native, like more native to the EVM comparison. Not sure if that makes sense.
+00:19:04.554 - 00:19:11.194, Speaker E: So when we get to the point where hashes are mismatching, we can't tell where you can compare the RLPs and that should tell you why the hashes aren't.
+00:19:11.322 - 00:19:13.226, Speaker A: Yeah, exactly. Exactly.
+00:19:13.338 - 00:19:14.110, Speaker E: Yeah.
+00:19:14.930 - 00:19:20.790, Speaker A: Do we have RLP version somewhere available or is it like to be done?
+00:19:22.930 - 00:19:26.030, Speaker C: No, we don't have the RP encoded block.
+00:19:27.760 - 00:19:28.360, Speaker A: Okay.
+00:19:28.440 - 00:19:35.592, Speaker D: We are hoping that when we get the time step and all the clear, clear stuff that the magical it has, the block has it will be matching.
+00:19:35.736 - 00:19:37.860, Speaker A: I think that's naive approach.
+00:19:39.600 - 00:19:53.020, Speaker C: I think the other structure would probably be receipts then because we do return the transactions, if I'm not mistaken, only the receipts. That would be kind of vague and under the hash.
+00:19:53.700 - 00:19:59.964, Speaker A: Well, my question mark, should we have an option to also return block RRP just for like debugging purposes?
+00:20:00.092 - 00:20:01.560, Speaker E: I guess part of the spec.
+00:20:03.380 - 00:20:03.692, Speaker C: Or.
+00:20:03.716 - 00:20:05.480, Speaker E: Are you just talking about in the test?
+00:20:07.860 - 00:20:15.680, Speaker A: Wherever. Right. Because this is. I don't expect people will use it, but I might be Mistaken.
+00:20:19.550 - 00:20:33.810, Speaker E: I could imagine somebody using it where they don't want to have a library in their client that turns a transaction into rlp, which they then sign. And so just asking for the RLP version of their simulation stack back would allow.
+00:20:35.550 - 00:20:38.166, Speaker A: Then it would have to be spec'd. Yeah.
+00:20:38.198 - 00:20:43.046, Speaker E: I mean, I'm not defending this as a great use case. I can just imagine someone wanting it.
+00:20:43.118 - 00:20:59.152, Speaker A: Yeah, well, I can imagine. But we can tell them that it's not our problem. Right, right. Because it's like. Yeah, but the question mark. Should we. Should we have something like that then? And it would be probably easier also to.
+00:20:59.152 - 00:21:23.170, Speaker A: If that timestamp thingy won't give us the result we didn't want. And I expect it would. That would be too easy. Then some easy way to compare the results in. Well, you know, like full everything. Right. And not going from field to field and trying to find where's the difference.
+00:21:24.710 - 00:21:25.086, Speaker E: Yeah.
+00:21:25.118 - 00:21:30.398, Speaker D: I guess state divs would be one. We add those features already.
+00:21:30.534 - 00:21:36.690, Speaker A: If the state root is the same, the state divs are the same. Right. And state root is already in the block.
+00:21:37.670 - 00:21:37.998, Speaker C: Yeah.
+00:21:38.014 - 00:21:42.532, Speaker D: But the problem is the state root is not matching. Then we need to figure out what makes it not.
+00:21:42.636 - 00:21:47.600, Speaker A: Yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah. That's. Then we need to go deeper. Right.
+00:21:48.780 - 00:21:56.960, Speaker E: That particular problem is the one that causes. When a client forks off. It takes 12 hours to find out why. Because comparing state diffs is hard.
+00:22:00.860 - 00:22:02.692, Speaker D: Well, pretty much. There's a better way for that.
+00:22:02.716 - 00:22:08.690, Speaker A: Nowadays tracing is the best way. Full trace.
+00:22:09.590 - 00:22:14.050, Speaker D: So if there's a big fork on the chain, then all of the nodes will do tracing.
+00:22:15.430 - 00:22:25.610, Speaker A: Yeah. Generally we get tracing from one of nodes and compare. Right. What's going on? When we have a consensus issue.
+00:22:26.310 - 00:22:29.582, Speaker E: But the tracing isn't standardized. So you can't just.
+00:22:29.766 - 00:22:34.790, Speaker A: It's more or less standardized with. Yeah. So like.
+00:22:35.090 - 00:22:37.866, Speaker E: Okay, I haven't looked at it for a long time. Is it.
+00:22:37.938 - 00:22:52.230, Speaker A: You know, if we have a consensus issue, it's like manual work still. Right. To figure it out exactly what's happening. But yeah, it's like for. Yeah. So it's like more or less standardized, but it's not that great.
+00:22:54.610 - 00:23:02.950, Speaker E: So I'm not opposed to having some option like a flag or something you can pass where you say, I would like to get the RLP of each transaction back.
+00:23:03.550 - 00:23:05.290, Speaker A: I would say ROP of the block.
+00:23:05.950 - 00:23:06.838, Speaker E: Of the block.
+00:23:06.934 - 00:23:08.934, Speaker A: Of the block on the block level.
+00:23:09.102 - 00:23:10.970, Speaker E: Including the body or just the header.
+00:23:12.110 - 00:23:13.530, Speaker A: That's debatable.
+00:23:18.990 - 00:23:25.970, Speaker C: Is it okay if we provide this feature in a branch and then discuss whether we want to merge it or.
+00:23:26.830 - 00:23:33.940, Speaker A: Maybe let's do this time something first and if we have still the problem, let's focus on that. Maybe that would be the like.
+00:23:36.960 - 00:23:37.272, Speaker B: It.
+00:23:37.296 - 00:23:44.580, Speaker A: Seems fine to me because I expect we will need to do something like that if we. If we are not really close after the time stop issue.
+00:23:45.520 - 00:23:50.136, Speaker D: Like Olagar said that there's a self destruct one as well. I don't know if that was fixed.
+00:23:50.168 - 00:24:23.440, Speaker A: Already to be honest. I'm not sure because we were fixing something but we had issues with our test so we weren't sure if it's actually actually fix. And one of the things Rocket will be looking into is that test and. And going there. So we did have some kind of fix but we had problems testing troubles testing it at the moment. So yeah, that's something that we Rohit is aware of. We'll be looking into.
+00:24:23.440 - 00:24:26.708, Speaker A: Yeah.
+00:24:26.724 - 00:24:32.840, Speaker D: I would recommend the first thing would be to get the test suit working and be able to run tests to see the differences.
+00:24:37.170 - 00:24:42.506, Speaker A: Okay. So more or less up to speed. Anything else?
+00:24:42.538 - 00:24:50.746, Speaker D: So we are still. Still hoping to fix those issues and then hoping that everything match after that. And if they don't match then we start to working on this other kind of stuff.
+00:24:50.858 - 00:24:51.194, Speaker A: Yeah.
+00:24:51.242 - 00:24:52.266, Speaker D: See what's the difference?
+00:24:52.378 - 00:25:06.220, Speaker A: Yeah, let's go with this. This part. I'm. I'm. You know, from my experience it would be too easy if that's only. This is the only thing.
+00:25:07.240 - 00:25:08.980, Speaker E: This isn't your first rodeo.
+00:25:09.800 - 00:25:19.780, Speaker A: Well, you know it's like a consensus issue. Right. You basically want to have consensus between ETH simulate and it's you know, not that easy.
+00:25:20.440 - 00:25:24.540, Speaker E: Anyone who has done core client dev knows that it never works on the first try.
+00:25:26.850 - 00:25:29.830, Speaker A: It never works in first five or ten.
+00:25:32.530 - 00:26:01.920, Speaker D: Well, I have a couple of other cases that can be. One is that we have to have netimat and get has a different defaults for different transactions and those and that's one to look at as well that those are matching. And then we had also that interesting way of calculating the gas limit if gas limit is not missing. That's also one case that also would be looked at if we are not matching those. But I'm hoping that the EVM is running the same in get an atom and so if we provide the same input then it should behave the same.
+00:26:02.460 - 00:26:17.000, Speaker A: Yeah, the evm the very internals are definitely the same because that's. That's consensus on the mainnet. But like the. The outer. The instrumenting part is definitely different and that's that's the root cause of the problems.
+00:26:22.670 - 00:26:24.010, Speaker D: Do anything else?
+00:26:26.670 - 00:26:27.610, Speaker A: Nope.
+00:26:32.990 - 00:26:41.850, Speaker D: And Rohit, if you have any questions then just ask in the chat. And people will help you the questions. So don't be afraid of asking stuff.
+00:26:43.480 - 00:26:53.020, Speaker B: No worries. I'll just ask on the telegram. Yeah, by the way. So.
+00:26:56.040 - 00:26:57.136, Speaker D: What did you say?
+00:26:57.288 - 00:27:00.700, Speaker B: I believe in one minute. So bye everyone.
+00:27:09.090 - 00:27:10.906, Speaker D: Talk to you again next week.
+00:27:11.058 - 00:27:12.746, Speaker C: Yeah, talk to you guys.
+00:27:12.938 - 00:27:14.670, Speaker A: Yeah, next week. Bye.

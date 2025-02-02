@@ -1,0 +1,210 @@
+00:03:57.475 - 00:03:58.015, Speaker A: Hello.
+00:04:01.435 - 00:04:02.255, Speaker B: Hello.
+00:04:41.135 - 00:04:45.235, Speaker C: Some damage to people's calendar.
+00:04:49.335 - 00:04:50.075, Speaker B: Always.
+00:05:13.505 - 00:05:14.485, Speaker D: Hey guys.
+00:06:45.335 - 00:07:00.915, Speaker C: Not sure if we can do all the client updates. Yeah, if anyone wants to give a client update first. Jamie.
+00:07:03.655 - 00:07:23.365, Speaker D: Hey. Hello. From the Lighthouse side. We don't have a lot to update this week. We've been working on other priorities preparing for our release. So we haven't made much progress this week. We've got some refactoring happening on the syncing bit, but we haven't make.
+00:07:23.365 - 00:07:36.425, Speaker D: We haven't missed significant progress. Hopefully we can make some more progress next week, but yeah, we're still working on sync at the moment, but not much else. Where. That's all from our side.
+00:07:40.525 - 00:07:41.265, Speaker A: Not.
+00:07:43.085 - 00:07:45.235, Speaker C: And then Heku.
+00:07:49.695 - 00:07:50.119, Speaker A: Yeah.
+00:07:50.167 - 00:08:03.231, Speaker D: Hey. Yeah. From Tecu site, Dmitry has been rebasing Teko to Petra but he didn't manage.
+00:08:03.303 - 00:08:07.595, Speaker B: To complete it before his location and said it.
+00:08:07.975 - 00:08:11.657, Speaker D: And it's another week probably to complete.
+00:08:11.681 - 00:08:13.321, Speaker E: This from my side.
+00:08:13.353 - 00:08:17.049, Speaker D: I'm doing different optimization.
+00:08:17.137 - 00:08:20.761, Speaker F: Refactorings removed.
+00:08:20.913 - 00:08:28.125, Speaker D: Recently removed. Silly thing like for sampling. Like retrieving.
+00:08:29.625 - 00:08:33.265, Speaker E: Retrieving samples from database and validating them again.
+00:08:33.345 - 00:08:36.005, Speaker A: So I just yesterday saw that.
+00:08:36.764 - 00:08:39.460, Speaker D: Hope for PR notice.
+00:08:39.612 - 00:08:41.664, Speaker F: Yeah, that makes sense.
+00:08:42.444 - 00:08:43.984, Speaker E: That's it. Complexity.
+00:08:47.404 - 00:08:55.304, Speaker C: Thank you. Anywhere else?
+00:08:57.844 - 00:10:08.805, Speaker F: Hi, I'm from the Nimbus team. There were a couple of issues that we tracked down during Peer Dos Devnet 3. One of them was there were times when the Nimbus BN would boot and the CSC param inside metadata wouldn't get populated. This was an issue actually raised both by Prism and Barnabas during the Devnet 3 run. This was one. The other issue that we had during the Devnet3 run was there were often some times when we were broadcasting reconstructed columns, but there was a proof and commitment length mismatch and possibly, possibly some client must have picked it up and still accepted via gossip or something. I think it caused a little bit of breakage in the network, but in spite of that I still found Lodestar, Teku and Prism to be fine.
+00:10:08.805 - 00:11:04.869, Speaker F: So that issue is fixed as well. So this primarily happened during reconstruction and it was a very niche reproduction. It didn't happen all the time, but it happened sometimes. So coming to that, I actually tracked down another issue Nimbus was having. So Nimbus actually maintains something called a quarantine. So it basically is like an in memory cache which keeps the sidecars against blocks that have not been processed yet. Now, since Nimbus was reconstructing directly from the database, like reading and writing into the database, there were often times, let's say when we receive block proposal and we didn't receive all the columns against that block.
+00:11:04.869 - 00:12:10.955, Speaker F: Maybe due to some reason in those times, even if our database was populated with those reconstructed columns, our quarantine cache kind of kept on crying that some of these columns are missing. And turns out it like kept crying for a few epochs and it kept root requesting other peers. And probably it is a possible reason for us to get downscored. So I tackled that issue by basically enabling reconstruction right from Gossip. So right now if a super node, let's say, receives enough number of columns directly from Gossip validation, it keeps trying to reconstruct rather than later reading from the database and then writing back this way we don't have any inconsistency between the quarantine cache and the final database. Like all the columns persisted in the database. So that was the other issue.
+00:12:10.955 - 00:13:51.965, Speaker F: Apart from that, I have been actually doing some experimentation along column syncing for the super node, which basically involves attempting to reconstruct columns against a block index. Let's say if you just received 50% and up via arrange request from another client, you don't need to rely anymore. So you try to reconstruct and populate it in the database, populate the rest of the columns in the database and thereby proceed with syncing. I think I would want to keep this feature specific to devnets because there are occurrences when we are receiving bad columns, but in practice I don't think we would trigger this reconstruction while syncing that often. And lastly, we are so Nimbus doesn't really have a proper way to handle soft forks. So what we are trying to do is since there has been some talks in and around activating peerdas at Fulu, we are currently integrating the Fulu fork in Nimbus unstable and we are planning to activate peerdos at Fulu right now in order to somewhat decouple some of the Electra code and the peer DAS code. Keep it separate for now, right now until and unless there has been some finalization from EF or all of us.
+00:13:51.965 - 00:14:44.235, Speaker F: So currently our design states so we'll be using the same branch for both Spectra and peerdos and we would really like to trigger peer DAS at Fulu if so doesn't happen. If, let's say if the kurtosis config still says that let's trigger it at some EIP759 for fork, our plan is to pick up that like parse that number from the config and replace it with Fulu. So we'll be faking Fulu because there is no Other foolproof way in which we can basically have a soft fork going on in peer does. So that's pretty much updates from Nimbus over the last two week. Last two weeks. Yeah. That's pretty much from my side as well.
+00:14:49.615 - 00:15:03.365, Speaker C: Thank you, Agnes. So. So next one is. Would be prison. Nishan has the slides to take it on.
+00:15:04.025 - 00:15:04.729, Speaker D: Hey guys.
+00:15:04.817 - 00:15:08.065, Speaker F: Yeah, so on our end we're basically.
+00:15:08.185 - 00:15:15.049, Speaker D: Just fixing some initial sync issues. So there was a bug on solving.
+00:15:15.097 - 00:15:18.725, Speaker F: Full nodes, so we have patched it on our end.
+00:15:19.175 - 00:15:23.911, Speaker D: Also done some big optimizations to batch column verification.
+00:15:24.103 - 00:15:25.079, Speaker F: So that's done.
+00:15:25.167 - 00:15:33.991, Speaker D: So now Prism can sync large amount of data columns in less than a second rather than three seconds.
+00:15:34.183 - 00:15:37.519, Speaker F: That was the case before on rebasing.
+00:15:37.567 - 00:15:40.439, Speaker D: On top of Vectra, it already works for us.
+00:15:40.607 - 00:15:50.165, Speaker F: So if you run Prism with Vectra Devnet with peer dots, we should be okay last I checked. Yeah, that's all.
+00:15:52.825 - 00:15:57.885, Speaker B: Would forcraft activation on F would be working for Prism also.
+00:16:00.905 - 00:16:02.925, Speaker F: So this would be a new fork, is it?
+00:16:03.865 - 00:16:04.685, Speaker B: Yeah.
+00:16:09.785 - 00:16:16.895, Speaker D: That'S trickier because it's new for. Would you have the state having a new fork version?
+00:16:21.315 - 00:16:27.935, Speaker B: Yeah, so we would have a new fork version. At least that's what Nimbus is pushing for.
+00:16:30.835 - 00:16:32.251, Speaker D: Yeah, that's a lot more work for.
+00:16:32.283 - 00:16:41.217, Speaker F: Us because it will essentially be, you know, setting up everything for off and.
+00:16:41.241 - 00:16:48.125, Speaker D: You need this transition to transition the become shape from TE to full.
+00:17:05.474 - 00:17:43.455, Speaker F: Yeah, but like I have a question. So like when Prism was working like on peer dos as Deneb was in the Beacon state. Deneb and now that it's Electra, I. I'm not like sure how Prism is handling peer does. Like I mean if. If the Beacon state was Deneb and still peer das worked and then the Beacon state was Electra and still peerdos worked, shouldn't it still work for Fulu like. No, but you're asking for a new state transition.
+00:17:43.455 - 00:17:46.211, Speaker F: This is not like simply Petra and.
+00:17:46.243 - 00:17:49.535, Speaker D: We have a soft fork at the fulu.
+00:17:50.595 - 00:18:07.873, Speaker F: This is basically. Yeah, you have to add in the new fork version. You know, once you schedule that, you have to do like a bunch of other things. So it's a lot more. Yeah, it's a lot more work than just having a. Not a soft. Right, right.
+00:18:07.873 - 00:18:12.725, Speaker F: I mean. Okay, yeah, yeah, I get it. Yeah.
+00:18:24.465 - 00:18:28.725, Speaker C: Thank you. Next one would be low star.
+00:18:37.755 - 00:18:39.955, Speaker D: So can you provide with the context?
+00:18:40.035 - 00:18:41.095, Speaker F: I joined late.
+00:18:43.195 - 00:18:46.495, Speaker C: Now we're just doing the client update.
+00:18:49.515 - 00:18:58.821, Speaker D: Yeah, sort of. We haven't worked on it since the last time. So yeah, not much update from our site.
+00:18:59.013 - 00:19:02.225, Speaker F: But with Regard to get blobs.
+00:19:03.365 - 00:19:05.029, Speaker B: So we were talking that get blobs.
+00:19:05.077 - 00:19:06.985, Speaker D: Will also be useful in.
+00:19:09.685 - 00:19:10.429, Speaker B: Peer das.
+00:19:10.477 - 00:19:14.205, Speaker F: But I think that get blobs might.
+00:19:14.245 - 00:19:16.065, Speaker B: Not be as useful over there because.
+00:19:17.165 - 00:19:19.005, Speaker D: With my get blobs experiment the hit.
+00:19:19.045 - 00:19:20.070, Speaker E: Rate is like 80%.
+00:19:20.147 - 00:19:21.261, Speaker B: It's never 100%.
+00:19:21.333 - 00:19:27.973, Speaker D: And for you to reconstruct the data columns that you need, you need all.
+00:19:27.989 - 00:19:33.145, Speaker B: The blobs because a data column is a slice column, slice across all the blobs.
+00:19:33.445 - 00:19:34.165, Speaker D: So.
+00:19:34.325 - 00:19:36.197, Speaker B: Yeah, but apart from that.
+00:19:36.341 - 00:19:37.745, Speaker F: Yeah, that's it.
+00:19:40.205 - 00:20:19.835, Speaker C: Thank you. Do we have anyone from granting here? Okay. And did I miss anyone? Okay, thank you. So next we'll talk about the spec. Sorry, definite updates. I think we could start with the updates from. Tell me about the current definite progress.
+00:20:21.855 - 00:20:44.505, Speaker B: Yeah, so DevNet3 is pretty much dead. We had over 100,000 slots reorg from Prism side last week. In the end of the week I don't think we can realistically recover from this. So I'm proposing to shut it up today and we need to start discussing the NET four timelines, I think.
+00:20:52.245 - 00:21:04.745, Speaker C: Oh, thank you. So the document is this. This one, right? I just post it on the. In the chat.
+00:21:05.075 - 00:21:05.667, Speaker B: Yes.
+00:21:05.771 - 00:21:06.575, Speaker C: For the.
+00:21:11.515 - 00:22:23.435, Speaker B: So the devnet for spec would probably include the rebase, unless people want to have another devnet before this which is the same spec as MS.3. The thing is that the two branches are getting further and further apart so you should do the rebase I think as soon as possible. And I think most client teams are focusing on delivering picture right now. So it might make sense to take a month off from having a peer desnet and just focus on working on the rebate and then Launch Peer Desk Net 4 Once we have pictured DevNet 5 ready to go and then build it on top of that, possibly with the fork activation at F. So that way we can have both words ready. So that would mean that Peertas Net 4 would probably launch around the end of November, possibly a week or two after we can launch Vector DevNet 5. And ideally we would activate Peerdes with Fulu at that point.
+00:22:23.435 - 00:23:04.375, Speaker B: Yeah, I think most teams will be in defcon. That's why I don't expect to launch in like the next two to three weeks anything. The question would be if client teams would be ready to do NET four in the end of November, assuming that they would also need to implement a new fork, a new for transition. I mean with the flu.
+00:23:12.155 - 00:23:37.305, Speaker C: Thank you. Anyone have any suggestions or objection? I think I would agree with this plan to have a more comprehensive full definite instead of Pushing things Rush before devcon.
+00:23:48.535 - 00:24:07.915, Speaker B: Is it fair to assume that we want to activate peer DAs at Fulu? Are all the client teams okay with kind of hard coding that. Because that would actually assume that we want to include Peer Desks in the full upgrade. Pretty much 99%.
+00:24:19.155 - 00:24:23.535, Speaker D: Is there any, any other feature scheduled for Food at the moment?
+00:24:24.235 - 00:24:34.589, Speaker B: You have. But not no CL side as far as I. Yeah, I mean that's just.
+00:24:34.637 - 00:25:25.003, Speaker E: Surfacing the discussion that's also just happening on chat. So if we activate on Fulu, essentially how we would handle testing is so there's EOS that activates on Fulu as well. But we would just use for example Nimbus Table for EOF testing and we activate FULU there. But FULU means nothing for Nimbus Table, for example, but it does mean something for the EL fork. So the EL will activate EOF and the CL will basically use whatever Electris. And in the peer DOS world we can activate FU as well, but we'll use Get Stable for example, and Get Stable will just ignore the Fulu fork because it has no logic and it will continue with whatever we've defined in Petra. And whatever the CL client is will activate peer DAs.
+00:25:25.003 - 00:25:47.567, Speaker E: So we're just essentially agreeing to use different branches for different testing as long as the client ignores a fork that it does not recognize. So that's the one behavior we need. So if a CL fields when we provide it a fork and it doesn't understand it, then we would have to fix that behavior. But otherwise I think we're okay.
+00:25:47.751 - 00:25:52.927, Speaker B: Are we sure that EL can ignore fork?
+00:25:53.071 - 00:26:01.205, Speaker E: We'll have to sanity check this. But I know GET ignores it, for example. Okay, but we will have to sign in to check this.
+00:26:02.025 - 00:26:07.817, Speaker B: Yeah, I know that CLS would ignore unknown forks. I have verified that already.
+00:26:08.001 - 00:27:03.445, Speaker E: Okay, perfect. Then we should be okay. Yeah, but yeah, that's essentially the one behavior we're agreeing to today. Everything else we can sort out with using different images or Genesis generator or kurtosis configs. But that behavior is something we're agreeing on. And I think by the time we hit devcon, we should just agree on which version, like which spec release of PETRA we want to base stuff on and just target that release for a longer duration of time because I'll assume there's going to be more Pectra spec releases and each time we have to update multiple code bases that might be harder.
+00:27:04.065 - 00:27:22.015, Speaker B: I think we should already agree to be DevNet 5 Vector DevNet 5 spec, which would include 7742 because we would potentially want to mess around with different number of blobs. So ideally all of that would be based on top of that.
+00:27:22.915 - 00:27:23.815, Speaker E: Makes sense.
+00:27:24.355 - 00:27:25.003, Speaker F: Yeah.
+00:27:25.139 - 00:27:29.895, Speaker B: I just don't see us needing to target anything earlier than that.
+00:27:45.565 - 00:28:19.395, Speaker C: Right. Okay. So yes, technically for CL like including to blue with only vdas features, easier for us and somewhat make the code base cleaner. But it seems it's better to have a double check at ACD with the els. Is that correct, Perry?
+00:28:22.735 - 00:28:42.435, Speaker E: Yeah, I guess double checking with ACD does kind of make sense because this essentially commits to PR DAs as the next walk and we can always change that. But yeah, we're essentially saying here does this follow? Which we have agreed in paper earlier, but I don't know if we've made a strong commitment.
+00:28:47.655 - 00:29:22.145, Speaker C: Okay. Yeah. So let's double check at acd. Okay. We have still now we have more weeks for the definite so included more small PRs. Yeah, thank you. So I'm going back to the chat suggest that we can discuss 7702.
+00:29:22.145 - 00:29:28.727, Speaker C: Yeah, so I think it is. Yeah, go.
+00:29:28.911 - 00:30:18.205, Speaker B: Yeah. So it would be good to discuss how we want to actually activate the target and the max blob. Whether we want to keep the legacy values and then just introduce new one with Electra and Hulu or whether we want to do change the already existing name to the NAB prefix or postfix. As far as I know config values should not be renamed. So there was some pushback to rename existing config values. So it's probably just better to.
+00:30:20.395 - 00:30:20.915, Speaker D: Prefix.
+00:30:20.955 - 00:30:23.455, Speaker B: Them or postfix them with new fork.
+00:31:14.015 - 00:32:32.735, Speaker C: Yeah, so after the request I will go through again to see if this would impact. I mean at least EIP will impact the current peer desk feature. I think that I would be included with this max blobs per block change. But like yeah, and I think I reply in the discord that I think we will not change the current Dan app configuration. So like this we will do the traditional spake writing way, add the prefix to the or suffix to the parameters which should, you know, more redundant. But it seems the safe solution to represent the F changes, unfortunately.
+00:32:34.795 - 00:32:43.055, Speaker B: Is there a reason that the app was not included in those names previously or was that just a mistake?
+00:32:44.795 - 00:33:01.505, Speaker C: No, just when one configuration first time created it doesn't have any prefix. But when it is updated in the next fork or other forks then we will add the prefix.
+00:33:03.725 - 00:33:33.115, Speaker B: But for example the max blobs per block, that's not a value that is actively being used. That was added four months ago only So I don't understand why we could not add the nap for this value that is listed under DNA but it's not actually dnab. I think the plan just made an error including it under the nap.
+00:33:41.495 - 00:33:44.749, Speaker E: Was it a preset earlier and was moved to configuration?
+00:33:44.867 - 00:33:53.645, Speaker B: Yes. Okay, but as far as I know it's not being used by any client teams.
+00:34:08.305 - 00:34:39.385, Speaker C: Yes. Oh, if it the. Sorry. I think for the blob Max blob that one would be peer desk only. But if there are some other parameters that will be. If this is the new ones then it would be. You know, we will have to add such a suffix like.
+00:34:39.385 - 00:34:50.365, Speaker C: So I'm checking is like target blast per blob. Target blob per block Is that Danube configuration.
+00:34:52.425 - 00:34:58.165, Speaker B: The target. No, the target one is also not the app configuration. As far as I know.
+00:35:01.145 - 00:35:05.285, Speaker C: Like all of them are like blob Sorry, peer desk only.
+00:35:11.935 - 00:36:00.065, Speaker B: I don't think we have a target config even set. And what I mean is that the max blobs per block is not a config value that is being actively used by anyone. It used to be a preset and then four months ago during Kenya we discussed that it should be a config parameter and apply on made a PR the 3817 which introduced it as a config parameter. But as far as I know, nobody has actually used that config parameter till today. So it's not likely that it matters what it's being called. We could just rename it to being Electra Max plops per block Electra or max plops per block denab6 for example.
+00:36:05.285 - 00:36:15.145, Speaker C: But like next block block. That one was a DNAP used one, right?
+00:36:15.885 - 00:36:18.105, Speaker B: No, it's not. That's my point.
+00:36:20.605 - 00:36:26.945, Speaker E: It was a reset earlier, now it's a config. So it actually hasn't been released on mainnet anywhere.
+00:36:31.015 - 00:36:35.235, Speaker B: It was added four months ago and we already had the nab four months ago.
+00:36:42.855 - 00:36:55.205, Speaker C: I see this. I mean the mix block, that one was using the D P2P protocol stake.
+00:36:55.625 - 00:36:57.845, Speaker B: As a preset, not as a config.
+00:36:58.625 - 00:36:59.885, Speaker C: Ah, I see.
+00:37:02.025 - 00:37:02.765, Speaker A: So.
+00:37:06.425 - 00:37:14.845, Speaker B: If we introduce it as a config, we might as well introduce the config with the proper name with the. With the denard name in it.
+00:37:20.915 - 00:37:54.985, Speaker E: Yeah, I think. I don't know, maybe client teams can chime in on that. Because I think moving from preset to config is easier than moving from preset to config as well as renaming. I guess we can take that discussion to discord.
+00:38:02.005 - 00:38:47.685, Speaker C: I Think just probably we put it to configuration so that I think could have more flexibility to tune these parameters for the focal definite also. But now it became fog parameters which make it probably less configurable. I don't know. That's as far as that. We can continue the discussion at discord.
+00:38:50.745 - 00:39:17.115, Speaker D: Yeah, I think another point I want to raise is we want to avoid renaming those preset configuration because it's also a breaking change the users of the beaker node because beaker node serves an endpoint that returns a list of configuration of the current node. So if we change a config it would be. I mean if we change a config name then it will be a breaking change.
+00:39:19.175 - 00:39:34.005, Speaker B: But do you actually return this value as a config? Because this was reset before. So I don't think this is returned by any consensus layer client. That's my point.
+00:39:37.545 - 00:39:42.805, Speaker D: Yeah, I'm actually not sure about that. I can double check.
+00:39:56.395 - 00:40:32.705, Speaker C: Okay, so let's check the spec, check the client information and then get back on the discord. Sorry. Let's go back a bit to the definite PR discussions. So also I think added one item on the agenda. Would you like to give an update on that pr?
+00:40:34.245 - 00:41:02.725, Speaker E: Yeah, yeah. I want to bring the decouple thing, the couple subnet thing back to the discussion. Like yeah, it seemed like everyone in the PR like is convinced already like that that okay. Is somewhat useful maybe. Yeah. I. Is there any like opinion or comment before we can probably like merge that.
+00:41:26.355 - 00:42:15.195, Speaker C: Many kinds have this appetite to include this reflector to the definite. Anyone has any suggestions or comments? If not we can get back to the PR GitHub discussion later.
+00:42:17.495 - 00:43:20.445, Speaker E: Yeah and also I have another PR is about like because currently we don't standardize how we keep the the data column cycle in the store and it turned out that there are some issue in the spec. Like first of all we cannot make any assumption on what is inside the store. Like for example the data column that is kept in the store is already valid or not. So yeah, so this PR is about like standardize it like to make sure that every data column cycle that is in the store is already valid. So maybe you can take a look in the print.
+00:43:21.615 - 00:43:22.795, Speaker C: Thank you Pop.
+00:43:34.455 - 00:43:36.635, Speaker B: Yeah, sorry, I just forgot to.
+00:43:40.015 - 00:43:45.995, Speaker C: Do we have any other like features? PRS discussion.
+00:44:04.335 - 00:44:08.595, Speaker A: Everyone, can we discuss quickly metrics?
+00:44:12.385 - 00:44:13.125, Speaker C: Sure.
+00:44:15.665 - 00:44:17.685, Speaker A: Sorry, can we discuss metrics?
+00:44:19.025 - 00:44:19.765, Speaker C: Yes.
+00:44:21.665 - 00:45:17.525, Speaker A: Yeah, I will quickly share the latest er we're discussing and metrics as well. So we have two points to discuss. Do we need to use milliseconds or seconds for runtime metrics. We've discussed it already in the chats, so I would like to hear from the clients. There is a concern from Prism that there should be more granularity for histograms and for runtime metrics. So milliseconds would be preferable. What do you think? And these metrics will go to Sato and will be used by research teams as well.
+00:45:17.525 - 00:45:55.855, Speaker A: At least some of these metrics. Currently Lighthouse user seconds and Prism uses milliseconds. So we need to agree what we are going to use. Is Jimmy here? Oh yeah, Jimmy, could you please comment?
+00:45:58.925 - 00:46:07.425, Speaker D: Yeah, we don't have a strong preference. So if millisecond is preferred, then we're happy to change our existing metrics, I guess.
+00:46:09.165 - 00:47:03.079, Speaker A: Okay, then I guess. Anyone else? If not, I guess I will turn it to milliseconds. And the second question is single or batched verification. As far as I got it, it's the way of optimization and the clients do it in different ways so it's kind of difficult to compare. Maybe we can leave these metrics for monitoring. Not like for comparison if it's not possible, but for monitoring. How do you think? Because some clients use only batch verification.
+00:47:03.079 - 00:47:11.315, Speaker A: Some. Some of them use batch, but in fact it's single. So. Yeah.
+00:47:12.255 - 00:47:19.485, Speaker B: Who is. Who is reporting that it's doing batch but doing single? Because that sounds like a mistake.
+00:47:24.225 - 00:48:04.343, Speaker A: It's. It's in this pr. If you go down, it's Tersek and Matthew. We were discussing this in the pr. So the last message. So the client's concerned that it's not possible to compare this implementation. Batch verification.
+00:48:04.343 - 00:48:53.435, Speaker A: I know that it is important for research team because we discussed it with Miglaps and. Yeah, so I don't know. I would like to hear from you. Do we need to leave to continue work on this metric team? Unfortunately not. Here. Copy paste. Okay.
+00:48:57.655 - 00:49:42.219, Speaker F: I actually have a question. So I think I don't understand what is single seconds and batch seconds? Because if we are using the same C API, then I think the only public function that is exposed is verify KZG batch. I think. And I think in that case we would just use batch seconds and not single seconds at all. I mean, I'm not sure how other clients do it, but this is actually what we do. And I did confirm it from Justin. He said that single verification is not probably exposed.
+00:49:42.219 - 00:49:56.865, Speaker F: So I'm not sure how clients actually use that function. So. Yeah, or maybe I'm getting some it wrong. Totally. So I just need some more clarification. On this.
+00:49:59.085 - 00:50:06.265, Speaker A: Yeah, that what I would like to hear from clients as well. If anyone uses single verification.
+00:50:14.405 - 00:50:38.575, Speaker D: Yeah. So for Lighthouse I'm just having a quick look now and I think maybe the issue is from our side is because we actually used a single metrics but under hood we're actually calling the batch verification function. So maybe that's where the confusion come from. So we could just change our metric to use the batch times and remove the single times.
+00:50:45.565 - 00:50:59.985, Speaker A: Any other clients? What I hear now is it's only batch verification so probably we can skip this single.
+00:51:02.325 - 00:51:06.465, Speaker F: I think we are all. Oh, here's something.
+00:51:09.365 - 00:51:12.725, Speaker D: Sorry, I think I just raised my hand. Maxed. Sorry.
+00:51:15.745 - 00:51:41.015, Speaker F: Yeah, so I think we are all constrained to use batch verification because we don't have access to the single verification. Yeah. Function that way like how CKCG is exposed. So I don't think unless somebody uses Kev's library, I don't think we have access to single verification.
+00:51:45.555 - 00:51:51.935, Speaker A: Okay. Okay. I think if anyone is agree. So we can skip the single verification.
+00:51:54.355 - 00:52:00.015, Speaker B: I think single verification just got removed from the API so it's just not available.
+00:52:02.315 - 00:52:23.425, Speaker A: Okay. And as for batch verification, does the implementation differ much or not? Or it's how it is implemented in the clients. Can we say that we can compare it or not.
+00:52:25.605 - 00:52:29.305, Speaker B: For the functions themselves they should be comparable.
+00:52:36.255 - 00:52:37.275, Speaker A: So probably.
+00:52:38.175 - 00:53:08.337, Speaker F: I think the only. Yeah, yeah I think the only difference is CKCG calls a separate single verification function in itself like in the batch verification exposed function and probably Kev does everything in one function like that's probably the only difference. So I don't think it's. Oh, I mean. I mean technically it's comparable only. Yeah. Pretty similar.
+00:53:08.337 - 00:53:09.045, Speaker F: Yeah.
+00:53:12.785 - 00:54:08.935, Speaker A: So let's try to implement it and we'll see the results if they differ dramatically or not. So the other group of metrics is gossip sub metrics and the main concern is how to counter unfiltered received messages. Do we need to count invalid messages or not? Because some of the client filter them like even before discounting. So that would be nice to hear as well. How you implement this filtering, Is it possible to count unfiltered messages and do we need to count invalid messages or only valid messages duplicated?
+00:54:16.605 - 00:54:21.665, Speaker D: Sorry, K. I missed that. Which particular metric are you talking about?
+00:54:23.125 - 00:55:29.555, Speaker A: Yeah, sorry, I will quickly copy it into the. Into the chat. So we are talking about this received counts unfiltered. So it means received gossip messages. The discussion about it is also in the 13th PR. I think it's prison team. Unfortunately it's the prison team is not here today.
+00:55:29.555 - 00:56:31.505, Speaker A: So it's a little bit confusing to discuss it, but just it's. It. It would be nice to know how, how you count if, if you count how you implement this filter. So do you include invalid messages or not include? If we're talking about counting these messages, is it possible to implement it in the same way? Could you comment?
+00:56:34.405 - 00:57:19.395, Speaker F: Yeah. So I think what you're like suggesting is at the high level, once we run gossip validation, you want a count of all the messages that failed Gossip validation, but just at the high level. Right, because it'll be really difficult for us to do it in the lib P2P layer because there are duplicate messages firstly. And secondly, it's because like Nim Lib P2P is just not Ethereum specific. It's used by others. So we would have to maintain a branch. If we would want to count invalid messages in the lib P2P layer as well, that would be like very like intense hard work for us.
+00:57:19.395 - 00:57:28.275, Speaker F: So I think what you, what you mean to say is in the app level and not in the P2P layer. Right?
+00:57:30.735 - 00:58:05.715, Speaker A: So we don't need to count invalid invalid messages like separately. So we just need to agree if we count all the messages, including valid and invalid in this duplicated metrics. So because yeah, it depends on implementation.
+00:58:14.505 - 00:58:17.605, Speaker F: Dustin, can you care to comment here once?
+00:58:19.985 - 00:59:17.185, Speaker E: Sure. I think barely, briefly I'll say, and I know I've been outspoken in that pr, but I don't actually have anything necessarily against, I think the idea of counting duplicate messages. Say it's fine. Substantively, I don't have anything against that per se. It's a process concern. It is exactly the way Agniesz is describing that these are not Ethereum specific libraries and it creates either engineering issues or sort of, let's say, political tensions, like pushing like does Ethereum try to almost colonize with P2P in any case to standardize on metrics that require LIB P2P based on a process that, you know, we in this room are not very many people compared to the people who are using P2P overall. And so that.
+00:59:17.185 - 00:59:47.235, Speaker E: So my concerns are broadly speaking process oriented as maybe how I'll want to pay. I do want to clarify, I'm not really against any of these metrics as such. I mean, I think some of them are dubiously useful reasons. I say, I mean the gossip messages have sort of near constant multipliers between, you know, the bytes and counts, but things like that are sort of side concerns. But that, that's Sort of what I'm trying to get at, I guess in my, in that pr.
+00:59:49.535 - 00:59:55.165, Speaker A: Do we. Do we need this unfiltered metric? In general.
+01:00:00.985 - 01:00:43.455, Speaker D: I think this is primarily useful to see how much duplicate you're getting. For example, recently we've been looking at the. Net metrics and we're seeing a lot of like, a lot of like, usage on developed topics. And with this metric we're able to see that we're actually getting like the same blob five times for every slot on average. So that, that's the use of it, like to see like how much duplicate we're getting. But I don't know like how, like, I don't know whether this would be something that every client wants to add because it might be a bit difficult if it's. If it's in the P2P layer.
+01:00:47.125 - 01:01:44.525, Speaker B: The question is if we can deliver peer desk without the metrics. Because at this point we have so many different forks and different issues that without the metrics I feel like we are kind of blind in like what is happening. So I'm really hoping that by pushing all the client teams to implement these specific metrics, we're going to have a bit more, a bit more oversight in what is actually happening in peer test and like, which columns are received by which peers and which columns are provided by which other peers. So it's really about do we actually need this or is it nice to have. And I feel like we should focus on the metrics that are an absolute must and possibly make the other ones optional. You just have to decide which ones are an absolute must.
+01:02:03.105 - 01:02:46.837, Speaker F: Yeah. So I think apart from metrics, the one thing that we can do, and I have seen this in a lot of load star logs, is that Lodestar, like logs out the Eth2 agent. Like basically the client, the guy who is like, let's say requested something or sent something via gossip. I think we should all have that like at least that thing enabled in peer DOS logs. It just eases out the job a lot. Otherwise we just need to again, continuously like filter out peer ID and all these things. So I think eth2agents is something like.
+01:02:46.837 - 01:03:20.495, Speaker F: Or like not just agents, we name it as eth2agents in Nimbus. But like, who is who? I think just getting that on the peer like logs would be really. Yeah, Gajinder has like agreed to that as well. Yeah. Because it just makes the, like, it just makes life very easy to debug. So yeah, if I have to ever interrupt some really specific Function, I would definitely go with lodestar because lodestar just tells that I am the culprit if I am the culprit. Really.
+01:03:20.495 - 01:03:28.955, Speaker F: So yeah, I mean I think all the clients can try to have something like this in their logs.
+01:03:38.665 - 01:04:09.995, Speaker A: What about graphs? I mean we can use these metrics for grafana dashboards for monitoring for a long, long time monitoring. Because as far as I got it, sometimes dashboards help to find the bugs which are not obvious in the logs. Well, we have a lot of logs so it's difficult to follow them all.
+01:04:15.015 - 01:04:45.465, Speaker F: I think the duplicate messages, the metrics integration, I think it should be readily taken forward by clients who can afford to do it right now. And I think that would in general give us enough exposure to what is going wrong in the devnets. Yeah, even. Even if like two or three clients have it in their implementation, I think it's still a win.
+01:04:50.335 - 01:05:24.945, Speaker A: Yeah, I agree. When we have like the summary dashboard where we have two, three, four clients, it will be more obvious how it can help. So I think that's it for metrics. Thank you. Thank you.
+01:05:25.525 - 01:05:30.305, Speaker C: So before we end in this call, do we have any topics to discuss?
+01:05:35.205 - 01:05:40.145, Speaker B: Are we planning to have a peer desk discussion in DEFCON in two weeks?
+01:05:45.705 - 01:05:49.685, Speaker C: I mean for this call or more in person?
+01:05:50.145 - 01:05:51.565, Speaker B: In person meeting?
+01:05:58.105 - 01:06:05.845, Speaker F: Sorry, I think there will be a session and then I put a session on the two days.
+01:06:24.195 - 01:06:28.515, Speaker D: I guess we can probably cancel this call in two weeks, right?
+01:06:28.675 - 01:06:29.699, Speaker B: Yeah, probably makes sense.
+01:06:29.747 - 01:06:30.335, Speaker F: Yeah.
+01:06:30.715 - 01:06:49.819, Speaker C: Yes, yes we should. Oh they do have some in person meeting during the devcom before defcom and hope to see you there. And yeah, we'll cancel the call on.
+01:06:49.867 - 01:06:57.370, Speaker B: The 12th then the next call will be on the 26th.
+01:06:57.503 - 01:06:58.035, Speaker D: Yes.
+01:06:58.167 - 01:07:02.684, Speaker C: Or we can move one weekend earlier.
+01:07:02.817 - 01:07:08.065, Speaker B: No, I can leave it on the 26th.
+01:07:08.845 - 01:07:17.705, Speaker C: Okay. So it's probably the week that we will finalize the defining incorporation scope.
+01:07:18.125 - 01:07:19.025, Speaker A: Hopefully.
+01:07:22.605 - 01:07:23.745, Speaker C: Anything else?
+01:07:29.325 - 01:08:18.385, Speaker F: Yeah, I may have like an extra topic to talk about now that you guys mentioned about duplicates. We did like previously an analysis of gossip sub duplicates per topic. My question is like how are teams are teams now supporting add on messages on their current versions? We would like to rerun the experiment to see how or whether there was a reduction in duplicates but we still don't know how teams are catching up with this implementation. I know that Teku, I think deployed it Lighthouse, we discovered that Lighthouse was doing it in a little bit naive way but I think this has been already merged as well. Could you guys do a small update on that sense?
+01:08:20.515 - 01:08:20.891, Speaker D: Yeah.
+01:08:20.923 - 01:08:28.091, Speaker E: From Teco side Techo deployed it but it's now in master so we need.
+01:08:28.123 - 01:08:31.655, Speaker B: To rebase on Pectra to get it.
+01:08:32.395 - 01:08:37.883, Speaker E: So in peer Das in our peer does branch we still have no I.
+01:08:37.899 - 01:08:38.695, Speaker B: Don'T want.
+01:08:51.325 - 01:08:52.985, Speaker C: Any other comments.
+01:08:56.325 - 01:09:30.835, Speaker F: I will say that it will be really valuable to have this implemented before deciding whether we want to increase the block target in the sense like the expectancy of the duplicate reduction. I would say that it's high but without numbers to prove it it's kind of like blindly peaking. So yeah, I don't know. I don't want to rush anyone but yeah at least to have a clear view of what's the current status will be appreciated by other teams as well.
+01:09:33.895 - 01:09:56.704, Speaker D: For Lajas, as you mentioned we didn't have the optimized version in the previous release and the PR to optimize has been merged and it will be now next release probably going to be released in a couple of weeks time so I think it'll be useful to test that out or even with our current unstable version which already has it.
+01:10:21.575 - 01:10:28.805, Speaker C: If not then think that's it for today. Hope to see you soon. Thank you.
+01:10:30.585 - 01:10:31.153, Speaker F: Thank you.
+01:10:31.209 - 01:10:31.953, Speaker B: See you.
+01:10:32.129 - 01:10:33.005, Speaker D: Thank you.
+01:10:33.425 - 01:10:34.185, Speaker A: Bye.
+01:10:34.345 - 01:10:34.777, Speaker C: Thank you.
+01:10:34.801 - 01:10:35.365, Speaker E: Bye.

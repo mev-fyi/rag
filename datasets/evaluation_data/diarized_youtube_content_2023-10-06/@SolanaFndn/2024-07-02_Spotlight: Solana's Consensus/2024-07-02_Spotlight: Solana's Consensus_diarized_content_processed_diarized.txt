@@ -1,0 +1,381 @@
+00:00:04.080 - 00:00:22.534, Speaker A: Hello. My name is Jacob Creech. I work on the developer relations team here at Solana foundation. I'm joined today by Ashwin, who is a consensus engineer at Anza. And today we're going to talk about how consensus works on Solana. All right, so can you give a quick overview of, like, how consensus works on Solana and then we'll kind of deep dive into different parts?
+00:00:22.622 - 00:00:46.054, Speaker B: Yeah, sounds good. So consensus is basically the part of Solana that deals with how blocks are added to the chain and specifically how nodes vote on these blocks. And then eventually these blocks get finalized and are part of the canonical chain. So I guess we can start a little bit with how blocks are produced.
+00:00:46.142 - 00:00:46.342, Speaker A: Sure.
+00:00:46.366 - 00:01:12.990, Speaker B: And then we can get into the voting. So originally there was this genesis block, which is block zero. And then we have this schedule, which is basically who's going to produce the next block. And if you produce the next block, you're called the leader. So you have this leader, the leader schedule, right? Yeah, the leader schedule. And each leader gets four blocks. And the leader schedule is determined by stake.
+00:01:12.990 - 00:01:34.422, Speaker B: So the amount of stake that's delegated to you determines how many blocks you eventually get per epoch. So if you have a lot of stake, you're going to get a lot of spots in the leader schedule and you're getting to produce a lot of blocks. If you have a small amount of stake, you might not even be chosen for that epoch. And so.
+00:01:34.446 - 00:01:49.062, Speaker A: Yeah, so then. So you said four blocks. These are like guaranteed consecutive blocks, but you could potentially, based off a stake, have more than four blocks. Yeah, but like you could divide by four to get, like you. Your different sections that you get to vote.
+00:01:49.126 - 00:01:57.630, Speaker B: Exactly. You might make blocks like one through four and then later make blocks like 101 to 104. Got it. You could have multiple iterations.
+00:01:57.750 - 00:01:58.530, Speaker A: Got it.
+00:01:58.950 - 00:02:37.130, Speaker B: So we had the Genesis block and then the first leader made blocks one through four. And so they make these blocks and then they broadcast them out to the network. And then the duty of the rest of the validators is to execute the transactions in these blocks, verify that everything is valid, everything shuts out. And if it does, then they vote on the block. And their vote basically symbolizes that. Okay, this block is good. I vote to add it to the chain so that when it becomes finalized, it's part of Solana for every of these transactions or file.
+00:02:37.130 - 00:02:38.936, Speaker B: So.
+00:02:39.048 - 00:02:42.408, Speaker A: So I think you went through a different bunch of different concept there. I want to back up.
+00:02:42.464 - 00:02:42.728, Speaker B: Yeah.
+00:02:42.784 - 00:02:51.784, Speaker A: First you said that like, hey, these are broadcasted. Yeah, I think. And you correct me if I'm wrong. Is it on gossip and on turbine?
+00:02:51.872 - 00:02:53.968, Speaker B: So it's only for only through turbine.
+00:02:54.024 - 00:02:54.416, Speaker A: Okay.
+00:02:54.488 - 00:03:01.472, Speaker B: So each block is split up into multiple shreds, and then you send a shred through the turbine tree.
+00:03:01.576 - 00:03:02.224, Speaker A: Okay.
+00:03:02.352 - 00:03:18.848, Speaker B: And so it's a whole. It's a whole thing of how it's done, but essentially, you don't have to worry about the super nitty gritty of how it's broadcasted. It's just everyone sees these blocks, and they're able to reconstruct and replay all of the transactions and blocks.
+00:03:18.904 - 00:03:25.456, Speaker A: Okay, and another one you said is, like, when the blocks are finalized, what does finalized mean in this context?
+00:03:25.568 - 00:03:50.012, Speaker B: Okay, yeah. So finalized basically means the block can never be rolled back. So no matter what happens further down in the consensus algorithm or people change their minds, this block will live forever as part of the Solana blockchain. The only way you could get rid of it is if you did, like, a hard fork and started a new chain off of some parent block, which.
+00:03:50.036 - 00:03:54.812, Speaker A: Is also be like some large block reorg based on the hard fork.
+00:03:54.876 - 00:03:58.480, Speaker B: Yeah, exactly. Which is unlikely to happen.
+00:03:58.960 - 00:04:01.264, Speaker A: We basically have to, like, do a restart or something.
+00:04:01.312 - 00:04:19.704, Speaker B: Yeah, you have to do a restart. You have to get all of the validators on board and have them all erase the block from the history. So once it reaches finalized, for all intents and purposes, without forking the entire chain, like doing, like, a ethereum classic, the block, you won't be able to roll back the transactions of the block.
+00:04:19.792 - 00:04:28.154, Speaker A: Okay, so that's the finalized state. I know that there's also different commitment states that are confirmed and processed. What is confirmed in this context?
+00:04:28.242 - 00:04:45.122, Speaker B: Yeah. So, yeah, we can go. I guess we can go through it. So, confirmed just means that 66%, greater than 66% had voted on it.
+00:04:45.186 - 00:04:45.910, Speaker A: Okay.
+00:04:47.650 - 00:05:03.932, Speaker B: So, for example, block two. Right? If 66% of people vote on block two, then block two is confirmed as well as block one. Even if people didn't vote on block one, just because block one is the parent. So the confirmed status passes to your parents as well.
+00:05:04.036 - 00:05:10.204, Speaker A: Okay. All right. So then, going back, how are these voted on?
+00:05:10.332 - 00:05:46.356, Speaker B: Right. So each validator has this structure called a tower. And a tower is basically how the structure that organizes their votes and keeps track of various consensus things. And then at intervals, they will send their tower on chain. So each validator has a vote account, which is basically an account that belongs to them on chain. They will sync their tower that they have locally to the on chain tower. And once it's synced, anyone can view their vote history.
+00:05:46.356 - 00:05:55.020, Speaker B: By looking at their vote account on chain. So their vote becomes, their votes become accessible to all the other validators and any other participants.
+00:05:55.100 - 00:06:07.716, Speaker A: Okay, so just make sure I understand. Yeah. So say we have this account here, right? You said it was the vote account, right? Yeah, we'll just put va there. This would have the tower data, is that right?
+00:06:07.788 - 00:06:08.220, Speaker B: Yep.
+00:06:08.300 - 00:06:40.160, Speaker A: So tower data. And whenever the validator was called, this validator. Validator, they're sending transactions, basically, to update this. Whenever they're there, say, whatever the validator and leader schedule is doing this, they say, hey, this is one. It's on a transaction. I have to update the tower to include one, saying, this is what I believe is the next block in the slot, and then all the other validators. So we'll just have, like, a cluster of validators.
+00:06:40.160 - 00:06:51.220, Speaker A: They're watching this, and then they're what? Vote how? I guess. How did the votes actually get stored and updated?
+00:06:51.340 - 00:07:22.762, Speaker B: Yeah, so we can go through that. So we can kind of go through the structure of the tower a little bit. So the tower, as the name implies, it's kind of a stack. So the idea is that as you vote, you keep adding things to the top and then potentially popping things off of the top as well. So here, for example, everyone votes on block zero. Suppose. So that'll be the bottom of your tower.
+00:07:22.762 - 00:08:00.586, Speaker B: And then let's say our validator voted on block one and then block two. Right? Okay, so this would be their tower at. After they finish replaying block two, this is their tower. And then they would send this in a transaction, and hopefully that transaction would then make it in block three. If you looked at their vote account in block three, you would see their tower, and their tower would have zero one two.
+00:08:00.698 - 00:08:18.898, Speaker A: Okay, so they're saying, like, hey, I believe, or I agree with zero one two as the next blocks to be finalized. And then if you see them in block three, that means, like, hey, they made it into, I guess they made into block. And that was voted on by whatever validators were voting on that.
+00:08:18.994 - 00:08:59.650, Speaker B: Exactly. So if you have a different validator, let's say this is validator two, and maybe they're a little bit behind. So they've only voted on their tower. They've only voted on one and zero at this moment. They would also send their transaction, and this transaction might land in block three. So their tower, if you looked at their vote account, it would only have zero and one in ithood. Okay, so then if you are a validator and you've been following along and replaying the blocks, as they come.
+00:08:59.650 - 00:09:14.810, Speaker B: Once you replay block three, you'll see. Let's say this is validator one. You'll see. Okay. Validator one's latest vote is here, and then validators two's latest vote is here. And you do this for all of the validators.
+00:09:15.270 - 00:09:19.062, Speaker A: And this is to find the confirm state and the final state.
+00:09:19.126 - 00:09:44.010, Speaker B: Yeah. So this would, I mean, this just gives you an overall picture of how, where the network's at, who's voted on what. And then the important thing about votes is they're also determined by stake. So the amount of stake delegated to you impacts the weight of your vote. So when I say 66%, that means 66% of total stake.
+00:09:44.090 - 00:09:46.634, Speaker A: Got it. That's what the super majority rate.
+00:09:46.722 - 00:10:27.890, Speaker B: Yeah, super majority. So it's like greater than 66 is technically like 67, but yeah, for the super majority. So maybe validator one is a highly staked node and has 10% stake, which doesn't happen on mainnet, but for this example. And then validator two is a smaller node, only has 1% of the stake. And then in our local view, we could sum this and say this block has 11% of the stake. Because validators one's vote for two also counts for one, and then this one only has 10% of the stake at the moment.
+00:10:27.970 - 00:10:43.042, Speaker A: So you're keeping track. All of the values are keeping track of the total percent voted on stake. And as soon as it reaches 66 or greater than 66%, and that is a confirmed block. And then the additional rules for finalized. What are the specific additional rules for finalized?
+00:10:43.106 - 00:10:49.944, Speaker B: Yeah, so I can go into that. It basically involves lockout. So we could probably talk about. Let's talk about that now.
+00:10:50.112 - 00:10:50.752, Speaker A: Let's do it.
+00:10:50.816 - 00:11:17.672, Speaker B: Yeah. So lockout is basically your commitment level on a fork. So the idea here is that if you're voting consecutively or very close to consecutively, that's a good thing. Like if you vote on 1234, that should be treated. That should be weighted more heavily than if you only voted on one and then voted on four. Like maybe two and three were missing. Like the leader never sent out two and three.
+00:11:17.672 - 00:11:20.432, Speaker B: So you were only able to vote on one and then vote on four.
+00:11:20.496 - 00:11:24.200, Speaker A: Okay, so you said four. Is that what a fork is or what is a fork?
+00:11:24.280 - 00:12:13.526, Speaker B: Yeah, so fork is anytime there are multiple children coming from the same block. Okay, so yeah, I guess we should talk about forks. Let's get rid of it first. So the most common thing that can happen to create a fork is a leader can't build a block until it's finished replaying the parent. So for example, if I want to build block four, then I need to have the end state after I process all the transactions in block three in order to start building block four because I can't tell if you're doing a transfer. I don't know if the transfer is going to succeed or fail until I know your wallet balance, which is which I'm not going to know if they're transactions in three. That taught Jerry cow.
+00:12:13.526 - 00:12:31.150, Speaker B: Right. So what could, like one of the most common cases that happens. So this is all, you know, leader one made these four blocks and then leader two comes in and wants to build block five. But maybe block four was a little slow to broadcast.
+00:12:31.230 - 00:12:35.758, Speaker A: Right. Say they only have two or something. Or three. Let's say you have three.
+00:12:35.814 - 00:12:55.550, Speaker B: Only have three leader four. Or block four was too slow to broadcast. It took too long to replay the transactions. Leader two is going to build block five off of three because that's the latest block that it has. It doesn't want to miss its leader window. So it's just going to build a block.
+00:12:56.210 - 00:12:57.514, Speaker A: What is the leader window?
+00:12:57.602 - 00:13:15.008, Speaker B: So you have 400 milliseconds plus a little bit of grace time to pack your block and submit it. If you don't submit it within that window, then the next block is ready to be submitted. So they can. It's just a skip slot. Yeah, it's just a skip slot.
+00:13:15.064 - 00:13:21.248, Speaker A: So slots are basically opportunity to produce blogs, not necessarily having blocks.
+00:13:21.304 - 00:13:33.624, Speaker B: Exactly, yeah. And if you take too long to produce your block and the next guy produces his block and people replay his block first they're going to vote on his block and then your block is definitely going to be skipped.
+00:13:33.672 - 00:13:41.246, Speaker A: So, yeah, so this reaches, I know we're probably jumping a little bit ahead, but if this reaches 66% gets confirmed, this will be a skip slot.
+00:13:41.318 - 00:14:06.350, Speaker B: Exactly. Yeah. Okay, so this is the basic idea of how forks can happen. And then, you know, this problem could, this problem could continue as in, you know, this guy builds five through eight, but then the next leader, leader three. So this is all leader two. Leader three actually did receive four on time and he actually did vote on four.
+00:14:06.430 - 00:14:06.750, Speaker A: Okay.
+00:14:06.790 - 00:14:16.046, Speaker B: So he wants four to be as part of the canonical chain. So he's gonna build his nine off of four.
+00:14:16.238 - 00:14:17.170, Speaker A: Oh boy.
+00:14:18.590 - 00:14:21.330, Speaker B: Right. So this is leader three.
+00:14:22.070 - 00:14:24.438, Speaker A: So how do you choose which four is correct?
+00:14:24.574 - 00:14:58.480, Speaker B: Yeah. So that's what this weighting does. So right now our fork choice algorithm, it basically keeps track of the vote, accounts for each block and updates this structure which keeps track of total stake. Right. So if leader three had seen that block four has 51% of the stake, and then this block eight only had 49% of the stake, he will choose to build off a block four.
+00:14:59.770 - 00:15:00.490, Speaker A: Why?
+00:15:00.650 - 00:15:25.190, Speaker B: Because block four is slightly heavier than block eight, his choices are to build off of some leaf. So, like, either four or eight, because those are like, the deepest blocks that he's replayed. And then to determine which one to build off of, he looks at this weighting on their forks, and this fork at this point has 51%. This one has 49. Then he might.
+00:15:25.550 - 00:15:27.494, Speaker A: That's like the happy path.
+00:15:27.582 - 00:15:27.926, Speaker B: Yeah.
+00:15:27.998 - 00:15:38.238, Speaker A: What's to keep him from just saying, nah, I like this set of blocks better because maybe I made a lot of money in that exact. Put nigh on top of eight.
+00:15:38.294 - 00:16:02.700, Speaker B: Yeah. So there's nothing stopping him. Block production is not part of consensus in terms of, like, you know, if he wants to, he could build off of one. Like, there's nothing stopping him except the fact that when people vote, they also use the same metric. So if I'm a validator, and this is my current view of the world, I'm always going to vote for nine as opposed to.
+00:16:02.780 - 00:16:04.916, Speaker A: Is this assuming, like an honest majority, though?
+00:16:04.988 - 00:16:16.508, Speaker B: Yeah, this is assuming you have a modifying validator. You're running the stock code. It's always going to pick whichever the heavier fork is based on the towers that you observe.
+00:16:16.564 - 00:16:18.666, Speaker A: When you say heavier, it's just the percentage rate.
+00:16:18.748 - 00:16:20.854, Speaker B: Yeah, just the percentage vote on.
+00:16:20.902 - 00:16:25.130, Speaker A: Okay, so how big can these forks get before we run into issues, then?
+00:16:25.470 - 00:17:19.535, Speaker B: So the idea with Solana consensus is we want to make it as asynchronous as possible. In terms of, ideally, consensus should be able to run behind block production at, you know, any interval. So in theory, the fork could be as large as possible until, you know, you reach a point where validator is out of memory. Okay, so the idea with that is if, you know, if a block is finalized, then, as we said before, there's no way it can be rolled back. So you can kind of prune all of those related information and lower your memory footprint. But if you haven't finalized the block in a long time and these forks get really big, you have to store all of the accounts, details, all the metadata, various things, and that will eventually blow up the urban re.
+00:17:19.607 - 00:17:31.871, Speaker A: Okay, so, question. I've seen this happen where it's like, let's say this one is the 67, so we know this is good. Yeah. Is that, like, considered root or how do roots work?
+00:17:31.935 - 00:17:39.906, Speaker B: Yeah, so the way routes work is we can get into the lockout stuff now. So there's is.
+00:17:39.938 - 00:17:40.778, Speaker A: What is a lockout?
+00:17:40.834 - 00:18:11.344, Speaker B: Yeah. So lockout is kind of like when you vote on something, you want to say how confident you are in your vote, and the lockout is kind of a measurement of your confidence. So, for example, when you just start voting and you vote on zero, your lockout starts out very small. And the first number that it starts out as is two.
+00:18:11.512 - 00:18:13.220, Speaker A: Okay. Why two?
+00:18:13.560 - 00:18:15.176, Speaker B: They just go in powers of two.
+00:18:15.248 - 00:18:15.624, Speaker A: Okay.
+00:18:15.672 - 00:18:27.936, Speaker B: Yeah, yeah. And then you vote on one. Right. And then now when you vote on one, every vote for one is also implicitly a vote for zero. Right. Because zero is one's parent.
+00:18:28.008 - 00:18:28.408, Speaker A: Right.
+00:18:28.504 - 00:18:32.160, Speaker B: So now you've kind of voted twice in favor of zero.
+00:18:32.240 - 00:18:32.608, Speaker A: Okay.
+00:18:32.664 - 00:18:42.400, Speaker B: Because you voted on zero and you voted on one. So in this case, we will double the lockout of zero, make it four. And then one is two.
+00:18:42.740 - 00:18:43.684, Speaker A: Okay.
+00:18:43.852 - 00:19:06.658, Speaker B: And then let's say you also vote on two. Right. Now, a vote for two is also a vote for one. Also a vote for zero. You double the lockouts again. Then you get this. Okay, so now, you know, because you've had voted on the fork descending from zero multiple times, the lockout for zero has increased exponentially.
+00:19:06.714 - 00:19:09.634, Speaker A: So this lockout number's the confidence that you have. Right?
+00:19:09.722 - 00:19:13.018, Speaker B: Yeah, kind of like the confidence. It's a measurement of the confidence you have.
+00:19:13.074 - 00:19:13.458, Speaker A: Okay.
+00:19:13.514 - 00:19:53.074, Speaker B: Right. And the idea behind this lockout number is if you. If you vote sporadically, or maybe there are skip slots, then slots on the tower could expire. Right. So in this example, you know, you have your lockout, and then you have this thing called your last locked out slot, or basically like expiration. And what this means, this is the sum of the slot that you ordered for, plus the lockout. Right.
+00:19:53.162 - 00:19:53.978, Speaker A: Okay.
+00:19:54.154 - 00:20:13.658, Speaker B: So it's just a sum of these two. And the idea behind this is if you take a while to vote, then your vote on the tower could expire. So in this example, let's say you didn't vote for three, and then you don't vote for four either. You ended up voting for five.
+00:20:13.754 - 00:20:14.250, Speaker A: Okay.
+00:20:14.330 - 00:20:25.482, Speaker B: Yeah. So here you vote for five, and then, if you notice here, this vote for two actually expires at slot four.
+00:20:25.626 - 00:20:26.474, Speaker A: Oh, okay.
+00:20:26.562 - 00:20:34.030, Speaker B: So when you vote for five, you expire and pop off this vote for two.
+00:20:38.050 - 00:20:42.290, Speaker A: But the five is still implicitly voting for two. Right?
+00:20:42.450 - 00:21:09.160, Speaker B: Yeah, the five is voting for two, but the idea is not true. Yeah. The idea behind this is because, you know, maybe three and four were skipped, or for a moment, you were unsure you thought some other four could be higher and so you didn't vote on three and four. All of these things are bad for confidence. So we expire the vote for two and we don't increase our confidence on one or zero. The lockouts still stay the same.
+00:21:09.280 - 00:21:10.060, Speaker A: Okay.
+00:21:10.440 - 00:21:23.498, Speaker B: But then, you know, if we were to vote for six, then we would update everything down. Update everything down. Okay. And then the only other thing is when we go back to.
+00:21:23.594 - 00:21:28.738, Speaker A: So what happens if, like, someone doesn't vote for a very long time and all of their votes expire?
+00:21:28.874 - 00:21:38.458, Speaker B: Yeah. So that can happen if you don't vote for a very long time, then you didn't have confidence in the network for a very long time. So your tower should be reset.
+00:21:38.554 - 00:21:38.858, Speaker A: Right.
+00:21:38.914 - 00:21:41.162, Speaker B: To, you know, only having to lock out at two.
+00:21:41.226 - 00:21:49.174, Speaker A: Would that then, like, make these numbers go down basically, like. So if you're at 67% and then you don't vote for a very long time.
+00:21:49.262 - 00:21:49.930, Speaker B: Yeah.
+00:21:50.230 - 00:21:52.830, Speaker A: Could that potentially go below 66?
+00:21:52.950 - 00:21:56.958, Speaker B: So this specific slot would never go below 66.
+00:21:57.094 - 00:21:57.718, Speaker A: It's set.
+00:21:57.814 - 00:21:58.134, Speaker B: Yeah.
+00:21:58.182 - 00:22:04.486, Speaker A: But if you go to, could you go from like 50 to 49 because of lockout or expirations?
+00:22:04.638 - 00:22:19.368, Speaker B: Yeah, so you could. If you switch. So a vote doesn't expire on chain in terms of, like, if I voted for three and then I never voted again, my vote for three is always going to be there. It's part of the record that I.
+00:22:19.384 - 00:22:25.192, Speaker A: Voted for three because it hit 67%. You're good to go. It's set.
+00:22:25.296 - 00:22:35.936, Speaker B: Right. It doesn't even matter that I hit 67%. It's just my last vote and it's been broadcasted to everyone, so everyone knows my last vote was for three.
+00:22:36.008 - 00:22:36.624, Speaker A: Okay.
+00:22:36.752 - 00:22:41.616, Speaker B: So forever, until I vote again, they will always count my stake as part of three.
+00:22:41.688 - 00:22:46.152, Speaker A: Okay. So in that expiration does not matter for last voted on slot.
+00:22:46.216 - 00:22:46.560, Speaker B: Yeah.
+00:22:46.640 - 00:22:47.048, Speaker A: Okay.
+00:22:47.104 - 00:23:09.558, Speaker B: Yeah. Expiration is only for your local bookkeeping in the tower to determine what I'm going to talk about next, which is actually switching forks. So let's say in this example, you voted on two, you voted on four, and then you read it on nine.
+00:23:09.734 - 00:23:10.570, Speaker A: Okay.
+00:23:17.390 - 00:23:24.570, Speaker B: Actually it's this. Let's do it the other way. So you voted on five and six.
+00:23:26.430 - 00:23:27.270, Speaker A: Okay.
+00:23:27.430 - 00:23:59.146, Speaker B: Okay. So in this example, you voted for this bottom fork. Right? And then. So you voted for six. And then eventually leader three decides to build block nine. And block nine contains a bunch of these tower sync transactions that we were talking about that updated the vote accounts. And this is what clued you in that.
+00:23:59.146 - 00:24:18.410, Speaker B: Oh, actually 51% of people voted on for. So now in your book bookkeeping, you realize, oh, I made a mistake. I'm actually, you know, I've been voting for this bottom fork when this fork is heavier. So now I want to stop voting here and I want to switch back to what is the correct fork. Right.
+00:24:18.450 - 00:24:19.150, Speaker A: Okay.
+00:24:19.970 - 00:24:21.914, Speaker B: So maybe I want to vote on.
+00:24:22.042 - 00:24:23.870, Speaker A: This is changing a vote then.
+00:24:24.410 - 00:24:31.298, Speaker B: This is, it's basically changing what your latest vote, like what fork you are showing support for.
+00:24:31.394 - 00:24:32.110, Speaker A: Okay.
+00:24:32.410 - 00:24:37.274, Speaker B: But the fact that you voted on six will always remain. And then.
+00:24:37.442 - 00:24:43.906, Speaker A: Well, would that vote for six then be in the block of nine?
+00:24:44.018 - 00:24:45.230, Speaker B: No. So the.
+00:24:46.690 - 00:24:47.818, Speaker A: Where is that stored?
+00:24:47.914 - 00:24:51.354, Speaker B: Yeah. So the vote for six will either be in block seven or block eight.
+00:24:51.522 - 00:24:58.794, Speaker A: Okay. Yeah, but those are not. Shows them. That's what I'm trying to get is like, hey, let's say that the congress.
+00:24:58.882 - 00:24:59.250, Speaker B: Sure.
+00:24:59.330 - 00:25:01.066, Speaker A: And say you voted on six.
+00:25:01.138 - 00:25:01.530, Speaker B: Yeah.
+00:25:01.610 - 00:25:06.002, Speaker A: Where does that stored then? Because these are not on the chain.
+00:25:06.106 - 00:25:25.220, Speaker B: Yeah. So once it becomes the canonical chain, it doesn't matter. So this is only for like when. When we're still trying to figure out what's going to be finalized. Okay. Validators will replay both block eight and block nine. And they'll see that in your vote account for block eight, it showed that you voted for six.
+00:25:25.220 - 00:25:29.988, Speaker B: And then in your voting count for block nine, it shows your last vote was two.
+00:25:30.124 - 00:25:30.960, Speaker A: Got it.
+00:25:31.260 - 00:25:43.164, Speaker B: Because a vote for a specific slot can only land in the vote account for that fork. So if I vote for five, it can't land in nine.
+00:25:43.332 - 00:25:43.636, Speaker A: Got.
+00:25:43.668 - 00:25:48.836, Speaker B: It's only going to show up in the box to send it for five.
+00:25:49.028 - 00:25:51.596, Speaker A: Okay. How big can these towers get?
+00:25:51.748 - 00:25:54.772, Speaker B: Yeah. So the tower reaches a maximum depth of 31.
+00:25:54.876 - 00:25:55.732, Speaker A: Okay.
+00:25:55.916 - 00:26:12.678, Speaker B: So the idea behind that is. So, yeah. Let me first go over how the switching actually happens. So let's make this seven. Yeah. Okay. So the last locked out slot here is nine.
+00:26:12.678 - 00:26:13.334, Speaker B: Right.
+00:26:13.422 - 00:26:14.086, Speaker A: Got it.
+00:26:14.198 - 00:26:27.770, Speaker B: And then this one's also nine. So it's ten, you know, 17, 32, 32. Yeah. Okay. So every time you want to switch. So here, my last vote was for seven and then I'm looking to switch to nine. Right.
+00:26:27.770 - 00:26:41.640, Speaker B: I gotta walk the tower back and get rid of any slot that doesn't belong to, to this fork. Right. So if I want to vote on nine, then I can't have these two guys in my tower.
+00:26:43.300 - 00:26:43.804, Speaker A: Okay.
+00:26:43.852 - 00:26:46.204, Speaker B: Because they're not part of the fork that nine's on.
+00:26:46.332 - 00:26:56.812, Speaker A: So whenever you do a if, say, if you're changing your vote, then whatever transaction you're sending would be adding nine to two, your tower of two, I guess.
+00:26:56.916 - 00:27:06.742, Speaker B: Yeah. So ideally, but the problem here is that I can't pop these guys off yet because their last locked out slot is nine.
+00:27:06.846 - 00:27:08.022, Speaker A: So you have to wait till afterwards.
+00:27:08.086 - 00:27:09.358, Speaker B: So I have to wait till ten.
+00:27:09.494 - 00:27:10.230, Speaker A: Oh, okay.
+00:27:10.270 - 00:27:28.450, Speaker B: Yeah. So instead what would happen is I'd wait till ten and then. So I can't vote on nine because I'm still locked out on nine. And then when I vote for ten, you know, it'll look something like this.
+00:27:30.480 - 00:27:36.456, Speaker A: Okay. So then your tower ends up looking, like from ten to one, and then you're good to go.
+00:27:36.528 - 00:27:53.312, Speaker B: Yeah. And then notice I didn't update any of these because since I popped off a bunch of votes, I haven't increased my confidence here. And this won't increase until I'm back to a two 4816. Once I reach the same depth, then I'll start doubling the lockouts again.
+00:27:53.376 - 00:27:57.858, Speaker A: So there's this target pruned based off of what was voted more than 66%.
+00:27:58.024 - 00:28:04.718, Speaker B: No. So the way that this tower gets pruned is. Okay, first, I guess. Does the switching logic make sense?
+00:28:04.814 - 00:28:06.782, Speaker A: It makes sense to me right now.
+00:28:06.846 - 00:28:16.958, Speaker B: Okay. And then the only other thing is the amount of time that you have to wait to switch is based on lockout. In that example, we only have to wait one slot.
+00:28:17.054 - 00:28:18.502, Speaker A: Right. It could be a huge amount.
+00:28:18.566 - 00:28:33.656, Speaker B: Yeah. So say, for example, you voted on five, six, seven and eight. So you showed a lot of confidence in this fork. Right. So now for 16. Yeah, I mean, these. These ones don't matter right now.
+00:28:33.656 - 00:28:36.848, Speaker B: Um. And then now you want to switch to nine. Right.
+00:28:36.984 - 00:28:37.376, Speaker A: Right.
+00:28:37.448 - 00:28:55.702, Speaker B: Um, if you look at your last locked out slot, we're talking big numbers. We got 20, 114, ten. Right. Um, I have to plus 13 at 18, five plus six. Five plus.
+00:28:55.766 - 00:28:56.238, Speaker A: Sorry.
+00:28:56.334 - 00:29:10.622, Speaker B: Yeah, yeah, yeah. So, yeah, so I voted all the way to eight. Realized that nine is actually the fourth that I want to be on. In order to switch, I have to pop off eight, seven, six and five.
+00:29:10.726 - 00:29:13.414, Speaker A: Okay. So you have to wait until slot 21.
+00:29:13.502 - 00:29:18.608, Speaker B: I have to wait until slot 22. Yeah, slot 22. Yeah, I can't vote until slot 22.
+00:29:18.694 - 00:29:24.356, Speaker A: Power. And that could really hurt. Like, causing or doing this could really hurt you because then you don't get, like, rewards.
+00:29:24.468 - 00:29:35.320, Speaker B: Yeah. You don't get rewards. Yeah. I guess one thing I should mention is, you know, every time you vote on a slot and that slot ends up getting finalized, you get credits for participating.
+00:29:35.980 - 00:29:41.520, Speaker A: What are these credit, like, are the. When you say credit, is that, like the what, the staking reward?
+00:29:41.820 - 00:30:00.182, Speaker B: Yeah. So the way it works is there's like this credit system that keeps score and then at the end of the epoch, depending on how many credits you have relative to the total amount of credits earned by everyone, you get a portion of the inflationary awards, I believe.
+00:30:00.326 - 00:30:01.130, Speaker A: Got it.
+00:30:03.870 - 00:30:10.346, Speaker B: If you continue to vote, you'll be locked out for longer and it's exponential because the lockouts are exponential.
+00:30:10.438 - 00:30:19.990, Speaker A: Okay, so this is like, hey, if you, if you keep wait, well, if you keep voting on the wrong fork, it hurts you in the long run. What is keeping you from waiting to vote?
+00:30:21.730 - 00:31:00.300, Speaker B: So yeah, if you like, you could do one thing, which is just never vote until you're absolutely certain that something is going to be finalized for sure. So the new credits mechanism that's coming out the way that you're awarded credits is based on how quickly you vote. Okay, so if you voted on three and then you synced your tower and the tower is showing that you voted on three, was present in your vote account on four, that's a one slot difference. You're gonna get the maximum amount of credits instead. If you waited until twelve and then at that point you were sure three is gonna be finalized.
+00:31:00.340 - 00:31:01.852, Speaker A: Oh, you could get a lot less credits.
+00:31:01.876 - 00:31:06.308, Speaker B: That way you get a lot less credits because your vote account will be updated in twelve or 13 or whatever.
+00:31:06.364 - 00:31:11.152, Speaker A: Okay. So the difference, the distance of your vote also. I got it. Yeah, that makes sense.
+00:31:11.216 - 00:31:18.072, Speaker B: Yeah. So that way you incentivize people to vote as quickly as possible, which helps us reach confirmation as quickly as possible.
+00:31:18.176 - 00:31:20.232, Speaker A: Got it. That's cool. I didn't know about that.
+00:31:20.296 - 00:31:20.848, Speaker B: Yeah.
+00:31:20.984 - 00:31:26.920, Speaker A: So I think I asked her like, how big can these towers get? 32.
+00:31:27.080 - 00:31:52.004, Speaker B: Yeah. So now that we have, I think lockouts more or less explained, what happens is once you get to. Yeah, I'll just do it from one to make it a little easier. One. Right. So this is two, four and then this one is two to the 31 in terms of lockout. Right.
+00:31:52.004 - 00:32:10.402, Speaker B: And then now let's say you vote on 32. We just picked an arbitrary number. Obviously what would happen is you would vote on 32 and then the lockout of this guy is two to 32. This is a number that's so big that for all intents and purposes you're never going to be able to switch off of one.
+00:32:10.466 - 00:32:14.106, Speaker A: Right. You're probably using some number that might even be too high.
+00:32:14.218 - 00:32:46.608, Speaker B: Yeah, it's just going to be too high. If you wanted to switch off of one, say there was some other fork here being built, and if you want to vote on this block, then you have to wait till one has left your tower, which means winning this number of slots, which is way too big. So what we do is, at this point, we remove this from the tower. So now our tower starts at two, and then we say that this is our route.
+00:32:46.784 - 00:32:47.620, Speaker A: Okay.
+00:32:48.360 - 00:32:54.980, Speaker B: So all it means for something to be a route is it has reached a tower depth of 32 or more.
+00:32:56.200 - 00:33:00.664, Speaker A: Got it. So whenever we are. So we're voting on a bunch of forks.
+00:33:00.712 - 00:33:01.300, Speaker B: Right.
+00:33:01.960 - 00:33:18.368, Speaker A: If we. I don't want to draw 32 notes here. Yeah. But basically for finalization, we're waiting for that route to move across the block. So the tower gets pruned on the various, I guess, validators.
+00:33:18.544 - 00:33:28.770, Speaker B: Exactly. So, yeah, we can talk about finalize means rooted by.
+00:33:32.830 - 00:33:33.770, Speaker A: Got it.
+00:33:34.110 - 00:33:41.502, Speaker B: So, as part of your vote account, you have the tower, but then you also have your route. That's also per the vote account.
+00:33:41.686 - 00:33:46.846, Speaker A: So you're keeping track of the route based of the vote accounts as well.
+00:33:46.918 - 00:33:47.150, Speaker B: Yeah.
+00:33:47.190 - 00:33:51.464, Speaker A: So you're both keeping track of the vote. Just straight up vote.
+00:33:51.512 - 00:33:51.648, Speaker B: Yeah.
+00:33:51.664 - 00:33:53.260, Speaker A: The tower. The tower.
+00:33:53.840 - 00:33:55.888, Speaker B: And also there's a field for the root.
+00:33:55.984 - 00:33:56.672, Speaker A: Okay.
+00:33:56.816 - 00:34:15.520, Speaker B: And so if I look at. Well, I guess these numbers are too small, but if I looked at some block, I can see what everyone's root is. And then if at least 66% of the cluster has rooted either this slot or some child of this slot, then it's considered finalized.
+00:34:15.600 - 00:34:16.105, Speaker A: Got it.
+00:34:16.167 - 00:34:16.461, Speaker B: Yeah.
+00:34:16.525 - 00:34:23.929, Speaker A: So what happens if cluster has trouble voting on a fork for 31 slots?
+00:34:24.829 - 00:34:28.029, Speaker B: So there's just no vote on that fork for 31 slots.
+00:34:28.069 - 00:34:29.049, Speaker A: I mean, like, there's.
+00:34:30.749 - 00:34:33.429, Speaker B: So maybe if you draw an example.
+00:34:33.469 - 00:34:36.769, Speaker A: Yeah, so say three. We have a bunch of other ones.
+00:34:37.589 - 00:34:40.269, Speaker B: I think we've covered this. We should be surprised. Yeah.
+00:34:40.309 - 00:34:57.710, Speaker A: So say we have a bunch of other ones. So we have a bunch of other ones to a bunch of other ones. And then this will be, let's see, three plus 30. We'll just call it 35 or something. Okay. I guess it won't work. 36.
+00:34:57.710 - 00:35:17.996, Speaker A: 36. And there's a bunch of other forks in between. Suddenly get to 36. We still haven't reached 66% on any of them. Is there any issue with, like, that as the tower depth? Because there's a bunch. I guess, that you don't have to vote. Okay.
+00:35:17.996 - 00:35:52.626, Speaker A: So you don't have to vote on your 36, implicitly voting for that. And then. Okay, so my. I guess there isn't a problem, because what I'm trying to get is that if we have 36, which is higher than the tower depth, do we have a problem? Because suddenly it's, like, too large of a number. But I think the answer, and you can correct me if I'm wrong because we got to 30 or because we're voting on 36. We're voting on everything before and all the rest just don't matter. And so, like, the tower, you'll just not have the tower update with the rest once you get to 36.
+00:35:52.738 - 00:35:57.362, Speaker B: Yeah. So the actual number doesn't matter. It's only the lockout.
+00:35:57.426 - 00:35:58.298, Speaker A: It doesn't matter.
+00:35:58.474 - 00:36:02.354, Speaker B: Yeah. Like, these numbers are in the millions. Right. Because they're slots.
+00:36:02.482 - 00:36:03.058, Speaker A: Right.
+00:36:03.194 - 00:36:09.214, Speaker B: And the gaps between them only matter for the lockout. So in this example, like, you voted on three.
+00:36:09.302 - 00:36:14.934, Speaker A: You have to have a very, like, you'd have to not decide on a fork from a ton of slots. Like, millions of slots.
+00:36:15.022 - 00:36:35.416, Speaker B: But even if you didn't, the worst thing that could happen, like, in this example, you voted on three and then you voted on 36. Three expires, two expires, 2481 expires, and even zero expires as well, because all of those have lockouts that are. Their lockouts. Expire before 36.
+00:36:35.488 - 00:36:36.032, Speaker A: Right.
+00:36:36.176 - 00:36:44.900, Speaker B: So in the end, your tower would just be 36. Just be 36 with a lockout of two. Yeah.
+00:36:45.920 - 00:36:47.368, Speaker A: Just immediately expire.
+00:36:47.464 - 00:36:56.488, Speaker B: Yeah. Because, I mean, the question is, why didn't you vote for 33 blocks? There's something going on. We have low confidence, so we shouldn't be doubling down.
+00:36:56.584 - 00:37:02.240, Speaker A: Right. So this would likely not be a problem now, but it might have been a problem when creating the genesis.
+00:37:02.820 - 00:37:03.820, Speaker B: Yeah. Yeah.
+00:37:03.980 - 00:37:06.716, Speaker A: Well, I'm hoping that everybody continues.
+00:37:06.868 - 00:37:14.004, Speaker B: Yeah. I mean, even. Even if this happens, the network still recovers once people start voting.
+00:37:14.052 - 00:37:14.524, Speaker A: Right.
+00:37:14.652 - 00:37:25.620, Speaker B: Because eventually what would happen is you would build up enough lockout on 36 by voting on its descendants. And 36 will get rooted. And once 36 gets rooted, all of these are also rooted.
+00:37:25.700 - 00:37:26.520, Speaker A: Got it.
+00:37:27.220 - 00:37:31.212, Speaker B: So you don't need to route, like, zero, one, two. All of those specifically.
+00:37:31.236 - 00:37:33.756, Speaker A: It would have been really fun, though, to watch everything happening.
+00:37:33.828 - 00:37:34.244, Speaker B: Yeah.
+00:37:34.332 - 00:37:36.028, Speaker A: Were you around when the genesis.
+00:37:36.124 - 00:37:36.700, Speaker B: I was not.
+00:37:36.740 - 00:37:44.040, Speaker A: Okay. It would have been fun to watch that because that's like. I guess for salon. It's like the big bang. We're hoping.
+00:37:44.580 - 00:37:55.182, Speaker B: Yeah. That it continues. I'm sure there were many roadblocks, probably restarts. But. But, yeah, I mean, so that's. Those are the basics of BFT.
+00:37:55.286 - 00:37:59.302, Speaker A: So I've heard of lockout violations. How does that work? What are those?
+00:37:59.406 - 00:39:11.792, Speaker B: So there's a couple more things. The first thing is, right now, the verification that we can do on these tower sinking transactions is super limited, because right now, what happens is you have some vote program. Right. The vote program in block nine takes in the vote and all it can really check is, is the tower well formed? Like, is everything in ascending order? Are lockouts also in ascending order or, sorry, descending order? And then are all of the slots in the tower part of my fork? And that's all I can check. But since the vote program is contained to one fork, it can't check. Oh, did he violate lockouts or any of the switching rules? So, for example, the example that we had before where you voted on 5678, and then you're not allowed to vote on nine, you have to wait until 22, right, because of the lockout. If I voted on nine anyway, the vote program would take that vote and still count it because it doesn't know that you voted on five, six, seven and eight.
+00:39:11.792 - 00:39:19.948, Speaker B: All it sees is, here's my new tower with nine on it. Everything looks good. Let's put it on shade.
+00:39:20.044 - 00:39:25.916, Speaker A: Right. Okay, but what are the consequences of that?
+00:39:25.988 - 00:39:51.570, Speaker B: Right, so the consequences of that are the validator is eligible to be slashed. So anytime you violate your lockout restriction, it's not currently implemented, but you can submit, anyone can submit a proof that here are two votes. This validator clearly violated their lockout and so we should slash their sake.
+00:39:52.030 - 00:39:54.102, Speaker A: Just like social slashing today.
+00:39:54.206 - 00:39:56.734, Speaker B: Yeah. So right now we don't have any mechanism to flash.
+00:39:56.782 - 00:39:59.278, Speaker A: It's not programmatic. It's just social.
+00:39:59.414 - 00:40:00.222, Speaker B: Yeah, social.
+00:40:00.366 - 00:40:02.214, Speaker A: You need a restart. You need some.
+00:40:02.302 - 00:40:05.216, Speaker B: Yeah, you need to restart and manually edit their account.
+00:40:05.318 - 00:40:05.892, Speaker A: Okay.
+00:40:05.996 - 00:40:20.036, Speaker B: And remove stake. We haven't had to do that. We have monitoring tools running to see if anyone's violating lockouts. And so far, apart from like one off errors, there haven't been any.
+00:40:20.108 - 00:40:28.628, Speaker A: What is the keep someone from, like, to cause a ton of lockout violation? Let's just say it's invalid. I'm gonna just vote on all blocks.
+00:40:28.684 - 00:40:46.522, Speaker B: Yeah. So you could, you could vote on all blocks. Right. And then I once slashing, either social slashing or automated slashing happens, you lose your stake, and then once you lose your stake, then your votes don't matter as much. And eventually it'll get to the point where you're just not participating and you're just bleeding.
+00:40:46.546 - 00:40:47.430, Speaker A: No one cares.
+00:40:47.730 - 00:41:13.230, Speaker B: The whole point of consensus is to design it in an adversarial method. In terms of. We always assume that 33% of the stake is malicious when designing these protocols. So we want to assume that 33% is going to double vote. Like vote on every single block, switch around, do whatever. But we still need everything to converge. We still need roots being made.
+00:41:13.230 - 00:41:16.034, Speaker B: So that's the assumption that we're working with.
+00:41:16.162 - 00:41:24.224, Speaker A: Got it. What does it keep someone from? I know that there's been duplicate blocks get prevented.
+00:41:24.352 - 00:41:31.792, Speaker B: Yeah, that's a really big topic. Maybe. I think we can finish up on this stuff.
+00:41:31.856 - 00:41:32.808, Speaker A: Maybe we don't have time for that.
+00:41:32.864 - 00:42:01.330, Speaker B: Yeah, if there's time we can do. Yeah, that's like a whole separate thing. So. Yeah, so I think most of this is understood. The only other thing is, which I think you touched on earlier, is how, in this example, if you vote on 5678, you have to wait and wait for a long time, but you could assume that this could extend and, you know, I don't know. You voted all the way to like 20. Right.
+00:42:01.330 - 00:42:05.262, Speaker B: And then you'd have to wait a crazy amount of time. Right.
+00:42:05.406 - 00:42:08.990, Speaker A: That's to keep you from basically if you don't want to lose out on your reward.
+00:42:09.110 - 00:42:46.880, Speaker B: Right. Right. So we have this. We have this safety mechanism, which, you know, everything I've described so far is asynchronous, where the validator can go without having to really wait for the rest of the cluster. But we have this safety mechanism that validators choose to use called the threshold check. And it's basically, there's two ones, 38% and then 66%. This is four deep, eight deep.
+00:42:46.880 - 00:43:04.520, Speaker B: And the basic idea is when you double lockouts. So let's say my tower vote walk out. You know, my tower here has eight.
+00:43:09.910 - 00:43:10.742, Speaker A: Can order it.
+00:43:10.806 - 00:43:18.290, Speaker B: Yeah. This is one, then this two to the two to the b.
+00:43:20.430 - 00:43:21.170, Speaker A: Two.
+00:43:28.510 - 00:43:38.376, Speaker B: Right. I think I did that. Right. So this is my current locker and your lockouts. My current tower. And then I'm going to go ahead and vote for nine.
+00:43:38.518 - 00:43:39.036, Speaker A: Right.
+00:43:39.148 - 00:43:56.636, Speaker B: I doubled my lockout. So every time you double your lockouts, you perform this check. So you check out what is the 8th deepest slot in my tower. So in this case, one. That's one. Make sure that 66% of people have voted for one.
+00:43:56.748 - 00:43:57.520, Speaker A: Okay?
+00:43:58.100 - 00:44:12.316, Speaker B: So that's votes for one or votes for a descendant of one. And then do the same thing with the four deep. So this is 8765. So for five, make sure that 38% have voted for four.
+00:44:12.388 - 00:44:13.840, Speaker A: Why is it 38%?
+00:44:14.140 - 00:45:01.440, Speaker B: 38% is. Yeah, I'll get to the exact number in a second. But this is basically to avoid a situation like this where for whatever reason, you're in, like, a network partition, or you've just got a couple of bad leaders in a row that have tricked you or have propagated this minor fork to you and you end up locking yourself out, or worst case, you end up rooting five. And once you root five, there's no going back. So we have this check that basically as you go, make sure that you're somewhat synchronized with the cluster and people agree on you, agree with you. So that way you avoid those situations.
+00:45:01.480 - 00:45:07.600, Speaker A: Okay. Because you don't want to accidentally just lock yourself out for a very long time.
+00:45:07.680 - 00:45:08.256, Speaker B: Right?
+00:45:08.408 - 00:45:09.140, Speaker A: Yeah.
+00:45:09.920 - 00:45:52.780, Speaker B: Okay. And then, yeah. The 38% number covers the final part of tower BFT, which is actually what this confirmed means. And the guarantees that we have about confirm. Okay, so we call this optimistically confirm. I can't spell. And the guarantee that we provide for optimistic confirmation is it will be rooted or finalized unless 5% slashed.
+00:45:52.780 - 00:46:11.456, Speaker B: So anything that reaches this confirmation level of 66% will eventually be finalized, unless you have specific scenarios where at least 5% of total state has committed a slashable violation.
+00:46:11.528 - 00:46:16.634, Speaker A: Got it. So it's 30, that's why it's 38, because it's five plus or five plus three.
+00:46:16.682 - 00:46:18.202, Speaker B: Five plus the super minority.
+00:46:18.266 - 00:46:19.030, Speaker A: Got it.
+00:46:20.250 - 00:46:42.724, Speaker B: And so it's not, it's not to say that if 5% perform a slashing violation, all optimistically confirmed box are going to be rolled back. It's just there is a slim chance that it does get rolled back if at least 5% gets slashed. There needs to be a couple more things that happen, but that's the guarantee that we give.
+00:46:42.812 - 00:46:43.436, Speaker A: Got it.
+00:46:43.548 - 00:46:52.556, Speaker B: So most apps, RPCs, they use optimistically inferring, because in our history, it's never been rolled back.
+00:46:52.668 - 00:46:56.668, Speaker A: Right. And the reason why it's never been, because there's never been social slashing happening.
+00:46:56.764 - 00:47:03.476, Speaker B: Right. Or there hasn't been 5%. The more accurate thing is there hasn't been 5% that have committed a slashable violation.
+00:47:03.508 - 00:47:04.160, Speaker A: Okay.
+00:47:04.980 - 00:47:18.682, Speaker B: And, yeah, so they all get finalized. The nice part about optimist leak optimistic confirmation is that it can happen within one slot, because you just need 66%.
+00:47:18.866 - 00:47:20.722, Speaker A: If everybody voted on that same slot.
+00:47:20.826 - 00:47:34.482, Speaker B: Immediately, immediately, then it could get optimistically confirmed. If you're waiting for finalized, you have to wait till it becomes rooted. And for something to get rooted, there needs to be at least 31 votes on top of it for it to eventually get pushed off the tower.
+00:47:34.546 - 00:47:38.480, Speaker A: Right. So it's a lot longer. One over 31 times 400 milliseconds, roughly.
+00:47:38.570 - 00:48:02.068, Speaker B: Exactly, yeah. And then the one other thing I should mention is that these tower sync transactions, the ones where you're syncing the vote account tower with your local tower, those are propagated through the TPU like any other transaction, but because they're so critical to the blockchain, we also propagate them through gossip.
+00:48:02.164 - 00:48:02.812, Speaker A: Okay.
+00:48:02.956 - 00:48:05.016, Speaker B: So there is some redundancy there.
+00:48:05.188 - 00:48:06.000, Speaker A: Okay.
+00:48:06.160 - 00:48:25.800, Speaker B: So this confirmed could also, you know, could be observed through gossip. It doesn't. You don't necessarily need to wait for the block to be built on it. Usually that happens because gossip propagation is slower. But, yeah. So in theory it could happen, you know, sub slot. Okay.
+00:48:25.800 - 00:48:56.640, Speaker B: Yeah. And then the way that we guarantee this is when you perform a switch. So to take our example from before, you voted on seven or whatever, something here, and then you're switching on this fork switch. So the first thing is lockout, obviously, and that's what we talked about before, which is making sure that your tower is expired enough.
+00:48:56.680 - 00:49:02.248, Speaker A: Yeah. We're checking all the lock. The lockout expirations. If you try to switch beforehand, you're going to run into wrong.
+00:49:02.344 - 00:49:47.490, Speaker B: Yeah. And then the second thing is this thing called the switching proof. And the idea behind this is greater than 38% is locked out on your last booked. So the idea here is that if there is at least 38% not on your fork. So my last vote was eight. And in this example, there is maybe only 49% here. If there is greater than 38% not on your fork, and they're locked out on your slot.
+00:49:47.490 - 00:50:06.522, Speaker B: So say 51% of people was on that fork is on this fork. And since they voted for nine, they are locked out on eight. The idea here is that eight can never be optimistically confirmed because this is.
+00:50:06.546 - 00:50:16.658, Speaker A: A heavier weighted fork choice and they have 38% locked on last vote. Which one's your last vote again?
+00:50:16.754 - 00:50:25.930, Speaker B: So in this example, let's say my last vote is. Yeah, last vote is eight.
+00:50:26.050 - 00:50:26.870, Speaker A: Okay.
+00:50:27.690 - 00:50:38.714, Speaker B: And then I guess to illustrate this better, let's just say the slot number on this one was actually seven. Okay. Is that too confusing?
+00:50:38.842 - 00:50:40.946, Speaker A: I'm just trying to think of the tower. Right?
+00:50:41.018 - 00:51:00.420, Speaker B: Yeah. So you're replaying, you look at the vote accounts, right? And then you see that, you know, 51% of stake has a tower where the top of the tower is seven with a lockout of two.
+00:51:00.720 - 00:51:02.904, Speaker A: Right. So the lockout expiration is nine.
+00:51:03.032 - 00:51:11.752, Speaker B: Lockout expiration is nine. And your last vote is eight. Right. So these guys, all 51% of them are locked out on eight. Right.
+00:51:11.816 - 00:51:14.208, Speaker A: So they can't. Right. So they can never vote for eight.
+00:51:14.264 - 00:51:19.472, Speaker B: They can never vote for eight. So there's no chance that eight will be optimistically confirmed.
+00:51:19.576 - 00:51:23.712, Speaker A: Right. They have to wait for a later block to be optimistically confirmed.
+00:51:23.776 - 00:51:24.184, Speaker B: Exactly.
+00:51:24.232 - 00:51:27.160, Speaker A: Like for. We would have to wait until ten.
+00:51:27.280 - 00:51:34.016, Speaker B: Yeah, they would have to wait until ten. So since that's true, then it's fine for me to switch off of a.
+00:51:34.128 - 00:51:34.900, Speaker A: Okay.
+00:51:35.320 - 00:51:46.048, Speaker B: You could have some weird scenario where, you know, like eight isn't. You go over here and then maybe come back. But for the time being, eight has no chance of being optimistically confirmed.
+00:51:46.104 - 00:51:47.040, Speaker A: So you have to move on.
+00:51:47.120 - 00:51:48.824, Speaker B: So you're allowed to move on.
+00:51:48.912 - 00:51:53.060, Speaker A: Okay. Is this where you can remove eight from your tower?
+00:51:54.520 - 00:52:01.800, Speaker B: The rules for moving on are the same. So, like, you're voting on twelve or something. You have to wait for eight to pop off your tower.
+00:52:01.880 - 00:52:02.456, Speaker A: Okay.
+00:52:02.568 - 00:52:10.056, Speaker B: It's the same as the logout where once eight expires, then you're allowed to vote for something not containing a.
+00:52:10.208 - 00:52:10.816, Speaker A: Got it.
+00:52:10.888 - 00:52:11.576, Speaker B: Okay.
+00:52:11.728 - 00:52:17.608, Speaker A: That's an interesting choice. I guess it's just to keep you from getting locked out forever, potentially.
+00:52:17.704 - 00:52:22.016, Speaker B: This is actually the protection that allows us to make this clean.
+00:52:22.168 - 00:52:22.768, Speaker A: Right.
+00:52:22.904 - 00:52:29.140, Speaker B: Because the idea here is that 5% of stake can be slashed.
+00:52:29.480 - 00:52:32.998, Speaker A: So will be finalized eventually because, so.
+00:52:33.014 - 00:52:46.470, Speaker B: The idea is that, you know, like five percent's gonna do whatever. So 38 minus five is 33. If 33% of the stake has voted on seven, that means eight can never get 66%.
+00:52:46.550 - 00:53:03.070, Speaker A: Right. You're just waiting on, like, the later ones. So you can potentially, it could potentially switch back and, like, it would be voted on a later bloc, which would include the fork. But eight specifically can't be. So you can end up waiting a decent amount of time if it keeps working.
+00:53:03.190 - 00:53:15.622, Speaker B: Yeah. And then the nice part about this also is that once something reaches optimistic confirmation. So this has 67%, you'll never be able to switch off of this because this condition number two can never be met.
+00:53:15.686 - 00:53:20.662, Speaker A: Yeah, it'll never, ever be met. That's why it's fine. Like, as soon as 67%, you're just like, I don't care about it anymore.
+00:53:20.726 - 00:53:36.136, Speaker B: Yeah, exactly. You would have to see more than 5% commit a slashing violation. Right. Because you need 38% right. Now. In the worst case, you have 67 here and you have, you know, like 33% here. Right.
+00:53:36.168 - 00:53:36.504, Speaker A: Right.
+00:53:36.592 - 00:53:56.110, Speaker B: That's still not enough for you to satisfy the switching proof. But if 5%, like, say, 6% of these guys commit a violation, they violate this and then they switch their vote to here. Now you have 39% here and then the rest of the people could switch.
+00:53:57.090 - 00:54:05.242, Speaker A: Right. Okay. So that's just between confirm and finalized. Okay. So we're always looking for the slashable events then.
+00:54:05.346 - 00:54:36.432, Speaker B: Yeah. So this, for this scenario to happens, 6% would have to commit a slashable offense to switch their vote from here. And even if that does happen, the rest of them are not going to switch because the, the weight of this fork is 39, the weight of this fork is 61. Yeah. You're still going to stay on that. That's why I said that if 5% are slash, it doesn't necessarily mean it's going to be rolled back. There would have to be other events also, as in like bugs and fork choice or some votes not being observed.
+00:54:36.576 - 00:54:38.408, Speaker A: It might be even more than 5%.
+00:54:38.464 - 00:54:40.512, Speaker B: Just or more than 5% probably.
+00:54:40.576 - 00:54:43.176, Speaker A: You have to be a decent amount just to switch as well.
+00:54:43.248 - 00:54:44.340, Speaker B: Exactly, yeah.
+00:54:45.860 - 00:54:52.212, Speaker A: Do we ever see that? I guess we haven't because nothing that's been mystically confirmed has been finalized.
+00:54:52.276 - 00:55:02.788, Speaker B: Yeah, so far nothing that's OC has been, has not been finalized. But in theory, yeah. If enough of stake performs a slashable offense.
+00:55:02.884 - 00:55:04.516, Speaker A: Do we ever see this type of thing?
+00:55:04.628 - 00:55:16.514, Speaker B: Often, yeah, competing forex happen all the time. I mean on something like testnet it's like 95% of the time it's just a straight line.
+00:55:16.602 - 00:55:17.138, Speaker A: Right.
+00:55:17.274 - 00:55:46.944, Speaker B: On mainnet you get more of these types of situations where leader is slow to broadcast their last blog and then you have a fork. And then, yeah, when there is super adversarial network conditions like when the hatsmere data center went down, all of a sudden like 20% of stake is offline or something like that, then you have a bunch of skip slots and people building forks off of what they think is the correct heaviest fork because they.
+00:55:46.952 - 00:55:49.800, Speaker A: Haven'T seen everything, they're waiting for things basically.
+00:55:49.880 - 00:56:15.342, Speaker B: Exactly. And then the other one is the epoch boundary. So the first block after the epoch boundary always takes a large amount of compute because apart from the regular transactions that go into the block, it has to do all of the rewards calculations on those. And because that takes a long time to compute, you might have this type of scenario where people skip because they haven't received that block yet.
+00:56:15.366 - 00:56:18.414, Speaker A: Right. They're waiting for the rewards calculation or.
+00:56:18.582 - 00:56:25.150, Speaker B: They received the block, but then they have to run the rewards calculation themselves to verify the block before continuing. Yeah, exactly.
+00:56:25.190 - 00:56:30.188, Speaker A: Got it. All right, cool. Is there anything you think we've missed with tower BFT?
+00:56:30.374 - 00:56:50.704, Speaker B: Um, I think this is, yeah, this is pretty much everything. Um, yeah, once, once something is rooted, then you can remove, uh, we wait until, you know, it's uh, super majority rooted, which is like rooted by 66%. And then once that happens you can clean up all of the bookkeeping, uh, which keeps the validator running.
+00:56:50.792 - 00:56:54.920, Speaker A: All right, cool. Um, yeah, I think we could probably talk about consistency, like, all day.
+00:56:54.960 - 00:56:55.136, Speaker B: Yeah.
+00:56:55.168 - 00:56:57.344, Speaker A: Cause we've probably only scraped the surface.
+00:56:57.392 - 00:57:03.076, Speaker B: Over, especially if we get into, like, duplicate block consensus or, you know, some of them.
+00:57:03.228 - 00:57:05.156, Speaker A: Sounds like a future thing that we'll talk about.
+00:57:05.268 - 00:57:05.652, Speaker B: Yeah.
+00:57:05.716 - 00:57:11.820, Speaker A: Very cool. Well, thank you for joining me today and teaching me about consensus. Did not know I think, any of this, so it's great to learn it.
+00:57:11.860 - 00:57:12.348, Speaker B: Nice.
+00:57:12.484 - 00:57:13.764, Speaker A: And then we'll see you all next week.
+00:57:13.812 - 00:57:14.580, Speaker B: Cool, thank you.
