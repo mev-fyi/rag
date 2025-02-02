@@ -1,0 +1,77 @@
+00:00:00.480 - 00:00:01.598, Speaker A: Welcome back, Rust Gang.
+00:00:01.654 - 00:00:02.678, Speaker B: If you're new here, my name is.
+00:00:02.694 - 00:00:04.734, Speaker A: Bogdan and this channel is all about.
+00:00:04.862 - 00:00:08.470, Speaker B: The rust programming language. In the last video, we continued our.
+00:00:08.510 - 00:00:11.966, Speaker A: Smart pointer series by talking about the d ref trait.
+00:00:12.078 - 00:00:13.710, Speaker B: Now, if you recall, I said that.
+00:00:13.750 - 00:00:20.558, Speaker A: Smart pointers implement two very important traits. One is deref and the second one is the drop trait.
+00:00:20.654 - 00:00:22.270, Speaker B: In this video, we'll cover the drop.
+00:00:22.310 - 00:00:27.800, Speaker A: Trait and why it's important to smart pointers. So with that, let's get rusty.
+00:00:33.460 - 00:00:35.604, Speaker B: The drop tray could be implemented on.
+00:00:35.652 - 00:00:40.436, Speaker A: Any type, and it allows you to customize what happens when a value goes out of scope.
+00:00:40.508 - 00:00:44.892, Speaker B: The drop tray is almost always used when implementing smart pointers.
+00:00:45.036 - 00:00:47.292, Speaker A: For example, with the box smart pointer.
+00:00:47.356 - 00:00:49.572, Speaker B: The custom behavior we want when a.
+00:00:49.596 - 00:00:54.396, Speaker A: Box goes out of scope is to deallocate the data stored on the heap.
+00:00:54.468 - 00:00:56.212, Speaker B: In some languages, you have to manually.
+00:00:56.276 - 00:00:59.284, Speaker A: Free memory or resources when you're done.
+00:00:59.332 - 00:01:03.804, Speaker B: Using an instance of a smart pointer. But with the drop trait, this cleanup.
+00:01:03.852 - 00:01:10.772, Speaker A: Happens automatically when a value goes out of scope, so you don't have to worry about manually cleaning up resources.
+00:01:10.916 - 00:01:14.732, Speaker B: Let's look at the following example. We have a struct which represents a.
+00:01:14.756 - 00:01:20.086, Speaker A: Smart pointer called custom smart pointer and has one field called data, which is a string.
+00:01:20.158 - 00:01:21.862, Speaker B: Then we implement the drop trait for.
+00:01:21.886 - 00:01:23.702, Speaker A: Our custom smart pointer struct.
+00:01:23.806 - 00:01:28.726, Speaker B: The drop trait requires that we implement one method called drop, which takes a.
+00:01:28.758 - 00:01:33.910, Speaker A: Mutable reference to self, and then inside the method, we call our cleanup code.
+00:01:34.030 - 00:01:35.462, Speaker B: In this case, we simply just want.
+00:01:35.486 - 00:01:43.934, Speaker A: To see how the drop trait works. So we're just printing out dropping custom smart pointer with data and then the data stored in our smart pointer.
+00:01:44.022 - 00:01:45.222, Speaker B: One thing to know here is that.
+00:01:45.246 - 00:01:49.496, Speaker A: The drop trait is included, the prelude, so it's already in scope.
+00:01:49.608 - 00:01:51.776, Speaker B: In main, we create two instances of.
+00:01:51.808 - 00:01:53.680, Speaker A: Our custom smart pointer struct.
+00:01:53.800 - 00:01:55.912, Speaker B: The first instance holds a string called.
+00:01:55.976 - 00:01:59.632, Speaker A: My stuff, and the second one holds a string called other stuff.
+00:01:59.736 - 00:02:04.256, Speaker B: Then we simply print out that the smart pointers were created. At the end of main, both our.
+00:02:04.288 - 00:02:09.360, Speaker A: Custom smart pointers will go out of scope, and Russ will automatically call the drop method.
+00:02:09.480 - 00:02:11.368, Speaker B: Note that variables will be dropped in.
+00:02:11.384 - 00:02:28.544, Speaker A: The reverse order of their creation. So first D will be dropped, which holds the string, other stuff, and then C will be dropped, which holds the string, my stuff. Let's run our program to see what happens. First we see the string, which tells us that our smart pointers were created.
+00:02:28.632 - 00:02:29.848, Speaker B: And then we see that the drop.
+00:02:29.904 - 00:02:35.280, Speaker A: Method is being called automatically in reverse order. So first our smart pointer with other.
+00:02:35.320 - 00:02:37.016, Speaker B: Stuff is dropped, and then our smart.
+00:02:37.048 - 00:02:39.344, Speaker A: Pointer with my stuff is dropped.
+00:02:39.392 - 00:02:47.282, Speaker B: Now, what happens if you want to customize this cleanup behavior? In most cases, this isn't necessary. However, in some cases, you might want.
+00:02:47.306 - 00:02:49.138, Speaker A: To clean up a value early.
+00:02:49.274 - 00:02:51.466, Speaker B: One example is when using smart pointers.
+00:02:51.538 - 00:02:55.458, Speaker A: To manage locks, you might want to call the drop method to release a.
+00:02:55.474 - 00:02:57.234, Speaker B: Lock, so other code in the same.
+00:02:57.282 - 00:02:59.546, Speaker A: Scope could acquire the lock.
+00:02:59.618 - 00:03:01.146, Speaker B: Now, rust doesn't allow you to call.
+00:03:01.178 - 00:03:04.514, Speaker A: The drop method directly. For example, here we have a variable.
+00:03:04.562 - 00:03:06.410, Speaker B: Called c, which is a custom smart.
+00:03:06.450 - 00:03:09.488, Speaker A: Pointer, and then we call the drop method on circumental.
+00:03:09.534 - 00:03:11.732, Speaker B: Before the end of main, let's run.
+00:03:11.756 - 00:03:14.000, Speaker A: Cargo check to see what errors we get.
+00:03:18.140 - 00:03:19.876, Speaker B: Here we see the error states explicit.
+00:03:19.908 - 00:03:24.956, Speaker A: Destructor calls are not allowed, and by destructor it's referring to the drop method.
+00:03:25.068 - 00:03:26.612, Speaker B: Rust doesn't allow us to call the.
+00:03:26.636 - 00:03:38.634, Speaker A: Drop method manually because when our variable goes out of scope, rust will still automatically call the drop method, which will result in a double free because we're the potentially calling free on memory that's.
+00:03:38.682 - 00:03:44.258, Speaker B: Already been freed to manually clean up a value early. Instead of calling the drop method on.
+00:03:44.274 - 00:03:55.482, Speaker A: The value, we can call the drop function provided by rest standard library and pass in our value. And as you can see in the help hint here, that's exactly what we're told to do.
+00:03:55.586 - 00:03:57.282, Speaker B: So here in main, instead of calling.
+00:03:57.346 - 00:04:02.920, Speaker A: C dot drop, what we'll do is call the drop function pass in c.
+00:04:06.820 - 00:04:08.916, Speaker B: Now again, this drop function is different.
+00:04:08.988 - 00:04:12.340, Speaker A: From the drop method on our custom smart pointer struct.
+00:04:12.420 - 00:04:14.180, Speaker B: This drop function is provided by Rust.
+00:04:14.220 - 00:04:18.636, Speaker A: Standard library, and it's included in the prelude so we don't have to bring.
+00:04:18.668 - 00:04:22.196, Speaker B: It into scope manually. Now that our code is compiling, let's.
+00:04:22.228 - 00:04:23.680, Speaker A: Go ahead and run our program.
+00:04:26.220 - 00:04:27.828, Speaker B: Here you can see our smart pointer.
+00:04:27.844 - 00:04:33.674, Speaker A: Is being created, then it's being dropped, and then we print that it's dropped before the end of main.
+00:04:33.802 - 00:04:35.906, Speaker B: In summary, the drop trait combined with.
+00:04:35.938 - 00:04:44.930, Speaker A: Rust's ownership system means that you don't have to worry about cleaning up resources and memory, because Rust will do it automatically. That's it for this video.
+00:04:45.010 - 00:04:46.410, Speaker B: If you enjoyed it, make sure to.
+00:04:46.450 - 00:04:47.642, Speaker A: Smash that like button.
+00:04:47.746 - 00:04:49.042, Speaker B: And if you want to be notified.
+00:04:49.106 - 00:04:51.066, Speaker A: When the next Rust video comes out.
+00:04:51.178 - 00:04:54.026, Speaker B: Make sure to hit subscribe with that.
+00:04:54.138 - 00:04:56.480, Speaker A: I'll see you in the next one.
