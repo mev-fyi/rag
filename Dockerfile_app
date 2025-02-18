@@ -16,8 +16,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy only the relevant directory to the working directory
+# Before copying, print all files in the build context
+RUN echo "=== BEFORE COPY ===" && ls -Rla /app
+
+# Copy files
 COPY . .
+
+# After copying, print all files inside the container
+RUN echo "=== AFTER COPY ===" && ls -Rla /app
 
 # Use the build argument to copy the correct .dockerignore file before the build
 COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
