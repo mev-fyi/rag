@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+import time
 
 from llama_index.embeddings.openai import OpenAIEmbedding
 
@@ -69,6 +70,26 @@ def copy_docstore():
     logging.info(f"Docstore backup created at {destination_path}")
 
 
+def calculate_batch_size(total_docs):
+    """
+    Calculate the batch size dynamically based on the number of documents.
+    The batch size scales with the number of documents to ensure efficient processing
+    while avoiding too large batches that risk substantial data loss on failure.
+
+    :param total_docs: Total number of documents to be processed
+    :return: An appropriate batch size
+    """
+    logging.info(f"[calculate_batch_size] Calculating batch size for [{total_docs}] documents")
+    if total_docs < 100:
+        return max(1, total_docs // 10)  # Small number of documents, process in tens
+    elif total_docs < 500:
+        return max(1, total_docs // 50)  # Medium number, process in twenties
+    elif total_docs < 1000:
+        return max(1, total_docs // 100)  # Larger set, process in fifties
+    else:
+        return max(1, total_docs // 200)  # Very large set, process in hundreds
+
+
 @timeit
 def create_index(add_new_transcripts=True, num_files=None):
     copy_and_verify_files()
@@ -78,6 +99,7 @@ def create_index(add_new_transcripts=True, num_files=None):
     overwrite = False  # whether we overwrite DB namely we load all documents instead of only loading the increment since last database update
     num_files = None
     files_window = None  # (20, 100)
+    add_new_transcripts = True
 
     # Load all docs
     documents_pdfs = []
@@ -92,20 +114,32 @@ def create_index(add_new_transcripts=True, num_files=None):
 
     all_documents = documents_pdfs + documents_youtube
     total_docs = len(all_documents)
-    batch_size = max(1, total_docs // 20)  # Ensure batch_size is at least 1
+    batch_size = calculate_batch_size(total_docs)  # Calculate dynamic batch size based on document count
 
     pipeline = initialise_pipeline(add_to_vector_store=True)
     all_nodes = []
 
-    # Process documents in batches
+    # Process documents in batches with retries
     for i in range(0, total_docs, batch_size):
-        batch_documents = all_documents[i:i+batch_size]
-        logging.info(f"Processing batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes of length {len(batch_documents)}")
-        nodes = pipeline.run(documents=batch_documents, num_workers=18, show_progress=True)
-        all_nodes.extend(nodes)
-        if len(nodes) > 0:
-            pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
-        logging.info(f"Processed batch {i//batch_size + 1}/{(total_docs + batch_size - 1)//batch_size} Nodes")
+        batch_documents = all_documents[i:i + batch_size]
+        logging.info(f"Processing batch {i // batch_size + 1}/{(total_docs + batch_size - 1) // batch_size} Nodes of length {len(batch_documents)}")
+
+        retries = 0
+        success = False
+        while not success and retries < 5:  # Retry up to 5 times
+            try:
+                nodes = pipeline.run(documents=batch_documents, num_workers=18, show_progress=True)
+                all_nodes.extend(nodes)
+                if len(nodes) > 0:
+                    pipeline.persist(persist_dir=f"{root_directory()}/pipeline_storage")
+                success = True
+            except Exception as e:
+                retries += 1
+                wait_time = 2 ** retries  # Exponential backoff
+                logging.error(f"Failed to process batch {i // batch_size + 1}, retrying in {wait_time} seconds. Error: {e}")
+                time.sleep(wait_time)
+
+        logging.info(f"Processed batch {i // batch_size + 1}/{(total_docs + batch_size - 1) // batch_size} Nodes")
 
     logging.info(f"Processed {len(all_nodes)} Nodes in total")
     logging.info("Index Load Process Completed")
