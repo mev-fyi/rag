@@ -1,0 +1,609 @@
+00:00:05.560 - 00:01:02.910, Speaker A: Welcome to Zero Knowledge. I'm your host, Anna Rose. In this podcast, we will be exploring the latest in zero knowledge research and the decentralized web, as well as new paradigms that promise to change the way we interact and transact online. This week, Tarun and I chat with Hart from Uma and across and just a note, this episode basically has two parts. For the first half of the episode we explore Heart's project, a cross chain interoperability solution, aka a bridge and a sister project to Uma. We explore how a cross is constructed, how the different actors function in the system, the trade off space, the choices they make, and how a cross compares to other interop solutions. Then, as we are in Brussels in person recording this, we pop a bottle of champagne and very much shift gears.
+00:01:02.910 - 00:01:34.970, Speaker A: So it is becoming a bit of an every six months or so tradition for Tarun and I to grab a bottle of bubbly and a friend for a candid drunk episode. This time, heart is that friend, and we begin with thoughtful observations about our week in Brussels. During ECC events, we've been at talks, we've given research that's coming, but very quickly we devolve into somewhat drunken ramblings and interrupting one another a lot. Classic. Please forgive us all. We were drinking on an empty stomach. Hope you enjoy it.
+00:01:34.970 - 00:02:09.858, Speaker A: Before we kick off, I want to let you know about ZK Hack Montreal, an IRL hackathon happening on August 9 to 11th in, you guessed it, Montreal. This is the fourth ZK focused hackathon produced by Zkhack, and it's a great place to learn about ZK tools. Meet fellow ZK builders and build the next generation of ZK applications you can already apply over@zkmontrial.com dot it's set to be the ZK event of the summer, and it's heating up, so get your application in soon. Now Tanya will share a little bit about this week's sponsors Namata is the.
+00:02:09.874 - 00:02:52.446, Speaker B: Shielded asset hub, rewarding you to protect the multi chain built to give you full control over sharing your personal information. Nemada brings data protection to existing assets, applications, and networks. Namada ends the era of transparency by default, enabling shielded transfers and shielded cross chain actions to protect your data even when interacting with transparent chains. Nemata also introduces a novel shielding rewards system. By holding your assets in a shielded set, you help strengthen Namada's data protection guarantees and collect nom rewards in return. Nemata will initially support IBC and Ethereum based assets, but will ultimately serve as a single shielded hub for all assets across the multichain. Learn more and follow Nemata mainnet launch@nemata.net.
+00:02:52.446 - 00:03:35.260, Speaker B: dot Elio is a new layer one blockchain that achieves the programmability of Ethereum, the privacy of zcash, and the scalability of a rollup. Driven by a mission for a truly secure Internet, Elio has interwoven zero knowledge proofs into every facet of their stack, resulting in a vertically integrated layer one blockchain that's unparalleled in its approach. Alio is ZK by design. Dive into their programming language, Leo, and see what permissionless development looks like, offering boundless opportunities for developers and innovators to build ZK apps. This is an invitation to be part of a transformational ZK journey. Dive deeper and discover more about alio@alio.org. dot and now here's our episode.
+00:03:38.160 - 00:03:45.576, Speaker A: So I'm here in Brussels, our favorite city in the world, with Tarun and Hart. Hi, guys.
+00:03:45.688 - 00:03:46.336, Speaker C: Hey, Anna.
+00:03:46.408 - 00:03:54.940, Speaker D: Hey. Excited to be here. And for the record, even though I'm gonna get impaled by our pair of Canadians on the show, Belgium really is Francis, Canada.
+00:03:56.000 - 00:03:59.500, Speaker C: I thought you were gonna save this joke for, like, later in the pot.
+00:03:59.880 - 00:04:03.480, Speaker D: It's okay. We might as well pull the knives out. It'll get spicier and faster.
+00:04:03.600 - 00:04:06.824, Speaker C: So, for context, Anna and I are both proud Canadians.
+00:04:06.912 - 00:04:07.320, Speaker A: Yes.
+00:04:07.400 - 00:04:13.700, Speaker C: And I don't think we take kindly to Belgium or Canada being compared to. What's the joke?
+00:04:14.280 - 00:04:16.340, Speaker D: Belgium is France is Canada.
+00:04:16.840 - 00:04:19.760, Speaker C: Belgium is France is Canada. Yeah, I don't like it.
+00:04:19.840 - 00:04:30.020, Speaker A: Yeah, I'm not sure. Also, Canada's so much bigger than America, and Brussels is so much smaller than France. It doesn't make any sense, actually.
+00:04:31.960 - 00:04:41.710, Speaker C: Truen, I came here from a beach in Canada on the west coast, where I saw humpback whales flowing through our gorgeous oceans on my way here. Belgian doesn't have that shit.
+00:04:41.800 - 00:04:42.218, Speaker A: No.
+00:04:42.314 - 00:04:48.802, Speaker D: All right, well, you know, I'm just the messenger, but then I just heard this joke so many times, and he.
+00:04:48.826 - 00:05:09.778, Speaker A: Thought it was really, really funny. This is the second time we're hearing it. Anyway, for today's episode, the plan is we're gonna do. I think we're gonna try to do this in two parts. The first part is actually getting to know Hart and getting to know the project across. And, Hart, I've tried to have you on the show, I think, now for a few months, and it's just cool that we're in the same city. And so we figured we'd actually sit down and do this interview.
+00:05:09.778 - 00:05:24.910, Speaker A: Now, the second part maybe we can do a little review of what's been happening this week in Brussels, because we're here for the big ECC extravaganza that happens every year. But this year it's here in Brussels, which is kind of unusual.
+00:05:25.490 - 00:05:27.426, Speaker D: I ate zero sprouts so far.
+00:05:27.538 - 00:05:29.106, Speaker A: Is sprouts a thing? I thought Russell.
+00:05:29.178 - 00:05:30.186, Speaker D: Brussels sprouts.
+00:05:30.258 - 00:05:31.670, Speaker A: Oh, yeah.
+00:05:32.050 - 00:05:35.682, Speaker C: Your dad jokes, man. What is going on?
+00:05:35.786 - 00:05:38.026, Speaker D: No sugar free Red Bull here. It's been impossible to.
+00:05:38.058 - 00:05:38.754, Speaker A: Oh, no. This is like.
+00:05:38.762 - 00:05:39.946, Speaker D: This is what happens.
+00:05:40.138 - 00:05:41.966, Speaker A: He gets so sweet.
+00:05:42.138 - 00:05:44.850, Speaker C: There's an undorky supply of sugar free Red Bull in my hotel.
+00:05:46.630 - 00:05:52.246, Speaker D: I'll take you up on it. Cause I kept finding Red Bull zero, which is a poor imitation of sugar free Red Bull.
+00:05:52.318 - 00:05:52.910, Speaker A: Really?
+00:05:53.070 - 00:05:57.310, Speaker D: Yeah. I think sugar free has this particular annecy like aftertaste that I love.
+00:05:57.350 - 00:06:01.214, Speaker C: You feel so unfocused because I think you haven't had enough sugar free Red Bull.
+00:06:01.302 - 00:06:04.370, Speaker D: It's true. It's true, it's true. It's truly a drug.
+00:06:05.030 - 00:06:15.002, Speaker A: All right, Hart, I think we're gonna start in on a little bit of an intro to you. The audience may not know you. What have you been working on for the last few years?
+00:06:15.186 - 00:06:18.746, Speaker C: Yeah, actually, I know Tarun from before gauntlet actually started.
+00:06:18.818 - 00:06:19.450, Speaker A: Oh, wow.
+00:06:19.530 - 00:06:20.002, Speaker C: Yeah.
+00:06:20.106 - 00:06:20.978, Speaker A: What year?
+00:06:21.154 - 00:06:23.026, Speaker C: I guess this was 2018. Tarun.
+00:06:23.058 - 00:06:23.770, Speaker D: 2018, yeah.
+00:06:23.810 - 00:06:25.618, Speaker C: Yeah. We paid you as a contractor.
+00:06:25.714 - 00:06:26.090, Speaker D: Yeah.
+00:06:26.170 - 00:06:26.682, Speaker C: Do you remember that?
+00:06:26.706 - 00:06:27.930, Speaker D: I remember. In two Sigma office.
+00:06:28.010 - 00:06:41.396, Speaker C: Yeah, in the two Sigma office, which is one of our investors. Anyways, this was back when I found it, so. Okay. I'm like. I joke that I'm the second oldest guy in Defi after Chris Dixon. June's catching his head.
+00:06:41.428 - 00:06:41.852, Speaker D: Yeah, it's.
+00:06:41.916 - 00:06:42.540, Speaker A: Thinking about it.
+00:06:42.580 - 00:06:46.660, Speaker D: It's probably. I know. Igarov's kind of old, huh? Igorov is old.
+00:06:46.780 - 00:06:47.508, Speaker C: I don't know him.
+00:06:47.564 - 00:06:53.340, Speaker D: I think Igorov is actually probably might be older than both of you. He finished his PhD in the early two thousands.
+00:06:53.420 - 00:07:29.144, Speaker C: Yeah. Okay, well. And I worked in finance as a young canadian. I went to university in the US in New York, then worked in finance for eight years as a bond trader, where I met my co founder of Uma, who went to MIT and knew friends of Tarun. That's kind of how we originally got connected. I started a fintech business that was from 2013 2017, and then got sucked into crypto in 2018, before Defi was a thing and made a protocol called Uma. The goal there is to try.
+00:07:29.144 - 00:08:02.888, Speaker C: We were trying to bring derivatives on blockchains, and our problem there was, how do we get data? And we meant more than just price data, but, like, arbitrary data on a blockchains. And we built something called the optimistic oracle. And that's been really cool and really fun. But the thing I think we're going to talk about today is the second protocol, our sister protocol we created called across, which is really morphed into an intent based interop tech mainly thought of as a bridge. And maybe we can talk about why bridging isn't a thing too, but.
+00:08:02.984 - 00:08:11.400, Speaker A: Sounds good. But before we do that, like, uma, that project, where was it? Like, what ecosystem is that in? Where did it live?
+00:08:11.480 - 00:08:12.440, Speaker C: All ethereum.
+00:08:12.600 - 00:08:15.744, Speaker A: Oh, it's all ethereum. For some reason, I thought it was cosmos, but it's not.
+00:08:15.832 - 00:08:18.480, Speaker C: No, I like cosmos, but we're not on cosmos.
+00:08:18.520 - 00:08:19.208, Speaker A: Okay. Okay.
+00:08:19.344 - 00:08:21.072, Speaker C: It's actually quite possible that if tendermint.
+00:08:21.096 - 00:08:25.180, Speaker D: Existed, Canadians are too nice to be founders in the cosmos ecosystem.
+00:08:25.560 - 00:08:28.408, Speaker A: Wait, there are a ton of Canadians in the cosmos ecosystem? Actually.
+00:08:28.464 - 00:08:29.976, Speaker D: Well, they're all. Do they fight as much?
+00:08:30.008 - 00:08:37.091, Speaker A: No, but I think everything was founded for Cosmos in Toronto from Jay and Ethan, and I think they're all from there. Henry.
+00:08:37.235 - 00:08:43.227, Speaker D: I'm just thinking about all the people who fight with each other in cosmos. I'm like, the stereotype is you guys are really nice guys.
+00:08:43.403 - 00:08:52.719, Speaker A: Canada's a country. It's a big country, and people are people. They're nice Canadians, and there's a lot of assholes. They just hide it better.
+00:08:53.779 - 00:09:00.000, Speaker C: It's true. And I've spent enough time in both the US and in crypto to become less nice. That's been my goal.
+00:09:00.340 - 00:09:02.200, Speaker D: All right, you heard it here first.
+00:09:03.860 - 00:09:06.540, Speaker A: Okay, so Uma was an Ethereum project?
+00:09:06.620 - 00:09:06.964, Speaker C: Yeah.
+00:09:07.012 - 00:09:09.080, Speaker A: Was it an application on Ethereum?
+00:09:10.180 - 00:09:54.048, Speaker C: Essentially, yes. So Uma, you can think of as an implementation of Vitalik's shelling coin blog post that he wrote in 2014. And this has other intellectual predecessors in, like, truth, coin, and augur, actually. And the idea is, how can you build a game theoretic machine that will tell you whether. Tell you a truth, really, oracles an oracle, but not like a price feed oracle. Not like, we're going to take the API data from binance and coinbase and put it on chain. This is like, I want to ask a question, like, who's the president of the United States? Or like an arbitrary question, like, is this set of data valid? And the origin story here for across, actually was we were actually looking for use cases for UMA.
+00:09:54.048 - 00:10:16.300, Speaker C: And this was sort of before any type of cross chain messaging existed. And we realized that transacting across chains or sort of verifying things across chains is a form of an oracle problem. And we realized we could use the UmA oracle to help with that, which we then do in a very specific way that we can maybe get into.
+00:10:16.380 - 00:10:24.580, Speaker A: I want to just check this, though, because you were saying it was the first message passing, but had IBC been spec'd out, or are you thinking more like in the ethereum?
+00:10:24.660 - 00:10:52.360, Speaker C: In the Ethereum world, we're talking more like arbitrary and optimism sort of had just launched and they had a way to send messages. They still do. The canonical message bridges go from Ethereum to those chains in like 20 ish minutes, but take seven days to go the other direction, even though everyone can kind of see that they're correct. Well, before that seven day finality. And so we were trying to use this UmA chilling point oracle to do messaging faster.
+00:10:52.660 - 00:11:08.326, Speaker A: So you build across for that particular use case. And what is it exactly like you're talking about this message passing bridge. But yeah, maybe can you go in a little bit of what that looks like or maybe what it was and also how it's evolved?
+00:11:08.398 - 00:11:14.998, Speaker C: Yeah, the origin story might actually confuse what it's become now. So across is an intent based bridge.
+00:11:15.094 - 00:11:15.542, Speaker A: Now.
+00:11:15.646 - 00:11:46.986, Speaker C: Now. And so the way I like to explain this is if you think that you have, imagine you have two blockchains. We have no video, so I can't use my hands. But you have blockchain a and blockchain b and you want to send value between the two of them. What, naively, the way you think that would work is, okay, I'm going to have blockchain a, I'm going to send a message or send a deposit into blockchain a. I have to wait for finality on blockchain a and then I send a message from a to b and then I release funds on b to the user.
+00:11:47.058 - 00:11:47.882, Speaker A: Oh, wow. Okay.
+00:11:47.946 - 00:11:52.422, Speaker C: Okay, so that's like typically how, what I'll call, like gen one bridges work.
+00:11:52.566 - 00:11:54.650, Speaker A: Was this the lock unlock?
+00:11:54.950 - 00:12:02.486, Speaker C: Yeah. Then you can get to, there's sort of a different parallel conversation like, okay, am I locking and minting assets?
+00:12:02.558 - 00:12:02.934, Speaker A: Oh, yes.
+00:12:02.982 - 00:12:33.980, Speaker C: Right. Or you could imagine you have a pool of assets on chain a and chain b and you're going to use this message to release assets that are like canonical assets on chain b. Kind of ignore that for now. That's sort of like depending on your use case. But this sort of bridging framework is how I think a lot of people thought that value should be moved between blockchains for sure. And in something like IBC. Actually, this kind of works pretty well because you have pretty fast finality, and you can send the message pretty quickly, and that all kind of works.
+00:12:33.980 - 00:12:42.184, Speaker C: But for a lot of EVM rollups, that's not the case, and it becomes quite tricky.
+00:12:42.272 - 00:12:43.032, Speaker A: Got it.
+00:12:43.176 - 00:13:35.260, Speaker C: So you go back and you think about this native framework or this naive framework of trying to send a message from a to b and wait for finality on a to do so. And the problem is it's slow. Like, you have to wait for finality, and then sending a message is expensive and slow and kind of scary from a security perspective, too. And so our approach is actually to do something quite different. And this is the nature of these cross chain intents. Our approach is to not send a message, but to rather have a network of third party solvers or relayers or fillers use the words interchangeably, and those third party solvers will observe blockchain a for when a user makes a deposit, and that deposit goes basically into an escrow contract. They'll observe blockchain a, and then they will front money to blockchain b, front their own capital to blockchain b, and fill the user extremely quickly.
+00:13:35.260 - 00:13:50.764, Speaker C: The user's happy, they get their funds fast, and then the protocol can take its time in verifying, quote, unquote, that that intent was filled before releasing the user's initial funds to the solver.
+00:13:50.952 - 00:14:02.172, Speaker A: I want to really understand what these third party solvers actually are. Are they actors on one blockchain, one of these two places, or are they really sitting outside of the entire system?
+00:14:02.356 - 00:14:30.040, Speaker C: So they're kind of actors on every blockchain that they fill transactions on. So you can think, let's make Tarun be the third party solver here. And so, Anna, you want to bridge from, I'll make it arbitrum to base. So it's a to b, right? So Anna's bridging from arbitrum to base. Anna does a deposit transaction on arbitrum of, say, one eth. Tarun is the off chain actor that observes that. So he can see you did that deposit on arbitrum.
+00:14:30.040 - 00:15:09.316, Speaker C: If he trusts the arbitrum sequencer, which he does, he can say, okay, anna's definitely done this deposit on the arbitrum sequencer. I am going to go and fill Anna out of my own inventory on blockchain B on base. Yeah, and he can do that extremely quickly. Like, our median fill time is 4 seconds, depending on the chain, it's down to, like, less than a second on some of these fills. And so he does that for a small fee, and the fees here are really small, which we can also get into, too. But he does that, and he makes this loan to you on blockchain B. And then the protocol verifies that this fill happened and pays him back later.
+00:15:09.468 - 00:15:16.470, Speaker A: So is it that seven day kind of like fraud proof, or is this like a different kind of settlement?
+00:15:16.630 - 00:15:54.920, Speaker C: Yeah, so it's not the seven. So the protocol, like, from the across perspective, all across, has to do is get comfortable enough or be sure that the fill, the intent was filled, which we can talk about how we do that, but then they can immediately release funds to Tarun on the origin chain. We can send a message to arbitrum in this case, and say, release funds to Tarun. We do a bunch of, like, optimizations to help Tarun manage its inventory. He can actually request. The protocol pays him back on base because that's where he lent his funds. But this is an optimization to help Tarun, the third party actor, with his inventory management.
+00:15:54.920 - 00:16:13.602, Speaker C: We're not waiting for this seven day finality period. We're sort of this fast fill layer on top of the l two and EVM ecosystem.
+00:16:13.746 - 00:16:37.584, Speaker A: The thing I still don't get, though, is how does a solver see both of these things? I've always had this impression that if you're working in one blockchain, it can't really see into another blockchain. It doesn't know the state of the other space. I know you said the solver will be on both of these chains, but still, where's the information being connected, and how is it being connected?
+00:16:37.722 - 00:17:11.142, Speaker C: It's a really good question and insight. So blockchain B base cannot see what's happening on blockchain A. Yeah, but Tarun's not on a or b. Tarun is his own independent, special person. And so Tarun, he's not making a decision on behalf of, like, a protocol or consensus mechanism. He's making a decision on behalf of his own money. Okay, so all he cares about is, does Tarun think that deposit transaction on a happened? If he believes it happened, then he can go and make the fill on blockchain B with his own money.
+00:17:11.142 - 00:17:27.070, Speaker C: And so, basically, by introducing these independent third parties that are observing and making their own judgments on, like, what happened between blockchains, we can shortcut all of these, like, messaging latency problems. Does that make sense?
+00:17:27.230 - 00:17:33.062, Speaker A: I think so. I just, I still don't like, I think this makes me want to dig into who the third party solvers actually are.
+00:17:33.166 - 00:18:05.614, Speaker D: Well, one important thing to think about is that I, when you rely on solvers, you can lose liveness. In theory, all the solvers could not want to hold the risk because they don't want to hold the risky asset and then no one fulfills. That's a little different than a blockchain, like a layer one where someone can always step in and low, costly, earn part of the network for participating. Here you're earning fees, but you, you have to stay live and say so. It's a little more like market making.
+00:18:05.702 - 00:18:25.598, Speaker A: That's what it sounds like, actually. And that's why when you're talking about these solvers, I'm really curious, like what form they take. Are they a company? Are they like a market maker? That's like just using software that you've provided but has already checked? Like, I trust all these things and it's sort of like happening in the background.
+00:18:25.774 - 00:18:58.988, Speaker C: Yeah. So people actually think across is either us running our own solver or wintermute running a solver for us. And neither of those are true. We do run a solver much in the same way. If you think of AAVE or compound, at least early days, they ran a liquidation bot to execute liquidations on their protocol. We do the same thing, but most of our transactions, like 80% of them or more are filled by third parties. These third parties, it's actually kind of quite cool.
+00:18:58.988 - 00:19:25.590, Speaker C: They're grassroots folks that are like, we know them by discord handles and, or we don't know who some of them are. And we've across has written a reference implementation of how to be, we use the term relayer in our system of how to be a relayer in a cross, and other people have taken that and heavily optimized it. So they like, out compete our reference implementation by a lot. And we really don't really know who these folks are. It's permissionless.
+00:19:26.050 - 00:19:27.830, Speaker A: Can they cheat?
+00:19:28.490 - 00:19:29.230, Speaker C: No.
+00:19:29.730 - 00:19:35.354, Speaker A: How do you make sure they don't cheat? So they have to lock their funds or something? Is that why?
+00:19:35.442 - 00:20:12.380, Speaker C: So let's, we'll step through it. So you doing your transaction on arbitrum, you deposit one eth on arbitrum with instructions that say, and this is your intent. We'll go back to this intent concept. So you deposit one eth on arbitrum with your instructions that you want to have one eTh on base, less a small fee. Let's say the fee is like, I don't know, a dollar. That's your instructions. Any one of these relayers can observe that deposit transaction, and those funds go into an escrow contract, into the across protocol escrow contract, which I generally call our settlement layer.
+00:20:12.380 - 00:20:33.996, Speaker C: You used the word settlement earlier, and I think it's very appropriate here that happens. Then we have Tarun as one of the solvers. He goes and he fills you on base. His fill transaction goes through a contract that basically nonces it, that makes sure you can't get double filled.
+00:20:34.068 - 00:20:34.548, Speaker A: Okay.
+00:20:34.644 - 00:21:08.118, Speaker C: And he records that says, okay, anna on Arbitrum said she wanted one eth sent to her on base, less a small fee, and he fronts you money. The protocol then, like, verifies that that happened, but won't pay Tarun back if he screwed up. Okay, so, like, Tarun has a huge incentive to, because he paid an eth out for this fee, he has a huge incentive to not get it wrong. If he gets it wrong, he doesn't get paid back. Your one eth on arbitrum, and you might get double filled by somebody that does it right, and you'd be happy. Cause you get twice the money.
+00:21:08.174 - 00:21:12.910, Speaker A: But he doesn't get slashed or anything. There's no punishment. It's just he's already handed it over.
+00:21:12.990 - 00:21:21.870, Speaker C: Exactly. He fronts money. So there's like, the slashing is sort of built in, if you will, where if he did it wrong, he doesn't get paid back the money he fronted.
+00:21:21.950 - 00:21:29.150, Speaker A: And it's like the overall protocol that's verifying it's not this reference implementation.
+00:21:29.230 - 00:21:29.542, Speaker C: Correct.
+00:21:29.606 - 00:21:37.490, Speaker A: Okay. Cause the minute you said that this reference implementation, that people have optimized it, I start to think if they dramatically changed it, couldn't they?
+00:21:38.350 - 00:22:13.390, Speaker D: Well, they still have to follow the rules of the smart contract. How they come to the inputs that they send on chain is up to them, and that the reference implementation basically computes inputs. Given some state of the world, you could write something that maybe takes other inputs, like you take in binance data and you compare prices, and you lower your fee because you're using some off chain data. But that's all you doing it yourself. But all you're doing is really constructing inputs that go to a public smart contract, and you can only kind of take your money out if some covenants the contract holds are true and that's secured by the validators.
+00:22:14.130 - 00:22:15.422, Speaker A: Wait, there are validators?
+00:22:15.546 - 00:22:17.798, Speaker D: He means validators on validators of Ethereum, like the.
+00:22:17.854 - 00:22:27.998, Speaker A: Oh, the Ethereum validators. Okay, okay. Talk a little bit about that protocol then, the one that's doing the verifying. What have you had to do to make that happen? Is that just like a series of smart contracts? Is that like.
+00:22:28.134 - 00:22:28.470, Speaker C: Yeah.
+00:22:28.510 - 00:22:33.382, Speaker A: Is it run from a central point? Is there a validator set there?
+00:22:33.486 - 00:22:53.042, Speaker C: Yeah. Okay. So conceptually, what we're trying to do is verify that tarun's fill. So we go back to our example, right? You were filled by tarun. You're happy, you, as the user, move on with your day, and, like, you got filled in a few seconds and you don't have to think about it again. So that's great. Now truun needs to get paid back.
+00:22:53.042 - 00:23:36.814, Speaker C: So what we conceptually need to do is just verify that truen's fill was in fact valid before we release the funds you deposited on arbitrum on the origin chain back to him. So that's kind of naive way you do this is you would like, send a message from base back to arbitrum and say, yes, this fill did happen and release the funds that way. But then we kind of go back and like, well, we're just sending messages again. It's not really, it's faster, but there's just as much overhead. So what we do is we actually batch together thousands of fills every period. Periods right now are about an hour. So over course of an hour.
+00:23:36.814 - 00:24:07.938, Speaker C: And this could be changed as a parameter in the system. But over the course of an hour, we batch together all of the fills off chain. So a bundle of fills is constructed, and anyone can construct this bundle of fills because you can observe all of these blockchains. And that bundle is then proposed optimistically. This is now using the Uma oracle, back to what we talked about at the beginning. It's proposed optimistically to ethereum main net. And anyone can then dispute it and say, actually, I disagree with this construction of fills.
+00:24:08.074 - 00:24:14.790, Speaker A: And is this like, is there a fraud proof in here somehow? Or is this just like, is there a time frame?
+00:24:15.370 - 00:24:18.402, Speaker C: There's an hour long, roughly hour long challenge window.
+00:24:18.466 - 00:24:20.106, Speaker A: Okay, so it's very short.
+00:24:20.258 - 00:24:47.052, Speaker C: Quite short. But again, this is deterministically verifiable. And we have people that run dispute bots to verify this. Anyone can run infrastructure to reconstruct these bundles and verify it. And then provided that the bundle is this sort of bundle of repayment instructions is not challenged, it then gets processed as this batch repayment to all the solvers over that period.
+00:24:47.226 - 00:25:06.096, Speaker A: And is this why you were saying before that you could actually repay it over on base or something? Because it's batched, because there's action happening in all directions that you could just say, well, somebody was sending it this way. Somebody was sending it that way instead of doing those two, we'll just cross them out and you can actually receive it on the one you sent it on.
+00:25:06.168 - 00:25:38.696, Speaker C: Yeah, you're jumping ahead. And this is. No, it's really smart. It's this other optimization in the system where basically you can think left hand, right hand. If you, Anna, were going from arbitrum to base, and I was going from base to arbitrum. Well, if Tarun filled you on base and then filled me on arbitrum, and then kind of like, just has funds all over, you can net these off. And so the across protocol has people that provide liquidity.
+00:25:38.696 - 00:26:07.124, Speaker C: So we do have LP's in the protocol, and that liquidity is used so that if true wanted to, he could ask for his repayment to happen on the destination chain. And we kind of do some netting and some sort of financial optimizations to minimize the amount of money that actually has to get bridged between blockchains, basically, with the understanding that if you have offsetting flow, you don't need to send funds between arbitrum and base, you just have offsetting flow and kind of net users out.
+00:26:07.252 - 00:26:33.272, Speaker A: And the reason you would do that is because of, I guess, like, when you're sending money back and forth, if you actually do it, if you actually have to do those settlements. Yeah. Are you saving money? Are you saving, like, what would you do otherwise? You'd be like, would you actually be moving the funds off the l two onto the l one and then back on the other l two? Or is it even just like, even just calculating the repayments on each side would just be annoying. What are you saving?
+00:26:33.376 - 00:27:09.342, Speaker C: All the above. Right. The dumbest way you would do this is Tarun has filled the user on base, he gets paid back, or the protocol releases the funds on arbitrum, bridges them over the seven day slow bridge back to ethereum, and then uses the faster Ethereum to base bridge. That's like 20 minutes. And so Tarun gets repaid in seven days and 20 minutes type thing. And obviously that doesn't make sense. So when you have this type of netting or these, all these advantages, you could, first of all, repay Tarun on arbitrum itself.
+00:27:09.342 - 00:27:59.028, Speaker C: And then Tarun has this cross chain position where he's short on base, long on arbitrum. Or you could do other kind of inventory management type tools to say, okay, maybe we have LP funds in across, which we talked about, across does. Maybe the cross protocol has some funds, some sort of, I use the concept of, like, working capital. There's some working capital in the protocol that could pay trune back on base. Or maybe truen is like a sophisticated solver that has his own inventory management going on and he's just doing sort of his own netting, left hand, right hand, where he's doing fills from arbitrum to base and getting paid back on arbitrum while making fills on base. But then he's got other fills going the other direction and he just does his own netting. And it was all of these systems sort of work and are possible, but.
+00:27:59.044 - 00:28:02.620, Speaker A: Those are the less opt, like the optimized one is what you're actually providing.
+00:28:02.740 - 00:28:13.386, Speaker C: Yeah. And I think it's one of the things I've actually thought is very cool and kind of been exciting about across is the architecture itself really hasn't changed. Almost two years.
+00:28:13.418 - 00:28:14.230, Speaker A: Oh, wow.
+00:28:15.130 - 00:28:26.510, Speaker C: It's just had all of these improvements and optimizations made to it, really, in terms of how we net flows and how solvers in these third parties operate and how they do their own inventory management.
+00:28:27.650 - 00:28:57.320, Speaker D: I think for the user, I think it's actually quite intuitive what across does. But maybe given that across was created to, in some ways, dog food the UMA protocol, or be your own customer of your own protocol, maybe it'd be good to talk about where you use what parts of building one protocol first and building another one beside it, how that influence your design choices. And the fact that you have had the architecture frozen maybe is one of them.
+00:28:58.340 - 00:29:54.358, Speaker C: There's actually probably a bunch to respond to there. First off, our team does have a financial engineering background, and generally speaking, I thought that was useful or has been useful for us to come up with this whole intent framework in the first place. So it's almost like if you think from a very engineering first or kind of computer science y first perspective, you think of the idea of, oh, I need to send a message to be able to bridge funds. And it's a little bit more of a foreign concept to say, wait, let's have a third party make this loan. That was kind of useful for our own financial engineering background. Then all the other things we've learned from building UMA is, first of all, build something that has actual demand and traction. And so in this case, another learning is there is no demand to send messages between blockchains except to move value.
+00:29:54.358 - 00:30:04.966, Speaker C: Right. And this is one of those. This, I think, is a spicy take. Like all of these arbitrary messaging protocols, they don't get used for anything other than moving value.
+00:30:05.078 - 00:30:05.626, Speaker A: Really?
+00:30:05.758 - 00:30:12.666, Speaker C: Yeah. It looks like 95% of the use case here of moving between blockchains is moving value it's good.
+00:30:12.818 - 00:30:16.362, Speaker D: The next question is going to be a comparing across other protocols.
+00:30:16.426 - 00:30:22.378, Speaker A: Although wait, I had one question before that, which is actually about fees, but maybe that could tie into comparing them.
+00:30:22.474 - 00:31:13.622, Speaker C: Well, we can get more spicy takes on fees there, too, because I actually think the economics of sending messages aren't particularly good. The economics of moving value are much better, which we can get to as well. But there's another really important insight here, too, that I actually tried to hammer in my presentation at ECC as well, which the fact that 95% of the use cases are moving value between blockchains does let you take advantage of the fungibility of money. If you are moving value, you don't care whose money it is that gets there. This is where the third party solver works. Well. So, like Taruna, if you're trying to move money from arbitram to base and you get filled by Tarun, you don't care that it wasn't your money on arbitrum, it's just money.
+00:31:13.726 - 00:31:14.302, Speaker A: Right?
+00:31:14.446 - 00:31:54.180, Speaker C: And so that fungibility of value is what lets us, like, shortcut a lot of the latency issues around messaging by, again, having these third parties do that. And then Tarun the solver gets paid back by other money somewhere. And it's all fungible. The point that I tried to make at my presentation at the conference, it's, people have traditionally thought about interop as equivalent to TCP IP. We want to connect servers with network pipes and send messages between them. When I think in the blockchain concept, that's not true. The thing that we're moving is value.
+00:31:54.180 - 00:32:07.368, Speaker C: And so you're moving money around, and you have access to different ways of doing that. That actually shortcut many of the, the problems with the hurdles and trade offs that you face in arbitrary messaging, would.
+00:32:07.384 - 00:32:27.820, Speaker A: That also be like in even the software development itself and maintenance? Kind of like, there's always sort of a way to fund this kind of work. Like that thing you just described, like with the relayer or the solver, they're all of a sudden incentivized because they can get a fee. Whereas if it was just info, you're sort of relying on these altruistic relayers of info.
+00:32:28.480 - 00:32:35.414, Speaker C: Okay, you want to be funny? It's almost like arbitrary messaging is like communist. And what we're building is like capitalist, but.
+00:32:35.502 - 00:32:43.022, Speaker A: Or the messages is like the roads, it's like city infrastructure, which doesn't make any money.
+00:32:43.126 - 00:33:03.190, Speaker C: That's a better analogy. It's public good ish, right? So we do have to have these roads between blockchains, but they kind of get built and they have limitations and da da da. I actually like this analogy a lot, and I'll extend it into, like, native interop. And where this is going for a split second, get back on top of.
+00:33:03.190 - 00:33:06.890, Speaker D: That is the base layer, the sewer system, in this analogy.
+00:33:09.430 - 00:33:39.098, Speaker C: Ouch. Okay, so we have this intent based protocol that incentivizes off chain actors to compete to fill users as quickly or cheaply or both as possible. That seems good. That just seems strictly good. And as they get more competitive, users, like the protocol gets better. Users get better fills, which is really cool. The messaging we have to do to verify those fills, you can think of as your roads like analogy here.
+00:33:39.098 - 00:34:34.678, Speaker C: And what's really cool is, like, to truen's point, we use the UMA system because that was one type of road we could build to send messages between these blockchains. But we're not at all wed to it, and we are, I think it's very possible that we'll move off it, at least in some ways, in the near future. And where this gets really interesting is you start thinking about all the native interop systems that l two ecosystems are building. So optimism has a design for native interop, for their super chain. And what they're effectively doing with how this affects across is it's like building a better road between those chains. So now we have a highway that allows for faster messages and more efficient messaging between, let's say, base and optimism here. But the across protocol and the solvers, they can do exactly the same thing they did before.
+00:34:34.678 - 00:34:40.310, Speaker C: However, now they get repaid faster since there is a better road connecting those routes.
+00:34:40.350 - 00:34:45.118, Speaker A: Oh, interesting. And I guess you'd extend that past the op side. Would this be where, like, the ag layer?
+00:34:45.214 - 00:34:45.566, Speaker C: Exactly.
+00:34:45.598 - 00:34:47.206, Speaker A: The hyper, what is it? Zks.
+00:34:47.398 - 00:34:48.318, Speaker C: Elastic chain.
+00:34:48.414 - 00:34:49.926, Speaker A: Elastic chain, yeah.
+00:34:50.038 - 00:34:53.174, Speaker D: There was so much beef on Twitter about that recently.
+00:34:53.342 - 00:34:56.942, Speaker C: I know, the ag layer versus elastic chain.
+00:34:57.006 - 00:35:02.082, Speaker D: Yeah. And like, claims over TPS or whatever, which are always gerrymandered anyway, if in.
+00:35:02.106 - 00:35:05.234, Speaker A: Your case, where you're sitting, you're happy if these things exist.
+00:35:05.362 - 00:35:50.660, Speaker C: So it's worth zooming out and thinking about this from Vitalik's perspective. So Vitalik wants a unified ethereum, and yet you have these ecosystems within Ethereum that are very knife fight ish right now. So arbitrum, optimism, Zksync, Polygon, CDK, and others are all fighting for dominance, and none of them are going to dominate, in my opinion. There is going to be use case for all of them, and tribalism and token incentives and everything else. I think it's pretty cool from Ethereum's perspective that we have these different ecosystems, but they are all building their own form of interop. And they're not compatible.
+00:35:50.740 - 00:35:51.360, Speaker A: No.
+00:35:52.940 - 00:36:49.170, Speaker C: If you take this intense standard, well, they're not going to be compatible. I'm pretty confident about that. But if you take this intense standard and you think of it, it, and delete across from this, don't even think about across. Think about this architecture of specifying an intent to go from one chain to another and define it as a very lightweight standard that then allows these solvers to interpret these intent orders and fill users very quickly wherever they want to go. What then happens with all this native interop is if the origin and destination are both within native interop, the solvers just get paid back faster, which makes it cheaper. So this intent standard becomes this simple unifying layer across these native interop systems. And turn to your point, the UMA way of sending messages maybe goes away.
+00:36:49.910 - 00:36:56.010, Speaker D: I was going to ask you if the UMA way of sending messages goes away because you want to support Solana or other chains.
+00:36:56.560 - 00:36:58.224, Speaker C: Well, we can. We.
+00:36:58.312 - 00:36:59.376, Speaker D: Sorry, was that spicy?
+00:36:59.448 - 00:37:29.186, Speaker C: No, that's not spicy because we really do want to sports lana, and we actually probably are sooner than later. It doesn't. It's actually weirdly compatible with that, the way we are. Because we can use the UMA way of verifying all of these intent fills. We can verify intent fills on Solana, too, in exactly the same way. The only thing we're missing is a bridge to send occasional messages. We're talking like one message an hour from ethereum to Solana.
+00:37:29.186 - 00:37:32.850, Speaker C: But there are people that have built those bridges so we could use them.
+00:37:32.970 - 00:37:59.338, Speaker A: Right. I have two more points I definitely want to cover here. One is I want to go back to fees because one thing I didn't even get from the original example was like, where does the fee actually get paid? If going really, really back to, I'm depositing one eth on arbitrum, but I want to get it on base. Aren't I paying the fee on arbitrum? I'm paying the fee. So wouldn't the fee be when I'm at the site where I pay, or is it on the other side?
+00:37:59.474 - 00:38:05.850, Speaker C: So if we're being precise, if you do an on chain deposit transaction, you pay that fee for that on chain deposit transaction.
+00:38:05.890 - 00:38:06.666, Speaker A: There, there.
+00:38:06.738 - 00:38:11.674, Speaker C: Yeah, right there. There's a gasless version of this, too, where you wouldn't pay that. But let's.
+00:38:11.762 - 00:38:14.186, Speaker A: But the fee is for the solver. Right, fee.
+00:38:14.218 - 00:38:26.866, Speaker C: Well, you pay, you were saying? I want to bridge one eth from arbitrum to base for as little as possible, basically. And so who do we have to pay along the way? We have to pay the solver for.
+00:38:26.898 - 00:38:29.094, Speaker A: The service they're providing and the gas.
+00:38:29.262 - 00:39:07.794, Speaker C: The solver then has to pay the gas on the destination chain to send you the message. So they're going to bake that into what they charge. And in our version of some of this, more fancy inventory management, if the solver borrows money from the across liquidity providers, that's this extra convenience function. They pay that fee too. But basically, from the user's perspective, they're just paying a small fee to get funds from a to b. And I'll add two points. So this is compatible with the user, not just moving value, but they could, first of all, also swap between assets.
+00:39:07.794 - 00:39:12.642, Speaker C: We don't do this today, but it's not a far stretch. So this could swap from ETh to.
+00:39:12.666 - 00:39:17.130, Speaker A: USDC in that bridging. So it'd like, show up on another chain.
+00:39:17.210 - 00:39:56.748, Speaker C: Exactly. And the solver can also execute code on behalf of the user. So they could also say, hey, bridge Anna, your transaction could be bridge one eth from arbitrage to base and execute this arbitrary code that, for example, buys an NFT. The thing I'm pushing for is for us to adopt a standard for what these intents look like. We've published one that we built with uniswap. It's called ERC 7683, and it's an open standard that we want people's feedback on. And you can go to ERC 7683, dot dot and read about and comment on it.
+00:39:56.748 - 00:40:15.924, Speaker C: But we want to have an open standard for this intent structure that would unify Ethereum and also allow bridging the Solana and all these other fun things, and just creates this. It sort of emulates this seamless one chain experience, even though it's powered by solvers under the surface.
+00:40:16.012 - 00:40:22.620, Speaker A: Interesting. The last thing about fees is I still don't understand where the, the solver gets paid.
+00:40:22.740 - 00:40:32.740, Speaker C: Oh, I'm sorry. So the solver simply, when they, when you were bridging the one Eth from arbitrum to base, they don't pay you one eth, they pay you 0.999 eth.
+00:40:32.780 - 00:40:34.324, Speaker A: Or whatever, and they take it on.
+00:40:34.332 - 00:40:42.700, Speaker C: The way, and then. So they, they pay you less than one eth, and then they get paid back one eth. So their fee kind of gets extracted that way.
+00:40:42.780 - 00:40:56.540, Speaker A: Okay, so it is kind of on the destination chain because they're paying you less and they're sort of taking it there, I guess. I don't know why I'm stuck on. I'm just really curious. While I wrote it out, I was like, where's the fee? So now I need to figure this out.
+00:40:57.000 - 00:41:09.808, Speaker C: You have one unit on a, and you get 0.99 units on b, you the user, and then the solver gets back. Depending on where they wanted to get repaid, they get paid back one unit wherever. Right? So, yeah.
+00:41:09.904 - 00:41:33.236, Speaker A: Okay. Question answered. Thank you for that. I'm sorry for being so pedantic. But the last one that I definitely want to cover, I think you wanted to cover this, too, Tarun, is the comparisons, because there's a lot of bridges, bridges out there. And actually, Hart, I don't know if you know this, but the reason I reached out to you is I had a friend who was working. He was using a lot of different bridges, and he cited across as, like, the one that he really liked to use.
+00:41:33.236 - 00:41:49.080, Speaker A: And it was the one that was sort of gaining steam. People were kind of noticing that this one worked really well. There have been a lot of bridges out there. There are a lot of bridges out there. I feel like I've had a bunch of. I think I might have even done a series at some point about bridges, like in 2022 or something.
+00:41:49.120 - 00:41:54.168, Speaker D: Well, a lot of the people who are working on bridges don't work on bridges anymore. Let's be real. That's for real.
+00:41:54.224 - 00:41:59.864, Speaker A: Yeah, that's true. But let's talk about the existing bridges. We don't have to go do the history of all of them.
+00:41:59.952 - 00:42:29.910, Speaker C: We'll keep this short to not lose all your listeners. Right. But first off, let's talk about how bridging's not a thing anymore or shouldn't be a thing. And we'll keep this short. So in my example of what I call gen one bridging, the beginning of the episode, that's like the. I send a message. And a lot of those bridges were also what I'll call, like, lock and mint or mint and burn bridges, where they create a synthetic representation of the asset on some other chain.
+00:42:29.910 - 00:42:48.090, Speaker C: I hate that structure, because in that structure, you have perpetual, forever risk to the underlying, like, bridge protocol. Right? You, the user, when you have a rapt representation of that token, at any point, if that bridge gets hacked, you lose your assets.
+00:42:48.130 - 00:42:58.890, Speaker D: And the wormhole hack in particular was about a malicious operator figuring out how to control the mint function. And then they just minted a ton themselves and then traded against trade for real assets. Right?
+00:42:59.050 - 00:43:12.918, Speaker C: And maybe this gets solved in the far future when we have really good ZK proofs like, this is the Zero Knowledge podcast. Maybe we can really securely prove these minting and bridging functions, but it just scares the shit out of me.
+00:43:12.974 - 00:43:13.678, Speaker A: Okay.
+00:43:13.854 - 00:43:42.470, Speaker C: And so layer zero has their oft standard, which is effectively this wormhole has their version, Axelar has their version. I'm not on Twitter, I'm known for picking on layer zero, but I actually don't like any version of this standard because I think this, like, rapidmint thing is just scary. But anyways, that's like this kind of message based, like, lock and mint token standard. Delete those. Those are things that I don't think are ideal.
+00:43:43.730 - 00:43:45.706, Speaker A: The hyperlane.
+00:43:45.818 - 00:44:27.040, Speaker C: Hyperlane is a message bridge that is intelligently designed, that also has a rapid mint and a oft like standard. They call them warp routes or warp tokens too, and I think their code is pretty good. But if you do have a wrapped version of the token, you have perpetual risk to the underlying security of that bridge, which I don't like. But hyperlane as a messaging protocol, I do like a lot, and I think they're quite great. Yeah, Axel, are again, they're not a token bridge, they're a messaging bridge. But they have a token, like rapidmin standard. Yeah, could keep going there.
+00:44:27.040 - 00:44:36.038, Speaker C: In terms of token bridges, Stargate is a bridge that actually blurs these concepts too.
+00:44:36.174 - 00:44:37.846, Speaker A: But where is that?
+00:44:37.998 - 00:44:38.830, Speaker D: What's layer zero?
+00:44:38.910 - 00:45:17.258, Speaker C: Layer zero, yeah, so they're big. They use this send message to release tokens from a pool on the destination chain. And I war with them a lot on Twitter. So anyone listening to this will be like, okay, heart's pouring with Stargate on Twitter, but I think their architecture is inferior in the sense that you have a minimum 42nd. You have to wait for a sense of finality on the origin chain and send a message every time to do a bridge transaction, which I think is inefficient and slow compared to this intent based framework. Yeah.
+00:45:17.314 - 00:45:18.906, Speaker A: What is your take on IBC?
+00:45:19.098 - 00:45:36.880, Speaker C: IBC, I think, is great within, like, tendermint chains and cosmos chains. IBC has always been explained to me as it's not specific to Cosmos, but I feel like the actual integrations for everything outside of Cosmos just haven't worked very well. Tarun, you probably understand this better.
+00:45:38.460 - 00:46:16.266, Speaker D: I guess other people who've weirdly spent a lot of time implementing IBC's, like, Avalanche, the subnets, actually communication protocol is IBC. There have been all these people have tried to do it between roll ups, but it's just so expensive to have a lite client, I think, without modifying and having extra precompiles and stuff to make it gas efficient to have a lite client in Ethereum chains. It's kind of dead on arrival in Ethereum, or you're just stuffing into a client and making it never becomes standardized. I think it's very hard to get adopted as a standard unless you're starting fresh. That's kinda, that's kind of where I.
+00:46:16.418 - 00:46:22.482, Speaker C: Yeah, so I'm like maximally bullish on this intent based framework, right?
+00:46:22.626 - 00:46:24.754, Speaker D: Well, how do you compare to other intent based frameworks?
+00:46:24.842 - 00:46:36.770, Speaker C: So, okay, let's talk about this for a second, too. And you also have, like, good views on this. So intents can mean a bunch of things. Some people, like, hyper generalize this and they think of intents as, like, anything.
+00:46:36.810 - 00:46:38.770, Speaker A: I want, and I get something exactly.
+00:46:38.810 - 00:46:44.890, Speaker C: I'm going to describe in natural language that I want. Uber eats sushi delivered at 05:00 p.m. at my house.
+00:46:44.970 - 00:46:51.214, Speaker D: And this is like, and please pay using my USDT on Tron and figure out how to convert it to whatever the pizza place takes.
+00:46:51.302 - 00:46:58.518, Speaker C: Exactly. Right. So, like, okay, I actually think some of this is kind of cool, but like, not now type thing.
+00:46:58.694 - 00:47:11.822, Speaker D: Look, everyone, you know, people love making that. We were promised flying cars, but we got x meme. But like, honestly, this shit is flying cars, though. Cause it's like, hey, you're asking for like, everything you want.
+00:47:11.846 - 00:47:38.410, Speaker C: Like an AI to interpret your natural language request and then find out a way to have competition for it to. Yeah, exactly. So when I say intents, I'm specifically referring to cross chain intents in a much more constrained way. And it's really simple. Like, my mental model is. It's an order ticket. Your order ticket says I have asset x on chain a and I want asset y on chain b.
+00:47:38.410 - 00:47:40.538, Speaker C: I'll pay this much for it.
+00:47:40.634 - 00:47:41.710, Speaker A: Do you give it time?
+00:47:42.330 - 00:47:53.238, Speaker C: Yeah, sure, I want it by this time. And I maybe want you to also execute this arbitrary code on the destination chain. That's it. Like, heavily constrained from this generalization, but.
+00:47:53.334 - 00:47:57.730, Speaker D: Execute arbitrary code does not exactly constrain, buddy.
+00:47:58.870 - 00:48:02.190, Speaker C: But it's like, buy an NFT or like, deposit an aave or something.
+00:48:02.230 - 00:48:06.942, Speaker D: Yeah, but like, you have some computationally bounded code.
+00:48:07.006 - 00:48:07.846, Speaker A: Arbitrary code.
+00:48:07.918 - 00:48:35.412, Speaker C: It's bounded in more ways than just computation too. Like, you, there's another example. Like, I can't send governance parameters that might be worth a billion dollars. Right. I could, like send a dollar bridge transaction with the code to execute the governance. That doesn't work. There are constraints here on what you can do, but I'm basically saying from the perspective of I'm sending money to buy something or deposit it somewhere.
+00:48:35.412 - 00:48:42.280, Speaker C: You can do that. Anyways, the intent thing. Trim. What other intent frameworks do you want to compare it to?
+00:48:42.940 - 00:48:52.434, Speaker D: Well, we can start with, I guess they invented the word I, and then we can kind of go downwards through everything from cow swap through cow swap.
+00:48:52.482 - 00:48:53.870, Speaker A: Invented it, didn't they?
+00:48:54.250 - 00:49:00.762, Speaker D: They use the word intent first, though. Like the anoma blog is. Yeah, that is.
+00:49:00.826 - 00:49:02.386, Speaker A: It was the vi. What is it called?
+00:49:02.418 - 00:49:05.402, Speaker D: Vivin. No, Vivern.
+00:49:05.466 - 00:49:09.346, Speaker A: Yeah, I know. I see it spelled, but yeah, it's hard to say.
+00:49:09.378 - 00:49:13.976, Speaker C: So maybe I should say cross chain intense. Every time I say intense. I don't know.
+00:49:14.088 - 00:49:38.536, Speaker D: Yeah, I think it is a kind of word that just got like, in the same way that, like roll ups. You know, there's always a new adjective in front of roll up, there's like x roll ups. And the lexical complexity is just growing over time. There's like a million new fucking rewards for things that may not be that different. I kind of feel the same thing with intense, except they're hugely different in some ways.
+00:49:38.608 - 00:49:53.454, Speaker C: Yeah. Yeah. So I'm saying cross chain intent from this, like bridge or swap or call, those are what I'm constraining it to. And I think there's other protocols in that sphere, so I don't think that's a nomad.
+00:49:53.462 - 00:49:56.534, Speaker D: What do you think about Uniswap X? It's close to that, right?
+00:49:56.622 - 00:50:30.124, Speaker C: It's very close to that. But we worked with them to write this standard for 7683. I mean, long story short, I thought Uniswap X was going to eat our lunch when they announced at ETHC a year ago, they announced cross chain Uniswap XDev, and the cross chain version hasn't shipped yet, but they've actually figured out that there's useful ways to work with us, which we've been working really closely with them on developing a standard, because we realize that the best thing for all of us is having a deep and liquid solver network. And our solver network, we want to be the same. And there's more I can talk about here, too, where.
+00:50:30.212 - 00:50:39.702, Speaker D: Yeah, it's a great time to move into timeout, etc. Because we just spoke on a panel about where the audience was all solving. So how deep is the solver network in ECC?
+00:50:39.846 - 00:50:46.822, Speaker A: Well, so before we do that. Why don't we? We have a bottle here that we've been eyeing and waiting. Waiting.
+00:50:47.006 - 00:50:47.622, Speaker D: This is.
+00:50:47.686 - 00:50:54.854, Speaker A: So, why don't we actually pop it and we can keep talking about intents, actually, because I think it was a topic of this week. Let's do it while we drink.
+00:50:54.902 - 00:51:02.758, Speaker D: This is now the third annual Anna and Tarun drink and record, a podcast episode always recorded in Europe, apparently.
+00:51:02.814 - 00:51:05.542, Speaker A: Wait, there's. I think there was another one, wasn't there?
+00:51:05.606 - 00:51:07.188, Speaker D: There's one with Zaki and Uma.
+00:51:07.374 - 00:51:08.800, Speaker A: That was, that was last year.
+00:51:08.880 - 00:51:13.080, Speaker D: Then there was devconnect with Guillermo. That was where that one was. Drank too much tequila.
+00:51:13.120 - 00:51:13.840, Speaker A: That was too much.
+00:51:13.880 - 00:51:15.368, Speaker D: Yeah. Wait, really?
+00:51:15.424 - 00:51:16.776, Speaker C: You guys drank a bottle of tequila?
+00:51:16.888 - 00:51:18.104, Speaker D: He brought all the tequila, and I.
+00:51:18.112 - 00:51:19.528, Speaker A: Was like, Brendan was there, too.
+00:51:19.584 - 00:51:27.296, Speaker D: Oh, my God. I was so. My head hurts so much because I don't like. That is one liquor I try to avoid. But Guillermo was so enthusiastic.
+00:51:27.328 - 00:51:44.710, Speaker A: Yeah. Since then, we've known we know better, and we stick to bubbly, and it's fine, and it doesn't hurt us too badly. So, yeah, I'm gonna, you guys keep talking. Intense. I'm gonna pop the bottle. The audience might hear it, but do we record it? I'm gonna try. I'll put the mic near it, but you guys keep going.
+00:51:45.770 - 00:51:47.466, Speaker C: So where were we?
+00:51:47.578 - 00:51:48.938, Speaker D: Uniswap standard.
+00:51:49.034 - 00:52:01.550, Speaker C: Yeah, the standard. So we worked with Uniswap on this. I actually think cross and Uniswap X are complementary, since Uniswap X is focused on swapping, so. Whoa. I hope that got recorded. That sounded great.
+00:52:01.930 - 00:52:04.196, Speaker A: I see a pop. It seems to have worked.
+00:52:04.268 - 00:53:00.434, Speaker C: All right, so Uniswap X is focused on swapping across chain versions. Focus on swapping. We're focused mainly on same asset, bridging, and I think there's a sort of speed. Are you optimizing for speed versus optimizing for price? And. Sorry, there's a small debate between little cups or big cups and the little cups wonde, so, yeah, I think that the other intent based bridging protocols, like us, I mean, they're all pretty complimentary. It's one of those things where I want to push for standard because the solver network, like, okay, Anna, what we didn't touch on is, what is the biggest critique of this architecture? And the biggest critique maybe true and slightly mentioned it earlier. It's just, what if no solvers show up? Oh, that's the biggest critique.
+00:53:00.562 - 00:53:06.122, Speaker A: Actually, I did have this question I forgot to ask, which is, like, how many solvers are there yeah. So how many solvers are there?
+00:53:06.226 - 00:53:09.066, Speaker C: We have about 15 to 20 solvers in our network.
+00:53:09.138 - 00:53:09.450, Speaker A: Okay.
+00:53:09.490 - 00:53:15.746, Speaker C: And we have seven or eight of them that are, like, very meaningful, like do. And there's no one dominant one.
+00:53:15.818 - 00:53:16.778, Speaker D: I like.
+00:53:16.794 - 00:53:21.910, Speaker A: That's good. But it does mean that's a number of people that could maybe stop solving too.
+00:53:22.330 - 00:53:48.418, Speaker D: Do you remember when layer ones would always fight about like. Like, we're a blockchain, but our blockchain favors safety over liveness. Or our blockchain favors liveness or safety. And there's, it's kind of the marketing speak was one or the other, but really it was like something in the middle. You could think of intents as being favoring safety over liveness. Like, it can lose liveness if all the solvers show up, but you're never losing funds. Right.
+00:53:48.418 - 00:54:25.620, Speaker D: There was nothing minted or burnt or you can remove from the escrow contract after a certain number of blocks if it wasn't fulfilled. Right. But in the other case, the ones that try to give you safety and liveness, they generally have to make some other trade off. Either there's an intermediary who's running both blockchains, or there's this kind of wrapped, some control over wrapped assets. And I think it actually reminds me a lot of l one design decisions. It's just that in l one s, you really can't tolerate loss of liveness, whereas here you kind of can. Because, like, what do you do? You retry the transaction.
+00:54:25.620 - 00:54:34.560, Speaker D: It's not like the end of the world. In the same way where if you lose liveness in Solana, it's like, oh, shit, everyone got liquidated because the off chain stuff moved so far.
+00:54:35.100 - 00:54:48.996, Speaker C: Yeah, I think that's exactly right. And the other thing I just push on is it's like the liveness properties are pretty good. Competition is a wonderful thing, and it.
+00:54:49.068 - 00:55:10.844, Speaker D: Well, empirical aliveness, not like theoretical. I think that's a key distinction. Right. Whereas in layer ones, you actually need the theory and the empirical to be the same because your threat model relies on the theoretical thing. Right. Like, of all the possible attacks, I show that none of the attacks work. But here, I mean, the attack is like everyone suddenly loses the Internet at the same time.
+00:55:10.844 - 00:55:12.468, Speaker D: And it's like, unlikely.
+00:55:12.564 - 00:55:14.924, Speaker C: Yeah, I think that's right.
+00:55:14.972 - 00:55:30.786, Speaker D: Even though it's possible, it's very unlikely compared to, like, in cryptography or industry systems, where you. Not only does it need to be basically impossible, but, like, the likelihood needs to be effectively zero in some very controlled manner. Here it's not that, but it's like.
+00:55:30.898 - 00:55:40.190, Speaker A: You feel like it's super unlikely. But what if it was slower that, like, you kind of threw that out there, that solvers just stop solving? Like, they just take their money out.
+00:55:40.610 - 00:55:48.154, Speaker C: But like, this is the thing where it sort of like breaks the entire concept of like a blockchain in the first place. It's like, what if bitcoin miners just.
+00:55:48.202 - 00:55:49.906, Speaker A: Stop showing up, right?
+00:55:50.018 - 00:56:07.246, Speaker C: It's like, why do they show up? Well, money economically motivated, too. And so I get slightly frustrated when people push like in weird directions on this. I'm like, no, man, blockchains work because they incentivize actors for economic reasons to show up.
+00:56:07.398 - 00:56:16.718, Speaker D: I'll take one other side of this, though, which is like, I wrote this paper on intents, and it sort of was really trying to analyze the uniswap x style intent.
+00:56:16.774 - 00:56:19.290, Speaker C: Not necessarily this, the single chain version.
+00:56:19.780 - 00:56:25.052, Speaker D: Yeah, well, actually, I'm not sure, actually if, I think our result probably still applies to.
+00:56:25.116 - 00:56:27.644, Speaker C: I'm not sure that it does, but that's another debate for another time.
+00:56:27.692 - 00:57:09.250, Speaker D: But I think it doesn't affect your use case because your use case doesn't have this idea that, like, the action that's being taken implicitly changes the price of the fee. So it can go from being uneconomic to economic depending on the actual asset traded. Right. If it's just the same asset crossing, you don't have this problem. But the problem that we point out is if the solvers are competing, but they're sourcing inventory from somewhere, and they all go to the same place, then they all push the price up. If everyone went to binance at the same time to buy the asset to give fulfilled to you, then, well, their profit goes down. In that case, competition is worse.
+00:57:09.250 - 00:57:21.444, Speaker D: You may want oligopoly and fewer participants. So the swapping example is much more complicated to reason about than the single same asset, same assets is like basically hard to get around.
+00:57:21.492 - 00:57:27.212, Speaker C: There's something else we're working on that I actually think might solve that, that we're not ready to talk about. But I'll tell you after the podcast.
+00:57:27.276 - 00:57:27.540, Speaker D: Okay.
+00:57:27.580 - 00:57:28.996, Speaker A: Whoa, teaser.
+00:57:29.108 - 00:57:29.620, Speaker C: Yeah.
+00:57:29.740 - 00:57:30.588, Speaker D: Oh, spicy.
+00:57:30.644 - 00:57:35.092, Speaker A: Damn. Do you spill champagne? I pushed for the small cup and I regret it.
+00:57:35.156 - 00:57:36.308, Speaker C: The small cups are too small.
+00:57:36.364 - 00:57:41.548, Speaker A: They're too small and I just spilled on myself. All right, thank you.
+00:57:41.564 - 00:58:29.732, Speaker C: So the only last thing I'll say on liveness, and let's talk about ECC, it also gets better over time. Or like the prop, the liveness guarantees get better over time, like more volume, more order flow means more solvers in the network, more liquidity in the solver network, and just better guarantees. So I feel very good about the general direction of, like, that quality. And you also look like our data and our stats and across right now are our 90th percentile fill time are under 10 seconds, which we're pretty proud of. And we're going to push those to under 5 seconds this quarter. And we're doing that because there's enough solvers, and we've made the protocol easy enough for them that they show up and do their job because they're economically motivated to.
+00:58:29.836 - 00:58:33.812, Speaker A: Nice. Okay, we are at the 1 hour mark.
+00:58:33.916 - 00:58:34.340, Speaker C: Whoa.
+00:58:34.420 - 00:58:55.546, Speaker A: Recording. I don't know if it'll be that on the final, but I would love to take some time to do part two of this episode, which is to talk a little bit about Brussels, the city. That's the. Let's not talk about the city. Let's talk about the events and things that we've seen this week so far. We're kind of halfway. Well, yeah.
+00:58:55.546 - 00:58:58.258, Speaker A: I don't know how far you are along. Are you almost done, Tarun?
+00:58:58.354 - 00:59:02.922, Speaker D: Are you tomorrow I view as my last day, and then I'm like, I'm.
+00:59:02.946 - 00:59:21.840, Speaker A: In the middle still of everything that I'm doing. But this is something we have done every time. Right? So we get together. We usually have a guest I or two guests we haven't had on before. You're the guest this time, and you're also a fellow podcaster. We didn't say that early on. You're the star of a popular podcast.
+00:59:21.920 - 00:59:35.864, Speaker C: Called the star of popular Bell Curve. Yeah, well, no, I did a season with my buddy Mike Epiliro, although we did record another bell Curve episode yesterday. I'm recording eight different podcasts this week.
+00:59:35.912 - 00:59:36.336, Speaker A: Wow. Yeah.
+00:59:36.368 - 00:59:40.048, Speaker C: I'm doing nine, but I'm not a professional podcast.
+00:59:40.104 - 00:59:43.580, Speaker A: But you are now. Welcome to the club.
+00:59:43.700 - 00:59:46.916, Speaker C: It's fun. I like it. Tarun is also a professional podcast.
+00:59:46.948 - 00:59:48.360, Speaker D: He's on two podcasts.
+00:59:49.340 - 00:59:54.560, Speaker A: I feel bad I'm only on one podcast. You're on many, many podcasts.
+00:59:55.100 - 00:59:55.476, Speaker D: Yeah.
+00:59:55.508 - 01:00:00.060, Speaker A: You know, do you remember that time there was this one year where you just guess, you were a guest on every podcast?
+01:00:00.100 - 01:00:00.556, Speaker D: Yeah. Yeah.
+01:00:00.628 - 01:00:01.900, Speaker A: And I started to get jealous.
+01:00:02.020 - 01:00:15.048, Speaker D: That's. That's a simbable market. We're back in a bull. If you see me on too many podcasts, that should be your astrological sign of hit the buy button, sell.
+01:00:15.104 - 01:00:16.072, Speaker A: Button, sell.
+01:00:16.176 - 01:00:16.616, Speaker D: Oh, sorry.
+01:00:16.648 - 01:00:16.904, Speaker A: Yes.
+01:00:16.952 - 01:00:18.328, Speaker D: Well, you should start selling, unless you.
+01:00:18.344 - 01:00:19.256, Speaker A: Want to be the opposite.
+01:00:19.288 - 01:00:20.060, Speaker C: Liquidity.
+01:00:21.840 - 01:00:51.870, Speaker A: Okay, so, yes, let's set up the scene, though. So I said this earlier, but we're here in Brussels kind of partway through this week of events or for some people close to the end. So let's just share with the audience, like, where we've been, and maybe, like, actually, let's start with that. Like, what did you see? What did you actually go do this week? Because I feel like we've all been in slightly different scenes. Like, I was in a lot of ZK events. I feel like maybe you were over in the restaking Tarun. I actually don't know where you were.
+01:00:51.870 - 01:00:53.830, Speaker A: Defi stuff.
+01:00:54.530 - 01:00:56.630, Speaker C: Defi stuff. Some. Yeah.
+01:00:57.490 - 01:00:59.378, Speaker A: Okay. Why don't we start with you, though? Where were you then?
+01:00:59.434 - 01:01:21.430, Speaker C: Well, I showed up late, which was great. So I basically got here Tuesday afternoon, rolled off the plane, off of a red eye flight, and did my eth cc talk, which was great. And apparently I was a clear enough speaker, which I'm personally, I'm impressed with myself by. So, yeah, thanks for the support.
+01:01:23.490 - 01:01:28.830, Speaker D: Was that like, Pat, you just did the Obama giving himself a medal meme, buddy.
+01:01:29.570 - 01:01:34.200, Speaker A: I was tired, I got off the plane, and like, I did a really good job.
+01:01:35.260 - 01:01:38.760, Speaker C: I did it in sarcasm, guys. That's sarcasm.
+01:01:40.740 - 01:01:43.732, Speaker D: Canadians are too nice for real sarcasm. Note to sarcastic.
+01:01:43.756 - 01:01:45.356, Speaker A: We're not nice. We're not nice.
+01:01:45.428 - 01:01:52.252, Speaker C: I'm less and less canadian these days, but love my country. We are not the Belgium of France.
+01:01:52.356 - 01:01:53.000, Speaker A: No.
+01:01:55.540 - 01:02:15.440, Speaker C: You just love that joke so much. Okay, so I rolled the plane, gave my ECC presentation, had a bunch of meetings, was at modular summer today. But I've been like, I'm kind of annoyingly been more focused on the multi chain, interop type. How do we solve interop things?
+01:02:16.860 - 01:02:19.084, Speaker A: Yeah, that's where your head has been at.
+01:02:19.132 - 01:02:20.732, Speaker C: That's where my head has been at.
+01:02:20.916 - 01:02:48.050, Speaker A: I have been at. I was at a risk zero event on the first day, doing a panel with kind of state of ZK. I've been very state of ZK, actually, not even before this ZKV put together. We do this every quarter. I don't think I've ever mentioned it on the show, but we do this state of ZK report once a quarter, and we've been doing it for about a year. It's a great review of everything that's happened. And so the first panel that I did was about that sort of reviewing it, and then I.
+01:02:48.050 - 01:02:51.350, Speaker A: Oh, I was on an investor panel. Me.
+01:02:51.690 - 01:02:52.634, Speaker D: But you are an investor.
+01:02:52.682 - 01:03:12.950, Speaker A: I know, but it was like, very, like, I don't think of myself that way somehow. And I was like, I thought I found it very funny to be there, to be like, oh, I'm giving advice. Yeah, it was strange. I was the only angel investor on the panel too, though. So I got to be the one who's like, fuck the big guy. Don't trust VC's.
+01:03:13.410 - 01:03:14.510, Speaker C: They're evil.
+01:03:14.970 - 01:03:52.578, Speaker A: But yeah, so I would say, but still very, very ZK. So yeah, my world was very ZK. What's going on in ZK? I mean one of the big topics was like sort of this emerging, I know it's a bit of a meme, but it's the ZK supply chain. I've had a few episodes kind of leading up to this too that touched on that. This is like, I think we've always thought of the ZK roll up just like connecting to the main chain. But what is actually happening in there? And can we break down some of those things and decentralize some of those things? And I think it's still a question mark if we can or should. But I know there's teams that are trying and so these are things like prover networks and then the verification aggregators and maybe there's even going to be more things in there.
+01:03:52.578 - 01:03:54.310, Speaker A: So that's where my head's been at.
+01:03:54.890 - 01:04:27.432, Speaker D: Where has my head been at? The last six months have been less than six. Four months have been me kind of really running into brick walls many times on this research problem I've been working on for restaking. But I finally think I made solved 99% of it. And so I actually gave the same talk twice. And maybe I'm going to give it a the same talk thrice tomorrow with this tiny edit because I think it's one of my favorite talks I've ever written.
+01:04:27.496 - 01:04:31.136, Speaker A: And what is this all on restake? You figured it out?
+01:04:31.248 - 01:04:35.864, Speaker D: I think I figured out the thing that I think is the most important part of the security model for restaking.
+01:04:35.952 - 01:04:36.464, Speaker A: Okay.
+01:04:36.552 - 01:04:41.112, Speaker D: So I don't want to take too much time, but I can give a little detour.
+01:04:41.216 - 01:04:44.100, Speaker C: No, do it. What's the title? What's the title, Tarun?
+01:04:45.000 - 01:04:54.168, Speaker D: Well, the title of the talk is how much security does your AV's really need? Lessons from matching markets. But the.
+01:04:54.264 - 01:04:55.980, Speaker A: Could we spice that up a little?
+01:04:56.520 - 01:05:32.004, Speaker D: Yeah, probably. And basically, okay, I'll just give you the really simple version of the problem and then two different versions of solutions. So the problem is, imagine you wanted to attack two proof of stake network simultaneously, say Solana and Ethereum. Well, to do that, let's say I was trying to double spend. And let's suppose they're going to buy all the security of both separately. Now, in re staking, when I reuse stake, I actually don't have to buy 50% of both. I can buy a smaller threshold and attack both simultaneously.
+01:05:32.004 - 01:05:39.764, Speaker D: So imagine if you could attack Solana Ethereum at the same time, but you only had to own 20% of Ethereum and 5% of Solana.
+01:05:39.812 - 01:05:46.160, Speaker A: But do you get less? Would it be like you can attack, but it's somewhat less beneficial? Like it's not as good a score.
+01:05:46.700 - 01:06:43.016, Speaker D: Or is it as good a score? Same attack. It's just that because you're sharing the stake, this sort of attack, you're able to get economies of scale because you're reusing the same stake. So then a natural question you might ask is like, hey, okay, if I can do that, then there should be some kind of like, economies, scaly looking thing that like looks like Defi, where you might have some notion of a cascade where you can attack a set of services. By you attacking a set of services, you now remove a bunch of stake. That stake allows some other set of services to be attacked, and then those get attacked, and then that allows another set of services. So it's the sort of proof of stake analog of a lending liquidation cascade, or perpetuals liquidation cascade. It's a kind of interesting security model, because even though it looks a lot like the DeFi stuff, it's still mathematically very combinatorial, like the proofs of safety and liveness in proof of stake protocol.
+01:06:43.016 - 01:07:46.594, Speaker D: So it's sort of like somewhere in the middle of the two. And formulating that cascade thing correctly is actually non trivial. And there's a paper that's still not out. I don't know why it's not out yet, because I think they sent me the original version. I heard about this in February, and I read the initial version of the paper three or four months ago, which is showing that, hey, you have to be really over collateralized, meaning that the amount of stake people have to stake has to be so much higher than the total sum of all the profits in order for you to be secure, these cascades. So what that means is, imagine I could profit a billion dollars from attacking Solana, and I could profit $10 billion from attacking ETH, and I can profit $1 from attacking Cardinal. If they were in this re staking world attacking Cardano, even though I only get $1 to make Cardano secure against re staking attacks, it would have to have 11 billion and $1 of stake, something proportional to that.
+01:07:46.594 - 01:08:17.546, Speaker D: So it would have to have something near the total sum. So it's insanely over collateralized, very inefficient. But this paper, which sets out really nice definitions, allows you to talk about this cascade stuff. Stuff. It ignores one thing, which is kind of similar to the type of thing heart was talking about earlier, which is it ignores the incentives completely. It kind of assumes the adversary who's attacking is arbitrarily powerful. They can get arbitrary amounts of stake across all the networks for free.
+01:08:17.546 - 01:08:38.530, Speaker D: Like cost free. There's no cost of attacking multiple. And the node operators, the stakers, they're sitting ducks. They can't change their stake. They can't be like, oh, I saw something that's slash adjustment. So it's kind of this like, you know, you have someone who has like the world's most powerful rifle, and the other hand, other side is like handcuffed node operators. It's like a very.
+01:08:38.870 - 01:08:41.086, Speaker A: But did you figure out something?
+01:08:41.198 - 01:09:22.365, Speaker D: So what I did is I. It took me a long time to figure this out with me and my co author, that you can weaken if you can weaken the adversary a little bit. And by weaken, I mean they face costs for attacking. Like if they try to attack one one, when they buy the stake to attack one, they actually push up the cost for the next one. If they face costs and the node operators are allowed to be smart, they can rebalance in response to slashing events. Then you can control, you can bound to this cascade risk. It doesn't have to be as overclocked, but you need one important thing, which is you need each service to offer sufficiently high amount of rewards so that the stakers know where to rebalance.
+01:09:22.365 - 01:09:47.822, Speaker D: You can think of the rewards as a signal of where you should rebalance. Like literal, like yield chasing, but that's all they need. So there's kind of a weird sense in which the choice of security models for restaking is actually, even though on the surface you might think you want the exact same thing as proof of stake, if you want the exact same model as proof of stake, you need to be so over collateralized that you might as well have just been an independent networks, like a lot.
+01:09:47.966 - 01:09:48.438, Speaker A: See?
+01:09:48.534 - 01:09:52.582, Speaker D: And so, anyway, cool. I've been thinking about this for I am amazing.
+01:09:52.646 - 01:10:07.486, Speaker A: I'm glad you did that, though. I'm glad you put that together and that people can now see it. Yeah, well, we did just, by the way, we did just talk about our own talks. We should also talk about other people's talks. Or other things. Only our own talk.
+01:10:07.518 - 01:10:08.770, Speaker C: I like Tarun's talk.
+01:10:09.110 - 01:10:10.150, Speaker A: Tarun's talk. I'm joking.
+01:10:10.190 - 01:10:11.010, Speaker C: I'm joking.
+01:10:11.430 - 01:10:12.126, Speaker D: I didn't see that.
+01:10:12.158 - 01:10:17.238, Speaker A: You didn't see any other talk? You may not have seen another talk, but I bet you talked to people.
+01:10:17.334 - 01:10:20.258, Speaker D: Yeah, yeah. No, no. I actually went to this fhe summit. That was pretty cool.
+01:10:20.314 - 01:10:20.850, Speaker A: Oh, interesting.
+01:10:20.930 - 01:10:22.650, Speaker D: Some interesting, like, performance numbers.
+01:10:22.690 - 01:10:30.330, Speaker A: And really? See, I have heard through the grapevine that, like, the performance is still unusable. Like, who's doing great numbers?
+01:10:30.410 - 01:10:32.914, Speaker D: So I will say, is it that.
+01:10:32.962 - 01:10:34.770, Speaker A: One company that you invested in?
+01:10:34.850 - 01:10:44.146, Speaker D: No, I think what I'm saying is the following. There is a growth rate that people have predicted for performance.
+01:10:44.258 - 01:10:44.786, Speaker A: Yeah.
+01:10:44.898 - 01:10:46.274, Speaker D: And then there's real performance, and it.
+01:10:46.282 - 01:10:48.866, Speaker A: Has not matched the growth prediction.
+01:10:49.058 - 01:10:55.098, Speaker D: Kept up somewhat, but then in some tasks, it has. So it's like, it's kind of.
+01:10:55.274 - 01:11:00.690, Speaker A: You can always kind of point to, like, where it's failing, but there have actually been some advances that are still pointing out.
+01:11:00.770 - 01:11:01.002, Speaker D: Exactly.
+01:11:01.026 - 01:11:01.226, Speaker A: Okay.
+01:11:01.258 - 01:11:02.266, Speaker D: So I thought that was cool.
+01:11:02.338 - 01:11:03.138, Speaker A: That's fair.
+01:11:03.314 - 01:11:13.292, Speaker D: The other thing is, I feel I've gone to a lot of things where I, over time, am becoming much more favorable towards Teddy. Oh, I know. It's.
+01:11:13.316 - 01:11:15.180, Speaker A: You know, our audience won't like to hear this.
+01:11:15.260 - 01:11:17.548, Speaker C: This is a theme I've heard, too. Yeah.
+01:11:17.604 - 01:11:17.996, Speaker A: Yeah.
+01:11:18.068 - 01:11:23.884, Speaker C: I know a bunch of people that are like, t's are bad. T's are bad. They're like, yeah, maybe it kind of works. It's okay.
+01:11:23.972 - 01:11:27.748, Speaker A: For some things, it seems to work, especially if you combine them with other things. Like.
+01:11:27.884 - 01:11:49.964, Speaker D: Well, the example I gave on the panel that we were on of, like, slashing rules, where, like, they become a lot simpler when you could do them in Fe or MPC or tachyde. In that threat model, you don't have to write as much code. Cause the adversary can't read the thing. And it's like, there's actually a lot of beauty and the simplicity. And I think I've come to appreciate that.
+01:11:50.132 - 01:12:04.236, Speaker A: Maybe you should say the name of the panel we were just on. We were all on it just now. Actually, midway through this, I forget the name. It was information flow control panel. Panel. But control panel. Control panel itself, sort of standard.
+01:12:04.236 - 01:12:18.572, Speaker A: Like, it. It was on the second line. It was kinda kind of confusing, but that was kind of fun. That was one of the things we did. I want to know. I think it's hard to not mention us being here. The vibe generally.
+01:12:18.572 - 01:12:28.676, Speaker A: Cause it's different from last year and the year before last year. I remember us saying things like, it's sober, but this year I think it's more sober. I don't know about you. Do you feel excited?
+01:12:28.708 - 01:12:32.980, Speaker D: There were no big announcements. I will say at least I didn't observe any.
+01:12:33.140 - 01:12:47.216, Speaker A: There were some ZK announcements, but, yeah, they weren't, like, massive. They were actually projects. I didn't know they'd just done something cool. But nothing like, nothing that would make kind of the mainstream news outside of the ZK space. That's interesting in a way.
+01:12:47.248 - 01:12:53.912, Speaker C: It's almost like the game theory of doing a big announcement at ECC is risky because you don't know who else.
+01:12:53.976 - 01:12:56.848, Speaker A: Is going to do a big announcement this time. They all didn't.
+01:12:56.904 - 01:12:58.312, Speaker C: They all didn't, right.
+01:12:58.376 - 01:12:59.480, Speaker A: Or there were none.
+01:12:59.560 - 01:13:00.400, Speaker C: So we need a tee.
+01:13:00.440 - 01:13:02.392, Speaker D: So it happens when the solvers all disappear.
+01:13:02.536 - 01:13:07.264, Speaker C: You need a te where everybody submits their big announcement and decides who should announce the big announcement.
+01:13:07.312 - 01:13:08.580, Speaker A: Oh, right.
+01:13:08.960 - 01:13:09.624, Speaker C: Yeah.
+01:13:09.752 - 01:13:10.736, Speaker A: Who gets it?
+01:13:10.888 - 01:13:11.584, Speaker C: Who gets it?
+01:13:11.632 - 01:13:21.984, Speaker D: Cause, yeah, this is the beauty of crypto. Crypto people can be so good at making products only for themselves to pick.
+01:13:22.112 - 01:13:29.180, Speaker A: The tea, the auction, to pick who gets to do the announcement at the next big thing. Do you think people are waiting for Defcon?
+01:13:29.680 - 01:13:40.404, Speaker D: I mean, honestly, I'm excited. No offense. Europe and America kind of suck in crypto land, but every time I go to Asia, it's like, even though you're. Sometimes it's like craziness.
+01:13:40.532 - 01:13:41.100, Speaker A: Yeah.
+01:13:41.220 - 01:13:47.100, Speaker D: Everyone is, like, so much more enthusiastic and excited and, like, I feel like that does not, you know, you're saying it's deformed.
+01:13:47.180 - 01:13:48.084, Speaker A: Do not feel it.
+01:13:48.132 - 01:13:49.428, Speaker D: Definitely don't feel like that here.
+01:13:49.524 - 01:13:54.660, Speaker A: Yeah. And I don't know if it's Brussels and I don't, or if it's I. This year, like, even people, this moment.
+01:13:54.780 - 01:14:01.030, Speaker D: No one is like, oh, there's some new exciting, even eat. Denver felt more exciting because, like, people were going crazy about restating Eth Denver.
+01:14:01.070 - 01:14:02.390, Speaker C: Felt more eth Denver.
+01:14:02.430 - 01:14:03.486, Speaker A: Oh, because of restaking.
+01:14:03.598 - 01:14:05.854, Speaker D: No, no. But there was, like, this huge, because.
+01:14:05.902 - 01:14:31.704, Speaker A: We'Re also living through and this is something like I almost put into the state of ZK, but realized it had nothing to do with ZK. But there is this, you know, the last six months, there has been like. And it's not really, I don't want to blame the teams doing it because it's kind of not their fault. It's weird timing, whatever, but there's been a very lackluster saying. It nicely responds to launching. I mean, you know this, right. And I'm saying, like, it's actually worse than lackluster.
+01:14:31.704 - 01:14:32.848, Speaker A: It's like, I feel like.
+01:14:32.904 - 01:14:48.544, Speaker D: I feel like it's sad when, like, the response to free money. Yeah. And also, like, the meme coin stuff, I actually feel like that's made people very cynical. Like, this financial nihilism stuff seems to have bled beyond its borders. I know, and right now we're in the like.
+01:14:48.632 - 01:14:49.584, Speaker C: But isn't that.
+01:14:49.752 - 01:14:57.202, Speaker A: Did you argue for this? Didn't I feel like last year you were like, the nihilism is good or something? I was like, no, and now it's taken over.
+01:14:57.346 - 01:15:02.370, Speaker D: I think it went too far. Like, once we got to the celebrities thing, it's like, okay, but we were there already.
+01:15:02.450 - 01:15:03.994, Speaker A: But it's so much sadder this time.
+01:15:04.042 - 01:15:11.790, Speaker D: No, it's much worse. Yeah, yeah. It's like, I don't know. I forgot Jason Derulo existed. I really would like to go back to forgetting existed.
+01:15:12.610 - 01:15:14.170, Speaker C: You guys are getting kind of cynical right now.
+01:15:14.210 - 01:15:16.562, Speaker A: Yeah. Wait, Hart, are you feeling good?
+01:15:16.706 - 01:15:17.750, Speaker C: I feel great.
+01:15:18.570 - 01:15:20.314, Speaker A: All right, give us the counter.
+01:15:20.402 - 01:15:28.190, Speaker C: Well, the counter, I mean, I showed up here on Tuesday afternoon, like halfway through, which I think makes a big difference because these events are getting too long.
+01:15:28.310 - 01:15:32.470, Speaker D: Like, oh, another thing related to this. There are too many side events.
+01:15:32.590 - 01:15:35.190, Speaker A: Yeah, too many. But there were actually too many side events.
+01:15:35.230 - 01:15:37.534, Speaker C: I think. I think it'll normally we did two of them.
+01:15:37.622 - 01:15:39.350, Speaker A: I am responsible for them.
+01:15:39.430 - 01:15:43.854, Speaker D: We've never done with two. Our first ever event, we did one and it was like, oh, my God, this is.
+01:15:43.902 - 01:15:44.990, Speaker A: When did you do one?
+01:15:45.150 - 01:15:45.766, Speaker D: On Wednesday.
+01:15:45.838 - 01:15:47.090, Speaker A: Oh, I flew in.
+01:15:49.110 - 01:15:49.638, Speaker D: Research.
+01:15:49.734 - 01:15:50.518, Speaker A: We didn't know.
+01:15:50.614 - 01:15:51.174, Speaker C: You didn't invite me.
+01:15:51.182 - 01:15:52.118, Speaker A: You didn't invite me.
+01:15:52.214 - 01:15:54.210, Speaker D: Wait, it was public? It was on Twitter.
+01:15:55.230 - 01:15:57.090, Speaker C: Dude, I want the personalized invite.
+01:15:57.520 - 01:16:03.900, Speaker D: Harsh. I'm sorry, 1st. First of all, I like, I like, did. I like, came late.
+01:16:04.880 - 01:16:08.384, Speaker A: We were just passive aggressive bullying. You don't worry about it. It's okay.
+01:16:08.552 - 01:16:18.272, Speaker C: But I do agree there are too many side events. The incentive structure there is also kind of messed up, right? Where people want to have their own side event because it's their thing.
+01:16:18.456 - 01:16:24.162, Speaker A: And I think it's the tradition too. Like, you're here, you're supposed to, but there was definitely too many.
+01:16:24.266 - 01:16:37.458, Speaker D: But like, I. So I feel like a lot of electronic music festivals have the same thing where like, one of them gets successful and then people start throwing all these side festivals and then it cannibalizes the main one and then they like. Because like, how many talks did you.
+01:16:37.474 - 01:16:38.630, Speaker C: Go to at ECC?
+01:16:39.250 - 01:16:39.730, Speaker D: Zero.
+01:16:39.810 - 01:16:45.242, Speaker A: I didn't even go to the event like a ticket? No, I didn't have a ticket. Yeah, I just.
+01:16:45.346 - 01:16:48.146, Speaker C: I mean, that's kind of like the problem. Right.
+01:16:48.218 - 01:16:57.050, Speaker A: Well, are you supposed to go to the big event? I think Devcon. If I was, I'm not actually going to be there, but if I was, I would. But also not. Probably not spend much time in the main.
+01:16:57.670 - 01:17:02.054, Speaker C: I don't know. I feel like everybody should go to some talk sometimes.
+01:17:02.102 - 01:17:02.478, Speaker A: Yeah.
+01:17:02.574 - 01:17:08.606, Speaker C: Cause it's like. And I didn't. I'm kind of full of shit. Cause I didn't actually get to do that. Cause I showed up late.
+01:17:08.678 - 01:17:10.158, Speaker A: But people should.
+01:17:10.294 - 01:17:16.838, Speaker C: People should. And like the modular summit. I'm going to go to some of the talks tomorrow and on Saturday, and I feel. And I did go to a talk tomorrow.
+01:17:16.854 - 01:17:17.918, Speaker D: You can see my talk tomorrow.
+01:17:18.014 - 01:17:18.622, Speaker A: Yeah.
+01:17:18.766 - 01:17:19.958, Speaker D: I'm only slightly modified.
+01:17:20.014 - 01:17:24.434, Speaker A: Maybe I should crash that talk. I should. Or if you're doing a panel, I should just like.
+01:17:24.482 - 01:17:33.634, Speaker D: I have a panel. Which is the. Also, like this drinking episode. There's the third annual one. I have a third annual panel of me, Mustafa and Atolly.
+01:17:33.682 - 01:17:34.714, Speaker A: I can't crash that.
+01:17:34.762 - 01:17:37.074, Speaker C: You're doing that again. Really?
+01:17:37.162 - 01:17:37.642, Speaker D: Yeah.
+01:17:37.746 - 01:17:41.346, Speaker A: That's actually kind of cool. You did it last year?
+01:17:41.418 - 01:17:43.530, Speaker D: I did it last year. I did it the first year. Yeah.
+01:17:43.570 - 01:17:43.866, Speaker A: Nice.
+01:17:43.938 - 01:17:46.618, Speaker D: I'm running out of questions to ask them. Do you guys have any ideas of.
+01:17:46.634 - 01:17:48.330, Speaker A: Like, what's happened in the last year?
+01:17:48.370 - 01:17:49.338, Speaker D: I mean, meme coins?
+01:17:49.394 - 01:17:50.498, Speaker A: I mean, that's the number one thing.
+01:17:50.514 - 01:17:53.354, Speaker C: I ask about to ECC.
+01:17:53.522 - 01:17:54.870, Speaker D: No, he does it by video.
+01:17:55.530 - 01:17:56.794, Speaker C: That makes more sense.
+01:17:56.962 - 01:18:05.298, Speaker D: But respect to all the Solana people who came, because I feel like. I feel like it's kind of interesting. They are clearly very curious people.
+01:18:05.394 - 01:18:08.834, Speaker C: Well, on that, what do you guys feel about the Solana vibe here?
+01:18:09.002 - 01:18:13.322, Speaker A: How is minimal, other than I haven't noticed it.
+01:18:13.346 - 01:18:16.458, Speaker D: Kyle and Mert, I didn't talk to anyone who was Solana focused.
+01:18:16.474 - 01:18:17.114, Speaker C: Kyle's here?
+01:18:17.202 - 01:18:19.968, Speaker D: Yeah, he was here. He left? Yeah, this morning. Sorry.
+01:18:20.024 - 01:18:20.504, Speaker C: All right.
+01:18:20.592 - 01:18:23.760, Speaker A: Yeah. I didn't see any Solana personally. I didn't.
+01:18:23.800 - 01:18:26.680, Speaker C: Do you think it's getting more. It is getting more heated, right?
+01:18:26.720 - 01:18:26.968, Speaker A: What?
+01:18:27.024 - 01:18:27.792, Speaker C: Solana eth?
+01:18:27.856 - 01:18:42.576, Speaker D: Well, oh, yeah, I guess we didn't talk about the make block times shorter in eth. And like, all the Solana people were like, wow, ethereum's becoming slow Lana. I was like, that's like a funny. I like, had not until I heard saw that part of Twitter.
+01:18:42.608 - 01:18:45.184, Speaker C: I was like, well, slow Lana is pretty good.
+01:18:45.232 - 01:18:46.536, Speaker D: I was like, that's crazy.
+01:18:46.648 - 01:18:58.132, Speaker A: I do think they'll actually be a move over, though. I feel like the people who are in Ethan, the real dedicated folks, I don't think they're going to leave and go there, but it's a totally different ethereum, fair weather friends, that'll go there.
+01:18:58.316 - 01:19:13.492, Speaker C: But that's not what it's about. It's about the new people, right? Yeah, it is. The war. I like the war. I like the competition. I think it's healthy. But the next billion people, where do they build? Or next billion users, where do they go?
+01:19:13.636 - 01:19:37.938, Speaker A: Strange, because where do they, I mean, there are also the sort of Silicon Valley, what do we call them, those teams that are made of X, Meta X, sort of legacy, easy to invest in projects, which I wonder if those won't also potentially take. I mean, if you're a corporation, do you want to trust us?
+01:19:37.994 - 01:19:48.540, Speaker D: I think the most important thing that we've learned from the failures of a lot of layer ones is that a, the people working on the protocol, core protocol, can't be dicks.
+01:19:48.620 - 01:19:52.740, Speaker A: Like, they're actually, these aren't, they're just, they're just more like, no, no, I will.
+01:19:52.780 - 01:20:01.228, Speaker D: I will say very few have been able to pull off what Ethereum and Solana have, where they have this community that even when there's a galactic son.
+01:20:01.364 - 01:20:04.884, Speaker A: He'S a dick, he's an exception.
+01:20:04.932 - 01:20:07.540, Speaker D: Okay, we'll get to that.
+01:20:07.580 - 01:20:08.240, Speaker C: Fine.
+01:20:09.990 - 01:20:38.750, Speaker D: You have to have a lot of respect for Justin. He's the largest liquidity provider in Ethereum. Is that true? He is one of them, yes. But a way to conceptualize this fight is people in Solana really care about a very different thing. They care about the end user. They don't necessarily care about all these particular theoretical properties that we've held near and dear.
+01:20:39.810 - 01:20:42.834, Speaker A: They haven't nerd sniped the same way, but Ethereum has.
+01:20:42.842 - 01:21:22.172, Speaker D: But they bond over that and they care about the performance stuff, whereas you look at the other high performance chains, and even when they do amazing research or they have this amazing consensus protocol or whatever, they just don't seem to be able to communicate that to their users. Their users don't get that. And that community aspect is actually one of the reasons I think Solana able to get a big developer community, get users who wanted to use it, was they have a leader and developers who are kind of not dicks and not like, oh, we know everything. Right? Whereas, like, newsflash, I can't really think of that many l one s that don't have founders or ctos or devs.
+01:21:22.196 - 01:21:24.452, Speaker A: Who fall into or know it alls.
+01:21:24.596 - 01:21:25.948, Speaker D: Or, like is vital.
+01:21:26.044 - 01:21:39.880, Speaker A: Know it all. I mean, he isn't, but he's not that accessible, actually. No, he's a good explainer to technical people. Wait, who's this Vitalik? But when you look at, like, the snark blog and stuff like that, like.
+01:21:40.420 - 01:21:49.844, Speaker D: But he is still a community. He's in person. Right. In a way that, like, that's not. You cannot say that for these other elements. They're like, for sure, like, we're the dev team.
+01:21:49.972 - 01:21:50.852, Speaker A: You're the user.
+01:21:50.916 - 01:22:18.220, Speaker D: You know, like, it has. That Solana doesn't have, like, Anatolia is, like, still literally, literally constantly in all these GitHub threads, and he's like, he's obviously crazy and then manic and tweeting all the time, but he's very focused on even the smallest user, which is crazy. A lot of people, they get rich and they tell their users to go fuck themselves.
+01:22:18.720 - 01:22:27.100, Speaker A: He doesn't tell. What was the founder? Who was it who said, do you know who I am? When somebody directed him to customer service?
+01:22:27.720 - 01:22:29.140, Speaker D: Hoskinson. That's Cardano.
+01:22:29.240 - 01:22:34.996, Speaker C: That's why I bring, I think, Tarun, it's less about being a dick and more about humility. Right?
+01:22:35.068 - 01:22:36.380, Speaker D: Like, aren't those.
+01:22:36.540 - 01:22:40.636, Speaker A: I mean, you can be a dick and not be humble, but I think you could be.
+01:22:40.788 - 01:22:46.468, Speaker D: You can be a humble dick, but I think that humble dick is a good name for, like, a men's underwear brand. A humble dick.
+01:22:46.524 - 01:22:48.748, Speaker A: You could be a humble, like, not.
+01:22:48.804 - 01:22:52.840, Speaker D: Dude, guys, guys, we got to start this men's underwear brand. Humble dick.
+01:22:54.420 - 01:22:56.000, Speaker A: Who's going to buy that?
+01:22:57.020 - 01:22:58.604, Speaker C: I mean, you buy it as a gift.
+01:22:58.692 - 01:23:00.760, Speaker D: You buy it as a gag gift. It's like.
+01:23:03.020 - 01:23:04.720, Speaker C: Wow, it's a great gift.
+01:23:05.100 - 01:23:05.948, Speaker D: Sorry.
+01:23:06.124 - 01:23:07.244, Speaker A: Make it happen, people.
+01:23:07.332 - 01:23:12.668, Speaker D: I agree with you. There's probably some difference, but, like, yeah, the humility. Humility and accessibility are.
+01:23:12.764 - 01:23:19.284, Speaker C: Vitalik and Anatoly, both are humble people. And that's really very, very.
+01:23:19.332 - 01:23:24.100, Speaker D: But it's also genuine. They're not. Like, there's a lot of people who. Who fake it and then they get caught.
+01:23:24.180 - 01:23:27.040, Speaker C: Yeah, that's not humility. That's not humility.
+01:23:28.060 - 01:23:33.772, Speaker D: It has to be authentic humility. Yeah, it can't be Obama giving himself a medal.
+01:23:33.916 - 01:23:37.292, Speaker A: Oh, that didn't really happen to room. I'm kidding.
+01:23:37.316 - 01:23:37.796, Speaker D: I'm kidding.
+01:23:37.868 - 01:23:41.240, Speaker A: That's a meme. Poor Obama.
+01:23:41.660 - 01:23:43.020, Speaker D: I was just referring to his.
+01:23:43.060 - 01:23:44.320, Speaker A: No, I know. Yes.
+01:23:44.940 - 01:23:46.188, Speaker C: He's controlling me.
+01:23:46.364 - 01:23:47.340, Speaker D: That's what I'm here for.
+01:23:47.420 - 01:24:05.554, Speaker A: What else do we want to talk about from this last week? Week? Oh, because actually, I did want to say, you know, I mentioned I was all in the ZK world, and then I was at modular summit. But I've also. I'm on. I'm going to be doing nine interviews this week. We're actually recording. This is a little hint. I mean, I hope this comes through.
+01:24:05.554 - 01:24:44.898, Speaker A: But we got a grant to do the second season of the ZK whiteboard sessions, which is a series that we created from, like, the Zk hack side. And we just recorded the first module of the second season today. So I'm very excited that's going to be coming back. Sorry, didn't mean to be talking about myself. I actually meant just to get outside of my own chilling myself. But what I wanted to say was the things that I've been hearing about outside of the ZK world, and especially through these interviews I've been doing, it's actually about interoperability, about bridges and across kept coming up. That's why it's also very cool and fitting that we just had you on to talk about it.
+01:24:45.054 - 01:24:46.226, Speaker C: Such a nice canadian.
+01:24:46.298 - 01:24:55.890, Speaker A: It kept coming up. No, I'm not kidding. It just kept, like, there's new bridging, there's new bridge ideas or people who work with bridges, and it's just, like, mentioned over and over again. So that kind of came up for me.
+01:24:55.930 - 01:25:08.470, Speaker D: Simplicity is key in some ways. You know, I feel like that's another thing about bridges, is that there was this race at some point where everyone, everyone wanted to make their bridge the most complicated. Right. They wanted, like, every bell and whistle.
+01:25:09.130 - 01:25:12.818, Speaker A: Wasn't it always kind of to. To make it the safest? It was like safety, right.
+01:25:12.954 - 01:25:15.530, Speaker D: But they conflated complexity with safety.
+01:25:15.610 - 01:25:16.130, Speaker A: Yeah.
+01:25:16.250 - 01:25:22.018, Speaker D: Sometimes I think that happens in this space. This happens in AI and crypto more than any other space.
+01:25:22.194 - 01:25:37.996, Speaker A: Yeah, man, it's so interesting now, having been in this space for. You said 2017 was when you got into it. Yeah, 2018. 2018, yeah. For me, it was 2017. I remember having you on the show beginning of 2019. Tarun, that's when I meth at you.
+01:25:37.996 - 01:26:20.232, Speaker A: But, like, you see through this, you see these cycles, and there's this moment in a cycle where you don't know what the outcome will be, but there's, like, a couple projects that are, like, pitching you their vision, and you're looking at them and you're like, I don't know how this plays out, but then you get to see it play out. And I think what's a bit unfortunate, I think people forget to look back and think about what was being pitched, then what were the four bridges, the four bridge ideas, and what actually played through, because in the moment that they're pitching it to you, you're just like, this looks amazing. This seems really cool, but you have to see it, analyze it, and then see what actually happens. Yeah. Do you feel like we just chase narratives a lot? I feel like.
+01:26:20.296 - 01:26:21.280, Speaker C: Are you joking?
+01:26:21.400 - 01:26:25.312, Speaker A: In crypto, are we just like, anna.
+01:26:25.336 - 01:26:28.460, Speaker D: Can I tell you a little bit about an asset called a meme coin?
+01:26:31.160 - 01:26:38.302, Speaker C: But this is the perverse incentives. Right. Where it's, like, you chase a narrative because you want your token price to go up.
+01:26:38.366 - 01:26:38.750, Speaker A: Yeah.
+01:26:38.830 - 01:26:39.454, Speaker C: Right.
+01:26:39.622 - 01:26:49.758, Speaker A: And you make the narrative. Sometimes you, like, craft a narrative, which is a. All marketing in the world did that. I mean, like, big concepts in the world have done that.
+01:26:49.854 - 01:26:55.646, Speaker C: So, like, take Celestia, for example. Like, they crafted the modular narrative very, very well.
+01:26:55.758 - 01:26:56.838, Speaker A: It's so nicely done.
+01:26:56.934 - 01:27:00.094, Speaker C: So well done. It's like a work of art, in my opinion.
+01:27:00.142 - 01:27:00.590, Speaker A: Yeah.
+01:27:00.710 - 01:27:09.610, Speaker C: But they backed it up with a great product, I think. Or, like, they built real tech, too. And so, like, to me, that's the dream.
+01:27:11.350 - 01:27:13.862, Speaker D: Yeah. I don't know. I mean, I think way too long.
+01:27:13.886 - 01:27:15.330, Speaker C: A pause right there.
+01:27:16.470 - 01:27:19.290, Speaker A: I think, like, too much gravitas.
+01:27:20.110 - 01:27:53.692, Speaker D: I just sort of think the narratives oftentimes just run at a faster speed than reality. Right. That's in and of itself. That's not the worst thing. But I do feel like, in crypto, it's like, we're still a space that needs to prove itself to 98% of the populace. It's not AI in that sense, where you don't need to prove to the average person that there could be something there. I still feel like we still have that issue.
+01:27:53.692 - 01:27:59.860, Speaker D: Outside of using stablecoins in Turkey, that's the only thing I could probably conceivably tell my grandmother.
+01:27:59.940 - 01:28:32.170, Speaker A: I just. I do think. I mean, last year, I think it started shadowing me, the AI. You know, we got really excited Turin, you and I, on the show, and, I mean, you were into it before, but, like, what was it? 2023 was when Kobe modded my voice and created Zkpod AI, and I got, like, really freaked out. And last year, I was really, like, I think what we're building, and I don't know if it was crypto, but it was something like maybe immutable ledger plus Zk or something. It feels like the human. It's like this creation out of the human mind and the human populace.
+01:28:32.170 - 01:29:08.830, Speaker A: Just the fact that there's so many people that have to be involved. This is the crowd in a way that it would somehow stand as a guard against the AGI world. But I don't know. Lately I feel, especially with the mood and the focus of a lot of what people are the focus of the industry. Like, are we. Are we going to be able to be, like, the human counterpart or the human. I say counter, actually, like, thing that keeps it kind of in check, or, like, you could actually control it somehow through this, like, mass hive.
+01:29:08.830 - 01:29:12.190, Speaker A: Like, what do we call her? Like, just participation.
+01:29:12.930 - 01:29:58.840, Speaker D: Yeah. I think an example of where crypto, like, the incentives seem to be kind of poorly made in regards to this is, like, there are 5 million AI tokens that are about decentralized training and stuff that's computationally, basically infeasible, not very useful to most people. Most people are going to take a mega model and maybe fine tune it a little bit, but it's not a real thing. But yet there's a million of these protocols for doing this, and they all have tokens and market caps. Yeah. You know what would actually be a much more useful AI in crypto thing is just making it so I can use intents while with natural language. Like, I don't want to fucking.
+01:29:59.500 - 01:30:01.828, Speaker A: That's incorporating AI into it, for sure.
+01:30:01.884 - 01:30:17.920, Speaker D: But that's more honest. The other thing is computationally useless. Anytime I talk to my friends who work in AI, they just laugh at me. When I explain to them these crypto things. They're like, why are you people such clowns? And I'm like, yeah, I agree. It's true.
+01:30:19.520 - 01:30:24.712, Speaker C: But I do agree with tarun. It's like, what is the crypto xai? Kind of.
+01:30:24.776 - 01:30:25.352, Speaker A: Yeah.
+01:30:25.496 - 01:30:27.888, Speaker C: What is the actual point of it?
+01:30:27.944 - 01:30:31.808, Speaker D: Making it easier for users? That's what it should be, right? Like, to me, that's what it seems like it should be.
+01:30:31.824 - 01:30:34.592, Speaker A: But I feel like there, we're trying to use AI to make crypto easy.
+01:30:34.736 - 01:30:39.064, Speaker D: But shouldn't that seems like a way higher value than the other thing I.
+01:30:39.072 - 01:30:42.472, Speaker A: Was talking about using all of this stuff as a counter.
+01:30:42.536 - 01:30:44.080, Speaker D: You mean world coin style?
+01:30:44.240 - 01:30:46.254, Speaker C: I think the way you're supposed to.
+01:30:46.352 - 01:30:47.994, Speaker A: Don't say that, but go back.
+01:30:48.042 - 01:30:53.666, Speaker C: So, okay, so we want to make use AI to make crypto easier. That was truen's point.
+01:30:53.698 - 01:30:53.954, Speaker A: Yeah.
+01:30:54.002 - 01:30:56.138, Speaker C: Okay, fine. That actually does make sense.
+01:30:56.234 - 01:30:56.586, Speaker A: Sure.
+01:30:56.658 - 01:30:58.830, Speaker D: It's just not a business. The problem is. That's like.
+01:30:59.930 - 01:31:07.150, Speaker A: But I was actually saying, use everything. Everything we're building to keep AI in check. I'm like, completely on a duma.
+01:31:07.450 - 01:31:12.426, Speaker C: Maybe don't make it keep AI in check. Although that's, let's like, say, make AI better.
+01:31:12.498 - 01:31:12.770, Speaker A: Yeah.
+01:31:12.810 - 01:31:18.280, Speaker C: Or that nobody's come up with anything that uses crypto to make AI better. Better. And I think there could be.
+01:31:18.360 - 01:31:20.232, Speaker A: There are. I mean, in the ZK land, there's.
+01:31:20.256 - 01:31:55.372, Speaker C: A few ideas, but yeah, their ideas, they seem untractable. They don't seem particularly consumer friendly. And I'm not convinced yet of, like, the use case. I think the idea of, like, hey, could we build stuff that I've thought about a little bit? Could we build a marketplace for AI's using crypto, like, technologies that reduces hallucinations? Type thing like, there's stuff like that that might be kind of interesting, of like, how could you take what AI does and make it more accurate? Maybe crypto could help there, but nobody's really going down that vein yet.
+01:31:55.556 - 01:31:59.324, Speaker A: Fair. I feel like we're about to get kicked out of the room we're recording in.
+01:31:59.372 - 01:32:00.004, Speaker D: Yes.
+01:32:00.172 - 01:32:02.388, Speaker C: I keep feeling this kicked out half an hour ago.
+01:32:02.444 - 01:32:03.796, Speaker A: We did get warned.
+01:32:03.948 - 01:32:05.180, Speaker C: Yeah, that was.
+01:32:05.340 - 01:32:07.036, Speaker A: It was actually half an hour ago.
+01:32:07.228 - 01:32:08.588, Speaker D: I think this is actually.
+01:32:08.644 - 01:32:10.356, Speaker C: I think it was like, 40 also.
+01:32:10.508 - 01:32:21.148, Speaker A: We're all drinking this bubbly. Have drank this bubbly on an empty stomach, clearly, because it wasn't that much. But I do feel like we're being kind of silly. So maybe it's time to wrap up.
+01:32:21.164 - 01:32:21.772, Speaker D: It's time to wrap up.
+01:32:21.796 - 01:32:23.200, Speaker C: Post production will be great.
+01:32:23.500 - 01:32:25.156, Speaker A: Post production will be minimal.
+01:32:25.228 - 01:32:29.916, Speaker D: Thank you, Henrik. Thank you, Henrik. I apologize for themselves.
+01:32:30.068 - 01:32:34.292, Speaker A: All right, thanks, everybody. Thank you guys for doing this episode.
+01:32:34.396 - 01:32:35.316, Speaker C: Thank you both so much.
+01:32:35.388 - 01:32:40.544, Speaker A: It was so fun to get to know across, too. First time on, but I hope not. Last time on.
+01:32:40.672 - 01:32:44.540, Speaker D: And to our one listener, Guillermo, we're never doing tequila again.
+01:32:46.600 - 01:33:02.020, Speaker A: Unless you're here, then maybe. All right, I think I'm supposed to say thank you to the podcast team, right? Rachel, Henrik, Tanya, sometimes Jonas, and to our listeners, thanks for listening.

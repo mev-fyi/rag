@@ -1,0 +1,450 @@
+00:00:08.920 - 00:00:33.609, Speaker A: Hi everyone. Well, two minutes ago I thought I was going to speak alone. Thanks a lot for coming. So my name is Norbert. I'm doing protocol research at Gevulot and there was a slight change in the title. I'm going to talk about the mechanism design of a prover network. But actually that prover network is a decentralized cloud specifically optimized for zk.
+00:00:33.609 - 00:00:39.393, Speaker A: We call it ZK Cloud. That's going to be the end product, the permissionless, decentralized product.
+00:00:39.569 - 00:00:47.885, Speaker B: And yeah, so that's kind of how the initial title transitioned to this kickoff slide here.
+00:00:50.065 - 00:01:45.627, Speaker A: Okay, let's start off. Before I go into details, I would like to talk a little bit about why decentralization matters. The proving market is quite susceptible to centralization, and that is because it involves, like, it's heavy on economics, for example. Also, if we look at the MEV market or like block building on Ethereum, you see that it involves a lot of money, you know, heavy on economics. And because of that, it's actually a couple of specialized builders who are building most of the blocks on Ethereum similar way. We expect that the proving market can be equally centralized, if not more. And because of that, it's super important to talk about decentralization, to design protocols that consider these type of centralization risks.
+00:01:45.627 - 00:02:14.105, Speaker A: Because centralization in itself is not just an issue because there is one entity or a limited number of entities producing proofs. It's an issue because it increases the risks of liveness. It increases the risk of unhealthy cost structures or centralized entities becoming dominant in defining cost structures. It increases the risk of censorship, for example, or it may also have some.
+00:02:14.145 - 00:02:18.433, Speaker B: Scalability issues or landing some scalability issues.
+00:02:18.529 - 00:02:28.945, Speaker A: So the solution is, from our perspective, and that's how we started building Gevulot, is we need to rely on mechanism.
+00:02:29.025 - 00:02:35.885, Speaker B: Design principles that can address these risks and that can address these concerns.
+00:02:36.305 - 00:03:00.425, Speaker A: One of the key decision points I want to talk about more is the workload allocation mechanism. And the reason why this is important is because you can build a decentralized network. It can be like, you can allow permissionless entry for anyone. Anyone can spin up a prover node and join the network. But if at the end of the day your workload allocation mechanism is such.
+00:03:00.505 - 00:03:04.753, Speaker B: That it can be easily like, it's.
+00:03:04.809 - 00:03:14.665, Speaker A: Very susceptible to centralization. And I'll talk a little bit more about that, then you may end up losing out or like spoiling all the.
+00:03:14.705 - 00:03:19.369, Speaker B: Advantages that the permissionless entry or like, the trustless execution would bring.
+00:03:19.497 - 00:03:21.605, Speaker A: And let's go into more details.
+00:03:21.905 - 00:03:23.405, Speaker B: What I mean by this.
+00:03:24.025 - 00:03:27.001, Speaker A: So couple of design considerations when we.
+00:03:27.033 - 00:03:28.685, Speaker B: Talk about workload allocation.
+00:03:29.825 - 00:03:49.621, Speaker A: I'm just listing here a couple of the most popular or known ones, maybe auctions. Let's start off with auctions. So auctions are a good tool to decrease costs. On the other hand, I don't believe auctions are the holy grail and I'll.
+00:03:49.693 - 00:03:52.117, Speaker B: Talk about that later on as well.
+00:03:52.261 - 00:04:00.853, Speaker A: On the one hand it is because in an auction basically the market will start forming the cost structures and like how?
+00:04:01.029 - 00:04:02.437, Speaker B: Like how at the end of the.
+00:04:02.461 - 00:04:16.141, Speaker A: Day how much the proving will cost. On the other hand, if protocol economy like proper economics are designed at protocol level around the cost of proving, you.
+00:04:16.173 - 00:04:18.013, Speaker B: Don'T necessarily need an auction.
+00:04:18.189 - 00:04:27.343, Speaker A: In simple words, if you can make proving cheap enough within your protocol, you don't need to apply an auction to bring it even further down.
+00:04:27.469 - 00:04:29.775, Speaker B: And we'll get there.
+00:04:30.755 - 00:04:40.675, Speaker A: My main issue with auctions is that any rich entity, super rich entity, let's say one of the big names, Amazon, Google, whoever, if they would like to.
+00:04:40.715 - 00:04:43.819, Speaker B: Come and become dominant in the ZK.
+00:04:43.867 - 00:05:11.979, Speaker A: Proving space, maybe they could afford underbidding everyone for years even doing proofs at loss until the whole competition is killed. The decentralized permissionless network I built is basically down to a couple of huge entities winning all the rights to prove the jobs or like to complete the jobs. And then even if my intention was to build a decentralized network, my workload.
+00:05:12.027 - 00:05:18.953, Speaker B: Allocation mechanism allowed it to be kind of the advantages of that to be spoiled.
+00:05:19.099 - 00:05:21.225, Speaker A: So prover undercutting is real.
+00:05:21.805 - 00:05:24.581, Speaker B: It's happening on like it's been happening.
+00:05:24.613 - 00:05:48.131, Speaker A: On Mina's Snarketplace for example. It's a little different story. I don't want to go into details but like entities started offering proofs for free on the marketplace which killed the whole economics and you know, it's unhealthy dynamics order book based mechanisms are such that also richest entities could absorb the.
+00:05:48.163 - 00:05:55.075, Speaker B: Demand at any cost if they can afford to absorb that demand and again create healthy unhealthy economic dynamics.
+00:05:55.235 - 00:06:06.815, Speaker A: Proof racing is something I think it's also important to talk about. We've seen like proof of work type of mining. The most powerful entities can easily create.
+00:06:07.835 - 00:06:10.203, Speaker B: Or become dominant there as well.
+00:06:10.379 - 00:06:13.507, Speaker A: And again someone has to pay for redundancy.
+00:06:13.571 - 00:06:15.347, Speaker B: So it's never going to be the cheapest option.
+00:06:15.411 - 00:06:38.963, Speaker A: Obviously stake based lottery, that's a more interesting, already more interesting thing. Lottery hints at some more neutral solution to allocate workloads. It kind of includes randomness on the other hand, since it's stake based, again, the richest entities will have proportionately higher.
+00:06:39.099 - 00:06:42.931, Speaker B: Shares, like higher chances of being selected by that lottery.
+00:06:43.043 - 00:06:47.627, Speaker A: So it again somewhat limits the decentralized.
+00:06:47.691 - 00:06:55.299, Speaker B: Network that one might want to build if it's paired up with this type of workload allocation mechanism. And then we've got randomness at the.
+00:06:55.307 - 00:07:11.447, Speaker A: End of the list. That's. As of now, I believe that's the most neutral and fair workload allocation. Obviously you cannot prevent a large entity to spin up thousands of nodes in.
+00:07:11.471 - 00:07:18.191, Speaker B: Your network and thus increase the chances of them being selected for the jobs, even in a random network.
+00:07:18.303 - 00:07:31.507, Speaker A: But that's just the property of permissionless decentralized blockchains. So it's not like something you can avoid. On the other hand, for them to do that, it may just include a.
+00:07:31.531 - 00:07:38.935, Speaker B: Whole much more capital to somehow tweak the network to their favor.
+00:07:39.235 - 00:07:44.795, Speaker A: So that carries the least risk of centralization. A pure random selection.
+00:07:44.875 - 00:07:49.939, Speaker B: And that's what we also voted for at our end, please.
+00:07:50.027 - 00:07:52.095, Speaker C: But wouldn't that the last option?
+00:07:53.515 - 00:07:56.203, Speaker A: No, because randomness doesn't take into consideration.
+00:07:56.259 - 00:07:57.465, Speaker B: The amount of stability.
+00:07:59.355 - 00:08:05.335, Speaker C: In a way, if you have money, you can buy more stake equally. If you have more money, you can spin up and put more capital.
+00:08:05.715 - 00:08:27.115, Speaker A: Yeah, actually that's a good point. They are somewhat similar in that sense. We would need to do a bit more research on which one would cost more. It depends on stake size and it could even depend on, for example, whether I could imagine delegated staking also being involved.
+00:08:27.235 - 00:08:34.651, Speaker B: Kind of like involving retail in running prover nodes and then delegating stake on.
+00:08:34.683 - 00:08:35.843, Speaker A: Behalf of the provers.
+00:08:35.939 - 00:08:36.635, Speaker B: Something like that.
+00:08:36.675 - 00:08:44.091, Speaker A: So it's not the actual prover who would. Yeah, so there could be some different aspects there. But yeah, that's a good.
+00:08:44.163 - 00:08:48.135, Speaker B: That's a valid point that needs to be researched a bit more, please.
+00:08:48.685 - 00:09:11.261, Speaker D: So with decentralization, it's obviously kind of as he hinted, it's hard to get true decentralization. So do you guys break that down into properties that you want? Because, for example, you could have a healthy network where there's just one or two parties and if they ever go down, someone comes in. But then perhaps it's bad if those go down and no one comes in. So that's.
+00:09:11.293 - 00:09:17.049, Speaker A: Yeah, I'm gonna talk about that. Yeah, there are properties, like much broader.
+00:09:17.097 - 00:09:21.885, Speaker B: Properties built around decentralization. I just wanted to start off with this one.
+00:09:23.385 - 00:09:43.851, Speaker A: So basically I just wanted to go through the previous slide because it's worth for all of us to be aware of these risks and whenever we make decisions on where to outsource proving because it seems the industry like that's the main the industry is leaning towards outsource source proof generation and when projects or.
+00:09:43.883 - 00:09:45.827, Speaker B: We make decisions on where to do.
+00:09:45.851 - 00:09:47.859, Speaker A: That, it's good to be aware of.
+00:09:47.987 - 00:09:55.655, Speaker B: Different trade offs that we may come across when we select certain proof providers.
+00:09:55.995 - 00:10:31.213, Speaker A: So the core principles that we've been following, they are decentralization focused and they are like these decisions ensure that no one can control where proving happens. It can offer like with these decisions and protocol level principles we can increase liveness guarantees, we can increase censorship resistance, add trustless properties, reach a fair distribution or a fairer distribution of workloads and rewards and like all this adds up to a more credibly neutral type of.
+00:10:31.269 - 00:10:33.435, Speaker B: Network that can serve the industry well.
+00:10:34.365 - 00:10:43.397, Speaker A: I do believe that proving should be fast, cheap and decentralized and that's kind of the core vision with which we've.
+00:10:43.421 - 00:10:46.425, Speaker B: Been building the ZK cloud at Gevulot.
+00:10:49.405 - 00:11:01.675, Speaker A: Yeah, so why decentralized cloud? Basically, as mentioned, the industry is leaning towards third party proof generation but most of the proof providers currently are actually.
+00:11:01.755 - 00:11:12.107, Speaker B: Using AWS or gcp. And we've talked about the risks that centralized entities may mean. I don't want to go into details of that again.
+00:11:12.211 - 00:11:19.931, Speaker A: But with the ZKLAY cloud, basically we are distributing proving workloads across a permissionless.
+00:11:20.003 - 00:11:22.135, Speaker B: Global network of proven nodes.
+00:11:22.555 - 00:11:26.345, Speaker A: We apply an underlying blockchain to make.
+00:11:26.385 - 00:11:32.129, Speaker B: That workload allocation and reward distribution fair and balanced.
+00:11:32.257 - 00:11:39.393, Speaker A: And also we needed an underlying blockchain because this is how we are able.
+00:11:39.449 - 00:11:42.361, Speaker B: To design economics flexibly.
+00:11:42.433 - 00:11:53.043, Speaker A: So the main goal of Gevuloth One of the key design goals of Gevulot was how can we make proving orders at least an order of magnitude cheaper.
+00:11:53.099 - 00:11:59.131, Speaker B: Than what it is now. And for that we had to turn.
+00:11:59.163 - 00:12:06.339, Speaker A: Away from any existing like building on Ethereum, building on an L2, building on Solana, whatever, because then we would have.
+00:12:06.387 - 00:12:09.947, Speaker B: Inherited the economic structures of the underlying network.
+00:12:10.131 - 00:12:13.615, Speaker A: So it's a cosmos based chain, nothing fancy.
+00:12:14.155 - 00:12:31.487, Speaker B: It's very minimal. We have no smart contracts state basically very minimal re execution, limited number of operations. It's purely optimized for processing proofs and generating proofs and processing proof requests.
+00:12:31.671 - 00:12:37.879, Speaker A: So on a very high level we are aggregating proof demand and thus reaching.
+00:12:37.927 - 00:12:41.795, Speaker B: A higher hardware utilization for our node network.
+00:12:42.255 - 00:12:49.305, Speaker A: It's scalable because it can accommodate like it can horizontally scale without the economics being basically affected.
+00:12:49.645 - 00:13:00.425, Speaker B: And we have protocol level execution guarantees, fallback mechanisms to ensure liveness sensor chip resistance, etc.
+00:13:03.125 - 00:13:05.477, Speaker A: It's a basically what is okay as.
+00:13:05.501 - 00:13:07.629, Speaker B: We get closer to what is ZK cloud.
+00:13:07.717 - 00:13:09.869, Speaker A: So it's basically a DC decentralized proving.
+00:13:09.917 - 00:13:16.061, Speaker B: And compute layer that is fast, cheap and yeah, I already mentioned decentralized.
+00:13:16.133 - 00:13:23.085, Speaker A: It's fast because we have high performance compute nodes optimized for ZK and we.
+00:13:23.125 - 00:13:28.985, Speaker B: Add on top of this node and network level orchestration to optimize performance.
+00:13:29.445 - 00:13:38.045, Speaker A: And also as I already mentioned, we aggregate workloads from all across the industry. I'm going to talk a little bit more on the details of this, how.
+00:13:38.085 - 00:13:41.301, Speaker B: We actually like what it boils down to at the end of the day.
+00:13:41.493 - 00:13:43.341, Speaker A: But with this we are able to.
+00:13:43.373 - 00:13:46.825, Speaker B: Reduce costs for all participants basically.
+00:13:47.205 - 00:13:49.957, Speaker A: And it's decentralized because we have permissionless.
+00:13:50.021 - 00:13:52.877, Speaker B: Entry for both of both types of.
+00:13:52.901 - 00:13:54.837, Speaker A: Our nodes, both the validator and the.
+00:13:54.861 - 00:14:02.905, Speaker B: Prover nodes in the network. So that's going to be in the ZK cloud. The architecture has three main layers.
+00:14:03.405 - 00:14:06.661, Speaker A: A universal proving layer, an orchestration layer.
+00:14:06.733 - 00:14:10.957, Speaker B: And then a decentralized compute layer for the proving layer.
+00:14:11.021 - 00:14:20.517, Speaker A: Let's start with that. So it's. Why is it universal? It's universal because it supports any proof system. So we don't have our own product.
+00:14:20.621 - 00:14:35.985, Speaker B: Zkvm, zkevm, whatever. We don't write our own circuits, we don't have our own proof system. We have no preference for dsl. Anything that can be basically compiled into an ELF binary could be run on Gevulot.
+00:14:37.485 - 00:14:39.909, Speaker A: Because of this we are basically able.
+00:14:39.957 - 00:14:43.253, Speaker B: To support any prover out there, even.
+00:14:43.349 - 00:14:46.069, Speaker A: Any prover network that exists or prover.
+00:14:46.117 - 00:14:50.065, Speaker B: Marketplace or directly any project with ZKP demand.
+00:14:51.205 - 00:14:56.425, Speaker A: And the integration is flexible like we are pre deploying a bunch of the big names.
+00:14:56.765 - 00:14:58.517, Speaker B: I'll share a slide on that.
+00:14:58.661 - 00:15:17.629, Speaker A: So you can as a user people can use the pre deployed programs on the network, but you can also deploy your own. So it's kind of like bring your own proverb binary. If you want to take an existing prover, make your own optimizations and you want a platform where you can deploy.
+00:15:17.677 - 00:15:28.471, Speaker B: It and then get proven cheap, fast in a decentralized way, then the ZK cloud is very well fit for that. Please.
+00:15:28.663 - 00:15:32.967, Speaker D: So does the blockchain verify the proofs?
+00:15:33.151 - 00:15:36.879, Speaker A: Yes, I'm going to talk about that, but actually it's a good question.
+00:15:36.927 - 00:15:40.279, Speaker B: So we can discuss that here as well. I don't need to be super strict.
+00:15:40.327 - 00:15:51.739, Speaker A: On the content and don't want to be. So we do verification internally anyway because that's how we know the Provers did the job properly and based on that.
+00:15:51.787 - 00:15:54.307, Speaker B: Can we only pay the rewards to our provers?
+00:15:54.451 - 00:15:57.931, Speaker A: So when you deploy a prover program on gevulot, you need to deploy the.
+00:15:57.963 - 00:16:00.251, Speaker B: Corresponding verifier program as well.
+00:16:00.363 - 00:16:40.327, Speaker A: So we use. When you send a proof request to your own program, for example referencing the hash of your proverb program with the input, etc. The proof is generated. You can already fetch the proof and have it settled wherever you wish to. If you don't want to accept our verification because probably like Ethereum would have a much higher economic security behind that. But if you want like if the verification or the security level for the verification on gevulot is sufficient for you, you can wait for us to do the verification as well, fetch the result.
+00:16:40.431 - 00:16:42.951, Speaker B: And then you get a verified proof.
+00:16:43.063 - 00:16:47.115, Speaker A: We need that as I mentioned, so we are going to do that anyway.
+00:16:47.655 - 00:16:49.431, Speaker B: Because that's how we pay the rate.
+00:16:49.463 - 00:16:56.555, Speaker D: Yeah, that's the angle I'm curious about is the execution angle. So basically the nodes in the blockchain have to run arbitrary binaries.
+00:16:57.455 - 00:17:39.795, Speaker A: Basically, yes, yes. And I'll go into details like who is doing verification, who is doing proving, how do we select these nodes for the different tasks, et cetera. Regarding orchestration, as mentioned, it's a blockchain based mechanism managing workload distribution, reward distribution. We've got orchestration within the nodes to optimize hardware utilization, et cetera, but among nodes like within the network as well. This way it's not just hardware utilization or increased hardware utilization, but at the end of the day paired up with the aggregation from the industry and like.
+00:17:39.835 - 00:17:51.451, Speaker B: Being able to process kind of any proof request for any proof system, it brings actually just higher revenue for our prover nodes as well. Much higher revenue potential which with much.
+00:17:51.643 - 00:17:54.299, Speaker A: Simpler maintenance because they don't need to.
+00:17:54.347 - 00:18:11.743, Speaker B: Maintain 10 different prover nodes in 10 different networks, but they simply maintain one node in Gevulod that may just where the network aggregates the workloads. And yeah, we've got built in execution guarantees. I'm going to talk about that later on as well.
+00:18:11.799 - 00:18:20.595, Speaker A: And then as I mentioned we have a compute layer at the bottom, permissionless entry for GPU nodes, CPU nodes and also custom hardware.
+00:18:20.935 - 00:18:40.535, Speaker B: The fabric team also here they are building this general purpose processing unit seems to be very interesting, so vivant to allow easy integration of those exotic hardware as well in the network. And all of this is optimized for ZK compute.
+00:18:41.355 - 00:18:50.541, Speaker A: So we've got, I think I mentioned the dual node architecture. So validators and provers Validators are randomly selected.
+00:18:50.733 - 00:19:07.453, Speaker B: Like the leader is randomly selected for every block, it orders transactions into blocks, etc. It's the usual thing that validators do, they form consensus. There are the normal incentives, I don't think. I wouldn't go into more details regarding that.
+00:19:07.589 - 00:19:30.035, Speaker A: However, a little more details on block content maybe. I already mentioned that programs in two varieties. So you deploy prover programs and the corresponding verifier as well. We do have plans later on to do verification solely if there is demand for that. In that case the proof would be generated elsewhere and we just do the verification.
+00:19:30.495 - 00:19:34.983, Speaker B: But initially we'll start off with proving and verification together.
+00:19:35.159 - 00:19:45.823, Speaker A: The blocks on Gevolot will include basically deployment transactions, prover program deployment transactions, proving results, verification results.
+00:19:45.919 - 00:19:52.875, Speaker B: And as I mentioned, it's a minimal blockchain, no smart contract state, barely any RE execution there.
+00:19:53.455 - 00:20:00.831, Speaker A: And regarding the prover nodes, that's more interesting I think. So when prover nodes join the network.
+00:20:00.903 - 00:20:04.555, Speaker B: We do an initial pretty heavy capacity verification.
+00:20:04.855 - 00:20:11.637, Speaker A: So we don't want self reporting, we don't want to fetch their hardware data. We give them test workloads which they.
+00:20:11.661 - 00:20:14.101, Speaker B: Need to complete within some time constraints.
+00:20:14.133 - 00:20:20.301, Speaker A: And if they are able to do that, they will be sufficiently large that.
+00:20:20.333 - 00:20:26.277, Speaker B: We will know they do have the proper hardware to be able to serve our users and customers.
+00:20:26.341 - 00:20:31.973, Speaker A: And it's not just initial capacity verification, but we are going to verify their.
+00:20:32.029 - 00:20:42.955, Speaker B: Constant availability and capability of generating proofs through like random regular allocation of these types of test tasks as well.
+00:20:43.655 - 00:20:51.335, Speaker A: So a random prover is selected for every workload. The randomness will be calculated using the previous blocks hash.
+00:20:51.375 - 00:21:02.465, Speaker B: We're going to have a one second block time approximately or even a bit lower optimally than that. So basically it's not really pre calculable per se.
+00:21:02.625 - 00:21:11.873, Speaker A: Um, and then a subset of prover nodes. Sorry, okay. And then a subset of prover nodes.
+00:21:11.929 - 00:21:13.969, Speaker B: Is selected to do the verification.
+00:21:14.057 - 00:21:19.401, Speaker A: So the prover nodes are doing the proving and the verification as well. Obviously you cannot be selected or you.
+00:21:19.433 - 00:21:22.241, Speaker B: Won'T be selected to verify your own proof.
+00:21:22.433 - 00:21:27.343, Speaker A: But there is one node generating the proof and a subset of the of.
+00:21:27.359 - 00:21:30.755, Speaker B: The prover set that is going to do the verification.
+00:21:31.295 - 00:22:07.107, Speaker A: You can add redundancy because we do have a fallback mechanism. So it means you send a request, we allocate it to a prover node, the node fails based on the fallback mechanisms. It will be fallback mechanism, it will be right away reallocated. So we want to make sure you don't need to restart an auction or or take any action from your angle or from your side. But we want that to be baked into the protocol. But if you don't want to run the risk of having to wait double the time if the first prover fails, doesn't deliver the proof and then you.
+00:22:07.131 - 00:22:08.295, Speaker B: Need to wait again.
+00:22:08.595 - 00:22:11.819, Speaker A: Yeah, one quick thing. You get 50% of your fees back.
+00:22:11.867 - 00:22:19.781, Speaker B: If you need to wait another time. So we do acknowledge that it's, it's a disadvantage to the user. So we give back a large portion.
+00:22:19.813 - 00:22:31.021, Speaker A: Of the fees in case that would happen. But if you don't want to wait or run this risk, you can increase redundancy and have two, three nodes working.
+00:22:31.173 - 00:22:34.621, Speaker B: Initially on your request. That is going to have a bit.
+00:22:34.653 - 00:22:37.749, Speaker A: Higher cost, but it shouldn't be that big of an impact.
+00:22:37.837 - 00:22:42.313, Speaker B: We'll see the cost structure soon. Yeah, please.
+00:22:42.449 - 00:22:52.161, Speaker C: Sorry, you, you mentioned that I didn't want to go into many details about the consensus under the validator. Right.
+00:22:52.193 - 00:22:52.529, Speaker A: Yeah.
+00:22:52.617 - 00:23:31.175, Speaker C: I'm not that familiar with the cosmos I guess but so that if, depending on the security assumption. Right. If it's a stake based or whatever. Right. Wouldn't a leader be able to sort of affect the outcome of the randomness coming from the edge of the block? That is proposing in a way by reordering, you know, censoring some transaction or proof so that you can control a little bit what is going to be the next random.
+00:23:32.565 - 00:23:58.225, Speaker A: That's a good point. Honestly, I haven't really thought about that. But he will now. Yeah. By the way, he's our integrations engineer, Brian, so he may feel free to chime in if you've got some information on those. No, that's something we will be. I need to think through and we'll consider that when we are designing that.
+00:23:58.225 - 00:24:08.525, Speaker A: Yeah, it's a. On the like it's a normal comet BFT based consensus. The way it works is that in.
+00:24:08.565 - 00:24:17.645, Speaker B: General in Cosmos and I. Yeah, that's just high level. It's a stake based randomness.
+00:24:17.765 - 00:24:24.339, Speaker A: So the amount of stake, self stake and delegated stake to the validators will.
+00:24:24.387 - 00:24:28.135, Speaker B: Define their chances of being selected as a leader.
+00:24:28.595 - 00:24:30.619, Speaker A: We do want to move away from.
+00:24:30.667 - 00:24:47.915, Speaker B: That and remove the stake based connection just to make it random. But we'll consider that. Thanks a lot for the input and for the question because it's useful and we'll need to think about that coming.
+00:24:47.955 - 00:25:19.833, Speaker A: Back to the provers. So we are designing so called custom proverbs sets as well where you could create small subsets of provers if you have some specific need. For example if you want to plug in custom hardware, not all of our provers would have that. So these custom proverbs set. In that case the random selection would run among the nodes who have the proper hardware or if you have some external software dependencies, then in this custom proverbset the prover nodes would need to run that external software as well to.
+00:25:19.849 - 00:25:41.873, Speaker B: Be able to generate the proof for you. And also if like to facilitate easy working with data storage or availability, solutions like custom proverbsets will enable us to give a whole bunch of flexibility around that to the users. A quick roadmap and then we are going to more practical details.
+00:25:41.929 - 00:26:03.263, Speaker A: So we've had the devnet up and running since March this year. It's been generating about 2.1 2.2 million proofs since March. It's been steady. It has the full proving pipeline, deploying prover programs, generating proofs, verifying them. It's real proofs for free.
+00:26:03.263 - 00:26:22.757, Speaker A: Currently it's even at this moment it's running, it's free of charge for anyone. It's permissioned because we have a set of node operators who were running or who are running those nodes and it doesn't have the economics and the consensus yet. However, the core element of the entire.
+00:26:22.821 - 00:26:26.965, Speaker B: Proving pipeline is already there and it's been running stable.
+00:26:27.085 - 00:26:39.243, Speaker A: We are launching Firestarter in a couple of days time. It's a scalable production grade network. It's permissioned because we run all the validators, but we are already onboarding prover.
+00:26:39.299 - 00:26:40.691, Speaker B: Nodes into the network.
+00:26:40.763 - 00:26:46.331, Speaker A: So the proving node, the prover node side is already distributed, decentralized, but we.
+00:26:46.363 - 00:26:49.587, Speaker B: Run all the validators so it's still permissioned.
+00:26:49.771 - 00:26:52.347, Speaker A: We are going to have an incentivized.
+00:26:52.531 - 00:27:17.437, Speaker B: Permissionless testnet in Q4 and probably late Q4, early next year Q1 we are going to have the fully permissionless decentralized ZK Cloud running. Yeah, actually I mentioned the stats. Maybe something worth mentioning. People have been deploying about 390 Prover programs on the network.
+00:27:17.621 - 00:27:22.037, Speaker A: Some of these may be the same program but as they were working on.
+00:27:22.101 - 00:27:26.785, Speaker B: Optimizing things, redeploying them and starting benchmarking on that as well.
+00:27:29.575 - 00:27:32.927, Speaker A: Some of them are. Some of them are like we have.
+00:27:32.951 - 00:27:48.215, Speaker B: A couple of them pre deployed, the polygon zkevm. We are working on the scroll proverb. We've got zksync, risc0, zkvm, sp1, nexus stacks, baratemberg library is already there.
+00:27:48.255 - 00:27:54.349, Speaker A: So we've got a couple of those big names pre deployed. But I'VE also been in touch with.
+00:27:54.397 - 00:27:57.661, Speaker B: Teams that wanted a platform where they.
+00:27:57.693 - 00:28:04.065, Speaker A: Can deploy different programs and then start benchmarking because the underlying hardware is similar.
+00:28:04.605 - 00:28:07.405, Speaker B: And yeah, I have a super curious.
+00:28:07.525 - 00:28:10.613, Speaker A: No go. Go for it. No, I'm happy for the questions for.
+00:28:10.629 - 00:28:19.305, Speaker C: Yourself, but I would love maybe not really know whether you. You have some, you know, less software during this.
+00:28:23.495 - 00:28:44.957, Speaker A: I think it's going to be the next slide or something like that. Very valid question. Yeah, key learnings from the devnet. Yeah, the main thing is like two core things. Production workloads will require execution guarantees and fallback mechanisms.
+00:28:45.031 - 00:28:51.593, Speaker B: So that's not something any proven network can spare. And you know, like if there is.
+00:28:51.609 - 00:28:55.017, Speaker A: An L2 obviously currently L2s are the.
+00:28:55.041 - 00:28:58.325, Speaker B: Biggest demand drivers for ZK.
+00:28:59.025 - 00:29:02.209, Speaker A: So in that sense a sequencer cannot.
+00:29:02.257 - 00:29:07.505, Speaker B: Afford not receiving a proof. So we do need those guarantees and fallbacks.
+00:29:07.665 - 00:29:11.827, Speaker A: And again significant compute resources are needed.
+00:29:11.891 - 00:29:27.115, Speaker B: For production grade or like for production workloads, be it the Polygon, zkvm, be it Scroll, Aztec, whichever we talk about. So you need efficient workload orchestration there. That's something we are also focusing on.
+00:29:27.235 - 00:29:33.619, Speaker A: And then again we had Nanos vm. So the proverb programs, the OS images.
+00:29:33.707 - 00:29:37.877, Speaker B: Were run in nanos VMs in our DevNet.
+00:29:37.941 - 00:29:58.941, Speaker A: We are moving away from unikernels and nanos going with Containers and Linux vm. So that's another unveil. We are moving from Nanos to Linux VM and we are moving away from OS images to containers to make sure that developers have a much smoother experience.
+00:29:59.133 - 00:30:06.635, Speaker B: Because again that's something that turned out to be like super like anyway, super important.
+00:30:11.295 - 00:30:16.719, Speaker A: Yeah, it is what it is. Yes. So I want to talk a little.
+00:30:16.767 - 00:30:19.287, Speaker B: Bit about what's coming with Firestarter.
+00:30:19.431 - 00:30:22.607, Speaker A: So Firestarter is the end to end.
+00:30:22.671 - 00:30:24.135, Speaker B: Implementation of ZK cloud.
+00:30:24.175 - 00:30:29.493, Speaker A: So when I'm talking about Firestarter, take it as like it's the ZK cloud.
+00:30:29.589 - 00:30:36.185, Speaker B: But we run it in a permissioned fashion currently. So we call it Firestarter.
+00:30:37.245 - 00:30:44.469, Speaker A: It's going to have decentralized cloud infrastructure underneath optimized for CPU and GPU workloads.
+00:30:44.597 - 00:30:52.901, Speaker B: It can scale to thousands of prover nodes if need be and it's compatible as I mentioned already with any prover program.
+00:30:52.973 - 00:31:00.801, Speaker A: So you can deploy any arbitrary program you want or you use or you can use the pre deployed ones we have.
+00:31:00.913 - 00:31:07.177, Speaker B: Yeah, I think I missed Starkware Linear there. I think I mentioned the others. Please.
+00:31:07.241 - 00:31:33.275, Speaker D: Yeah, I'm just fascinated with arbitrary binary execution. So I'm just thinking about the Scenario where I deploy a program and I want to cause other provers to look flight piece. So it's sort of programmed that at some point I'm the only one who could actually execute the proofs. And yeah, I guess like do you think that's fine? Do you think the incentives are kind of fine there or.
+00:31:33.355 - 00:31:42.851, Speaker A: No, I understand your point. So when you start. So the thing is, okay, from a.
+00:31:42.883 - 00:31:47.997, Speaker B: Practical perspective, that's a very valid question by the way.
+00:31:48.101 - 00:32:02.621, Speaker A: From a practical perspective, you could do that, but you deploy your program, when you start sending proofs to your program, it's going to cost you money. Obviously you may earn with your prover note, but it's going to cost you money. But why would any of us in.
+00:32:02.653 - 00:32:04.917, Speaker B: This room would want to like we.
+00:32:04.941 - 00:32:06.565, Speaker A: Would not know about your program being.
+00:32:06.605 - 00:32:08.805, Speaker B: Deployed or like your hash ID basically.
+00:32:08.885 - 00:32:10.943, Speaker A: Except for you, probably no one would.
+00:32:10.999 - 00:32:13.295, Speaker B: Start sending requests to that.
+00:32:13.415 - 00:32:40.255, Speaker A: And if you want to spoil that, it will cost you money as well. I mean obviously also it will cost you from the other side. So you run your own prover node which will incur costs in itself. Then you will incur costs by sending a bunch of requests. So at the end of the day, I'm not sure if it would be worth or like how realistic or like how impactful such an attack would be.
+00:32:40.415 - 00:33:09.153, Speaker D: I guess there's two sides of the coin. If you like. Well, just from what you said, if you are putting a binary and it's like, okay, it's kind of a little malicious, eventually I can just turn off, make people seem like a quirky, then okay, fine, they just don't opt in. But if they don't opt in, then how do I bootstrap a new prover program? I just, just a small network. I want my prover program in your cloud. How would you have to just convince provers to whitelist it?
+00:33:09.289 - 00:33:16.441, Speaker A: I mean all the provers in the global proverbs set, all of our provers.
+00:33:16.553 - 00:33:21.009, Speaker B: Will be able to accept proofs for any program in the network.
+00:33:21.177 - 00:33:28.959, Speaker A: So you can, with a custom prover set, you have the option to limit.
+00:33:29.057 - 00:33:37.971, Speaker B: Whoever, like whichever provers are included in the set or in the prover set and thus included in the random selection.
+00:33:38.123 - 00:33:41.891, Speaker A: But in general, all provers will be.
+00:33:41.923 - 00:33:45.363, Speaker B: Doing proving for all workloads in the network.
+00:33:45.539 - 00:33:47.059, Speaker D: Right, so that's where I. Yeah.
+00:33:47.107 - 00:33:48.947, Speaker A: So there is no opt in in general.
+00:33:49.091 - 00:34:02.491, Speaker D: Yeah. So in general you can make a program seems fine for a while and maybe some people are tricked by using it and then you turn on the fact that you're now the only prover. Maybe calls up to the network and like. Oh, it just shows you can't. Yeah, you can't call the network. Okay.
+00:34:02.643 - 00:34:04.779, Speaker E: So your ideas is awesome.
+00:34:04.827 - 00:34:08.699, Speaker D: I just love to see them try that. But the way these things are run.
+00:34:08.747 - 00:34:15.491, Speaker E: They'Re run in isolated VMs with no network access. So you would have a real hair telling that you're on your proven out.
+00:34:15.603 - 00:34:23.513, Speaker D: Well, that would be. It could have a back door where I have a private key and then after a certain clock time.
+00:34:23.569 - 00:34:24.457, Speaker E: It's malicious.
+00:34:24.601 - 00:34:24.833, Speaker D: Yeah.
+00:34:24.849 - 00:34:31.465, Speaker E: I mean it's not impossible, obviously. I mean nothing's impossible, but it would be incredibly difficult to pull that off. Interview.
+00:34:31.505 - 00:34:32.609, Speaker D: Yeah, I'm happy with the answer.
+00:34:32.657 - 00:34:35.725, Speaker B: It just doesn't seem perfect. I think it's really good.
+00:34:37.425 - 00:34:39.777, Speaker D: The fact that you probably wouldn't make a whole lot of money off of.
+00:34:39.801 - 00:34:41.521, Speaker B: Doing that and the amount of effort.
+00:34:41.553 - 00:34:45.245, Speaker E: You have to put into doing it at all. Just probably not likely.
+00:34:45.825 - 00:34:46.673, Speaker B: Although.
+00:34:46.849 - 00:34:47.565, Speaker E: Please.
+00:34:49.555 - 00:34:54.587, Speaker A: No. But these things are very important for us as well because we'll consider it.
+00:34:54.611 - 00:34:57.855, Speaker B: When designing further and fine tuning further the network.
+00:34:58.475 - 00:35:10.775, Speaker C: But there is no baiting basically into the type of toolbars that one can register to ZK Cloud. Right. It's completely open information in that sense.
+00:35:11.435 - 00:35:12.215, Speaker B: Yes.
+00:35:12.955 - 00:35:19.101, Speaker A: A quick comparison from between the Devnet and Firestarter. Yeah.
+00:35:19.133 - 00:35:21.425, Speaker B: The main difference is it's scalable.
+00:35:21.925 - 00:35:29.133, Speaker A: We are already onboarding nodes, prover nodes. It's got random selection, it's incentivized. If you want to run prover nodes.
+00:35:29.149 - 00:35:34.101, Speaker B: On gevilot, it's an incentivized network. We've got fallback mechanisms.
+00:35:34.173 - 00:35:39.837, Speaker A: The consensus in place, it's ready for production use cases even to serve like.
+00:35:39.901 - 00:35:50.007, Speaker B: The largest workloads currently out there. Maybe, I don't know. Proving Ethereum blocks would be one of the largest, largest jobs out there.
+00:35:50.071 - 00:35:53.823, Speaker A: But with proper orchestration and like hundreds.
+00:35:53.839 - 00:35:57.519, Speaker B: Of nodes in the network, it can be pulled off easily.
+00:35:57.607 - 00:36:38.637, Speaker A: We are going to have a free tier on Firestarter as well and different payment options. But I think it's becoming quite interesting now. So ZK Cloud and as a permissioned version of ZK Cloud, Firestarter, we feel it's really changing the game in terms of and removing one of the biggest bottlenecks in ZK adoption kind of, and that is cost. This is a summary of what we've been talking about. I don't think I'd point out any particular parts of this. Rather keep on heading towards the actual core structures. So a couple of things to summarize.
+00:36:38.637 - 00:36:42.824, Speaker A: Firestarter VLU is containers that run on Linux VMs.
+00:36:42.930 - 00:36:48.165, Speaker B: No need for developers to learn new tools, etc, etc.
+00:36:48.285 - 00:36:50.805, Speaker A: It's highly scalable even to thousands of.
+00:36:50.845 - 00:36:57.061, Speaker B: Nodes if there is sufficient demand. And it's very ideal, as I mentioned, for parallel workloads.
+00:36:57.093 - 00:37:00.631, Speaker A: For example, risks, zeros, segmentation and like.
+00:37:00.783 - 00:37:08.231, Speaker B: Processing several segment proofs and then the aggregation tree built on top that can be easily orchestrated on the network or.
+00:37:08.263 - 00:37:14.639, Speaker A: That will be efficiently orchestrated in the network. Also as tax proof tree where each.
+00:37:14.807 - 00:37:20.271, Speaker B: Client side transaction lands with the client side proofs and then that is turned.
+00:37:20.303 - 00:37:26.079, Speaker A: Into a honk proof on the server side already. Then the pro public circuits are executed.
+00:37:26.127 - 00:37:29.223, Speaker B: Over that and then the aggregation tree starts.
+00:37:29.279 - 00:37:31.895, Speaker A: Basically we've been participating in the.
+00:37:31.935 - 00:37:33.991, Speaker B: In the Aztec contest a month ago.
+00:37:34.063 - 00:37:51.785, Speaker A: Or so actually we won the custom integration category. We tied in the number of proven blocks with three other teams because all four of us were able to prove every single block. But we had the lowest average proving time.
+00:37:51.825 - 00:37:56.481, Speaker B: So we won in terms of proving speed in that category as well. Anyway, so that's.
+00:37:56.513 - 00:37:59.005, Speaker A: We've got quite some experience on how.
+00:38:00.425 - 00:38:03.393, Speaker B: Yeah, anybody could come in and. Yeah, exactly.
+00:38:03.449 - 00:38:06.697, Speaker A: Because the sequencer was pushing the block.
+00:38:06.761 - 00:38:10.105, Speaker B: Content basically to any participant who was pleased.
+00:38:10.185 - 00:38:22.995, Speaker F: Yeah, I was curious as a proverb, how do I. If you're just running a single binary, how do I horizontally sc like if I get the risk zero segment proving like how do I horizontally scale that work? Or is the network managing that tree?
+00:38:23.115 - 00:39:03.629, Speaker A: The network is managing that tree in a sense that it's going to be. Maybe you have more like we are going to have something that we call workflows where you can define complex task structures, so to say. And like in RISC 0 there is an executor who breaks down any proving job into segments, but they don't need to wait until the end. So the proofs can already be started for the initial segments and then. But you need the segments to complete the aggregation. So that's something that we will like.
+00:39:03.677 - 00:39:17.071, Speaker B: We bake into the network to do that type of orchestration so that it can be like workloads can be. Or tasks within workloads can be spread across multiple nodes and then aggregated.
+00:39:17.223 - 00:39:36.693, Speaker A: For example, for Aztec We've been using 40 Prover agents, which means that it was basically 40 entities proving like one transaction per entity. Because the tube serves to convert the client side proof to a home proof.
+00:39:36.749 - 00:39:41.585, Speaker B: That's the heaviest. It takes like four minutes based on Aztec benchmarks as of now.
+00:39:42.365 - 00:39:45.941, Speaker A: So you need four minutes for every.
+00:39:45.973 - 00:39:53.445, Speaker B: Single client transaction and that's just the first circuit to be run on the client side proofs.
+00:39:53.565 - 00:39:55.650, Speaker A: So yeah, we were running like 40.
+00:39:55.744 - 00:39:57.991, Speaker B: Proving agents to complete that.
+00:39:58.085 - 00:40:01.269, Speaker F: What is the network WAN requirements then?
+00:40:01.362 - 00:40:01.737, Speaker D: Pardon?
+00:40:01.830 - 00:40:04.546, Speaker F: What is like the WAN IO?
+00:40:04.640 - 00:40:13.405, Speaker A: Like, what is your. Do you know that like one minimum 10. 10 gigabit optimal 10 is highly recommended.
+00:40:13.485 - 00:40:14.197, Speaker B: Okay, cool.
+00:40:14.261 - 00:40:18.105, Speaker F: Yeah, makes sense for decent, decent data centers.
+00:40:18.925 - 00:40:23.785, Speaker B: Yeah, yeah, I wouldn't really highlight anything.
+00:40:24.305 - 00:40:31.525, Speaker A: I already mentioned credits here. You need to buy credits to be able to start proving on Gevulot, like on Firestarter.
+00:40:31.865 - 00:40:33.965, Speaker B: One credit is one USD.
+00:40:34.785 - 00:40:36.777, Speaker A: Yeah, I started talking about that.
+00:40:36.961 - 00:40:43.145, Speaker B: Let me go to this slide and then I'll go back to the actual life cycle of approving workloads.
+00:40:43.185 - 00:40:50.485, Speaker A: So a little bit about the pricing of Firestarter. It's a pay as you go pricing model. So you pay for the resource you.
+00:40:50.525 - 00:40:53.225, Speaker B: Use and for the time you use it.
+00:40:54.645 - 00:41:16.272, Speaker A: As I mentioned, one credit is one USD. As a general like summary, our GPU nodes are going to have two 4090s each, 64 cores and 380 gigs of RAM. So that's one GPU node. A CPU node will have 96 correct.
+00:41:16.369 - 00:41:24.505, Speaker B: Cores and 768 gigs of RAM. That's the minimum requirement for folks to join the network as a CPU or a GPU node.
+00:41:25.085 - 00:41:29.717, Speaker A: The cost per hour on the GPU node, if you want to use the.
+00:41:29.741 - 00:41:46.503, Speaker B: Full capacity of that node, is $0.84 per hour. That translates to 600 bucks a month. You get 24, 7 full capacity, 249 bit, 64 cores, 380 gigs of RAM for 600 bucks a month. If you ever wanted to use it.
+00:41:46.559 - 00:41:52.431, Speaker A: Constantly, obviously with the random selection and the orchestration, it's not gonna land at one single node.
+00:41:52.543 - 00:41:55.615, Speaker B: It's just an expressive number that shows.
+00:41:55.655 - 00:41:57.799, Speaker A: Like the total cost of like what.
+00:41:57.847 - 00:42:00.495, Speaker B: This hourly cost translates to per month.
+00:42:00.615 - 00:42:04.952, Speaker A: For a CPU node it's 440 bucks a month.
+00:42:05.079 - 00:42:11.305, Speaker B: But it's actually 61 cents per hour if you want to use the full capacity.
+00:42:11.385 - 00:42:18.857, Speaker A: Now, when you submit a proof request to Gevulot to Firestarter, as I mentioned, you reference the hash ID of the.
+00:42:18.881 - 00:42:24.249, Speaker B: Prover program and the verifier program that you want your inputs to be executed on.
+00:42:24.417 - 00:42:38.347, Speaker A: Then you set the parameters for resource allocation. How many CPU cores you want to work on your request, how much RAM you want to be allocated, how many GPUs, because the GPU nodes will have two each.
+00:42:38.491 - 00:42:41.795, Speaker B: So you can select one or you want both to work on it.
+00:42:41.875 - 00:42:54.043, Speaker A: And then you define the Running time. Because you would know, like we would expect users to know the proverb program and the execution time, the approximate execution.
+00:42:54.099 - 00:42:57.339, Speaker B: Time with the resource allocation that they have chosen.
+00:42:57.427 - 00:43:25.091, Speaker A: Actually, we would expect users also to kind of do benchmarking when they start using the network, you know, based on their actual priorities. Do they want to prioritize for speed, allocate more resources, pay a little more. It's still going to be cheap, but pay a little more. Or they want to add lower resources and pay even less. Because let's say proving time is not a priority. So yeah, these are the parameters.
+00:43:25.203 - 00:43:31.211, Speaker C: Running time is considered with like 1 cpu or 1. How do you measure the running time?
+00:43:31.283 - 00:43:49.003, Speaker A: Running time is just minutes. Like how long should our prover nodes run the prover program with your inputs. So if you allocate, let's take this example here. If you allocate, if you want 32 cores, 190 gigs of RAM and one.
+00:43:49.059 - 00:43:52.137, Speaker B: GPU to be allocated on your, to.
+00:43:52.161 - 00:44:04.153, Speaker A: Your request, and you expect that with this resource allocation in 5 minutes your proof should be done, then that's what you would pay, like 3.5 cents, basically.
+00:44:04.249 - 00:44:11.697, Speaker C: How do I know that it will be enough five minutes? Let's say that I have a laptop and my laptop is not that powerful to.
+00:44:11.881 - 00:44:37.287, Speaker A: No, I mean, I think you would start sending a couple of test requests to the network. Like if, if this workload costs three cents, then in a dollar or two you would be in ten bucks. Like with a couple of dollars you would be able to do a bunch of test workloads to see, okay, if I set this amount of hardware to be allocated to my job, then what's.
+00:44:37.311 - 00:44:39.887, Speaker B: The optimal proving time?
+00:44:40.071 - 00:45:00.461, Speaker A: Something like that. Yeah. And as soon as we have some retroactive data, because we will have some data. You know how long it takes to run a workload with some inputs on, with some hardware allocation? On a certain workload. Sorry, on a certain program. So we are going to planning to.
+00:45:00.493 - 00:45:02.917, Speaker B: Help with our users with that data.
+00:45:02.981 - 00:45:05.717, Speaker A: Like on average, how much you should.
+00:45:05.781 - 00:45:11.629, Speaker B: Set as a running time. For example, those could be in the cards. How do I know that?
+00:45:11.717 - 00:45:12.385, Speaker F: Sorry?
+00:45:12.685 - 00:45:17.905, Speaker G: How do I know that the prover is running at the full specification it promised me?
+00:45:18.285 - 00:45:19.309, Speaker A: How do you know?
+00:45:19.397 - 00:45:24.665, Speaker G: Yeah, for example, the disk, There are like 192 gigabytes available during the run.
+00:45:25.805 - 00:45:48.377, Speaker A: The thing is, I think it's more tied to the proving time because if you set your proving time in relation to the resources allocated and the prover will not like won't allocate that many resources, then in five minutes they wouldn't be able to pull off this proof for you.
+00:45:48.481 - 00:45:49.801, Speaker B: And we would kick them out because.
+00:45:49.833 - 00:46:25.855, Speaker A: They failed to deliver a proof for you. And slash that like you know, it's kind of. That's why it's important you would know your resource allocation and the proving time based on that resource allocation. And with that, if that's properly set, our provers wouldn't be able to trick you. Really? Because if they allocate, if they, if they allocate half of it, then five minutes won't be enough and they just fail to deliver approve and they risk to be kicked out, to be punished, etc. Etc. I mean, yeah, I mean that's, that's the least.
+00:46:27.605 - 00:46:30.429, Speaker G: Submitting something like that.
+00:46:30.517 - 00:46:31.133, Speaker A: Pardon?
+00:46:31.269 - 00:46:49.957, Speaker G: It's like I have to certify that my benchmark before submitting to. If there is one sheet approver in the network when it will be permissionless that starts behaving. Okay, this proof, I will just do nothing or claim that it took like eight minutes instead of five. How can I claim? Yeah, but you should have taken five minutes, not eight.
+00:46:50.061 - 00:46:51.701, Speaker A: No, but they cannot deliver you a.
+00:46:51.733 - 00:46:52.829, Speaker B: Proof in eight minutes.
+00:46:52.917 - 00:47:17.757, Speaker A: Like the, the prover running the program stops at five. If they are not able to deliver a proof, then they will be punished. Like the protocol will take care of that. The fallback mechanism kicks in. New proverbs selected randomly. They will work on the proof and get you the proof done in five minutes with the proper allocation. It's an interesting question.
+00:47:17.757 - 00:47:51.545, Speaker A: If the second proverb fails to deliver the job. Yeah, actually, then the prover program may actually be malicious. So like if the first prover fails, the second one succeeds. We know it was the proverbs failure. If all provers we allocate there fail, then there may be an issue with the program itself. But it's a good point. I take note of that because that may be a valid request from users of the network.
+00:47:51.545 - 00:48:12.881, Speaker A: Yeah, I mean in that case, like exactly because of that, it's a very sensitive area for us how we punish the nodes because there is a very fine line whether our nodes are not delivering or whether it's you who have.
+00:48:12.913 - 00:48:16.313, Speaker B: Deployed a malicious proverb program onto the network.
+00:48:16.449 - 00:48:19.521, Speaker A: And then we would. I mean in those cases we may.
+00:48:19.553 - 00:48:23.937, Speaker B: Even block certain programs from the network. But anyway, I don't want to go.
+00:48:23.961 - 00:48:26.485, Speaker A: Into those details either.
+00:48:28.265 - 00:48:33.485, Speaker F: With the. This price, this fee, this price function is static then.
+00:48:33.825 - 00:48:41.619, Speaker A: Yeah, it's USD based. Like we are denominating it in USD. But you will pay probably in the Token of the.
+00:48:41.667 - 00:48:46.215, Speaker B: Of the platform. But you pay like how much it translates to.
+00:48:46.955 - 00:48:56.575, Speaker F: What kilowatt rate did you use to calculate this? Because on the last side that hardware requirement looked like it was above the actual kilowatt price.
+00:48:58.515 - 00:49:01.251, Speaker A: Well, I think that's something I won't.
+00:49:01.283 - 00:49:04.567, Speaker B: Be able to tell you why hard now. I mean it's.
+00:49:04.651 - 00:49:21.583, Speaker A: Yeah, it's a much more. It's a much more complex thing because. Okay, yeah, but I know he talked.
+00:49:21.599 - 00:49:25.879, Speaker E: About this and I think what he did is he took the average of the more common areas.
+00:49:25.927 - 00:49:27.367, Speaker F: You could run a data center.
+00:49:27.511 - 00:49:32.025, Speaker E: Not like in Singly China. Sure. Hydro plant ones.
+00:49:32.145 - 00:49:33.485, Speaker A: Yeah, but it's not.
+00:49:34.345 - 00:49:36.417, Speaker E: It's not super accurate, obviously, but it's.
+00:49:36.481 - 00:50:04.147, Speaker A: No, but I think what you are pointing to is like this is not going to. If you are a node operator, this is not going to be your income. That's the user fee. And we are going to have network subsidy to make sure that, you know, there are two things we want. Cheap proofs for the user and profitable operation for the node operator. And the gap has to be bridged somewhere. There are different elements that can aid in this.
+00:50:04.147 - 00:50:31.377, Speaker A: Like network subsidy will be one. But as soon as we reach economies of scale with proper orchestration and hardware utilization and even like aggregating workloads and bringing network utilization to 85, 90% and like constant operation there, we basically start getting to a level where the economies of scale, the aggregation, the high network utilization, the proper workload orchestration so that.
+00:50:31.401 - 00:50:35.285, Speaker B: We maximize the use of the individual nodes as well.
+00:50:35.745 - 00:50:39.297, Speaker A: The network subsidy may be just one.
+00:50:39.321 - 00:50:49.507, Speaker B: Of the elements and not the dominant element for you to become profitable. Yeah, but.
+00:50:49.571 - 00:50:50.219, Speaker F: I just mean that.
+00:50:50.267 - 00:50:50.755, Speaker A: But it's a.
+00:50:50.795 - 00:50:53.675, Speaker F: But again, as a decentralized set of servers, they're going to be operating across.
+00:50:53.715 - 00:50:54.891, Speaker B: The globe in a lot of different.
+00:50:54.963 - 00:51:03.131, Speaker F: Regions and have different hardware costs, have different power costs and then. Yeah, they don't have the ability to influence the price function. Then you're just pushing it all into one optimal loan.
+00:51:03.203 - 00:51:04.995, Speaker E: Yeah, yeah, no, that is true.
+00:51:05.035 - 00:51:13.155, Speaker F: Which then you have. Then you have to go geographic centralization, which is like a geographic risk of like you know, one volcano and you're gone.
+00:51:13.315 - 00:51:14.315, Speaker B: Yeah, it doesn't matter.
+00:51:14.475 - 00:51:15.575, Speaker A: It's a good point.
+00:51:16.915 - 00:51:20.855, Speaker F: Yeah, like the economics push them into one physical.
+00:51:22.875 - 00:51:32.499, Speaker A: But actually that's a very good point because it just reminds me if any prover node wants to rent a server on AWS and run it as a.
+00:51:32.507 - 00:51:34.851, Speaker B: Proven node on gablod, they will never be profitable.
+00:51:34.963 - 00:51:40.347, Speaker A: Because on top of this price, whatever is added, it's not going to be.
+00:51:40.451 - 00:51:44.335, Speaker B: Enough to cover those server cost.
+00:51:47.155 - 00:52:00.203, Speaker E: Yeah, we're using the 180 core, 786 gig GCP instances, some polygon testing and they're what? They're like 1800 bucks a month?
+00:52:00.339 - 00:52:00.939, Speaker C: Yeah.
+00:52:01.067 - 00:52:01.815, Speaker F: Yes.
+00:52:02.115 - 00:52:03.315, Speaker B: Or even more.
+00:52:03.435 - 00:52:04.355, Speaker A: Or even more.
+00:52:04.435 - 00:52:06.747, Speaker B: Yeah. Yes.
+00:52:06.771 - 00:52:14.951, Speaker A: So if anyone would like to run a prover node, these are a little bit more detailed specs of the GPU and CPU node.
+00:52:14.983 - 00:52:24.679, Speaker B: It's an incentivized network. We are onboarding prover nodes even now. And there is actually a QR code on the next massively stupid question.
+00:52:24.767 - 00:52:25.615, Speaker A: No, no, no, go for it.
+00:52:25.655 - 00:52:37.457, Speaker C: Imagine that I'm playing cyberpunk. Whatever you can find out, you know gpu, right? Do I get like a notification? Maybe should stop and do this grouping and then you can resume your game or how does it.
+00:52:37.521 - 00:52:41.193, Speaker B: No, I mean the expect never meet the minimum requirements. Ah.
+00:52:41.249 - 00:52:42.125, Speaker C: Because it's.
+00:52:42.465 - 00:52:44.165, Speaker E: Unless you're running like a.
+00:52:44.465 - 00:52:47.537, Speaker A: You see a thread ripper or something.
+00:52:47.601 - 00:52:48.805, Speaker E: You'Re not getting the 60.
+00:52:49.185 - 00:52:52.473, Speaker A: And actually you wouldn't remain in the.
+00:52:52.529 - 00:52:55.305, Speaker B: Network too long because as I mentioned.
+00:52:55.385 - 00:53:31.107, Speaker A: Like we are going to not just initially, but randomly, periodically, later on as well send test workloads. You need to be available and be able to like within 2, 3 second time. You need to explicitly accept the job that has been allocated to you. If you don't accept it, we treat it okay, you are unavailable for that. I mean there could be consequences for unavailability, that's one thing. But right away, without even the force mechanism kicking in, if you don't explicitly accept it, we're going to allocate it.
+00:53:31.131 - 00:53:33.411, Speaker B: To another node, et cetera.
+00:53:33.443 - 00:53:39.851, Speaker A: So there are those mechanisms ingrained to make sure that like ad hoc provenode.
+00:53:39.883 - 00:53:50.375, Speaker B: Failure that could anytime happen. They just have some constraint at their end, they're just not available. So we take care of the reallocation right away.
+00:53:50.675 - 00:53:55.967, Speaker A: Yeah, and we also have some size of our own cluster.
+00:53:56.071 - 00:53:59.159, Speaker B: You can rent a prover node from us as well.
+00:53:59.247 - 00:54:16.479, Speaker A: It's not going to be a huge cluster like a dominant sized cluster of the network obviously because we want to build a decentralized network. But if you want to run an approver node, get the incentives that comes with it and rent a server for that.
+00:54:16.527 - 00:54:23.165, Speaker B: You can even rent from. You can scan the QR and there is a form where you can see a bit more details.
+00:54:23.945 - 00:54:26.289, Speaker A: All nodes, whether you run your own.
+00:54:26.337 - 00:54:35.481, Speaker B: Hardware or you rent from us, that's gonna be. Those are going to be receiving the same prover Rewards.
+00:54:35.633 - 00:54:36.937, Speaker A: And maybe as a summary.
+00:54:37.001 - 00:54:40.401, Speaker B: Yeah, maybe I should have planned it this way.
+00:54:40.473 - 00:54:50.765, Speaker A: As a quick summary how a life cycle of approving workload looks, I'd say, okay, so you have your program deployed.
+00:54:51.145 - 00:54:53.225, Speaker B: Let's finish off with this one.
+00:54:53.385 - 00:54:55.961, Speaker A: The user sends a run transaction that.
+00:54:55.993 - 00:54:57.137, Speaker B: Lands with a validator.
+00:54:57.201 - 00:54:59.433, Speaker A: It sends a transaction to the mempool.
+00:54:59.609 - 00:55:04.305, Speaker B: It's going to be included by the leader in the next block, then assigned.
+00:55:04.345 - 00:55:11.731, Speaker A: To a prover node. The prover node delivers the proof at that point already, the user can fetch.
+00:55:11.763 - 00:55:17.375, Speaker B: It and use it for settlement and verification elsewhere.
+00:55:17.715 - 00:55:33.731, Speaker A: And then the proving result is going to be available for verification in the mempool. So the randomly selected subset of prover nodes will pick up the job, vote for the validity of the proof. As soon as all the votes are.
+00:55:33.763 - 00:55:52.461, Speaker B: In, the verification results again, land in the mempool, land in a block. As soon as it's finalized, we are distributing rewards. And if you want to fetch the proof only at this point in time, then that's where the proof would be shared with you. Yes.
+00:55:52.533 - 00:55:53.145, Speaker A: So.
+00:55:55.205 - 00:55:58.945, Speaker C: And you get charged by exactly the timing.
+00:55:59.285 - 00:56:00.247, Speaker A: Yeah, so.
+00:56:00.381 - 00:56:03.575, Speaker C: Or just the actual running time.
+00:56:04.435 - 00:56:06.055, Speaker A: The timing maximum.
+00:56:06.795 - 00:56:08.059, Speaker B: That's what it would be.
+00:56:08.107 - 00:56:16.753, Speaker A: So for example, for this one, 32 cores, 190 gigs, 1 GPU and running for 5 minutes. That would be 3.5 cents for you.
+00:56:16.830 - 00:56:20.215, Speaker C: Even though the proof will take 4 minutes.
+00:56:20.755 - 00:56:32.291, Speaker A: I mean, or for example, a CPU worklo like for the Polygon ZKEVM, you would need the entire capacity of this node.
+00:56:32.323 - 00:56:33.851, Speaker B: So that's an example for that.
+00:56:33.923 - 00:56:41.292, Speaker A: Basically, 96 cores, 760 gigs of RAM, but only running for 10 minutes. Then you would pay 1/6 of the.
+00:56:41.363 - 00:56:43.179, Speaker B: Hourly cost, like 10 cents.
+00:56:43.267 - 00:56:46.827, Speaker C: It's like you're abstracting from the underlying job.
+00:56:46.931 - 00:57:03.627, Speaker A: Literally you are paying resources at the time. The most interesting thing is that one thing is that the cost, the workload fees are low. On the other hand, we remove your being responsible for the idle time and.
+00:57:03.651 - 00:57:10.451, Speaker B: You'Re paying for the idle time. When you rent your own server, for example, then you pay a whole lot for the idle time.
+00:57:10.523 - 00:57:45.211, Speaker A: And yeah, that's a meme that our CEO Temu posted yesterday. So I thought, let me put this in here. Firestarter is coming in a couple of days. Finally it's there. We've been expanding the scope as we were developing it, so it took a bit more time than we initially anticipated. But ZKE is going to be dirt cheap soon. Learn more at Gevulott and we are happy to connect in case you need cheap Proofs you want to do benchmarking on the network or you want to.
+00:57:45.233 - 00:57:47.595, Speaker B: Run a prover node, Whatever.
+00:57:51.935 - 00:57:52.675, Speaker A: Please.
+00:57:54.175 - 00:57:58.835, Speaker G: So are you passing inputs to the prover to the actual prover node?
+00:57:59.175 - 00:57:59.871, Speaker A: Pardon?
+00:57:59.983 - 00:58:06.455, Speaker G: So when you have to compute a proof, you know, usually you can also pass some inputs and this input is usually private.
+00:58:06.615 - 00:58:48.115, Speaker A: And in a permissionless scenario, currently we do validity. So there is. We don't have privacy at the moment with our custom proverbs sets. You are going to be able to set up for example plugin TES and do your proving in a trusted execution environment. So the custom proverbs sets will enable you to do that as well. But currently on Firestarter and the first version of ZK Cloud, that's going to produce you validity proofs. It's a very good point and thanks for asking that.
+00:58:48.115 - 00:58:50.615, Speaker A: So it's not a privacy protocol. We are building.
+00:58:55.275 - 00:58:56.715, Speaker G: The private key to the overload.
+00:58:56.755 - 00:59:18.189, Speaker A: Oh no, no, no. Wait a second. I think we are like. Let's say you want a proof to be generated for zksync for a block on ZK Sync for my custom. Yeah, that's. Or your custom proverbs. So you don't need privacy per se, but your private keys are not going to be revealed.
+00:59:18.189 - 00:59:20.705, Speaker A: Oh, one minute. Thank you, sir. Thanks a lot.
+00:59:23.605 - 00:59:26.125, Speaker B: You don't generate ZK proofs, you generate.
+00:59:26.165 - 00:59:28.309, Speaker A: Sachin proofs, you generate.
+00:59:28.397 - 00:59:29.065, Speaker B: Yeah.
+00:59:30.765 - 00:59:46.733, Speaker A: I have one question please. But we can take it offline and come back to that. No, I'm sorry, I was pointing to you. Sorry. Go for. Go for it. Do I have to send them into your blogs? No, it's not going to be included.
+00:59:46.789 - 00:59:48.997, Speaker B: In the blog per se, but it.
+00:59:49.021 - 00:59:51.285, Speaker A: Has to be available on a public.
+00:59:51.405 - 01:00:02.515, Speaker B: Address from where our prover notes selected will download the input. Yeah. So it's not going to be baked into the block.
+01:00:04.375 - 01:00:06.295, Speaker A: Thank you very much guys. Thanks for coming.
