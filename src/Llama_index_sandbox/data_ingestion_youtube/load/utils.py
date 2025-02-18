@@ -140,8 +140,16 @@ def get_video_info(credentials: Credentials, api_key: str, channel_id: str, max_
         id=channel_id,
         fields="items/contentDetails/relatedPlaylists/uploads"
     )
-    channel_response = channel_request.execute()
-    uploads_playlist_id = channel_response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    try:
+        channel_response = channel_request.execute()
+    except Exception as e:
+        print(f"Error fetching uploads playlist for channel {channel_id}: {e}")
+        return []
+    try:
+        uploads_playlist_id = channel_response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    except Exception as e:
+        print(f"Error fetching uploads playlist for channel {channel_id}: {e}")
+        return []
 
     # Fetch videos from the "Uploads" playlist
     video_info = []

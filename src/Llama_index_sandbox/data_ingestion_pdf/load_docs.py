@@ -167,7 +167,7 @@ def load_pdfs(directory_path: Union[str, Path], title_extraction_func: Callable,
 
 
 @timeit
-def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window=None, num_cpus: int = None):
+def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_window=None, num_cpus: int = os.cpu_count()-2):
     # Configuration for the PDF processing
     config = {
         'datasets/evaluation_data/ethereum_org_content_2024_01_07': {
@@ -269,5 +269,5 @@ def load_docs_as_pdf(debug=False, overwrite=False, num_files: int = None, files_
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    num_cpus = 4  # os.cpu_count()# 1
+    num_cpus = os.cpu_count()-2  # os.cpu_count()# 1
     load_docs_as_pdf(debug=True, num_cpus=num_cpus, overwrite=True)
