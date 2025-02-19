@@ -19,4 +19,6 @@ notebooks/
 src/anyscale_sandbox/
 src/blog_example/
 datasets/  # Ignore the entire datasets directory
+datasets/*
+datasets/evaluation_data/*
 *.mp3
