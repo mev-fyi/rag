@@ -22,7 +22,7 @@ steps:
     - push
     - gcr.io/mev-fyi/llama-flask-app:latest
 
-# 3. SSH‑deploy on the VM, secrets injected via secretEnv
+# 3. Deploy without SSH by directly running commands on the VM
 - name: gcr.io/cloud-builders/gcloud
   id: deploy
   entrypoint: bash
@@ -41,40 +41,57 @@ steps:
   args:
     - -c
     - |
-        # Use OS Login to connect to the VM
-        gcloud compute ssh ${_VM_NAME} \
+        # Instead of SSH, use the compute instances update-container command
+        # First, create a startup script file with our commands
+        cat > startup-script.sh << 'EOF'
+        #!/bin/bash
+        sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+
+        # stop/remove old container if present
+        if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
+          sudo docker stop api && sudo docker rm api
+        fi
+
+        # run new container
+        sudo docker run -d \
+          --restart unless-stopped \
+          --name api \
+          -p 8080:8080 \
+          --env-file /etc/mev-defaults.env \
+          --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
+          --env NUMBER_OF_APP_WORKERS=4 \
+          --env ASSEMBLY_AI_API_KEY="$ASSEMBLY_AI_API_KEY" \
+          --env OPENAI_API_BASE_ANYSCALE="$OPENAI_API_BASE_ANYSCALE" \
+          --env OPENAI_API_KEY="$OPENAI_API_KEY" \
+          --env OPENAI_API_KEY_ANYSCALE="$OPENAI_API_KEY_ANYSCALE" \
+          --env PINECONE_API_ENVIRONMENT="$PINECONE_API_ENVIRONMENT" \
+          --env PINECONE_API_KEY="$PINECONE_API_KEY" \
+          --env YOUTUBE_API_KEY="$YOUTUBE_API_KEY" \
+          --env YOUTUBE_CHANNELS="$YOUTUBE_CHANNELS" \
+          --env GOOGLE_CLOUD_PROJECT="$GOOGLE_CLOUD_PROJECT" \
+          --env ASSEMBLY_AI_API="$ASSEMBLY_AI_API" \
+          --env NUMBER_OF_APP_WORKERS="$NUMBER_OF_APP_WORKERS" \
+          gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+        EOF
+
+        # Update the VM metadata to include our secrets and run the startup script
+        gcloud compute instances add-metadata ${_VM_NAME} \
           --zone=${_VM_ZONE} \
-          --internal-ip \
-          --quiet \
-          --command '
-            sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+          --metadata-from-file=startup-script=startup-script.sh \
+          --metadata=ASSEMBLY_AI_API_KEY="$$_ASSEMBLY_AI_API_KEY",\
+        OPENAI_API_BASE_ANYSCALE="$$_OPENAI_API_BASE_ANYSCALE",\
+        OPENAI_API_KEY="$$_OPENAI_API_KEY",\
+        OPENAI_API_KEY_ANYSCALE="$$_OPENAI_API_KEY_ANYSCALE",\
+        PINECONE_API_ENVIRONMENT="$$_PINECONE_API_ENVIRONMENT",\
+        PINECONE_API_KEY="$$_PINECONE_API_KEY",\
+        YOUTUBE_API_KEY="$$_YOUTUBE_API_KEY",\
+        YOUTUBE_CHANNELS="$$_YOUTUBE_CHANNELS",\
+        GOOGLE_CLOUD_PROJECT="$$_GOOGLE_CLOUD_PROJECT",\
+        ASSEMBLY_AI_API="$$_ASSEMBLY_AI_API",\
+        NUMBER_OF_APP_WORKERS="$$_NUMBER_OF_APP_WORKERS"
 
-            # stop/remove old container if present
-            if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
-              sudo docker stop api && sudo docker rm api
-            fi
-
-            # run new container
-            sudo docker run -d \
-              --restart unless-stopped \
-              --name api \
-              -p 8080:8080 \
-              --env-file /etc/mev-defaults.env \
-              --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
-              --env NUMBER_OF_APP_WORKERS=4 \
-              --env ASSEMBLY_AI_API_KEY="'"$$_ASSEMBLY_AI_API_KEY"'" \
-              --env OPENAI_API_BASE_ANYSCALE="'"$$_OPENAI_API_BASE_ANYSCALE"'" \
-              --env OPENAI_API_KEY="'"$$_OPENAI_API_KEY"'" \
-              --env OPENAI_API_KEY_ANYSCALE="'"$$_OPENAI_API_KEY_ANYSCALE"'" \
-              --env PINECONE_API_ENVIRONMENT="'"$$_PINECONE_API_ENVIRONMENT"'" \
-              --env PINECONE_API_KEY="'"$$_PINECONE_API_KEY"'" \
-              --env YOUTUBE_API_KEY="'"$$_YOUTUBE_API_KEY"'" \
-              --env YOUTUBE_CHANNELS="'"$$_YOUTUBE_CHANNELS"'" \
-              --env GOOGLE_CLOUD_PROJECT="'"$$_GOOGLE_CLOUD_PROJECT"'" \
-              --env ASSEMBLY_AI_API="'"$$_ASSEMBLY_AI_API"'" \
-              --env NUMBER_OF_APP_WORKERS="'"$$_NUMBER_OF_APP_WORKERS"'" \
-              gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
-          '
+        # Restart the VM to run the startup script
+        gcloud compute instances reset ${_VM_NAME} --zone=${_VM_ZONE} --quiet
 
 # List an image so Cloud Build shows a link
 images:
