@@ -22,20 +22,6 @@ steps:
     - push
     - gcr.io/mev-fyi/llama-flask-app:latest
 
-# New debugging step to verify secrets are loaded
-- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-  id: "verify-secrets"
-  entrypoint: "bash"
-  args:
-    - "-c"
-    - |
-      echo "Verifying secrets are available:"
-      echo "NUMBER_OF_APP_WORKERS length: ${#_NUMBER_OF_APP_WORKERS}"
-  secretEnv:
-    - _NUMBER_OF_APP_WORKERS
-    - _ASSEMBLY_AI_API_KEY
-    - _OPENAI_API_KEY
-
 # 3. SSH‑deploy on the VM, secrets injected via secretEnv
 - name: gcr.io/cloud-builders/gcloud
   id: deploy
@@ -55,36 +41,40 @@ steps:
   args:
     - -c
     - |
-        # Use substitution variables with underscore prefix
-        gcloud compute ssh ${_VM_NAME} --zone=${_VM_ZONE} --command '
-          sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+        # Use OS Login to connect to the VM
+        gcloud compute ssh ${_VM_NAME} \
+          --zone=${_VM_ZONE} \
+          --internal-ip \
+          --quiet \
+          --command '
+            sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
 
-          # stop/remove old container if present
-          if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
-            sudo docker stop api && sudo docker rm api
-          fi
+            # stop/remove old container if present
+            if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
+              sudo docker stop api && sudo docker rm api
+            fi
 
-          # run new container
-          sudo docker run -d \
-            --restart unless-stopped \
-            --name api \
-            -p 8080:8080 \
-            --env-file /etc/mev-defaults.env \
-            --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
-            --env NUMBER_OF_APP_WORKERS=4 \
-            --env ASSEMBLY_AI_API_KEY="'"$$_ASSEMBLY_AI_API_KEY"'" \
-            --env OPENAI_API_BASE_ANYSCALE="'"$$_OPENAI_API_BASE_ANYSCALE"'" \
-            --env OPENAI_API_KEY="'"$$_OPENAI_API_KEY"'" \
-            --env OPENAI_API_KEY_ANYSCALE="'"$$_OPENAI_API_KEY_ANYSCALE"'" \
-            --env PINECONE_API_ENVIRONMENT="'"$$_PINECONE_API_ENVIRONMENT"'" \
-            --env PINECONE_API_KEY="'"$$_PINECONE_API_KEY"'" \
-            --env YOUTUBE_API_KEY="'"$$_YOUTUBE_API_KEY"'" \
-            --env YOUTUBE_CHANNELS="'"$$_YOUTUBE_CHANNELS"'" \
-            --env GOOGLE_CLOUD_PROJECT="'"$$_GOOGLE_CLOUD_PROJECT"'" \
-            --env ASSEMBLY_AI_API="'"$$_ASSEMBLY_AI_API"'" \
-            --env NUMBER_OF_APP_WORKERS="'"$$_NUMBER_OF_APP_WORKERS"'" \
-            gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
-        '
+            # run new container
+            sudo docker run -d \
+              --restart unless-stopped \
+              --name api \
+              -p 8080:8080 \
+              --env-file /etc/mev-defaults.env \
+              --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
+              --env NUMBER_OF_APP_WORKERS=4 \
+              --env ASSEMBLY_AI_API_KEY="'"$$_ASSEMBLY_AI_API_KEY"'" \
+              --env OPENAI_API_BASE_ANYSCALE="'"$$_OPENAI_API_BASE_ANYSCALE"'" \
+              --env OPENAI_API_KEY="'"$$_OPENAI_API_KEY"'" \
+              --env OPENAI_API_KEY_ANYSCALE="'"$$_OPENAI_API_KEY_ANYSCALE"'" \
+              --env PINECONE_API_ENVIRONMENT="'"$$_PINECONE_API_ENVIRONMENT"'" \
+              --env PINECONE_API_KEY="'"$$_PINECONE_API_KEY"'" \
+              --env YOUTUBE_API_KEY="'"$$_YOUTUBE_API_KEY"'" \
+              --env YOUTUBE_CHANNELS="'"$$_YOUTUBE_CHANNELS"'" \
+              --env GOOGLE_CLOUD_PROJECT="'"$$_GOOGLE_CLOUD_PROJECT"'" \
+              --env ASSEMBLY_AI_API="'"$$_ASSEMBLY_AI_API"'" \
+              --env NUMBER_OF_APP_WORKERS="'"$$_NUMBER_OF_APP_WORKERS"'" \
+              gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+          '
 
 # List an image so Cloud Build shows a link
 images:
