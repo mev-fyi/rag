@@ -36,7 +36,7 @@ steps:
     - _ASSEMBLY_AI_API_KEY
     - _OPENAI_API_KEY
 
-# 3 · SSH‑deploy on the VM (runs container detached, restart‑safe)
+# 3 · SSH‑deploy on the VM
 - name: gcr.io/cloud-builders/gcloud
   id: deploy
   entrypoint: bash
@@ -53,23 +53,16 @@ steps:
     - _ASSEMBLY_AI_API
     - _NUMBER_OF_APP_WORKERS
   args:
-    - -eu          # abort on first error / unset var
+    - -eu            # fail on first error / unset var
     - |
         gcloud compute ssh ${_VM_NAME} \
           --zone ${_VM_ZONE} \
           --project mev-fyi \
-          --command "
-            sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
-
-            # stop + remove any previous container
-            if sudo docker ps -a --format '{{.Names}}' | grep -qw api; then
-              sudo docker stop api && sudo docker rm api
-            fi
-
-            sudo docker run -d \
-              --name api \
-              --restart unless-stopped \
-              -p 8080:8080 \
+          --command 'sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA} && \
+            if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then \
+              sudo docker stop api && sudo docker rm api; \
+            fi && \
+            sudo docker run -d --name api --restart unless-stopped -p 8080:8080 \
               --env-file /etc/mev-defaults.env \
               -e REACT_APP_BACKEND_URL=https://api.mev.fyi \
               -e NUMBER_OF_APP_WORKERS=${_NUMBER_OF_APP_WORKERS} \
@@ -83,8 +76,7 @@ steps:
               -e YOUTUBE_CHANNELS=${_YOUTUBE_CHANNELS} \
               -e GOOGLE_CLOUD_PROJECT=${_GOOGLE_CLOUD_PROJECT} \
               -e ASSEMBLY_AI_API=${_ASSEMBLY_AI_API} \
-              gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
-          "
+              gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}'
 
 
 
