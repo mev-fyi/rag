@@ -22,29 +22,41 @@ steps:
     - push
     - gcr.io/mev-fyi/llama-flask-app:latest
 
+# New debugging step to verify secrets are loaded
+- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  id: "verify-secrets"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo "Verifying secrets are available:"
+      echo "NUMBER_OF_APP_WORKERS length: ${#_NUMBER_OF_APP_WORKERS}"
+  secretEnv:
+    - _NUMBER_OF_APP_WORKERS
+
 # 3. SSH‑deploy on the VM, secrets injected via secretEnv
 - name: gcr.io/cloud-builders/gcloud
   id: deploy
   entrypoint: bash
   secretEnv:
-    - ASSEMBLY_AI_API_KEY
-    - OPENAI_API_BASE_ANYSCALE
-    - OPENAI_API_KEY
-    - OPENAI_API_KEY_ANYSCALE
-    - PINECONE_API_ENVIRONMENT
-    - PINECONE_API_KEY
-    - YOUTUBE_API_KEY
-    - YOUTUBE_CHANNELS
-    - GOOGLE_CLOUD_PROJECT
-    - ASSEMBLY_AI_API
+    - _ASSEMBLY_AI_API_KEY
+    - _OPENAI_API_BASE_ANYSCALE
+    - _OPENAI_API_KEY
+    - _OPENAI_API_KEY_ANYSCALE
+    - _PINECONE_API_ENVIRONMENT
+    - _PINECONE_API_KEY
+    - _YOUTUBE_API_KEY
+    - _YOUTUBE_CHANNELS
+    - _GOOGLE_CLOUD_PROJECT
+    - _ASSEMBLY_AI_API
+    - _NUMBER_OF_APP_WORKERS
   args:
     - -c
     - |
-        set -e
         VM_NAME=mev-api-vm
         VM_ZONE=europe-west1-d
 
-        gcloud compute ssh "$VM_NAME" --zone="$VM_ZONE" --command '
+        gcloud compute ssh $VM_NAME --zone=$VM_ZONE --command '
           sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
 
           # stop/remove old container if present
@@ -60,20 +72,21 @@ steps:
             --env-file /etc/mev-defaults.env \
             --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
             --env NUMBER_OF_APP_WORKERS=4 \
-            --env ASSEMBLY_AI_API_KEY=$$ASSEMBLY_AI_API_KEY \
-            --env OPENAI_API_BASE_ANYSCALE=$$OPENAI_API_BASE_ANYSCALE \
-            --env OPENAI_API_KEY=$$OPENAI_API_KEY \
-            --env OPENAI_API_KEY_ANYSCALE=$$OPENAI_API_KEY_ANYSCALE \
-            --env PINECONE_API_ENVIRONMENT=$$PINECONE_API_ENVIRONMENT \
-            --env PINECONE_API_KEY=$$PINECONE_API_KEY \
-            --env YOUTUBE_API_KEY=$$YOUTUBE_API_KEY \
-            --env YOUTUBE_CHANNELS=$$YOUTUBE_CHANNELS \
-            --env GOOGLE_CLOUD_PROJECT=$$GOOGLE_CLOUD_PROJECT \
-            --env ASSEMBLY_AI_API=$$ASSEMBLY_AI_API \
+            --env ASSEMBLY_AI_API_KEY="'"$$_ASSEMBLY_AI_API_KEY"'" \
+            --env OPENAI_API_BASE_ANYSCALE="'"$$_OPENAI_API_BASE_ANYSCALE"'" \
+            --env OPENAI_API_KEY="'"$$_OPENAI_API_KEY"'" \
+            --env OPENAI_API_KEY_ANYSCALE="'"$$_OPENAI_API_KEY_ANYSCALE"'" \
+            --env PINECONE_API_ENVIRONMENT="'"$$_PINECONE_API_ENVIRONMENT"'" \
+            --env PINECONE_API_KEY="'"$$_PINECONE_API_KEY"'" \
+            --env YOUTUBE_API_KEY="'"$$_YOUTUBE_API_KEY"'" \
+            --env YOUTUBE_CHANNELS="'"$$_YOUTUBE_CHANNELS"'" \
+            --env GOOGLE_CLOUD_PROJECT="'"$$_GOOGLE_CLOUD_PROJECT"'" \
+            --env ASSEMBLY_AI_API="'"$$_ASSEMBLY_AI_API"'" \
+            --env NUMBER_OF_APP_WORKERS="'"$$_NUMBER_OF_APP_WORKERS"'" \
             gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
         '
 
-# List an image so Cloud Build shows a link
+# List an image so Cloud Build shows a link
 images:
 - gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
 
@@ -81,22 +94,24 @@ images:
 availableSecrets:
   secretManager:
   - versionName: projects/mev-fyi/secrets/ASSEMBLY_AI_API_KEY/versions/latest
-    env: ASSEMBLY_AI_API_KEY
+    env: _ASSEMBLY_AI_API_KEY
   - versionName: projects/mev-fyi/secrets/OPENAI_API_BASE_ANYSCALE/versions/latest
-    env: OPENAI_API_BASE_ANYSCALE
+    env: _OPENAI_API_BASE_ANYSCALE
   - versionName: projects/mev-fyi/secrets/OPENAI_API_KEY/versions/latest
-    env: OPENAI_API_KEY
+    env: _OPENAI_API_KEY
   - versionName: projects/mev-fyi/secrets/OPENAI_API_KEY_ANYSCALE/versions/latest
-    env: OPENAI_API_KEY_ANYSCALE
+    env: _OPENAI_API_KEY_ANYSCALE
   - versionName: projects/mev-fyi/secrets/PINECONE_API_ENVIRONMENT/versions/latest
-    env: PINECONE_API_ENVIRONMENT
+    env: _PINECONE_API_ENVIRONMENT
   - versionName: projects/mev-fyi/secrets/PINECONE_API_KEY/versions/latest
-    env: PINECONE_API_KEY
+    env: _PINECONE_API_KEY
   - versionName: projects/mev-fyi/secrets/YOUTUBE_API_KEY/versions/latest
-    env: YOUTUBE_API_KEY
+    env: _YOUTUBE_API_KEY
   - versionName: projects/mev-fyi/secrets/YOUTUBE_CHANNELS/versions/latest
-    env: YOUTUBE_CHANNELS
+    env: _YOUTUBE_CHANNELS
   - versionName: projects/mev-fyi/secrets/GOOGLE_CLOUD_PROJECT/versions/latest
-    env: GOOGLE_CLOUD_PROJECT
+    env: _GOOGLE_CLOUD_PROJECT
   - versionName: projects/mev-fyi/secrets/ASSEMBLY_AI_API/versions/latest
-    env: ASSEMBLY_AI_API
+    env: _ASSEMBLY_AI_API
+  - versionName: projects/mev-fyi/secrets/NUMBER_OF_APP_WORKERS/versions/latest
+    env: _NUMBER_OF_APP_WORKERS
