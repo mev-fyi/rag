@@ -4,41 +4,40 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy only requirements first to leverage layer caching
+# requirements first → better cache
 COPY requirements.txt .
-
-# Copy your defaults file into the image
 COPY mev-defaults.env /etc/mev-defaults.env
 
-
-# Install system deps and Python packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (datasets/ is excluded via .dockerignore in context root)
+# 2· application code --------------------------------------------------
+# .dockerignore excludes datasets/, so copy it explicitly first
+COPY datasets /app/datasets
 COPY . .
 
-# After copying, print all files inside the container
 RUN echo "=== AFTER COPY ===" && ls -Rla /app
 
-# Ensure src is on PYTHONPATH
-ENV PYTHONPATH "${PYTHONPATH}:/app/src"
-
-# Flask environment
+# 3· environment -------------------------------------------------------
+ENV PYTHONPATH=/app/src
 ENV FLASK_ENV=production
-
-# Set the Flask app to the correct file
 ENV FLASK_APP=src/Llama_index_sandbox/app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=8080
 
-# Expose the application port
+# Download NLTK data once at build time
+RUN python -m nltk.downloader -d /usr/local/share/nltk_data stopwords punkt \
+ && chmod -R a+r /usr/local/share/nltk_data
+ENV NLTK_DATA=/usr/local/share/nltk_data
+
+
 EXPOSE 8080
 
-# Run with Gunicorn
-CMD ["bash", "-c", "set -a && source /etc/mev-defaults.env && exec gunicorn --timeout 3600 -w 4 -b 0.0.0.0:8080 src.Llama_index_sandbox.app:app"]
+# 4· entrypoint --------------------------------------------------------
+CMD ["bash", "-c", "set -a && source /etc/mev-defaults.env && \
+     exec gunicorn --preload --timeout 3600 -w 4 -b 0.0.0.0:8080 src.Llama_index_sandbox.app:app"]
 
 # NOTE on number of gunicorn workers: If you're deploying your container on Google Cloud Platform and you've configured each instance to have 2 vCPUs, then
 # you effectively have 2 cores available for each instance. This information is crucial for configuring the number of Gunicorn workers optimally.
