@@ -41,13 +41,10 @@ steps:
   args:
     - -c
     - |
-        # Store the SHORT_SHA in a variable to use later
-        IMAGE_TAG=$SHORT_SHA
-        
         # Create a startup script file with our commands
         cat > startup-script.sh << EOF
         #!/bin/bash
-        sudo docker pull gcr.io/mev-fyi/llama-flask-app:${IMAGE_TAG}
+        sudo docker pull gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
 
         # stop/remove old container if present
         if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
@@ -73,7 +70,7 @@ steps:
           --env GOOGLE_CLOUD_PROJECT="\$GOOGLE_CLOUD_PROJECT" \\
           --env ASSEMBLY_AI_API="\$ASSEMBLY_AI_API" \\
           --env NUMBER_OF_APP_WORKERS="\$NUMBER_OF_APP_WORKERS" \\
-          gcr.io/mev-fyi/llama-flask-app:${IMAGE_TAG}
+          gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
         EOF
 
         # Update the VM metadata to include our secrets and run the startup script
