@@ -22,6 +22,41 @@ steps:
     - push
     - gcr.io/mev-fyi/llama-flask-app:latest
 
+# Add debugging step to verify current environment
+- name: ubuntu
+  id: debug-environment
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      echo "============ DEBUG: ENVIRONMENT INFORMATION ============"
+      echo "Current working directory: $(pwd)"
+      echo "Directory contents: $(ls -la)"
+      echo "Build ID: $BUILD_ID"
+      echo "Project ID: $PROJECT_ID"
+      echo "Short SHA: $SHORT_SHA"
+      echo "========================================================="
+
+# Add debugging step to verify secret access
+- name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  id: "verify-secrets"
+  entrypoint: "bash"
+  secretEnv:
+    - _ASSEMBLY_AI_API_KEY
+    - _OPENAI_API_KEY
+    - _NUMBER_OF_APP_WORKERS
+  args:
+    - "-c"
+    - |
+      echo "============ DEBUG: SECRET VERIFICATION ============"
+      echo "ASSEMBLY_AI_API_KEY available? $(if [ -n "$_ASSEMBLY_AI_API_KEY" ]; then echo "YES"; else echo "NO"; fi)"
+      echo "ASSEMBLY_AI_API_KEY length: ${#_ASSEMBLY_AI_API_KEY}"
+      echo "OPENAI_API_KEY available? $(if [ -n "$_OPENAI_API_KEY" ]; then echo "YES"; else echo "NO"; fi)"
+      echo "OPENAI_API_KEY length: ${#_OPENAI_API_KEY}"
+      echo "NUMBER_OF_APP_WORKERS available? $(if [ -n "$_NUMBER_OF_APP_WORKERS" ]; then echo "YES"; else echo "NO"; fi)"
+      echo "NUMBER_OF_APP_WORKERS length: ${#_NUMBER_OF_APP_WORKERS}"
+      echo "======================================================"
+
 # 3. Deploy without SSH by directly running commands on the VM
 - name: gcr.io/cloud-builders/gcloud
   id: deploy
@@ -41,56 +76,123 @@ steps:
   args:
     - -c
     - |
-        # Create a startup script file with our commands
-        cat > startup-script.sh << EOF
+        echo "============ DEBUG: STARTING DEPLOY STEP ============"
+        echo "VM_NAME: ${_VM_NAME}"
+        echo "VM_ZONE: ${_VM_ZONE}"
+        echo "SHORT_SHA: $SHORT_SHA"
+        
+        echo "DEBUG: Creating startup script file..."
+        cat > startup-script.sh << 'EOF'
         #!/bin/bash
-        sudo docker pull gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
-
-        # stop/remove old container if present
-        if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
-          sudo docker stop api && sudo docker rm api
+        echo "STARTUP SCRIPT: Starting execution at $(date)"
+        echo "STARTUP SCRIPT: Pulling Docker image..."
+        sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+        
+        if [ $? -ne 0 ]; then
+          echo "STARTUP SCRIPT ERROR: Failed to pull Docker image"
+          exit 1
         fi
 
+        echo "STARTUP SCRIPT: Checking for existing container..."
+        # stop/remove old container if present
+        if sudo docker ps -a --format "{{.Names}}" | grep -qw api; then
+          echo "STARTUP SCRIPT: Found existing container, stopping and removing..."
+          sudo docker stop api && sudo docker rm api
+          if [ $? -ne 0 ]; then
+            echo "STARTUP SCRIPT ERROR: Failed to stop/remove existing container"
+          fi
+        fi
+
+        echo "STARTUP SCRIPT: Starting new container..."
         # run new container
-        sudo docker run -d \\
-          --restart unless-stopped \\
-          --name api \\
-          -p 8080:8080 \\
-          --env-file /etc/mev-defaults.env \\
-          --env REACT_APP_BACKEND_URL=https://api.mev.fyi \\
-          --env NUMBER_OF_APP_WORKERS=4 \\
-          --env ASSEMBLY_AI_API_KEY="\$ASSEMBLY_AI_API_KEY" \\
-          --env OPENAI_API_BASE_ANYSCALE="\$OPENAI_API_BASE_ANYSCALE" \\
-          --env OPENAI_API_KEY="\$OPENAI_API_KEY" \\
-          --env OPENAI_API_KEY_ANYSCALE="\$OPENAI_API_KEY_ANYSCALE" \\
-          --env PINECONE_API_ENVIRONMENT="\$PINECONE_API_ENVIRONMENT" \\
-          --env PINECONE_API_KEY="\$PINECONE_API_KEY" \\
-          --env YOUTUBE_API_KEY="\$YOUTUBE_API_KEY" \\
-          --env YOUTUBE_CHANNELS="\$YOUTUBE_CHANNELS" \\
-          --env GOOGLE_CLOUD_PROJECT="\$GOOGLE_CLOUD_PROJECT" \\
-          --env ASSEMBLY_AI_API="\$ASSEMBLY_AI_API" \\
-          --env NUMBER_OF_APP_WORKERS="\$NUMBER_OF_APP_WORKERS" \\
-          gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
+        sudo docker run -d \
+          --restart unless-stopped \
+          --name api \
+          -p 8080:8080 \
+          --env-file /etc/mev-defaults.env \
+          --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
+          --env NUMBER_OF_APP_WORKERS=4 \
+          --env ASSEMBLY_AI_API_KEY="${ASSEMBLY_AI_API_KEY}" \
+          --env OPENAI_API_BASE_ANYSCALE="${OPENAI_API_BASE_ANYSCALE}" \
+          --env OPENAI_API_KEY="${OPENAI_API_KEY}" \
+          --env OPENAI_API_KEY_ANYSCALE="${OPENAI_API_KEY_ANYSCALE}" \
+          --env PINECONE_API_ENVIRONMENT="${PINECONE_API_ENVIRONMENT}" \
+          --env PINECONE_API_KEY="${PINECONE_API_KEY}" \
+          --env YOUTUBE_API_KEY="${YOUTUBE_API_KEY}" \
+          --env YOUTUBE_CHANNELS="${YOUTUBE_CHANNELS}" \
+          --env GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT}" \
+          --env ASSEMBLY_AI_API="${ASSEMBLY_AI_API}" \
+          --env NUMBER_OF_APP_WORKERS="${NUMBER_OF_APP_WORKERS}" \
+          gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
+          
+        if [ $? -ne 0 ]; then
+          echo "STARTUP SCRIPT ERROR: Failed to start new container"
+          exit 1
+        else
+          echo "STARTUP SCRIPT: Container started successfully at $(date)"
+          sudo docker ps
+        fi
         EOF
+        
+        echo "DEBUG: Generated startup script:"
+        cat startup-script.sh
+        
+        echo "DEBUG: Replacing SHORT_SHA in the script..."
+        sed -i "s/\${SHORT_SHA}/$SHORT_SHA/g" startup-script.sh
+        
+        echo "DEBUG: Final startup script with replacements:"
+        cat startup-script.sh
 
-        # Update the VM metadata to include our secrets and run the startup script
-        gcloud compute instances add-metadata ${_VM_NAME} \
-          --zone=${_VM_ZONE} \
-          --metadata-from-file=startup-script=startup-script.sh \
-          --metadata=ASSEMBLY_AI_API_KEY="$$_ASSEMBLY_AI_API_KEY",\
-        OPENAI_API_BASE_ANYSCALE="$$_OPENAI_API_BASE_ANYSCALE",\
-        OPENAI_API_KEY="$$_OPENAI_API_KEY",\
-        OPENAI_API_KEY_ANYSCALE="$$_OPENAI_API_KEY_ANYSCALE",\
-        PINECONE_API_ENVIRONMENT="$$_PINECONE_API_ENVIRONMENT",\
-        PINECONE_API_KEY="$$_PINECONE_API_KEY",\
-        YOUTUBE_API_KEY="$$_YOUTUBE_API_KEY",\
-        YOUTUBE_CHANNELS="$$_YOUTUBE_CHANNELS",\
-        GOOGLE_CLOUD_PROJECT="$$_GOOGLE_CLOUD_PROJECT",\
-        ASSEMBLY_AI_API="$$_ASSEMBLY_AI_API",\
-        NUMBER_OF_APP_WORKERS="$$_NUMBER_OF_APP_WORKERS"
+        echo "DEBUG: Uploading startup script to VM..."
+        gcloud compute instances add-metadata ${_VM_NAME} --zone=${_VM_ZONE} \
+          --metadata-from-file=startup-script=startup-script.sh
+        
+        if [ $? -ne 0 ]; then
+          echo "ERROR: Failed to upload startup script to VM"
+          exit 1
+        fi
 
-        # Restart the VM to run the startup script
+        echo "DEBUG: Adding secrets to VM metadata individually..."
+        
+        # Function to add metadata and check result
+        add_metadata() {
+          local key=$1
+          local value=$2
+          echo "DEBUG: Adding metadata: $key"
+          gcloud compute instances add-metadata ${_VM_NAME} --zone=${_VM_ZONE} \
+            --metadata="$key=$value"
+          
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Failed to add metadata $key"
+            return 1
+          fi
+          echo "DEBUG: Successfully added metadata $key"
+          return 0
+        }
+        
+        # Add each secret to metadata individually
+        add_metadata "ASSEMBLY_AI_API_KEY" "$$_ASSEMBLY_AI_API_KEY"
+        add_metadata "OPENAI_API_BASE_ANYSCALE" "$$_OPENAI_API_BASE_ANYSCALE"
+        add_metadata "OPENAI_API_KEY" "$$_OPENAI_API_KEY"
+        add_metadata "OPENAI_API_KEY_ANYSCALE" "$$_OPENAI_API_KEY_ANYSCALE"
+        add_metadata "PINECONE_API_ENVIRONMENT" "$$_PINECONE_API_ENVIRONMENT"
+        add_metadata "PINECONE_API_KEY" "$$_PINECONE_API_KEY"
+        add_metadata "YOUTUBE_API_KEY" "$$_YOUTUBE_API_KEY"
+        add_metadata "YOUTUBE_CHANNELS" "$$_YOUTUBE_CHANNELS"
+        add_metadata "GOOGLE_CLOUD_PROJECT" "$$_GOOGLE_CLOUD_PROJECT"
+        add_metadata "ASSEMBLY_AI_API" "$$_ASSEMBLY_AI_API"
+        add_metadata "NUMBER_OF_APP_WORKERS" "$$_NUMBER_OF_APP_WORKERS"
+
+        echo "DEBUG: Restarting VM to run startup script..."
         gcloud compute instances reset ${_VM_NAME} --zone=${_VM_ZONE} --quiet
+        
+        if [ $? -ne 0 ]; then
+          echo "ERROR: Failed to restart VM"
+          exit 1
+        fi
+        
+        echo "DEBUG: VM restart initiated successfully"
+        echo "============ DEBUG: DEPLOY STEP COMPLETED ============"
 
 # List an image so Cloud Build shows a link
 images:
@@ -126,3 +228,6 @@ availableSecrets:
     env: _ASSEMBLY_AI_API
   - versionName: projects/mev-fyi/secrets/NUMBER_OF_APP_WORKERS/versions/latest
     env: _NUMBER_OF_APP_WORKERS
+
+options:
+  logging: CLOUD_LOGGING_ONLY
