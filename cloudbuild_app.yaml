@@ -1,5 +1,7 @@
+# cloudbuild_app.yaml
+
 steps:
-  # Build the Docker image for llama-flask-app
+  # 1. Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -9,10 +11,23 @@ steps:
       - './Dockerfile_app'
       - '.'
 
-  # Push the Docker image for llama-flask-app to Google Container Registry
+  # 2. Push the image to GCR
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA']
+    args:
+      - 'push'
+      - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
 
-# Specify the images to be available in the Container Registry
+  # 3. Deploy the new image to your Compute Engine VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud compute instances update-container my-vm-name \
+          --zone=europe-west1-b \
+          --container-image=gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA \
+          --container-restart-policy=always \
+          --project=mev-fyi
+
 images:
   - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
