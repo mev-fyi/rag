@@ -22,3 +22,4 @@ datasets/  # Ignore the entire datasets directory
 datasets/*
 datasets/evaluation_data/*
 *.mp3
+temp/

@@ -1,33 +1,78 @@
 # cloudbuild_app.yaml
 
 steps:
-  # 1. Build the Docker image
+  # 1. Build and tag the image
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'build'
-      - '-t'
+      - build
+      - -t
       - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
-      - '-f'
+      - -t
+      - 'gcr.io/mev-fyi/llama-flask-app:latest'
+      - -f
       - './Dockerfile_app'
       - '.'
 
-  # 2. Push the image to GCR
+  # 2. Push both tags
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'push'
+      - push
       - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'
-
-  # 3. Deploy the new image to your Compute Engine VM
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
+  - name: 'gcr.io/cloud-builders/docker'
     args:
-      - '-c'
+      - push
+      - 'gcr.io/mev-fyi/llama-flask-app:latest'
+
+  # 3. Deploy via SSH on Debian VM
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - -c
       - |
-        gcloud compute instances update-container my-vm-name \
-          --zone=europe-west1-b \
-          --container-image=gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA \
-          --container-restart-policy=always \
-          --project=mev-fyi
+          set -e
+          VM_ZONE=europe-west1-d
+          VM_NAME=mev-api-vm
+
+          # Fetch all secrets from Secret Manager
+          export ASSEMBLY_AI_API_KEY=$(gcloud secrets versions access latest --secret=ASSEMBLY_AI_API_KEY)
+          export OPENAI_API_BASE_ANYSCALE=$(gcloud secrets versions access latest --secret=OPENAI_API_BASE_ANYSCALE)
+          export OPENAI_API_KEY=$(gcloud secrets versions access latest --secret=OPENAI_API_KEY)
+          export OPENAI_API_KEY_ANYSCALE=$(gcloud secrets versions access latest --secret=OPENAI_API_KEY_ANYSCALE)
+          export PINECONE_API_ENVIRONMENT=$(gcloud secrets versions access latest --secret=PINECONE_API_ENVIRONMENT)
+          export PINECONE_API_KEY=$(gcloud secrets versions access latest --secret=PINECONE_API_KEY)
+          export YOUTUBE_API_KEY=$(gcloud secrets versions access latest --secret=YOUTUBE_API_KEY)
+          export YOUTUBE_CHANNELS=$(gcloud secrets versions access latest --secret=YOUTUBE_CHANNELS)
+          export GOOGLE_CLOUD_PROJECT=$(gcloud secrets versions access latest --secret=GOOGLE_CLOUD_PROJECT)
+          export ASSEMBLY_AI_API=$(gcloud secrets versions access latest --secret=ASSEMBLY_AI_API)
+
+          # Pull the new image
+          sudo docker pull gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
+
+          # Stop & remove old container if it exists
+          if sudo docker ps -a --format='{{.Names}}' | grep -qw api; then
+            sudo docker stop api
+            sudo docker rm api
+          fi
+
+          # Run the new container with all env vars
+          sudo docker run -d \
+            --env-file /etc/mev-defaults.env \
+            --restart unless-stopped \
+            --name api \
+            -p 8080:8080 \
+            --env REACT_APP_BACKEND_URL=https://api.mev.fyi \
+            --env NUMBER_OF_APP_WORKERS=4 \
+            --env ASSEMBLY_AI_API_KEY=$ASSEMBLY_AI_API_KEY \
+            --env OPENAI_API_BASE_ANYSCALE=$OPENAI_API_BASE_ANYSCALE \
+            --env OPENAI_API_KEY=$OPENAI_API_KEY \
+            --env OPENAI_API_KEY_ANYSCALE=$OPENAI_API_KEY_ANYSCALE \
+            --env PINECONE_API_ENVIRONMENT=$PINECONE_API_ENVIRONMENT \
+            --env PINECONE_API_KEY=$PINECONE_API_KEY \
+            --env YOUTUBE_API_KEY=$YOUTUBE_API_KEY \
+            --env YOUTUBE_CHANNELS=$YOUTUBE_CHANNELS \
+            --env GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
+            --env ASSEMBLY_AI_API=$ASSEMBLY_AI_API \
+            gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
 
 images:
   - 'gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA'

@@ -1,37 +1,32 @@
-# Use an official lightweight Python image
-FROM python:3.10
-
-# Use a build argument to specify the context
-ARG DOCKERIGNORE_CONTEXT=app
+# Use a slimmer Python base image
+FROM python:3.10-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file to the working directory in the container
+# Copy only requirements first to leverage layer caching
 COPY requirements.txt .
 
-# Install any dependencies
+# Copy your defaults file into the image
+COPY mev-defaults.env /etc/mev-defaults.env
+
+
+# Install system deps and Python packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 
-# Before copying, print all files in the build context
-RUN echo "=== BEFORE COPY ===" && ls -Rla /app
-
-# Copy files
+# Copy application code (datasets/ is excluded via .dockerignore in context root)
 COPY . .
 
 # After copying, print all files inside the container
 RUN echo "=== AFTER COPY ===" && ls -Rla /app
 
-# Use the build argument to copy the correct .dockerignore file before the build
-COPY .dockerignore.${DOCKERIGNORE_CONTEXT} ./.dockerignore
-
-# Append src directory to PYTHONPATH
+# Ensure src is on PYTHONPATH
 ENV PYTHONPATH "${PYTHONPATH}:/app/src"
 
-# Set the Flask environment to production
+# Flask environment
 ENV FLASK_ENV=production
 
 # Set the Flask app to the correct file
@@ -39,10 +34,10 @@ ENV FLASK_APP=src/Llama_index_sandbox/app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=8080
 
-# Expose the port the app runs on
+# Expose the application port
 EXPOSE 8080
 
-# Command to run the application
+# Run with Gunicorn
 CMD ["gunicorn", "--timeout", "3600", "-w", "4", "-b", "0.0.0.0:8080", "src.Llama_index_sandbox.app:app"]
 
 # NOTE on number of gunicorn workers: If you're deploying your container on Google Cloud Platform and you've configured each instance to have 2 vCPUs, then
