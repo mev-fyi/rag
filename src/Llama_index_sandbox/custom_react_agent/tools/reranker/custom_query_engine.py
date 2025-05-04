@@ -20,7 +20,7 @@ import heapq
 from urllib.parse import urlparse
 from tldextract import extract  # You might need to install this package
 
-from datasets.evaluation_data.site_configs import site_configs
+from src.Llama_index_sandbox.utils.site_configs import site_configs
 from src.Llama_index_sandbox.constants import DOCUMENT_TYPES
 from src.Llama_index_sandbox.utils.utils import root_directory, load_csv_data
 
