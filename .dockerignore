@@ -23,4 +23,3 @@ datasets/*
 datasets/evaluation_data/*
 *.mp3
 temp/
-.storage/
