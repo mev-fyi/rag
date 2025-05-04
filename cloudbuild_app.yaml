@@ -31,8 +31,12 @@ steps:
     - |
       echo "Verifying secrets are available:"
       echo "NUMBER_OF_APP_WORKERS length: ${#_NUMBER_OF_APP_WORKERS}"
+      echo "ASSEMBLY_AI_API_KEY length: ${#_ASSEMBLY_AI_API_KEY}"
+      echo "OPENAI_API_KEY length: ${#_OPENAI_API_KEY}"
   secretEnv:
     - _NUMBER_OF_APP_WORKERS
+    - _ASSEMBLY_AI_API_KEY
+    - _OPENAI_API_KEY
 
 # 3. SSH‑deploy on the VM, secrets injected via secretEnv
 - name: gcr.io/cloud-builders/gcloud
@@ -50,13 +54,13 @@ steps:
     - _GOOGLE_CLOUD_PROJECT
     - _ASSEMBLY_AI_API
     - _NUMBER_OF_APP_WORKERS
+    - _VM_NAME
+    - _VM_ZONE
   args:
     - -c
     - |
-        VM_NAME=mev-api-vm
-        VM_ZONE=europe-west1-d
-
-        gcloud compute ssh $VM_NAME --zone=$VM_ZONE --command '
+        # Use substitution variables with underscore prefix
+        gcloud compute ssh ${_VM_NAME} --zone=${_VM_ZONE} --command '
           sudo docker pull gcr.io/mev-fyi/llama-flask-app:${SHORT_SHA}
 
           # stop/remove old container if present
@@ -89,6 +93,11 @@ steps:
 # List an image so Cloud Build shows a link
 images:
 - gcr.io/mev-fyi/llama-flask-app:$SHORT_SHA
+
+# Define user substitutions
+substitutions:
+  _VM_NAME: mev-api-vm
+  _VM_ZONE: europe-west1-d
 
 # Secrets made available to secretEnv above
 availableSecrets:
